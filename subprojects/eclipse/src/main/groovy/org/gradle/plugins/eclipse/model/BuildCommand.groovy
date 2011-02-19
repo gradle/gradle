@@ -18,7 +18,7 @@ package org.gradle.plugins.eclipse.model
 /**
  * @author Hans Dockter
  */
-class BuildCommand {
+class BuildCommand implements Serializable {
     String name
     Map arguments
 

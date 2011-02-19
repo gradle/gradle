@@ -15,74 +15,43 @@
  */
 package org.gradle.plugins.eclipse.model
 
-import org.gradle.api.Action
-import org.gradle.plugins.eclipse.EclipseWtpFacet
+import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
 
 /**
- * Creates the org.eclipse.wst.common.project.facet.core.xml file for WTP projects.
+ * Creates the .settings/org.eclipse.wst.common.project.facet.core.xml file for WTP projects.
+ * Only handles installed facets. Fixed facets will be left untouched.
  *
  * @author Hans Dockter
  */
-class WtpFacet {
-    List facets = []
+class WtpFacet extends XmlPersistableConfigurationObject {
+    List facets = [] // TODO: turn into Set?
 
-    private Node xmlDocument
-
-    private Action<Map<String, Node>> withXmlActions
-
-    WtpFacet(EclipseWtpFacet eclipseFacet, Reader reader) {
-        readXml(reader)
-
-        eclipseFacet.beforeConfiguredActions.execute(this)
-
-        this.facets.addAll(eclipseFacet.facets)
-        this.facets.unique()
-
-        this.withXmlActions = eclipseFacet.withXmlActions
-
-        eclipseFacet.whenConfiguredActions.execute(this)
+    WtpFacet(XmlTransformer xmlTransformer) {
+        super(xmlTransformer)
     }
 
-    void toXml(File outputFile) {
-        outputFile.withWriter { toXml(it) }
+    @Override protected void load(Node xml) {
+        xml.installed.each { facets.add(new Facet(it)) }
     }
 
-    private void readXml(Reader reader) {
-        if (!reader) {
-            xmlDocument = new Node(null, 'faceted-project')
-            xmlDocument.appendNode('fixed', [facet: 'jst.java'])
-            xmlDocument.appendNode('fixed', [facet: 'jst.web'])
-            return
-        }
-
-        xmlDocument = doReadXml(reader)
-    }
-
-    private Node doReadXml(Reader reader) {
-        def rootNode = new XmlParser().parse(reader)
-        rootNode.installed.each { facets.add(new Facet(it)) }
-        rootNode
-    }
-
-    private void toXml(Writer writer) {
+    @Override protected void store(Node xml) {
         removeConfigurableDataFromXml()
 
-        facets.each { it.appendNode(xmlDocument) }
-        withXmlActions.execute(['org.eclipse.wst.commons.project.facet.core': xmlDocument])
+        facets.each { it.appendNode(xml) }
+    }
 
-        printNode(xmlDocument, writer)
+    @Override protected String getDefaultResourceName() {
+        "defaultWtpFacet.xml"
+    }
+
+    void configure(List<Facet> facets) {
+        this.facets.addAll(facets)
+        this.facets.unique()
     }
 
     private void removeConfigurableDataFromXml() {
-        xmlDocument.installed.each { xmlDocument.remove(it) }
-    }
-
-    private void printNode(Node node, Writer writer) {
-        def printWriter = new PrintWriter(writer)
-        def nodePrinter = new XmlNodePrinter(printWriter, "\t") // TODO: doesn't use UTF-8
-        nodePrinter.preserveWhitespace = true
-        nodePrinter.print(node)
-        printWriter.flush()
+        xml.installed.each { xml.remove(it) }
     }
 
     boolean equals(o) {
@@ -90,7 +59,7 @@ class WtpFacet {
 
         if (getClass() != o.class) { return false }
 
-        WtpFacet wtp = (WtpFacet) o;
+        WtpFacet wtp = (WtpFacet) o
 
         if (facets != wtp.facets) { return false }
 
@@ -98,15 +67,12 @@ class WtpFacet {
     }
 
     int hashCode() {
-        int result;
-
-        result = facets.hashCode();
-        return result;
+        facets.hashCode()
     }
 
     String toString() {
         return "WtpFacet{" +
                 ", facets=" + facets +
-                '}';
+                '}'
     }
 }

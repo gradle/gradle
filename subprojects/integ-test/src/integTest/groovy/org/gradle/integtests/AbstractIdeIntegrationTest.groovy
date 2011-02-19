@@ -26,9 +26,14 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks(taskName).run()
     }
 
-    protected parseXmlFile(filename, print) {
-        def file = file(filename).assertExists()
-        if (print) { println file.text }
+    protected File getFile(Map options, String filename) {
+        def file = options?.project ? file(options.project, filename) : file(filename)
+        if (options?.print) { println file.text }
+        file
+    }
+
+    protected parseFile(Map options, String filename) {
+        def file = getFile(options, filename)
         new XmlSlurper().parse(file)
     }
 

@@ -33,17 +33,17 @@ class EclipseProject extends XmlGeneratorTask<Project> {
     /**
      * The name used for the name of the eclipse project
      */
-    String projectName;
+    String projectName
 
     /**
      * A comment used for the eclipse project
      */
-    String comment;
+    String comment
 
     /**
      * The referenced projects of this Eclipse project.
      */
-    Set<String> referencedProjects = new LinkedHashSet<String>();
+    Set<String> referencedProjects = new LinkedHashSet<String>()
 
     /**
      * The natures to be added to this Eclipse project.
@@ -58,14 +58,14 @@ class EclipseProject extends XmlGeneratorTask<Project> {
     /**
      * The links to be added to this Eclipse project.
      */
-    Set<Link> links = new LinkedHashSet<Link>();
+    Set<Link> links = new LinkedHashSet<Link>()
 
     EclipseProject() {
         xmlTransformer.indentation = "\t"
     }
 
     @Override protected Project create() {
-        return new Project(xmlTransformer)
+        new Project(xmlTransformer)
     }
 
     @Override protected void configure(Project project) {
@@ -100,7 +100,7 @@ class EclipseProject extends XmlGeneratorTask<Project> {
      */
     void buildCommand(Map args, String buildCommand) {
         assert buildCommand != null
-        this.buildCommands.add(new BuildCommand(buildCommand, args))
+        buildCommands << new BuildCommand(buildCommand, args)
     }
 
     /**
@@ -111,7 +111,7 @@ class EclipseProject extends XmlGeneratorTask<Project> {
      */
     void buildCommand(String buildCommand) {
         assert buildCommand != null
-        this.buildCommands.add(new BuildCommand(buildCommand))
+        buildCommands << new BuildCommand(buildCommand)
     }
 
     /**
@@ -124,6 +124,6 @@ class EclipseProject extends XmlGeneratorTask<Project> {
         if (illegalArgs) {
             throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
         }
-        this.links.add(new Link(args.name, args.type, args.location, args.locationUri))
+        links << new Link(args.name, args.type, args.location, args.locationUri)
     }
 }

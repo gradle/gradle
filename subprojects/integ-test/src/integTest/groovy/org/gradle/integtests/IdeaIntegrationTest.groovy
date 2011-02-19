@@ -122,7 +122,7 @@ sourceSets.main.resources.srcDirs.each { it.mkdirs() }
 sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
         """
 
-        def module = parseImlFile("root", true)
+        def module = parseImlFile("root")
         def sourceFolders = module.component.content.sourceFolder
         def urls = sourceFolders*.@url*.text()
 
@@ -155,8 +155,8 @@ sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
         runTask("idea", buildScript)
     }
 
-    private parseImlFile(projectName, print = false) {
-        parseXmlFile("${projectName}.iml", print)
+    private parseImlFile(Map options = [:], String projectName) {
+        parseFile(options, "${projectName}.iml")
     }
 
     private containsDir(path, urls) {

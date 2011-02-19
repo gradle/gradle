@@ -186,9 +186,9 @@ public class XmlTransformer implements Transformer<String> {
                 } else if (element != null) {
                     printNode(element, writer);
                 } else if (builder != null) {
-                    writer.append(TextUtil.toNativeLineSeparators(removeAnyXmlDeclaration(builder)));
+                    writer.append(TextUtil.toNativeLineSeparators(stripXmlDeclaration(builder)));
                 } else {
-                    writer.append(TextUtil.toNativeLineSeparators(removeAnyXmlDeclaration(stringValue)));
+                    writer.append(TextUtil.toNativeLineSeparators(stripXmlDeclaration(stringValue)));
                 }
             } catch (IOException e) {
                 throw UncheckedException.asUncheckedException(e);
@@ -262,7 +262,7 @@ public class XmlTransformer implements Transformer<String> {
             return xml.startsWith("<?xml"); // XML declarations must be located at first position of first line
         }
 
-        private String removeAnyXmlDeclaration(CharSequence sequence) {
+        private String stripXmlDeclaration(CharSequence sequence) {
             String str = sequence.toString();
             if (hasXmlDeclaration(str)) {
                 str = str.substring(str.indexOf("?>") + 2);

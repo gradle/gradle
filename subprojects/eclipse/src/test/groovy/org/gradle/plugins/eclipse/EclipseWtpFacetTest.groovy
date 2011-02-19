@@ -15,14 +15,8 @@
  */
 package org.gradle.plugins.eclipse
 
-import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.eclipse.model.Facet
-import org.gradle.util.TemporaryFolder
-import org.gradle.plugins.eclipse.model.WtpFacet
-import org.gradle.plugins.eclipse.model.internal.WtpFacetFactory
-
-import org.junit.Rule
 
 /**
  * @author Hans Dockter
@@ -30,34 +24,16 @@ import org.junit.Rule
 public class EclipseWtpFacetTest extends AbstractSpockTaskTest {
     private eclipseFacet = createTask(EclipseWtpFacet)
 
-    @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder()
-
-    ConventionTask getTask() {
+    EclipseWtpFacet getTask() {
         return eclipseFacet
     }
 
     def "facet should add"() {
         when:
-        eclipseFacet.facet name: 'facet1', version: '1.0'
-        eclipseFacet.facet name: 'facet2', version: '2.0'
+        task.facet name: 'facet1', version: '1.0'
+        task.facet name: 'facet2', version: '2.0'
 
         then:
-        eclipseFacet.facets == [new Facet('facet1', '1.0'), new Facet('facet2', '2.0')]
-    }
-
-    def "generate xml"() {
-        def modelFactory = Mock(WtpFacetFactory)
-        def facet = Mock(WtpFacet)
-        modelFactory.createWtpFacet(eclipseFacet) >> facet
-
-        eclipseFacet.modelFactory = modelFactory
-        eclipseFacet.outputFile = tmpDir.file("facet")
-
-        when:
-        eclipseFacet.generateXml()
-
-        then:
-        1 * facet.toXml(eclipseFacet.outputFile)
+        task.facets == [new Facet('facet1', '1.0'), new Facet('facet2', '2.0')]
     }
 }

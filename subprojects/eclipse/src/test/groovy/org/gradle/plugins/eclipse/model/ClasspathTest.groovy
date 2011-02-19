@@ -36,12 +36,12 @@ public class ClasspathTest extends Specification {
     private static final PROJECT_DEPENDENCY = [CUSTOM_ENTRIES[0]]
     private static final ALL_DEPENDENCIES = [CUSTOM_ENTRIES[0], CUSTOM_ENTRIES[2]]
 
-    final Classpath classpath = new Classpath(new XmlTransformer())
+    private final Classpath classpath = new Classpath(new XmlTransformer())
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TemporaryFolder tmpDir = new TemporaryFolder()
 
-    def loadFromReader() {
+    def "load from reader"() {
         when:
         classpath.load(customClasspathReader)
 
@@ -49,7 +49,7 @@ public class ClasspathTest extends Specification {
         classpath.entries == CUSTOM_ENTRIES
     }
 
-    def configureOverwritesDependenciesAndAppendsAllOtherEntries() {
+    def "configure overwrites dependencies and appends all other entries"() {
         def constructorEntries = [createSomeLibrary()]
 
         when:
@@ -62,7 +62,7 @@ public class ClasspathTest extends Specification {
         classpath.entries ==  entriesToBeKept + newEntries
     }
 
-    def loadDefaults() {
+    def "load defaults"() {
         when:
         classpath.loadDefaults()
 
@@ -70,7 +70,7 @@ public class ClasspathTest extends Specification {
         classpath.entries == []
     }
 
-    def toXml_shouldContainCustomValues() {
+    def "toXml contains custom values"() {
         def constructorEntries = [createSomeLibrary()]
 
         when:

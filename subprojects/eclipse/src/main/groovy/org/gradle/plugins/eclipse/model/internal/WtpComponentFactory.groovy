@@ -19,8 +19,6 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.eclipse.EclipseWtpComponent
 import org.gradle.plugins.eclipse.model.*
 
@@ -28,24 +26,23 @@ import org.gradle.plugins.eclipse.model.*
  * @author Hans Dockter
  */
 class WtpComponentFactory {
-    WtpComponent createWtpComponent(EclipseWtpComponent eclipseComponent) {
-        File inputFile = eclipseComponent.inputFile
-        FileReader reader = inputFile != null && inputFile.exists() ? new FileReader(inputFile) : null
-        List entries = getEntriesFromSourceSets(eclipseComponent.sourceSets, eclipseComponent.project)
+    void configure(EclipseWtpComponent eclipseComponent, WtpComponent component) {
+        def entries = getEntriesFromSourceSets(eclipseComponent.sourceSets, eclipseComponent.project)
         entries.addAll(eclipseComponent.resources)
         entries.addAll(eclipseComponent.properties)
         entries.addAll(getEntriesFromConfigurations(eclipseComponent))
-        return new WtpComponent(eclipseComponent, entries, reader)
+
+        component.configure(eclipseComponent.deployName, eclipseComponent.contextPath, entries)
     }
 
-    private List getEntriesFromSourceSets(def sourceSets, def project) {
-        List entries = []
-        sourceSets.each { SourceSet sourceSet ->
-            entries.add(new WbProperty('java-output-path', PathUtil.normalizePath(project.relativePath(sourceSet.classesDir))))
-            sourceSet.allSource.sourceTrees.each { SourceDirectorySet sourceDirectorySet ->
+    private List getEntriesFromSourceSets(sourceSets, project) {
+        def entries = []
+        sourceSets.each { sourceSet ->
+            entries << new WbProperty('java-output-path', PathUtil.normalizePath(project.relativePath(sourceSet.classesDir)))
+            sourceSet.allSource.sourceTrees.each { sourceDirectorySet ->
                 sourceDirectorySet.srcDirs.each { dir ->
                     if (dir.isDirectory()) {
-                        entries.add(new WbResource("/WEB-INF/classes", project.relativePath(dir)))
+                        entries << new WbResource("/WEB-INF/classes", project.relativePath(dir))
                     }
                 }
             }
@@ -86,7 +83,7 @@ class WtpComponentFactory {
 
     private WbDependentModule createWbDependentModuleEntry(File file, Map<String, File> variables) {
         def usedVariableEntry = variables.find { name, value -> file.canonicalPath.startsWith(value.canonicalPath) }
-        String handleSnippet;
+        def handleSnippet
         if (usedVariableEntry) {
             handleSnippet = "var/$usedVariableEntry.key/${file.canonicalPath.substring(usedVariableEntry.value.canonicalPath.length())}"
         } else {
@@ -98,7 +95,7 @@ class WtpComponentFactory {
 
     // TODO: seems this has to be transitive (like library entries)
     private LinkedHashSet getDependencies(Set plusConfigurations, Set minusConfigurations, Closure filter) {
-        Set declaredDependencies = new LinkedHashSet()
+        def declaredDependencies = new LinkedHashSet()
         plusConfigurations.each { configuration ->
             declaredDependencies.addAll(configuration.allDependencies.findAll(filter))
         }

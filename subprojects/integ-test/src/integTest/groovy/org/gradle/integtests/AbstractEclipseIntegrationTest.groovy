@@ -21,12 +21,36 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
         runTask("eclipse", settingsScript, buildScript)
     }
 
-    protected parseClasspathFile(print = false) {
-        parseXmlFile(".classpath", print)
+    protected File getProjectFile(Map options) {
+        getFile(options, ".project")
     }
 
-    protected parseProjectFile(print = false) {
-        parseXmlFile(".project", print)
+    protected File getClasspathFile(Map options) {
+        getFile(options, ".classpath")
+    }
+
+    protected File getComponentFile(Map options) {
+        getFile(options, ".settings/org.eclipse.wst.common.component")
+    }
+
+    protected File getFacetFile(Map options) {
+        getFile(options, ".settings/org.eclipse.wst.common.project.facet.core.xml")
+    }
+
+    protected parseProjectFile(Map options) {
+        parseFile(options, ".project")
+    }
+
+    protected parseClasspathFile(Map options) {
+        parseFile(options, ".classpath")
+    }
+
+    protected parseComponentFile(Map options) {
+        parseFile(options, ".settings/org.eclipse.wst.common.component")
+    }
+
+    protected parseFacetFile(Map options) {
+        parseFile(options, ".settings/org.eclipse.wst.common.project.facet.core.xml")
     }
 
     protected findEntries(classpath, kind) {

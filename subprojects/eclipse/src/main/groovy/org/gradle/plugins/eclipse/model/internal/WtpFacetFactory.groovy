@@ -22,9 +22,7 @@ import org.gradle.plugins.eclipse.model.WtpFacet
  * @author Hans Dockter
  */
 class WtpFacetFactory {
-    WtpFacet createWtpFacet(EclipseWtpFacet eclipseFacet) {
-        File inputFile = eclipseFacet.inputFile
-        FileReader reader = inputFile != null && inputFile.exists() ? new FileReader(inputFile) : null
-        return new WtpFacet(eclipseFacet, reader)
+    void configure(EclipseWtpFacet eclipseFacet, WtpFacet facet) {
+        facet.configure(eclipseFacet.facets)
     }
 }

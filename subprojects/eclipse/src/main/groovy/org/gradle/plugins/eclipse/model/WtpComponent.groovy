@@ -15,110 +15,78 @@
  */
 package org.gradle.plugins.eclipse.model
 
-import org.gradle.api.Action
-import org.gradle.plugins.eclipse.EclipseWtpComponent
+import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
 
 /**
- * Creates the org.eclipse.wst.common.component files for WTP projects.
+ * Creates the .settings/org.eclipse.wst.common.component file for WTP projects.
  *
  * @author Hans Dockter
  */
-class WtpComponent {
-    List wbModuleEntries = []
-
+class WtpComponent extends XmlPersistableConfigurationObject {
     String deployName
 
     String contextPath
 
-    private Node xmlDocument
+    List wbModuleEntries = [] // TODO: change to Set? introduce common base class?
 
-    private Action<Map<String, Node>> withXmlActions
-
-    WtpComponent(EclipseWtpComponent eclipseComponent, List wbModuleEntries, Reader reader) {
-        readXml(reader)
-
-        eclipseComponent.beforeConfiguredActions.execute(this)
-
-        this.wbModuleEntries.addAll(wbModuleEntries)
-        this.wbModuleEntries.unique()
-        if (eclipseComponent.deployName) { // TODO: why conditional?
-            this.deployName = eclipseComponent.deployName
-        }
-        if (eclipseComponent.contextPath) { // TODO: why conditional?
-            this.contextPath = eclipseComponent.contextPath
-        }
-        this.withXmlActions = eclipseComponent.withXmlActions
-
-        eclipseComponent.whenConfiguredActions.execute(this)
+    WtpComponent(XmlTransformer xmlTransformer) {
+        super(xmlTransformer)
     }
 
-    private readXml(Reader reader) {
-        if (!reader) {
-            xmlDocument = new Node(null, 'project-modules', [id: "moduleCoreId", 'project-version': "2.0"])
-            xmlDocument.appendNode('wb-module')
-            return
-        }
+    @Override protected void load(Node xml) {
+        deployName = xml.'wb-module'[0].@'deploy-name'
 
-        xmlDocument = doReadXml(reader)
-    }
-
-    private doReadXml(Reader reader) {
-        def rootNode = new XmlParser().parse(reader)
-
-        deployName = rootNode.'wb-module'[0].@'deploy-name'
-        rootNode.'wb-module'[0].children().each { entryNode ->
-            def entry = null
-            switch (entryNode.name()) {
+        xml.'wb-module'[0].children().each { node ->
+            switch (node.name()) {
                 case 'property':
-                    if (entryNode.@name == 'context-root') {
-                        contextPath = entryNode.@value
+                    if (node.@name == 'context-root') {
+                        contextPath = node.@value
                     } else {
-                        entry = new WbProperty(entryNode)
+                        wbModuleEntries << new WbProperty(node)
                     }
                     break
-                case 'wb-resource': entry = new WbResource(entryNode)
+                case 'wb-resource':
+                    wbModuleEntries << new WbResource(node)
                     break
-                case 'dependent-module': entry = new WbDependentModule(entryNode)
+                case 'dependent-module':
+                    wbModuleEntries << new WbDependentModule(node)
                     break
-            }
-            if (entry) {
-                wbModuleEntries.add(entry)
             }
         }
-        rootNode
     }
 
-    void toXml(File outputFile) {
-        outputFile.withWriter { toXml(it) }
-    }
-
-    private toXml(Writer writer) {
+    @Override protected void store(Node xml) {
         removeConfigurableDataFromXml()
-        xmlDocument.'wb-module'[0].@'deploy-name' = deployName
+
+        xml.'wb-module'[0].@'deploy-name' = deployName
         if (contextPath) {
-            new WbProperty('context-root', contextPath).appendNode(xmlDocument.'wb-module')
+            new WbProperty('context-root', contextPath).appendNode(xml.'wb-module')
         }
-        wbModuleEntries.each { it.appendNode(xmlDocument.'wb-module') }
+        wbModuleEntries.each { it.appendNode(xml.'wb-module') }
+    }
 
-        withXmlActions.execute(['org.eclipse.wst.commons.component': xmlDocument])
+    @Override protected String getDefaultResourceName() {
+        "defaultWtpComponent.xml"
+    }
 
-        printNode(xmlDocument, writer)
+    void configure(String deployName, String contextPath, List wbModuleEntries) {
+        this.wbModuleEntries.addAll(wbModuleEntries)
+        this.wbModuleEntries.unique()
+        if (deployName) {
+            this.deployName = deployName
+        }
+        if (contextPath) {
+            this.contextPath = contextPath
+        }
     }
 
     private void removeConfigurableDataFromXml() {
         ['property', 'wb-resource', 'dependent-module'].each { elementName ->
-            xmlDocument.'wb-module'."$elementName".each { elementNode ->
-                xmlDocument.'wb-module'[0].remove(elementNode)
+            xml.'wb-module'."$elementName".each { elementNode ->
+                xml.'wb-module'[0].remove(elementNode)
             }
         }
-    }
-
-    private void printNode(Node node, Writer writer) {
-        def printWriter = new PrintWriter(writer)
-        def nodePrinter = new XmlNodePrinter(printWriter, "\t") // TODO: doesn't use UTF-8
-        nodePrinter.preserveWhitespace = true
-        nodePrinter.print(node)
-        printWriter.flush()
     }
 
     boolean equals(o) {

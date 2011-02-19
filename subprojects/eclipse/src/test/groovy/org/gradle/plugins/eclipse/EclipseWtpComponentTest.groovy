@@ -19,20 +19,12 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.eclipse.model.WbProperty
 import org.gradle.plugins.eclipse.model.WbResource
-import org.gradle.plugins.eclipse.model.WtpComponent
-import org.gradle.util.TemporaryFolder
-
-import org.junit.Rule
-import org.gradle.plugins.eclipse.model.internal.WtpComponentFactory
 
 /**
  * @author Hans Dockter
  */
 public class EclipseWtpComponentTest extends AbstractSpockTaskTest {
     private eclipseComponent = createTask(EclipseWtpComponent)
-
-    @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder()
 
     ConventionTask getTask() { eclipseComponent }
 
@@ -52,21 +44,6 @@ public class EclipseWtpComponentTest extends AbstractSpockTaskTest {
 
         then:
         eclipseComponent.resources == [new WbResource('path1', 'sourcepath1'), new WbResource('path2', 'sourcepath2')]
-    }
-
-    def "generate xml"() {
-        def modelFactory = Mock(WtpComponentFactory)
-        def component = Mock(WtpComponent)
-        modelFactory.createWtpComponent(eclipseComponent) >> component
-
-        eclipseComponent.modelFactory = modelFactory
-        eclipseComponent.outputFile = tmpDir.file("component")
-
-        when:
-        eclipseComponent.generateXml()
-
-        then:
-        1 * component.toXml(eclipseComponent.outputFile)
     }
 
     def "variables should add"() {

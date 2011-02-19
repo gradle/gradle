@@ -15,52 +15,35 @@
  */
 package org.gradle.plugins.eclipse
 
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-import org.gradle.listener.ActionBroadcast
-import org.gradle.util.ConfigureUtil
+import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.eclipse.model.*
 import org.gradle.plugins.eclipse.model.internal.WtpFacetFactory
+import org.gradle.util.ConfigureUtil
 
 /**
  * Generates the org.eclipse.wst.common.project.facet.core settings file for Eclipse WTP.
  *
  * @author Hans Dockter
  */
-class EclipseWtpFacet extends ConventionTask {
+class EclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
     /**
-     * Any existing file that is to be merged with the generated file.
+     * The facets to be added as elements.
      */
-    @Optional
-    File inputFile
-
-    /**
-     * The file to be generated.
-     */
-    @OutputFile
-    File outputFile
-
-    /**
-     * The facets to be added as installed elements.
-     */
+    // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
     List<Facet> facets = []
 
     protected WtpFacetFactory modelFactory = new WtpFacetFactory()
 
-    ActionBroadcast<Map<String, Node>> withXmlActions = new ActionBroadcast<Map<String, Node>>()
-    ActionBroadcast<WtpFacet> beforeConfiguredActions = new ActionBroadcast<WtpFacet>()
-    ActionBroadcast<WtpFacet> whenConfiguredActions = new ActionBroadcast<WtpFacet>()
-
     EclipseWtpFacet() {
-        outputs.upToDateWhen { false }
+        xmlTransformer.indentation = "\t"
     }
 
-    @TaskAction
-    protected void generateXml() {
-        WtpFacet facets = modelFactory.createWtpFacet(this)
-        facets.toXml(outputFile)
+    @Override protected WtpFacet create() {
+        new WtpFacet(xmlTransformer)
+    }
+
+    @Override protected void configure(WtpFacet facet) {
+        modelFactory.configure(this, facet)
     }
 
     /**
@@ -70,29 +53,5 @@ class EclipseWtpFacet extends ConventionTask {
      */
     void facet(Map<String, ?> args) {
         facets << ConfigureUtil.configureByMap(args, new Facet())
-    }
-
-    /**
-     * Adds a closure to be called when the XML content for each file has been generated, but before the content is
-     * written to the file.
-     */
-    void withXml(Closure closure) {
-        withXmlActions.add(closure)
-    }
-
-    /**
-     * Adds a closure to be called when the model has been loaded from the input file, and before this task has
-     * configured the model.
-     */
-    void beforeConfigured(Closure closure) {
-        beforeConfiguredActions.add(closure)
-    }
-
-    /**
-     * Adds a closure to be called after this task has configured model, and before it generates the XML content for the
-     * files.
-     */
-    void whenConfigured(Closure closure) {
-        whenConfiguredActions.add(closure)
     }
 }

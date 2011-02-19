@@ -67,15 +67,6 @@
             <tr>
                 <td>resource</td>
             </tr>
-            <tr>
-                <td>withXml</td>
-            </tr>
-            <tr>
-                <td>beforeConfigured</td>
-            </tr>
-            <tr>
-                <td>whenConfigured</td>
-            </tr>
         </table>
     </section>
 </section>

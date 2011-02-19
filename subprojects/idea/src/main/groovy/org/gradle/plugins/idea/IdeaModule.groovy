@@ -35,6 +35,7 @@ import org.gradle.plugins.idea.model.Module
  *
  * @author Hans Dockter
  */
+// TODO: Why are some properties not marked with @Input? Why aren't more properties marked with @Optional (e.g. downloadSources)?
 public class IdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The content root directory of the module.
@@ -96,6 +97,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
      * The variables to be used for replacing absolute paths in the iml entries. For example, you might add a
      * {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
      */
+    @Input
     Map<String, File> variables = [:]
 
     /**

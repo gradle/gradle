@@ -17,15 +17,16 @@ package org.gradle.integtests
 
 import org.junit.Test
 
+// TODO: run prepareWebProject() only once per class (for performance reasons)
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void firstLevelJavaProjectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
         prepareWebProject()
 
-        def facetFile1 = testFile("java1/.settings/org.eclipse.wst.common.project.facet.core.xml")
+        def facetFile1 = getFacetFile(project: "java1")
         assert hasUtilityFacet(facetFile1)
 
-        def facetFile2 = testFile("java2/.settings/org.eclipse.wst.common.project.facet.core.xml")
+        def facetFile2 = getFacetFile(project: "java2")
         assert !facetFile2.exists() || !hasUtilityFacet(facetFile2)
     }
 
@@ -33,8 +34,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     void firstLevelJavaProjectDependenciesOfWebProjectHaveNecessaryNaturesAdded() {
         prepareWebProject()
 
-        def projectFile = testFile("java1/.project")
-        def projectDescription = new XmlSlurper().parse(projectFile)
+        def projectDescription = parseProjectFile(project: "java1")
 
         assert projectDescription.natures.nature*.text().containsAll(["org.eclipse.wst.common.project.facet.core.nature",
                 "org.eclipse.jem.workbench.JavaEMFNature", "org.eclipse.wst.common.modulecore.ModuleCoreNature"])
@@ -44,8 +44,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     void firstLevelJavaProjectDependenciesOfWebProjectHaveNecessaryBuildersAdded() {
         prepareWebProject()
 
-        def projectFile = testFile("java1/.project")
-        def projectDescription = new XmlSlurper().parse(projectFile)
+        def projectDescription = parseProjectFile(project: "java1")
 
         assert projectDescription.buildSpec.buildCommand.name*.text().containsAll(
                 ["org.eclipse.wst.common.project.facet.core.builder", "org.eclipse.wst.validation.validationbuilder"])
@@ -55,8 +54,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     void firstLevelJavaProjectDependenciesOfWebProjectHaveComponentSettingsFile() {
         prepareWebProject()
 
-        def componentFile = testFile("java1/.settings/org.eclipse.wst.common.component")
-        def projectModules = new XmlSlurper().parse(componentFile)
+        def projectModules = parseComponentFile(project: "java1")
 
         assert getDeployNames(projectModules) == ["java1"]
         assert getHandleFilenames(projectModules) == ["java2", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
@@ -67,9 +65,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     void jarDependenciesOfUtilityProjectsMustBeFlaggedAsRuntimeDependency() {
         prepareWebProject()
 
-        def classpathFile = testFile("java1/.classpath")
-        println classpathFile.text
-        def classpath = new XmlSlurper().parse(classpathFile)
+        def classpath = parseClasspathFile(project: "java1")
 
         def firstLevelDep = classpath.classpathentry.find { it.@path.text().endsWith("myartifact-1.0.jar") }
         assert firstLevelDep.attributes.attribute.find { it.@name.text() == "org.eclipse.jst.component.dependency" }
@@ -83,9 +79,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     void allProjectDependenciesOfWebProjectMustBeAddedAsRuntimeDependencies() {
         prepareWebProject()
 
-        def componentFile = testFile(".settings/org.eclipse.wst.common.component")
-        println componentFile.text
-        def projectModules = new XmlSlurper().parse(componentFile)
+        def projectModules = parseComponentFile()
 
 		assert getDeployNames(projectModules) == ["root"]
 		assert getHandleFilenames(projectModules) == ["java1", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set

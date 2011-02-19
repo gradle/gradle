@@ -16,12 +16,8 @@
 package org.gradle.plugins.eclipse
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskAction
-import org.gradle.listener.ActionBroadcast
+import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.eclipse.model.*
 import org.gradle.plugins.eclipse.model.internal.WtpComponentFactory
 
@@ -30,19 +26,7 @@ import org.gradle.plugins.eclipse.model.internal.WtpComponentFactory
  *
  * @author Hans Dockter
  */
-class EclipseWtpComponent extends ConventionTask {
-    /**
-     * Any existing file that is to be merged with the generated file.
-     */
-    @Optional
-    File inputFile
-
-    /**
-     * The file to be generated.
-     */
-    @OutputFile
-    File outputFile
-
+class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     /**
      * The source sets to be transformed into wb-resource elements.
      */
@@ -83,20 +67,18 @@ class EclipseWtpComponent extends ConventionTask {
      */
     String contextPath
 
-    protected WtpComponentFactory modelFactory = new WtpComponentFactory()
-
-    ActionBroadcast<Map<String, Node>> withXmlActions = new ActionBroadcast<Map<String, Node>>()
-    ActionBroadcast<WtpComponent> beforeConfiguredActions = new ActionBroadcast<WtpComponent>()
-    ActionBroadcast<WtpComponent> whenConfiguredActions = new ActionBroadcast<WtpComponent>()
+    private final WtpComponentFactory modelFactory = new WtpComponentFactory()
 
     EclipseWtpComponent() {
-        outputs.upToDateWhen { false }
+        xmlTransformer.indentation = "\t"
     }
 
-    @TaskAction
-    protected void generateXml() {
-        WtpComponent component = modelFactory.createWtpComponent(this)
-        component.toXml(outputFile)
+    @Override protected WtpComponent create() {
+        new WtpComponent(xmlTransformer)
+    }
+
+    @Override protected void configure(WtpComponent component) {
+        modelFactory.configure(this, component)
     }
 
     /**
@@ -125,29 +107,5 @@ class EclipseWtpComponent extends ConventionTask {
      */
     void resource(Map<String, String> args) {
         resources.add(new WbResource(args.deployPath, args.sourcePath))
-    }
-
-    /**
-     * Adds a closure to be called when the XML content for each file has been generated, but before the content is
-     * written to the file.
-     */
-    void withXml(Closure closure) {
-        withXmlActions.add(closure)
-    }
-
-    /**
-     * Adds a closure to be called when the model has been loaded from the input file, and before this task has
-     * configured the model.
-     */
-    void beforeConfigured(Closure closure) {
-        beforeConfiguredActions.add(closure)
-    }
-
-    /**
-     * Adds a closure to be called after this task has configured model, and before it generates the XML content for the
-     * files.
-     */
-    void whenConfigured(Closure closure) {
-        whenConfiguredActions.add(closure)
     }
 }
