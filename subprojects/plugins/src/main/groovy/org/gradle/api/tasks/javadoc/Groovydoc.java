@@ -40,6 +40,8 @@ import java.util.*;
 public class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;
 
+    private FileCollection classpath;
+
     private File destinationDir;
 
     private AntGroovydoc antGroovydoc;
@@ -69,22 +71,21 @@ public class Groovydoc extends SourceTask {
 
     @TaskAction
     protected void generate() {
-        List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
-        throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
+        checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
         antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(), getDocTitle(), getHeader(),
-                getFooter(), getOverview(), isIncludePrivate(), getLinks(), taskClasspath, getProject());
+                getFooter(), getOverview(), isIncludePrivate(), getLinks(), getGroovyClasspath(), getClasspath(), getProject());
     }
 
-    private void throwExceptionIfTaskClasspathIsEmpty(List taskClasspath) {
-        if (taskClasspath.size() == 0) {
+    private void checkGroovyClasspathNonEmpty(Collection<File> classpath) {
+        if (classpath.isEmpty()) {
             throw new InvalidUserDataException("You must assign a Groovy library to the groovy configuration!");
         }
     }
 
     /**
-     * <p>Returns the directory to generate the documentation into.</p>
+     * Returns the directory to generate the documentation into.
      *
-     * @return The directory.
+     * @return The directory to generate the documentation into
      */
     @OutputDirectory
     public File getDestinationDir() {
@@ -92,27 +93,44 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * <p>Sets the directory to generate the documentation into.</p>
+     * Sets the directory to generate the documentation into.
      */
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
     }
 
     /**
-     * <p>Returns the classpath to use to locate classes referenced by the documented source.</p>
+     * Returns the classpath used to locate classes referenced by the documented sources.
      *
-     * @return The classpath.
+     * @return The classpath used to locate classes referenced by the documented sources
      */
-    @InputFiles
+    @Input
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
 
     /**
-     * <p>Sets the classpath to use to locate classes referenced by the documented source.</p>
+     * Sets the classpath used to locate classes referenced by the documented sources.
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
+    }
+
+    /**
+     * Returns the classpath containing the Groovy library to be used.
+     *
+     * @return The classpath containing the Groovy library to be used
+     */
+    @Input
+    public FileCollection getClasspath() {
+        return classpath;
+    }
+
+    /**
+     * Sets the classpath containing the Groovy library to be used.
+     */
+    public void setClasspath(FileCollection classpath) {
+        this.classpath = classpath;
     }
 
     public AntGroovydoc getAntGroovydoc() {

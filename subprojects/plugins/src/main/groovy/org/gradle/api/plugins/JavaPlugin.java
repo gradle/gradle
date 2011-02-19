@@ -98,7 +98,7 @@ public class JavaPlugin implements Plugin<Project> {
 
         SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         Javadoc javadoc = project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class);
-        javadoc.setDescription("Generates the javadoc for the main source code.");
+        javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
         javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
         javadoc.setClasspath(mainSourceSet.getClasses().plus(mainSourceSet.getCompileClasspath()));
         javadoc.setSource(mainSourceSet.getAllJava());

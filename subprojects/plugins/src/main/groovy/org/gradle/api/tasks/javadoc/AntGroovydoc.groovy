@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.tasks.javadoc
 
 import org.gradle.api.Project
@@ -31,33 +29,33 @@ class AntGroovydoc {
     private final ClassPathRegistry classPathRegistry
 
     def AntGroovydoc(IsolatedAntBuilder ant, ClassPathRegistry classPathRegistry) {
-        this.ant = ant;
-        this.classPathRegistry = classPathRegistry;
+        this.ant = ant
+        this.classPathRegistry = classPathRegistry
     }
 
     void execute(FileCollection source, File destDir, boolean use, String windowTitle,
-                 String docTitle, String header, String footer, String overview, boolean includePrivate, Set links,
-                 List groovyClasspath, Project project) {
+                 String docTitle, String header, String footer, String overview, boolean includePrivate,
+                 Set links, Iterable groovyClasspath, Iterable classpath, Project project) {
 
-        File tmpDir = new File(project.buildDir, "tmp/groovydoc")
+        def tmpDir = new File(project.buildDir, "tmp/groovydoc")
         project.delete tmpDir
         project.copy {
             from source
             into tmpDir
         }
 
-        Map args = [:]
+        def args = [:]
         args.sourcepath = tmpDir.toString()
         args.destdir = destDir
         args.use = use
         args['private'] = includePrivate
-        addToMapIfNotNull(args, 'windowtitle', windowTitle)
-        addToMapIfNotNull(args, 'doctitle', docTitle)
-        addToMapIfNotNull(args, 'header', header)
-        addToMapIfNotNull(args, 'footer', footer)
-        addToMapIfNotNull(args, 'overview', overview)
+        putIfNotNull(args, 'windowtitle', windowTitle)
+        putIfNotNull(args, 'doctitle', docTitle)
+        putIfNotNull(args, 'header', header)
+        putIfNotNull(args, 'footer', footer)
+        putIfNotNull(args, 'overview', overview)
 
-        ant.withGroovy(groovyClasspath).execute {
+        ant.withGroovy(groovyClasspath).withClasspath(classpath).execute {
             taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
             groovydoc(args) {
                 links.each {gradleLink ->
@@ -67,7 +65,7 @@ class AntGroovydoc {
         }
     }
 
-    void addToMapIfNotNull(Map map, String key, Object value) {
+    void putIfNotNull(Map map, String key, Object value) {
         if (value != null) {
             map.put(key, value)
         }
