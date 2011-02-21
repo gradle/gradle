@@ -5,9 +5,6 @@ dependencies {
 
     compile project(':core')
     compile project(':ui')
-    
-    runtime project(':plugins')
-    runtime project(':codeQuality')
 
     compile libraries.slf4j_api
 
