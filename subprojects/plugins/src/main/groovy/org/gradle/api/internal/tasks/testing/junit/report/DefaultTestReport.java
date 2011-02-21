@@ -130,6 +130,7 @@ public class DefaultTestReport implements TestReporter {
     private void copyResources() throws IOException {
         copyResource("style.css");
         copyResource("report.js");
+        copyResource("css3-pie-1.0beta3.htc");
     }
 
     private void copyResource(String resourceName) throws IOException {

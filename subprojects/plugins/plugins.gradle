@@ -15,6 +15,7 @@
  */
 
 configurations {
+    reports
     testFixtures
 }
 
@@ -30,12 +31,20 @@ dependencies {
             libraries.ant,
             'org.testng:testng:5.12.1'
 
+    reports 'css3-pie:css3-pie:1.0beta3'
     testCompile libraries.xmlunit
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
     testFixtures sourceSets.test.classes
 }
+
+task reportResources(type: Copy) {
+    from(configurations.reports)
+    into "${sourceSets.main.classesDir}/org/gradle/api/internal/tasks/testing/junit/report"
+}
+
+classes.dependsOn reportResources
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'

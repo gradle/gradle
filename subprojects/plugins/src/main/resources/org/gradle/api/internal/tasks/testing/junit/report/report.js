@@ -12,14 +12,16 @@ function initTabs() {
 
 window.onload = initTabs;
 
-function switchTab(id) {
+function switchTab() {
+    var id = this.id.substr(1);
     for (var i = 0; i < tabs.tabs.length; i++) {
         if (tabs.tabs[i].id == id) {
             deselectAll(tabs.tabs, tabs.headers);
             select(tabs.tabs[i], tabs.headers[i]);
-            return;
+            return false;
         }
     }
+    return false;
 }
 
 function select(tab, header) {
@@ -40,7 +42,12 @@ function findTabs(container) {
 
 function findHeaders(container) {
     var owner = findChildElements(container, 'UL', 'tabLinks');
-    return findChildElements(owner[0], 'LI', null);
+    var headers = findChildElements(owner[0], 'LI', null);
+    for (var i = 0; i < headers.length; i++) {
+        var link = findChildElements(headers[i], 'A', null)[0];
+        link.onclick = switchTab
+    }
+    return headers;
 }
 
 function findTitles(tabs) {

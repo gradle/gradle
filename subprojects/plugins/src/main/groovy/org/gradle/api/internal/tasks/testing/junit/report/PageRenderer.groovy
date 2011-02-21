@@ -49,7 +49,7 @@ abstract class PageRenderer<T extends CompositeTestResults> {
             ul(class: 'tabLinks') {
                 tabs.eachWithIndex { tab, index ->
                     li {
-                        a(href: "#tab${index}", onclick: "switchTab('tab${index}'); return false", tab.title)
+                        a(id: "ltab${index}", href: "#tab${index}", tab.title)
                     }
                 }
             }

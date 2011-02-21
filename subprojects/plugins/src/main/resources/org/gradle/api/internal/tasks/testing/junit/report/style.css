@@ -4,7 +4,7 @@ body {
     padding: 0;
     font-family: sans-serif;
     font-size: 12pt;
-    color: #505050;
+    color: #303030;
 }
 
 #content {
@@ -39,8 +39,8 @@ body {
     -moz-border-radius: 10px;
     border-radius: 10px;
     text-align: center;
-    color: #808080;
     margin-right: 10px;
+    behavior: url(css3-pie-1.0beta3.htc);
 }
 
 .infoBox p {
@@ -82,8 +82,13 @@ div.failures {
 
 pre.stackTrace {
     font-size: 10pt;
-    color: #808080;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
     background-color: #f7f7f7;
+    border: solid 1px #d0d0d0;
+    overflow-x: auto;
 }
 
 h2 {
@@ -149,15 +154,20 @@ div.deselected {
 }
 
 div.tab table {
-    width: 100%;
+    min-width: 80%;
     border-collapse: collapse;
 }
 
-div.tab table thead {
-    border-bottom: solid #f0f0f0 1px;
-    margin-bottom: 10px;
+div.tab tbody {
+    border-top: solid #d0d0d0 1px;
+    border-bottom: solid #d0d0d0 1px;
 }
 
-th {
+div.tab th {
     text-align: left;
+}
+
+div.tab td {
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
