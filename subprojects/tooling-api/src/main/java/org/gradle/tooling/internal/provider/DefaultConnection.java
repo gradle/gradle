@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
@@ -34,8 +35,9 @@ import java.util.*;
 
 public class DefaultConnection implements ConnectionVersion1 {
     private final ActorFactory actorFactory;
-    private Worker worker;
     private final ConnectionParametersVersion1 parameters;
+    private Worker worker;
+    private Actor actor;
 
     public DefaultConnection(ConnectionParametersVersion1 parameters, ActorFactory actorFactory) {
         this.parameters = parameters;
@@ -46,9 +48,14 @@ public class DefaultConnection implements ConnectionVersion1 {
         return "Gradle connection";
     }
 
+    public void stop() {
+        actor.stop();
+    }
+
     public <T extends ProjectVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException {
         if (worker == null) {
-            worker = actorFactory.createActor(new WorkerImpl()).getProxy(Worker.class);
+            actor = actorFactory.createActor(new WorkerImpl());
+            worker = actor.getProxy(Worker.class);
         }
         worker.build(type, handler);
     }

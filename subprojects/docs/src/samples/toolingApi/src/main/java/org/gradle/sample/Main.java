@@ -9,15 +9,15 @@ import java.io.File;
 
 public class Main {
     public static void main(String[] args) {
+        // Configure the connector and create the connection
         GradleConnector connector = GradleConnector.newConnector();
-        try {
-            // Configure the connector and create the connection
-            connector.forProjectDirectory(new File("."));
-            if (args.length > 0) {
-                connector.useInstallation(new File(args[0]));
-            }
-            ProjectConnection connection = connector.connect();
+        connector.forProjectDirectory(new File("."));
+        if (args.length > 0) {
+            connector.useInstallation(new File(args[0]));
+        }
 
+        ProjectConnection connection = connector.connect();
+        try {
             // Load the Eclipse model for the project
             EclipseProject project = connection.getModel(EclipseProject.class);
             System.out.println("Project classpath:");
@@ -26,7 +26,7 @@ public class Main {
             }
         } finally {
             // Clean up
-            connector.close();
+            connection.close();
         }
     }
 }

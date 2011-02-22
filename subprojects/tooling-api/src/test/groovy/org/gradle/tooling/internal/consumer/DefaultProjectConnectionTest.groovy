@@ -136,6 +136,26 @@ class DefaultProjectConnectionTest extends ConcurrentSpecification {
         GradleConnectionException e = thrown()
         e.cause.is(failure)
     }
+
+    def closeStopsBackingConnection() {
+        when:
+        connection.close()
+
+        then:
+        1 * protocolConnection.stop()
+    }
+    
+    def getModelFailsWhenConnectionHasBeenStopped() {
+        when:
+        connection.close()
+        connection.getModel(Project.class)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'This connection has been closed.'
+        1 * protocolConnection.stop()
+        0 * _._
+    }
 }
 
 interface TestBuild extends Project {

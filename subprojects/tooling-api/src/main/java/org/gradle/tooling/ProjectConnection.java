@@ -35,6 +35,7 @@ public interface ProjectConnection {
      * @return The model.
      * @throws UnsupportedVersionException When the target Gradle version does not support the given model.
      * @throws GradleConnectionException On some failure to communicate with Gradle.
+     * @throws IllegalStateException When this connection has been closed or is closing.
      */
     <T extends Project> T getModel(Class<T> viewType) throws GradleConnectionException;
 
@@ -44,6 +45,12 @@ public interface ProjectConnection {
      * @param viewType The model type.
      * @param handler The handler to pass the result to.
      * @param <T> The model type.
+     * @throws IllegalStateException When this connection has been closed or is closing.
      */
-    <T extends Project> void getModel(Class<T> viewType, ResultHandler<? super T> handler);
+    <T extends Project> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException;
+
+    /**
+     * Closes this connection. Blocks until the close is complete. Once this method has returned, no more notifications will be delivered by any threads.
+     */
+    void close();
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.internal.project.DefaultServiceRegistry;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.tooling.internal.consumer.ConnectionFactory;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
@@ -29,31 +31,33 @@ import java.net.URI;
  *
  * <li>Call {@link #newConnector()} to create a new connector instance.</li>
  *
- * <li>Configure the connector. You must call {@link #forProjectDirectory(java.io.File)} to specify which build you wish to connect to. Other methods are optional.</li>
+ * <li>Configure the connector. You must call {@link #forProjectDirectory(java.io.File)} to specify which project you wish to connect to. Other methods are optional.</li>
  *
- * <li>Call {@link #connect()} to create the connection to a build.</li>
+ * <li>Call {@link #connect()} to create the connection to a project.</li>
  *
  * <li>Optionally reuse the connector to create additional connections.</li>
  *
- * <li>When finished with the connections, call {@link #close()} to clean up.</li>
+ * <li>When finished with the connection, call {@link ProjectConnection#close()} to clean up.</li>
  *
  * </ol>
  *
  * <p>{@code GradleConnector} instances are not thread-safe.</p>
  */
 public abstract class GradleConnector {
+    private static final ServiceRegistry SERVICES = new ConnectorServiceRegistry();
+
     /**
      * Creates a new connector instance.
      *
      * @return The instance. Never returns null.
      */
     public static GradleConnector newConnector() {
-        return new DefaultGradleConnector(new ConnectionFactory(), new DistributionFactory());
+        return new DefaultGradleConnector(SERVICES.get(ConnectionFactory.class), SERVICES.get(DistributionFactory.class));
     }
 
     /**
-     * Specifies which Gradle installation to use. This replaces any value specified using {@link #useDistribution(java.net.URI)} or {@link #useGradleVersion(String)}.
-     * Defaults to a project-specific Gradle version.
+     * Specifies which Gradle installation to use. This replaces any value specified using {@link #useDistribution(java.net.URI)} or {@link #useGradleVersion(String)}. Defaults to a project-specific
+     * Gradle version.
      *
      * @param gradleHome The Gradle installation directory.
      * @return this
@@ -95,7 +99,7 @@ public abstract class GradleConnector {
     public abstract GradleConnector useGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
-     * Creates a connection to the project in the specified project directory.
+     * Creates a connection to the project in the specified project directory. You should call {@link org.gradle.tooling.ProjectConnection#close()} when you are finished with the connection.
      *
      * @return The connection. Never return null.
      * @throws UnsupportedVersionException When the target Gradle version does not support this version of the tooling API.
@@ -103,8 +107,13 @@ public abstract class GradleConnector {
      */
     public abstract ProjectConnection connect() throws GradleConnectionException;
 
-    /**
-     * Closes this connector and all connections created by it.
-     */
-    public abstract void close();
+    private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
+        protected ConnectionFactory createConnectionFactory() {
+            return new ConnectionFactory();
+        }
+
+        protected DistributionFactory createDistributionFactory() {
+            return new DistributionFactory();
+        }
+    }
 }

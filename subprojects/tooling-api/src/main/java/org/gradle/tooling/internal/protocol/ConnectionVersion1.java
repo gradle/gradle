@@ -20,6 +20,11 @@ package org.gradle.tooling.internal.protocol;
  */
 public interface ConnectionVersion1 {
     /**
+     * Stops this connection, blocking until complete.
+     */
+    void stop();
+
+    /**
      * Returns a display name for this connection, which can be used in logging and error reporting.
      *
      * @return The display name.
@@ -33,6 +38,7 @@ public interface ConnectionVersion1 {
      * @param handler The handler to pass the model to.
      * @param <T> The type of model to fetch.
      * @throws UnsupportedOperationException When the given model type is not supported.
+     * @throws IllegalStateException When this connection has been stopped.
      */
-    <T extends ProjectVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException;
+    <T extends ProjectVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException;
 }

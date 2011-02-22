@@ -48,7 +48,7 @@ class ToolingApiSpecification extends Specification {
         try {
             return cl.call(connection)
         } finally {
-            connector.close()
+            connection.close()
         }
     }
 }

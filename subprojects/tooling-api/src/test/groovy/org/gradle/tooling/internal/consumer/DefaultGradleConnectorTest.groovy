@@ -15,8 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 import spock.lang.Specification
 
 class DefaultGradleConnectorTest extends Specification {
@@ -96,13 +96,5 @@ class DefaultGradleConnectorTest extends Specification {
         then:
         IllegalStateException e = thrown()
         e.message == 'A project directory must be specified before creating a connection.'
-    }
-
-    def stopsConnectionFactoryWhenClosed() {
-        when:
-        connector.close()
-
-        then:
-        1 * connectionFactory.stop()
     }
 }

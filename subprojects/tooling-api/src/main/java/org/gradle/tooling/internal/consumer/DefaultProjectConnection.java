@@ -31,11 +31,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final ConnectionVersion1 connection;
     private final Map<Class<? extends Project>, Class<? extends ProjectVersion1>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion1>>();
     private ProtocolToModelAdapter adapter;
+    private AtomicBoolean closed = new AtomicBoolean();
 
     public DefaultProjectConnection(ConnectionVersion1 connection, ProtocolToModelAdapter adapter) {
         this.connection = connection;
@@ -44,7 +46,17 @@ class DefaultProjectConnection implements ProjectConnection {
         modelTypeMap.put(EclipseProject.class, EclipseProjectVersion1.class);
     }
 
+    public void close() {
+        if (!closed.getAndSet(true)) {
+            connection.stop();
+        }
+    }
+
     public <T extends Project> T getModel(Class<T> viewType) {
+        if (closed.get()) {
+            throw new IllegalStateException("This connection has been closed.");
+        }
+
         final BlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(20);
         getModel(viewType, new ResultHandler<T>() {
             public void onComplete(T result) {

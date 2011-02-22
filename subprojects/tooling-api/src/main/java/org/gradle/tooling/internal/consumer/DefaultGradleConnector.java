@@ -82,7 +82,4 @@ public class DefaultGradleConnector extends GradleConnector {
         return connectionFactory.create(distribution, new DefaultConnectionParametersVersion1(projectDir, gradleUserHomeDir, searchUpwards));
     }
 
-    public void close() {
-        connectionFactory.stop();
-    }
 }

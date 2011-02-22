@@ -24,5 +24,11 @@ public interface ConnectionFactoryVersion1 {
      */
     void stop();
 
-    ConnectionVersion1 create(ConnectionParametersVersion1 parameters);
+    /**
+     * Creates a connection with the given parameters. The caller is responsible for stopping the connection.
+     * @param parameters The connection parameters
+     * @return The connection.
+     * @throws IllegalStateException When this connection has been stopped.
+     */
+    ConnectionVersion1 create(ConnectionParametersVersion1 parameters) throws IllegalStateException;
 }
