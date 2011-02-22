@@ -476,9 +476,9 @@ def isCommitBuild() {
     gradle.taskGraph.hasTask(commitBuild)
 }
 
-def guessMaxForks() {
-    int processors = Runtime.runtime.availableProcessors()
-    return Math.max(2, (int) (processors / 2))
+def guessMaxForks () {
+int processors = Runtime.runtime.availableProcessors ()
+return Math.max (2, (int) (processors / 2))
 }
 
 task testedDists(dependsOn: [assemble, check, 'integTest:integTest', 'integTest:embeddedIntegTest', 'openApi:integTest', ':ui:integTest'])
@@ -588,3 +588,16 @@ def pluginProjects() {
         project(it)
     }
 }
+
+switch (System.getProperty("user.name")) {
+    case "pniederw":
+        allprojects {
+            tasks.withType(Test) {
+                maxParallelForks = 1
+            }
+        }
+        break
+    default:
+        break
+}
+
