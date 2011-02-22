@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Facet
 import org.gradle.plugins.eclipse.model.Library
+import org.gradle.plugins.eclipse.model.Classpath
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -116,9 +117,12 @@ class EclipsePlugin extends IdePlugin {
                 project.plugins.withType(WarPlugin) {
                     eachDependedUponProject(project) { Project otherProject ->
                         configureTask(otherProject, ECLIPSE_CP_TASK_NAME) {
-                            entryConfigurers << { Library library ->
-                                // TODO: what's the correct value here?
-                                library.entryAttributes['org.eclipse.jst.component.dependency'] = '../'
+                            whenConfigured { Classpath classpath ->
+                                for (entry in classpath.entries) {
+                                    if (entry instanceof Library) {
+                                        entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../'
+                                    }
+                                }
                             }
                         }
                     }

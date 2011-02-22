@@ -62,7 +62,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     }
 
     @Test
-    void jarDependenciesOfUtilityProjectsMustBeFlaggedAsRuntimeDependency() {
+    void jarDependenciesOfUtilityProjectsAreFlaggedAsRuntimeDependency() {
         prepareWebProject()
 
         def classpath = parseClasspathFile(project: "java1")
@@ -76,7 +76,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     }
 
     @Test
-    void allProjectDependenciesOfWebProjectMustBeAddedAsRuntimeDependencies() {
+    void allProjectDependenciesOfWebProjectAreAddedAsRuntimeDependencies() {
         prepareWebProject()
 
         def projectModules = parseComponentFile()

@@ -32,20 +32,8 @@ class ClasspathFactory {
         entries.addAll(getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project))
         entries.addAll(getEntriesFromContainers(eclipseClasspath.getContainers()))
         entries.addAll(getEntriesFromConfigurations(eclipseClasspath))
-        postProcessEntries(entries, eclipseClasspath.entryConfigurers)
 
         classpath.configure(entries)
-    }
-
-    private postProcessEntries(List<ClasspathEntry> entries, List<Closure> entryConfigurers) {
-        for (configurer in entryConfigurers) {
-            def type = configurer.parameterTypes[0]
-            for (entry in entries) {
-                if (type.isInstance(entry)) {
-                    configurer(entry)
-                }
-            }
-        }
     }
 
     private List<SourceFolder> getEntriesFromSourceSets(Iterable<SourceSet> sourceSets, org.gradle.api.Project project) {
