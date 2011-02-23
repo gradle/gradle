@@ -16,16 +16,13 @@
 package org.gradle.api.internal.tasks.testing.junit.report
 
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
-    @Override protected String getDisplayName() {
-        return "Class ${results.name}"
-    }
 
     @Override protected void renderBreadcrumbs() {
         builder.div(class: 'breadcrumbs') {
             a(href: 'index.html', 'all')
             mkp.yield(" > ")
             a(href: "${results.packageResults.name}.html", results.packageResults.name)
-            mkp.yield(" > ${results.name}")
+            mkp.yield(" > ${results.simpleName}")
         }
     }
 

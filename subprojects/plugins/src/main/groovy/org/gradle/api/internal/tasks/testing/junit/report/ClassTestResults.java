@@ -37,12 +37,21 @@ public class ClassTestResults extends CompositeTestResults {
         this.packageResults = packageResults;
     }
 
+    @Override
+    public String getTitle() {
+        return String.format("Class %s", name);
+    }
+
     public String getName() {
         return name;
     }
 
     public String getSimpleName() {
-        return StringUtils.substringAfterLast(name, ".");
+        String simpleName = StringUtils.substringAfterLast(name, ".");
+        if (simpleName.equals("")) {
+            return name;
+        }
+        return simpleName;
     }
 
     public PackageTestResults getPackageResults() {

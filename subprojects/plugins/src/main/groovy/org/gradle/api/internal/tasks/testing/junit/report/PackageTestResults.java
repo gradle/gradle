@@ -23,12 +23,18 @@ import java.util.TreeMap;
  * The test results for a given package.
  */
 public class PackageTestResults extends CompositeTestResults {
+    private static final String DEFAULT_PACKAGE = "default-package";
     private final String name;
     private final Map<String, ClassTestResults> classes = new TreeMap<String, ClassTestResults>();
 
     public PackageTestResults(String name, AllTestResults model) {
         super(model);
-        this.name = name;
+        this.name = name.length() == 0 ? DEFAULT_PACKAGE : name;
+    }
+
+    @Override
+    public String getTitle() {
+        return name.equals(DEFAULT_PACKAGE) ? "Default package" : String.format("Package %s", name);
     }
 
     public String getName() {

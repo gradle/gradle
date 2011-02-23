@@ -38,6 +38,11 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return name;
     }
 
+    @Override
+    public String getTitle() {
+        return String.format("Test %s", name);
+    }
+
     public boolean isSuccessful() {
         return failures.isEmpty();
     }

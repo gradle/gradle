@@ -29,6 +29,11 @@ public class AllTestResults extends CompositeTestResults {
         super(null);
     }
 
+    @Override
+    public String getTitle() {
+        return "Test Summary";
+    }
+
     public Collection<PackageTestResults> getPackages() {
         return packages.values();
     }
@@ -43,7 +48,11 @@ public class AllTestResults extends CompositeTestResults {
     }
 
     private PackageTestResults addPackageForClass(String className) {
-        return addPackage(StringUtils.substringBeforeLast(className, "."));
+        String packageName = StringUtils.substringBeforeLast(className, ".");
+        if (packageName.equals(className)) {
+            packageName = "";
+        }
+        return addPackage(packageName);
     }
 
     private PackageTestResults addPackage(String packageName) {

@@ -5,8 +5,9 @@ function initTabs() {
     tabs.tabs = findTabs(container);
     tabs.titles = findTitles(tabs.tabs);
     tabs.headers = findHeaders(container);
-    deselectAll(tabs.tabs, tabs.headers);
-    select(tabs.tabs[0], tabs.headers[0]);
+    tabs.select = select;
+    tabs.deselectAll = deselectAll;
+    tabs.select(0);
     return true;
 }
 
@@ -16,23 +17,38 @@ function switchTab() {
     var id = this.id.substr(1);
     for (var i = 0; i < tabs.tabs.length; i++) {
         if (tabs.tabs[i].id == id) {
-            deselectAll(tabs.tabs, tabs.headers);
-            select(tabs.tabs[i], tabs.headers[i]);
+            tabs.select(i);
             return false;
         }
     }
     return false;
 }
 
-function select(tab, header) {
-    tab.setAttribute('class', 'tab selected');
-    header.setAttribute('class', 'selected');
+function select(i) {
+    this.deselectAll();
+    this.tabs[i].setAttribute('class', 'tab selected');
+    this.headers[i].setAttribute('class', 'selected');
+    while (this.headers[i].firstChild) {
+        this.headers[i].removeChild(this.headers[i].firstChild);
+    }
+    var h2 = document.createElement('H2');
+    h2.appendChild(document.createTextNode(this.titles[i]));
+    this.headers[i].appendChild(h2);
 }
 
-function deselectAll(tabs, headers) {
-    for (var i = 0; i < tabs.length; i++) {
-        tabs[i].setAttribute('class', 'tab deselected');
-        headers[i].setAttribute('class', 'deselected');
+function deselectAll() {
+    for (var i = 0; i < this.tabs.length; i++) {
+        this.tabs[i].setAttribute('class', 'tab deselected');
+        this.headers[i].setAttribute('class', 'deselected');
+        while (this.headers[i].firstChild) {
+            this.headers[i].removeChild(this.headers[i].firstChild);
+        }
+        var a = document.createElement('A');
+        a.setAttribute('id', 'ltab' + i);
+        a.setAttribute('href', '#tab' + i);
+        a.onclick = switchTab;
+        a.appendChild(document.createTextNode(this.titles[i]));
+        this.headers[i].appendChild(a);
     }
 }
 
@@ -42,12 +58,7 @@ function findTabs(container) {
 
 function findHeaders(container) {
     var owner = findChildElements(container, 'UL', 'tabLinks');
-    var headers = findChildElements(owner[0], 'LI', null);
-    for (var i = 0; i < headers.length; i++) {
-        var link = findChildElements(headers[i], 'A', null)[0];
-        link.onclick = switchTab
-    }
-    return headers;
+    return findChildElements(owner[0], 'LI', null);
 }
 
 function findTitles(tabs) {

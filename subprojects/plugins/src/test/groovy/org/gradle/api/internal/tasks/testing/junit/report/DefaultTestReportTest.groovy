@@ -86,6 +86,7 @@ standard error</system-err>
         index.assertHasDuration("1m54.91s")
         index.assertHasLinkTo('org.gradle')
         index.assertHasLinkTo('org.gradle.sub')
+        index.assertHasLinkTo('org.gradle.Test', 'org.gradle.Test')
 
         reportDir.file("style.css").assertIsFile()
 
@@ -129,11 +130,13 @@ message">this is a failure.</failure></testcase>
         index.assertHasTests(4)
         index.assertHasFailures(2)
         index.assertHasSuccessRate(50)
+        index.assertHasLinkToTest('org.gradle.Test', 'test1')
 
         def packageFile = results(reportDir.file('org.gradle.html'))
         packageFile.assertHasTests(3)
         packageFile.assertHasFailures(2)
         packageFile.assertHasSuccessRate(33)
+        packageFile.assertHasLinkToTest('org.gradle.Test', 'test1')
 
         def testClassFile = results(reportDir.file('org.gradle.Test.html'))
         testClassFile.assertHasTests(2)
@@ -143,6 +146,26 @@ message">this is a failure.</failure></testcase>
         testClassFile.assertHasFailure('test1', 'this is the failure\nat someClass\n')
         testClassFile.assertHasTest('test2')
         testClassFile.assertHasFailure('test2', 'this is a failure.')
+    }
+
+    def reportsOnClassesInDefaultPackage() {
+        resultsDir.file('TEST-someClass.xml') << '''
+<testsuite name="Test">
+    <testcase classname="Test" name="test1" time="0">
+    </testcase>
+</testsuite>
+'''
+
+        when:
+        report.generateReport()
+
+        then:
+        def index = results(indexFile)
+        index.assertHasLinkTo('default-package')
+        index.assertHasLinkTo('Test')
+
+        def packageFile = results(reportDir.file('default-package.html'))
+        packageFile.assertHasLinkTo('Test')
     }
 
     def escapesHtmlContentInReport() {
@@ -228,6 +251,11 @@ class TestResultsFixture {
 
     void assertHasLinkTo(String target, String display = target) {
         assert text.contains("<a href='${target}.html'>${StringEscapeUtils.escapeHtml(display)}</a>")
+    }
+
+    void assertHasLinkToTest(String className, String testName) {
+        String escapedName = StringEscapeUtils.escapeHtml(testName)
+        assert text.contains("<a href='${className}.html#${escapedName}'>${escapedName}</a>")
     }
 
     void assertHasTest(String testName) {

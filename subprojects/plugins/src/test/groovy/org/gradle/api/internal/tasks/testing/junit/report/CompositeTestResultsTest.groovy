@@ -18,7 +18,12 @@ package org.gradle.api.internal.tasks.testing.junit.report
 import spock.lang.Specification
 
 class CompositeTestResultsTest extends Specification {
-    final CompositeTestResults results = new CompositeTestResults(null)
+    final CompositeTestResults results = new CompositeTestResults(null) {
+        @Override
+        String getTitle() {
+            throw new UnsupportedOperationException()
+        }
+    }
 
     def formatsSuccessRateWhenNoTests() {
         expect:

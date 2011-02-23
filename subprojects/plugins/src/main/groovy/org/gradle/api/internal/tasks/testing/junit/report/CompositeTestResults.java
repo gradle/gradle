@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class CompositeTestResults extends TestResultModel {
+public abstract class CompositeTestResults extends TestResultModel {
     private final CompositeTestResults parent;
     private int tests;
     private final Set<TestResult> failures = new TreeSet<TestResult>();

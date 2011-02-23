@@ -16,9 +16,6 @@
 package org.gradle.api.internal.tasks.testing.junit.report
 
 class OverviewPageRenderer extends PageRenderer<AllTestResults> {
-    @Override protected String getDisplayName() {
-        return "Test Summary"
-    }
 
     @Override protected void renderBreadcrumbs() {
     }
@@ -46,6 +43,32 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
                             td(testPackage.failureCount)
                             td(testPackage.formattedDuration)
                             td(class: testPackage.statusClass, testPackage.formattedSuccessRate)
+                        }
+                    }
+                }
+            }
+            addTab("Classes") {
+                builder.table {
+                    thead {
+                        tr {
+                            th('Class')
+                            th('Tests')
+                            th('Failures')
+                            th('Duration')
+                            th('Success rate')
+                        }
+                    }
+                    for (testPackage in results.packages) {
+                        for (testClass in testPackage.classes) {
+                            tr {
+                                td(class: testClass.statusClass) {
+                                    a(href: "${testClass.name}.html", testClass.name)
+                                }
+                                td(testClass.testCount)
+                                td(testClass.failureCount)
+                                td(testClass.formattedDuration)
+                                td(class: testClass.statusClass, testClass.formattedSuccessRate)
+                            }
                         }
                     }
                 }

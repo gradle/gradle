@@ -16,9 +16,6 @@
 package org.gradle.api.internal.tasks.testing.junit.report
 
 class PackagePageRenderer extends PageRenderer<PackageTestResults> {
-    @Override protected String getDisplayName() {
-        return "Package ${results.name}"
-    }
 
     @Override protected void renderBreadcrumbs() {
         builder.div(class: 'breadcrumbs') {

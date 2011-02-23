@@ -27,6 +27,8 @@ public abstract class TestResultModel {
 
     public abstract long getDuration();
 
+    public abstract String getTitle();
+
     public String getFormattedDuration() {
         long duration = getDuration();
         if (duration == 0) {
