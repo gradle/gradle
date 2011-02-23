@@ -57,7 +57,7 @@ class DefaultProjectConnection implements ProjectConnection {
             throw new IllegalStateException("This connection has been closed.");
         }
 
-        final BlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(20);
+        final BlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(1);
         getModel(viewType, new ResultHandler<T>() {
             public void onComplete(T result) {
                 queue.add(result);

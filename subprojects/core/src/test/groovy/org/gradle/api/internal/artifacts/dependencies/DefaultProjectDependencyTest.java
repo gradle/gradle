@@ -134,19 +134,9 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     @Test
     public void resolveNotDelegatesToProjectDependenciesInTargetConfigurationIfConfigurationIsNonTransitive() {
         final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
-        final Dependency projectSelfResolvingDependency = context.mock(Dependency.class);
-        final ProjectDependency transitiveProjectDependencyStub = context.mock(ProjectDependency.class);
         context.checking(new Expectations() {{
-            allowing(projectConfigurationsStub).getByName("conf1");
-            will(returnValue(projectConfigurationStub));
-
-            allowing(projectConfigurationStub).getAllDependencies();
-            will(returnValue(toSet(projectSelfResolvingDependency, transitiveProjectDependencyStub)));
-
             allowing(resolveContext).isTransitive();
             will(returnValue(false));
-
-            one(resolveContext).add(projectSelfResolvingDependency);
         }});
         DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1",
                 instruction);
@@ -155,18 +145,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     
     @Test
     public void resolveNotDelegatesToTransitiveProjectDependenciesIfProjectDependencyIsNonTransitive() {
-        final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
-        final SelfResolvingDependency projectSelfResolvingDependency = context.mock(SelfResolvingDependency.class);
-        final ProjectDependency transitiveProjectDependencyStub = context.mock(ProjectDependency.class);
-        context.checking(new Expectations() {{
-            allowing(projectConfigurationsStub).getByName("conf1");
-            will(returnValue(projectConfigurationStub));
-
-            allowing(projectConfigurationStub).getAllDependencies();
-            will(returnValue(toSet(projectSelfResolvingDependency, transitiveProjectDependencyStub)));
-
-            one(resolveContext).add(projectSelfResolvingDependency);
-        }});
+        DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
         DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction);
         projectDependency.setTransitive(false);
         projectDependency.resolve(resolveContext);

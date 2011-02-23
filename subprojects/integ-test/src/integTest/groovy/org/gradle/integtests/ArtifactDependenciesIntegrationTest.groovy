@@ -24,6 +24,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.MavenRepository
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -33,7 +34,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     public void setup() {
         distribution.requireOwnUserHomeDir()
     }
-    
+
     @Test
     public void canHaveConfigurationHierarchy() {
         File buildFile = testFile("projectWithConfigurationHierarchy.gradle");
@@ -163,6 +164,41 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canHaveCycleInProjectDependencies() {
         inTestDirectory().withTasks('listJars').run();
+    }
+
+    @Test
+    public void canHaveNonTransitiveProjectDependencies() {
+        repo().module("group", "externalA", 1.5).publishArtifact()
+
+        testFile('settings.gradle') << "include 'a', 'b'"
+
+        testFile('build.gradle') << '''
+allprojects {
+    apply plugin: 'java'
+    repositories { mavenRepo urls: rootProject.uri('repo') }
+}
+project(':a') {
+    dependencies {
+        compile 'group:externalA:1.5'
+        compile files('libs/externalB.jar')
+    }
+}
+project(':b') {
+    configurations.compile.transitive = false
+    dependencies {
+        compile project(':a') { transitive = false }
+    }
+    task listJars << {
+        assert configurations.compile.collect { it.name } == ['a.jar']
+    }
+}
+'''
+
+        inTestDirectory().withTasks('listJars').run()
+    }
+
+    MavenRepository repo() {
+        return new MavenRepository(testFile('repo'))
     }
 }
 
