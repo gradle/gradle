@@ -20,38 +20,46 @@ import org.junit.Test
 // TODO: run prepareWebProject() only once per class (for performance reasons)
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
-    void firstLevelJavaProjectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
+    void projectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
         prepareWebProject()
 
-        def facetFile1 = getFacetFile(project: "java1")
-        assert hasUtilityFacet(facetFile1)
-
-        def facetFile2 = getFacetFile(project: "java2")
-        assert !facetFile2.exists() || !hasUtilityFacet(facetFile2)
+        hasUtilityFacet("java1")
+        hasUtilityFacet("java2")
+        hasUtilityFacet("groovy")
     }
 
     @Test
-    void firstLevelJavaProjectDependenciesOfWebProjectHaveNecessaryNaturesAdded() {
+    void projectDependenciesOfWebProjectHaveNecessaryNaturesAdded() {
         prepareWebProject()
 
-        def projectDescription = parseProjectFile(project: "java1")
+        hasNecessaryNaturesAdded("java1")
+        hasNecessaryNaturesAdded("java2")
+        hasNecessaryNaturesAdded("groovy")
+    }
 
+    private void hasNecessaryNaturesAdded(String project) {
+        def projectDescription = parseProjectFile(project: project)
         assert projectDescription.natures.nature*.text().containsAll(["org.eclipse.wst.common.project.facet.core.nature",
                 "org.eclipse.jem.workbench.JavaEMFNature", "org.eclipse.wst.common.modulecore.ModuleCoreNature"])
     }
 
     @Test
-    void firstLevelJavaProjectDependenciesOfWebProjectHaveNecessaryBuildersAdded() {
+    void projectDependenciesOfWebProjectHaveNecessaryBuildersAdded() {
         prepareWebProject()
 
-        def projectDescription = parseProjectFile(project: "java1")
+        hasNecessaryBuildersAdded("java1")
+        hasNecessaryBuildersAdded("java2")
+        hasNecessaryBuildersAdded("groovy")
+    }
 
+    private void hasNecessaryBuildersAdded(String project) {
+        def projectDescription = parseProjectFile(project: project)
         assert projectDescription.buildSpec.buildCommand.name*.text().containsAll(
                 ["org.eclipse.wst.common.project.facet.core.builder", "org.eclipse.wst.validation.validationbuilder"])
     }
 
     @Test
-    void firstLevelJavaProjectDependenciesOfWebProjectHaveComponentSettingsFile() {
+    void projectDependenciesOfWebProjectHaveComponentSettingsFile() {
         prepareWebProject()
 
         def projectModules = parseComponentFile(project: "java1")
@@ -82,8 +90,8 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
         def projectModules = parseComponentFile()
 
 		assert getDeployNames(projectModules) == ["root"]
-		assert getHandleFilenames(projectModules) == ["java1", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
-		assert getDependencyTypes(projectModules) == ["uses", "uses", "uses"] as Set
+		assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
+		assert getDependencyTypes(projectModules) == ["uses", "uses", "uses", "uses", "uses"] as Set
     }
 
     private prepareWebProject() {
@@ -96,6 +104,7 @@ rootProject.name = "root"
 
 include("java1")
 include("java2")
+include("groovy")
         """, """
 allprojects {
     apply plugin: "java"
@@ -110,6 +119,7 @@ apply plugin: "war"
 
 dependencies {
     compile project(":java1")
+    compile project(":groovy")
     runtime "mygroup:myartifact:1.0"
 }
 
@@ -125,12 +135,17 @@ project("java2") {
         runtime "mygroup:myartifact:1.0"
     }
 }
+
+project("groovy") {
+    apply plugin: "groovy"
+}
         """
     }
 
-    private hasUtilityFacet(file) {
+    private void hasUtilityFacet(String project) {
+        def file = getFacetFile(project: project)
         def facetedProject = new XmlSlurper().parse(file)
-        facetedProject.children().any { it.@facet.text() == "jst.utility" && it.@version.text() == "1.0" }
+        assert facetedProject.children().any { it.@facet.text() == "jst.utility" && it.@version.text() == "1.0" }
     }
 
 	private getDeployNames(projectModules) {
