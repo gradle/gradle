@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report
 
-import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
@@ -176,7 +175,6 @@ message">this is a failure.</failure></testcase>
     </testcase>
     <system-out>&lt;/html> &amp; </system-out>
     <system-err>&lt;/div> &amp; </system-err>
-
 </testsuite>
 '''
 
@@ -189,6 +187,25 @@ message">this is a failure.</failure></testcase>
         testClassFile.assertHasFailure('test1 < test2', '<a failure>')
         testClassFile.assertHasStandardOutput('</html> & ')
         testClassFile.assertHasStandardError('</div> & ')
+    }
+
+    def encodesUnicodeCharactersInReport() {
+        resultsDir.file('TEST-someClass.xml') << '''
+<testsuite name="org.gradle.Test">
+    <testcase classname="org.gradle.Test" name="&#x0107;" time="0"/>
+    <system-out>out:&#x0256;</system-out>
+    <system-err>err:&#x0102;</system-err>
+</testsuite>
+'''
+
+        when:
+        report.generateReport()
+
+        then:
+        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
+        testClassFile.assertHasTest('\u0107')
+        testClassFile.assertHasStandardOutput('out:\u0256')
+        testClassFile.assertHasStandardError('err:\u0102')
     }
 
     def ignoresFilesWhichAreNotResultFiles() {
@@ -213,64 +230,103 @@ message">this is a failure.</failure></testcase>
 
 class TestResultsFixture {
     final TestFile file
-    final String text
+    Node content
 
     TestResultsFixture(TestFile file) {
         this.file = file
         file.assertIsFile()
-        text = file.text
+        def text = file.getText('utf-8').readLines()
+        def withoutDocType = text.subList(1, text.size()).join('\n')
+        content = new XmlParser().parseText(withoutDocType)
     }
 
     void assertHasTests(int tests) {
-        assert text.contains("<div class='counter'>${tests}</div>\n<p>tests</p>")
+        Node testDiv = content.depthFirst().find { it.'@id' == 'tests' }
+        assert testDiv != null
+        Node counter = testDiv.div.find { it.'@class' == 'counter' }
+        assert counter != null
+        assert counter.text() == tests as String
     }
 
     void assertHasFailures(int tests) {
-        assert text.contains("<div class='counter'>${tests}</div>\n<p>failures</p>")
+        Node testDiv = content.depthFirst().find { it.'@id' == 'failures' }
+        assert testDiv != null
+        Node counter = testDiv.div.find { it.'@class' == 'counter' }
+        assert counter != null
+        assert counter.text() == tests as String
     }
 
     void assertHasDuration(String duration) {
-        assert text.contains("<div class='counter'>${duration}</div>\n<p>duration</p>")
+        Node testDiv = content.depthFirst().find { it.'@id' == 'duration' }
+        assert testDiv != null
+        Node counter = testDiv.div.find { it.'@class' == 'counter' }
+        assert counter != null
+        assert counter.text() == duration
     }
 
     void assertHasNoDuration() {
-        assert text.contains("<div class='counter'>-</div>\n<p>duration</p>")
+        Node testDiv = content.depthFirst().find { it.'@id' == 'duration' }
+        assert testDiv != null
+        Node counter = testDiv.div.find { it.'@class' == 'counter' }
+        assert counter != null
+        assert counter.text() == '-'
     }
     
     void assertHasSuccessRate(int rate) {
-        assert text.contains("<div class='percent'>${rate}%</div>\n<p>successful</p>")
+        Node testDiv = content.depthFirst().find { it.'@id' == 'successRate' }
+        assert testDiv != null
+        Node counter = testDiv.div.find { it.'@class' == 'percent' }
+        assert counter != null
+        assert counter.text() == "${rate}%"
     }
 
     void assertHasNoSuccessRate() {
-        assert text.contains("<div class='percent'>-</div>\n<p>successful</p>")
+        Node testDiv = content.depthFirst().find { it.'@id' == 'successRate' }
+        assert testDiv != null
+        Node counter = testDiv.div.find { it.'@class' == 'percent' }
+        assert counter != null
+        assert counter.text() == '-'
     }
 
     void assertHasNoNavLinks() {
-        assert !text.contains("Packages")
+        assert findTab('Packages') == null
     }
 
     void assertHasLinkTo(String target, String display = target) {
-        assert text.contains("<a href='${target}.html'>${StringEscapeUtils.escapeHtml(display)}</a>")
+        assert content.depthFirst().find { it.name() == 'a' && it.'@href' == "${target}.html" && it.text() == display }
     }
 
     void assertHasLinkToTest(String className, String testName) {
-        String escapedName = StringEscapeUtils.escapeHtml(testName)
-        assert text.contains("<a href='${className}.html#${escapedName}'>${escapedName}</a>")
+        def tab = findTab('Failed tests')
+        assert tab != null
+        assert tab.depthFirst().find { it.name() == 'a' && it.'@href' == "${className}.html#${testName}" && it.text() == testName }
     }
 
     void assertHasTest(String testName) {
-        assert text.contains("<a name='${StringEscapeUtils.escapeHtml(testName)}'> </a>")
+        assert content.depthFirst().find { it.name() == 'a' && it.'@name' == testName }
     }
 
     void assertHasFailure(String testName, String stackTrace) {
-        assert text.contains("<pre class='stackTrace'>${StringEscapeUtils.escapeHtml(stackTrace)}</pre>")
+        def tab = findTab('Failed tests')
+        assert tab != null
+        def pre = tab.depthFirst().findAll { it.name() == 'pre' }
+        assert pre.find { it.text() == stackTrace.trim() }
     }
 
     void assertHasStandardOutput(String stdout) {
-        assert text.contains("<h2>Standard output</h2>\n<pre>${StringEscapeUtils.escapeHtml(stdout)}</pre>")
+        def tab = findTab('Standard output')
+        assert tab != null
+        assert tab.pre[0].text() == stdout.trim()
     }
-    
+
     void assertHasStandardError(String stderr) {
-        assert text.contains("<h2>Standard error</h2>\n<pre>${StringEscapeUtils.escapeHtml(stderr)}</pre>")
+        def tab = findTab('Standard error')
+        assert tab != null
+        assert tab.pre[0].text() == stderr.trim()
+    }
+
+    private def findTab(String title) {
+        def tab = content.depthFirst().find { it.name() == 'div' && it.'@class' == 'tab' && it.h2[0].text() == title }
+        return tab
     }
 }

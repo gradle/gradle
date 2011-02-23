@@ -86,6 +86,7 @@ abstract class PageRenderer<T extends CompositeTestResults> {
 
         builder.html {
             head {
+                meta("http-equiv": "Content-Type", content: "text/html; charset=utf-8")
                 title("Test results - $results.title")
                 link(rel: 'stylesheet', href: 'style.css', type: 'text/css')
                 script(src: 'report.js', type: 'text/javascript', " ")

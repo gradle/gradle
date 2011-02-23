@@ -117,7 +117,7 @@ public class DefaultTestReport implements TestReporter {
 
     private <T extends CompositeTestResults> void generatePage(T model, PageRenderer<T> renderer, File outputFile) throws IOException {
         outputFile.getParentFile().mkdirs();
-        PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "utf-8"));
         try {
             writer.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
             MarkupBuilder markupBuilder = new MarkupBuilder(new IndentPrinter(writer, ""));
