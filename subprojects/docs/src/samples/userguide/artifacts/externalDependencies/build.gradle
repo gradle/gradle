@@ -67,8 +67,8 @@ dependencies {
         dependency("commons-cli:commons-cli:1.0") {
             transitive = false
         }
-        module(group: 'org.apache.ant', name: 'ant', version: '1.7.0') {
-            dependencies "org.apache.ant:ant-launcher:1.7.0@jar", "org.apache.ant:ant-junit:1.7.0"
+        module(group: 'org.apache.ant', name: 'ant', version: '1.8.2') {
+            dependencies "org.apache.ant:ant-launcher:1.8.2@jar", "org.apache.ant:ant-junit:1.8.2"
         }
     }
 }
@@ -84,7 +84,7 @@ dependencies {
 //START SNIPPET list-grouping
 List groovy = ["org.codehaus.groovy:groovy-all:1.7.8@jar",
                "commons-cli:commons-cli:1.0@jar",
-               "org.apache.ant:ant:1.7.0@jar"]
+               "org.apache.ant:ant:1.8.2@jar"]
 List hibernate = ['org.hibernate:hibernate:3.0.5@jar', 'somegroup:someorg:1.0@jar']
 dependencies {
 	runtime groovy, hibernate

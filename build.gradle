@@ -43,11 +43,10 @@ startScriptsDir = new File("$buildDir/startScripts")
 archivesBaseName = 'gradle'
 
 libraries = [
-        ant: 'org.apache.ant:ant:1.8.1@jar',
-        ant_junit: 'org.apache.ant:ant-junit:1.8.1@jar',
-        ant_launcher: 'org.apache.ant:ant-launcher:1.8.1@jar',
-        ant_nodeps: 'org.apache.ant:ant-nodeps:1.8.1@jar',
-        ant_antlr: 'org.apache.ant:ant-antlr:1.8.1@jar',
+        ant: 'org.apache.ant:ant:1.8.2@jar',
+        ant_junit: 'org.apache.ant:ant-junit:1.8.2@jar',
+        ant_launcher: 'org.apache.ant:ant-launcher:1.8.2@jar',
+        ant_antlr: 'org.apache.ant:ant-antlr:1.8.2@jar',
         antlr: 'antlr:antlr:2.7.7@jar',
         asm_all: 'asm:asm-all:3.2@jar',
         commons_cli: 'commons-cli:commons-cli:1.2@jar',
@@ -62,8 +61,8 @@ libraries = [
         jcl_to_slf4j: 'org.slf4j:jcl-over-slf4j:1.6.1@jar',
         jul_to_slf4j: 'org.slf4j:jul-to-slf4j:1.6.1@jar',
         log4j_to_slf4j: 'org.slf4j:log4j-over-slf4j:1.6.1@jar',
-        logback_classic: 'ch.qos.logback:logback-classic:0.9.24@jar',
-        logback_core: 'ch.qos.logback:logback-core:0.9.24@jar',
+        logback_classic: 'ch.qos.logback:logback-classic:0.9.28@jar',
+        logback_core: 'ch.qos.logback:logback-core:0.9.28@jar',
         junit: 'junit:junit:4.8.1',
         xmlunit: 'xmlunit:xmlunit:1.3',
 ]

@@ -35,7 +35,7 @@ configurations {
     integTestCompile { extendsFrom groovy }
 }
 dependencies {
-    ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
+    ftpAntTask module("org.apache.ant:ant-commons-net:1.8.2") {
         module("commons-net:commons-net:1.4.1") {
             dependencies("oro:oro:2.0.8@jar")
         }
