@@ -31,9 +31,10 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.containsLine;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
@@ -173,10 +174,22 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             return this;
         }
 
+        public ExecutionResult assertTaskSkipped(String taskPath) {
+            Set<String> tasks = new HashSet<String>(grepTasks(skippedTaskPattern));
+            assertThat(String.format("Expected skipped task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
+            return this;
+        }
+
         public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
             Set<String> tasks = new HashSet<String>(grepTasks(notSkippedTaskPattern));
             Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
             assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
+            return this;
+        }
+
+        public ExecutionResult assertTaskNotSkipped(String taskPath) {
+            Set<String> tasks = new HashSet<String>(grepTasks(notSkippedTaskPattern));
+            assertThat(String.format("Expected executed task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
             return this;
         }
 

@@ -104,7 +104,7 @@ public class Groovydoc extends SourceTask {
      *
      * @return The classpath used to locate classes referenced by the documented sources
      */
-    @Input
+    @InputFiles
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
@@ -121,7 +121,7 @@ public class Groovydoc extends SourceTask {
      *
      * @return The classpath containing the Groovy library to be used
      */
-    @Input
+    @InputFiles
     public FileCollection getClasspath() {
         return classpath;
     }

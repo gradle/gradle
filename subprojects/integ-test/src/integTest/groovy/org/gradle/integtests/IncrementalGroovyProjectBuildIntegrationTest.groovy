@@ -42,14 +42,14 @@ class IncrementalGroovyProjectBuildIntegrationTest {
         indexFile.assertIsFile();
         TestFile.Snapshot snapshot = indexFile.snapshot();
 
-        executer.withTasks("groovydoc").run().assertTasksSkipped(':groovydoc');
+        executer.withTasks("groovydoc").run().assertTaskSkipped(':groovydoc');
 
         indexFile.assertHasNotChangedSince(snapshot);
 
         distribution.testFile("build.gradle").append("groovydoc.link('http://java.sun.com/j2se/1.5.0/docs/api', 'java.')")
 
-        executer.withTasks("groovydoc").run().assertTasksNotSkipped(':groovydoc');
+        executer.withTasks("groovydoc").run().assertTaskNotSkipped(':groovydoc');
 
-        executer.withTasks("groovydoc").run().assertTasksSkipped(':groovydoc');
+        executer.withTasks("groovydoc").run().assertTaskSkipped(':groovydoc');
     }
 }

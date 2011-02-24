@@ -35,7 +35,17 @@ public interface ExecutionResult {
     ExecutionResult assertTasksSkipped(String... taskPaths);
 
     /**
+     * Asserts the given task has been skipped. Note: ignores buildSrc tasks.
+     */
+    ExecutionResult assertTaskSkipped(String taskPath);
+
+    /**
      * Asserts that exactly the given set of tasks have not been skipped. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTasksNotSkipped(String... taskPaths);
+
+    /**
+     * Asserts that the given task has not been skipped. Note: ignores buildSrc tasks.
+     */
+    ExecutionResult assertTaskNotSkipped(String taskPath);
 }
