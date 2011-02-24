@@ -18,11 +18,12 @@ package org.gradle.integtests.tooling
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.Project
 import org.gradle.util.GradleVersion
+import org.gradle.tooling.UnsupportedVersionException
 
 class ToolingApiIntegrationTest extends ToolingApiSpecification {
     def canUseToolingApiWithoutSpecifyingADistributionToUse() {
         def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${new GradleVersion().version}'"
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
@@ -34,7 +35,7 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
 
     def canSpecifyAGradleInstallationToUse() {
         def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${new GradleVersion().version}'"
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
@@ -47,7 +48,7 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
 
     def canSpecifyAGradleDistributionToUse() {
         def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${new GradleVersion().version}'"
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
@@ -60,14 +61,27 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
 
     def canSpecifyAGradleVersionToUse() {
         def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${new GradleVersion().version}'"
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        connector.useGradleVersion(new GradleVersion().version)
+        connector.useGradleVersion(GradleVersion.current().version)
         Project model = withConnection(connector) { connection -> connection.getModel(Project.class) }
 
         then:
         model != null
+    }
+
+    def handlesPreviousVersionOfGradleWhichDoesNotSupportToolingApi() {
+        def dist = dist.previousVersion('0.9.2').binDistribution
+
+        when:
+        GradleConnector connector = GradleConnector.newConnector()
+        connector.useDistribution(dist.toURI())
+        withConnection(connector) { connection -> connection.getModel(Project.class) }
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == "The specified Gradle distribution is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 2)"
     }
 }

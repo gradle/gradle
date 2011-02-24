@@ -202,7 +202,7 @@ public class DaemonConnector {
     }
 
     private File getRegistryFile() {
-        return new File(userHomeDir, String.format("daemon/%s/registry.bin", new GradleVersion().getVersion()));
+        return new File(userHomeDir, String.format("daemon/%s/registry.bin", GradleVersion.current().getVersion()));
     }
 
     private static class CompletionHandler implements Stoppable {

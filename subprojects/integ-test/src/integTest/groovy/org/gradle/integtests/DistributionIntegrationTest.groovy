@@ -29,7 +29,7 @@ import static org.junit.Assert.*
 class DistributionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    private String version = new GradleVersion().version
+    private String version = GradleVersion.current().version
 
     @Test
     public void binZipContents() {

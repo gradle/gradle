@@ -19,10 +19,10 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.internal.protocol.ConnectionVersion1;
-import org.gradle.tooling.internal.protocol.ProjectVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionVersion2;
+import org.gradle.tooling.internal.protocol.ProjectVersion2;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
 import org.gradle.tooling.model.Project;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.util.UncheckedException;
@@ -34,16 +34,16 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultProjectConnection implements ProjectConnection {
-    private final ConnectionVersion1 connection;
-    private final Map<Class<? extends Project>, Class<? extends ProjectVersion1>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion1>>();
+    private final ConnectionVersion2 connection;
+    private final Map<Class<? extends Project>, Class<? extends ProjectVersion2>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion2>>();
     private ProtocolToModelAdapter adapter;
     private AtomicBoolean closed = new AtomicBoolean();
 
-    public DefaultProjectConnection(ConnectionVersion1 connection, ProtocolToModelAdapter adapter) {
+    public DefaultProjectConnection(ConnectionVersion2 connection, ProtocolToModelAdapter adapter) {
         this.connection = connection;
         this.adapter = adapter;
-        modelTypeMap.put(Project.class, ProjectVersion1.class);
-        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion1.class);
+        modelTypeMap.put(Project.class, ProjectVersion2.class);
+        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion2.class);
     }
 
     public void close() {
@@ -82,8 +82,8 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public <T extends Project> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
-        connection.getModel(mapToProtocol(viewType), new ResultHandlerVersion1<ProjectVersion1>() {
-            public void onComplete(ProjectVersion1 result) {
+        connection.getModel(mapToProtocol(viewType), new ResultHandlerVersion1<ProjectVersion2>() {
+            public void onComplete(ProjectVersion2 result) {
                 handler.onComplete(adapter.adapt(viewType, result));
             }
 
@@ -93,8 +93,8 @@ class DefaultProjectConnection implements ProjectConnection {
         });
     }
 
-    private Class<? extends ProjectVersion1> mapToProtocol(Class<? extends Project> viewType) {
-        Class<? extends ProjectVersion1> protocolViewType = modelTypeMap.get(viewType);
+    private Class<? extends ProjectVersion2> mapToProtocol(Class<? extends Project> viewType) {
+        Class<? extends ProjectVersion2> protocolViewType = modelTypeMap.get(viewType);
         if (protocolViewType == null) {
             throw new UnsupportedVersionException(String.format("Model of type '%s' is not supported.", viewType.getSimpleName()));
         }

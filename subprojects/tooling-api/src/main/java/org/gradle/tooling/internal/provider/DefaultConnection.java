@@ -27,13 +27,13 @@ import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 
 import java.io.File;
 import java.util.*;
 
-public class DefaultConnection implements ConnectionVersion1 {
+public class DefaultConnection implements ConnectionVersion2 {
     private final ActorFactory actorFactory;
     private final ConnectionParametersVersion1 parameters;
     private Worker worker;
@@ -52,7 +52,7 @@ public class DefaultConnection implements ConnectionVersion1 {
         actor.stop();
     }
 
-    public <T extends ProjectVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException {
+    public <T extends ProjectVersion2> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException {
         if (worker == null) {
             actor = actorFactory.createActor(new WorkerImpl());
             worker = actor.getProxy(Worker.class);
@@ -62,7 +62,7 @@ public class DefaultConnection implements ConnectionVersion1 {
 
     private static class ModelBuilder extends BuildAdapter {
         private DefaultEclipseProject currentProject;
-        private final Map<String, EclipseProjectVersion1> projectMapping = new HashMap<String, EclipseProjectVersion1>();
+        private final Map<String, EclipseProjectVersion2> projectMapping = new HashMap<String, EclipseProjectVersion2>();
         private GradleInternal gradle;
 
         @Override
@@ -92,7 +92,7 @@ public class DefaultConnection implements ConnectionVersion1 {
                 }
                 for (final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
                     projectDependencies.add(new EclipseProjectDependencyVersion1() {
-                        public EclipseProjectVersion1 getTargetProject() {
+                        public EclipseProjectVersion2 getTargetProject() {
                             return projectMapping.get(projectDependency.getDependencyProject().getPath());
                         }
 
@@ -143,11 +143,11 @@ public class DefaultConnection implements ConnectionVersion1 {
     }
 
     private interface Worker {
-        <T extends ProjectVersion1> void build(Class<T> type, ResultHandlerVersion1<? super T> handler);
+        <T extends ProjectVersion2> void build(Class<T> type, ResultHandlerVersion1<? super T> handler);
     }
 
     private class WorkerImpl implements Worker {
-        public <T extends ProjectVersion1> void build(Class<T> type, ResultHandlerVersion1<? super T> handler) {
+        public <T extends ProjectVersion2> void build(Class<T> type, ResultHandlerVersion1<? super T> handler) {
             try {
                 handler.onComplete(build(type));
             } catch (Throwable t) {
@@ -155,8 +155,8 @@ public class DefaultConnection implements ConnectionVersion1 {
             }
         }
 
-        private <T extends ProjectVersion1> T build(Class<T> type) throws UnsupportedOperationException {
-            if (type.isAssignableFrom(EclipseProjectVersion1.class)) {
+        private <T extends ProjectVersion2> T build(Class<T> type) throws UnsupportedOperationException {
+            if (type.isAssignableFrom(EclipseProjectVersion2.class)) {
                 StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
 
                 final GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);

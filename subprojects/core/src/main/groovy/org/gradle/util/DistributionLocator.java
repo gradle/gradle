@@ -26,7 +26,7 @@ public class DistributionLocator {
     }
 
     public String getDistributionRepository(GradleVersion version) {
-        if (version.compareTo(new GradleVersion("0.9")) >= 0) {
+        if (version.compareTo(GradleVersion.version("0.9")) >= 0) {
             if (version.isSnapshot()) {
                 return ARTIFACTORY_SNAPSHOT_REPOSITORY;
             }

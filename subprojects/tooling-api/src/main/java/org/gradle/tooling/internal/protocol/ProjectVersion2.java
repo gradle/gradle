@@ -20,12 +20,12 @@ import java.io.File;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface ProjectVersion1 {
+public interface ProjectVersion2 {
     String getName();
 
     File getProjectDirectory();
 
-    ProjectVersion1 getParent();
+    ProjectVersion2 getParent();
 
-    Iterable<? extends ProjectVersion1> getChildren();
+    Iterable<? extends ProjectVersion2> getChildren();
 }

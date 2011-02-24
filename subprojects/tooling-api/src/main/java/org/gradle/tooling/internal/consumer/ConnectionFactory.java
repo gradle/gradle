@@ -16,9 +16,9 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion2;
 import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionVersion2;
 
 /**
  * This is the main internal entry point for the tooling API.
@@ -38,8 +38,8 @@ public class ConnectionFactory {
     }
 
     public ProjectConnection create(Distribution distribution, ConnectionParametersVersion1 parameters) {
-        ConnectionFactoryVersion1 factory = toolingImplementationLoader.create(distribution);
-        final ConnectionVersion1 connection = factory.create(parameters);
+        ConnectionFactoryVersion2 factory = toolingImplementationLoader.create(distribution);
+        final ConnectionVersion2 connection = factory.create(parameters);
         return new DefaultProjectConnection(connection, adapter);
     }
 }

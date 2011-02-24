@@ -15,16 +15,16 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1
+import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion2
 import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1
-import org.gradle.tooling.internal.protocol.ConnectionVersion1
+import org.gradle.tooling.internal.protocol.ConnectionVersion2
 import spock.lang.Specification
 
 class ConnectionFactoryTest extends Specification {
     final ToolingImplementationLoader implementationLoader = Mock()
     final Distribution distribution = Mock()
-    final ConnectionFactoryVersion1 connectionImplFactory = Mock()
-    final ConnectionVersion1 connectionImpl = Mock()
+    final ConnectionFactoryVersion2 connectionImplFactory = Mock()
+    final ConnectionVersion2 connectionImpl = Mock()
     final ConnectionParametersVersion1 parameters = Mock()
     final ConnectionFactory factory = new ConnectionFactory(implementationLoader)
 

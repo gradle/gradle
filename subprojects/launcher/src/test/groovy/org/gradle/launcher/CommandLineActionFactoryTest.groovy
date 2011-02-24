@@ -120,7 +120,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         1 * loggingManager.start()
-        outputs.stdOut.contains(new GradleVersion().prettyPrint())
+        outputs.stdOut.contains(GradleVersion.current().prettyPrint())
 
         where:
         option << ['-v', '--version']

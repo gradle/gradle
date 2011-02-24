@@ -44,12 +44,12 @@ public class GradleVersion implements Comparable<GradleVersion> {
     private final String versionPart;
     private final Stage stage;
 
-    public GradleVersion() {
-        this(GUtil.loadProperties(GradleVersion.class.getResourceAsStream(FILE_NAME)));
+    public static GradleVersion current() {
+        return new GradleVersion(GUtil.loadProperties(GradleVersion.class.getResourceAsStream(FILE_NAME)));
     }
 
-    public GradleVersion(String version) {
-        this(properties(version));
+    public static GradleVersion version(String version) {
+        return new GradleVersion(properties(version));
     }
 
     private static Properties properties(String version) {

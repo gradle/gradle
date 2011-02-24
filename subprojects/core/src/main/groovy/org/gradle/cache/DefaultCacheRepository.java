@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultCacheRepository implements CacheRepository {
-    private final GradleVersion version = new GradleVersion();
+    private final GradleVersion version = GradleVersion.current();
     private final File globalCacheDir;
     private final CacheUsage cacheUsage;
     private final CacheFactory factory;

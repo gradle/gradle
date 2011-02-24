@@ -16,15 +16,15 @@
 package org.gradle.tooling.internal.protocol.eclipse;
 
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.ProjectVersion1;
+import org.gradle.tooling.internal.protocol.ProjectVersion2;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface EclipseProjectVersion1 extends ProjectVersion1 {
-    EclipseProjectVersion1 getParent();
+public interface EclipseProjectVersion2 extends ProjectVersion2 {
+    EclipseProjectVersion2 getParent();
 
-    Iterable<? extends EclipseProjectVersion1> getChildren();
+    Iterable<? extends EclipseProjectVersion2> getChildren();
 
     Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories();
 

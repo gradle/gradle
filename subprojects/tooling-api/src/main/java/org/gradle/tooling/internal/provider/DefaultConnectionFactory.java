@@ -18,9 +18,9 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion2;
 import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionVersion2;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * The implementation of the tooling API provider. This is loaded dynamically by the tooling API consumer, {@link org.gradle.tooling.internal.consumer.ConnectionFactory}.
  */
-public class DefaultConnectionFactory implements ConnectionFactoryVersion1 {
+public class DefaultConnectionFactory implements ConnectionFactoryVersion2 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnectionFactory.class);
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
     private final DefaultActorFactory actorFactory = new DefaultActorFactory(executorFactory);
@@ -37,10 +37,10 @@ public class DefaultConnectionFactory implements ConnectionFactoryVersion1 {
         new CompositeStoppable(actorFactory, executorFactory).stop();
     }
 
-    public ConnectionVersion1 create(ConnectionParametersVersion1 parameters) {
-        LOGGER.info("Using tooling API provider version {}.", new GradleVersion().getVersion());
+    public ConnectionVersion2 create(ConnectionParametersVersion1 parameters) {
+        LOGGER.info("Using tooling API provider version {}.", GradleVersion.current().getVersion());
         LOGGER.info("Provider ClassLoader: {}", getClass().getClassLoader());
-        LOGGER.info("Protocol ClassLoader: {}", ConnectionFactoryVersion1.class.getClassLoader());
+        LOGGER.info("Protocol ClassLoader: {}", ConnectionFactoryVersion2.class.getClassLoader());
 
         return new DefaultConnection(parameters, actorFactory);
     }

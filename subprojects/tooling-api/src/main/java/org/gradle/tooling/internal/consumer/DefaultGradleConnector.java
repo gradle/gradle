@@ -70,7 +70,7 @@ public class DefaultGradleConnector extends GradleConnector {
     }
 
     public ProjectConnection connect() throws GradleConnectionException {
-        LOGGER.info("Connecting from tooling API consumer version {}", new GradleVersion().getVersion());
+        LOGGER.info("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
         LOGGER.info("Consumer ClassLoader: {}", getClass().getClassLoader());
 
         if (projectDir == null) {

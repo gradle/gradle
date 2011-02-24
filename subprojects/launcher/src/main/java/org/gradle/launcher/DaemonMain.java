@@ -69,7 +69,7 @@ public class DaemonMain implements Runnable {
     }
 
     private static void addLogFileWriters(StartParameter startParameter, LoggingServiceRegistry loggingServices) throws IOException {
-        File stderrOut = new File(startParameter.getGradleUserHomeDir(), String.format("daemon/%s/daemon.err.log", new GradleVersion().getVersion()));
+        File stderrOut = new File(startParameter.getGradleUserHomeDir(), String.format("daemon/%s/daemon.err.log", GradleVersion.current().getVersion()));
         stderrOut.getParentFile().mkdirs();
         final Writer writer = new BufferedWriter(new FileWriter(stderrOut));
         loggingServices.get(LoggingOutputInternal.class).addStandardErrorListener(new StandardOutputListener() {

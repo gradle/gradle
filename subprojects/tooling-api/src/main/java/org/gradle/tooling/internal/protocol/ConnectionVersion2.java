@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.protocol;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface ConnectionVersion1 {
+public interface ConnectionVersion2 {
     /**
      * Stops this connection, blocking until complete.
      */
@@ -40,5 +40,5 @@ public interface ConnectionVersion1 {
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    <T extends ProjectVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException;
+    <T extends ProjectVersion2> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException;
 }

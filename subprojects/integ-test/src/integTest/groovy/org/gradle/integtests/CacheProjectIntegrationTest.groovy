@@ -45,7 +45,7 @@ class CacheProjectIntegrationTest {
 
     @Before
     public void setUp() {
-        String version = new GradleVersion().version
+        String version = GradleVersion.current().version
         projectDir = dist.getTestDir().file("project")
         projectDir.mkdirs()
         userHomeDir = dist.getUserHomeDir()
