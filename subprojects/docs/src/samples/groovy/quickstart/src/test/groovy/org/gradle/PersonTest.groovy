@@ -1,6 +1,5 @@
 package org.gradle
 
-import org.codehaus.groovy.runtime.InvokerHelper
 import org.junit.Test
 import static org.junit.Assert.*
 
@@ -16,7 +15,7 @@ class PersonTest {
     }
 
     @Test public void usingCorrectVersionOfGroovy() {
-        assertEquals('1.7.6', InvokerHelper.version)
+        assertEquals('1.7.8', GroovySystem.version)
     }
     
     @Test public void testResourcesAreAvailable() {
