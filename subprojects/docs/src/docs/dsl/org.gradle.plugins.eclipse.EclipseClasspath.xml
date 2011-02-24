@@ -30,7 +30,7 @@
             </tr>
             <tr>
                 <td>defaultOutputDir</td>
-                <td><literal>project.sourceSets.main.classesDir</literal></td>
+                <td><filename><replaceable>${project.projectDir}</replaceable>/bin</filename></td>
             </tr>
             <tr>
                 <td>downloadSources</td>
