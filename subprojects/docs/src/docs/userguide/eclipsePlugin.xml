@@ -556,7 +556,7 @@
             <section>
                 <title>Modifying the fully populated domain objects</title>
                 <para>The <code>whenConfigured</code> hook allows to manipulate the fully populated domain objects. Often this is the
-                    preferred hook to work with. Here is how you would use it to export all the dependencies of an Eclipse project:
+                    preferred way to customize Eclipse files. Here is how you would export all the dependencies of an Eclipse project:
                     <sample id="exportDependencies" dir="eclipse"
                             title="Export Dependencies">
                         <sourcefile file="build.gradle" snippet="module-when-configured"/>
@@ -566,8 +566,8 @@
             <section>
                 <title>Modifying the XML representation</title>
                 <para>The <code>withXml</code>hook allows to manipulate the in-memory XML representation just before the file gets written to disk.
-                    This is less convenient than manipulating the domain objects (although Groovy's XML support makes up for a lot), but
-                    provides total control over the generated file, including sections not modeled by the domain objects.
+                    Although Groovy's XML support makes up for a lot, this approach is less convenient than manipulating the domain objects.
+                    In return, you get total control over the generated file, including sections not modeled by the domain objects.
                     <sample id="wtpWithXml" dir="eclipse"
                             title="Customizing the XML">
                         <sourcefile file="build.gradle" snippet="wtp-with-xml"/>

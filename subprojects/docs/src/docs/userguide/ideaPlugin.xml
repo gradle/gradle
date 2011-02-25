@@ -192,10 +192,10 @@
                 </td>
                 <td>null</td>
                 <td>null</td>
-                <td>If <literal>null</literal>, the value in the existing or default module file will be used (the default file's
-                    value is <literal>true</literal>). If<literal>true</literal>, fixed output directories below the project output
-                    directory will be used. If<literal>false</literal>, the directories specified with the <literal>sourceDirs</literal>
-                    and <literal>testSourceDirs</literal> properties will be used.</td>
+                <td>If <literal>null</literal>, the value in the existing or default module file is used (the default file uses
+                    <literal>true</literal>). If <literal>true</literal>, the module output directories will be located below the
+                    project output directories. If <literal>false</literal>, the directories specified with the <literal>sourceDirs</literal>
+                    and <literal>testSourceDirs</literal> properties are used.</td>
             </tr>
             <tr>
                 <td>
@@ -268,7 +268,7 @@
                 </td>
                 <td>-</td>
                 <td>If null, the value of the existing or default <literal>.ipr</literal> file is used (the default file uses
-                    <literal>inherited</literal>). If set to<literal>inherited</literal>, the project SDK is used. Otherwise,
+                    <literal>inherited</literal>). If set to <literal>inherited</literal>, the project SDK is used. Otherwise,
                     the SDK for the corresponding value of java version is used.</td>
             </tr>
             <tr>
@@ -516,7 +516,7 @@
             <section>
                 <title>Modifying the fully populated domain objects</title>
                 <para>The <code>whenConfigured</code> hook allows to manipulate the fully populated domain objects. Often this is the
-                    preferred hook to work with. Here is how you would use it to export all the dependencies of an IDEA module:
+                    preferred way to customize IDEA files. Here is how you would export all the dependencies of an IDEA module:
                     <sample id="exportDependencies" dir="idea"
                             title="Export Dependencies">
                         <sourcefile file="build.gradle" snippet="module-when-configured"/>
@@ -526,9 +526,9 @@
             </section>
             <section>
                 <title>Modifying the XML representation</title>
-                <para>The<code>withXml</code>hook allows to manipulate the in-memory XML representation just before the file gets written to disk.
-                    This is less convenient than manipulating the domain objects (although Groovy's XML support makes up for a lot), but
-                    provides total control over the generated file, including sections not modeled by the domain objects.
+                <para>The <code>withXml</code>hook allows to manipulate the in-memory XML representation just before the file gets written to disk.
+                    Although Groovy's XML support makes up for a lot, this approach is less convenient than manipulating the domain objects.
+                    In return, you get total control over the generated file, including sections not modeled by the domain objects.
                     <sample id="projectWithXml" dir="idea"
                             title="Customizing the XML">
                         <sourcefile file="build.gradle" snippet="project-with-xml"/>
