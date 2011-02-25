@@ -21,7 +21,7 @@
         making it possible to open the project from IDEA (<guimenuitem>File</guimenuitem> - <guimenuitem>Open Project</guimenuitem>).
         Both external dependencies (including associated source and javadoc files) and project dependencies are considered.</para>
 
-    <para>What excactly the IDEA plugin generates depends on which other plugins are used:</para>
+    <para>What exactly the IDEA plugin generates depends on which other plugins are used:</para>
     <table>
         <title>IDEA plugin behavior</title>
         <thead>
