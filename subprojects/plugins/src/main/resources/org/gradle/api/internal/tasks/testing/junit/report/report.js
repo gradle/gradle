@@ -67,7 +67,11 @@ function findTitles(tabs) {
         var tab = tabs[i];
         var header = findChildElements(tab, 'H2', null)[0];
         header.parentNode.removeChild(header);
-        titles.push(header.textContent)
+        if (header.innerText) {
+            titles.push(header.innerText)
+        } else {
+            titles.push(header.textContent)
+        }
     }
     return titles;
 }
