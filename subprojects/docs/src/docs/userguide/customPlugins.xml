@@ -149,7 +149,7 @@
 
 	<para>
             So how does Gradle find the <apilink class="org.gradle.api.Plugin"/> implementation? The answer is you need to provide a properties file in the jar's
-	    META-INF/gradle-plugins directory that matches the name of your plugin.  	    
+	    <filename>META-INF/gradle-plugins</filename> directory that matches the name of your plugin.
 	</para>
 
         <sample id="customPluginStandalone" dir="customPlugin" title="Wiring for a custom plugin">
