@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.idea;
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.IdePlugin
@@ -24,11 +23,8 @@ import org.gradle.api.plugins.JavaPlugin
 /**
  * @author Hans Dockter
  *
- * When applied to a project, this plugin add one IdeaModule task. If the project is the root project, the plugin
- * adds also an IdeaProject task.
- *
- * If the java plugin is or has been added to a project where this plugin is applied to, the IdeaModule task gets some
- * Java specific configuration.
+ * Adds an IdeaModule task. When applied to a root project, also adds an IdeaProject task.
+ * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
  */
 class IdeaPlugin extends IdePlugin {
     @Override protected String getLifecycleTaskName() {
@@ -95,8 +91,6 @@ class IdeaPlugin extends IdePlugin {
         project.ideaModule {
             conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
-            conventionMapping.outputDir = { project.file("out/production/$project.name") }
-            conventionMapping.testOutputDir = { project.file("out/test/$project.name") }
             def configurations = project.configurations
             scopes = [
                     COMPILE: [plus: [configurations.compile], minus: []],

@@ -35,7 +35,6 @@ import org.gradle.plugins.idea.model.Module
  *
  * @author Hans Dockter
  */
-// TODO: Why are some properties not marked with @Input? Why aren't more properties marked with @Optional (e.g. downloadSources)?
 public class IdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The content root directory of the module.
@@ -44,37 +43,44 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     File moduleDir
 
     /**
-     * The dirs containing the production sources.
+     * The directories containing the production sources.
      */
     @Input
     Set<File> sourceDirs
 
     /**
-     * The dirs containing the test sources.
+     * The directories containing the test sources.
      */
     @Input
     Set<File> testSourceDirs
 
     /**
-     * The dirs to be excluded by idea.
+     * The directories to be excluded.
      */
     @Input
     Set<File> excludeDirs
 
     /**
-     * The idea output dir for the production sources. If {@code null} no entry for output dirs is created.
+     * If true, output directories for this module will be located below the output directory for the project;
+     * otherwise, they will be set to the directories specified by {@link #outputDir} and {@link #testOutputDir}.
+     */
+    @Input @Optional
+    Boolean inheritOutputDirs
+
+    /**
+     * The output directory for production classes. If {@code null}, no entry will be created.
      */
     @Input @Optional
     File outputDir
 
     /**
-     * The idea output dir for the test sources. If {@code null} no entry for test output dirs is created.
+     * The output directory for test classes. If {@code null}, no entry will be created.
      */
     @Input @Optional
     File testOutputDir
 
     /**
-     * The JDK to use for this module. If this is {@code null} the value of the existing or default ipr XML (inherited)
+     * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (inherited)
      * is used. If it is set to <code>inherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
      * value of java version is used for this module
      */
@@ -112,8 +118,8 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     }
 
     @Override protected void configure(Module module) {
-        module.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
-                getDependencies(), javaVersion)
+        module.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(),
+                inheritOutputDirs, getOutputPath(), getTestOutputPath(), getDependencies(), javaVersion)
     }
 
     protected Path getContentPath() {

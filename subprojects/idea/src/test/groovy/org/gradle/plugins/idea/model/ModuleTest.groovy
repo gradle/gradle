@@ -55,6 +55,7 @@ class ModuleTest extends Specification {
         def constructorSourceFolders = [path('a')] as Set
         def constructorTestSourceFolders = [path('b')] as Set
         def constructorExcludeFolders = [path('c')] as Set
+        def constructorInheritOutputDirs = false
         def constructorOutputDir = path('someOut')
         def constructorJavaVersion = '1.6'
         def constructorTestOutputDir = path('someTestOut')
@@ -64,7 +65,8 @@ class ModuleTest extends Specification {
 
         when:
         module.load(customModuleReader)
-        module.configure(null, constructorSourceFolders, constructorTestSourceFolders, constructorExcludeFolders, constructorOutputDir, constructorTestOutputDir, constructorModuleDependencies, constructorJavaVersion)
+        module.configure(null, constructorSourceFolders, constructorTestSourceFolders, constructorExcludeFolders,
+                constructorInheritOutputDirs, constructorOutputDir, constructorTestOutputDir, constructorModuleDependencies, constructorJavaVersion)
 
         then:
         module.sourceFolders == customSourceFolders + constructorSourceFolders
@@ -82,6 +84,7 @@ class ModuleTest extends Specification {
 
         then:
         module.javaVersion == Module.INHERITED
+        module.inheritOutputDirs
         module.sourceFolders == [] as Set
         module.dependencies.size() == 0
     }
@@ -93,7 +96,7 @@ class ModuleTest extends Specification {
 
         when:
         module.loadDefaults()
-        module.configure(null, constructorSourceFolders, [] as Set, [] as Set, constructorOutputDir, constructorTestOutputDir, [] as Set, null)
+        module.configure(null, constructorSourceFolders, [] as Set, [] as Set, false, constructorOutputDir, constructorTestOutputDir, [] as Set, null)
         def xml = toXmlReader
         def newModule = new Module(xmlTransformer, pathFactory)
         newModule.load(xml)

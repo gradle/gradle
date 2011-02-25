@@ -78,11 +78,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         runIdeaTask("apply plugin: 'java'; apply plugin: 'idea'")
 
         def module = parseImlFile("root")
-        def outputUrl = module.component.output[0].@url
-        def testOutputUrl = module.component."output-test"[0].@url
-
-        assert outputUrl.text() == 'file://$MODULE_DIR$/out/production/root'
-        assert testOutputUrl.text() == 'file://$MODULE_DIR$/out/test/root'
+        assert module.component.@"inherit-compiler-output" == "true"
     }
 
     @Test
