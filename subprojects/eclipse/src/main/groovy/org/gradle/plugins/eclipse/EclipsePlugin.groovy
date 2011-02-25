@@ -205,15 +205,19 @@ class EclipsePlugin extends IdePlugin {
 
     // TODO: might have to search all class paths of all source sets for project dependendencies, not just runtime configuration
     private void eachDependedUponProject(Project project, Closure action) {
-        project.afterEvaluate {
-            def runtimeConfig = project.configurations.findByName("runtime")
-            if (runtimeConfig) {
-                def projectDeps = runtimeConfig.getAllDependencies(ProjectDependency)
-                def dependedUponProjects = projectDeps*.dependencyProject
-                for (dependedUponProject in dependedUponProjects) {
-                    action(dependedUponProject)
-                    eachDependedUponProject(dependedUponProject, action)
-                }
+        project.gradle.projectsEvaluated {
+            doEachDependedUponProject(project, action)
+        }
+    }
+
+    private void doEachDependedUponProject(Project project, Closure action) {
+        def runtimeConfig = project.configurations.findByName("runtime")
+        if (runtimeConfig) {
+            def projectDeps = runtimeConfig.getAllDependencies(ProjectDependency)
+            def dependedUponProjects = projectDeps*.dependencyProject
+            for (dependedUponProject in dependedUponProjects) {
+                action(dependedUponProject)
+                doEachDependedUponProject(dependedUponProject, action)
             }
         }
     }

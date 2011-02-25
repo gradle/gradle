@@ -87,9 +87,9 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     void allProjectDependenciesOfWebProjectAreAddedAsRuntimeDependencies() {
         prepareWebProject()
 
-        def projectModules = parseComponentFile()
+        def projectModules = parseComponentFile(project: "web")
 
-		assert getDeployNames(projectModules) == ["root"]
+		assert getDeployNames(projectModules) == ["web"]
 		assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
 		assert getDependencyTypes(projectModules) == ["uses", "uses", "uses", "uses", "uses"] as Set
     }
@@ -99,47 +99,66 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
         publishArtifact(repoDir, "mygroup", "myartifact", "myartifactdep")
         publishArtifact(repoDir, "mygroup", "myartifactdep")
 
-        runEclipseTask """
-rootProject.name = "root"
-
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+include("web")
 include("java1")
 include("java2")
 include("groovy")
-        """, """
-allprojects {
-    apply plugin: "java"
-    apply plugin: "eclipse"
+        """
 
-    repositories {
-        mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
-    }
-}
-
+        def buildFileRoot = getFile(project: "web", "build.gradle")
+        buildFileRoot << """
+apply plugin: "eclipse"
 apply plugin: "war"
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
 
 dependencies {
     compile project(":java1")
     compile project(":groovy")
     runtime "mygroup:myartifact:1.0"
 }
+        """
 
-project("java1") {
-    dependencies {
-        compile project(":java2")
-        runtime "mygroup:myartifact:1.0"
-    }
+        def buildFileJava1 = getFile(project: "java1", "build.gradle")
+        buildFileJava1 << """
+apply plugin: "eclipse"
+apply plugin: "java"
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
 }
 
-project("java2") {
-    dependencies {
-        runtime "mygroup:myartifact:1.0"
-    }
-}
-
-project("groovy") {
-    apply plugin: "groovy"
+dependencies {
+    compile project(":java2")
+    runtime "mygroup:myartifact:1.0"
 }
         """
+
+        def buildFileJava2 = getFile(project: "java2", "build.gradle")
+        buildFileJava2 << """
+apply plugin: "eclipse"
+apply plugin: "java"
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
+
+dependencies {
+    runtime "mygroup:myartifact:1.0"
+}
+        """
+
+        def buildFileGroovy = getFile(project: "groovy", "build.gradle")
+        buildFileGroovy << """
+apply plugin: "eclipse"
+apply plugin: "groovy"
+        """
+
+        executer.usingSettingsFile(settingsFile).withTasks("eclipse").run()
     }
 
     private void hasUtilityFacet(String project) {
