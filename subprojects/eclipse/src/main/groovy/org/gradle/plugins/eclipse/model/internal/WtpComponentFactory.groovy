@@ -38,7 +38,6 @@ class WtpComponentFactory {
     private List getEntriesFromSourceSets(EclipseWtpComponent eclipseComponent) {
         def entries = []
         eclipseComponent.sourceSets.each { sourceSet ->
-            entries << new WbProperty('java-output-path', PathUtil.normalizePath(eclipseComponent.project.relativePath(sourceSet.classesDir)))
             sourceSet.allSource.sourceTrees.each { sourceDirectorySet ->
                 sourceDirectorySet.srcDirs.each { dir ->
                     if (dir.isDirectory()) {
