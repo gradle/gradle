@@ -4,7 +4,14 @@ body {
     padding: 0;
     font-family: sans-serif;
     font-size: 12pt;
+}
+
+body, a, a:visited {
     color: #303030;
+}
+
+ul {
+    margin-left: 0;
 }
 
 #content {
@@ -35,6 +42,9 @@ body {
 #footer {
     margin-top: 100px;
     font-size: 80%;
+}
+
+#footer, #footer a {
     color: #a0a0a0;
 }
 
@@ -79,7 +89,7 @@ body {
     font-size: 180%;
 }
 
-.success {
+.success, .success a {
     color: #008000;
 }
 
@@ -88,7 +98,7 @@ div.success, #successRate.success {
     border-color: #008000;
 }
 
-.failures {
+.failures, .failures a {
     color: #b60808;
 }
 
@@ -185,8 +195,7 @@ div.tab table {
     border-collapse: collapse;
 }
 
-div.tab tbody {
-    border-top: solid #d0d0d0 1px;
+div.tab th, div.tab table {
     border-bottom: solid #d0d0d0 1px;
 }
 

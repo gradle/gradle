@@ -18,7 +18,7 @@ function switchTab() {
     for (var i = 0; i < tabs.tabs.length; i++) {
         if (tabs.tabs[i].id == id) {
             tabs.select(i);
-            return false;
+            break;
         }
     }
     return false;
@@ -26,8 +26,8 @@ function switchTab() {
 
 function select(i) {
     this.deselectAll();
-    this.tabs[i].setAttribute('class', 'tab selected');
-    this.headers[i].setAttribute('class', 'selected');
+    changeElementClass(this.tabs[i], 'tab selected');
+    changeElementClass(this.headers[i], 'selected');
     while (this.headers[i].firstChild) {
         this.headers[i].removeChild(this.headers[i].firstChild);
     }
@@ -38,8 +38,8 @@ function select(i) {
 
 function deselectAll() {
     for (var i = 0; i < this.tabs.length; i++) {
-        this.tabs[i].setAttribute('class', 'tab deselected');
-        this.headers[i].setAttribute('class', 'deselected');
+        changeElementClass(this.tabs[i], 'tab deselected');
+        changeElementClass(this.headers[i], 'deselected');
         while (this.headers[i].firstChild) {
             this.headers[i].removeChild(this.headers[i].firstChild);
         }
@@ -49,6 +49,15 @@ function deselectAll() {
         a.onclick = switchTab;
         a.appendChild(document.createTextNode(this.titles[i]));
         this.headers[i].appendChild(a);
+    }
+}
+
+function changeElementClass(element, classValue) {
+    if (document.all) {
+        /* IE */
+        element.setAttribute('className', classValue)
+    } else {
+        element.setAttribute('class', classValue)
     }
 }
 
@@ -82,7 +91,7 @@ function findChildElements(container, name, targetClass) {
     for (var i = 0; i < children.length; i++) {
         var child = children.item(i);
         if (child.nodeType == 1 && child.nodeName == name) {
-            if (targetClass && child.getAttribute('class').indexOf(targetClass) < 0) {
+            if (targetClass && child.className.indexOf(targetClass) < 0) {
                 continue;
             }
             elements.push(child);
