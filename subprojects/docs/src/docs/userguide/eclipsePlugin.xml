@@ -500,7 +500,7 @@
     </section>
     <section>
         <title>Customizing the generated files</title>
-        <para>All the tasks of the Eclipse plugin provide the same hooks and behavior for customizing the generated content.</para>
+        <para>All Eclipse tasks provide the same hooks and behavior for customizing the generated content.</para>
         <para>The tasks recognize existing Eclipse files, and merge them with the generated content.</para>
         <section>
             <title>Merging</title>
@@ -510,7 +510,7 @@
                 <title>Disabling merging with a complete overwrite</title>
                 <para>To completely overwrite existing Eclipse files, execute a clean task together with its corresponding generation task,
                     for example <userinput>gradle cleanEclipse eclipse</userinput> (in that order). If you want to make this
-                    the default behavior, add <code>eclipse.dependsOn(cleanEclipse)</code> to your build script, making it
+                    the default behavior, add <code>eclipse.dependsOn(cleanEclipse)</code> to your build script. This makes it
                     unnecessary to execute the clean task explicitly.
                 </para>
                 <para>Complete overwrite works equally well for individual files, for example by executing<userinput>gradle cleanEclipseClasspath eclipseClasspath</userinput>.

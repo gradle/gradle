@@ -459,9 +459,9 @@
     </section>
     <section>
         <title>Customizing the generated files</title>
-        <para>All the tasks of the IDEA plugin provide the same hooks and behavior for customizing the generated content.
-            However, the workspace file can only be manipulated with the <code>withXml</code> hook because its domain
-            object is essentially empty.</para>
+        <para>All IDEA tasks provide the same hooks and behavior for customizing the generated content.
+            However, the workspace file can effectively only be manipulated via the <code>withXml</code> hook,
+            because its corresponding domain object is essentially empty.</para>
         <para>The tasks recognize existing IDEA files, and merge them with the generated content.</para>
         <section>
             <title>Merging</title>
@@ -471,7 +471,7 @@
                 <title>Disabling merging with a complete overwrite</title>
                 <para>To completely overwrite existing IDEA files, execute a clean task together with its corresponding generation task,
                     for example <userinput>gradle cleanIdea idea</userinput> (in that order). If you want to make this
-                    the default behavior, add <code>idea.dependsOn(cleanIdea)</code> to your build script, making it
+                    the default behavior, add <code>idea.dependsOn(cleanIdea)</code> to your build script. This makes it
                     unnecessary to execute the clean task explicitly.
                 </para>
                 <para>Complete overwrite works equally well for individual files, for example by executing<userinput>gradle cleanIdeaModule ideaModule</userinput>.</para>
