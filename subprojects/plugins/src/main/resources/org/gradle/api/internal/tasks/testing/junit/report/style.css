@@ -43,15 +43,10 @@ body {
 }
 
 .infoBox {
-    width: 120px;
+    width: 110px;
     padding-top: 15px;
     padding-bottom: 15px;
-    border: solid 2px #d0d0d0;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
     text-align: center;
-    margin-right: 10px;
-    behavior: url(css3-pie-1.0beta3.htc);
 }
 
 .infoBox p {
@@ -62,6 +57,17 @@ body {
     font-size: 120%;
     font-weight: bold;
     margin-bottom: 8px;
+}
+
+#duration {
+    width: 125px;
+}
+
+#successRate, .summaryGroup {
+    border: solid 2px #d0d0d0;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    behavior: url(css3-pie-1.0beta3.htc);
 }
 
 #successRate {
@@ -77,7 +83,7 @@ body {
     color: #008000;
 }
 
-div.success {
+div.success, #successRate.success {
     background-color: #bbd9bb;
     border-color: #008000;
 }
@@ -86,7 +92,7 @@ div.success {
     color: #b60808;
 }
 
-div.failures {
+div.failures, #successRate.failures {
     background-color: #ecdada;
     border-color: #b60808;
 }
@@ -113,28 +119,31 @@ ul.linkList li {
 }
 
 ul.tabLinks {
-    position: relative;
-    height: 30px;
     padding-left: 0;
     padding-top: 10px;
     padding-bottom: 10px;
+    overflow: hidden;
 }
 
 ul.tabLinks li {
     float: left;
-    height: 30px;
+    height: 100%;
     list-style: none;
     padding-left: 10px;
     padding-right: 10px;
-    padding-top: 8px;
-    padding-bottom: 0;
+    padding-top: 5px;
+    padding-bottom: 5px;
     margin-bottom: 0;
     -moz-border-radius: 7px;
     border-radius: 7px;
     margin-right: 25px;
     border: solid 1px #f0f0f0;
-    background-color: #fafafa;
+    background-color: #f4f4f4;
     behavior: url(css3-pie-1.0beta3.htc);
+}
+
+ul.tabLinks li:hover {
+    background-color: #fafafa;
 }
 
 ul.tabLinks li.selected {
@@ -151,7 +160,7 @@ ul.tabLinks a {
     padding: 0;
 }
 
-ul.tabLinks li.deselected a:hover {
+ul.tabLinks li:hover a {
     text-decoration: underline;
 }
 

@@ -86,6 +86,7 @@ abstract class PageRenderer<T extends CompositeTestResults> {
 
         builder.html {
             head {
+                meta('http-equiv': "Content-Type", content: "text/html; charset=UTF-8")
                 title("Test results - $results.title")
                 link(rel: 'stylesheet', href: 'style.css', type: 'text/css')
                 script(src: 'report.js', type: 'text/javascript', " ")
@@ -98,21 +99,29 @@ abstract class PageRenderer<T extends CompositeTestResults> {
                         table {
                             tr {
                                 td {
-                                    div(id: 'tests', class: 'infoBox') {
-                                        div(class: 'counter', results.testCount)
-                                        p('tests')
-                                    }
-                                }
-                                td {
-                                    div(id: 'failures', class: 'infoBox') {
-                                        div(class: 'counter', results.failureCount)
-                                        p('failures')
-                                    }
-                                }
-                                td {
-                                    div(id: 'duration', class: 'infoBox') {
-                                        div(class: 'counter', results.formattedDuration)
-                                        p('duration')
+                                    div(class: 'summaryGroup') {
+                                        table {
+                                            tr {
+                                                td {
+                                                    div(id: 'tests', class: 'infoBox') {
+                                                        div(class: 'counter', results.testCount)
+                                                        p('tests')
+                                                    }
+                                                }
+                                                td {
+                                                    div(id: 'failures', class: 'infoBox') {
+                                                        div(class: 'counter', results.failureCount)
+                                                        p('failures')
+                                                    }
+                                                }
+                                                td {
+                                                    div(id: 'duration', class: 'infoBox') {
+                                                        div(class: 'counter', results.formattedDuration)
+                                                        p('duration')
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 td {
