@@ -8,7 +8,7 @@ repositories {
 dependencies {
     compile gradleApi()
 // END SNIPPET gradle-api-dependencies
-    testCompile group: 'junit', name: 'junit', version: '4.7'
+    testCompile group: 'junit', name: 'junit', version: '4.8.2'
 // START SNIPPET gradle-api-dependencies
 }
 // END SNIPPET gradle-api-dependencies

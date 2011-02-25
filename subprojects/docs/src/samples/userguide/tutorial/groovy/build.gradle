@@ -48,7 +48,7 @@ repositories({ println "in a closure" })
 // START SNIPPET closureDelegates
 dependencies {
     assert delegate == project.dependencies
-    compile('junit:junit:4.8.1')
-    delegate.compile('junit:junit:4.8.1')
+    compile('junit:junit:4.8.2')
+    delegate.compile('junit:junit:4.8.2')
 }
 // END SNIPPET closureDelegates

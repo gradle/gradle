@@ -20,7 +20,7 @@ configurations {
 }
 
 dependencies {
-    junit 'junit:junit:4.8.1'
+    junit 'junit:junit:4.8.2'
 }
 
 apply plugin: 'base'
