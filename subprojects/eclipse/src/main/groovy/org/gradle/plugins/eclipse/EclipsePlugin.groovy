@@ -48,8 +48,8 @@ class EclipsePlugin extends IdePlugin {
     }
 
     @Override protected void onApply(Project project) {
-        lifecycleTask.description = 'Generates the Eclipse files.'
-        cleanTask.description = 'Cleans the generated Eclipse files.'
+        lifecycleTask.description = 'Generates all Eclipse files.'
+        cleanTask.description = 'Cleans all Eclipse files.'
         configureEclipseProject(project)
         configureEclipseClasspath(project)
         configureEclipseJdt(project)
@@ -60,7 +60,7 @@ class EclipsePlugin extends IdePlugin {
     private void configureEclipseProject(Project project) {
         addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, EclipseProject) {
             projectName = project.name
-            description = "Generates the Eclipse .project file."
+            description = "Generates the Eclipse project file."
             inputFile = project.file('.project')
             outputFile = project.file('.project')
             conventionMapping.comment = { project.description }
@@ -103,7 +103,7 @@ class EclipsePlugin extends IdePlugin {
     private void configureEclipseClasspath(Project project) {
         project.plugins.withType(JavaBasePlugin) {
             addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, EclipseClasspath) {
-                description = "Generates the Eclipse .classpath file."
+                description = "Generates the Eclipse classpath file."
                 containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
                 sourceSets = project.sourceSets
                 inputFile = project.file('.classpath')
@@ -146,7 +146,7 @@ class EclipsePlugin extends IdePlugin {
     private void configureEclipseWtpComponent(Project project) {
         project.plugins.withType(WarPlugin) {
             addEclipsePluginTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
-                description = 'Generates the org.eclipse.wst.common.component file for Eclipse WTP.'
+                description = 'Generates the Eclipse WTP component settings file.'
                 deployName = project.name
                 sourceSets = project.sourceSets.matching { sourceSet -> sourceSet.name == 'main' }
                 plusConfigurations = [project.configurations.runtime]
@@ -162,7 +162,7 @@ class EclipsePlugin extends IdePlugin {
                 // require Java plugin because we need source sets and configurations
                 otherProject.plugins.withType(JavaPlugin) {
                     addEclipsePluginTask(otherProject, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
-                        description = 'Generates the org.eclipse.wst.common.component file for Eclipse WTP.'
+                        description = 'Generates the Eclipse WTP component settings file.'
                         deployName = otherProject.name
                         sourceSets = otherProject.sourceSets.matching { sourceSet -> sourceSet.name == 'main' }
                         plusConfigurations = [otherProject.configurations.runtime]
@@ -180,7 +180,7 @@ class EclipsePlugin extends IdePlugin {
     private void configureEclipseWtpFacet(Project project) {
         project.plugins.withType(WarPlugin) {
             addEclipsePluginTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, EclipseWtpFacet) {
-                description = 'Generates the org.eclipse.wst.common.project.facet.core.xml settings file for Eclipse WTP.'
+                description = 'Generates the Eclipse WTP facet settings file.'
                 inputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                 outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                 conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
@@ -188,7 +188,7 @@ class EclipsePlugin extends IdePlugin {
 
             eachDependedUponProject(project) { otherProject ->
                 addEclipsePluginTask(otherProject, ECLIPSE_WTP_FACET_TASK_NAME, EclipseWtpFacet) {
-                    description = 'Generates the org.eclipse.wst.common.project.facet.core.xml settings file for Eclipse WTP.'
+                    description = 'Generates the Eclipse WTP facet settings file.'
                     inputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                     conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
