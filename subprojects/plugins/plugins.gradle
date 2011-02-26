@@ -1,3 +1,5 @@
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -45,6 +47,23 @@ task reportResources(type: Copy) {
 }
 
 classes.dependsOn reportResources
+
+task ideResources(type: Copy) {
+    from(configurations.reports)
+    into "${ideDir}/resources/test/org/gradle/api/internal/tasks/testing/junit/report"
+}
+
+ide.dependsOn ideResources
+
+ideaModule {
+    dependsOn ideResources
+    scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
+}
+
+eclipseClasspath {
+    dependsOn ideResources
+    plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
+}
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
