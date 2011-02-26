@@ -62,6 +62,10 @@ public class TaskFactory implements ITaskFactory {
         if (description != null) {
             task.setDescription(description.toString());
         }
+        Object group = actualArgs.get(Task.TASK_GROUP);
+        if (group != null) {
+            task.setGroup(group.toString());
+        }
         Object action = actualArgs.get(Task.TASK_ACTION);
         if (action instanceof Action) {
             Action<? super Task> taskAction = (Action<? super Task>) action;

@@ -188,6 +188,13 @@ public class TaskFactoryTest {
         assertEquals("9", task.getDescription());
     }
 
+    @Test
+    public void createTaskWithGroup() {
+        Object testGroup = "The Group";
+        Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_GROUP, testGroup)));
+        assertEquals(testGroup, task.getGroup());
+    }
+
     private Task checkTask(Task task) {
         assertEquals(TEST_TASK_NAME, task.getName());
         assertSame(testProject, task.getProject());
