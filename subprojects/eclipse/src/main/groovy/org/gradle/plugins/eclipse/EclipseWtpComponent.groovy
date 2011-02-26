@@ -16,7 +16,6 @@
 package org.gradle.plugins.eclipse
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.eclipse.model.*
 import org.gradle.plugins.eclipse.model.internal.WtpComponentFactory
@@ -28,9 +27,9 @@ import org.gradle.plugins.eclipse.model.internal.WtpComponentFactory
  */
 class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     /**
-     * The source sets to be transformed into wb-resource elements.
+     * The source directories to be transformed into wb-resource elements.
      */
-    Iterable<SourceSet> sourceSets
+    Set<File> sourceDirs
 
     /**
      * The configurations whose files are to be transformed into dependent-module elements.

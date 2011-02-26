@@ -148,7 +148,7 @@ class EclipsePlugin extends IdePlugin {
             addEclipsePluginTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
                 description = 'Generates the Eclipse WTP component settings file.'
                 deployName = project.name
-                sourceSets = project.sourceSets.matching { sourceSet -> sourceSet.name == 'main' }
+                sourceDirs = project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten()
                 plusConfigurations = [project.configurations.runtime]
                 inputFile = project.file('.settings/org.eclipse.wst.common.component')
                 outputFile = project.file('.settings/org.eclipse.wst.common.component')
@@ -164,7 +164,7 @@ class EclipsePlugin extends IdePlugin {
                     addEclipsePluginTask(otherProject, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
                         description = 'Generates the Eclipse WTP component settings file.'
                         deployName = otherProject.name
-                        sourceSets = otherProject.sourceSets.matching { sourceSet -> sourceSet.name == 'main' }
+                        sourceDirs = otherProject.sourceSets.main.allSource.sourceTrees.srcDirs.flatten()
                         plusConfigurations = [otherProject.configurations.runtime]
                         inputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
                         outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')

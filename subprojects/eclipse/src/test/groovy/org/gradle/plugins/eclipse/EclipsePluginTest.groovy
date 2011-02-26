@@ -170,7 +170,7 @@ class EclipsePluginTest extends Specification {
         def eclipseWtpComponent = project.eclipseWtpComponent
         assert eclipseWtpComponent instanceof EclipseWtpComponent
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseWtpComponent)
-        assert eclipseWtpComponent.sourceSets.all == [project.sourceSets.main] as Set
+        assert eclipseWtpComponent.sourceDirs == project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as Set
         assert eclipseWtpComponent.plusConfigurations == [project.configurations.runtime] as Set
         assert eclipseWtpComponent.minusConfigurations == [project.configurations.providedRuntime] as Set
         assert eclipseWtpComponent.deployName == project.name

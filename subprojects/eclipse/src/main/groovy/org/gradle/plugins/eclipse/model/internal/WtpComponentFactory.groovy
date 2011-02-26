@@ -27,7 +27,7 @@ import org.gradle.plugins.eclipse.model.*
  */
 class WtpComponentFactory {
     void configure(EclipseWtpComponent eclipseComponent, WtpComponent component) {
-        def entries = getEntriesFromSourceSets(eclipseComponent)
+        def entries = getEntriesFromSourceDirs(eclipseComponent)
         entries.addAll(eclipseComponent.resources)
         entries.addAll(eclipseComponent.properties)
         entries.addAll(getEntriesFromConfigurations(eclipseComponent))
@@ -35,18 +35,10 @@ class WtpComponentFactory {
         component.configure(eclipseComponent.deployName, eclipseComponent.contextPath, entries)
     }
 
-    private List getEntriesFromSourceSets(EclipseWtpComponent eclipseComponent) {
-        def entries = []
-        eclipseComponent.sourceSets.each { sourceSet ->
-            sourceSet.allSource.sourceTrees.each { sourceDirectorySet ->
-                sourceDirectorySet.srcDirs.each { dir ->
-                    if (dir.isDirectory()) {
-                        entries << new WbResource("/WEB-INF/classes", eclipseComponent.project.relativePath(dir))
-                    }
-                }
-            }
+    private List getEntriesFromSourceDirs(EclipseWtpComponent eclipseComponent) {
+        eclipseComponent.sourceDirs.findAll { it.isDirectory() }.collect { dir ->
+            new WbResource("/WEB-INF/classes", eclipseComponent.project.relativePath(dir))
         }
-        entries
     }
 
     private List getEntriesFromConfigurations(EclipseWtpComponent eclipseComponent) {

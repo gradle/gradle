@@ -375,11 +375,11 @@
             </thead>
             <tr>
                 <td>
-                    <literal>sourceSets</literal>
+                    <literal>sourceDirs</literal>
                 </td>
-                <td><classname>Iterable&lt;SourceSet&gt;</classname></td>
+                <td><classname>Set&lt;File&gt;</classname></td>
                 <td>
-                    <literal>project.sourceSets</literal>
+                    <td>The source directories of <literal>sourceSets.main</literal></td>
                 </td>
                 <td>The source sets whose source directories are to be added to the Eclipse classpath.</td>
             </tr>
