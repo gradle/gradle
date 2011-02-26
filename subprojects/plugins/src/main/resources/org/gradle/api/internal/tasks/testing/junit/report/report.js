@@ -53,7 +53,7 @@ function deselectAll() {
 }
 
 function changeElementClass(element, classValue) {
-    if (document.all) {
+    if (element.getAttribute('className')) {
         /* IE */
         element.setAttribute('className', classValue)
     } else {
