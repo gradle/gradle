@@ -40,9 +40,9 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         new XmlSlurper().parse(file)
     }
 
-    protected void createJavaSourceDirs(File baseDir) {
-        file(baseDir, "src/main/java").createDir()
-        file(baseDir, "src/main/resources").createDir()
+    protected void createJavaSourceDirs(TestFile buildFile) {
+        buildFile.parentFile.file("src/main/java").createDir()
+        buildFile.parentFile.file("src/main/resources").createDir()
     }
 
     protected File publishArtifact(dir, group, artifact, dependency = null) {

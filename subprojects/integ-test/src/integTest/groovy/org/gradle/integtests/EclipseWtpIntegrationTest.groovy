@@ -95,7 +95,7 @@ include("groovy")
 
         def webBuildFile = getFile(project: "web", "build.gradle")
         createJavaSourceDirs(webBuildFile)
-        file(webBuildFile, "src/main/webapp").createDir()
+        webBuildFile.parentFile.file("src/main/webapp").createDir()
 
         webBuildFile << """
 apply plugin: "eclipse"
@@ -147,7 +147,7 @@ dependencies {
 
         def groovyBuildFile = getFile(project: "groovy", "build.gradle")
         createJavaSourceDirs(groovyBuildFile)
-        file(groovyBuildFile, "src/main/groovy").createDir()
+        groovyBuildFile.parentFile.file("src/main/groovy").createDir()
 
         groovyBuildFile << """
 apply plugin: "eclipse"
