@@ -40,6 +40,11 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         new XmlSlurper().parse(file)
     }
 
+    protected void createJavaSourceDirs(File baseDir) {
+        file(baseDir, "src/main/java").createDir()
+        file(baseDir, "src/main/resources").createDir()
+    }
+
     protected File publishArtifact(dir, group, artifact, dependency = null) {
         def module = new MavenRepository(new TestFile(dir)).module(group, artifact, 1.0)
         if (dependency) {

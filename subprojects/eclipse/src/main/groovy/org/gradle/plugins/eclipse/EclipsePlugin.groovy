@@ -28,6 +28,7 @@ import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Facet
 import org.gradle.plugins.eclipse.model.Library
 import org.gradle.plugins.eclipse.model.Classpath
+import org.gradle.plugins.eclipse.model.WbResource
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -120,7 +121,7 @@ class EclipsePlugin extends IdePlugin {
                             whenConfigured { Classpath classpath ->
                                 for (entry in classpath.entries) {
                                     if (entry instanceof Library) {
-                                        entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../'
+                                        entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../' // TODO: what's the correct value here?
                                     }
                                 }
                             }
@@ -148,14 +149,13 @@ class EclipsePlugin extends IdePlugin {
             addEclipsePluginTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
                 description = 'Generates the Eclipse WTP component settings file.'
                 deployName = project.name
-                sourceDirs = project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten()
+                conventionMapping.sourceDirs = { getMainSourceDirs(project) }
                 plusConfigurations = [project.configurations.runtime]
+                minusConfigurations = [project.configurations.providedRuntime]
+                conventionMapping.contextPath = { project.war.baseName }
+                resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
                 inputFile = project.file('.settings/org.eclipse.wst.common.component')
                 outputFile = project.file('.settings/org.eclipse.wst.common.component')
-
-                conventionMapping.contextPath = { project.war.baseName }
-                minusConfigurations = [project.configurations.providedRuntime]
-                resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName
             }
 
             eachDependedUponProject(project) { otherProject ->
@@ -164,13 +164,11 @@ class EclipsePlugin extends IdePlugin {
                     addEclipsePluginTask(otherProject, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
                         description = 'Generates the Eclipse WTP component settings file.'
                         deployName = otherProject.name
-                        sourceDirs = otherProject.sourceSets.main.allSource.sourceTrees.srcDirs.flatten()
-                        plusConfigurations = [otherProject.configurations.runtime]
+                        conventionMapping.resources = {
+                            getMainSourceDirs(otherProject).collect { new WbResource("/", otherProject.relativePath(it)) }
+                        }
                         inputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
                         outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
-
-                        // remove the provided dependencies specified in the War (!) project
-                        minusConfigurations = [project.configurations.providedRuntime]
                     }
                 }
             }
@@ -246,7 +244,7 @@ class EclipsePlugin extends IdePlugin {
     private void doAddEclipsePluginTask(Project project, EclipsePlugin plugin, String taskName, Class taskType, Closure action) {
         if (project.tasks.findByName(taskName)) { return }
 
-        def task = project.tasks.add(taskName, taskType)
+        def task = project.tasks.add(taskName, taskType) // TODO: whenTaskAdded hook will fire before task has been configured
         project.configure(task, action)
         plugin.addWorker(task)
     }
@@ -259,5 +257,9 @@ class EclipsePlugin extends IdePlugin {
             return '6.0'
         }
         return version.toString()
+    }
+
+    private Set<File> getMainSourceDirs(Project project) {
+        project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet
     }
 }
