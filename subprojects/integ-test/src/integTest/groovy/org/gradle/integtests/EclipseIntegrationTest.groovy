@@ -103,6 +103,9 @@ dependencies {
 
     @Test
     void eclipseFilesAreWrittenWithUtf8Encoding() {
+        println "locale: " + System.getenv('LANG')
+        assert new File("\u7777\u8888\u9999").canonicalFile.name == "\u7777\u8888\u9999"
+
         runEclipseTask """
 apply plugin: "war"
 apply plugin: "eclipse"
