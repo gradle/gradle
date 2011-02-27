@@ -353,6 +353,13 @@ task uploadDocs(dependsOn: docs) << {
         fileset(dir: docsDir)
     }
 }
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(uploadDocs)) {
+        // fail early
+        project.websiteFtpUserName
+        project.websiteFtpUserPassword
+    }
+}
 
 void ftp(Map args, Closure antFileset = {}) {
     ant {

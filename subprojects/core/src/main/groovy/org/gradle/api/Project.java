@@ -445,6 +445,12 @@ public interface Project extends Comparable<Project> {
      * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>A closure or {@link Action} to add to the
      * task.</td><td><code>null</code></td></tr>
      *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_DESCRIPTION}</code></td><td>A description of the task.
+     * </td><td><code>null</code></td></tr>
+     *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_GROUP}</code></td><td>A task group which this task belongs to.
+     * </td><td><code>null</code></td></tr>
+     *
      * </table>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can

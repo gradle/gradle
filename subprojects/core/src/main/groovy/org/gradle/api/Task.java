@@ -134,6 +134,8 @@ public interface Task extends Comparable<Task> {
 
     public static final String TASK_DESCRIPTION = "description";
 
+    public static final String TASK_GROUP = "group";
+
     public static final String TASK_TYPE = "type";
 
     public static final String TASK_DEPENDS_ON = "dependsOn";
