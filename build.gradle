@@ -382,7 +382,9 @@ task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
 zipRootFolder = "$archivesBaseName-${-> version}"
 
 binDistImage = copySpec {
-    from 'src/toplevel'
+    from('src/toplevel') {
+        expand(version: version)
+    }
     from project(':docs').distDocs.destFile
     into('bin') {
         from startScriptsDir
