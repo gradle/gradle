@@ -217,23 +217,6 @@ class Ftp extends DefaultTask {
     }
 }
 
-void ftp(Map args, Closure antFileset = {}) {
-    ant {
-        taskdef(name: 'ftp',
-                classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: configurations.ftpAntTask.asPath)
-        Map ftpArgs = args + [
-                server: 'ftp.gradle.org',
-                userid: websiteFtpUserName,
-                password: websiteFtpUserPassword
-        ]
-        delegate.ftp(ftpArgs) {
-            antFileset.delegate = delegate
-            antFileset()
-        }
-    }
-}
-
 class Page {
     def File srcFile
     def File destFile
