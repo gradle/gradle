@@ -2,6 +2,7 @@
 .gradle
 /build
 /out
+/subprojects/*/out
 /intellij
 /buildSrc/lib
 /buildSrc/build
