@@ -112,7 +112,7 @@ eclipseProject {
 }
 
 eclipseClasspath {
-  defaultOutputDir = new File("$nonAscii")
+  containers("$nonAscii")
 }
 
 eclipseWtpComponent {
@@ -134,22 +134,6 @@ eclipseWtpFacet {
         def text = file.getText("UTF-8")
         assert text.contains('encoding="UTF-8"')
         String expectedNonAsciiChars = "\u7777\u8888\u9999"
-        println "expected:"
-        dumpBytes(expectedNonAsciiChars.getBytes("UTF-8"))
-        println "actual:"
-        dumpBytes(file.getBytes())
         assert text.contains(expectedNonAsciiChars)
-    }
-
-    def dumpBytes(byte[] bytes) {
-        bytes.each { b ->
-            print Integer.toHexString(0xff & b)
-            if (b == '\n') {
-                println()
-            } else {
-                print " "
-            }
-        }
-        println()
     }
 }

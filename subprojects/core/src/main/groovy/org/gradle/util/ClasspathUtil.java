@@ -42,7 +42,7 @@ public class ClasspathUtil {
     public static List<URL> getClasspath(ClassLoader classLoader) {
         List<URL> implementationClassPath = new ArrayList<URL>();
         ClassLoader stopAt = ClassLoader.getSystemClassLoader() == null ? null : ClassLoader.getSystemClassLoader().getParent();
-        for (ClassLoader cl = classLoader; cl != stopAt; cl = cl.getParent()) {
+        for (ClassLoader cl = classLoader; cl != null && cl != stopAt; cl = cl.getParent()) {
             if (cl instanceof URLClassLoader) {
                 implementationClassPath.addAll(Arrays.asList(((URLClassLoader) cl).getURLs()));
             }

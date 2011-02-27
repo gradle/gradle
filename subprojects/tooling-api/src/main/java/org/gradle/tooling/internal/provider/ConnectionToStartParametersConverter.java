@@ -28,6 +28,7 @@ public class ConnectionToStartParametersConverter {
         if (parameters.isSearchUpwards() != null) {
             startParameter.setSearchUpwards(parameters.isSearchUpwards());
         }
+        startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS);
         return startParameter;
     }
 }
