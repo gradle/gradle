@@ -60,7 +60,7 @@ public class DefaultTestReport implements TestReporter {
 
     private void mergeFromFile(File file, AllTestResults model) {
         try {
-            FileInputStream inputStream = new FileInputStream(file);
+            InputStream inputStream = new FileInputStream(file);
             Document document;
             try {
                 document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(inputStream));
@@ -117,13 +117,15 @@ public class DefaultTestReport implements TestReporter {
 
     private <T extends CompositeTestResults> void generatePage(T model, PageRenderer<T> renderer, File outputFile) throws IOException {
         outputFile.getParentFile().mkdirs();
-        PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "utf-8"));
+        OutputStream outputStream = new FileOutputStream(outputFile);
         try {
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, "utf-8"));
             writer.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
             MarkupBuilder markupBuilder = new MarkupBuilder(new IndentPrinter(writer, ""));
             renderer.render(markupBuilder, model);
+            writer.flush();
         } finally {
-            writer.close();
+            outputStream.close();
         }
     }
 
@@ -134,18 +136,17 @@ public class DefaultTestReport implements TestReporter {
     }
 
     private void copyResource(String resourceName) throws IOException {
-        Writer writer;
         File cssFile = new File(reportDir, resourceName);
-        writer = new BufferedWriter(new FileWriter(cssFile));
+        OutputStream outputStream = new FileOutputStream(cssFile);
         try {
             InputStream cssResource = getClass().getResourceAsStream(resourceName);
             try {
-                IOUtils.copy(cssResource, writer);
+                IOUtils.copy(cssResource, outputStream);
             } finally {
                 cssResource.close();
             }
         } finally {
-            writer.close();
+            outputStream.close();
         }
     }
 }
