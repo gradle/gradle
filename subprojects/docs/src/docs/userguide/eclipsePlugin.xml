@@ -292,7 +292,7 @@
                 </td>
                 <td><classname>Iterable&lt;SourceSet></classname></td>
                 <td>
-                    <literal>sourceSets</literal>
+                    <literal>project.sourceSets</literal>
                 </td>
                 <td>The source sets whose source directories are to be added to the Eclipse classpath.</td>
             </tr>
@@ -379,7 +379,7 @@
                 </td>
                 <td><classname>Set&lt;File&gt;</classname></td>
                 <td>
-                    <td>The source directories of <literal>sourceSets.main</literal></td>
+                    The source directories of <literal>sourceSets.main</literal>
                 </td>
                 <td>The source sets whose source directories are to be added to the Eclipse classpath.</td>
             </tr>
@@ -452,51 +452,6 @@
                 <td>The facets to be added as installed elements.</td>
             </tr>
         </table>
-
-        <table id='eclipse-task-hooks'>
-            <title>Task Hooks</title>
-            <thead>
-                <tr>
-                    <td>Method</td>
-                    <td>EclipseProject Task Argument</td>
-                    <td>EclipseClasspath Task Argument</td>
-                    <td>EclipseWtpComponent Task Argument</td>
-                    <td>EclipseWtpFacet Task Argument</td>
-                    <td>Description</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>
-                    <literal><code>beforeConfigured { arg -> }</code></literal>
-                </td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.Project"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.Classpath"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.WtpComponent"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.WtpFacet"/></td>
-                <td>Called after the domain objects have been populated with relevant content of the
-                    existing XML file (if there is one).</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal><code>whenConfigured { arg -> }</code></literal>
-                </td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.Project"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.Classpath"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.WtpComponent"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.WtpFacet"/></td>
-                <td>Called after the domain objects have been populated with content from Gradle's build model.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal><code>withXml { arg -> }</code></literal>
-                </td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td>Called before the XML file is written to disk.</td>
-            </tr>
-        </table>
     </section>
     <section>
         <title>Customizing the generated files</title>
@@ -532,7 +487,49 @@
                     <listitem>The <code>withXml</code> hook is executed</listitem>
                     <listitem>The in-memory XML representation is written to disk</listitem>
                 </orderedlist>
+                The following table lists the domain object used for each of the Eclipse task types:
             </para>
+            <table id='eclipse-task-hooks'>
+                <title>Task Hooks</title>
+                <thead>
+                    <tr>
+                        <td>Task type</td>
+                        <td><literal>beforeConfigured { arg -> }</literal> argument type</td>
+                        <td><literal>whenConfigured { arg -> }</literal> argument type</td>
+                        <td><literal>withXml { arg -> }</literal> argument type</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.eclipse.EclipseProject"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.Project"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.Project"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.eclipse.EclipseClasspath"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.Classpath"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.Classpath"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.eclipse.EclipseJdt"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.Jdt"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.Jdt"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.eclipse.EclipseWtpComponent"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.WtpComponent"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.WtpComponent"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.eclipse.EclipseWtpFacet"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.WtpFacet"/></td>
+                    <td><apilink class="org.gradle.plugins.eclipse.model.WtpFacet"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+            </table>
             <section id="sec:partial-overwrite">
                 <title>Partial overwrite of existing content</title>
                 <para>A <link linkend="sec:complete-overwrite">complete overwrite</link> causes all existing content to be discarded,

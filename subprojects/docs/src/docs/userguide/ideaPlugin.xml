@@ -414,48 +414,6 @@
                 <td>The <literal>.iws</literal> file. Used to look for existing files and as the target for generation. Must not be null.</td>
             </tr>
         </table>
-
-
-        <table id='idea-task-hooks'>
-            <title>Task Hooks</title>
-            <thead>
-                <tr>
-                    <td>Method</td>
-                    <td>Project Task Argument</td>
-                    <td>Module Task Argument</td>
-                    <td>Workspace Task Argument</td>
-                    <td>Description</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>
-                    <literal><code>beforeConfigured { arg -> }</code></literal>
-                </td>
-                <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
-                <td>Called after the domain objects have been populated with relevant content of the
-                    existing XML file (if there is one).</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal><code>whenConfigured { arg -> }</code></literal>
-                </td>
-                <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
-                <td>Called after the domain objects have been populated with content from Gradle's build model.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal><code>withXml { arg -> }</code></literal>
-                </td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td>Called before the XML file is written to disk.</td>
-            </tr>
-        </table>
     </section>
     <section>
         <title>Customizing the generated files</title>
@@ -492,7 +450,37 @@
                     <listitem>The <code>withXml</code> hook is executed</listitem>
                     <listitem>The in-memory XML representation is written to disk</listitem>
                 </orderedlist>
+                The following table lists the domain objects used for each of the IDEA task types:
             </para>
+            <table id='idea-task-hooks'>
+                <title>Task Hooks</title>
+                <thead>
+                    <tr>
+                        <td>Task type</td>
+                        <td><literal>beforeConfigured { arg -> }</literal> argument type</td>
+                        <td><literal>whenConfigured { arg -> }</literal> argument type</td>
+                        <td><literal>withXml { arg -> }</literal> argument type</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.idea.IdeaProject"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.idea.IdeaModule"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.idea.IdeaWorkspace"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+            </table>
             <section id="sec:partial-overwrite">
                 <title>Partial overwrite of existing content</title>
                 <para>A <link linkend="sec:complete-overwrite">complete overwrite</link> causes all existing content to be discarded,
