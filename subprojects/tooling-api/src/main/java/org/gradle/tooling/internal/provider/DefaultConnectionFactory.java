@@ -38,9 +38,7 @@ public class DefaultConnectionFactory implements ConnectionFactoryVersion2 {
     }
 
     public ConnectionVersion2 create(ConnectionParametersVersion1 parameters) {
-        LOGGER.info("Using tooling API provider version {}.", GradleVersion.current().getVersion());
-        LOGGER.info("Provider ClassLoader: {}", getClass().getClassLoader());
-        LOGGER.info("Protocol ClassLoader: {}", ConnectionFactoryVersion2.class.getClassLoader());
+        LOGGER.debug("Using tooling API provider version {}.", GradleVersion.current().getVersion());
 
         return new DefaultConnection(parameters, actorFactory);
     }

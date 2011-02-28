@@ -58,7 +58,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
     private ClassLoader createImplementationClassLoader(Distribution distribution) {
         Set<File> implementationClasspath = distribution.getToolingImplementationClasspath();
-        LOGGER.info("Using tooling provider classpath: {}", implementationClasspath);
+        LOGGER.debug("Using tooling provider classpath: {}", implementationClasspath);
         URL[] urls = GFileUtils.toURLArray(implementationClasspath);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");

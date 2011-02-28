@@ -70,8 +70,7 @@ public class DefaultGradleConnector extends GradleConnector {
     }
 
     public ProjectConnection connect() throws GradleConnectionException {
-        LOGGER.info("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
-        LOGGER.info("Consumer ClassLoader: {}", getClass().getClassLoader());
+        LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
 
         if (projectDir == null) {
             throw new IllegalStateException("A project directory must be specified before creating a connection.");
