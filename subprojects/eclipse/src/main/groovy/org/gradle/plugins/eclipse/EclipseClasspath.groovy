@@ -51,7 +51,7 @@ class EclipseClasspath extends XmlGeneratorTask<Classpath> {
     /**
      * Containers to be added to the classpath
      */
-    Set<Container> containers = new LinkedHashSet<Container>()
+    Set<String> containers = new LinkedHashSet<String>()
 
     /**
      * The default output directory for eclipse generated files, eg classes.
