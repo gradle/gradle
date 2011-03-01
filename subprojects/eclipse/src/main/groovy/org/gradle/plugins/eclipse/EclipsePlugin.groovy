@@ -121,7 +121,8 @@ class EclipsePlugin extends IdePlugin {
                             whenConfigured { Classpath classpath ->
                                 for (entry in classpath.entries) {
                                     if (entry instanceof Library) {
-                                        entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../' // TODO: what's the correct value here?
+                                        // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
+                                        entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../'
                                     }
                                 }
                             }
@@ -159,7 +160,8 @@ class EclipsePlugin extends IdePlugin {
             }
 
             eachDependedUponProject(project) { otherProject ->
-                // require Java plugin because we need source sets and configurations
+                // require Java plugin because we need source set 'main'
+                // (in the absence of 'main', it probably makes no sense to write the file)
                 otherProject.plugins.withType(JavaPlugin) {
                     addEclipsePluginTask(otherProject, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
                         description = 'Generates the Eclipse WTP component settings file.'
