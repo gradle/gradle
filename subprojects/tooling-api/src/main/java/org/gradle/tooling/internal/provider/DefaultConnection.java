@@ -20,9 +20,12 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.specs.Spec;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.*;
@@ -82,7 +85,11 @@ public class DefaultConnection implements ConnectionVersion2 {
             final List<EclipseProjectDependencyVersion1> projectDependencies = new ArrayList<EclipseProjectDependencyVersion1>();
 
             if (configuration != null) {
-                Set<File> classpath = configuration.getFiles();
+                Set<File> classpath = configuration.files(new Spec<Dependency>() {
+                    public boolean isSatisfiedBy(Dependency element) {
+                        return element instanceof ExternalModuleDependency;
+                    }
+                });
                 for (final File file : classpath) {
                     dependencies.add(new ExternalDependencyVersion1() {
                         public File getFile() {
