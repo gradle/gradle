@@ -109,7 +109,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
     @Test
     public void startThrowsExceptionOnChildProcessFailure() {
         def listener = expectAttachesListener()
-        def failure = new ExecException('broken')
+        def failure = new RuntimeException('broken')
         ExecResult execResult = context.mock(ExecResult.class)
 
         context.checking {
@@ -129,7 +129,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
             try {
                 workerProcess.start()
                 fail()
-            } catch (ExecException e) {
+            } catch (RuntimeException e) {
                 assertThat(e, sameInstance(failure))
             }
         }
