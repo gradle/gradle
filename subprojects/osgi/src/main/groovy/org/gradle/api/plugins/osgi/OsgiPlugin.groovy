@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.osgi;
+package org.gradle.api.plugins.osgi
 
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.SourceSet
 
 /**
- * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project JARs.</p>
+ * A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project Jars.
  *
  * @author Hans Dockter
  */
 public class OsgiPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        project.getPlugins().apply(JavaBasePlugin.class);
+        project.plugins.apply(JavaBasePlugin)
 
-        OsgiPluginConvention osgiConvention = new OsgiPluginConvention(project);
+        def osgiConvention = new OsgiPluginConvention(project)
         project.convention.plugins.osgi = osgiConvention
 
-        project.plugins.withType(JavaPlugin.class) {javaPlugin ->
-            OsgiManifest osgiManifest = osgiConvention.osgiManifest {
+        project.plugins.withType(JavaPlugin) {
+            def osgiManifest = osgiConvention.osgiManifest {
                 from project.manifest
-                classesDir = project.convention.plugins.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].classesDir
-                classpath = project.configurations[JavaPlugin.RUNTIME_CONFIGURATION_NAME]
+                classesDir = project.sourceSets.main.classesDir
+                classpath = project.configurations.runtime
             }
             project.jar.manifest = osgiManifest
         }

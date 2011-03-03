@@ -28,7 +28,7 @@ dependencies {
 
     // Checkstyle dependencies
     runtime "com.puppycrawl.tools:checkstyle:5.3@jar",
-            libraries.google_collections,
+            libraries.guava,
             libraries.antlr,
             "commons-beanutils:commons-beanutils-core:1.8.3@jar"
 

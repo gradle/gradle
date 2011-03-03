@@ -35,6 +35,11 @@ public interface ExecHandle {
 
     Map<String, String> getEnvironment();
 
+    /**
+     * Starts this process, blocking until the process has started.
+     *
+     * @return this
+     */
     ExecHandle start();
 
     void abort();

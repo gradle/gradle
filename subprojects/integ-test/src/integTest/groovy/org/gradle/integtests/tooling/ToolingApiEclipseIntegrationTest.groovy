@@ -61,11 +61,16 @@ apply plugin: 'java'
 
     def canBuildEclipseExternalDependenciesForAProject() {
         def projectDir = dist.testDir
+        projectDir.file('settings.gradle').text = '''
+include "a"
+rootProject.name = 'root'
+'''
         projectDir.file('build.gradle').text = '''
-apply plugin: 'java'
+allprojects { apply plugin: 'java' }
 repositories { mavenCentral() }
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
+    compile project(':a')
     runtime 'commons-io:commons-io:1.4'
 }
 '''

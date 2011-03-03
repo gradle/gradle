@@ -53,7 +53,7 @@ libraries = [
         commons_io: 'commons-io:commons-io:1.4@jar',
         commons_lang: 'commons-lang:commons-lang:2.6@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
-        google_collections: 'com.google.collections:google-collections:1.0@jar',
+        guava: 'com.google.guava:guava:r08@jar',
         groovy: 'org.codehaus.groovy:groovy-all:1.7.8@jar',
         ivy: 'org.apache.ivy:ivy:2.2.0@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',

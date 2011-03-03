@@ -37,11 +37,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private Throwable processFailure;
     private final long connectTimeout;
 
-    public DefaultWorkerProcess() {
-        this(30, TimeUnit.SECONDS);
-    }
-
-    DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits) {
+    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits) {
         connectTimeout = connectTimeoutUnits.toMillis(connectTimeoutValue);
     }
 
@@ -80,7 +76,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
         try {
             try {
                 execResult.rethrowFailure().assertNormalExitValue();
-            } catch (ExecException e) {
+            } catch (Throwable e) {
                 processFailure = e;
             }
             running = false;
@@ -139,6 +135,8 @@ public class DefaultWorkerProcess implements WorkerProcess {
         try {
             connection = this.connection;
         } finally {
+            this.connection = null;
+            this.execHandle = null;
             lock.unlock();
         }
         if (connection != null) {
