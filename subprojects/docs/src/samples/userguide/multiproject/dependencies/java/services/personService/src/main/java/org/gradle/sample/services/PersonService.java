@@ -1,4 +1,4 @@
-package org.gradle.api.services;
+package org.gradle.sample.services;
 
 import org.gradle.sample.api.Person;
 import org.gradle.sample.shared.Helper;

@@ -1,4 +1,4 @@
-package org.gradle.api.services;
+package org.gradle.sample.services;
 
 import junit.framework.TestCase;
 import org.gradle.sample.apiImpl.PersonImpl;
