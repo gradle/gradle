@@ -35,10 +35,6 @@ public class OsgiHelper {
     private static final Pattern ONLY_NUMBERS = Pattern.compile("[0-9]+");
     private static final Pattern QUALIFIER = Pattern.compile("[0-9A-Za-z_\\-]*");
 
-    private String getBundleSymbolicName(String groupId, String artifactId) {
-        return groupId + "." + artifactId;
-    }
-
     /**
      * Get the symbolic name as group + "." + archivesBaseName, with the following exceptions
      * <ul>
@@ -59,6 +55,7 @@ public class OsgiHelper {
      * e.g. org.gradle:org.gradle.core -> org.gradle.core
      * </li>
      * </ul>
+     *
      * @param project The project being processed.
      *
      * @return Returns the SymbolicName that should be used for the bundle.
@@ -86,20 +83,14 @@ public class OsgiHelper {
         return getBundleSymbolicName(group, archiveBaseName);
     }
 
+    private String getBundleSymbolicName(String groupId, String artifactId) {
+        return groupId + "." + artifactId;
+    }
+
     public String getVersion(String version) {
-        String osgiVersion;
-
-        // Matcher m = P_VERSION.matcher(version);
-        // if (m.matches()) {
-        // osgiVersion = m.group(1) + "." + m.group(3);
-        // }
-
-        /* TODO need a regexp guru here */
-
-        Matcher m;
 
         /* if it's already OSGi compliant don't touch it */
-        m = OSGI_VERSION_PATTERN.matcher(version);
+        final Matcher m = OSGI_VERSION_PATTERN.matcher(version);
         if (m.matches()) {
             return version;
         }
