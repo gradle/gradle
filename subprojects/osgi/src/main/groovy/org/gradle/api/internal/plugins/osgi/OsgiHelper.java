@@ -40,17 +40,38 @@ public class OsgiHelper {
     }
 
     /**
-     * Get the symbolic name as group + "." + archivesBaseName, with the following exceptions <ul> <li>if group has only one section (no dots) and archivesBaseName is not null then the first package
-     * name with classes is returned. eg. commons-logging:commons-logging -> org.apache.commons.logging</li> <li>if archivesBaseName is equal to last section of group then group is returned. eg.
-     * org.gradle:gradle -> org.gradle</li> <li>if archivesBaseName starts with last section of group that portion is removed. eg. org.gradle:gradle-core -> org.gradle.core</li> </ul>
+     * Get the symbolic name as group + "." + archivesBaseName, with the following exceptions
+     * <ul>
+     * <li>
+     * if group has only one section (no dots) and archivesBaseName is not null then the first package
+     * name with classes is returned. eg. commons-logging:commons-logging -> org.apache.commons.logging
+     * </li>
+     * <li>
+     * if archivesBaseName is equal to last section of group then group is returned.
+     * eg. org.gradle:gradle -> org.gradle
+     * </li>
+     * <li>
+     * if archivesBaseName starts with last section of group that portion is removed.
+     * eg. org.gradle:gradle-core -> org.gradle.core
+     * </li>
+     * <li>
+     * if archivesBaseName starts with the full group, the archivesBaseName is return,
+     * e.g. org.gradle:org.gradle.core -> org.gradle.core
+     * </li>
+     * </ul>
+     * @param project The project being processed.
+     *
+     * @return Returns the SymbolicName that should be used for the bundle.
      */
     public String getBundleSymbolicName(Project project) {
 
         String group = (String) project.property("group");
-        int i = group.lastIndexOf('.');
-
-        String lastSection = group.substring(++i);
         String archiveBaseName = project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName();
+        if (archiveBaseName.startsWith(group)) {
+            return archiveBaseName;
+        }
+        int i = group.lastIndexOf('.');
+        String lastSection = group.substring(++i);
         if (archiveBaseName.equals(lastSection)) {
             return group;
         }
