@@ -24,7 +24,7 @@ dependencies {
     compile project(':plugins')
     compile libraries.slf4j_api
 
-    compile 'biz.aQute:bndlib:1.15@jar'
+    compile 'biz.aQute:bndlib:1.15.0@jar'
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
