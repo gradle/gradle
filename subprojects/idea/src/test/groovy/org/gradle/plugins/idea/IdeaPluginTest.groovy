@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
+import org.gradle.plugins.idea.deduper.ModuleNameDeduperTask
 
 /**
  * @author Hans Dockter
@@ -30,6 +31,15 @@ class IdeaPluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
     private final IdeaPlugin ideaPlugin = new IdeaPlugin()
+
+    def "adds module name deduper task to root project only"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        project.moduleNameDeduper instanceof ModuleNameDeduperTask
+        childProject.tasks.findByName('moduleNameDeduper') == null
+    }
 
     def "adds 'ideaProject' task to root project"() {
         when:
@@ -46,6 +56,8 @@ class IdeaPluginTest extends Specification {
 
         childProject.tasks.findByName('ideaProject') == null
         childProject.tasks.findByName('cleanIdeaProject') == null
+
+        ideaProjectTask.dependsOn.contains(project.moduleNameDeduper)
     }
 
     def "adds 'ideaWorkspace' task to root project"() {
@@ -117,6 +129,8 @@ class IdeaPluginTest extends Specification {
         assert ideaModuleTask.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
         assert ideaModuleTask.variables == [:]
         assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaModule)
+        assert ideaModuleTask.dependsOn.contains(project.rootProject.moduleNameDeduper) : "idea module task must depend on module name deduper task"
+        assert project.cleanIdeaModule.dependsOn.contains(project.rootProject.moduleNameDeduper) : "idea clean module task must depend on module name deduper task"
     }
 
     private void assertThatCleanIdeaDependsOnDeleteTask(Project project, Task dependsOnTask) {

@@ -19,6 +19,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.IdePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.plugins.idea.deduper.ModuleNameDeduperTask
 
 /**
  * @author Hans Dockter
@@ -34,10 +35,18 @@ class IdeaPlugin extends IdePlugin {
     @Override protected void onApply(Project project) {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
+        //theoretically, only imls i iprs use module names but to be safe we configure the deduper early
+        configureModuleNameDeduper(project)
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
         configureIdeaModule(project)
         configureForJavaPlugin(project)
+    }
+
+    private def configureModuleNameDeduper(Project project) {
+        if (isRoot(project)) {
+            project.task('moduleNameDeduper', type: ModuleNameDeduperTask)
+        }
     }
 
     private def configureIdeaWorkspace(Project project) {
@@ -57,7 +66,12 @@ class IdeaPlugin extends IdePlugin {
             conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
             conventionMapping.testSourceDirs = { [] as LinkedHashSet }
         }
+
         addWorker(task)
+        //task & cleanTask rely on module names so deduper must be executed earlier
+        def deduper = project.rootProject.moduleNameDeduper
+        task.dependsOn(deduper)
+        getCleanTask(task).dependsOn(deduper)
     }
 
     private def configureIdeaProject(Project project) {
@@ -69,6 +83,8 @@ class IdeaPlugin extends IdePlugin {
                 wildcards = ['!?*.java', '!?*.groovy']
             }
             addWorker(task)
+            //ipr contains list of module names so deduper must be executed earlier
+            task.dependsOn(project.rootProject.moduleNameDeduper)
         }
     }
 

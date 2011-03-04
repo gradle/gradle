@@ -158,7 +158,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
         if (scopes[scope]) {
             return getScopeDependencies(scopes[scope], { it instanceof ProjectDependency }).collect { ProjectDependency dependency ->
                 def project = dependency.dependencyProject
-                new org.gradle.plugins.idea.model.ModuleDependency(project.name, scope)
+                new org.gradle.plugins.idea.model.ModuleDependency(project.ideaModule.moduleName, scope)
             }
         }
         return []
@@ -282,5 +282,25 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
             factory.addPathVariable(key, value)
         }
         return factory
+    }
+
+    String getModuleName() {
+        return outputFile.name.replaceFirst(/\.iml$/,"");
+    }
+
+    void setModuleName(String moduleName) {
+        outputFile = new File(outputFile.parentFile, moduleName + ".iml")
+    }
+
+    Collection<String> getCandidateNames() {
+        def out = []
+        def p = project.parent
+        def currentName = getModuleName()
+        while (p) {
+            currentName = p.name + "-" + currentName
+            out.add(currentName)
+            p = p.parent
+        }
+        return out
     }
 }
