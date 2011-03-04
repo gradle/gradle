@@ -83,10 +83,21 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
                 analyzer.setProperty(key, attribute.getValue().toString());
             }
         }
-        for (String instructionName : instructions.keySet()) {
+        Set<String> instructionNames = instructions.keySet();
+        if( ! instructionNames.contains(Analyzer.IMPORT_PACKAGE))
+        {
+            analyzer.setProperty(Analyzer.IMPORT_PACKAGE,
+                    "*, !org.apache.ant.*, !org.junit.*, !org.jmock.*, !org.easymock.*, !org.mockito.*" );
+        }
+        if( ! instructionNames.contains(Analyzer.EXPORT_PACKAGE))
+        {
+            analyzer.setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + version);
+        }
+        for (String instructionName : instructionNames) {
             String list = createPropertyStringFromList(instructionValue(instructionName));
             analyzer.setProperty(instructionName, list);
         }
+
         setProperty(analyzer, Analyzer.BUNDLE_VERSION, getVersion());
         setProperty(analyzer, Analyzer.BUNDLE_SYMBOLICNAME, getSymbolicName());
         setProperty(analyzer, Analyzer.BUNDLE_NAME, getName());
