@@ -51,8 +51,8 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
      * Adds arguments to an instruction. If the instruction does not exists, it is created. If it does exists, the
      * arguments are inserted before the existing arguments.
      *
-     * @param name
-     * @param values
+     * @param name Name of the instruction.
+     * @param values The values for the instruction.
      * @return this
      * @see #instructionFirst(String, String...)
      */
@@ -68,7 +68,8 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Returns the symbolic name.
      *
-     * @see #setSymbolicName(String) 
+     * @see #setSymbolicName(String)
+     * @return the symbolic name.
      */
     String getSymbolicName();
 
