@@ -67,7 +67,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
                 effectiveManifest.attributes(WrapUtil.toMap(entry.getKey().toString(), (String) entry.getValue()));
             }
             effectiveManifest.attributes(this.getAttributes());
-            for(Map.Entry<String, Attributes> ent : getSections().entrySet()) {
+            for (Map.Entry<String, Attributes> ent : getSections().entrySet()) {
                 effectiveManifest.attributes(ent.getValue(), ent.getKey());
             }
         } catch (Exception e) {
@@ -77,8 +77,15 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     private void setAnalyzerProperties(Analyzer analyzer) throws IOException {
+        for (Map.Entry<String, Object> attribute : getAttributes().entrySet()) {
+            String key = attribute.getKey();
+            if (!"Manifest-Version".equals(key)) {
+                analyzer.setProperty(key, attribute.getValue().toString());
+            }
+        }
         for (String instructionName : instructions.keySet()) {
-            analyzer.setProperty(instructionName, createPropertyStringFromList(instructionValue(instructionName)));
+            String list = createPropertyStringFromList(instructionValue(instructionName));
+            analyzer.setProperty(instructionName, list);
         }
         setProperty(analyzer, Analyzer.BUNDLE_VERSION, getVersion());
         setProperty(analyzer, Analyzer.BUNDLE_SYMBOLICNAME, getSymbolicName());

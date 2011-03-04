@@ -186,8 +186,8 @@ public class DefaultOsgiManifestTest {
         osgiManifest.setLicense("myLicense");
         osgiManifest.setVendor("myVendor");
         osgiManifest.setDocURL("myDocUrl");
-        osgiManifest.instruction(Analyzer.EXPORT_PACKAGE, new String[]{"pack1", "pack2"});
-        osgiManifest.instruction(Analyzer.IMPORT_PACKAGE, new String[]{"pack3", "pack4"});
+        osgiManifest.instruction(Analyzer.EXPORT_PACKAGE, "pack1", "pack2");
+        osgiManifest.instruction(Analyzer.IMPORT_PACKAGE, "pack3", "pack4");
         osgiManifest.setClasspath(fileCollection);
         osgiManifest.setClassesDir(new File("someDir"));
         addPlainAttributesAndSections(osgiManifest);
@@ -210,6 +210,9 @@ public class DefaultOsgiManifestTest {
             one(analyzerMock).setProperty(Analyzer.BUNDLE_DOCURL, osgiManifest.getDocURL());
             one(analyzerMock).setProperty(Analyzer.EXPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.EXPORT_PACKAGE), ","));
             one(analyzerMock).setProperty(Analyzer.IMPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.IMPORT_PACKAGE), ","));
+
+            one(analyzerMock).setProperty(ARBITRARY_ATTRIBUTE, "I like green eggs and ham.");
+
             one(analyzerMock).setJar(osgiManifest.getClassesDir());
             one(analyzerMock).setClasspath(osgiManifest.getClasspath().getFiles().toArray(new File[osgiManifest.getClasspath().getFiles().size()]));
             Manifest testManifest = new Manifest();
