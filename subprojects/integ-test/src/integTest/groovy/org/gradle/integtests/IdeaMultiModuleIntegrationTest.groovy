@@ -37,10 +37,8 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
           -model
         -services
           -util
-          -db
         -util
         -contrib
-          -plugins
           -services
             -util, soon (overwritten by user to 'util' using outputFile property)
       */
@@ -49,9 +47,9 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         settingsFile << """
 include 'api'
 include 'shared:api', 'shared:model'
-include 'services:util', 'services:db'
+include 'services:utilities'
 include 'util'
-include 'contrib:plugins', 'contrib:services:util'
+include 'contrib:services:util'
         """
 
         def buildFile = file("master/build.gradle")
@@ -67,16 +65,25 @@ project(':api') {
     }
 }
 
-project(':services:util') {
+project(':shared:model') {
+    ideaModule {
+        moduleName = 'very-cool-model'
+    }
+}
+
+project(':services:utilities') {
     dependencies {
         compile project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
+    }
+    ideaModule {
+        moduleName = 'util'
     }
 }
 """
 
         //when
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
-
+        println(getTestDir())
         //then
         assertIprContainsCorrectModules()
         assertApiModuleContainsCorrectDependencies()
@@ -84,10 +91,10 @@ project(':services:util') {
     }
 
     def assertServicesUtilModuleContainsCorrectDependencies() {
-        def iml = parseFile(project: 'master/services/util', "services-util.iml")
+        def iml = parseFile(project: 'master/services/utilities', "services-util.iml")
         def moduleDeps = iml.component.orderEntry.'@module-name'.collect{ it.text() }
 
-        assert moduleDeps.contains("model")
+        assert moduleDeps.contains("very-cool-model")
         assert moduleDeps.contains("util")
         assert moduleDeps.contains("shared-api")
         assert moduleDeps.contains("contrib-services-util")
@@ -97,7 +104,7 @@ project(':services:util') {
         def iml = parseFile(project: 'master/api', "api.iml")
         def moduleDeps = iml.component.orderEntry.'@module-name'.collect{ it.text() }
 
-        assert moduleDeps.contains("model")
+        assert moduleDeps.contains("very-cool-model")
         assert moduleDeps.contains("shared-api")
     }
 
@@ -112,9 +119,7 @@ project(':services:util') {
         assert moduleFileNames.contains("contrib-services-util.iml")
         assert moduleFileNames.contains("contrib.iml")
         assert moduleFileNames.contains("contrib-services.iml")
-        assert moduleFileNames.contains("plugins.iml")
-        assert moduleFileNames.contains("db.iml")
-        assert moduleFileNames.contains("model.iml")
+        assert moduleFileNames.contains("very-cool-model.iml")
         assert moduleFileNames.contains("master.iml")
         assert moduleFileNames.contains("services-util.iml")
         assert moduleFileNames.contains("api.iml")
