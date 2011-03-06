@@ -123,8 +123,10 @@ class DefaultSettingsConverterTest {
                 TEST_BUILD_RESOLVER)
         IvySettings settings3 = converter.convertForResolve([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
                 TEST_BUILD_RESOLVER, clientModuleRegistry)
-        assertSame(settings1.getDefaultRepositoryCacheManager(), settings2.getDefaultRepositoryCacheManager())
-        assertSame(settings1.getDefaultRepositoryCacheManager(), settings3.getDefaultRepositoryCacheManager())
+        assertSame(settings1.getDefaultRepositoryCacheManager().getName(), settings2.getDefaultRepositoryCacheManager().getName())
+        assertSame(settings1.getDefaultRepositoryCacheManager().getName(), settings3.getDefaultRepositoryCacheManager().getName())
+        assertSame(settings1.getDefaultRepositoryCacheManager().getBasedir().getCanonicalPath(), settings2.getDefaultRepositoryCacheManager().getBasedir().getCanonicalPath())
+        assertSame(settings1.getDefaultRepositoryCacheManager().getBasedir().getCanonicalPath(), settings3.getDefaultRepositoryCacheManager().getBasedir().getCanonicalPath())
 
     }
 

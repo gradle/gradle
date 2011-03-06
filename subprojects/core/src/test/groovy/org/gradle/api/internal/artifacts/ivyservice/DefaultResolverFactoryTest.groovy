@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.util.JUnit4GroovyMockery
@@ -98,7 +97,7 @@ class DefaultResolverFactoryTest {
         checkNoModuleRepository(resolver, expectedName,
                 [dir1, dir2].collect {"$it.absolutePath/$ResolverContainer.FLAT_DIR_RESOLVER_PATTERN"}, [])
         assertEquals(new File(System.getProperty('java.io.tmpdir')).getCanonicalPath(),
-                new File(((DefaultRepositoryCacheManager) resolver.getRepositoryCacheManager()).getBasedir().getParent()).getCanonicalPath())
+                new File(resolver.getRepositoryCacheManager().getBasedir().getParent()).getCanonicalPath())
 
     }
 
