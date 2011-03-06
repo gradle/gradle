@@ -76,4 +76,23 @@ class ModuleNameDeduperTest extends Specification {
         fiatThree.moduleName == "parentTwo-fiat"
         fiatFour.moduleName == "parentThree-parentTwo-fiat"
     }
+
+    def "should deal with exactly the same module names"() {
+        given:
+        def module = new ModuleName(moduleName: 'services', candidateNames: [])
+        //module with the same name is theoretically possible if the user overrides the module name
+        def module2 = new ModuleName(moduleName: 'services', candidateNames: ['root-services'])
+        def module3 = new ModuleName(moduleName: 'services', candidateNames: ['root-services'])
+        def module4 = new ModuleName(moduleName: 'services', candidateNames: ['root-services'])
+
+        when:
+        deduper.dedupeModuleNames([module, module2, module3, module4])
+
+        then:
+        module.moduleName == "services"
+        //if the user hardcoded module name to awkward values we are not deduping it...
+        module2.moduleName == "root-services"
+        module3.moduleName == "root-services"
+        module4.moduleName == "root-services"
+    }
 }

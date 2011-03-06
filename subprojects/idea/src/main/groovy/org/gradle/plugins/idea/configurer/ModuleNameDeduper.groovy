@@ -29,9 +29,11 @@ public class ModuleNameDeduper {
         def allNames = []
         names.each { moduleName ->
             def n = moduleName.moduleName
-            def candidateIdx = 0;
+            def candidates = moduleName.candidateNames as Queue
             while (allNames.contains(n)) {
-                n = moduleName.candidateNames[candidateIdx++]
+                def nextCandidate = candidates.poll()
+                if (!nextCandidate) break
+                n = nextCandidate
             }
             allNames.add(n)
             moduleName.moduleName = n
