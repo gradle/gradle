@@ -258,4 +258,16 @@
         </table>
     </section>
 
+    <section>
+        <title>Fast Scala Compiler</title>
+        <para>The Scala plugin provides support for the Fast Scala Compiler (<literal>fsc</literal>), which can speed
+            up the compilation of Scala sources significantly.
+            <sample id="fsc" dir="scala/fsc" title="Enabling the Fast Scala Compiler">
+                <sourcefile file="build.gradle" snippet="use-fsc"/>
+            </sample>
+            Note that <literal>fsc</literal> expects to be restarted whenever the content of project dependencies has
+            changed. It may therefore be less suitable for multi-project builds.
+        </para>
+    </section>
+
 </chapter>

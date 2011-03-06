@@ -1,0 +1,33 @@
+apply plugin: 'scala'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Libraries needed to run the scala tools
+    scalaTools 'org.scala-lang:scala-compiler:2.8.1'
+    scalaTools 'org.scala-lang:scala-library:2.8.1'
+
+    // Libraries needed for scala api
+    compile 'org.scala-lang:scala-library:2.8.1'
+}
+
+dependencies {
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    testCompile group: 'junit', name: 'junit', version: '4.8.2'
+}
+
+// START SNIPPET use-fsc
+compileScala {
+    scalaCompileOptions.useCompileDaemon = true
+
+    // optionally specify host and port of the daemon:
+    scalaCompileOptions.daemonServer = "localhost:4243"
+}
+// END SNIPPET use-fsc
+
+compileScala {
+    // don't use daemon because it would cause problems for automated testing
+    scalaCompileOptions.useCompileDaemon = false
+}
