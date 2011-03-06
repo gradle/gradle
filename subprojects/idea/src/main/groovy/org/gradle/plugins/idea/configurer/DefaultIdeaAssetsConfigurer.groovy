@@ -21,9 +21,13 @@ import org.gradle.api.Project
  * @author Szczepan Faber, @date: 06.03.11
  */
 class DefaultIdeaAssetsConfigurer implements IdeaAssetsConfigurer {
+
+    def ModuleNameDeduper deduper = new ModuleNameDeduper()
+
     void configure(Collection<Project> ideaProjects) {
-        def ModuleNameDeduper deduper = new ModuleNameDeduper()
-        def ideaModules = ideaProjects.collect { p -> p.ideaModule }
+        //better way of sorting?
+        def sorted = ideaProjects.sort { it.path.count(":") }
+        def ideaModules = sorted.collect { p -> p.ideaModule }
         deduper.dedupeModuleNames(ideaModules)
     }
 }
