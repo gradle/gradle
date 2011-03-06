@@ -96,11 +96,10 @@ allprojects {
     repositories {
         add(new org.apache.ivy.plugins.resolver.URLResolver()) {
             name = 'wharfRepo'
-            addIvyPattern('http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml')
-            addArtifactPattern('http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/jars/[artifact]-[revision].[ext]')
+            addIvyPattern('http://repo.jfrog.org/artifactory/wharf/[organisation]/[module]/ivy-[revision].xml')
+            addArtifactPattern('http://repo.jfrog.org/artifactory/wharf/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
         }
         mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
-//        mavenRepo(urls: 'http://repo.jfrog.org/artifactory/gradle-ivy-local')
     }
 
     version = this.version
