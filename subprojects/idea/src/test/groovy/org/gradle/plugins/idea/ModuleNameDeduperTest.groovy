@@ -15,10 +15,9 @@
  */
 package org.gradle.plugins.idea
 
+import org.gradle.plugins.idea.configurer.ModuleNameDeduper
+import org.gradle.plugins.idea.configurer.ModuleNameDeduper.ModuleName
 import spock.lang.Specification
-
-import org.gradle.plugins.idea.deduper.ModuleNameDeduper
-import org.gradle.plugins.idea.deduper.ModuleNameDeduper.ModuleName
 
 /**
  * @author Szczepan Faber, @date 03.03.11

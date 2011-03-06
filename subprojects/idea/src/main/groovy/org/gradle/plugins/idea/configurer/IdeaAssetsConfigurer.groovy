@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.idea.deduper
+package org.gradle.plugins.idea.configurer
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.idea.IdeaPlugin
+import org.gradle.api.Project
 
 /**
- * @author Szczepan Faber, @date 03.03.11
+ * @author Szczepan Faber, @date: 06.03.11
  */
-class ModuleNameDeduperTask extends DefaultTask {
+ interface IdeaAssetsConfigurer {
 
-    def ModuleNameDeduper deduper = new ModuleNameDeduper();
+     void configure(Collection<Project> ideaProjects)
 
-    @TaskAction
-    def dedupeModuleNames() {
-        def ideaProjects = project.rootProject.allprojects.findAll { p -> p.plugins.hasPlugin(IdeaPlugin) }
-        def ideaModules = ideaProjects.collect { p -> p.ideaModule }
-        deduper.dedupeModuleNames(ideaModules)
-    }
-}
+ }

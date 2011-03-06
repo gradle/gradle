@@ -15,11 +15,13 @@
  */
 package org.gradle.plugins.idea;
 
+
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.internal.plugins.IdePlugin
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.plugins.idea.deduper.ModuleNameDeduperTask
+import org.gradle.plugins.idea.configurer.DefaultIdeaAssetsConfigurer
 
 /**
  * @author Hans Dockter
@@ -35,17 +37,20 @@ class IdeaPlugin extends IdePlugin {
     @Override protected void onApply(Project project) {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
-        //theoretically, only imls i iprs use module names but to be safe we configure the deduper early
-        configureModuleNameDeduper(project)
+
+        configureIdeaConfigurer(project)
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
         configureIdeaModule(project)
         configureForJavaPlugin(project)
     }
 
-    private def configureModuleNameDeduper(Project project) {
-        if (isRoot(project)) {
-            project.task('moduleNameDeduper', type: ModuleNameDeduperTask)
+    private def configureIdeaConfigurer(Project project) {
+        def root = project.rootProject
+        if (!root.tasks.findByName('ideaConfigurer')) {
+            root.task('ideaConfigurer', description: 'Performs extra configuration on idea generator tasks', type: IdeaConfigurer) {
+                conventionMapping.configurer = { new DefaultIdeaAssetsConfigurer() }
+            }
         }
     }
 
@@ -55,6 +60,7 @@ class IdeaPlugin extends IdePlugin {
                 outputFile = new File(project.projectDir, project.name + ".iws")
             }
             addWorker(task)
+            shouldDependOnConfigurer(task)
         }
     }
 
@@ -68,10 +74,7 @@ class IdeaPlugin extends IdePlugin {
         }
 
         addWorker(task)
-        //task & cleanTask rely on module names so deduper must be executed earlier
-        def deduper = project.rootProject.moduleNameDeduper
-        task.dependsOn(deduper)
-        getCleanTask(task).dependsOn(deduper)
+        shouldDependOnConfigurer(task)
     }
 
     private def configureIdeaProject(Project project) {
@@ -83,9 +86,14 @@ class IdeaPlugin extends IdePlugin {
                 wildcards = ['!?*.java', '!?*.groovy']
             }
             addWorker(task)
-            //ipr contains list of module names so deduper must be executed earlier
-            task.dependsOn(project.rootProject.moduleNameDeduper)
+            shouldDependOnConfigurer(task)
         }
+    }
+
+    private def shouldDependOnConfigurer(Task task) {
+        def ideaConfigurer = task.project.rootProject.ideaConfigurer
+        task.dependsOn(ideaConfigurer)
+        getCleanTask(task).dependsOn(ideaConfigurer)
     }
 
     private def configureForJavaPlugin(Project project) {
