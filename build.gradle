@@ -584,7 +584,7 @@ def runtimeProjects() {
 }
 
 def pluginProjects() {
-    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'eclipse', 'idea', 'announce', 'scala'].collect {
+    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'eclipse', 'idea', 'announce', 'scala', 'sonar'].collect {
         project(it)
     }
 }
@@ -594,6 +594,7 @@ switch (System.getProperty("user.name")) {
         allprojects {
             tasks.withType(Test) {
                 maxParallelForks = 1
+                forkEvery = 0
             }
         }
         break
