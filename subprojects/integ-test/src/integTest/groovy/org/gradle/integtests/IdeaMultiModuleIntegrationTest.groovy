@@ -83,7 +83,8 @@ project(':services:utilities') {
 
         //when
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
-        println(getTestDir())
+//        println(getTestDir())
+
         //then
         assertIprContainsCorrectModules()
         assertApiModuleContainsCorrectDependencies()
@@ -109,10 +110,7 @@ project(':services:utilities') {
     }
 
     def assertIprContainsCorrectModules() {
-        def ipr = parseFile(project: 'master', "master.ipr")
-        def moduleFileNames = ipr.component.modules.module.@filepath.collect {
-            it -> it.text().replaceAll(/.*\//, "")
-        }
+        List moduleFileNames = parseIprModules()
 
         assert moduleFileNames.contains("shared-api.iml")
         assert moduleFileNames.contains("services.iml")
@@ -126,4 +124,52 @@ project(':services:utilities') {
         assert moduleFileNames.contains("shared.iml")
         assert moduleFileNames.contains("util.iml")
     }
+
+    private List parseIprModules() {
+        def ipr = parseFile(project: 'master', "master.ipr")
+        def moduleFileNames = ipr.component.modules.module.@filepath.collect {
+            it -> it.text().replaceAll(/.*\//, "")
+        }
+        return moduleFileNames
+    }
+
+    @Test
+    void allowsFullyReconfiguredModuleNames() {
+        //use case from the mailing list
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << "include 'api', 'shared:model'"
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+
+subprojects {
+    ideaModule {
+        outputFile = file(project.projectDir.canonicalPath + "/" + rootProject.name + project.path.replaceAll(':', '.') + ".iml")
+    }
+}
+
+project(':api') {
+    dependencies {
+        compile project(':shared:model')
+    }
+}
+"""
+
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+
+        //then
+        def moduleFileNames = parseIprModules()
+
+        assert moduleFileNames.contains("master.shared.model.iml")
+        assert moduleFileNames.contains("master.api.iml")
+        assert moduleFileNames.contains("master.shared.iml")
+        assert moduleFileNames.contains("master.iml")
+    }
+
+    //TODO SF - tests for clean
 }
