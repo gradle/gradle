@@ -18,18 +18,16 @@ package org.gradle.plugins.idea
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.idea.configurer.DefaultIdeaAssetsConfigurer
-import org.gradle.plugins.idea.configurer.IdeaAssetsConfigurer
 
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
 class IdeaConfigurer extends ConventionTask {
 
-    //why does config by convention mapping  is it not configured via convention mapping???
-    def IdeaAssetsConfigurer configurer = new DefaultIdeaAssetsConfigurer()
+    DefaultIdeaAssetsConfigurer configurer = new DefaultIdeaAssetsConfigurer()
 
     @TaskAction
-    def configure() {
+    void configure() {
         def ideaProjects = project.rootProject.allprojects.findAll { p -> p.plugins.hasPlugin(IdeaPlugin) }
         configurer.configure(ideaProjects)
     }
