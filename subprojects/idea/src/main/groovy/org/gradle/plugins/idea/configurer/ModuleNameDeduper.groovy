@@ -20,19 +20,14 @@ package org.gradle.plugins.idea.configurer
  */
 public class ModuleNameDeduper {
 
-    public static class ModuleName {
-        String moduleName
-        Collection<String> candidateNames
-    }
-
-    def dedupeModuleNames(Collection<ModuleName> names) {
+    def dedupeModuleNames(Collection names) {
         def allNames = []
         names.each { moduleName ->
             def n = moduleName.moduleName
             def candidates = moduleName.candidateNames as Queue
             while (allNames.contains(n)) {
                 def nextCandidate = candidates.poll()
-                if (!nextCandidate) break
+                if (!nextCandidate) { break }
                 n = nextCandidate
             }
             allNames.add(n)

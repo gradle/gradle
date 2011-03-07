@@ -16,7 +16,6 @@
 package org.gradle.plugins.idea
 
 import org.gradle.plugins.idea.configurer.ModuleNameDeduper
-import org.gradle.plugins.idea.configurer.ModuleNameDeduper.ModuleName
 import spock.lang.Specification
 
 /**
@@ -24,15 +23,20 @@ import spock.lang.Specification
  */
 class ModuleNameDeduperTest extends Specification {
 
+    public static class ModuleStub {
+        String moduleName
+        Collection<String> candidateNames
+    }
+
     ModuleNameDeduper deduper = new ModuleNameDeduper()
 
-    ModuleName ferrari = new ModuleName(moduleName:"ferrari", candidateNames:[])
-    ModuleName fiat = new ModuleName(moduleName:"fiat", candidateNames:[])
+    ModuleStub ferrari = new ModuleStub(moduleName:"ferrari", candidateNames:[])
+    ModuleStub fiat = new ModuleStub(moduleName:"fiat", candidateNames:[])
 
-    ModuleName fiatTwo = new ModuleName(moduleName:"fiat", candidateNames:["parentOne-fiat"])
-    ModuleName fiatThree = new ModuleName(moduleName:"fiat", candidateNames:["parentTwo-fiat"])
+    ModuleStub fiatTwo = new ModuleStub(moduleName:"fiat", candidateNames:["parentOne-fiat"])
+    ModuleStub fiatThree = new ModuleStub(moduleName:"fiat", candidateNames:["parentTwo-fiat"])
 
-    ModuleName fiatFour = new ModuleName(moduleName:"fiat", candidateNames:["parentTwo-fiat", "parentThree-parentTwo-fiat"])
+    ModuleStub fiatFour = new ModuleStub(moduleName:"fiat", candidateNames:["parentTwo-fiat", "parentThree-parentTwo-fiat"])
 
     def "does nothing when no duplicates"() {
         given:
@@ -79,11 +83,11 @@ class ModuleNameDeduperTest extends Specification {
 
     def "should deal with exactly the same module names"() {
         given:
-        def module = new ModuleName(moduleName: 'services', candidateNames: [])
+        def module = new ModuleStub(moduleName: 'services', candidateNames: [])
         //module with the same name is theoretically possible if the user overrides the module name
-        def module2 = new ModuleName(moduleName: 'services', candidateNames: ['root-services'])
-        def module3 = new ModuleName(moduleName: 'services', candidateNames: ['root-services'])
-        def module4 = new ModuleName(moduleName: 'services', candidateNames: ['root-services'])
+        def module2 = new ModuleStub(moduleName: 'services', candidateNames: ['root-services'])
+        def module3 = new ModuleStub(moduleName: 'services', candidateNames: ['root-services'])
+        def module4 = new ModuleStub(moduleName: 'services', candidateNames: ['root-services'])
 
         when:
         deduper.dedupeModuleNames([module, module2, module3, module4])
