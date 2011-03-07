@@ -15,21 +15,21 @@
  */
 package org.gradle.plugins.idea
 
-import org.gradle.plugins.idea.configurer.DefaultIdeaAssetsConfigurer
+import org.gradle.plugins.idea.configurer.IdeaProjectsConfigurer
 import org.gradle.plugins.idea.configurer.ModuleNameDeduper
 import spock.lang.Specification
 
 /**
  * @author Szczepan Faber, @date 06.03.11
  */
-class DefaultIdeaAssetsConfigurerTest extends Specification {
+class IdeaProjectsConfigurerTest extends Specification {
 
     static class ProjectStub {
         def String path
         def Object ideaModule
     }
 
-    DefaultIdeaAssetsConfigurer configurer = new DefaultIdeaAssetsConfigurer()
+    IdeaProjectsConfigurer configurer = new IdeaProjectsConfigurer()
 
     def "should sort and get pass modules to deduper"() {
         given:

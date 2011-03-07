@@ -17,14 +17,14 @@ package org.gradle.plugins.idea
 
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.idea.configurer.DefaultIdeaAssetsConfigurer
+import org.gradle.plugins.idea.configurer.IdeaProjectsConfigurer
 
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
 class IdeaConfigurer extends ConventionTask {
 
-    DefaultIdeaAssetsConfigurer configurer = new DefaultIdeaAssetsConfigurer()
+    IdeaProjectsConfigurer configurer = new IdeaProjectsConfigurer()
 
     @TaskAction
     void configure() {

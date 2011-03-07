@@ -20,7 +20,7 @@ import org.gradle.api.Project
 /**
  * @author Szczepan Faber, @date: 06.03.11
  */
-class DefaultIdeaAssetsConfigurer {
+class IdeaProjectsConfigurer {
 
     ModuleNameDeduper deduper = new ModuleNameDeduper()
 
