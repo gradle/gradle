@@ -58,6 +58,7 @@ class IdeaPlugin extends IdePlugin {
         if (isRoot(project)) {
             def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: IdeaWorkspace) {
                 outputFile = new File(project.projectDir, project.name + ".iws")
+                workspaceModel = new org.gradle.plugins.idea.model.Workspace(xmlTransformer)
             }
             addWorker(task)
             shouldDependOnConfigurer(task)
