@@ -41,9 +41,11 @@ dependencies {
     testFixtures sourceSets.test.classes
 }
 
-task reportResources(type: Copy) {
-    from(configurations.reports)
-    into "${sourceSets.main.classesDir}/org/gradle/api/internal/tasks/testing/junit/report"
+task reportResources << {
+    copy {
+        from(configurations.reports)
+        into "${sourceSets.main.classesDir}/org/gradle/api/internal/tasks/testing/junit/report"
+    }
 }
 
 classes.dependsOn reportResources
