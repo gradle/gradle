@@ -21,6 +21,11 @@ import org.apache.tools.ant.Project;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.util.AntUtil;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -45,4 +50,33 @@ public class BaseMavenInstaller extends AbstractMavenResolver {
     public void setInstallTaskFactory(Factory<CustomInstallTask> installTaskFactory) {
         this.installTaskFactory = installTaskFactory;
     }
+
+    @Override
+    public void commitPublishTransaction() throws IOException {
+        InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
+        Set<DefaultMavenDeployment> defaultMavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
+        File emptySettingsXml = getUserSettingsXml();
+        installDeployTaskSupport.setSettingsFile(emptySettingsXml);
+        for (DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
+            beforeDeploymentActions.execute(defaultMavenDeployment);
+            addPomAndArtifact(installDeployTaskSupport, defaultMavenDeployment);
+            execute(installDeployTaskSupport);
+        }
+        emptySettingsXml.delete();
+        settings = ((CustomInstallDeployTaskSupport) installDeployTaskSupport).getSettings();
+    }
+
+    private File getUserSettingsXml() {
+
+        File userHome = new File(System.getProperty("user.home"));
+        File m2Dir = new File(userHome, ".m2");
+
+        File userSettings = new File(m2Dir, "settings.xml");
+        if (userSettings.exists()) {
+            return userSettings;
+        }
+        return super.createEmptyMavenSettingsXml();
+
+    }
+
 }

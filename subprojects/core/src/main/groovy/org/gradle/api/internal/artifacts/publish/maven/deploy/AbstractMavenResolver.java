@@ -66,11 +66,11 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     private PomFilterContainer pomFilterContainer;
 
-    private Settings settings;
+    protected Settings settings;
 
     private LoggingManagerInternal loggingManager;
 
-    private final ActionBroadcast<MavenDeployment> beforeDeploymentActions = new ActionBroadcast<MavenDeployment>();
+    protected final ActionBroadcast<MavenDeployment> beforeDeploymentActions = new ActionBroadcast<MavenDeployment>();
 
     public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         this.name = name;
@@ -183,7 +183,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
         settings = ((CustomInstallDeployTaskSupport) installDeployTaskSupport).getSettings();
     }
 
-    private void execute(InstallDeployTaskSupport deployTask) {
+    protected void execute(InstallDeployTaskSupport deployTask) {
         loggingManager.captureStandardOutput(LogLevel.INFO).start();
         try {
             deployTask.execute();
@@ -192,7 +192,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
         }
     }
 
-    private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, DefaultMavenDeployment defaultMavenDeployment) {
+    protected void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, DefaultMavenDeployment defaultMavenDeployment) {
         Pom pom = new Pom();
         pom.setProject(installOrDeployTask.getProject());
         pom.setFile(defaultMavenDeployment.getPomArtifact().getFile());
@@ -208,7 +208,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
         }
     }
 
-    private File createEmptyMavenSettingsXml() {
+    protected File createEmptyMavenSettingsXml() {
         try {
             File settingsXml = File.createTempFile("gradle_empty_settings", ".xml");
             FileUtils.writeStringToFile(settingsXml, SETTINGS_XML);

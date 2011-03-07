@@ -33,7 +33,6 @@ import org.gradle.build.Git
  */
 
 version = new Version(project)
-
 defaultTasks 'assemble'
 
 apply plugin: 'java-base'
@@ -93,6 +92,7 @@ allprojects {
     }
 
     repositories {
+        mavenLocal()
         mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
     }
 
