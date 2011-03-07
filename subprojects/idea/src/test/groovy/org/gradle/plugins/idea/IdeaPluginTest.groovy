@@ -45,14 +45,11 @@ class IdeaPluginTest extends Specification {
         applyPluginToProjects()
 
         then:
-        project.ideaProject.dependsOn.contains(project.rootProject.ideaConfigurer)
-        project.cleanIdeaProject.dependsOn.contains(project.rootProject.ideaConfigurer)
-
-        project.ideaModule.dependsOn.contains(project.rootProject.ideaConfigurer)
-        project.cleanIdeaModule.dependsOn.contains(project.rootProject.ideaConfigurer)
-
-        project.ideaWorkspace.dependsOn.contains(project.rootProject.ideaConfigurer)
-        project.cleanIdeaWorkspace.dependsOn.contains(project.rootProject.ideaConfigurer)
+        [project.ideaWorkspace, project.cleanIdeaWorkspace,
+         project.ideaModule, project.cleanIdeaModule,
+         project.ideaProject, project.cleanIdeaProject].each {
+            assert it.dependsOn.contains(project.rootProject.ideaConfigurer)
+        }
     }
 
     def "adds 'ideaProject' task to root project"() {
