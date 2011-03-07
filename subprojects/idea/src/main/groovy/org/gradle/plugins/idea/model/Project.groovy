@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.idea.model
 
-import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
 import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
 
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
@@ -39,18 +39,16 @@ class Project extends XmlPersistableConfigurationObject {
      */
     Jdk jdk
 
-    private final PathFactory pathFactory
+    private final PathFactory pathFactory = new PathFactory()
 
-    def Project(XmlTransformer xmlTransformer, PathFactory pathFactory) {
+    def Project(XmlTransformer xmlTransformer) {
         super(xmlTransformer)
-        this.pathFactory = pathFactory
     }
 
     def configure(Set modulePaths, String javaVersion, Set wildcards) {
         if (javaVersion) {
             jdk = new Jdk(javaVersion)
         }
-
         this.modulePaths.addAll(modulePaths)
         this.wildcards.addAll(wildcards)
     }

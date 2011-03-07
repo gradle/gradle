@@ -84,6 +84,7 @@ class IdeaPlugin extends IdePlugin {
                 subprojects = project.rootProject.allprojects
                 javaVersion = JavaVersion.VERSION_1_6.toString()
                 wildcards = ['!?*.java', '!?*.groovy']
+                projectModel = new org.gradle.plugins.idea.model.Project(xmlTransformer)
             }
             addWorker(task)
             shouldDependOnConfigurer(task)

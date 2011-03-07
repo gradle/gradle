@@ -18,7 +18,6 @@ package org.gradle.plugins.idea
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.idea.model.ModulePath
-import org.gradle.plugins.idea.model.PathFactory
 import org.gradle.plugins.idea.model.Project
 
 /**
@@ -45,24 +44,22 @@ public class IdeaProject extends XmlGeneratorTask<Project> {
     @Input
     Set wildcards
 
+    Project projectModel
+
     Project create() {
-        return new Project(xmlTransformer, getPathFactory())
+        return projectModel
     }
 
-    void configure(Project ideaProject) {
+    void configure(Project projectModel) {
+        projectModel.pathFactory.addPathVariable('PROJECT_DIR', outputFile.parentFile)
+
         Set modules = subprojects.inject(new LinkedHashSet()) { result, subproject ->
             if (subproject.plugins.hasPlugin(IdeaPlugin)) {
                 File imlFile = subproject.ideaModule.outputFile
-                result << new ModulePath(pathFactory.relativePath('PROJECT_DIR', imlFile))
+                result << new ModulePath(projectModel.pathFactory.relativePath('PROJECT_DIR', imlFile))
             }
             result
         }
-        ideaProject.configure(modules, javaVersion, wildcards)
-    }
-
-    PathFactory getPathFactory() {
-        PathFactory factory = new PathFactory()
-        factory.addPathVariable('PROJECT_DIR', outputFile.parentFile)
-        return factory
+        projectModel.configure(modules, javaVersion, wildcards)
     }
 }

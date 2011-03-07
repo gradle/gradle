@@ -25,7 +25,7 @@ class ProjectTest extends Specification {
     final PathFactory pathFactory = new PathFactory()
     final customModules = [new ModulePath(path('file://$PROJECT_DIR$/gradle-idea-plugin.iml'), '$PROJECT_DIR$/gradle-idea-plugin.iml')] as Set
     final customWildcards = ["?*.gradle", "?*.grails"] as Set
-    Project project = new Project(new XmlTransformer(), pathFactory)
+    Project project = new Project(new XmlTransformer())
 
     def loadFromReader() {
         when:
@@ -65,7 +65,7 @@ class ProjectTest extends Specification {
         project.loadDefaults()
         project.configure([] as Set, '1.5', ['?*.groovy'] as Set)
         def xml = toXmlReader
-        def other = new Project(new XmlTransformer(), pathFactory)
+        def other = new Project(new XmlTransformer())
         other.load(xml)
 
         then:
