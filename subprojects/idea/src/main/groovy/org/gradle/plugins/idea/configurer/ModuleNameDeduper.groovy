@@ -25,15 +25,11 @@ public class ModuleNameDeduper {
     def dedupeModuleNames(Collection<IdeaModule> ideaModules) {
         def allNames = []
         ideaModules.each { module ->
-            def n = module.moduleName
-            def candidates = module.candidateNames as Queue
-            while (allNames.contains(n)) {
-                def nextCandidate = candidates.poll()
-                if (!nextCandidate) { break }
-                n = nextCandidate
+            def name = module.candidateNames.find { !allNames.contains(it) }
+            if (name) {
+                allNames << name
+                module.moduleName = name
             }
-            allNames.add(n)
-            module.moduleName = n
         }
     }
 }

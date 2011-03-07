@@ -51,9 +51,9 @@ class IdeaModuleTest extends Specification {
         assert project.name == "test"
 
         then:
-        project.ideaModule.candidateNames == []
-        childProject.ideaModule.candidateNames == ["test-child"]
-        grandChildProject.ideaModule.candidateNames == ["child-grandChild", "test-child-grandChild"]
+        project.ideaModule.candidateNames == ['test']
+        childProject.ideaModule.candidateNames == ['child', "test-child"]
+        grandChildProject.ideaModule.candidateNames == ['grandChild', "child-grandChild", "test-child-grandChild"]
     }
 
     private applyPluginToProjects() {

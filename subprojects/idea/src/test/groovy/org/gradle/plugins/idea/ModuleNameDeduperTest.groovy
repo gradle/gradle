@@ -96,7 +96,7 @@ class ModuleNameDeduperTest extends Specification {
         module.moduleName == "services"
         //if the user hardcoded module name to awkward values we are not deduping it...
         module2.moduleName == "root-services"
-        module3.moduleName == "root-services"
-        module4.moduleName == "root-services"
+        module3.moduleName == "services"
+        module4.moduleName == "services"
     }
 }

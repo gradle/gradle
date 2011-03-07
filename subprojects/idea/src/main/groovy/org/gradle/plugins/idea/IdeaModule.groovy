@@ -292,6 +292,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
         def out = []
         def p = project.parent
         def currentName = getModuleName()
+        out << currentName
         while (p) {
             currentName = p.name + "-" + currentName
             out.add(currentName)
