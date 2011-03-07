@@ -55,14 +55,13 @@ public class BaseMavenInstaller extends AbstractMavenResolver {
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
         Set<DefaultMavenDeployment> defaultMavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
-        File emptySettingsXml = getUserSettingsXml();
-        installDeployTaskSupport.setSettingsFile(emptySettingsXml);
+        File settingsXml = getUserSettingsXml();
+        installDeployTaskSupport.setSettingsFile(settingsXml);
         for (DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
             beforeDeploymentActions.execute(defaultMavenDeployment);
             addPomAndArtifact(installDeployTaskSupport, defaultMavenDeployment);
             execute(installDeployTaskSupport);
         }
-        emptySettingsXml.delete();
         settings = ((CustomInstallDeployTaskSupport) installDeployTaskSupport).getSettings();
     }
 
