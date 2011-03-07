@@ -171,5 +171,34 @@ project(':api') {
         assert moduleFileNames.contains("master.iml")
     }
 
-    //TODO SF - tests for clean
+    @Test
+    void cleansCorrectlyWhenModuleNamesAreChangedOrDeduplicated() {
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << "include 'api', 'shared:api', 'contrib'"
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+
+project(':contrib') {
+    ideaModule {
+        moduleName = 'cool-contrib'
+    }
+}
+"""
+
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        assert getFile(project: 'master/shared/api', "shared-api.iml").exists()
+        assert getFile(project: 'master/contrib', "cool-contrib.iml").exists()
+
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("cleanIdea").run()
+
+        //then
+        assert false == getFile(project: 'master/shared/api', "shared-api.iml").exists()
+        assert false == getFile(project: 'master/contrib', "cool-contrib.iml").exists()
+    }
 }
