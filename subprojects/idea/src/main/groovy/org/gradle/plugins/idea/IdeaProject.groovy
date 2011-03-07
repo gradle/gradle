@@ -47,12 +47,11 @@ public class IdeaProject extends XmlGeneratorTask<Project> {
     Project projectModel
 
     Project create() {
+        configurePathFactory(projectModel)
         return projectModel
     }
 
     void configure(Project projectModel) {
-        projectModel.pathFactory.addPathVariable('PROJECT_DIR', outputFile.parentFile)
-
         Set modules = subprojects.inject(new LinkedHashSet()) { result, subproject ->
             if (subproject.plugins.hasPlugin(IdeaPlugin)) {
                 File imlFile = subproject.ideaModule.outputFile
@@ -61,5 +60,9 @@ public class IdeaProject extends XmlGeneratorTask<Project> {
             result
         }
         projectModel.configure(modules, javaVersion, wildcards)
+    }
+
+    private def configurePathFactory(Project projectModel) {
+        projectModel.pathFactory.addPathVariable('PROJECT_DIR', outputFile.parentFile)
     }
 }
