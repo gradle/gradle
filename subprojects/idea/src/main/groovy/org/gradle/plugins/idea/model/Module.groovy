@@ -70,11 +70,10 @@ class Module extends XmlPersistableConfigurationObject {
 
     String javaVersion
 
-    private final PathFactory pathFactory
+    PathFactory pathFactory = new PathFactory()
 
-    Module(XmlTransformer withXmlActions, PathFactory pathFactory) {
+    Module(XmlTransformer withXmlActions) {
         super(withXmlActions)
-        this.pathFactory = pathFactory
     }
 
     @Override protected String getDefaultResourceName() {

@@ -17,18 +17,13 @@ package org.gradle.plugins.idea
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
-import org.gradle.api.tasks.*
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.Configuration
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.XmlGeneratorTask
+import org.gradle.plugins.idea.model.Module
 import org.gradle.plugins.idea.model.ModuleLibrary
 import org.gradle.plugins.idea.model.Path
-import org.gradle.plugins.idea.model.PathFactory
-import org.gradle.plugins.idea.model.Module
+import org.gradle.api.artifacts.*
 
 /**
  * Generates an IDEA module file.
@@ -113,8 +108,11 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
      */
     Map<String, Map<String, Configuration>> scopes = [:]
 
+    Module moduleModel
+
     @Override protected Module create() {
-        return new Module(xmlTransformer, pathFactory)
+        configurePathFactory(moduleModel)
+        return moduleModel
     }
 
     @Override protected void configure(Module module) {
@@ -272,16 +270,14 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     }
 
     protected Path getPath(File file) {
-        return pathFactory.path(file)
+        return moduleModel.pathFactory.path(file)
     }
 
-    protected PathFactory getPathFactory() {
-        PathFactory factory = new PathFactory()
-        factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
+    def configurePathFactory(Module moduleModel) {
+        moduleModel.pathFactory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
         variables.each { key, value ->
-            factory.addPathVariable(key, value)
+            moduleModel.pathFactory.addPathVariable(key, value)
         }
-        return factory
     }
 
     String getModuleName() {

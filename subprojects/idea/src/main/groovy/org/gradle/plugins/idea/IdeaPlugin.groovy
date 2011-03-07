@@ -71,6 +71,7 @@ class IdeaPlugin extends IdePlugin {
             conventionMapping.sourceDirs = { [] as LinkedHashSet }
             conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
             conventionMapping.testSourceDirs = { [] as LinkedHashSet }
+            moduleModel = new org.gradle.plugins.idea.model.Module(xmlTransformer)
         }
 
         addWorker(task)

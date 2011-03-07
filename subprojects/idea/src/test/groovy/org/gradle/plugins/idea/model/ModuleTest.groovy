@@ -35,7 +35,7 @@ class ModuleTest extends Specification {
                     [new JarDirectory(path('file://$MODULE_DIR$/ant/lib'), false)] as Set, "RUNTIME"),
             new ModuleDependency('someModule', null)]
 
-    Module module = new Module(xmlTransformer, pathFactory)
+    Module module = new Module(xmlTransformer)
 
     def loadFromReader() {
         when:
@@ -98,7 +98,7 @@ class ModuleTest extends Specification {
         module.loadDefaults()
         module.configure(null, constructorSourceFolders, [] as Set, [] as Set, false, constructorOutputDir, constructorTestOutputDir, [] as Set, null)
         def xml = toXmlReader
-        def newModule = new Module(xmlTransformer, pathFactory)
+        def newModule = new Module(xmlTransformer)
         newModule.load(xml)
 
         then:
