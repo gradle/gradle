@@ -16,9 +16,7 @@
 package org.gradle.plugins.idea
 
 import org.gradle.api.Project
-
 import org.gradle.api.internal.project.DefaultProject
-
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -32,7 +30,7 @@ class IdeaModuleTest extends Specification {
     Project grandChildProject = HelperUtil.createChildProject(childProject, "grandChild", new File("."))
     IdeaPlugin ideaPlugin = new IdeaPlugin()
 
-    def "should moduleName control outputFile"() {
+    def "moduleName controls outputFile"() {
         given:
         applyPluginToProjects()
         assert childProject.ideaModule.moduleName == "child"
