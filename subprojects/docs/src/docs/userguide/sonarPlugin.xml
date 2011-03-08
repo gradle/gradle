@@ -16,48 +16,48 @@
 <chapter id="sonar_plugin">
     <title>The Sonar Plugin</title>
 
-    <para>The Sonar plugin provides integration with
-        <ulink url="http://checkstyle.sourceforge.net/index.html">Sonar</ulink>, a web-based platform for monitoring
-        code quality. The plugin runs the Sonar code analyzer against the project's codebase. The results will be
-        stored in the Sonar database.
+    <para>The Sonar plugin provides integration with <ulink url="http://checkstyle.sourceforge.net/index.html">Sonar</ulink>,
+        a web-based platform for monitoring code quality. The plugin allows to run Sonar's code analyzer against the project's
+        codebase. The results will be stored in the Sonar database.
+    </para>
+
+    <para>The main work is done by the <literal>sonar</literal> task. The Sonar plugin adds this task to the project
+        and configures it to analyze the Java code in the main source set. The<literal>sonar</literal> task isn't
+        triggered by any other task; it has to be executed explicitly. In a typical setup, the task would be run
+        once per day on a build server.
     </para>
 
     <para>
-        The Sonar plugin only has an effect on projects which have the Java plugin applied (possibly indirectly).
-        Other projects can still make direct use of the <apilink class="org.gradle.plugins.sonar.Sonar"/> task.
+        Only projects which have the Java plugin applied (possibly by way of another plugin) are affected by the Sonar
+        plugin. Other projects can still use the <literal>org.gradle.plugins.sonar.Sonar</literal> task directly.
     </para>
 
     <section>
         <title>Usage</title>
-        <para>At a minimum, the Sonar plugin has to be applied to the project:</para>
+        <para>At a minimum, apply the Sonar plugin to the project:</para>
         <sample id="useSonarPlugin" dir="sonar" title="Using the Sonar plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
-        <para>Typically it is also necessary to specify connection settings for the Sonar server and database:</para>
-        <sample id="useSonarPlugin" dir="sonar" title="Using the Sonar plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        <para>Typically it is also necessary to configure connection settings for the Sonar server and database:</para>
+        <sample id="useSonarPlugin" dir="sonar" title="Configuring connection settings">
+            <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
-        <para>For the full list of Sonar configuration options, see
-            <ulink url= "http://docs.codehaus.org/display/SONAR/Advanced+parameters">Sonar</ulink>
+        <para>For a complete documentation of all Sonar configuration properties, see the
+            <ulink url= "http://docs.codehaus.org/display/SONAR/Advanced+parameters">Sonar documentation</ulink>.
         </para>.
     </section>
 
     <section>
         <title>Tasks</title>
-        <para>The Sonar plugin adds a <literal>sonar</literal> task to the project and configures it
-            to analyze the Java sources in the main source set. The <literal>sonar</literal>task
-            doesn't get run as part of the <literal>build</literal> task; instead, it has to be
-            executed explicitly. A typical setup is to execute the <literal>sonar</literal> task
-            once per day on a build server.
-        </para>
+
     </section>
 
     <section>
         <title>Known Limitations</title>
         <itemizedlist>
             <listitem>
-                <para>The projects of a multi-project build are currently analyzed independently by Sonar,
-                    and no aggregated view will be available.
+                <para>The projects of a multi-project build are currently analyzed independently, and no aggregated
+                    view will be available.
                 </para>
             </listitem>
         </itemizedlist>

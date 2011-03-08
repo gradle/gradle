@@ -227,6 +227,9 @@
                 <td>org.gradle.api.tasks.scala.ScalaDoc</td>
             </tr>
             <tr>
+                <td>org.gradle.api.plugins.sonar.Sonar</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.Sync</td>
             </tr>
             <tr>

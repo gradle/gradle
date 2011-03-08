@@ -23,49 +23,89 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.util.ClasspathUtil
 
-// want to declare inputs and use stuff like @Optional, but probably doesn't
-// pay off to make this task incremental
+/**
+ * Analyzes a project and stores the results in the Sonar database.
+ */
 class Sonar extends ConventionTask {
+    /**
+     * The Sonar server to connect to.
+     */
     @Input
     String serverUrl
 
+    /**
+     * The directory to be used for caching files downloaded from the Sonar server.
+     */
     @Input
     File bootstrapDir = new File(System.getProperty("java.io.tmpdir"), "sonar-bootstrap")
 
+    /**
+     * The base directory for the project to be analyzed.
+     */
     @Input
     File projectDir
 
+    /**
+     * The directories containing the production sources of the project to be analyzed.
+     */
     @InputDirectory
     Set<File> projectMainSourceDirs = []
 
+    /**
+     * The directories containing the test sources of the project to be analyzed.
+     */
     @InputDirectory
     Set<File> projectTestSourceDirs = []
 
+    /**
+     * The directories containing the class files of the project to be analyzed.
+     */
     @InputDirectory
     Set<File> projectClassesDirs = []
 
+    /**
+     * The dependencies of the project to be analyzed. Typically these will be Jar files.
+     */
     @InputDirectory
     Set<File> projectDependencies = []
 
+    /**
+     * A unique key for identifying the project to be analyzed.
+     */
     @Input
     @Optional
     String projectKey
 
+    /**
+     * The name of the project to be analyzed.
+     */
     @Input
     @Optional
     String projectName
 
+    /**
+     * The description of the project to be analyzed.
+     */
     @Input
     @Optional
     String projectDescription
 
+    /**
+     * The version of the project to be analyzed.
+     */
     @Input
     @Optional
     String projectVersion
 
+    /**
+     * Global properties for use by the Sonar code analyzer.
+     */
     @Input
     Map globalProperties = [:]
 
+    /**
+     * Project-specific properties for use by the Sonar code analyzer.
+     */
     @Input
     Map projectProperties = [:]
 
