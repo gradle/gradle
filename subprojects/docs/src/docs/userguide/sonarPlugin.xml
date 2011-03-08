@@ -18,7 +18,7 @@
 
     <para>The Sonar plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
         a web-based platform for monitoring code quality. The plugin adds a <literal>sonar</literal> task
-        to the project, which analyzes the project's source code and stores the results in the Sonar database.
+        to the project, which analyzes the project's source code and stores the results in Sonar's database.
     </para>
 
     <para>
@@ -29,17 +29,17 @@
 
     <para>
         Only projects which have the Java plugin applied (possibly by way of another plugin) are affected by the
-        Sonar plugin. Other projects can still declare a task of type <literal>org.gradle.plugins.sonar.Sonar</literal>
-        and configure it explicitly.
+        Sonar plugin. Other projects can still declare a task of type <apilink class="org.gradle.api.plugins.sonar.Sonar"/>
+        and configure it manually.
     </para>
 
     <section>
         <title>Usage</title>
-        <para>At a minimum, apply the Sonar plugin to the project:</para>
+        <para>At a minimum, the Sonar plugin has to be applied to the project.</para>
         <sample id="useSonarPlugin" dir="sonar" title="Using the Sonar plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
-        <para>Typically it is also necessary to configure connection settings for the Sonar server and database:</para>
+        <para>Typically, it is also necessary to configure connection settings for the Sonar server and database.</para>
         <sample id="useSonarPlugin" dir="sonar" title="Configuring connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
@@ -50,15 +50,32 @@
 
     <section>
         <title>Tasks</title>
-
+        <para>The Sonar plugin adds the following tasks to the project.</para>
+        <table>
+            <title>Sonar plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><literal>sonar</literal></td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.sonar.Sonar"/></td>
+                <td>Analyzes the project's source code and stores results in Sonar's database.</td>
+            </tr>
+        </table>
     </section>
 
     <section>
-        <title>Known Limitations</title>
+        <title>Limitations</title>
         <itemizedlist>
             <listitem>
-                <para>The projects of a multi-project build are currently analyzed independently, and no aggregated
-                    view will be available.
+                <para>The projects of a multi-project build are currently analyzed independently. This means that no
+                    aggregated view will be available.
                 </para>
             </listitem>
         </itemizedlist>
