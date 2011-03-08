@@ -17,12 +17,22 @@
                 <td><literal>project.projectDir</literal></td>
             </tr>
             <tr>
-                <td>projectSourceDirs</td>
+                <td>projectMainSourceDirs</td>
                 <td><literal>project.sourceSets.main.java.srcDirs</literal></td>
+            </tr>
+            <tr>
+                <td>projectTestSourceDirs</td>
+                <td>
+                    <literal>project.sourceSets.main.java.srcDirs</literal>
+                </td>
             </tr>
             <tr>
                 <td>projectClassesDirs</td>
                 <td><literal>project.sourceSets.main.classesDir</literal></td>
+            </tr>
+            <tr>
+                <td>projectDependencies</td>
+                <td>All Jar files that are compile dependencies of the project</td>
             </tr>
             <tr>
                 <td>projectKey</td>
