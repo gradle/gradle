@@ -23,6 +23,8 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.util.ClasspathUtil
 
+// want to declare inputs and use stuff like @Optional, but probably doesn't
+// pay off to make this task incremental
 class Sonar extends ConventionTask {
     @Input
     String serverUrl
@@ -34,10 +36,16 @@ class Sonar extends ConventionTask {
     File projectDir
 
     @InputDirectory
-    Set projectSourceDirs = []
+    Set<File> projectMainSourceDirs = []
 
     @InputDirectory
-    File projectClassesDir
+    Set<File> projectTestSourceDirs = []
+
+    @InputDirectory
+    Set<File> projectClassesDirs = []
+
+    @InputDirectory
+    Set<File> projectDependencies = []
 
     @Input
     @Optional
@@ -69,10 +77,126 @@ class Sonar extends ConventionTask {
         def classLoader = bootstrapper.createClassLoader([findSonarJar()] as URL[],
                 Sonar.classLoader, "groovy", "org.codehaus.groovy")
 
-        def launcherClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarLauncher")
+        def launcherClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
         def launcher = launcherClass.newInstance()
         launcher.sonarTask = this
         launcher.execute()
+    }
+
+    /**
+     * Adds the specified directory to the set of project main source directories.
+     *
+     * @param sourceDirs the main source directory to be added
+     */
+    void projectMainSourceDir(File sourceDir) {
+        projectMainSourceDirs << sourceDir
+    }
+
+    /**
+     * Adds the specified directories to the set of project main source directories.
+     *
+     * @param sourceDirs the main source directories to be added
+     */
+    void projectMainSourceDirs(File... sourceDirs) {
+        projectMainSourceDirs.addAll(sourceDirs as List)
+    }
+
+    /**
+     * Adds the specified directory to the set of project test source directories.
+     *
+     * @param sourceDirs the testsource directory to be added
+     */
+    void projectTestSourceDir(File sourceDir) {
+        projectTestSourceDirs << sourceDir
+    }
+
+    /**
+     * Adds the specified directories to the set of project test source directories.
+     *
+     * @param sourceDirs the test source directories to be added
+     */
+    void projectTestSourceDirs(File... sourceDirs) {
+        projectTestSourceDirs.addAll(sourceDirs as List)
+    }
+
+    /**
+     * Adds the specified directory to the set of project classes directories.
+     *
+     * @param classesDir the classes directory to be added
+     */
+    void projectClassesDir(File classesDir) {
+        projectClassesDirs << classesDir
+    }
+
+    /**
+     * Adds the specified directories to the set of project classes directories.
+     *
+     * @param classesDirs the classes directories to be added
+     */
+    void projectClassesDirs(File... classesDirs) {
+        projectClassesDirs.addAll(classesDirs as List)
+    }
+
+    /**
+     * Adds the specified dependency to the set of project dependencies. Typically this will be a Jar file.
+     *
+     * @param dependency the depedency to be added
+     */
+    void projectDependency(File dependency) {
+        projectDependencies << dependency
+    }
+
+    /**
+     * Adds the specified dependencies to the set of project dependencies. Typically these will be Jar files.
+     *
+     * @param dependencies the dependencies to be added
+     */
+    void projectDependencies(File... dependencies) {
+        projectDependencies.addAll(dependencies as List)
+    }
+
+    /**
+     * Adds the specified property to the map of global properties.
+     * If a property with the specified name already exists, it will
+     * be overwritten.
+     *
+     * @param name the name of the global property
+     * @param value the value of the global property
+     */
+    void globalProperty(String name, String value) {
+        globalProperties.put(name, value)
+    }
+
+    /**
+     * Adds the specified properties to the map of global properties.
+     * Existing properties with the same name will be overwritten.
+     *
+     * @param properties the global properties to be added
+     */
+    void globalProperties(Map properties) {
+        globalProperties.putAll(properties)
+    }
+
+    /**
+     * Adds the specified property to the map of project properties.
+     * If a property with the specified name already exists, it will
+     * be overwritten.
+     *
+     * @param name the name of the project property
+     * @param value the value of the project property
+     */
+    void projectProperty(String name, String value) {
+        globalProperties.put(name, value)
+    }
+
+    /**
+     * Adds the specified properties to the map of project properties.
+     * Existing properties with the same name will be overwritten.
+     *
+     * @param properties the project properties to be added
+     */
+    void projectProperties(Map properties) {
+        projectProperties.putAll(properties)
     }
 
     private URL findSonarJar() {

@@ -17,12 +17,12 @@ package org.gradle.api.plugins.sonar
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.plugins.JavaPlugin
 
 /**
- * A {@link Plugin} for integration with Sonar. Adds a task named "sonar" and
- * configures it to analyze all Java sources in the main source set.
+ * A {@link Plugin} for integrating with <a href="http://www.sonarsource.org">Sonar</a>, a web-based platform
+ * for managing code quality. Adds a task named <tt>sonar</tt> with type {@link Sonar} and configures it to
+ * analyze the Java sources in the main source set.
  */
 class SonarPlugin implements Plugin<Project> {
     void apply(Project project) {
@@ -31,16 +31,18 @@ class SonarPlugin implements Plugin<Project> {
             def sonarTask = project.tasks.add("sonar", Sonar)
             sonarTask.conventionMapping.serverUrl = { "http://localhost:9000" }
             sonarTask.conventionMapping.projectDir = { project.projectDir }
-            sonarTask.conventionMapping.projectSourceDirs = { getJavaSourceDirs(sourceSet) }
+            sonarTask.conventionMapping.projectSourceDirs = { sourceSet.java.srcDirs }
             sonarTask.conventionMapping.projectClassesDir = { sourceSet.classesDir }
             sonarTask.conventionMapping.projectKey = { "$project.group:$project.name" as String }
             sonarTask.conventionMapping.projectName = { project.name }
             sonarTask.conventionMapping.projectDescription = { project.description }
             sonarTask.conventionMapping.projectVersion = { project.version }
+            sonarTask.conventionMapping.projectProperties = {
+                ["sonar.java.source": project.sourceCompatibility as String,
+                 "sonar.java.target": project.targetCompatibility as String,
+                 "sonar.dynamicAnalysis": "reuseReports",
+                 "sonar.surefire.reportsPath": project.test.testResultsDir as String]
+            }
         }
-    }
-
-    Set getJavaSourceDirs(SourceSet sourceSet) {
-        sourceSet.java.srcDirs
     }
 }

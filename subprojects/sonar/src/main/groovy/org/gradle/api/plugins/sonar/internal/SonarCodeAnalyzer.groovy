@@ -21,26 +21,31 @@ import org.sonar.batch.Batch
 import org.sonar.batch.bootstrapper.EnvironmentInformation
 import org.sonar.batch.bootstrapper.ProjectDefinition
 import org.sonar.batch.bootstrapper.Reactor
+import org.gradle.util.GradleVersion
 
-class SonarLauncher {
+/**
+ * Runs Sonar code analysis using the configuration of the Sonar task.
+ */
+class SonarCodeAnalyzer {
     def sonarTask
 
     void execute() {
-        def globalConfig = new MapConfiguration(sonarTask.globalProperties)
+        def globalProperties = new MapConfiguration(sonarTask.globalProperties)
 
-        def projectConfig = new Properties()
+        def projectProperties = new Properties()
         properties.putAll(sonarTask.projectProperties)
-        projectConfig.put(CoreProperties.PROJECT_KEY_PROPERTY, sonarTask.projectKey);
-        projectConfig.put(CoreProperties.PROJECT_VERSION_PROPERTY, sonarTask.projectVersion);
+        projectProperties[CoreProperties.PROJECT_KEY_PROPERTY] = sonarTask.projectKey
+        projectProperties[CoreProperties.PROJECT_VERSION_PROPERTY] = sonarTask.projectVersion
 
-        def project = new ProjectDefinition(sonarTask.projectDir, sonarTask.bootstrapDir, projectConfig);
-        sonarTask.projectSourceDirs.each { project.addSourceDir(it.path) }
-        project.addBinaryDir(sonarTask.projectClassesDir.path)
+        def project = new ProjectDefinition(sonarTask.projectDir, sonarTask.bootstrapDir, projectProperties)
+        sonarTask.projectMainSourceDirs.each { project.addSourceDir(it.path) }
+        sonarTask.projectTestSourceDirs.each { project.addTestDir(it.path) }
+        sonarTask.projectClassesDirs.each { project.addBinaryDir(it.path) }
+        sonarTask.projectDependencies.each { project.addLibrary(it.path) }
 
         def reactor = new Reactor(project)
-        def environment = new EnvironmentInformation("Gradle", org.gradle.util.GradleVersion.current().version)
-
-        def batch = new Batch(globalConfig, project, reactor, environment)
+        def environment = new EnvironmentInformation("Gradle", GradleVersion.current().version)
+        def batch = new Batch(globalProperties, project, reactor, environment)
         batch.execute()
     }
 }
