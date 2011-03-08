@@ -19,7 +19,7 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
 
-    compile "org.codenarc:CodeNarc:0.12@jar"
+    compile "org.codenarc:CodeNarc:0.13@jar"
     compile libraries.slf4j_api
 
     // CodeNarc dependencies
