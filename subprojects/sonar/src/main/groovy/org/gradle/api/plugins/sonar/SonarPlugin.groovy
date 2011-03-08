@@ -27,12 +27,18 @@ import org.gradle.api.plugins.JavaPlugin
 class SonarPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.withType(JavaPlugin) {
-            def sourceSet = project.sourceSets.main
+            def main = project.sourceSets.main
+            def test = project.sourceSets.test
             def sonarTask = project.tasks.add("sonar", Sonar)
             sonarTask.conventionMapping.serverUrl = { "http://localhost:9000" }
             sonarTask.conventionMapping.projectDir = { project.projectDir }
-            sonarTask.conventionMapping.projectSourceDirs = { sourceSet.java.srcDirs }
-            sonarTask.conventionMapping.projectClassesDir = { sourceSet.classesDir }
+            sonarTask.conventionMapping.projectMainSourceDirs = { main.java.srcDirs }
+            sonarTask.conventionMapping.projectTestSourceDirs = { test.java.srcDirs }
+            sonarTask.conventionMapping.projectClassesDirs = { main.classesDir }
+            sonarTask.conventionMapping.projectDependencies = {
+                def files = project.configurations.compile.files
+                files.findAll { it.name.endsWith(".jar") }.collect { it.path }
+            }
             sonarTask.conventionMapping.projectKey = { "$project.group:$project.name" as String }
             sonarTask.conventionMapping.projectName = { project.name }
             sonarTask.conventionMapping.projectDescription = { project.description }
