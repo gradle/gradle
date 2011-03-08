@@ -1,0 +1,65 @@
+<!--
+  ~ Copyright 2011 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id="sonar_plugin">
+    <title>The Sonar Plugin</title>
+
+    <para>The Sonar plugin provides integration with
+        <ulink url="http://checkstyle.sourceforge.net/index.html">Sonar</ulink>, a web-based platform for monitoring
+        code quality. The plugin runs the Sonar code analyzer against the project's codebase. The results will be
+        stored in the Sonar database.
+    </para>
+
+    <para>
+        The Sonar plugin only has an effect on projects which have the Java plugin applied (possibly indirectly).
+        Other projects can still make direct use of the <apilink class="org.gradle.plugins.sonar.Sonar"/> task.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>At a minimum, the Sonar plugin has to be applied to the project:</para>
+        <sample id="useSonarPlugin" dir="sonar" title="Using the Sonar plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>Typically it is also necessary to specify connection settings for the Sonar server and database:</para>
+        <sample id="useSonarPlugin" dir="sonar" title="Using the Sonar plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>For the full list of Sonar configuration options, see
+            <ulink url= "http://docs.codehaus.org/display/SONAR/Advanced+parameters">Sonar</ulink>
+        </para>.
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The Sonar plugin adds a <literal>sonar</literal> task to the project and configures it
+            to analyze the Java sources in the main source set. The <literal>sonar</literal>task
+            doesn't get run as part of the <literal>build</literal> task; instead, it has to be
+            executed explicitly. A typical setup is to execute the <literal>sonar</literal> task
+            once per day on a build server.
+        </para>
+    </section>
+
+    <section>
+        <title>Known Limitations</title>
+        <itemizedlist>
+            <listitem>
+                <para>The projects of a multi-project build are currently analyzed independently by Sonar,
+                    and no aggregated view will be available.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+</chapter>

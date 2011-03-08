@@ -209,6 +209,17 @@
                     </para>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <link linkend='sonar_plugin'> <literal>sonar</literal> </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Provides integration with the Sonar code quality platform.
+                    </para>
+                </td>
+            </tr>
         </table>
     </section>
     <section>
