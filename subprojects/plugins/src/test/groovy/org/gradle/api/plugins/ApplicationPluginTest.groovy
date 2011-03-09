@@ -68,7 +68,7 @@ class ApplicationPluginTest extends Specification {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_INSTALL_NAME]
         task instanceof Sync
-        task.destinationDir == project.file("build/install")
+        task.destinationDir == project.file("build/install/")
     }
 
     public void addsDistZipTaskToProject() {

@@ -57,15 +57,13 @@ public class ApplicationPlugin implements Plugin<Project> {
         CreateStartScripts startScripts = project.tasks.withType(CreateStartScripts.class).getByName(TASK_START_SCRIPTS_NAME)
 
         project.copySpec {
-            into(project.name){
-                into("lib") {
-                    from(jar.outputs.files)
-                    from(project.configurations.runtime)
-                }
-                into("bin") {
-                    from(startScripts.outputs.files)
-                    fileMode = 0755
-                }
+            into("lib") {
+                from(jar.outputs.files)
+                from(project.configurations.runtime)
+            }
+            into("bin") {
+                from(startScripts.outputs.files)
+                fileMode = 0755
             }
         }
     }
@@ -77,7 +75,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         run.classpath = project.convention.getPlugin(JavaPluginConvention.class).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).runtimeClasspath
     }
 
-    /** @Todo: refactor this task configuration to extend aÊcopy task and use replace tokens  */
+    /** @Todo: refactor this task configuration to extend aï¿½copy task and use replace tokens  */
     private void configureCreateScriptsTask(Project project, ApplicationPluginConvention applicationPluginConvention) {
         CreateStartScripts startScripts = project.tasks.add(TASK_START_SCRIPTS_NAME, CreateStartScripts.class)
         startScripts.description = "Creates OS specific scripts to run the project as a JVM application."
@@ -105,6 +103,6 @@ public class ApplicationPlugin implements Plugin<Project> {
         Zip distZipTask = project.tasks.add(TASK_DIST_ZIP_NAME, Zip.class)
         distZipTask.description = "Bundles the project as a JVM application with libs and OS specific scripts.";
         distZipTask.group = APPLICATION_GROUP;
-        distZipTask.with(distSpec)
+        distZipTask.into(project.name).with(distSpec)
     }
 }
