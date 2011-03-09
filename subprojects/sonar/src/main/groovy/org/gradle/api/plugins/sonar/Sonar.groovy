@@ -24,7 +24,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.util.ClasspathUtil
 
 /**
- * Analyzes a project and stores the results in the Sonar database.
+ * Analyzes a project and stores the results in Sonar's database.
  */
 class Sonar extends ConventionTask {
     /**
