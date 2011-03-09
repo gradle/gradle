@@ -25,7 +25,7 @@
     <ruleset-ref path='rulesets/imports.xml'/>
     <ruleset-ref path='rulesets/naming.xml'>
         <rule-config name='ClassName'>
-            <property name='regex' value='^[A-Z][a-zA-Z0-9]*$'/>
+            <property name='regex' value='^[A-Z][\$a-zA-Z0-9]*$'/>
         </rule-config>
         <rule-config name='FieldName'>
             <property name='finalRegex' value='^[a-z][a-zA-Z0-9]*$'/>
