@@ -113,7 +113,7 @@
                     <sourcefile file="settings.gradle" snippet="hierarchical-layout"/>
                 </sample>
                 <para>The <literal>include</literal> method takes as an argument a relative virtual path to the root
-                    project. This relative virtual path is assumed to be equals to the relative physical path of the
+                    project. This relative virtual path is assumed to be equal to the relative physical path of the
                     subproject to the root project. You only need to specify the leafs of the tree. Each parent path of
                     the leaf project is assumed to be another subproject which obeys to the physical path assumption
                     described above.

@@ -374,11 +374,11 @@
             <output args="-q files"/>
         </sample>
         <para>The <code>Configuration.files</code> method always retrieves all artifacts of the <emphasis>whole</emphasis> configuration. It
-        then filters the retrieved files by specified dpendencies. As you can see in the example, transitive dependencies are included.
+        then filters the retrieved files by specified dependencies. As you can see in the example, transitive dependencies are included.
         </para>
         <para>You can also copy a configuration. You can optionally specify that only a subset of dependencies from the orginal configuration
             should be copied. The copying methods come in two flavors. The <code>copy</code> method copies only the dependencies belonging
-            explicitly to the configuration. The <code>copyRecursive</code> methode copies all the dependencies, including the dependencies from extended
+            explicitly to the configuration. The <code>copyRecursive</code> method copies all the dependencies, including the dependencies from extended
             configurations.
         </para>
         <sample id="configurationHandlingCopy" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
