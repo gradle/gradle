@@ -34,15 +34,15 @@ class SonarPlugin implements Plugin<Project> {
             sonarTask.conventionMapping.projectDir = { project.projectDir }
             sonarTask.conventionMapping.projectMainSourceDirs = { main.java.srcDirs }
             sonarTask.conventionMapping.projectTestSourceDirs = { test.java.srcDirs }
-            sonarTask.conventionMapping.projectClassesDirs = { main.classesDir }
+            sonarTask.conventionMapping.projectClassesDirs = { [main.classesDir] as Set }
             sonarTask.conventionMapping.projectDependencies = {
-                def files = project.configurations.compile.files
-                files.findAll { it.name.endsWith(".jar") }.collect { it.path }
+                def files = project.configurations.compile.resolve()
+                files.findAll { it.name.endsWith(".jar") }.collect { it.path } as Set
             }
             sonarTask.conventionMapping.projectKey = { "$project.group:$project.name" as String }
             sonarTask.conventionMapping.projectName = { project.name }
             sonarTask.conventionMapping.projectDescription = { project.description }
-            sonarTask.conventionMapping.projectVersion = { project.version }
+            sonarTask.conventionMapping.projectVersion = { project.version as String }
             sonarTask.conventionMapping.projectProperties = {
                 ["sonar.java.source": project.sourceCompatibility as String,
                  "sonar.java.target": project.targetCompatibility as String,
