@@ -18,6 +18,7 @@ package org.gradle.api.plugins.sonar
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.sonar.api.CoreProperties
 
 /**
  * A {@link Plugin} for integrating with <a href="http://www.sonarsource.org">Sonar</a>, a web-based platform
@@ -51,8 +52,8 @@ class SonarPlugin implements Plugin<Project> {
         sonarTask.conventionMapping.projectProperties = {
             ["sonar.java.source": project.sourceCompatibility as String,
              "sonar.java.target": project.targetCompatibility as String,
-             "sonar.dynamicAnalysis": "reuseReports",
-             "sonar.surefire.reportsPath": project.test.testResultsDir as String]
+             (CoreProperties.DYNAMIC_ANALYSIS_PROPERTY): "reuseReports",
+             (CoreProperties.SUREFIRE_REPORTS_PATH_PROPERTY): project.test.testResultsDir as String]
         }
     }
 }
