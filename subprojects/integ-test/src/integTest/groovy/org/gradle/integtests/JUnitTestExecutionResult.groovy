@@ -99,6 +99,16 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    TestClassExecutionResult assertTestSkipped(String name) {
+        throw new UnsupportedOperationException()
+    }
+
+    TestClassExecutionResult assertTestsSkipped(String... testNames) {
+        Map<String, Node> testMethods = findIgnoredTests()
+        assertThat(testMethods.keySet(), equalTo(testNames as Set))
+        this
+    }
+
     TestClassExecutionResult assertConfigMethodPassed(String name) {
         throw new UnsupportedOperationException();
     }
@@ -149,4 +159,9 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return testMethods
     }
 
+    private def findIgnoredTests() {
+        Map testMethods = [:]
+        testClassNode."ignored-testcase".each { testMethods[it.@name.text()] = it }
+        return testMethods
+    }
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
+import org.gradle.api.tasks.testing.TestResult;
+
 import java.math.BigDecimal;
 
 public abstract class TestResultModel {
@@ -23,14 +25,14 @@ public abstract class TestResultModel {
     public static final int MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE;
     public static final int MILLIS_PER_DAY = 24 * MILLIS_PER_HOUR;
 
-    public abstract boolean isSuccessful();
+    public abstract TestResult.ResultType getResultType();
 
     public abstract long getDuration();
 
     public abstract String getTitle();
 
     public String getFormattedDuration() {
-        long duration = getDuration();
+        Long duration = getDuration();
         if (duration == 0) {
             return "0s";
         }
@@ -62,6 +64,28 @@ public abstract class TestResultModel {
     }
 
     public String getStatusClass() {
-        return isSuccessful() ? "success" : "failures";
+        switch (getResultType()) {
+            case SUCCESS:
+                return "success";
+            case FAILURE:
+                return "failures";
+            case SKIPPED:
+                return "skipped";
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    public String getFormattedResultType() {
+        switch (getResultType()) {
+            case SUCCESS:
+                return "passed";
+            case FAILURE:
+                return "failed";
+            case SKIPPED:
+                return "ignored";
+            default:
+                throw new IllegalStateException();
+        }
     }
 }

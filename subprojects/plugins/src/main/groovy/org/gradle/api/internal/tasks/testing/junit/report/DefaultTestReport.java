@@ -83,6 +83,13 @@ public class DefaultTestReport implements TestReporter {
                     testResult.addFailure(failure.getAttribute("message"), failure.getTextContent());
                 }
             }
+            NodeList ignoredTestCases = document.getElementsByTagName("ignored-testcase");
+            for (int i = 0; i < ignoredTestCases.getLength(); i++) {
+                Element testCase = (Element) ignoredTestCases.item(i);
+                String className = testCase.getAttribute("classname");
+                String testName = testCase.getAttribute("name");
+                model.addTest(className, testName, 0).ignored();
+            }
             String suiteClassName = document.getDocumentElement().getAttribute("name");
             ClassTestResults suiteResults = model.addTestClass(suiteClassName);
             NodeList stdOutElements = document.getElementsByTagName("system-out");

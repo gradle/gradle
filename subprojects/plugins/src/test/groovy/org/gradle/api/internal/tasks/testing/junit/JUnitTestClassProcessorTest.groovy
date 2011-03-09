@@ -40,6 +40,8 @@ import org.gradle.logging.StandardOutputRedirector
 import org.junit.BeforeClass
 import junit.extensions.TestSetup
 import org.junit.After
+import org.gradle.api.tasks.testing.TestResult
+import junit.framework.TestSuite
 
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
@@ -81,6 +83,92 @@ class JUnitTestClassProcessorTest {
     }
 
     @Test
+    public void executesABrokenJUnit4TestClass() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite, TestStartEvent event ->
+                assertThat(suite.id, equalTo(1L))
+                assertThat(suite.name, equalTo(ABrokenTestClass.class.name))
+                assertThat(suite.className, equalTo(ABrokenTestClass.class.name))
+                assertThat(event.parentId, nullValue())
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test, TestStartEvent event ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('broken'))
+                assertThat(test.className, equalTo(ABrokenTestClass.class.name))
+                assertThat(event.parentId, equalTo(1L))
+            }
+            one(resultProcessor).failure(2L, ABrokenTestClass.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ABrokenTestClass.class));
+        processor.stop();
+    }
+
+    @Test
+    public void executesAJUnit4TestClassWithIgnoredTest() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite, TestStartEvent event ->
+                assertThat(suite.id, equalTo(1L))
+                assertThat(suite.name, equalTo(ATestClassWithIgnoredMethod.class.name))
+                assertThat(suite.className, equalTo(ATestClassWithIgnoredMethod.class.name))
+                assertThat(event.parentId, nullValue())
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test, TestStartEvent event ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('ignored'))
+                assertThat(test.className, equalTo(ATestClassWithIgnoredMethod.class.name))
+                assertThat(event.parentId, equalTo(1L))
+            }
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(TestResult.ResultType.SKIPPED))
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithIgnoredMethod.class));
+        processor.stop();
+    }
+
+    @Test
+    public void executesAnIgnoredJUnit4TestClass() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite, TestStartEvent event ->
+                assertThat(suite.id, equalTo(1L))
+                assertThat(suite.name, equalTo(AnIgnoredTestClass.class.name))
+                assertThat(suite.className, equalTo(AnIgnoredTestClass.class.name))
+                assertThat(event.parentId, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(AnIgnoredTestClass.class));
+        processor.stop();
+    }
+
+    @Test
     public void executesAJUnit3TestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
@@ -109,6 +197,39 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(AJunit3TestClass.class));
+        processor.stop();
+    }
+
+    @Test
+    public void executesABrokenJUnit3TestClass() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite, TestStartEvent event ->
+                assertThat(suite.id, equalTo(1L))
+                assertThat(suite.name, equalTo(ABrokenJunit3TestClass.class.name))
+                assertThat(suite.className, equalTo(ABrokenJunit3TestClass.class.name))
+                assertThat(event.parentId, nullValue())
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test, TestStartEvent event ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('testBroken'))
+                assertThat(test.className, equalTo(ABrokenJunit3TestClass.class.name))
+                assertThat(event.parentId, equalTo(1L))
+            }
+            one(resultProcessor).failure(2L, ABrokenJunit3TestClass.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ABrokenJunit3TestClass.class));
         processor.stop();
     }
 
@@ -258,7 +379,7 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test ->
                 assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('suite'))
+                assertThat(test.name, equalTo('initializationError'))
                 assertThat(test.className, equalTo(ATestClassWithBrokenSuiteMethod.class.name))
             }
             one(resultProcessor).failure(2L, ATestClassWithBrokenSuiteMethod.failure)
@@ -288,7 +409,7 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test ->
                 assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('classMethod'))
+                assertThat(test.name, equalTo(AJunit3TestClass.name))
                 assertThat(test.className, equalTo(ATestSetUpWithBrokenSetUp.class.name))
             }
             one(resultProcessor).failure(2L, ATestSetUpWithBrokenSetUp.failure)
@@ -393,9 +514,8 @@ class JUnitTestClassProcessorTest {
         processor.stop();
     }
 
-
     @Test
-    public void executesATestClassWithBrokenClassSetup() {
+    public void executesATestClassWithBrokenBeforeClassMethod() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal suite ->
@@ -480,6 +600,38 @@ class JUnitTestClassProcessorTest {
         processor.stop();
     }
 
+    @Test
+    public void executesAJUnit3TestClassThatRenamesItself() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite, TestStartEvent event ->
+                assertThat(suite.id, equalTo(1L))
+                assertThat(suite.name, equalTo(AJunit3TestThatRenamesItself.class.name))
+                assertThat(suite.className, equalTo(AJunit3TestThatRenamesItself.class.name))
+                assertThat(event.parentId, nullValue())
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test, TestStartEvent event ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('testOk'))
+                assertThat(test.className, equalTo(AJunit3TestThatRenamesItself.class.name))
+                assertThat(event.parentId, equalTo(1L))
+            }
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(AJunit3TestThatRenamesItself.class));
+        processor.stop();
+    }
+
     private TestClassRunInfo testClass(Class<?> type) {
         return testClass(type.name)
     }
@@ -498,9 +650,27 @@ public class ATestClass {
     @Test
     public void ok() {
     }
+}
 
+public class ATestClassWithIgnoredMethod {
     @Test @Ignore
     public void ignored() {
+    }
+}
+
+@Ignore
+public class AnIgnoredTestClass {
+    @Test
+    public void ignored() {
+    }
+}
+
+public class ABrokenTestClass {
+    static RuntimeException failure = new RuntimeException()
+
+    @Test
+    public void broken() {
+        throw failure.fillInStackTrace()
     }
 }
 
@@ -566,6 +736,20 @@ public class AJunit3TestClass extends TestCase {
     }
 }
 
+public class AJunit3TestThatRenamesItself extends TestCase {
+    public void testOk() {
+        setName('another test')
+    }
+}
+
+public class ABrokenJunit3TestClass extends TestCase {
+    static RuntimeException failure = new RuntimeException()
+
+    public void testBroken() {
+        throw failure.fillInStackTrace()
+    }
+}
+
 public class ATestClassWithSuiteMethod {
     public static junit.framework.Test suite() {
         return new junit.framework.TestSuite(AJunit3TestClass.class, AJunit3TestClass.class);
@@ -583,9 +767,8 @@ public class ATestClassWithBrokenSuiteMethod {
 public class ATestSetUpWithBrokenSetUp extends TestSetup {
     static RuntimeException failure = new RuntimeException('broken')
 
-
     def ATestSetUpWithBrokenSetUp() {
-        super(null)
+        super(new TestSuite(AJunit3TestClass.class))
     }
 
     protected void setUp() {

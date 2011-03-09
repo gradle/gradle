@@ -63,7 +63,7 @@ abstract class PageRenderer<T extends CompositeTestResults> {
     }
 
     protected void addFailuresTab() {
-        if (!results.successful) {
+        if (results.failures) {
             addTab("Failed tests") {
                 builder.ul(class: 'linkList') {
                     for (test in results.failures) {

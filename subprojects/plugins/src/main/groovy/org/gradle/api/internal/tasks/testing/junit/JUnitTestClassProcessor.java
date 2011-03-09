@@ -53,7 +53,7 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
         processors.add(new JUnitXmlReportGenerator(testResultsDir));
         processors.add(resultProcessor);
         TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(processors.getSource(), outputRedirector));
-        JUnitTestResultProcessorAdapter listener = new JUnit4TestResultProcessorAdapter(resultProcessorChain,
+        JUnitTestResultProcessorAdapter listener = new JUnitTestResultProcessorAdapter(resultProcessorChain,
                 timeProvider, idGenerator);
         executer = new JUnitTestClassExecuter(applicationClassLoader, listener, resultProcessorChain, idGenerator, timeProvider);
     }

@@ -69,5 +69,6 @@ eclipseClasspath {
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
+    exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
     jvmArgs '-Xms128m', '-Xmx256m', '-XX:+HeapDumpOnOutOfMemoryError'
 }

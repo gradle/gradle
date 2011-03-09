@@ -16,25 +16,24 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import junit.framework.*;
-import junit.framework.TestResult;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
-import org.junit.runner.Describable;
 import org.junit.runner.Description;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import org.junit.runner.Request;
+import org.junit.runner.Runner;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+import org.junit.runner.notification.RunNotifier;
 
 public class JUnitTestClassExecuter {
     private final ClassLoader applicationClassLoader;
-    private final TestListener listener;
+    private final RunListener listener;
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
     private final TimeProvider timeProvider;
 
-    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, TestListener listener, TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
+    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, RunListener listener, TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
         this.applicationClassLoader = applicationClassLoader;
         this.listener = listener;
         this.resultProcessor = resultProcessor;
@@ -46,41 +45,24 @@ public class JUnitTestClassExecuter {
         TestDescriptorInternal testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName);
         resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
 
-        Test adapter = createTest(testClassName);
-        TestResult result = new TestResult();
-        result.addListener(listener);
-        adapter.run(result);
+        Runner runner = createTest(testClassName);
+        RunNotifier notifier = new RunNotifier();
+        notifier.addListener(listener);
+        runner.run(notifier);
 
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));
     }
 
-    private Test createTest(String testClassName) {
-        Class<?> testClass;
+    private Runner createTest(String testClassName) {
         try {
-            testClass = Class.forName(testClassName, true, applicationClassLoader);
-
-            // Look for a static suite method
-            try {
-                Method suiteMethod = testClass.getMethod("suite", new Class[0]);
-                return (Test) suiteMethod.invoke(null);
-            } catch (NoSuchMethodException e) {
-                // Ignore
-            } catch (InvocationTargetException e) {
-                return new BrokenTest(Description.createTestDescription(testClass, "suite"), e.getCause());
-            }
+            Class<?> testClass = Class.forName(testClassName, true, applicationClassLoader);
+            return Request.aClass(testClass).getRunner();
         } catch (Throwable e) {
-            return new BrokenTest(
-                    Description.createSuiteDescription(String.format("initializationError(%s)", testClassName)), e);
+            return new BrokenTest(Description.createSuiteDescription(String.format("initializationError(%s)", testClassName)), e);
         }
-
-        if (TestCase.class.isAssignableFrom(testClass)) {
-            // Use a TestSuite directly, so that we get access to the test object in JUnitTestResultProcessorAdapter
-            return new TestSuite(testClass.asSubclass(TestCase.class));
-        }
-        return new JUnit4TestAdapter(testClass);
     }
 
-    private static class BrokenTest implements Test, Describable {
+    private static class BrokenTest extends Runner {
         private final Throwable failure;
         private final Description description;
 
@@ -93,14 +75,11 @@ public class JUnitTestClassExecuter {
             return description;
         }
 
-        public int countTestCases() {
-            return 1;
-        }
-
-        public void run(TestResult result) {
-            result.startTest(this);
-            result.addError(this, failure);
-            result.endTest(this);
+        @Override
+        public void run(RunNotifier notifier) {
+            notifier.fireTestStarted(description);
+            notifier.fireTestFailure(new Failure(description, failure));
+            notifier.fireTestFinished(description);
         }
     }
 }

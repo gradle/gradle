@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static org.gradle.api.tasks.testing.TestResult.ResultType;
+
 public abstract class CompositeTestResults extends TestResultModel {
     private final CompositeTestResults parent;
     private int tests;
@@ -50,8 +52,8 @@ public abstract class CompositeTestResults extends TestResultModel {
         return failures;
     }
 
-    public boolean isSuccessful() {
-        return failures.isEmpty();
+    public ResultType getResultType() {
+        return failures.isEmpty() ? ResultType.SUCCESS : ResultType.FAILURE;
     }
 
     public String getFormattedSuccessRate() {

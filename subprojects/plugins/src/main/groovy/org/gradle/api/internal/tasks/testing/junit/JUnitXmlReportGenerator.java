@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestOutputEvent;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
+import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -79,7 +80,7 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
         String testClassName = state.test.getClassName();
         Element element;
         if (!state.equals(testSuite)) {
-            element = testSuiteReport.createElement("testcase");
+            element = testSuiteReport.createElement(state.resultType == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase");
             element.setAttribute("name", state.test.getName());
             element.setAttribute("classname", testClassName);
             rootElement.appendChild(element);

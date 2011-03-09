@@ -18,11 +18,14 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.api.tasks.testing.TestResult.ResultType;
+
 public class TestResult extends TestResultModel implements Comparable<TestResult> {
     private final long duration;
     final ClassTestResults classResults;
     final List<TestFailure> failures = new ArrayList<TestFailure>();
     final String name;
+    private boolean ignored;
 
     public TestResult(String name, long duration, ClassTestResults classResults) {
         this.name = name;
@@ -43,12 +46,20 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return String.format("Test %s", name);
     }
 
-    public boolean isSuccessful() {
-        return failures.isEmpty();
+    public ResultType getResultType() {
+        if (ignored) {
+            return ResultType.SKIPPED;
+        }
+        return failures.isEmpty() ? ResultType.SUCCESS : ResultType.FAILURE;
     }
 
     public long getDuration() {
         return duration;
+    }
+
+    @Override
+    public String getFormattedDuration() {
+        return ignored ? "-" : super.getFormattedDuration();
     }
 
     public ClassTestResults getClassResults() {
@@ -62,6 +73,10 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     public void addFailure(String message, String stackTrace) {
         classResults.failed(this);
         failures.add(new TestFailure(message, stackTrace));
+    }
+
+    public void ignored() {
+        ignored = true;
     }
 
     public int compareTo(TestResult testResult) {

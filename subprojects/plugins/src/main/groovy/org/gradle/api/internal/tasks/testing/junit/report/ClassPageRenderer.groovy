@@ -27,7 +27,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     }
 
     @Override protected void registerTabs() {
-        if (!results.successful) {
+        if (results.failures) {
             addTab('Failed tests') {
                 for (test in results.failures) {
                     builder.div(class: 'test') {
@@ -54,7 +54,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                         a(name: test.id, " ")
                         td(class: test.statusClass, test.name)
                         td(test.formattedDuration)
-                        td(class: test.statusClass, test.successful ? 'passed' : 'failed')
+                        td(class: test.statusClass, test.formattedResultType)
                     }
                 }
             }

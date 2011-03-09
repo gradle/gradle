@@ -139,8 +139,8 @@ ul.tabLinks li {
     -moz-border-radius: 7px;
     border-radius: 7px;
     margin-right: 25px;
-    border: solid 1px #f0f0f0;
-    background-color: #f4f4f4;
+    border: solid 1px #d4d4d4;
+    background-color: #f0f0f0;
     behavior: url(css3-pie-1.0beta3.htc);
 }
 
@@ -149,8 +149,8 @@ ul.tabLinks li:hover {
 }
 
 ul.tabLinks li.selected {
-    background-color: #d0f0f5;
-    border-color: #d0f0f5;
+    background-color: #c5f0f5;
+    border-color: #c5f0f5;
 }
 
 ul.tabLinks a {
