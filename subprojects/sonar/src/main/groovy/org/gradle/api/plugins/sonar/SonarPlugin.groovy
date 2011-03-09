@@ -25,30 +25,37 @@ import org.gradle.api.plugins.JavaPlugin
  * analyze the Java sources in the main source set.
  */
 class SonarPlugin implements Plugin<Project> {
+    static final String SONAR_TASK_NAME = "sonar"
+
     void apply(Project project) {
         project.plugins.withType(JavaPlugin) {
-            def main = project.sourceSets.main
-            def test = project.sourceSets.test
-            def sonarTask = project.tasks.add("sonar", Sonar)
-            sonarTask.conventionMapping.serverUrl = { "http://localhost:9000" }
-            sonarTask.conventionMapping.projectDir = { project.projectDir }
-            sonarTask.conventionMapping.projectMainSourceDirs = { main.java.srcDirs }
-            sonarTask.conventionMapping.projectTestSourceDirs = { test.java.srcDirs }
-            sonarTask.conventionMapping.projectClassesDirs = { [main.classesDir] as Set }
-            sonarTask.conventionMapping.projectDependencies = {
-                def files = project.configurations.compile.resolve()
-                files.findAll { it.name.endsWith(".jar") }.collect { it.path } as Set
-            }
-            sonarTask.conventionMapping.projectKey = { "$project.group:$project.name" as String }
-            sonarTask.conventionMapping.projectName = { project.name }
-            sonarTask.conventionMapping.projectDescription = { project.description }
-            sonarTask.conventionMapping.projectVersion = { project.version as String }
-            sonarTask.conventionMapping.projectProperties = {
-                ["sonar.java.source": project.sourceCompatibility as String,
-                 "sonar.java.target": project.targetCompatibility as String,
-                 "sonar.dynamicAnalysis": "reuseReports",
-                 "sonar.surefire.reportsPath": project.test.testResultsDir as String]
-            }
+            def sonarTask = project.tasks.add(SONAR_TASK_NAME, Sonar)
+            configureConventions(sonarTask, project)
+        }
+    }
+
+    private void configureConventions(Sonar sonarTask, Project project) {
+        def main = project.sourceSets.main
+        def test = project.sourceSets.test
+
+        sonarTask.conventionMapping.serverUrl = { "http://localhost:9000" }
+        sonarTask.conventionMapping.projectDir = { project.projectDir }
+        sonarTask.conventionMapping.projectMainSourceDirs = { main.java.srcDirs }
+        sonarTask.conventionMapping.projectTestSourceDirs = { test.java.srcDirs }
+        sonarTask.conventionMapping.projectClassesDirs = { [main.classesDir] as Set }
+        sonarTask.conventionMapping.projectDependencies = {
+            def files = project.configurations.compile.resolve()
+            files.findAll { it.name.endsWith(".jar") }.collect { it.path } as Set
+        }
+        sonarTask.conventionMapping.projectKey = { "$project.group:$project.name" as String }
+        sonarTask.conventionMapping.projectName = { project.name }
+        sonarTask.conventionMapping.projectDescription = { project.description }
+        sonarTask.conventionMapping.projectVersion = { project.version as String }
+        sonarTask.conventionMapping.projectProperties = {
+            ["sonar.java.source": project.sourceCompatibility as String,
+             "sonar.java.target": project.targetCompatibility as String,
+             "sonar.dynamicAnalysis": "reuseReports",
+             "sonar.surefire.reportsPath": project.test.testResultsDir as String]
         }
     }
 }
