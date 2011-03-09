@@ -27,7 +27,6 @@ import org.xml.sax.InputSource;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 
 public class DefaultTestReport implements TestReporter {
     private File resultDir;
@@ -72,9 +71,8 @@ public class DefaultTestReport implements TestReporter {
                 Element testCase = (Element) testCases.item(i);
                 String className = testCase.getAttribute("classname");
                 String testName = testCase.getAttribute("name");
-                DecimalFormat format = new DecimalFormat("#.#");
-                format.setParseBigDecimal(true);
-                BigDecimal duration = (BigDecimal) format.parse(testCase.getAttribute("time"));
+                LocaleSafeDecimalFormat format = new LocaleSafeDecimalFormat();
+                BigDecimal duration = format.parse(testCase.getAttribute("time"));
                 duration = duration.multiply(BigDecimal.valueOf(1000));
                 NodeList failures = testCase.getElementsByTagName("failure");
                 TestResult testResult = model.addTest(className, testName, duration.longValue());
