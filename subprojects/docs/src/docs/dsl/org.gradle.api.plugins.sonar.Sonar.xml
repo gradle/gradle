@@ -32,8 +32,7 @@
             </tr>
             <tr>
                 <td>projectDependencies</td>
-                <td>All Jar files that are compile dependencies of the project</td>
-            </tr>
+                <td><literal>project.configurations.compile.resolve()</literal></td></tr>
             <tr>
                 <td>projectKey</td>
                 <td><literal><replaceable>$project.group</replaceable>:<replaceable>$project.name</replaceable></literal></td>
