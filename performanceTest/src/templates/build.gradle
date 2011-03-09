@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 <% if (subprojects.empty ) { %>
-usePlugin('java')
+apply plugin: 'java'
 
 repositories {
     mavenCentral()
@@ -22,8 +22,11 @@ repositories {
 
 dependencies {
     testCompile 'junit:junit:4.8.2'
+
 }
-test.testReport = false
+test {
+    jvmArgs '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
+}
 
 <% if (groovyProject) { %>
 apply plugin: 'groovy'

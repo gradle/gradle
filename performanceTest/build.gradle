@@ -1,6 +1,5 @@
 import groovy.text.SimpleTemplateEngine
-
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import groovy.text.Template
 
 buildscript {
     repositories {
@@ -31,7 +30,7 @@ task small(type: GeneratorTask, description: 'Generates a small project') {
 
 task largeSrc(type: GeneratorTask, description: 'Generates a single project with lots of source files') {
     destDir = new File(buildDir, 'largeSrc')
-    sourceFiles = 1000
+    sourceFiles = 20000
 }
 
 task multi(type: GeneratorTask, description: 'Generates a multi-project build') {
@@ -58,6 +57,8 @@ class GeneratorTask extends DefaultTask {
     @Input
     boolean groovyProject
 
+    final SimpleTemplateEngine engine = new SimpleTemplateEngine()
+    final Map<File, Template> templates = [:]
 
     def GeneratorTask() {
         outputs.upToDateWhen { false }
@@ -89,8 +90,9 @@ class GeneratorTask extends DefaultTask {
                 includeSource: subprojectNames.empty
 
         Configuration configuration = project.configurations.junit
-        configuration.each {
-            ant.copy(file: it, toDir: new File(destDir, 'lib/test'))
+        project.copy {
+            from configuration
+            into new File(getDestDir(), 'lib/test')
         }
     }
 
@@ -105,18 +107,16 @@ class GeneratorTask extends DefaultTask {
 
         List files = args.files + [
                 'build.gradle',
-                'common.gradle',
                 'pom.xml',
                 'build.xml',
         ]
 
         Closure generate = {String name, String templateName, Map templateArgs ->
-            SimpleTemplateEngine engine = new SimpleTemplateEngine()
             File destFile = new File(projectDir, name)
             File srcTemplate = project.file("src/templates/$templateName")
             destFile.parentFile.mkdirs()
             destFile.withWriter {Writer writer ->
-                engine.createTemplate(srcTemplate).make(templateArgs).writeTo(writer)
+                getTemplate(srcTemplate).make(templateArgs).writeTo(writer)
             }
         }
 
@@ -142,5 +142,14 @@ class GeneratorTask extends DefaultTask {
                 }
             }
         }
+    }
+
+    def getTemplate(File srcTemplate) {
+        def template = templates[srcTemplate]
+        if (!template) {
+            template = engine.createTemplate(srcTemplate)
+            templates[srcTemplate] = template
+        }
+        return template
     }
 }
