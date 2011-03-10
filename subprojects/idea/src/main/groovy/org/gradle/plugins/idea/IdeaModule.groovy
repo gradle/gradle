@@ -305,8 +305,8 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
      * @return
      */
     File getOutputFile() {
-        //this getter lives here only for the sake of the documentation.
-        return outputFile
+        //this getter lives here only for the sake of generating the DSL documentation.
+        return super.outputFile
     }
 
     /**
