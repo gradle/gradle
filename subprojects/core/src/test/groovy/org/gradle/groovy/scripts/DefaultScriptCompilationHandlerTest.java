@@ -209,7 +209,7 @@ public class DefaultScriptCompilationHandlerTest {
                     expectedScriptClass);
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), equalTo("Could not load compiled classes for script-display-name from cache."));
+            assertThat(e.getMessage(), containsString("Could not load compiled classes for script-display-name from cache."));
             assertThat(e.getCause(), instanceOf(ClassCastException.class));
         }
     }
