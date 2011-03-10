@@ -6,4 +6,4 @@ This is executed during the execution phase.
 
 BUILD SUCCESSFUL
 
-Total time: 1 secs
+REGEX:Total time: .+ secs
