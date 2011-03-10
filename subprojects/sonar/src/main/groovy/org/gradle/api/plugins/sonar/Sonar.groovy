@@ -95,7 +95,7 @@ class Sonar extends ConventionTask {
         bootstrapDir.mkdirs()
         def bootstrapper = new Bootstrapper("Gradle", getServerUrl(), getBootstrapDir())
 
-        def classLoader = bootstrapper.createClassLoader([findSonarJar()] as URL[],
+        def classLoader = bootstrapper.createClassLoader([findGradleSonarJar()] as URL[],
                 Sonar.classLoader, "groovy", "org.codehaus.groovy")
 
         def launcherClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
@@ -220,7 +220,7 @@ class Sonar extends ConventionTask {
         projectProperties.putAll(properties)
     }
 
-    private URL findSonarJar() {
+    private URL findGradleSonarJar() {
         def url = ClasspathUtil.getClasspath(Sonar.classLoader).find { it.path.contains("gradle-sonar") }
         assert url != null, "failed to detect gradle-sonar Jar"
         url
