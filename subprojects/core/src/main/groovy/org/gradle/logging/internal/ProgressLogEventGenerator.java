@@ -16,6 +16,7 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.util.SystemProperties;
 
 import java.util.LinkedList;
 
@@ -26,7 +27,8 @@ import static org.gradle.logging.StyledTextOutput.Style;
  * progress of operations.
  */
 public class ProgressLogEventGenerator implements OutputEventListener {
-    public static final String EOL = System.getProperty("line.separator");
+    private static final String EOL = SystemProperties.getLineSeparator();
+
     private final OutputEventListener listener;
     private final boolean deferHeader;
     private final LinkedList<Operation> operations = new LinkedList<Operation>();

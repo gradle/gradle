@@ -25,6 +25,7 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.maven.XmlProvider;
+import org.gradle.util.SystemProperties;
 import org.gradle.util.TextUtil;
 import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
@@ -253,7 +254,7 @@ public class XmlTransformer implements Transformer<String> {
                     writer.write("\"");
                 }
                 writer.write("?>");
-                writer.write(TextUtil.LINE_SEPARATOR);
+                writer.write(SystemProperties.getLineSeparator());
             } catch (IOException e) {
                 throw UncheckedException.asUncheckedException(e);
             }

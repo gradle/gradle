@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.AntUtil
+import org.gradle.util.SystemProperties
 import org.junit.Assert
 import org.junit.runner.Description
 import org.junit.runner.Runner
@@ -31,7 +32,8 @@ import com.google.common.collect.ListMultimap
 import com.google.common.collect.ArrayListMultimap
 
 class UserGuideSamplesRunner extends Runner {
-    static final String NL = System.properties['line.separator']
+    private static final String NL = SystemProperties.lineSeparator
+
     Class<?> testClass
     Description description
     Map<Description, SampleRun> samples;

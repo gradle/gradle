@@ -82,8 +82,4 @@ For example, try running gradle :child1:tasks
 To see a list of all the projects in this build, run gradle :projects
 '''
     }
-
-    def String toNative(String value) {
-        return value.replaceAll('\n', System.getProperty('line.separator'))
-    }
 }

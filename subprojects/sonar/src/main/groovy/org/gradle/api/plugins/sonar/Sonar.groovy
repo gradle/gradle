@@ -19,6 +19,7 @@ import org.sonar.batch.bootstrapper.Bootstrapper
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ClasspathUtil
+import org.gradle.util.SystemProperties
 
 /**
  * Analyzes a project and stores the results in Sonar's database.
@@ -32,7 +33,7 @@ class Sonar extends ConventionTask {
     /**
      * The directory to be used for caching files downloaded from the Sonar server.
      */
-    File bootstrapDir = new File(System.getProperty("java.io.tmpdir"), "sonar-bootstrap")
+    File bootstrapDir = new File(SystemProperties.javaIoTmpDir, "sonar-bootstrap")
 
     /**
      * The base directory for the project to be analyzed.

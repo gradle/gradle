@@ -27,6 +27,7 @@ import org.apache.ivy.plugins.resolver.*
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.gradle.api.internal.Factory
+import org.gradle.util.SystemProperties
 
 /**
  * @author Hans Dockter
@@ -97,7 +98,7 @@ class DefaultResolverFactoryTest {
         FileSystemResolver resolver = factory.createFlatDirResolver(expectedName, [dir1, dir2] as File[])
         checkNoModuleRepository(resolver, expectedName,
                 [dir1, dir2].collect {"$it.absolutePath/$ResolverContainer.FLAT_DIR_RESOLVER_PATTERN"}, [])
-        assertEquals(new File(System.getProperty('java.io.tmpdir')).getCanonicalPath(),
+        assertEquals(new File(SystemProperties.javaIoTmpDir).getCanonicalPath(),
                 new File(((DefaultRepositoryCacheManager) resolver.getRepositoryCacheManager()).getBasedir().getParent()).getCanonicalPath())
 
     }

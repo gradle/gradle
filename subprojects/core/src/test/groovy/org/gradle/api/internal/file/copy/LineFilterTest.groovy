@@ -16,6 +16,8 @@
 package org.gradle.api.internal.file.copy
 
 import org.junit.Test
+import org.gradle.util.SystemProperties
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -76,6 +78,6 @@ class LineFilterTest {
     }
 
     private String lines(String ... lines) {
-        (lines as List).join(System.getProperty('line.separator'))
+        (lines as List).join(SystemProperties.lineSeparator)
     }
 }

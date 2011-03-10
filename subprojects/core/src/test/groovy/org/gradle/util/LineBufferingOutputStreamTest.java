@@ -35,7 +35,7 @@ public class LineBufferingOutputStreamTest {
 
     @Before
     public void setUp() {
-        eol = System.getProperty("line.separator");
+        eol = SystemProperties.getLineSeparator();
     }
 
     @After
