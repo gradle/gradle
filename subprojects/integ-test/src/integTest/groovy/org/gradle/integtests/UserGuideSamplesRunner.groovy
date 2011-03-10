@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests
 
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.ListMultimap
 import groovy.io.PlatformLineWriter
 import junit.framework.AssertionFailedError
 import org.apache.tools.ant.taskdefs.Delete
@@ -28,8 +30,6 @@ import org.junit.runner.Description
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
-import com.google.common.collect.ListMultimap
-import com.google.common.collect.ArrayListMultimap
 
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.lineSeparator
@@ -169,6 +169,11 @@ class UserGuideSamplesRunner extends Runner {
     boolean compare(String expected, String actual) {
         if (actual == expected) {
             return true
+        }
+
+        if (expected.startsWith("REGEX:")) {
+            def withoutPrefix = expected.replaceFirst("^REGEX:", "")
+            return actual.matches(withoutPrefix)
         }
 
         if (expected == 'Total time: 1 secs') {
