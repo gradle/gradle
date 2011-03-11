@@ -20,6 +20,7 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.SystemProperties
+import org.gradle.api.logging.LogLevel
 
 /**
  * Analyzes a project and stores the results in Sonar's database.
@@ -92,16 +93,18 @@ class Sonar extends ConventionTask {
 
     @TaskAction
     void execute() {
-        bootstrapDir.mkdirs()
-        def bootstrapper = new Bootstrapper("Gradle", getServerUrl(), getBootstrapDir())
+        withErrorLogLevel {
+            bootstrapDir.mkdirs()
+            def bootstrapper = new Bootstrapper("Gradle", getServerUrl(), getBootstrapDir())
 
-        def classLoader = bootstrapper.createClassLoader([findGradleSonarJar()] as URL[],
-                Sonar.classLoader, "groovy", "org.codehaus.groovy")
+            def classLoader = bootstrapper.createClassLoader([findGradleSonarJar()] as URL[],
+                    Sonar.classLoader, "groovy", "org.codehaus.groovy", "org.slf4j", "org.apache.log4j", "org.apache.commons.logging")
 
-        def launcherClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
-        def launcher = launcherClass.newInstance()
-        launcher.sonarTask = this
-        launcher.execute()
+            def launcherClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
+            def launcher = launcherClass.newInstance()
+            launcher.sonarTask = this
+            launcher.execute()
+        }
     }
 
     /**
@@ -220,9 +223,28 @@ class Sonar extends ConventionTask {
         projectProperties.putAll(properties)
     }
 
-    private URL findGradleSonarJar() {
+    protected URL findGradleSonarJar() {
         def url = ClasspathUtil.getClasspath(Sonar.classLoader).find { it.path.contains("gradle-sonar") }
         assert url != null, "failed to detect gradle-sonar Jar"
         url
+    }
+
+    // this is an unsuccessful attempt to get rid of the Hibernate SQL logging
+    private void withErrorLogLevel(Closure block) {
+        def level = project.logging.level
+        def outLevel = project.logging.standardOutputCaptureLevel
+        def errLevel = project.logging.standardErrorCaptureLevel
+
+        project.logging.level = LogLevel.ERROR
+        project.logging.captureStandardOutput(LogLevel.ERROR)
+        project.logging.captureStandardError(LogLevel.ERROR)
+
+        try {
+            block()
+        } finally {
+            project.logging.level = level
+            project.logging.captureStandardOutput(outLevel)
+            project.logging.captureStandardError(errLevel)
+        }
     }
 }
