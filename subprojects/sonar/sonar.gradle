@@ -16,6 +16,7 @@
 
 configurations {
     provided
+    provided.extendsFrom(compile)
 }
 
 dependencies {
@@ -31,6 +32,10 @@ dependencies {
 
 sourceSets {
     main {
-        compileClasspath = configurations.compile + configurations.provided
+        compileClasspath = configurations.provided
     }
+}
+
+ideaModule {
+    scopes.PROVIDED.plus += configurations.provided
 }
