@@ -54,17 +54,6 @@ public class ApplicationPluginConvention {
         runTask.main = mainClassName;
     }
 
-    /**
-     * Returns the directory to install the application into. Note that any existing files in this directory will be deleted.
-     */
-    public File getInstallDir() {
-        return project.file(installDir ?: "build/install/$applicationName")
-    }
-
-    public void setInstallDir(Object installDir) {
-        this.installDir = installDir
-    }
-
     public String getApplicationPrefix() {
         return "${applicationName}${project.version == Project.DEFAULT_VERSION ? '' : '-' + project.version }"
     }

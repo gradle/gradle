@@ -95,7 +95,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
         installTask.with(distSpec)
-        installTask.into { project.file(pluginConvention.installDir) }
+        installTask.into { project.file("${project.buildDir}/install/${pluginConvention.applicationName}") }
         installTask.doFirst {
             if (destinationDir.directory) {
                 if (!new File(destinationDir, 'lib').directory || !new File(destinationDir, 'bin')) {

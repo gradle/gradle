@@ -39,7 +39,6 @@ class ApplicationPluginTest extends Specification {
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
-        project.installDir == project.file("build/install/${project.name}")
     }
 
     public void addsRunTasksToProject() {
@@ -90,10 +89,11 @@ class ApplicationPluginTest extends Specification {
         project.applicationName = "SuperApp";
 
         then:
-        project.installDir == project.file("build/install/SuperApp")
-
         def startScriptsTask = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         startScriptsTask.applicationName == 'SuperApp'
+
+        def installTest = project.tasks[ApplicationPlugin.TASK_INSTALL_NAME]
+        installTest.destinationDir == project.file("build/install/SuperApp")
 
         def distZipTask = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         distZipTask.archiveName == "SuperApp.zip"

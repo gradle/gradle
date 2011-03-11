@@ -111,7 +111,7 @@ class Main {
         distribution.testFile('build.gradle') << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
-installDir = buildDir
+install.destinationDir = buildDir
 '''
 
         when:
