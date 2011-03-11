@@ -16,7 +16,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
