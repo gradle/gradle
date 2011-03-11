@@ -51,11 +51,24 @@ class EclipsePlugin extends IdePlugin {
     @Override protected void onApply(Project project) {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
+        configureEclipseConfigurer(project)
         configureEclipseProject(project)
         configureEclipseClasspath(project)
         configureEclipseJdt(project)
         configureEclipseWtpComponent(project)
         configureEclipseWtpFacet(project)
+    }
+
+    def configureEclipseConfigurer(Project project) {
+        def root = project.rootProject
+        def task = root.tasks.findByName('eclipseConfigurer')
+        //making sure configurer is created once and added to the root project only
+        if (!task) {
+            task = root.task('eclipseConfigurer', description: 'Performs extra configuration on eclipse generator tasks', type: EclipseConfigurer)
+            addWorker(task)
+        }
+        //making sure configurer before generator tasks
+        project.tasks.withType(DependsOnConfigurer) { it.dependsOn(task)}
     }
 
     private void configureEclipseProject(Project project) {

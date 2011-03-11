@@ -23,7 +23,7 @@ import org.gradle.plugins.eclipse.model.Jdt
 /**
  * Generates the Eclipse JDT configuration file.
  */
-class EclipseJdt extends GeneratorTask<Jdt> {
+class EclipseJdt extends GeneratorTask<Jdt> implements DependsOnConfigurer {
     /**
      * The source Java language level.
      */

@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.eclipse.model.Classpath
-import org.gradle.plugins.eclipse.model.Container
+
 import org.gradle.plugins.eclipse.model.internal.ClasspathFactory
 
 /**
@@ -27,7 +27,7 @@ import org.gradle.plugins.eclipse.model.internal.ClasspathFactory
  *
  * @author Hans Dockter
  */
-class EclipseClasspath extends XmlGeneratorTask<Classpath> {
+class EclipseClasspath extends XmlGeneratorTask<Classpath> implements DependsOnConfigurer {
     /**
      * The source sets to be added to the classpath.
      */

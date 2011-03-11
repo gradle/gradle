@@ -25,7 +25,7 @@ import org.gradle.plugins.eclipse.model.internal.WtpComponentFactory
  *
  * @author Hans Dockter
  */
-class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
+class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> implements DependsOnConfigurer {
     /**
      * The source directories to be transformed into wb-resource elements.
      */

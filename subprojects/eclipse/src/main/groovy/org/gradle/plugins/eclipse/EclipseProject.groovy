@@ -27,7 +27,7 @@ import org.gradle.plugins.eclipse.model.Project
  *
  * @author Hans Dockter
  */
-class EclipseProject extends XmlGeneratorTask<Project> {
+class EclipseProject extends XmlGeneratorTask<Project> implements DependsOnConfigurer {
     private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
 
     /**
@@ -125,5 +125,19 @@ class EclipseProject extends XmlGeneratorTask<Project> {
             throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
         }
         links << new Link(args.name, args.type, args.location, args.locationUri)
+    }
+
+    Collection<String> getCandidateNames() {
+        //TODO SF duplicated with idea plugin, refactor!
+        def out = []
+        def p = project.parent
+        def currentName = projectName
+        out << currentName
+        while (p) {
+            currentName = p.name + "-" + currentName
+            out.add(currentName)
+            p = p.parent
+        }
+        return out
     }
 }

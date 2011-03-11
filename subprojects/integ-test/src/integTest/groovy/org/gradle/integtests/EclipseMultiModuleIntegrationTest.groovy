@@ -28,7 +28,6 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources()
 
     @Test
-    @Ignore //not completed yet
     void dealsWithDuplicatedModuleNames() {
       /*
       This is the multi-module project structure the integration test works with:
@@ -102,10 +101,10 @@ project(':services:utilities') {
     }
 
     def assertApiProjectContainsCorrectDependencies() {
-        def moduleDeps = parseEclipseProjectDependencies(project: 'master/api')
+        def deps = parseEclipseProjectDependencies(project: 'master/api')
 
-        assert moduleDeps.contains("/very-cool-model")
-        assert moduleDeps.contains("/shared-api")
+        assert deps.contains("/very-cool-model")
+        assert deps.contains("/shared-api")
     }
 
     @Test

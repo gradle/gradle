@@ -25,7 +25,7 @@ import org.gradle.util.ConfigureUtil
  *
  * @author Hans Dockter
  */
-class EclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
+class EclipseWtpFacet extends XmlGeneratorTask<WtpFacet> implements DependsOnConfigurer {
     /**
      * The facets to be added as elements.
      */
