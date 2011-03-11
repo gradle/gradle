@@ -99,48 +99,7 @@
 
     <section>
             <title>Convention properties</title>
-            <table>
-                <title>Application plugin - directory properties</title>
-                <thead>
-                    <tr>
-                        <td>Property name</td>
-                        <td>Type</td>
-                        <td>Default value</td>
-                        <td>Description</td>
-                    </tr>
-                </thead>
-                <tr>
-                    <td>
-                        <literal>mainClassName</literal>
-                    </td>
-                    <td>
-                        <classname>String</classname>
-                    </td>
-                    <td>
-                        -
-                    </td>
-                    <td>
-                        The fully qualified name of the main class of the application.
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <literal>installDirPath</literal>
-                    </td>
-                    <td>
-                        <classname>String</classname>
-                    </td>
-                    <td>
-                        build/install
-                    </td>
-                    <td>
-                        The path the application should be installed into.
-                    </td>
-                </tr>
-            </table>
-
-            <para>These properties are provided by a <apilink class="org.gradle.api.plugins.ApplicationPluginConvention"/>
-                convention object.
+            <para>The application plugin adds some properties to the project, which you can use to configure its behaviour. See <apilink class="org.gradle.api.Project"/>.
             </para>
     </section>
 </chapter>

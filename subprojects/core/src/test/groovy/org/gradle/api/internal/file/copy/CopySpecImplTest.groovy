@@ -91,6 +91,13 @@ public class CopySpecImplTest {
         assertThat(spec.destPath, equalTo(new RelativePath(false)))
     }
 
+    @Test public void testIntoWithAClosure() {
+        spec.into { 'spec' }
+        assertThat(spec.destPath, equalTo(new RelativePath(false, 'spec')))
+        spec.into { return { 'spec' } }
+        assertThat(spec.destPath, equalTo(new RelativePath(false, 'spec')))
+    }
+
     @Test public void testWithSpec() {
         CopySpecImpl other1 = new CopySpecImpl(fileResolver)
         CopySpecImpl other2 = new CopySpecImpl(fileResolver)

@@ -156,12 +156,25 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
             return parentPath;
         }
 
-        String path = destDir.toString();
+        String path = resolveToPath(destDir);
         if (path.startsWith("/") || path.startsWith(File.separator)) {
             return RelativePath.parse(false, path);
         }
 
         return RelativePath.parse(false, parentPath, path);
+    }
+
+    private String resolveToPath(Object destDir) {
+        Object value = destDir;
+        while (true) {
+            if (value instanceof Closure) {
+                Closure closure = (Closure) value;
+                value = closure.call();
+            } else {
+                break;
+            }
+        }
+        return value.toString();
     }
 
     public PatternSet getPatternSet() {

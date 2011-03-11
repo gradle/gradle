@@ -21,16 +21,18 @@ import org.gradle.integtests.fixtures.GradleExecuter
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.junit.Rule
 import spock.lang.Specification
+import org.hamcrest.Matchers
+import org.gradle.util.TestFile
 
 class ApplicationIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
     @Rule public final GradleExecuter executer = new GradleDistributionExecuter()
 
     def canUseEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
-        distribution.testFile('settings.gradle') << 'rootProject.name = "application"'
         distribution.testFile('build.gradle') << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
+applicationName = 'application'
 '''
         distribution.testFile('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -46,7 +48,7 @@ class Main {
 
         when:
         executer.withTasks('install').run()
-        
+
         def builder = new ScriptExecuter()
         builder.workingDir distribution.testDir.file('build/install/application/bin')
         builder.executable "application"
@@ -56,5 +58,66 @@ class Main {
 
         then:
         result.assertNormalExitValue()
+    }
+
+    def canCustomiseTheApplicationName() {
+        distribution.testFile('settings.gradle') << 'rootProject.name = "application"'
+        distribution.testFile('build.gradle') << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+applicationName = 'mega-app'
+'''
+        distribution.testFile('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+    }
+}
+'''
+
+        when:
+        executer.withTasks('install', 'distZip').run()
+
+        then:
+        def installDir = distribution.testFile('build/install/mega-app')
+        installDir.assertIsDir()
+        checkApplicationImage(installDir)
+
+        def distFile = distribution.testFile('build/distributions/mega-app.zip')
+        distFile.assertIsFile()
+
+        def distDir = distribution.testFile('build/unzip')
+        distFile.usingNativeTools().unzipTo(distDir)
+        checkApplicationImage(distDir.file('mega-app'))
+    }
+
+    private void checkApplicationImage(TestFile installDir) {
+        installDir.file('bin/mega-app').assertIsFile()
+        installDir.file('bin/mega-app.bat').assertIsFile()
+        installDir.file('lib/application.jar').assertIsFile()
+
+        def builder = new ScriptExecuter()
+        builder.workingDir installDir.file('bin')
+        builder.executable 'mega-app'
+        builder.standardOutput = new ByteArrayOutputStream()
+        builder.errorOutput = new ByteArrayOutputStream()
+
+        def result = builder.run()
+        result.assertNormalExitValue()
+    }
+
+    def installComplainsWhenInstallDirectoryExistsAndDoesNotLookLikeAPreviousInstall() {
+        distribution.testFile('build.gradle') << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+installDir = buildDir
+'''
+
+        when:
+        def result = executer.withTasks('install').runWithFailure()
+
+        then:
+        result.assertThatCause(Matchers.startsWith("The specified installation directory '${distribution.testFile('build')}' does not appear to contain an installation"))
     }
 }

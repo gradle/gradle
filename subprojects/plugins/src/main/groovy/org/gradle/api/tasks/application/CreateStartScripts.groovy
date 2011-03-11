@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GUtil
 
@@ -35,7 +35,6 @@ class CreateStartScripts extends ConventionTask {
     /**
      * The directory to write the scripts into.
      */
-    @OutputDirectory
     File outputDir
 
     /**
@@ -85,6 +84,16 @@ class CreateStartScripts extends ConventionTask {
         return "${GUtil.toConstant(getApplicationName())}_EXIT_CONSOLE"
     }
 
+    @OutputFile
+    public File getBatScript() {
+        return new File(getOutputDir(), "${getApplicationName()}.bat")
+    }
+
+    @OutputFile
+    public File getBashScript() {
+        return new File(getOutputDir(), getApplicationName())
+    }
+
     @TaskAction
     public void generate() {
         getOutputDir().mkdirs();
@@ -119,7 +128,7 @@ class CreateStartScripts extends ConventionTask {
         String windowsTemplate = CreateStartScripts.getResourceAsStream('windowsStartScript.txt').text
         String windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
 
-        def windowsScript = new File(getOutputDir(), "${project.name}.bat")
+        def windowsScript = getBatScript()
         windowsScript.withWriter {writer ->
             writer.write(transformIntoWindowsNewLines(windowsOutput))
         }
@@ -130,7 +139,7 @@ class CreateStartScripts extends ConventionTask {
         String unixTemplate = CreateStartScripts.getResourceAsStream('unixStartScript.txt').text
         def linuxOutput = engine.createTemplate(unixTemplate).make(binding)
 
-        def unixScript = new File(getOutputDir(), project.name);
+        def unixScript = getBashScript();
         unixScript.withWriter {writer ->
             writer.write(linuxOutput)
         }

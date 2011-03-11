@@ -21,13 +21,24 @@ import org.gradle.util.HelperUtil
 class CreateStartScriptsTest extends Specification {
     final CreateStartScripts task = HelperUtil.createTask(CreateStartScripts.class)
 
+    def scriptNameDefaultsToApplicationName() {
+        task.outputDir = new File('output')
+
+        when:
+        task.applicationName = "myApp"
+
+        then:
+        task.bashScript == new File(task.outputDir, 'myApp')
+        task.batScript == new File(task.outputDir, 'myApp.bat')
+    }
+    
     def optsEnvironmentVariableNameDefaultsToApplicationName() {
         when:
         task.applicationName = null
 
         then:
         task.optsEnvironmentVar == null
-        
+
         when:
         task.applicationName = "myApp"
 

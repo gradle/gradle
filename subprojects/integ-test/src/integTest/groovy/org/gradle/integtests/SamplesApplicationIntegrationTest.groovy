@@ -38,7 +38,7 @@ class SamplesApplicationIntegrationTest extends Specification {
         executer.inDirectory(sample.dir).withTasks('install').run()
 
         then:
-        def installDir = sample.dir.file('build/install')
+        def installDir = sample.dir.file('build/install/application')
         installDir.assertIsDir()
 
         checkApplicationImage(installDir)
@@ -49,22 +49,23 @@ class SamplesApplicationIntegrationTest extends Specification {
         executer.inDirectory(sample.dir).withTasks('distZip').run()
 
         then:
-        def distFile = sample.dir.file('build/distributions/application.zip')
+        def distFile = sample.dir.file('build/distributions/application-1.0.2.zip')
         distFile.assertIsFile()
 
         def installDir = sample.dir.file('unzip')
         distFile.usingNativeTools().unzipTo(installDir)
 
-        checkApplicationImage(installDir)
+        checkApplicationImage(installDir.file('application-1.0.2'))
     }
     
     private void checkApplicationImage(TestFile installDir) {
-        installDir.file('application/bin/application').assertIsFile()
-        installDir.file('application/bin/application.bat').assertIsFile()
-        installDir.file('application/lib/application.jar').assertIsFile()
+        installDir.file('bin/application').assertIsFile()
+        installDir.file('bin/application.bat').assertIsFile()
+        installDir.file('lib/application-1.0.2.jar').assertIsFile()
+        installDir.file('lib/commons-collections-3.2.1.jar').assertIsFile()
 
         def builder = new ScriptExecuter()
-        builder.workingDir installDir.file('application/bin')
+        builder.workingDir installDir.file('bin')
         builder.executable 'application'
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()
