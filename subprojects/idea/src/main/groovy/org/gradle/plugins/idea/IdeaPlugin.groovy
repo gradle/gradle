@@ -117,6 +117,7 @@ class IdeaPlugin extends IdePlugin {
             conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             def configurations = project.configurations
             scopes = [
+                    PROVIDED: [plus: [], minus: []],
                     COMPILE: [plus: [configurations.compile], minus: []],
                     RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
                     TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
