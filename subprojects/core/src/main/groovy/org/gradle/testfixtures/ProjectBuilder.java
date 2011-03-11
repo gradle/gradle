@@ -121,6 +121,7 @@ public class ProjectBuilder {
     }
 
     private static class NoOpLoggingManager implements LoggingManagerInternal {
+        private LogLevel level = LogLevel.LIFECYCLE;
         private LogLevel stdoutLevel = LogLevel.LIFECYCLE;
 
         public LoggingManagerInternal captureStandardOutput(LogLevel level) {
@@ -145,7 +146,12 @@ public class ProjectBuilder {
             return this;
         }
 
-        public LoggingManagerInternal setLevel(LogLevel logLevel) {
+        public LogLevel getLevel() {
+            return level;
+        }
+
+        public LoggingManagerInternal setLevel(LogLevel level) {
+            this.level = level;
             return this;
         }
 
