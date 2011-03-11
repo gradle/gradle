@@ -24,11 +24,10 @@ import org.gradle.plugins.idea.configurer.IdeaProjectsConfigurer
  */
 class IdeaConfigurer extends ConventionTask {
 
-    IdeaProjectsConfigurer configurer = new IdeaProjectsConfigurer()
-
     @TaskAction
     void configure() {
-        def ideaProjects = project.rootProject.allprojects.findAll { p -> p.plugins.hasPlugin(IdeaPlugin) }
+        def configurer = new IdeaProjectsConfigurer()
+        def ideaProjects = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }
         configurer.configure(ideaProjects)
     }
 }
