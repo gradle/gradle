@@ -105,7 +105,8 @@ class IdeaPluginTest extends Specification {
         ideaModuleTask.scopes == [
                 COMPILE: [plus: [configurations.compile], minus: []],
                 RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
-                TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
+                TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]],
+                PROVIDED: [plus: [], minus: []]
         ]
     }
 
