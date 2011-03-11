@@ -186,10 +186,15 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     static Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {
-        Node samples = new XmlParser().parse(new File(userguideInfoDir, 'samples.xml'))
+        def samplesXml = new File(userguideInfoDir, 'samples.xml')
+        assertSamplesGenerated(samplesXml.exists())
+        Node samples = new XmlParser().parse(samplesXml)
         ListMultimap<String, GradleRun> samplesByDir = ArrayListMultimap.create()
 
-        samples.children().each {Node sample ->
+        def children = samples.children()
+        assertSamplesGenerated(!children.isEmpty())
+
+        children.each {Node sample ->
             String id = sample.'@id'
             String dir = sample.'@dir'
             String args = sample.'@args'
@@ -237,6 +242,12 @@ class UserGuideSamplesRunner extends Runner {
         }
 
         return samplesById.values()
+    }
+
+    static void assertSamplesGenerated(boolean assertion) {
+        assert assertion : """Couldn't find any samples. Most likely, samples.xml was not generated.
+Please run 'gradle check devBuild' first (you can skip tests in this case)
+Probably some other task can help you as well but at the moment I don't know which one :) I tried gradle docs and it didn't help. If you find out please update this message. Thanks!"""
     }
 }
 
