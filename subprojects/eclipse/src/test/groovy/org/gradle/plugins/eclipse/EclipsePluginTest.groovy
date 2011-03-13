@@ -23,9 +23,9 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
 import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Facet
+import org.gradle.plugins.eclipse.model.WbResource
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-import org.gradle.plugins.eclipse.model.WbResource
 
 /**
  * @author Hans Dockter
@@ -33,6 +33,30 @@ import org.gradle.plugins.eclipse.model.WbResource
 class EclipsePluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final EclipsePlugin eclipsePlugin = new EclipsePlugin()
+
+    def "adds configurer task to root project only"() {
+        given:
+        def child = HelperUtil.createChildProject(project, "child")
+
+        when:
+        eclipsePlugin.apply(child)
+        eclipsePlugin.apply(project)
+
+        then:
+        project.eclipseConfigurer instanceof EclipseConfigurer
+        child.tasks.findByName('eclipseConfigurer') == null
+    }
+
+    def "makes tasks depend on configurer"() {
+        when:
+        project.apply(plugin: 'java-base')
+        eclipsePlugin.apply(project)
+
+        then:
+        [project.eclipseClasspath, project.eclipseJdt, project.eclipseProject].each {
+            assert it.dependsOn.contains(project.eclipseConfigurer)
+        }
+    }
 
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {
         when:
