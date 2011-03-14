@@ -37,7 +37,7 @@ sourceSets {
 }
 
 ideaModule {
-    //this is a hack to make sure gradle builds OK before upgrading to milestone-2 and to make the build passes
+    //this is a hack to make sure gradle builds OK before upgrading to milestone-2 and to make the build pass
     if (!scopes.PROVIDED) {
         scopes.COMPILE.plus += configurations.provided
     } else
