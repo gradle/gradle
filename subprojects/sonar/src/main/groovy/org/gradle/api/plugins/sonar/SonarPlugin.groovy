@@ -18,6 +18,7 @@ package org.gradle.api.plugins.sonar
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.SourceSet
 
 /**
  * A {@link Plugin} for integrating with <a href="http://www.sonarsource.org">Sonar</a>, a web-based platform
@@ -40,8 +41,8 @@ class SonarPlugin implements Plugin<Project> {
 
         sonarTask.conventionMapping.serverUrl = { "http://localhost:9000" }
         sonarTask.conventionMapping.projectDir = { project.projectDir }
-        sonarTask.conventionMapping.projectMainSourceDirs = { main.java.srcDirs }
-        sonarTask.conventionMapping.projectTestSourceDirs = { test.java.srcDirs }
+        sonarTask.conventionMapping.projectMainSourceDirs = { getSourceDirs(main) }
+        sonarTask.conventionMapping.projectTestSourceDirs = { getSourceDirs(test) }
         sonarTask.conventionMapping.projectClassesDirs = { [main.classesDir] as Set }
         sonarTask.conventionMapping.projectDependencies = { project.configurations.compile.resolve() }
         sonarTask.conventionMapping.projectKey = { "$project.group:$project.name" as String }
@@ -57,5 +58,9 @@ class SonarPlugin implements Plugin<Project> {
              "sonar.dynamicAnalysis": "reuseReports",
              "sonar.surefire.reportsPath": project.test.testResultsDir as String]
         }
+    }
+
+    private Set<File> getSourceDirs(SourceSet sourceSet) {
+        sourceSet.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet
     }
 }
