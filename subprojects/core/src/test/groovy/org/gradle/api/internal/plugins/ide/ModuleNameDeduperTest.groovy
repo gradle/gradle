@@ -23,7 +23,7 @@ import spock.lang.Specification
  */
 class ModuleNameDeduperTest extends Specification {
 
-    public static class DeduplicableStub extends DeduplicationTarget {
+    public static class TargetStub extends DeduplicationTarget {
         String moduleName
         Collection<String> candidateNames
         Closure moduleNameSetter = { moduleName = it }
@@ -31,13 +31,13 @@ class ModuleNameDeduperTest extends Specification {
 
     ModuleNameDeduper deduper = new ModuleNameDeduper()
 
-    DeduplicableStub ferrari = new DeduplicableStub(moduleName: "ferrari", candidateNames: [])
-    DeduplicableStub fiat = new DeduplicableStub(moduleName: "fiat", candidateNames: [])
+    TargetStub ferrari = new TargetStub(moduleName: "ferrari", candidateNames: [])
+    TargetStub fiat = new TargetStub(moduleName: "fiat", candidateNames: [])
 
-    DeduplicableStub fiatTwo = new DeduplicableStub(moduleName: "fiat", candidateNames: ["parentOne-fiat"])
-    DeduplicableStub fiatThree = new DeduplicableStub(moduleName: "fiat", candidateNames: ["parentTwo-fiat"])
+    TargetStub fiatTwo = new TargetStub(moduleName: "fiat", candidateNames: ["parentOne-fiat"])
+    TargetStub fiatThree = new TargetStub(moduleName: "fiat", candidateNames: ["parentTwo-fiat"])
 
-    DeduplicableStub fiatFour = new DeduplicableStub(moduleName: "fiat", candidateNames: ["parentTwo-fiat", "parentThree-parentTwo-fiat"])
+    TargetStub fiatFour = new TargetStub(moduleName: "fiat", candidateNames: ["parentTwo-fiat", "parentThree-parentTwo-fiat"])
 
     def "does nothing when no duplicates"() {
         given:
@@ -84,11 +84,11 @@ class ModuleNameDeduperTest extends Specification {
 
     def "should deal with exactly the same module names"() {
         given:
-        def module = new DeduplicableStub(moduleName: 'services', candidateNames: [])
+        def module = new TargetStub(moduleName: 'services', candidateNames: [])
         //module with the same name is theoretically possible if the user overrides the module name
-        def module2 = new DeduplicableStub(moduleName: 'services', candidateNames: ['root-services'])
-        def module3 = new DeduplicableStub(moduleName: 'services', candidateNames: ['root-services'])
-        def module4 = new DeduplicableStub(moduleName: 'services', candidateNames: ['root-services'])
+        def module2 = new TargetStub(moduleName: 'services', candidateNames: ['root-services'])
+        def module3 = new TargetStub(moduleName: 'services', candidateNames: ['root-services'])
+        def module4 = new TargetStub(moduleName: 'services', candidateNames: ['root-services'])
 
         when:
         deduper.dedupe([module, module2, module3, module4])
