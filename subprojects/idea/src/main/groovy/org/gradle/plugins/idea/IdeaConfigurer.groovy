@@ -16,18 +16,22 @@
 package org.gradle.plugins.idea
 
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.plugins.ide.DeduplicationTarget
+import org.gradle.api.internal.plugins.ide.ProjectDeduper
 import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.idea.configurer.IdeaProjectsConfigurer
 
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
 class IdeaConfigurer extends ConventionTask {
 
+    ProjectDeduper deduper = new ProjectDeduper()
+
     @TaskAction
     void configure() {
-        def configurer = new IdeaProjectsConfigurer()
         def ideaProjects = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }
-        configurer.configure(ideaProjects)
+        deduper.dedupe(ideaProjects, { project ->
+            new DeduplicationTarget(project: project, moduleName: project.ideaModule.moduleName, moduleNameSetter: { project.ideaModule.moduleName = it } )
+        })
     }
 }

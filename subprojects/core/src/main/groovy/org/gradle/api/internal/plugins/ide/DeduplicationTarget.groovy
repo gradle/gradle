@@ -21,7 +21,7 @@ import org.gradle.api.Project
 /**
  * @author Szczepan Faber, @date: 14.03.11
  */
- class Deduplicable {
+ class DeduplicationTarget {
 
      def String moduleName
      def Project project

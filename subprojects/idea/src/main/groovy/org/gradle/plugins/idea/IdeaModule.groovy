@@ -339,17 +339,4 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     void setModuleName(String moduleName) {
         outputFile = new File(outputFile.parentFile, moduleName + ".iml")
     }
-
-    Collection<String> getCandidateNames() {
-        def out = []
-        def p = project.parent
-        def currentName = getModuleName()
-        out << currentName
-        while (p) {
-            currentName = p.name + "-" + currentName
-            out.add(currentName)
-            p = p.parent
-        }
-        return out
-    }
 }

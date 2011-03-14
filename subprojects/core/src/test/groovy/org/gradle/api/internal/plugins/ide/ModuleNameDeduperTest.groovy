@@ -23,7 +23,7 @@ import spock.lang.Specification
  */
 class ModuleNameDeduperTest extends Specification {
 
-    public static class DeduplicableStub extends Deduplicable {
+    public static class DeduplicableStub extends DeduplicationTarget {
         String moduleName
         Collection<String> candidateNames
         Closure moduleNameSetter = { moduleName = it }

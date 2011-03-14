@@ -16,8 +16,8 @@
 package org.gradle.plugins.eclipse
 
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.plugins.ide.Deduplicable
-import org.gradle.api.internal.plugins.ide.ModuleNameDeduper
+import org.gradle.api.internal.plugins.ide.DeduplicationTarget
+import org.gradle.api.internal.plugins.ide.ProjectDeduper
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -25,15 +25,13 @@ import org.gradle.api.tasks.TaskAction
  */
 class EclipseConfigurer extends ConventionTask {
 
-    ModuleNameDeduper deduper = new ModuleNameDeduper()
+    ProjectDeduper deduper = new ProjectDeduper()
 
     @TaskAction
     void configure() {
         def eclipseProjects = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(EclipsePlugin) }
-        def sorted = eclipseProjects.sort { it.path.count(":") }
-        def deduplicables = sorted.collect { project ->
-            new Deduplicable(project: project, moduleName: project.eclipseProject.projectName, moduleNameSetter: { project.eclipseProject.projectName = it } )
-        }
-        deduper.dedupe(deduplicables)
+        deduper.dedupe(eclipseProjects, { project ->
+            new DeduplicationTarget(project: project, moduleName: project.eclipseProject.projectName, moduleNameSetter: { project.eclipseProject.projectName = it })
+        })
     }
 }

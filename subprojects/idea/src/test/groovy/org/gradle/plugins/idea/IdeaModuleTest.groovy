@@ -45,17 +45,6 @@ class IdeaModuleTest extends Specification {
         childProject.ideaModule.outputFile.parentFile == existingOutputFolder
     }
 
-    def "knows candidate names"() {
-        when:
-        applyPluginToProjects()
-        assert project.name == "test"
-
-        then:
-        project.ideaModule.candidateNames == ['test']
-        childProject.ideaModule.candidateNames == ['child', "test-child"]
-        grandChildProject.ideaModule.candidateNames == ['grandChild', "child-grandChild", "test-child-grandChild"]
-    }
-
     private applyPluginToProjects() {
         ideaPlugin.apply(project)
         ideaPlugin.apply(childProject)

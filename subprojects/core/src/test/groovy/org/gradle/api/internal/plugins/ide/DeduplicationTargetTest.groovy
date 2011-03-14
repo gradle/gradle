@@ -22,7 +22,7 @@ import spock.lang.Specification
 /**
  * @author Szczepan Faber, @date: 14.03.11
  */
-class DeduplicableTest extends Specification {
+class DeduplicationTargetTest extends Specification {
 
     def "knows candidate names"() {
         when:
@@ -32,9 +32,9 @@ class DeduplicableTest extends Specification {
         def grandChildProject = HelperUtil.createChildProject(childProject, "grandChild", new File("."))
 
         then:
-        new Deduplicable(project: project, moduleName: 'test' ).candidateNames == ['test']
-        new Deduplicable(project: childProject, moduleName: 'child' ).candidateNames == ['child', 'test-child']
-        new Deduplicable(project: grandChildProject, moduleName: 'grandChild' ).candidateNames == ['grandChild', 'child-grandChild', 'test-child-grandChild']
+        new DeduplicationTarget(project: project, moduleName: 'test' ).candidateNames == ['test']
+        new DeduplicationTarget(project: childProject, moduleName: 'child' ).candidateNames == ['child', 'test-child']
+        new DeduplicationTarget(project: grandChildProject, moduleName: 'grandChild' ).candidateNames == ['grandChild', 'child-grandChild', 'test-child-grandChild']
     }
 
     def "uses passed module name instead of project name"() {
@@ -44,7 +44,7 @@ class DeduplicableTest extends Specification {
         def childProject = HelperUtil.createChildProject(project, "child", new File("."))
 
         then:
-        new Deduplicable(project: project, moduleName: 'ROOT' ).candidateNames == ['ROOT']
-        new Deduplicable(project: childProject, moduleName: 'CHILD' ).candidateNames == ['CHILD', 'test-CHILD']
+        new DeduplicationTarget(project: project, moduleName: 'ROOT' ).candidateNames == ['ROOT']
+        new DeduplicationTarget(project: childProject, moduleName: 'CHILD' ).candidateNames == ['CHILD', 'test-CHILD']
     }
 }
