@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.eclipse
 
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.eclipse.model.BuildCommand
@@ -125,19 +124,5 @@ class EclipseProject extends XmlGeneratorTask<Project> implements DependsOnConfi
             throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
         }
         links << new Link(args.name, args.type, args.location, args.locationUri)
-    }
-
-    Collection<String> getCandidateNames() {
-        //TODO SF duplicated with idea plugin, refactor!
-        def out = []
-        def p = project.parent
-        def currentName = projectName
-        out << currentName
-        while (p) {
-            currentName = p.name + "-" + currentName
-            out.add(currentName)
-            p = p.parent
-        }
-        return out
     }
 }

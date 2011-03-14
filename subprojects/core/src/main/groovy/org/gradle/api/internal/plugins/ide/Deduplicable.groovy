@@ -13,23 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.eclipse.configurer
 
-import org.gradle.plugins.eclipse.EclipseProject
+package org.gradle.api.internal.plugins.ide
+
+import org.gradle.api.Project
 
 /**
- * @author Szczepan Faber, @date 11.03.11
+ * @author Szczepan Faber, @date: 14.03.11
  */
-public class ModuleNameDeduper {
+ class Deduplicable {
 
-    def dedupeModuleNames(Collection<EclipseProject> eclipseProjectTasks) {
-        def allNames = []
-        eclipseProjectTasks.each { task ->
-            def name = task.candidateNames.find { !allNames.contains(it) }
-            if (name) {
-                allNames << name
-                task.projectName = name
-            }
+     def String moduleName
+     def Project project
+     def Closure moduleNameSetter
+
+     Collection<String> getCandidateNames() {
+        def out = []
+        def p = project.parent
+        def currentName = moduleName
+        out << currentName
+        while (p) {
+            currentName = p.name + "-" + currentName
+            out.add(currentName)
+            p = p.parent
         }
-    }
+        return out
+     }
 }
