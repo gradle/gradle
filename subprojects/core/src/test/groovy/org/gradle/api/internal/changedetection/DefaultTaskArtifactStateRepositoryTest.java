@@ -379,7 +379,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
         expectEmptyCacheLocated();
 
         TaskArtifactState state = repository.getStateFor(task());
-        assertThat(state.getOutputFiles().getFiles(), isEmpty());
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), isEmpty());
     }
     
     @Test
@@ -387,7 +387,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
         execute();
 
         TaskArtifactState state = repository.getStateFor(task());
-        assertThat(state.getOutputFiles().getFiles(), equalTo(toLinkedSet((File) outputFile, outputDirFile, outputDirFile2)));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), equalTo(toLinkedSet((File) outputFile, outputDirFile, outputDirFile2)));
     }
 
     @Test
@@ -439,7 +439,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(task());
         assertTrue(state.isUpToDate());
-        assertThat(state.getOutputFiles().getFiles(), (Matcher) not(hasItem(otherFile)));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), (Matcher) not(hasItem(otherFile)));
     }
 
     @Test
@@ -461,7 +461,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());
-        assertThat(state.getOutputFiles().getFiles(), (Matcher) hasItem(otherFile));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), (Matcher) hasItem(otherFile));
     }
 
     @Test
@@ -478,7 +478,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         state = repository.getStateFor(task());
         assertTrue(state.isUpToDate());
-        assertThat(state.getOutputFiles().getFiles(), (Matcher) not(hasItem(outputDirFile)));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), (Matcher) not(hasItem(outputDirFile)));
         state.update();
     }
 
@@ -512,7 +512,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(task);
         assertFalse(state.isUpToDate());
-        assertThat(state.getOutputFiles(), isEmpty());
+        assertThat(state.getExecutionHistory().getOutputFiles(), isEmpty());
     }
 
     @Test
@@ -544,11 +544,11 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(instance1);
         assertTrue(state.isUpToDate());
-        assertThat(state.getOutputFiles().getFiles(), equalTo(toLinkedSet((File) outputDirFile)));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), equalTo(toLinkedSet((File) outputDirFile)));
 
         state = repository.getStateFor(instance2);
         assertTrue(state.isUpToDate());
-        assertThat(state.getOutputFiles().getFiles(), equalTo(toLinkedSet((File) outputDirFile2)));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), equalTo(toLinkedSet((File) outputDirFile2)));
     }
 
     private void execute() {
@@ -577,7 +577,11 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
             one(builder).open();
             will(returnValue(persistentCache));
-            
+
+
+
+
+
             one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
             will(returnValue(new TestIndexedCache()));
         }});

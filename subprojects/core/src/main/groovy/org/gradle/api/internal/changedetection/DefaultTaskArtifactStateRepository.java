@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
@@ -277,7 +278,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
     }
 
-    private class TaskArtifactStateImpl implements TaskArtifactState {
+    private class TaskArtifactStateImpl implements TaskArtifactState, TaskExecutionHistory {
         private final TaskInternal task;
         private final TaskHistory history;
         private final TaskExecution execution;
@@ -311,6 +312,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         public FileCollection getOutputFiles() {
             return execution.getPreviousOutputFiles();
+        }
+
+        public TaskExecutionHistory getExecutionHistory() {
+            return this;
         }
 
         private TaskHistory getHistory() {

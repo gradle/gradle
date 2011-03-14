@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -40,6 +41,7 @@ public class ExecutionShortCircuitTaskExecuterTest {
     private final TaskStateInternal taskState = context.mock(TaskStateInternal.class);
     private final TaskArtifactStateRepository repository = context.mock(TaskArtifactStateRepository.class);
     private final TaskArtifactState taskArtifactState = context.mock(TaskArtifactState.class);
+    private final TaskExecutionHistory executionHistory = context.mock(TaskExecutionHistory.class);
     private final ExecutionShortCircuitTaskExecuter executer = new ExecutionShortCircuitTaskExecuter(delegate, repository);
 
     @Before
@@ -78,7 +80,10 @@ public class ExecutionShortCircuitTaskExecuterTest {
             will(returnValue(false));
             inSequence(sequence);
 
-            one(outputs).setHistory(taskArtifactState);
+            one(taskArtifactState).getExecutionHistory();
+            will(returnValue(executionHistory));
+
+            one(outputs).setHistory(executionHistory);
             inSequence(sequence);
 
             one(delegate).execute(task, taskState);
@@ -106,7 +111,10 @@ public class ExecutionShortCircuitTaskExecuterTest {
             one(taskArtifactState).isUpToDate();
             will(returnValue(false));
 
-            one(outputs).setHistory(taskArtifactState);
+            one(taskArtifactState).getExecutionHistory();
+            will(returnValue(executionHistory));
+
+            one(outputs).setHistory(executionHistory);
 
             one(delegate).execute(task, taskState);
 
