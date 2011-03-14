@@ -21,6 +21,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.SystemProperties
 import org.gradle.api.logging.LogLevel
+import org.gradle.logging.LoggingManagerInternal
 
 /**
  * Analyzes a project and stores the results in Sonar's database.
@@ -229,22 +230,17 @@ class Sonar extends ConventionTask {
         url
     }
 
-    // this is an unsuccessful attempt to get rid of the Hibernate SQL logging
     private void withErrorLogLevel(Closure block) {
-        def level = project.logging.level
-        def outLevel = project.logging.standardOutputCaptureLevel
-        def errLevel = project.logging.standardErrorCaptureLevel
+        def logging = services.getFactory(LoggingManagerInternal).create()
+        logging.level = LogLevel.ERROR
+        logging.captureStandardOutput(LogLevel.ERROR)
+        logging.captureStandardError(LogLevel.ERROR)
 
-        project.logging.level = LogLevel.ERROR
-        project.logging.captureStandardOutput(LogLevel.ERROR)
-        project.logging.captureStandardError(LogLevel.ERROR)
-
+        logging.start()
         try {
             block()
         } finally {
-            project.logging.level = level
-            project.logging.captureStandardOutput(outLevel)
-            project.logging.captureStandardError(errLevel)
+            logging.stop()
         }
     }
 }
