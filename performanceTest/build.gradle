@@ -25,43 +25,80 @@ dependencies {
 apply plugin: 'base'
 
 task small(type: GeneratorTask, description: 'Generates a small project') {
-    destDir = new File(buildDir, 'small')
 }
 
 task largeSrc(type: GeneratorTask, description: 'Generates a single project with lots of source files') {
-    destDir = new File(buildDir, 'largeSrc')
-    sourceFiles = 20000
+    sourceFiles = 50000
+    linesOfCodePerSourceFile = 20
 }
 
 task multi(type: GeneratorTask, description: 'Generates a multi-project build') {
-    destDir = new File(buildDir, 'multi')
     projects = 25
     sourceFiles = 100
 }
 
+task mixedSize(type: GeneratorTask) {
+    projects = 400
+    sourceFiles = 100
+    projects[1].sourceFiles = 20000
+}
+
 task multiGroovy(type: GeneratorTask, description: 'Generates a multi-project groovy build') {
-    destDir = new File(buildDir, 'multiGroovy')
     projects = 25
     groovyProject = true
 }
 
 task all(dependsOn: {tasks.withType(GeneratorTask).all})
 
+class TestProject {
+    final String name
+    final Object defaults
+    Integer sourceFiles
+    Integer linesOfCodePerSourceFile
+
+    TestProject() {
+    }
+
+    TestProject(String name, Object defaults) {
+        this.name = name
+        this.defaults = defaults
+    }
+
+    int getSourceFiles() {
+        return sourceFiles ?: defaults.sourceFiles
+    }
+
+    int getLinesOfCodePerSourceFile() {
+        return linesOfCodePerSourceFile ?: defaults.linesOfCodePerSourceFile
+    }
+}
+
 class GeneratorTask extends DefaultTask {
     @OutputDirectory
     File destDir
-    @Input
-    int sourceFiles = 1
-    @Input
-    int projects = 1
-    @Input
     boolean groovyProject
+    int sourceFiles = 1
+    int linesOfCodePerSourceFile = 5
 
+    final List<TestProject> projects = []
     final SimpleTemplateEngine engine = new SimpleTemplateEngine()
     final Map<File, Template> templates = [:]
 
     def GeneratorTask() {
         outputs.upToDateWhen { false }
+        setProjects(1)
+        destDir = project.file("${project.buildDir}/${name}")
+    }
+
+    void setProjects(int projectCount) {
+        if (projects.size() > projectCount) {
+            projects.subList(projectCount, projects.size()).clear()
+        } else {
+            while (projects.size() < projectCount) {
+                def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this)
+                projects << project
+            }
+        }
     }
 
     @TaskAction
@@ -70,22 +107,25 @@ class GeneratorTask extends DefaultTask {
         destDir.mkdirs()
 
         generateRootProject()
-        subprojectNames.each {
+        subprojects.each {
             generateSubProject(it)
         }
     }
 
     List getSubprojectNames() {
-        if (projects == 1) {
-            return []
-        }
-        List result = []
-        projects.times {result << "project${it + 1}" }
-        result
+        return getSubprojects().collect { it.name }
+    }
+
+    TestProject getRootProject() {
+        return projects[0]
+    }
+
+    List<TestProject> getSubprojects() {
+        return projects.subList(1, projects.size())
     }
 
     def generateRootProject() {
-        generateProject projectName: 'root', subprojects: subprojectNames, projectDir: destDir,
+        generateProject rootProject, subprojects: subprojectNames, projectDir: destDir,
                 files: subprojectNames.empty ? [] : ['settings.gradle'],
                 includeSource: subprojectNames.empty
 
@@ -96,14 +136,14 @@ class GeneratorTask extends DefaultTask {
         }
     }
 
-    def generateSubProject(String name) {
-        generateProject projectName: name, subprojects: [], projectDir: new File(destDir, name), files: [],
+    def generateSubProject(TestProject testProject) {
+        generateProject testProject, subprojects: [], projectDir: new File(destDir, testProject.name), files: [],
                 includeSource: true
     }
 
-    def generateProject(Map args) {
+    def generateProject(Map args, TestProject testProject) {
         File projectDir = args.projectDir
-        println "Generating $args.projectName"
+        println "Generating $testProject.name"
 
         List files = args.files + [
                 'build.gradle',
@@ -120,21 +160,21 @@ class GeneratorTask extends DefaultTask {
             }
         }
 
-        args += [groovyProject: groovyProject]
+        args += [projectName: testProject.name, groovyProject: groovyProject, propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7))]
 
         files.each {String name ->
             generate(name, name, args)
         }
 
         if (args.includeSource) {
-            sourceFiles.times {
+            testProject.sourceFiles.times {
                 String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
                 Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
                 generate("src/main/java/${packageName.replace('.', '/')}/${classArgs.productionClassName}.java", 'Production.java', classArgs)
                 generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", 'Test.java', classArgs)
             }
             if (groovyProject) {
-                sourceFiles.times {
+                testProject.sourceFiles.times {
                     String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
                     Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}", testClassName: "TestGroovy${it + 1}"]
                     generate("src/main/groovy/${packageName.replace('.', '/')}/${classArgs.productionClassName}.groovy", 'Production.groovy', classArgs)

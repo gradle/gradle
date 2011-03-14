@@ -25,7 +25,7 @@ dependencies {
 
 }
 test {
-    jvmArgs '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
 }
 
 <% if (groovyProject) { %>
