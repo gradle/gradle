@@ -19,7 +19,6 @@ import org.sonar.batch.bootstrapper.Bootstrapper
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ClasspathUtil
-import org.gradle.util.SystemProperties
 import org.gradle.api.logging.LogLevel
 import org.gradle.logging.LoggingManagerInternal
 
@@ -35,7 +34,7 @@ class Sonar extends ConventionTask {
     /**
      * The directory to be used for caching files downloaded from the Sonar server.
      */
-    File bootstrapDir = new File(SystemProperties.javaIoTmpDir, "sonar-bootstrap")
+    File bootstrapDir
 
     /**
      * The base directory for the project to be analyzed.
@@ -95,7 +94,7 @@ class Sonar extends ConventionTask {
     @TaskAction
     void execute() {
         withErrorLogLevel {
-            bootstrapDir.mkdirs()
+            getBootstrapDir().mkdirs()
             def bootstrapper = new Bootstrapper("Gradle", getServerUrl(), getBootstrapDir())
 
             def classLoader = bootstrapper.createClassLoader([findGradleSonarJar()] as URL[],

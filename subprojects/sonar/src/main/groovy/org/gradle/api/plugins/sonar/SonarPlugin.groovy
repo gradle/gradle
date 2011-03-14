@@ -19,6 +19,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.cache.CacheRepository
 
 /**
  * A {@link Plugin} for integrating with <a href="http://www.sonarsource.org">Sonar</a>, a web-based platform
@@ -40,6 +42,10 @@ class SonarPlugin implements Plugin<Project> {
         def test = project.sourceSets.test
 
         sonarTask.conventionMapping.serverUrl = { "http://localhost:9000" }
+        sonarTask.conventionMapping.bootstrapDir = {
+            def cacheRepository = (project as ProjectInternal).services.get(CacheRepository)
+            cacheRepository.cache("sonar-bootstrap").forObject(project.gradle).open().baseDir
+        }
         sonarTask.conventionMapping.projectDir = { project.projectDir }
         sonarTask.conventionMapping.projectMainSourceDirs = { getSourceDirs(main) }
         sonarTask.conventionMapping.projectTestSourceDirs = { getSourceDirs(test) }
