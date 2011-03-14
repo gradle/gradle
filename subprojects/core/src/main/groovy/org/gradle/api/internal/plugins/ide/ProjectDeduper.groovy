@@ -29,7 +29,7 @@ class ProjectDeduper {
         //Deduper acts on first-come first-served basis.
         //Therefore it's better if the inputs are sorted that first items are least wanted to be prefixed
         //Hence I'm sorting by nesting level:
-        def sorted = projects.sort { it.path.count(":") }
+        def sorted = projects.sort { (it.parent == null)? 0 : it.path.count(":") }
         def deduplicationTarget = sorted.collect({ deduplicationTargetCreator.call(it) })
         moduleNameDeduper.dedupe(deduplicationTarget)
     }
