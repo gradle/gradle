@@ -38,7 +38,7 @@ import org.gradle.api.artifacts.*
  *
  * project(':model') {
  *   ideaModule {
- *     moduleName = 'database-model'
+ *     //...
  *   }
  * }
  * </pre>
@@ -120,6 +120,20 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
      * The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
      * The values of those keys are sets of  {@link org.gradle.api.artifacts.Configuration}  objects. The files of the
      * plus configurations are added minus the files from the minus configurations.
+     * <p>
+     * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
+     * <pre>
+     * configurations {
+     *   provided
+     *   provided.extendsFrom(compile)
+     * }
+     *
+     * dependencies { ... }
+     *
+     * ideaModule {
+     *   scopes.PROVIDED.plus += configurations.provided
+     * }
+     * </pre>
      */
     Map<String, Map<String, Configuration>> scopes = [:]
 

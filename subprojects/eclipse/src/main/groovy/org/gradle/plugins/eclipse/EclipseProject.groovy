@@ -23,14 +23,42 @@ import org.gradle.plugins.eclipse.model.Project
 
 /**
  * Generates an Eclipse <code>.project</code> file.
+ * <p>
+ * Example how to configure eclipse project generation:
+ * <pre>
+ * allprojects {
+ *   apply plugin: 'java'
+ *   apply plugin: 'eclipse'
+ * }
  *
+ * project(':model') {
+ *   eclipseProject {
+ *     //...
+ *   }
+ * }
+ * </pre>
  * @author Hans Dockter
  */
 class EclipseProject extends XmlGeneratorTask<Project> implements DependsOnConfigurer {
     private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
 
     /**
-     * The name used for the name of the eclipse project
+     * Configures eclipse project name. It is <b>optional</b> because the task should configure it correctly for you.
+     * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b>
+     * to make sure the moduleName is unique in the scope of a multi-module build.
+     * The 'uniqeness' of a module name is required for correct import
+     * into Eclipse and the task will make sure the name is unique.
+     * <p>
+     * The logic that makes sure project names are uniqe is available <b>since</b> 1.0-milestone-2
+     * <p>
+     * In case you need to override the default projectName this is the way to go:
+     * <pre>
+     * project(':someProject') {
+     *    eclipseProject {
+     *      projectName = 'some-important-project'
+     *    }
+     * }
+     * </pre>
      */
     String projectName
 
