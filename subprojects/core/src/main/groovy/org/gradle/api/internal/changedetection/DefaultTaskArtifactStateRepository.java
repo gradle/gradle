@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,28 +26,28 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.util.ChangeListener;
-import org.gradle.util.DiffUtil;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
-import static java.util.Collections.*;
+import static java.util.Collections.singletonList;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 10;
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
     private final CacheRepository repository;
-    private final FileSnapshotter inputFilesSnapshotter;
-    private final FileSnapshotter outputFilesSnapshotter;
     private PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
     private DefaultSerializer<TaskHistory> serializer;
+    private final UpToDateRule upToDateRule;
 
     public DefaultTaskArtifactStateRepository(CacheRepository repository, FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
         this.repository = repository;
-        this.inputFilesSnapshotter = inputFilesSnapshotter;
-        this.outputFilesSnapshotter = outputFilesSnapshotter;
+        upToDateRule = new CompositeUpToDateRule(
+                new TaskTypeChangedUpToDateRule(),
+                new InputPropertiesChangedUpToDateRule(),
+                new OutputFilesChangedUpToDateRule(outputFilesSnapshotter),
+                new InputFilesChangedUpToDateRule(inputFilesSnapshotter));
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
@@ -71,7 +71,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         return outputFiles;
     }
 
-    private interface TaskExecution {
+    private interface TaskExecutionState {
         List<String> isUpToDate();
 
         boolean snapshot();
@@ -81,9 +81,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
     private static class TaskHistory implements Serializable {
         private static final int MAX_HISTORY_ENTRIES = 3;
-        private final List<TaskConfiguration> configurations = new ArrayList<TaskConfiguration>();
+        private final List<TaskExecution> configurations = new ArrayList<TaskExecution>();
 
-        public void addConfiguration(TaskConfiguration configuration) {
+        public void addConfiguration(TaskExecution configuration) {
             configurations.add(0, configuration);
             // Only keep a few of the most recent configurations
             while (configurations.size() > MAX_HISTORY_ENTRIES) {
@@ -92,7 +92,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
     }
 
-    private static class NoDeclaredArtifactsExecution implements TaskExecution {
+    private static class NoDeclaredArtifactsExecution implements TaskExecutionState {
         private final TaskInternal task;
 
         private NoDeclaredArtifactsExecution(TaskInternal task) {
@@ -116,23 +116,20 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
     }
 
-    private static class HistoricExecution implements TaskExecution {
+    private static class HistoricExecution implements TaskExecutionState {
         private final TaskHistory history;
         private final TaskInternal task;
-        private final TaskConfiguration lastExecution;
-        private final FileSnapshotter inputFilesSnapshotter;
-        private final FileSnapshotter outputFilesSnapshotter;
+        private final TaskExecution lastExecution;
         private boolean upToDate;
-        private TaskConfiguration thisExecution;
-        private FileCollectionSnapshot outputFilesBefore;
+        private final UpToDateRule rule;
+        private TaskExecution thisExecution;
+        private UpToDateRule.TaskUpToDateState upToDateState;
 
-        public HistoricExecution(TaskHistory history, TaskInternal task, TaskConfiguration lastExecution,
-                                 FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
+        public HistoricExecution(TaskHistory history, TaskInternal task, TaskExecution lastExecution, UpToDateRule rule) {
             this.history = history;
             this.task = task;
             this.lastExecution = lastExecution;
-            this.inputFilesSnapshotter = inputFilesSnapshotter;
-            this.outputFilesSnapshotter = outputFilesSnapshotter;
+            this.rule = rule;
         }
 
         private void calcCurrentState() {
@@ -141,13 +138,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
 
             // Calculate current state - note this is potentially expensive
-            FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
-            thisExecution = new TaskConfiguration(task, inputFilesSnapshot);
-            outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
+            thisExecution = new TaskExecution();
+            thisExecution.setOutputFiles(outputFiles(task));
+            upToDateState = rule.create(task, lastExecution, thisExecution);
+            upToDateState.snapshotBeforeTask();
         }
 
         public FileCollection getPreviousOutputFiles() {
-            return lastExecution != null ? lastExecution.outputFilesSnapshot.getFiles() : new SimpleFileCollection();
+            return lastExecution != null ? lastExecution.getOutputFilesSnapshot().getFiles() : new SimpleFileCollection();
         }
 
         public List<String> isUpToDate() {
@@ -158,77 +156,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return singletonList(String.format("No history is available for %s.", task));
             }
 
-            if (!task.getClass().getName().equals(lastExecution.taskClass)) {
-                return singletonList(String.format("%s has changed type from '%s' to '%s'.", StringUtils.capitalize(
-                        task.toString()), lastExecution.taskClass, task.getClass().getName()));
-            }
-
             List<String> messages = new ArrayList<String>();
-            checkInputProperties(messages);
-            if (!messages.isEmpty()) {
-                return messages;
+            upToDateState.checkUpToDate(messages);
+
+            if (messages.isEmpty()) {
+                upToDate = true;
             }
-
-            checkInputs(messages);
-            if (!messages.isEmpty()) {
-                return messages;
-            }
-
-            checkOutputs(messages);
-            if (!messages.isEmpty()) {
-                return messages;
-            }
-
-            upToDate = true;
-            return emptyList();
-        }
-
-        private void checkOutputs(final Collection<String> messages) {
-            outputFilesBefore.changesSince(lastExecution.outputFilesSnapshot, new ChangeListener<File>() {
-                public void added(File element) {
-                    messages.add(String.format("Output file '%s' has been added for %s.", element, task));
-                }
-
-                public void removed(File element) {
-                    messages.add(String.format("Output file %s has been removed for %s.", element.getAbsolutePath(), task));
-                }
-
-                public void changed(File element) {
-                    messages.add(String.format("Output file %s for %s has changed.", element.getAbsolutePath(), task));
-                }
-            });
-        }
-
-        private void checkInputs(final Collection<String> messages) {
-            thisExecution.inputFilesSnapshot.changesSince(lastExecution.inputFilesSnapshot, new ChangeListener<File>() {
-                public void added(File file) {
-                    messages.add(String.format("Input file %s for %s added.", file, task));
-                }
-
-                public void removed(File file) {
-                    messages.add(String.format("Input file %s for %s removed.", file, task));
-                }
-
-                public void changed(File file) {
-                    messages.add(String.format("Input file %s for %s has changed.", file, task));
-                }
-            });
-        }
-
-        private void checkInputProperties(final Collection<String> messages) {
-            DiffUtil.diff(thisExecution.inputProperties, lastExecution.inputProperties, new ChangeListener<Map.Entry<String, Object>>() {
-                public void added(Map.Entry<String, Object> element) {
-                    messages.add(String.format("Input property '%s' has been added for %s", element.getKey(), task));
-                }
-
-                public void removed(Map.Entry<String, Object> element) {
-                    messages.add(String.format("Input property '%s' has been removed for %s", element.getKey(), task));
-                }
-
-                public void changed(Map.Entry<String, Object> element) {
-                    messages.add(String.format("Value of input property '%s' has changed for %s", element.getKey(), task));
-                }
-            });
+            return messages;
         }
 
         public boolean snapshot() {
@@ -238,50 +172,16 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return false;
             }
 
-            FileCollectionSnapshot lastExecutionOutputFiles = lastExecution == null ? outputFilesSnapshotter.snapshot()
-                    : lastExecution.outputFilesSnapshot;
-            FileCollectionSnapshot newOutputFiles = outputFilesBefore.changesSince(lastExecutionOutputFiles).applyTo(
-                    lastExecutionOutputFiles, new ChangeListener<FileCollectionSnapshot.Merge>() {
-                        public void added(FileCollectionSnapshot.Merge element) {
-                            // Ignore added files
-                            element.ignore();
-                        }
-
-                        public void removed(FileCollectionSnapshot.Merge element) {
-                            // Discard any files removed since the task was last executed
-                        }
-
-                        public void changed(FileCollectionSnapshot.Merge element) {
-                            // Update any files which were change since the task was last executed
-                        }
-                    });
-            FileCollectionSnapshot outputFilesAfter = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
-            thisExecution.outputFilesSnapshot = outputFilesAfter.changesSince(outputFilesBefore).applyTo(
-                    newOutputFiles);
+            upToDateState.snapshotAfterTask();
             history.addConfiguration(thisExecution);
             return true;
-        }
-    }
-
-    private static class TaskConfiguration implements Serializable {
-        private final String taskClass;
-        private Set<String> outputFiles;
-        private Map<String, Object> inputProperties;
-        private FileCollectionSnapshot inputFilesSnapshot;
-        private FileCollectionSnapshot outputFilesSnapshot;
-
-        private TaskConfiguration(TaskInternal task, FileCollectionSnapshot inputFilesSnapshot) {
-            this.taskClass = task.getClass().getName();
-            this.outputFiles = outputFiles(task);
-            this.inputProperties = new HashMap<String, Object>(task.getInputs().getProperties());
-            this.inputFilesSnapshot = inputFilesSnapshot;
         }
     }
 
     private class TaskArtifactStateImpl implements TaskArtifactState, TaskExecutionHistory {
         private final TaskInternal task;
         private final TaskHistory history;
-        private final TaskExecution execution;
+        private final TaskExecutionState execution;
 
         public TaskArtifactStateImpl(TaskInternal task) {
             this.task = task;
@@ -329,23 +229,23 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
         }
 
-        public TaskExecution getExecution() {
+        public TaskExecutionState getExecution() {
             if (!task.getOutputs().getHasOutput()) {
                 return new NoDeclaredArtifactsExecution(task);
             }
             Set<String> outputFiles = outputFiles(task);
-            TaskConfiguration bestMatch = null;
+            TaskExecution bestMatch = null;
             int bestMatchOverlap = 0;
-            for (TaskConfiguration configuration : history.configurations) {
+            for (TaskExecution configuration : history.configurations) {
                 if (outputFiles.size() == 0) {
-                    if (configuration.outputFiles.size() == 0) {
+                    if (configuration.getOutputFiles().size() == 0) {
                         bestMatch = configuration;
                         break;
                     }
                 }
 
                 Set<String> intersection = new HashSet<String>(outputFiles);
-                intersection.retainAll(configuration.outputFiles);
+                intersection.retainAll(configuration.getOutputFiles());
                 if (intersection.size() > bestMatchOverlap) {
                     bestMatch = configuration;
                     bestMatchOverlap = intersection.size();
@@ -355,9 +255,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 }
             }
             if (bestMatch == null) {
-                return new HistoricExecution(history, task, null, inputFilesSnapshotter, outputFilesSnapshotter);
+                return new HistoricExecution(history, task, null, upToDateRule);
             }
-            return new HistoricExecution(history, task, bestMatch, inputFilesSnapshotter, outputFilesSnapshotter);
+            return new HistoricExecution(history, task, bestMatch, upToDateRule);
         }
 
         public void update() {
