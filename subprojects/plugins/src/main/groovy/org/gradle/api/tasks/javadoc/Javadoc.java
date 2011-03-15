@@ -53,6 +53,7 @@ import java.util.List;
  *   options.doclet = "com.lunatech.doclets.jax.jaxrs.JAXRSDoclet"
  *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")
  * }
+ * </pre>
  *
  * @author Hans Dockter
  */
