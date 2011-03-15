@@ -22,11 +22,11 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import java.io.File;
 
 public class IncrementalJavaCompiler extends IncrementalJavaSourceCompiler<JavaCompiler> implements JavaCompiler {
-    private final Factory<? extends AntBuilder> antBuilderFactory;
+    private final Factory<AntBuilder> antBuilderFactory;
     private final TaskOutputsInternal taskOutputs;
     private File dependencyCacheDir;
 
-    public IncrementalJavaCompiler(JavaCompiler compiler, Factory<? extends AntBuilder> antBuilderFactory,
+    public IncrementalJavaCompiler(JavaCompiler compiler, Factory<AntBuilder> antBuilderFactory,
                                     TaskOutputsInternal taskOutputs) {
         super(compiler);
         this.antBuilderFactory = antBuilderFactory;

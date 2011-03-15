@@ -37,10 +37,10 @@ import org.gradle.util.TrueTimeProvider;
  * @author Tom Eyckmans
  */
 public class DefaultTestExecuter implements TestExecuter {
-    private final Factory<? extends WorkerProcessBuilder> workerFactory;
+    private final Factory<WorkerProcessBuilder> workerFactory;
     private final ActorFactory actorFactor;
 
-    public DefaultTestExecuter(Factory<? extends WorkerProcessBuilder> workerFactory, ActorFactory actorFactor) {
+    public DefaultTestExecuter(Factory<WorkerProcessBuilder> workerFactory, ActorFactory actorFactor) {
         this.workerFactory = workerFactory;
         this.actorFactor = actorFactor;
     }

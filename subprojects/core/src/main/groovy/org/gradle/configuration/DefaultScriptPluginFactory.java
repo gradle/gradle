@@ -31,13 +31,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ImportsReader importsReader;
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final ClassLoader defaultClassLoader;
-    private final Factory<? extends LoggingManagerInternal> loggingManagerFactory;
+    private final Factory<LoggingManagerInternal> loggingManagerFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                                 ImportsReader importsReader,
                                                 ScriptHandlerFactory scriptHandlerFactory,
                                                 ClassLoader defaultClassLoader,
-                                                Factory<? extends LoggingManagerInternal> loggingManagerFactory) {
+                                                Factory<LoggingManagerInternal> loggingManagerFactory) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;

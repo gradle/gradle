@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
-    private final Factory<? extends RepositoryHandler> repositoryHandlerFactory;
+    private final Factory<RepositoryHandler> repositoryHandlerFactory;
     private final ConfigurationContainerFactory configurationContainerFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final DependencyFactory dependencyFactory;
@@ -48,7 +48,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         }
     };
 
-    public DefaultScriptHandlerFactory(Factory<? extends RepositoryHandler> repositoryHandlerFactory,
+    public DefaultScriptHandlerFactory(Factory<RepositoryHandler> repositoryHandlerFactory,
                                        ConfigurationContainerFactory configurationContainerFactory,
                                        DependencyMetaDataProvider dependencyMetaDataProvider,
                                        DependencyFactory dependencyFactory) {

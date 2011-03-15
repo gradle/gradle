@@ -36,9 +36,9 @@ public class BasePomFilterContainer implements PomFilterContainer {
 
     private PomFilter defaultPomFilter;
 
-    private Factory<? extends MavenPom> mavenPomFactory;
+    private Factory<MavenPom> mavenPomFactory;
 
-    public BasePomFilterContainer(Factory<? extends MavenPom> mavenPomFactory) {
+    public BasePomFilterContainer(Factory<MavenPom> mavenPomFactory) {
         this.mavenPomFactory = mavenPomFactory;
     }
 
@@ -111,7 +111,7 @@ public class BasePomFilterContainer implements PomFilterContainer {
         return activeArtifactPoms;
     }
 
-    public Factory<? extends MavenPom> getMavenPomFactory() {
+    public Factory<MavenPom> getMavenPomFactory() {
         return mavenPomFactory;
     }
 

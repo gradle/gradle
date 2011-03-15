@@ -1474,7 +1474,7 @@ public interface Project extends Comparable<Project> {
      * @param <T> The type of objects for the container to contain.
      * @return The container.
      */
-    <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<? extends T> factory);
+    <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory);
 
     /**
      * Creates a container for managing named objects of the specified type. The given closure is used to create object instances. The name of the instance to be created is passed as a parameter to

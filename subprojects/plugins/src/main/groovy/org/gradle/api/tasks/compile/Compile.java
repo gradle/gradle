@@ -40,8 +40,8 @@ public class Compile extends AbstractCompile {
     private File dependencyCacheDir;
 
     public Compile() {
-        Factory<? extends AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
-        javaCompiler = new IncrementalJavaCompiler(new AntJavaCompiler((Factory) antBuilderFactory), antBuilderFactory, getOutputs());
+        Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
+        javaCompiler = new IncrementalJavaCompiler(new AntJavaCompiler(antBuilderFactory), antBuilderFactory, getOutputs());
     }
 
     @TaskAction
