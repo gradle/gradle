@@ -33,7 +33,7 @@ class SonarCodeAnalyzer {
         def globalProperties = new MapConfiguration(sonarTask.globalProperties)
 
         def projectProperties = new Properties()
-        properties.putAll(sonarTask.projectProperties)
+        projectProperties.putAll(sonarTask.projectProperties)
         projectProperties[CoreProperties.PROJECT_KEY_PROPERTY] = sonarTask.projectKey
         projectProperties[CoreProperties.PROJECT_NAME_PROPERTY] = sonarTask.projectName
         projectProperties[CoreProperties.PROJECT_VERSION_PROPERTY] = sonarTask.projectVersion

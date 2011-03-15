@@ -47,6 +47,7 @@ class SonarPlugin implements Plugin<Project> {
             cacheRepository.cache("sonar-bootstrap").forObject(project.gradle).open().baseDir
         }
         sonarTask.conventionMapping.projectDir = { project.projectDir }
+        sonarTask.conventionMapping.buildDir = { project.buildDir }
         sonarTask.conventionMapping.projectMainSourceDirs = { getSourceDirs(main) }
         sonarTask.conventionMapping.projectTestSourceDirs = { getSourceDirs(test) }
         sonarTask.conventionMapping.projectClassesDirs = { [main.classesDir] as Set }
@@ -56,9 +57,6 @@ class SonarPlugin implements Plugin<Project> {
         sonarTask.conventionMapping.projectDescription = { project.description }
         sonarTask.conventionMapping.projectVersion = { project.version as String }
         sonarTask.conventionMapping.projectProperties = {
-            // can't use CoreProperties constants instead of String literals here because
-            // at runtime, only SonarCodeAnalyzer has access to this class (because
-            // SonarCodeAnalyzer gets loaded by the Sonar bootstrapper's class loader)
             ["sonar.java.source": project.sourceCompatibility as String,
              "sonar.java.target": project.targetCompatibility as String,
              "sonar.dynamicAnalysis": "reuseReports",

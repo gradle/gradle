@@ -13,6 +13,10 @@
                 <td><literal>http://localhost:9000</literal></td>
             </tr>
             <tr>
+                <td>bootstrapDir</td>
+                <td>Gradle-managed per-project cache directory</td>
+            </tr>
+            <tr>
                 <td>projectDir</td>
                 <td><literal>project.projectDir</literal></td>
             </tr>

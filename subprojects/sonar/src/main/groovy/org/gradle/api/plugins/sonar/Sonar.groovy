@@ -21,6 +21,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ClasspathUtil
 import org.gradle.api.logging.LogLevel
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.api.plugins.sonar.internal.ClassesOnlyClassLoader
 
 /**
  * Analyzes a project and stores the results in Sonar's database.
@@ -40,6 +41,11 @@ class Sonar extends ConventionTask {
      * The base directory for the project to be analyzed.
      */
     File projectDir
+
+    /**
+     * The build output directory for the project to be analyzed.
+     */
+    File buildDir
 
     /**
      * The directories containing the production sources of the project to be analyzed.
@@ -97,8 +103,9 @@ class Sonar extends ConventionTask {
             getBootstrapDir().mkdirs()
             def bootstrapper = new Bootstrapper("Gradle", getServerUrl(), getBootstrapDir())
 
-            def classLoader = bootstrapper.createClassLoader([findGradleSonarJar()] as URL[],
-                    Sonar.classLoader, "groovy", "org.codehaus.groovy", "org.slf4j", "org.apache.log4j", "org.apache.commons.logging")
+            def classLoader = bootstrapper.createClassLoader(
+                    [findGradleSonarJar()] as URL[], new ClassesOnlyClassLoader(Sonar.classLoader),
+                    "groovy", "org.codehaus.groovy", "org.slf4j", "org.apache.log4j", "org.apache.commons.logging")
 
             def launcherClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
             def launcher = launcherClass.newInstance()
@@ -225,7 +232,7 @@ class Sonar extends ConventionTask {
 
     protected URL findGradleSonarJar() {
         def url = ClasspathUtil.getClasspath(Sonar.classLoader).find { it.path.contains("gradle-sonar") }
-        assert url != null, "failed to detect gradle-sonar Jar"
+        assert url != null, "failed to detect file system location of gradle-sonar Jar"
         url
     }
 
