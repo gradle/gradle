@@ -29,11 +29,13 @@ import java.util.Set;
 
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final CacheRepository repository;
+    private final FileSnapshotRepository snapshotRepository;
     private PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
     private DefaultSerializer<TaskHistory> serializer;
 
-    public CacheBackedTaskHistoryRepository(CacheRepository repository) {
+    public CacheBackedTaskHistoryRepository(CacheRepository repository, FileSnapshotRepository snapshotRepository) {
         this.repository = repository;
+        this.snapshotRepository = snapshotRepository;
     }
 
     public History getHistory(final TaskInternal task) {
@@ -42,9 +44,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             taskHistoryCache = repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache(serializer);
         }
         final TaskHistory history = loadHistory(task);
-        final TaskExecution currentExecution = new TaskExecution();
+        final LazyTaskExecution currentExecution = new LazyTaskExecution();
+        currentExecution.snapshotRepository = snapshotRepository;
         currentExecution.setOutputFiles(outputFiles(task));
-        final TaskExecution previousExecution = findPreviousExecution(currentExecution, history);
+        final LazyTaskExecution previousExecution = findPreviousExecution(currentExecution, history);
+        if (previousExecution != null) {
+            previousExecution.snapshotRepository = snapshotRepository;
+        }
         history.addConfiguration(currentExecution);
 
         return new History() {
@@ -57,6 +63,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             public void update() {
+                if (currentExecution.inputFilesSnapshotId == null && currentExecution.inputFilesSnapshot != null) {
+                    currentExecution.inputFilesSnapshotId = snapshotRepository.add(currentExecution.inputFilesSnapshot);
+                }
+                if (currentExecution.outputFilesSnapshotId == null && currentExecution.outputFilesSnapshot != null) {
+                    currentExecution.outputFilesSnapshotId = snapshotRepository.add(currentExecution.outputFilesSnapshot);
+                }
                 taskHistoryCache.put(task.getPath(), history);
             }
         };
@@ -81,11 +93,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return outputFiles;
     }
 
-    private TaskExecution findPreviousExecution(TaskExecution currentExecution, TaskHistory history) {
+    private LazyTaskExecution findPreviousExecution(TaskExecution currentExecution, TaskHistory history) {
         Set<String> outputFiles = currentExecution.getOutputFiles();
-        TaskExecution bestMatch = null;
+        LazyTaskExecution bestMatch = null;
         int bestMatchOverlap = 0;
-        for (TaskExecution configuration : history.configurations) {
+        for (LazyTaskExecution configuration : history.configurations) {
             if (outputFiles.size() == 0) {
                 if (configuration.getOutputFiles().size() == 0) {
                     bestMatch = configuration;
@@ -108,14 +120,50 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static class TaskHistory implements Serializable {
         private static final int MAX_HISTORY_ENTRIES = 3;
-        private final List<TaskExecution> configurations = new ArrayList<TaskExecution>();
+        private final List<LazyTaskExecution> configurations = new ArrayList<LazyTaskExecution>();
 
-        public void addConfiguration(TaskExecution configuration) {
+        public void addConfiguration(LazyTaskExecution configuration) {
             configurations.add(0, configuration);
             // Only keep a few of the most recent configurations
             while (configurations.size() > MAX_HISTORY_ENTRIES) {
                 configurations.remove(MAX_HISTORY_ENTRIES);
             }
+        }
+    }
+
+    private static class LazyTaskExecution extends TaskExecution {
+        private Long inputFilesSnapshotId;
+        private Long outputFilesSnapshotId;
+        private transient FileSnapshotRepository snapshotRepository;
+        private transient FileCollectionSnapshot inputFilesSnapshot;
+        private transient FileCollectionSnapshot outputFilesSnapshot;
+
+        @Override
+        public FileCollectionSnapshot getInputFilesSnapshot() {
+            if (inputFilesSnapshot == null) {
+                inputFilesSnapshot = snapshotRepository.get(inputFilesSnapshotId);
+            }
+            return inputFilesSnapshot;
+        }
+
+        @Override
+        public void setInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot) {
+            this.inputFilesSnapshot = inputFilesSnapshot;
+            this.inputFilesSnapshotId = null;
+        }
+
+        @Override
+        public FileCollectionSnapshot getOutputFilesSnapshot() {
+            if (outputFilesSnapshot == null) {
+                outputFilesSnapshot = snapshotRepository.get(outputFilesSnapshotId);
+            }
+            return outputFilesSnapshot;
+        }
+
+        @Override
+        public void setOutputFilesSnapshot(FileCollectionSnapshot outputFilesSnapshot) {
+            this.outputFilesSnapshot = outputFilesSnapshot;
+            outputFilesSnapshotId = null;
         }
     }
 }

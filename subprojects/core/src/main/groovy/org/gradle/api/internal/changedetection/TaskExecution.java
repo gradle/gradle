@@ -22,11 +22,9 @@ import java.util.Set;
 /**
  * The persistent state for a single task execution.
  */
-public class TaskExecution implements Serializable {
+public abstract class TaskExecution implements Serializable {
     private String taskClass;
     private Map<String, Object> inputProperties;
-    private FileCollectionSnapshot outputFilesSnapshot;
-    private FileCollectionSnapshot inputFilesSnapshot;
     private Set<String> outputFiles;
 
     public Set<String> getOutputFiles() {
@@ -53,19 +51,11 @@ public class TaskExecution implements Serializable {
         this.inputProperties = inputProperties;
     }
 
-    public FileCollectionSnapshot getOutputFilesSnapshot() {
-        return outputFilesSnapshot;
-    }
+    public abstract FileCollectionSnapshot getOutputFilesSnapshot();
 
-    public void setOutputFilesSnapshot(FileCollectionSnapshot outputFilesSnapshot) {
-        this.outputFilesSnapshot = outputFilesSnapshot;
-    }
+    public abstract void setOutputFilesSnapshot(FileCollectionSnapshot outputFilesSnapshot);
 
-    public FileCollectionSnapshot getInputFilesSnapshot() {
-        return inputFilesSnapshot;
-    }
+    public abstract FileCollectionSnapshot getInputFilesSnapshot();
 
-    public void setInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot) {
-        this.inputFilesSnapshot = inputFilesSnapshot;
-    }
+    public abstract void setInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
 }

@@ -568,20 +568,26 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations() {{
-            CacheBuilder builder = context.mock(CacheBuilder.class);
+            CacheBuilder tasksCacheBuilder = context.mock(CacheBuilder.class);
+            CacheBuilder fileSnapshotCacheBuilder = context.mock(CacheBuilder.class);
 
             one(cacheRepository).cache("taskArtifacts");
-            will(returnValue(builder));
+            will(returnValue(tasksCacheBuilder));
 
-            one(builder).forObject(gradle);
-            will(returnValue(builder));
+            one(tasksCacheBuilder).forObject(gradle);
+            will(returnValue(tasksCacheBuilder));
 
-            one(builder).open();
+            one(tasksCacheBuilder).open();
             will(returnValue(persistentCache));
 
+            atMost(1).of(cacheRepository).cache("fileSnapshots");
+            will(returnValue(fileSnapshotCacheBuilder));
 
-            one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
-            will(returnValue(new TestIndexedCache()));
+            atMost(1).of(fileSnapshotCacheBuilder).open();
+            will(returnValue(persistentCache));
+
+            between(1, 2).of(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
+            will(onConsecutiveCalls(returnValue(new TestIndexedCache()), returnValue(new TestIndexedCache())));
         }});
     }
 

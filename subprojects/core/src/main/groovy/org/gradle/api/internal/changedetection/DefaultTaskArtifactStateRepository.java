@@ -34,11 +34,11 @@ import static java.util.Collections.singletonList;
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 10;
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
-    private final TaskHistoryRepository repository;
+    private final TaskHistoryRepository taskHistoryRepository;
     private final UpToDateRule upToDateRule;
 
     public DefaultTaskArtifactStateRepository(CacheRepository repository, FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
-        this.repository = new CacheBackedTaskHistoryRepository(repository);
+        this.taskHistoryRepository = new CacheBackedTaskHistoryRepository(repository, new CacheBackedFileSnapshotRepository(repository));
         upToDateRule = new CompositeUpToDateRule(
                 new TaskTypeChangedUpToDateRule(),
                 new InputPropertiesChangedUpToDateRule(),
@@ -47,7 +47,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
-        return new TaskArtifactStateImpl(task, repository.getHistory(task));
+        return new TaskArtifactStateImpl(task, taskHistoryRepository.getHistory(task));
     }
 
     private interface TaskExecutionState {
