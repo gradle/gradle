@@ -28,6 +28,8 @@ dependencies {
 
     compile "org.codehaus.sonar:sonar-batch-bootstrapper:2.6"
     provided "org.codehaus.sonar:sonar-batch:2.6"
+
+    testCompile project(path: ':core', configuration: 'testFixtures')
 }
 
 sourceSets {
