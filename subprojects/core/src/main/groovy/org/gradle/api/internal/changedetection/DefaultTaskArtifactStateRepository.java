@@ -24,25 +24,21 @@ import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.DefaultSerializer;
-import org.gradle.cache.PersistentIndexedCache;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.List;
 
 import static java.util.Collections.singletonList;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 10;
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
-    private final CacheRepository repository;
-    private PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
-    private DefaultSerializer<TaskHistory> serializer;
+    private final TaskHistoryRepository repository;
     private final UpToDateRule upToDateRule;
 
     public DefaultTaskArtifactStateRepository(CacheRepository repository, FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
-        this.repository = repository;
+        this.repository = new CacheBackedTaskHistoryRepository(repository);
         upToDateRule = new CompositeUpToDateRule(
                 new TaskTypeChangedUpToDateRule(),
                 new InputPropertiesChangedUpToDateRule(),
@@ -51,24 +47,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
-        if (taskHistoryCache == null) {
-            loadTasks(task);
-        }
-
-        return new TaskArtifactStateImpl(task);
-    }
-
-    private void loadTasks(TaskInternal task) {
-        serializer = new DefaultSerializer<TaskHistory>();
-        taskHistoryCache = repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache(serializer);
-    }
-
-    private static Set<String> outputFiles(TaskInternal task) {
-        Set<String> outputFiles = new HashSet<String>();
-        for (File file : task.getOutputs().getFiles()) {
-            outputFiles.add(file.getAbsolutePath());
-        }
-        return outputFiles;
+        return new TaskArtifactStateImpl(task, repository.getHistory(task));
     }
 
     private interface TaskExecutionState {
@@ -77,19 +56,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         boolean snapshot();
 
         FileCollection getPreviousOutputFiles();
-    }
-
-    private static class TaskHistory implements Serializable {
-        private static final int MAX_HISTORY_ENTRIES = 3;
-        private final List<TaskExecution> configurations = new ArrayList<TaskExecution>();
-
-        public void addConfiguration(TaskExecution configuration) {
-            configurations.add(0, configuration);
-            // Only keep a few of the most recent configurations
-            while (configurations.size() > MAX_HISTORY_ENTRIES) {
-                configurations.remove(MAX_HISTORY_ENTRIES);
-            }
-        }
     }
 
     private static class NoDeclaredArtifactsExecution implements TaskExecutionState {
@@ -117,7 +83,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private static class HistoricExecution implements TaskExecutionState {
-        private final TaskHistory history;
         private final TaskInternal task;
         private final TaskExecution lastExecution;
         private boolean upToDate;
@@ -125,23 +90,20 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskExecution thisExecution;
         private UpToDateRule.TaskUpToDateState upToDateState;
 
-        public HistoricExecution(TaskHistory history, TaskInternal task, TaskExecution lastExecution, UpToDateRule rule) {
-            this.history = history;
+        public HistoricExecution(TaskInternal task, TaskHistoryRepository.History history, UpToDateRule rule) {
             this.task = task;
-            this.lastExecution = lastExecution;
+            this.lastExecution = history.getPreviousExecution();
+            this.thisExecution = history.getCurrentExecution();
             this.rule = rule;
         }
 
         private void calcCurrentState() {
-            if (thisExecution != null) {
+            if (upToDateState != null) {
                 return;
             }
 
-            // Calculate current state - note this is potentially expensive
-            thisExecution = new TaskExecution();
-            thisExecution.setOutputFiles(outputFiles(task));
+            // Calculate initial state - note this is potentially expensive
             upToDateState = rule.create(task, lastExecution, thisExecution);
-            upToDateState.snapshotBeforeTask();
         }
 
         public FileCollection getPreviousOutputFiles() {
@@ -173,19 +135,18 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
 
             upToDateState.snapshotAfterTask();
-            history.addConfiguration(thisExecution);
             return true;
         }
     }
 
     private class TaskArtifactStateImpl implements TaskArtifactState, TaskExecutionHistory {
         private final TaskInternal task;
-        private final TaskHistory history;
+        private final TaskHistoryRepository.History history;
         private final TaskExecutionState execution;
 
-        public TaskArtifactStateImpl(TaskInternal task) {
+        public TaskArtifactStateImpl(TaskInternal task, TaskHistoryRepository.History history) {
             this.task = task;
-            history = getHistory();
+            this.history = history;
             execution = getExecution();
         }
 
@@ -218,51 +179,16 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return this;
         }
 
-        private TaskHistory getHistory() {
-            ClassLoader original = serializer.getClassLoader();
-            serializer.setClassLoader(task.getClass().getClassLoader());
-            try {
-                TaskHistory history = taskHistoryCache.get(task.getPath());
-                return history == null ? new TaskHistory() : history;
-            } finally {
-                serializer.setClassLoader(original);
-            }
-        }
-
         public TaskExecutionState getExecution() {
             if (!task.getOutputs().getHasOutput()) {
                 return new NoDeclaredArtifactsExecution(task);
             }
-            Set<String> outputFiles = outputFiles(task);
-            TaskExecution bestMatch = null;
-            int bestMatchOverlap = 0;
-            for (TaskExecution configuration : history.configurations) {
-                if (outputFiles.size() == 0) {
-                    if (configuration.getOutputFiles().size() == 0) {
-                        bestMatch = configuration;
-                        break;
-                    }
-                }
-
-                Set<String> intersection = new HashSet<String>(outputFiles);
-                intersection.retainAll(configuration.getOutputFiles());
-                if (intersection.size() > bestMatchOverlap) {
-                    bestMatch = configuration;
-                    bestMatchOverlap = intersection.size();
-                }
-                if (bestMatchOverlap == outputFiles.size()) {
-                    break;
-                }
-            }
-            if (bestMatch == null) {
-                return new HistoricExecution(history, task, null, upToDateRule);
-            }
-            return new HistoricExecution(history, task, bestMatch, upToDateRule);
+            return new HistoricExecution(task, history, upToDateRule);
         }
 
         public void update() {
             if (execution.snapshot()) {
-                taskHistoryCache.put(task.getPath(), history);
+                history.update();
             }
         }
     }

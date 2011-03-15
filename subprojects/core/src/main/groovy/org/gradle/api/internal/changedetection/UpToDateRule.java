@@ -25,7 +25,7 @@ public interface UpToDateRule {
      *
      * @param task The task to be executed.
      * @param previousExecution The previous execution for this task, if any. May be null.
-     * @param currentExecution The current execution.
+     * @param currentExecution The current execution. The rule may mutate this.
      * @return The state.
      */
     TaskUpToDateState create(TaskInternal task, TaskExecution previousExecution, TaskExecution currentExecution);
@@ -38,11 +38,6 @@ public interface UpToDateRule {
          * @param messages The out-of-date messages.
          */
         void checkUpToDate(Collection<String> messages);
-
-        /**
-         * Snapshot any initial state before the task is executed. This method is executed only if the task is to be executed.
-         */
-        void snapshotBeforeTask();
 
         /**
          * Snapshot any final state after the task has executed. This method is executed only if the task is to be executed. Any persistent state should be added to the {@link TaskExecution} object

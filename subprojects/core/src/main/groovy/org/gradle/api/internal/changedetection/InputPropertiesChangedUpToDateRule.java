@@ -28,8 +28,10 @@ import java.util.Map;
  */
 public class InputPropertiesChangedUpToDateRule implements UpToDateRule {
     public TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
+        final Map<String, Object> properties = new HashMap<String, Object>(task.getInputs().getProperties());
+        currentExecution.setInputProperties(properties);
+
         return new TaskUpToDateState() {
-            final Map<String, Object> properties = new HashMap<String, Object>(task.getInputs().getProperties());
             public void checkUpToDate(final Collection<String> messages) {
                 DiffUtil.diff(properties, previousExecution.getInputProperties(), new ChangeListener<Map.Entry<String, Object>>() {
                     public void added(Map.Entry<String, Object> element) {
@@ -44,10 +46,6 @@ public class InputPropertiesChangedUpToDateRule implements UpToDateRule {
                         messages.add(String.format("Value of input property '%s' has changed for %s", element.getKey(), task));
                     }
                 });
-            }
-
-            public void snapshotBeforeTask() {
-                currentExecution.setInputProperties(properties);
             }
 
             public void snapshotAfterTask() {

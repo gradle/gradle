@@ -51,9 +51,6 @@ public class InputFilesChangedUpToDateRule implements UpToDateRule {
                 });
             }
 
-            public void snapshotBeforeTask() {
-            }
-
             public void snapshotAfterTask() {
                 currentExecution.setInputFilesSnapshot(inputFilesSnapshot);
             }

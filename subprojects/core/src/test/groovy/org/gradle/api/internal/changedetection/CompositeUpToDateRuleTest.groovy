@@ -44,13 +44,6 @@ class CompositeUpToDateRuleTest extends Specification {
         1 * state2.checkUpToDate([])
 
         when:
-        state.snapshotBeforeTask()
-
-        then:
-        1 * state1.snapshotBeforeTask()
-        1 * state2.snapshotBeforeTask()
-
-        when:
         state.snapshotAfterTask()
 
         then:

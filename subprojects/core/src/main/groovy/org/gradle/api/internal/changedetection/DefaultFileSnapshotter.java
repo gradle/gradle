@@ -33,7 +33,7 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
         this.hasher = hasher;
     }
 
-    public FileCollectionSnapshot snapshot() {
+    public FileCollectionSnapshot emptySnapshot() {
         return new FileCollectionSnapshotImpl(new HashMap<String, FileSnapshot>());
     }
 

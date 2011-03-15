@@ -176,7 +176,7 @@ public class DefaultFileSnapshotterTest {
     @Test
     public void canCreateEmptySnapshot() {
         TestFile file = tmpDir.createFile('file')
-        FileCollectionSnapshot snapshot = snapshotter.snapshot()
+        FileCollectionSnapshot snapshot = snapshotter.emptySnapshot()
 
         FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file))
 
@@ -192,14 +192,14 @@ public class DefaultFileSnapshotterTest {
         TestFile file = tmpDir.createFile('file')
         ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
 
-        FileCollectionSnapshot original = snapshotter.snapshot()
+        FileCollectionSnapshot original = snapshotter.emptySnapshot()
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
 
         context.checking {
             one(mergeListener).added(withParam(notNullValue()))
         }
 
-        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(), mergeListener)
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.emptySnapshot(), mergeListener)
 
         context.checking {
             one(listener).added(file)
@@ -212,7 +212,7 @@ public class DefaultFileSnapshotterTest {
         TestFile file = tmpDir.createFile('file')
         ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
 
-        FileCollectionSnapshot original = snapshotter.snapshot()
+        FileCollectionSnapshot original = snapshotter.emptySnapshot()
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
 
         context.checking {
@@ -220,7 +220,7 @@ public class DefaultFileSnapshotterTest {
             will {merge -> merge.ignore()}
         }
 
-        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(), mergeListener)
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.emptySnapshot(), mergeListener)
 
         target.changesSince(original, listener)
     }
@@ -238,7 +238,7 @@ public class DefaultFileSnapshotterTest {
             one(mergeListener).changed(withParam(notNullValue()))
         }
 
-        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(), mergeListener)
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.emptySnapshot(), mergeListener)
 
         context.checking {
             one(listener).changed(file)
@@ -272,7 +272,7 @@ public class DefaultFileSnapshotterTest {
         ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
 
         FileCollectionSnapshot original = snapshotter.snapshot(files(file))
-        FileCollectionSnapshot modified = snapshotter.snapshot()
+        FileCollectionSnapshot modified = snapshotter.emptySnapshot()
 
         context.checking {
             one(mergeListener).removed(withParam(notNullValue()))
@@ -292,7 +292,7 @@ public class DefaultFileSnapshotterTest {
         ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
 
         FileCollectionSnapshot original = snapshotter.snapshot(files(file))
-        FileCollectionSnapshot modified = snapshotter.snapshot()
+        FileCollectionSnapshot modified = snapshotter.emptySnapshot()
 
         context.checking {
             one(mergeListener).removed(withParam(notNullValue()))
@@ -311,9 +311,9 @@ public class DefaultFileSnapshotterTest {
 
         FileCollectionSnapshot original = snapshotter.snapshot(files(file))
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
-        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(), mergeListener)
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.emptySnapshot(), mergeListener)
 
-        target.changesSince(snapshotter.snapshot(), listener)
+        target.changesSince(snapshotter.emptySnapshot(), listener)
     }
 
     private FileCollection files(File... files) {

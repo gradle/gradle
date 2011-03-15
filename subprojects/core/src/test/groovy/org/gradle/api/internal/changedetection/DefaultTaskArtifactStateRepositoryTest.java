@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -31,7 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
+import java.io.*;
 import java.util.*;
 
 import static org.gradle.util.Matchers.*;
@@ -65,7 +66,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     @Before
     public void setup() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             CacheBuilder builder = context.mock(CacheBuilder.class);
 
             one(cacheRepository).cache("outputFileStates");
@@ -263,7 +264,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
         TaskArtifactState state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());
     }
-    
+
     @Test
     public void artifactsAreNotUpToDateWhenAnyFileInInputDirChangesType() {
         execute();
@@ -381,7 +382,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
         TaskArtifactState state = repository.getStateFor(task());
         assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), isEmpty());
     }
-    
+
     @Test
     public void hasTaskHistoryFromPreviousExecution() {
         execute();
@@ -445,7 +446,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     @Test
     public void considersExistingFileInOutputDirectoryWhichIsUpdatedByTheTaskAsProducedByTask() {
         expectEmptyCacheLocated();
-        
+
         TestFile otherFile = outputDir.file("other").createFile();
 
         TaskInternal task = task();
@@ -564,9 +565,9 @@ public class DefaultTaskArtifactStateRepositoryTest {
             state.update();
         }
     }
-    
+
     private void expectEmptyCacheLocated() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             CacheBuilder builder = context.mock(CacheBuilder.class);
 
             one(cacheRepository).cache("taskArtifacts");
@@ -577,9 +578,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
             one(builder).open();
             will(returnValue(persistentCache));
-
-
-
 
 
             one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
@@ -671,14 +669,32 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     public static class TestIndexedCache implements PersistentIndexedCache<Object, Object> {
-        Map<Object, Object> entries = new HashMap<Object, Object>();
+        Map<Object, byte[]> entries = new HashMap<Object, byte[]>();
 
         public Object get(Object key) {
-            return entries.get(key);
+            byte[] serialised = entries.get(key);
+            if (serialised == null) {
+                return null;
+            }
+            try {
+                ByteArrayInputStream instr = new ByteArrayInputStream(serialised);
+                return new ObjectInputStream(instr).readObject();
+            } catch (Exception e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
         }
 
         public void put(Object key, Object value) {
-            entries.put(key, value);
+            ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+            try {
+                ObjectOutputStream objstr = new ObjectOutputStream(outstr);
+                objstr.writeObject(value);
+                objstr.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+
+            entries.put(key, outstr.toByteArray());
         }
 
         public void remove(Object key) {

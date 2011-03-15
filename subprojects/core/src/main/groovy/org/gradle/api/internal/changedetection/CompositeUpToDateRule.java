@@ -42,12 +42,6 @@ public class CompositeUpToDateRule implements UpToDateRule {
                 }
             }
 
-            public void snapshotBeforeTask() {
-                for (TaskUpToDateState state : states) {
-                    state.snapshotBeforeTask();
-                }
-            }
-
             public void snapshotAfterTask() {
                 for (TaskUpToDateState state : states) {
                     state.snapshotAfterTask();

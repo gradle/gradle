@@ -26,16 +26,13 @@ import java.util.Collection;
 public class TaskTypeChangedUpToDateRule implements UpToDateRule {
     public TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
         final String taskClass = task.getClass().getName();
+        currentExecution.setTaskClass(taskClass);
 
         return new TaskUpToDateState() {
             public void checkUpToDate(Collection<String> messages) {
                 if (!taskClass.equals(previousExecution.getTaskClass())) {
                     messages.add(String.format("%s has changed type from '%s' to '%s'.", StringUtils.capitalize(task.toString()), previousExecution.getTaskClass(), task.getClass().getName()));
                 }
-            }
-
-            public void snapshotBeforeTask() {
-                currentExecution.setTaskClass(taskClass);
             }
 
             public void snapshotAfterTask() {

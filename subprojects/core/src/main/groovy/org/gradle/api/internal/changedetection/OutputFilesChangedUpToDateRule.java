@@ -51,11 +51,8 @@ public class OutputFilesChangedUpToDateRule implements UpToDateRule {
                 });
             }
 
-            public void snapshotBeforeTask() {
-            }
-
             public void snapshotAfterTask() {
-                FileCollectionSnapshot lastExecutionOutputFiles = previousExecution == null ? outputFilesSnapshotter.snapshot() : previousExecution.getOutputFilesSnapshot();
+                FileCollectionSnapshot lastExecutionOutputFiles = previousExecution == null ? outputFilesSnapshotter.emptySnapshot() : previousExecution.getOutputFilesSnapshot();
                 FileCollectionSnapshot newOutputFiles = outputFilesBefore.changesSince(lastExecutionOutputFiles).applyTo(
                         lastExecutionOutputFiles, new ChangeListener<FileCollectionSnapshot.Merge>() {
                             public void added(FileCollectionSnapshot.Merge element) {
