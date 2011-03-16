@@ -980,10 +980,10 @@ def scriptMethod(Closure closure) {
                         testSubProp = propValue
                     }
         } else {
-            project."$configureMethod"
+            project."$configureMethod"(
             {
                 testSubProp = propValue
-            }
+            })
         }
 
         projectsToCheck.each {
