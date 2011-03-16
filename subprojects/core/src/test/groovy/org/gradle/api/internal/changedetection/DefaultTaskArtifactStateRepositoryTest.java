@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -76,7 +75,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
             will(returnValue(persistentCache));
 
             one(persistentCache).openIndexedCache();
-            will(returnValue(new TestIndexedCache()));
+            will(returnValue(new InMemoryIndexedCache()));
         }});
 
         FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
@@ -587,7 +586,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
             will(returnValue(persistentCache));
 
             between(1, 2).of(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
-            will(onConsecutiveCalls(returnValue(new TestIndexedCache()), returnValue(new TestIndexedCache())));
+            will(onConsecutiveCalls(returnValue(new InMemoryIndexedCache()), returnValue(new InMemoryIndexedCache())));
         }});
     }
 
@@ -674,37 +673,4 @@ public class DefaultTaskArtifactStateRepositoryTest {
     public static class TaskSubType extends DefaultTask {
     }
 
-    public static class TestIndexedCache implements PersistentIndexedCache<Object, Object> {
-        Map<Object, byte[]> entries = new HashMap<Object, byte[]>();
-
-        public Object get(Object key) {
-            byte[] serialised = entries.get(key);
-            if (serialised == null) {
-                return null;
-            }
-            try {
-                ByteArrayInputStream instr = new ByteArrayInputStream(serialised);
-                return new ObjectInputStream(instr).readObject();
-            } catch (Exception e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
-        }
-
-        public void put(Object key, Object value) {
-            ByteArrayOutputStream outstr = new ByteArrayOutputStream();
-            try {
-                ObjectOutputStream objstr = new ObjectOutputStream(outstr);
-                objstr.writeObject(value);
-                objstr.close();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-
-            entries.put(key, outstr.toByteArray());
-        }
-
-        public void remove(Object key) {
-            entries.remove(key);
-        }
-    }
 }
