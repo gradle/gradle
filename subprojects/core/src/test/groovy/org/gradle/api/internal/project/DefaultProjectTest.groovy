@@ -58,9 +58,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.*
-import org.gradle.api.AntBuilder
 import org.gradle.api.internal.*
-import org.gradle.api.internal.Factory
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
