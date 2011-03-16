@@ -35,6 +35,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Utility class for initializing various test objects related.
@@ -335,6 +336,7 @@ public class TestUtility {
         gradlePluginLord.startExecutionQueue();   //make sure its started
 
         final CountDownLatch complete = new CountDownLatch(1);
+        final AtomicReference<String> errorOutput = new AtomicReference<String>();
 
         GradlePluginLord.RequestObserver observer = new GradlePluginLord.RequestObserver() {
             public void executionRequestAdded(ExecutionRequest request) {
@@ -348,12 +350,14 @@ public class TestUtility {
             }
 
             public void requestExecutionComplete(Request request, int result, String output) {
+                if (result != 0) {
+                    errorOutput.set(output);
+                }
                 complete.countDown();
             }
         };
 
-        gradlePluginLord.addRequestObserver(observer,
-                false);   //add the observer before we add the request due to timing issues. It's possible for it to completely execute before we return from addRefreshRequestToQueue.
+        gradlePluginLord.addRequestObserver(observer, false);   //add the observer before we add the request due to timing issues. It's possible for it to completely execute before we return from addRefreshRequestToQueue.
         Request request = gradlePluginLord.addRefreshRequestToQueue();
 
         //make sure we've got a request
@@ -373,6 +377,9 @@ public class TestUtility {
             //its still running. Something is wrong.
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
             throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitValue + " " + maximumWaitUnits + ". Considering this failed.");
+        }
+        if (errorOutput.get() != null) {
+            throw new AssertionFailedError(String.format("Command failed with output:%n%s", errorOutput.get()));
         }
     }
 
