@@ -19,6 +19,7 @@ import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.cyberneko.html.parsers.SAXParser
 
 class DefaultTestReportTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -266,13 +267,13 @@ class TestResultsFixture {
         file.assertIsFile()
         def text = file.getText('utf-8').readLines()
         def withoutDocType = text.subList(1, text.size()).join('\n')
-        content = new XmlParser().parseText(withoutDocType)
+        content = new XmlParser(new SAXParser()).parseText(withoutDocType)
     }
 
     void assertHasTests(int tests) {
         Node testDiv = content.depthFirst().find { it.'@id' == 'tests' }
         assert testDiv != null
-        Node counter = testDiv.div.find { it.'@class' == 'counter' }
+        Node counter = testDiv.DIV.find { it.'@class' == 'counter' }
         assert counter != null
         assert counter.text() == tests as String
     }
@@ -280,7 +281,7 @@ class TestResultsFixture {
     void assertHasFailures(int tests) {
         Node testDiv = content.depthFirst().find { it.'@id' == 'failures' }
         assert testDiv != null
-        Node counter = testDiv.div.find { it.'@class' == 'counter' }
+        Node counter = testDiv.DIV.find { it.'@class' == 'counter' }
         assert counter != null
         assert counter.text() == tests as String
     }
@@ -288,7 +289,7 @@ class TestResultsFixture {
     void assertHasDuration(String duration) {
         Node testDiv = content.depthFirst().find { it.'@id' == 'duration' }
         assert testDiv != null
-        Node counter = testDiv.div.find { it.'@class' == 'counter' }
+        Node counter = testDiv.DIV.find { it.'@class' == 'counter' }
         assert counter != null
         assert counter.text() == duration
     }
@@ -296,7 +297,7 @@ class TestResultsFixture {
     void assertHasNoDuration() {
         Node testDiv = content.depthFirst().find { it.'@id' == 'duration' }
         assert testDiv != null
-        Node counter = testDiv.div.find { it.'@class' == 'counter' }
+        Node counter = testDiv.DIV.find { it.'@class' == 'counter' }
         assert counter != null
         assert counter.text() == '-'
     }
@@ -304,7 +305,7 @@ class TestResultsFixture {
     void assertHasSuccessRate(int rate) {
         Node testDiv = content.depthFirst().find { it.'@id' == 'successRate' }
         assert testDiv != null
-        Node counter = testDiv.div.find { it.'@class' == 'percent' }
+        Node counter = testDiv.DIV.find { it.'@class' == 'percent' }
         assert counter != null
         assert counter.text() == "${rate}%"
     }
@@ -312,7 +313,7 @@ class TestResultsFixture {
     void assertHasNoSuccessRate() {
         Node testDiv = content.depthFirst().find { it.'@id' == 'successRate' }
         assert testDiv != null
-        Node counter = testDiv.div.find { it.'@class' == 'percent' }
+        Node counter = testDiv.DIV.find { it.'@class' == 'percent' }
         assert counter != null
         assert counter.text() == '-'
     }
@@ -322,13 +323,13 @@ class TestResultsFixture {
     }
 
     void assertHasLinkTo(String target, String display = target) {
-        assert content.depthFirst().find { it.name() == 'a' && it.'@href' == "${target}.html" && it.text() == display }
+        assert content.depthFirst().find { it.name() == 'A' && it.'@href' == "${target}.html" && it.text() == display }
     }
 
     void assertHasFailedTest(String className, String testName) {
         def tab = findTab('Failed tests')
         assert tab != null
-        assert tab.depthFirst().find { it.name() == 'a' && it.'@href' == "${className}.html#${testName}" && it.text() == testName }
+        assert tab.depthFirst().find { it.name() == 'A' && it.'@href' == "${className}.html#${testName}" && it.text() == testName }
     }
 
     void assertHasTest(String testName) {
@@ -337,39 +338,39 @@ class TestResultsFixture {
 
     void assertTestIgnored(String testName) {
         def row = findTestDetails(testName)
-        assert row.td[2].text() == 'ignored'
+        assert row.TD[2].text() == 'ignored'
     }
 
     void assertHasFailure(String testName, String stackTrace) {
         def detailsRow = findTestDetails(testName)
-        assert detailsRow.td[2].text() == 'failed'
+        assert detailsRow.TD[2].text() == 'failed'
 
         def tab = findTab('Failed tests')
         assert tab != null
-        def pre = tab.depthFirst().findAll { it.name() == 'pre' }
+        def pre = tab.depthFirst().findAll { it.name() == 'PRE' }
         assert pre.find { it.text() == stackTrace.trim() }
     }
 
     private def findTestDetails(String testName) {
         def tab = findTab('Tests')
-        def anchor = tab.depthFirst().find { it.name() == 'a' && it.'@name' == testName }
+        def anchor = tab.depthFirst().find { it.name() == 'TD' && it.text() == testName }
         return anchor?.parent()
     }
 
     void assertHasStandardOutput(String stdout) {
         def tab = findTab('Standard output')
         assert tab != null
-        assert tab.pre[0].text() == stdout.trim()
+        assert tab.PRE[0].text() == stdout.trim()
     }
 
     void assertHasStandardError(String stderr) {
         def tab = findTab('Standard error')
         assert tab != null
-        assert tab.pre[0].text() == stderr.trim()
+        assert tab.PRE[0].text() == stderr.trim()
     }
 
     private def findTab(String title) {
-        def tab = content.depthFirst().find { it.name() == 'div' && it.'@class' == 'tab' && it.h2[0].text() == title }
+        def tab = content.depthFirst().find { it.name() == 'DIV' && it.'@class' == 'tab' && it.H2[0].text() == title }
         return tab
     }
 }

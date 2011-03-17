@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
-import groovy.util.IndentPrinter;
-import groovy.xml.MarkupBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.w3c.dom.Document;
@@ -24,13 +22,21 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.math.BigDecimal;
 
 public class DefaultTestReport implements TestReporter {
     private File resultDir;
     private File reportDir;
+    private DocumentBuilder documentBuilder;
+    private Transformer transformer;
 
     public void setTestResultsDir(File resultDir) {
         this.resultDir = resultDir;
@@ -120,17 +126,28 @@ public class DefaultTestReport implements TestReporter {
         }
     }
 
-    private <T extends CompositeTestResults> void generatePage(T model, PageRenderer<T> renderer, File outputFile) throws IOException {
+    private <T extends CompositeTestResults> void generatePage(T model, PageRenderer<T> renderer, File outputFile) throws Exception {
+        if (documentBuilder == null) {
+            documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        }
+        Document document = documentBuilder.newDocument();
+        renderer.render(document, model);
+
+        if (transformer == null) {
+            TransformerFactory factory = TransformerFactory.newInstance();
+            transformer = factory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.METHOD, "html");
+            transformer.setOutputProperty(OutputKeys.MEDIA_TYPE, "text/html");
+        }
+
         outputFile.getParentFile().mkdirs();
-        OutputStream outputStream = new FileOutputStream(outputFile);
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "utf-8"));
         try {
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, "utf-8"));
-            writer.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
-            MarkupBuilder markupBuilder = new MarkupBuilder(new IndentPrinter(writer, ""));
-            renderer.render(markupBuilder, model);
-            writer.flush();
+            writer.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n");
+            transformer.transform(new DOMSource(document), new StreamResult(writer));
         } finally {
-            outputStream.close();
+            writer.close();
         }
     }
 
