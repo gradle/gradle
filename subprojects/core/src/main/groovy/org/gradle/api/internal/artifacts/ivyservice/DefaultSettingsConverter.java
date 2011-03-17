@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
@@ -76,7 +77,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
         Clock clock = new Clock();
         ChainResolver userResolverChain = createUserResolverChain(Collections.<DependencyResolver>emptyList(), internalRepository);
-        ClientModuleResolver clientModuleResolver = createClientModuleResolver(new HashMap(), userResolverChain);
+        ClientModuleResolver clientModuleResolver = createClientModuleResolver(new HashMap<String, ModuleDescriptor>(), userResolverChain);
         ChainResolver outerChain = createOuterChain(userResolverChain, clientModuleResolver);
 
         IvySettings ivySettings = createIvySettings(gradleUserHome);
@@ -87,7 +88,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers,
-                               File gradleUserHome, DependencyResolver internalRepository, Map clientModuleRegistry) {
+                               File gradleUserHome, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
         if (ivySettings != null) {
             return ivySettings;
         }
@@ -122,7 +123,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return clientModuleChain;
     }
 
-    private ClientModuleResolver createClientModuleResolver(Map clientModuleRegistry, ChainResolver userResolverChain) {
+    private ClientModuleResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, ChainResolver userResolverChain) {
         return new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
     }
 
@@ -196,8 +197,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
                 total += evt.getLength();
                 logger.progress(String.format("%s/%s %sed", getLengthText(total), getLengthText(evt), getRequestType(evt)));
             }
-            if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED
-                    || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
+            if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED) {
                 logger.completed();
             }
         }

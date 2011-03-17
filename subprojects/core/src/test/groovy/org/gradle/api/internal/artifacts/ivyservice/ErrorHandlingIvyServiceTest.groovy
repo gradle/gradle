@@ -16,19 +16,17 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 
-import org.gradle.api.GradleException
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ResolveException
-import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.internal.artifacts.IvyService
 import org.gradle.api.specs.Spec
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import org.gradle.api.artifacts.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 @RunWith(JMock.class)
 public class ErrorHandlingIvyServiceTest {
@@ -140,7 +138,7 @@ public class ErrorHandlingIvyServiceTest {
             ivyService.publish([configurationMock] as Set, null, [])
             fail()
         }
-        catch(GradleException e) {
+        catch(PublishException e) {
             assertThat e.message, equalTo("Could not publish configurations [<config display name>].")
             assertThat(e.cause, sameInstance((Throwable) failure));
         }

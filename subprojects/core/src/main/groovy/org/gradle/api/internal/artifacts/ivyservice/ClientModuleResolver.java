@@ -20,8 +20,8 @@ import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolveData;
@@ -46,10 +46,10 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class ClientModuleResolver extends BasicResolver {
-    private Map moduleRegistry;
+    private Map<String, ModuleDescriptor> moduleRegistry;
     private DependencyResolver userResolver;
 
-    public ClientModuleResolver(String name, Map moduleRegistry, DependencyResolver userResolver) {
+    public ClientModuleResolver(String name, Map<String, ModuleDescriptor> moduleRegistry, DependencyResolver userResolver) {
         setName(name);
         this.moduleRegistry = moduleRegistry;
         this.userResolver = userResolver;
@@ -65,8 +65,7 @@ public class ClientModuleResolver extends BasicResolver {
         try {
             context.setDependencyDescriptor(dde);
             context.setResolveData(data);
-            DefaultModuleDescriptor moduleDescriptor =
-                    (DefaultModuleDescriptor) moduleRegistry.get(dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY));
+            ModuleDescriptor moduleDescriptor = moduleRegistry.get(dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY));
             MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
             downloadReport.setDownloadStatus(DownloadStatus.NO);
             downloadReport.setSearched(false);

@@ -253,8 +253,9 @@ public interface Configuration extends FileCollection {
      *
      * @see org.gradle.api.tasks.Upload
      * @see #getUploadTaskName()
+     * @throws PublishException On failure to publish this configuration.
      */
-    void publish(List<DependencyResolver> publishRepositories, File descriptorDestination);
+    void publish(List<DependencyResolver> publishRepositories, File descriptorDestination) throws PublishException;
 
     /**
      * Gets the set of dependencies directly contained in this configuration

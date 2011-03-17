@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 
@@ -33,5 +34,5 @@ public interface SettingsConverter {
     IvySettings convertForPublish(List<DependencyResolver> publishResolvers, File gradleUserHome, DependencyResolver internalRepository);
 
     IvySettings convertForResolve(List<DependencyResolver> classpathResolvers, File gradleUserHome, DependencyResolver internalRepository,
-                        Map clientModuleRegistry);
+                        Map<String, ModuleDescriptor> clientModuleRegistry);
 }
