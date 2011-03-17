@@ -77,10 +77,11 @@ class DefaultSettingsConverterTest {
         assert settings.defaultResolver.is(clientModuleChain)
 
         [TEST_BUILD_RESOLVER.name, TEST_RESOLVER.name, TEST_RESOLVER_2.name, DefaultSettingsConverter.CHAIN_RESOLVER_NAME,
-                DefaultSettingsConverter.CLIENT_MODULE_NAME, DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME].each {
+                DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
         }
+        assert settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_NAME)
 
         assertEquals(new File(testGradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME),
                 settings.defaultCache)
@@ -103,10 +104,11 @@ class DefaultSettingsConverterTest {
         assert settings.defaultResolver.is(clientModuleChain)
 
         [TEST_BUILD_RESOLVER.name, TEST_RESOLVER.name, TEST_RESOLVER_2.name, DefaultSettingsConverter.CHAIN_RESOLVER_NAME,
-                DefaultSettingsConverter.CLIENT_MODULE_NAME, DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME].each {
+                DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
         }
+        assert settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_NAME)
 
         assert settings.getResolver(TEST_RESOLVER.name).is(TEST_RESOLVER)
         assert settings.getResolver(TEST_RESOLVER_2.name).is(TEST_RESOLVER_2)

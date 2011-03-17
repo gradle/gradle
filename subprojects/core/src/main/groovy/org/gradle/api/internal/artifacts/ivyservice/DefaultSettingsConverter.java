@@ -162,7 +162,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
             ivySettings.addResolver(dependencyResolver);
-            ((DefaultRepositoryCacheManager) dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
+            if (dependencyResolver.getRepositoryCacheManager() instanceof DefaultRepositoryCacheManager) {
+                ((DefaultRepositoryCacheManager) dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
+            }
             if (dependencyResolver instanceof RepositoryResolver) {
                 Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
                 if (!repository.hasTransferListener(transferListener)) {
