@@ -40,7 +40,14 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
 
-    EclipseProject eclipseProject
+    EclipseProject eclipseProjectTask
+
+    EclipseDomainModel getEclipseDomainModel() {
+        if (eclipseProjectTask == null) {
+            throw new IllegalStateException("Tasks have not yet been configured. Was the plugin applied?")
+        }
+        new EclipseDomainModel(project: eclipseProjectTask.domainObject);
+    }
 
     @Override protected String getLifecycleTaskName() {
         return 'eclipse'
@@ -110,7 +117,7 @@ class EclipsePlugin extends IdePlugin {
                 }
             }
         }
-        eclipseProject = project.eclipseProject
+        eclipseProjectTask = project.eclipseProject
     }
 
     private void configureEclipseClasspath(Project project) {

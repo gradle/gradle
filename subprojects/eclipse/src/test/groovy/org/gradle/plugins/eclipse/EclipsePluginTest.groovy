@@ -34,6 +34,25 @@ class EclipsePluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final EclipsePlugin eclipsePlugin = new EclipsePlugin()
 
+    def "throws meaningful exception when client wants model too early"() {
+        when:
+        eclipsePlugin.getEclipseDomainModel()
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "provides eclipse model"() {
+        given:
+        eclipsePlugin.apply(project)
+
+        when:
+        def model = eclipsePlugin.getEclipseDomainModel()
+
+        then:
+        model != null
+    }
+
     def "adds configurer task to root project only"() {
         given:
         def child = HelperUtil.createChildProject(project, "child")

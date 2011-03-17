@@ -52,7 +52,7 @@ class GeneratorTaskTest extends Specification {
     def "uses preconfigured domain object"() {
         def configObject = new TestConfigurationObject()
         inputFile.text = 'config'
-        task.preConfiguredDomainObject = configObject
+        task.domainObject = configObject
 
         when:
         task.generate()
@@ -60,7 +60,7 @@ class GeneratorTaskTest extends Specification {
         then:
         1 * task.generator.write(configObject, outputFile)
         0 * _._
-        task.preConfiguredDomainObject == null
+        task.domainObject == null
     }
     
     def mergesConfigurationWhenInputFileExists() {

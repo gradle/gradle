@@ -98,7 +98,7 @@ public class ModelBuilder extends BuildAdapter {
             children.add(build(child));
         }
 
-        String name = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseProject().getProjectName();
+        String name = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel().getProject().getName();
         DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);

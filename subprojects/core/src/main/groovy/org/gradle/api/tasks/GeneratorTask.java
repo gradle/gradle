@@ -51,7 +51,7 @@ public class GeneratorTask<T> extends ConventionTask {
     private final ActionBroadcast<T> afterConfigured = new ActionBroadcast<T>();
     protected Generator<T> generator;
 
-    protected T preConfiguredDomainObject;
+    protected T domainObject;
 
     public GeneratorTask() {
         getOutputs().upToDateWhen(Specs.satisfyNone());
@@ -60,20 +60,20 @@ public class GeneratorTask<T> extends ConventionTask {
     @TaskAction
     void generate() {
         T object;
-        if (preConfiguredDomainObject != null) {
-            object = preConfiguredDomainObject;
+        if (domainObject != null) {
+            object = domainObject;
         } else {
             object = configureDomainObject();
         }
         try {
             generator.write(object, getOutputFile());
         } finally {
-            preConfiguredDomainObject = null;
+            domainObject = null;
         }
     }
 
     void preConfigureDomainObject() {
-        preConfiguredDomainObject = configureDomainObject();
+        domainObject = configureDomainObject();
     }
 
     private T configureDomainObject() {
