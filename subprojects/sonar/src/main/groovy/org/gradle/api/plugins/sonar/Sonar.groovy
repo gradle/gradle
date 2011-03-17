@@ -22,6 +22,7 @@ import org.gradle.util.ClasspathUtil
 import org.gradle.api.logging.LogLevel
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.api.plugins.sonar.internal.ClassesOnlyClassLoader
+import org.gradle.util.GradleVersion
 
 /**
  * Analyzes a project and stores the results in Sonar's database.
@@ -107,10 +108,11 @@ class Sonar extends ConventionTask {
                     [findGradleSonarJar()] as URL[], new ClassesOnlyClassLoader(Sonar.classLoader),
                     "groovy", "org.codehaus.groovy", "org.slf4j", "org.apache.log4j", "org.apache.commons.logging")
 
-            def launcherClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
-            def launcher = launcherClass.newInstance()
-            launcher.sonarTask = this
-            launcher.execute()
+            def analyzerClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
+            def analyzer = analyzerClass.newInstance()
+            analyzer.gradleVersion = GradleVersion.current().version
+            analyzer.sonarTask = this
+            analyzer.execute()
         }
     }
 
