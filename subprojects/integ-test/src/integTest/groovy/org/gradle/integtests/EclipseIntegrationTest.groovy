@@ -130,6 +130,47 @@ eclipseWtpFacet {
         checkIsWrittenWithUtf8Encoding(getFacetFile())
     }
 
+    @Test
+    void firesPrePostConfigurationHooks() {
+        //this test is a bit peculiar as it has assertions inside the gradle script
+        //couldn't find a better way of asserting on before/when configured hooks
+        runEclipseTask('''
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'eclipse'
+
+def beforeConfiguredObjects = 0
+def whenConfiguredObjects = 0
+
+eclipseProject {
+    beforeConfigured { beforeConfiguredObjects++ }
+    whenConfigured { whenConfiguredObjects++ }
+}
+eclipseClasspath {
+    beforeConfigured { beforeConfiguredObjects++ }
+    whenConfigured { whenConfiguredObjects++ }
+}
+eclipseWtpFacet {
+    beforeConfigured { beforeConfiguredObjects++ }
+    whenConfigured { whenConfiguredObjects++ }
+}
+eclipseWtpComponent {
+    beforeConfigured { beforeConfiguredObjects++ }
+    whenConfigured { whenConfiguredObjects++ }
+}
+eclipseJdt {
+    beforeConfigured { beforeConfiguredObjects++ }
+    whenConfigured { whenConfiguredObjects++ }
+}
+
+eclipse << {
+    assert beforeConfiguredObjects == 5 : "beforeConfigured() hooks shoold be fired for domain model objects"
+    assert whenConfiguredObjects == 5 : "whenConfigured() hooks shoold be fired for domain model objects"
+}
+''')
+
+    }
+
     private void checkIsWrittenWithUtf8Encoding(File file) {
         def text = file.getText("UTF-8")
         assert text.contains('encoding="UTF-8"')
