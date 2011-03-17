@@ -15,28 +15,15 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.BuildAdapter;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.api.specs.Spec;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.plugins.eclipse.EclipseConfigurer;
-import org.gradle.plugins.eclipse.EclipsePlugin;
-import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionVersion2;
+import org.gradle.tooling.internal.protocol.ProjectVersion2;
+import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
-
-import java.io.File;
-import java.util.*;
 
 public class DefaultConnection implements ConnectionVersion2 {
     private final ActorFactory actorFactory;
@@ -65,106 +52,6 @@ public class DefaultConnection implements ConnectionVersion2 {
         worker.build(type, handler);
     }
 
-    private static class ModelBuilder extends BuildAdapter {
-        private DefaultEclipseProject currentProject;
-        private final Map<String, EclipseProjectVersion2> projectMapping = new HashMap<String, EclipseProjectVersion2>();
-        private GradleInternal gradle;
-
-        @Override
-        public void projectsEvaluated(Gradle gradle) {
-            this.gradle = (GradleInternal) gradle;
-            try {
-                Project root = gradle.getRootProject();
-                configureEclipsePlugin(root);
-                build(root);
-            } finally {
-                this.gradle = null;
-            }
-        }
-
-        private DefaultEclipseProject build(Project project) {
-            Configuration configuration = project.getConfigurations().findByName(
-                    "testRuntime");
-            List<ExternalDependencyVersion1> dependencies = new ArrayList<ExternalDependencyVersion1>();
-            final List<EclipseProjectDependencyVersion1> projectDependencies = new ArrayList<EclipseProjectDependencyVersion1>();
-
-            if (configuration != null) {
-                Set<File> classpath = configuration.files(new Spec<Dependency>() {
-                    public boolean isSatisfiedBy(Dependency element) {
-                        return element instanceof ExternalModuleDependency;
-                    }
-                });
-                for (final File file : classpath) {
-                    dependencies.add(new ExternalDependencyVersion1() {
-                        public File getFile() {
-                            return file;
-                        }
-                    });
-                }
-                for (final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
-                    projectDependencies.add(new EclipseProjectDependencyVersion1() {
-                        public EclipseProjectVersion2 getTargetProject() {
-                            return projectMapping.get(projectDependency.getDependencyProject().getPath());
-                        }
-
-                        public String getPath() {
-                            return projectDependency.getDependencyProject().getName();
-                        }
-                    });
-                }
-            }
-
-            List<EclipseSourceDirectoryVersion1> sourceDirectories = new ArrayList<EclipseSourceDirectoryVersion1>();
-            sourceDirectories.add(sourceDirectory(project, "src/main/java"));
-            sourceDirectories.add(sourceDirectory(project, "src/main/resources"));
-            sourceDirectories.add(sourceDirectory(project, "src/test/java"));
-            sourceDirectories.add(sourceDirectory(project, "src/test/resources"));
-
-            List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
-            for (Project child : project.getChildProjects().values()) {
-                children.add(build(child));
-            }
-
-            String name = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseProject().getProjectName();
-            DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
-            for (DefaultEclipseProject child : children) {
-                child.setParent(eclipseProject);
-            }
-            addProject(project, eclipseProject);
-            return eclipseProject;
-        }
-
-        private void configureEclipsePlugin(Project root) {
-            Set<Project> allprojects = root.getAllprojects();
-            for (Project p : allprojects) {
-                if (!p.getPlugins().hasPlugin("eclipse")) {
-                    p.getPlugins().apply("eclipse");
-                }
-            }
-            EclipseConfigurer eclipseConfigurer = (EclipseConfigurer) root.getTasks().getByName("eclipseConfigurer");
-            eclipseConfigurer.configure();
-        }
-
-        private void addProject(Project project, DefaultEclipseProject eclipseProject) {
-            if (project == gradle.getDefaultProject()) {
-                currentProject = eclipseProject;
-            }
-            projectMapping.put(project.getPath(), eclipseProject);
-        }
-
-        private EclipseSourceDirectoryVersion1 sourceDirectory(final Project project, final String path) {
-            return new EclipseSourceDirectoryVersion1() {
-                public File getDirectory() {
-                    return project.file(path);
-                }
-
-                public String getPath() {
-                    return path;
-                }
-            };
-        }
-    }
-
     private interface Worker {
         <T extends ProjectVersion2> void build(Class<T> type, ResultHandlerVersion1<? super T> handler);
     }
@@ -186,7 +73,7 @@ public class DefaultConnection implements ConnectionVersion2 {
                 final ModelBuilder builder = new ModelBuilder();
                 gradleLauncher.addListener(builder);
                 gradleLauncher.getBuildAnalysis().rethrowFailure();
-                return type.cast(builder.currentProject);
+                return type.cast(builder.getCurrentProject());
             }
 
             throw new UnsupportedOperationException();
