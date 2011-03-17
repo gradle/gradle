@@ -18,6 +18,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.tooling.model.eclipse.EclipseProject
+import spock.lang.Ignore
 
 class ToolingApiAdvancedEclipseIntegrationTest extends ToolingApiSpecification {
 
@@ -65,5 +66,34 @@ allprojects {
         String grandChildOne = eclipseProject.children[0].children[0].name
         String grandChildTwo = eclipseProject.children[1].children[0].name
         assert grandChildOne != grandChildTwo : "Deduplication logic should make that project names are not the same."
+    }
+
+    @Ignore
+    def "should honor before and when configured hooks"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+}
+project(':api') {
+    eclipseProject {
+        beforeConfigured { it.projectName = 'fancy-api' }
+    }
+}
+project(':impl') {
+    eclipseProject {
+        whenConfigured { it.projectName = 'fancy-impl' }
+    }
+}
+'''
+        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
+
+        when:
+        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        eclipseProject.children[0].name == 'fancy-api'
+        eclipseProject.children[1].name == 'fancy-impl'
     }
 }
