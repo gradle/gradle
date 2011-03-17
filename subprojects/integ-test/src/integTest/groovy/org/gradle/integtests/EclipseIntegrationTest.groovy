@@ -131,7 +131,7 @@ eclipseWtpFacet {
     }
 
     @Test
-    void firesBeforeAndWhenConfigurationHooks() {
+    void triggersBeforeAndWhenConfigurationHooks() {
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
         runEclipseTask('''
