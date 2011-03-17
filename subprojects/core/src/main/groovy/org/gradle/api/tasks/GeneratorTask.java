@@ -51,12 +51,32 @@ public class GeneratorTask<T> extends ConventionTask {
     private final ActionBroadcast<T> afterConfigured = new ActionBroadcast<T>();
     protected Generator<T> generator;
 
+    protected T preConfiguredDomainObject;
+
     public GeneratorTask() {
         getOutputs().upToDateWhen(Specs.satisfyNone());
     }
 
     @TaskAction
     void generate() {
+        T object;
+        if (preConfiguredDomainObject != null) {
+            object = preConfiguredDomainObject;
+        } else {
+            object = configureDomainObject();
+        }
+        try {
+            generator.write(object, getOutputFile());
+        } finally {
+            preConfiguredDomainObject = null;
+        }
+    }
+
+    void preConfigureDomainObject() {
+        preConfiguredDomainObject = configureDomainObject();
+    }
+
+    private T configureDomainObject() {
         File inputFile = getInputFile();
         T object;
         if (inputFile.exists()) {
@@ -67,7 +87,7 @@ public class GeneratorTask<T> extends ConventionTask {
         beforeConfigured.execute(object);
         generator.configure(object);
         afterConfigured.execute(object);
-        generator.write(object, getOutputFile());
+        return object;
     }
 
     /**

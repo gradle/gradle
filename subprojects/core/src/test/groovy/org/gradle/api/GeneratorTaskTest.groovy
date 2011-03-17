@@ -15,12 +15,12 @@
  */
 package org.gradle.api
 
+import org.gradle.api.internal.tasks.generator.Generator
 import org.gradle.api.tasks.GeneratorTask
 import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.internal.tasks.generator.Generator
 
 class GeneratorTaskTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -47,6 +47,20 @@ class GeneratorTaskTest extends Specification {
 
         then:
         task.inputFile == inputFile
+    }
+
+    def "uses preconfigured domain object"() {
+        def configObject = new TestConfigurationObject()
+        inputFile.text = 'config'
+        task.preConfiguredDomainObject = configObject
+
+        when:
+        task.generate()
+
+        then:
+        1 * task.generator.write(configObject, outputFile)
+        0 * _._
+        task.preConfiguredDomainObject == null
     }
     
     def mergesConfigurationWhenInputFileExists() {
