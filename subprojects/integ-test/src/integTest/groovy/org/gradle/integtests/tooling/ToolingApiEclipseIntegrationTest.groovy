@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.tooling.GradleConnector
 
 class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
 
@@ -124,7 +124,7 @@ project(':a') {
     def canBuildEclipseProjectHierarchyForAMultiProjectBuild() {
         def projectDir = dist.testDir
         projectDir.file('settings.gradle').text = '''
-            include "child1", "child2", "child1:child1"
+            include "child1", "child2", "child1:grandChild1"
             rootProject.name = 'root'
 '''
         projectDir.file('child1').mkdirs()
@@ -145,7 +145,7 @@ project(':a') {
         child1.children.size() == 1
 
         EclipseProject child1Child1 = child1.children[0]
-        child1Child1.name == 'child1'
+        child1Child1.name == 'grandChild1'
         child1Child1.parent == child1
         child1Child1.children.size() == 0
 

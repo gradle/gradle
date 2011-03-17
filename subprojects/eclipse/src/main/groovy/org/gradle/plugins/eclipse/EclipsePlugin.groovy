@@ -15,20 +15,16 @@
  */
 package org.gradle.plugins.eclipse
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.plugins.IdePlugin
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.api.JavaVersion
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.plugins.eclipse.model.BuildCommand
-import org.gradle.plugins.eclipse.model.Facet
-import org.gradle.plugins.eclipse.model.Library
-import org.gradle.plugins.eclipse.model.Classpath
-import org.gradle.plugins.eclipse.model.WbResource
+import org.gradle.plugins.eclipse.model.*
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -43,6 +39,8 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_WTP_FACET_TASK_NAME = "eclipseWtpFacet"
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
+
+    EclipseProject eclipseProject
 
     @Override protected String getLifecycleTaskName() {
         return 'eclipse'
@@ -112,6 +110,7 @@ class EclipsePlugin extends IdePlugin {
                 }
             }
         }
+        eclipseProject = project.eclipseProject
     }
 
     private void configureEclipseClasspath(Project project) {

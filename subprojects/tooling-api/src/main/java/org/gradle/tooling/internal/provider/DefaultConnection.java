@@ -28,6 +28,8 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.plugins.eclipse.EclipseConfigurer;
+import org.gradle.plugins.eclipse.EclipsePlugin;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
@@ -72,7 +74,9 @@ public class DefaultConnection implements ConnectionVersion2 {
         public void projectsEvaluated(Gradle gradle) {
             this.gradle = (GradleInternal) gradle;
             try {
-                build(gradle.getRootProject());
+                Project root = gradle.getRootProject();
+                configureEclipsePlugin(root);
+                build(root);
             } finally {
                 this.gradle = null;
             }
@@ -121,12 +125,24 @@ public class DefaultConnection implements ConnectionVersion2 {
                 children.add(build(child));
             }
 
-            DefaultEclipseProject eclipseProject = new DefaultEclipseProject(project.getName(), project.getPath(), project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
+            String name = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseProject().getProjectName();
+            DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
             for (DefaultEclipseProject child : children) {
                 child.setParent(eclipseProject);
             }
             addProject(project, eclipseProject);
             return eclipseProject;
+        }
+
+        private void configureEclipsePlugin(Project root) {
+            Set<Project> allprojects = root.getAllprojects();
+            for (Project p : allprojects) {
+                if (!p.getPlugins().hasPlugin("eclipse")) {
+                    p.getPlugins().apply("eclipse");
+                }
+            }
+            EclipseConfigurer eclipseConfigurer = (EclipseConfigurer) root.getTasks().getByName("eclipseConfigurer");
+            eclipseConfigurer.configure();
         }
 
         private void addProject(Project project, DefaultEclipseProject eclipseProject) {
