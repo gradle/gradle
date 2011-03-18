@@ -1,7 +1,11 @@
 apply plugin: 'maven'
 
 configurations {
+    publishCompile
     publishRuntime
+    compile {
+        extendsFrom publishCompile
+    }
 }
 
 task sourceJar(type: Jar) {
@@ -13,8 +17,11 @@ task generatePom {
     pomFile = new File(temporaryDir, 'pom.xml')
     doLast {
         dependencies {
-            configurations.runtime.getAllDependencies(ProjectDependency).each {
+            configurations.publishCompile.getAllDependencies(ProjectDependency).each {
                 publishRuntime "org.gradle:gradle-${it.dependencyProject.name}:${version}"
+            }
+            configurations.publishCompile.getAllDependencies(ExternalModuleDependency).each {
+                publishRuntime it
             }
         }
 

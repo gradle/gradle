@@ -40,10 +40,11 @@ dependencies {
 
     compile libraries.ivy, "com.jcraft:jsch:0.1.42@jar", 'com.jcraft:jzlib:1.0.7@jar'
 
+    publishCompile libraries.slf4j_api
+
     compile libraries.ant,
             libraries.logback_classic,
             libraries.logback_core,
-            libraries.slf4j_api,
             libraries.jul_to_slf4j,
             libraries.commons_io,
             libraries.commons_lang,
@@ -71,9 +72,6 @@ dependencies {
 
     testFixtures sourceSets.test.classes, sourceSets.main.classes
     integTestFixtures sourceSets.integTest.classes
-
-    // TODO - remove this duplication
-    publishRuntime libraries.slf4j_api
 }
 
 task versionProperties(type: WriteVersionProperties) {

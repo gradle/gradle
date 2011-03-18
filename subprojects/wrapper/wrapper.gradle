@@ -17,7 +17,7 @@ apply plugin: 'groovy'
 
 dependencies {
     groovy libraries.groovy_depends
-    compile project(':core')
+    publishCompile project(':core')
 
     compile libraries.commons_io, libraries.ant
 
