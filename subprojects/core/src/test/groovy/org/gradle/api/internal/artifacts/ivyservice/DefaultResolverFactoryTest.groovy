@@ -16,18 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.internal.Factory
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.apache.ivy.plugins.resolver.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import org.gradle.api.internal.Factory
-import org.gradle.util.SystemProperties
 
 /**
  * @author Hans Dockter
@@ -96,11 +95,16 @@ class DefaultResolverFactoryTest {
         File dir2 = new File('/rootFolder2')
         String expectedName = 'libs'
         FileSystemResolver resolver = factory.createFlatDirResolver(expectedName, [dir1, dir2] as File[])
-        checkNoModuleRepository(resolver, expectedName,
-                [dir1, dir2].collect {"$it.absolutePath/$ResolverContainer.FLAT_DIR_RESOLVER_PATTERN"}, [])
-        assertEquals(new File(SystemProperties.javaIoTmpDir).getCanonicalPath(),
-                new File(((DefaultRepositoryCacheManager) resolver.getRepositoryCacheManager()).getBasedir().getParent()).getCanonicalPath())
-
+        def expectedPatterns = [
+                "$dir1.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
+                "$dir1.absolutePath/[artifact](-[classifier]).[ext]",
+                "$dir2.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
+                "$dir2.absolutePath/[artifact](-[classifier]).[ext]"
+        ]
+        assertEquals(expectedName, resolver.name)
+        assertEquals([], resolver.ivyPatterns)
+        assert expectedPatterns == resolver.artifactPatterns
+        assertTrue(resolver.allownomd)
     }
 
     @Test public void testCreateLocalMavenRepo() {
@@ -114,13 +118,5 @@ class DefaultResolverFactoryTest {
         def repo = factory.createMavenLocalResolver('name')
         assertThat(repo, instanceOf(GradleIBiblioResolver))
         assertThat(repo.root, equalTo(repoDir.toURI().toString() + '/'))
-    }
-
-    private void checkNoModuleRepository(RepositoryResolver resolver, String expectedName, List expectedArtifactPatterns,
-                                         List expectedIvyPatterns) {
-        assertEquals(expectedName, resolver.name)
-        assertEquals(expectedIvyPatterns, resolver.ivyPatterns)
-        assert expectedArtifactPatterns == resolver.artifactPatterns
-        assertTrue(resolver.allownomd)
     }
 }

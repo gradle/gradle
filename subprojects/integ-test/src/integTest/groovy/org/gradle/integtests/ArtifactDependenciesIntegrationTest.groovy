@@ -37,6 +37,12 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void canResolveDependenciesFromAFlatDir() {
+        File buildFile = testFile("projectWithFlatDir.gradle");
+        usingBuildFile(buildFile).run();
+    }
+
+    @Test
     public void canHaveConfigurationHierarchy() {
         File buildFile = testFile("projectWithConfigurationHierarchy.gradle");
         usingBuildFile(buildFile).run();
