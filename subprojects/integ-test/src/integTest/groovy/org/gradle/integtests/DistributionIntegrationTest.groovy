@@ -90,9 +90,20 @@ class DistributionIntegrationTest {
         assertIsGradleJar(contentsDir.file("lib/gradle-launcher-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-tooling-api-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-wrapper-${version}.jar"))
+
+        // TODO - these should be in lib/plugins
+        assertIsGradleJar(contentsDir.file("lib/gradle-plugins-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-eclipse-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-scala-${version}.jar"))
+
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-code-quality-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-plugins-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-antlr-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-announce-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-idea-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-sonar-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${version}.jar"))
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()
