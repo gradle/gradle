@@ -46,8 +46,6 @@ class EclipsePlugin extends IdePlugin {
     EclipseDomainModel getEclipseDomainModel() {
         if (eclipseProjectTask == null) {
             throw new IllegalStateException("Tasks have not yet been configured. Was the plugin applied?")
-        } else if (eclipseProjectTask.domainObject == null) {
-            throw new IllegalStateException("It seems configuration tasks have not been ran yet. Domain model not available.")
         }
         new EclipseDomainModel(project: eclipseProjectTask.domainObject);
     }

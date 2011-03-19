@@ -34,7 +34,7 @@ class EclipsePluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final EclipsePlugin eclipsePlugin = new EclipsePlugin()
 
-    def "throws meaningful exception when client wants model too early"() {
+    def "throws meaningful exception when model accessed too early"() {
         when:
         eclipsePlugin.getEclipseDomainModel()
 

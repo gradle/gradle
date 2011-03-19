@@ -50,7 +50,7 @@ class GeneratorTaskTest extends Specification {
     }
 
     def "fails gracefully when domainObject not configured"() {
-        task.domainObject = null
+        given: task.domainObject = null
 
         when: task.generate()
 
@@ -114,6 +114,14 @@ class GeneratorTaskTest extends Specification {
         1 * generator.defaultInstance() >> configObject
         1 * generator.configure(configObject)
         1 * action.execute(configObject)
+    }
+
+    def "fails gracefully when domain object not ready yet"() {
+        when:
+        task.domainObject
+
+        then:
+        thrown IllegalStateException
     }
 }
 

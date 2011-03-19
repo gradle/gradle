@@ -60,10 +60,7 @@ public class GeneratorTask<T> extends ConventionTask implements ConfigurationTar
 
     @TaskAction
     void generate() {
-        if (domainObject == null) {
-            throw new IllegalStateException("Domain object was not configured for this task. See configureDomainObject() method.");
-        }
-        generator.write(domainObject, getOutputFile());
+        generator.write(getDomainObject(), getOutputFile());
     }
 
     public void configureDomainObject() {
@@ -167,6 +164,17 @@ public class GeneratorTask<T> extends ConventionTask implements ConfigurationTar
      */
     public void whenConfigured(Action<? super T> action) {
         afterConfigured.add(action);
+    }
+
+    protected T getDomainObject() {
+        if (this.domainObject == null) {
+            throw new IllegalStateException("Domain object was not configured for this task. See configureDomainObject() method. Did the configuration task run?");
+        }
+        return this.domainObject;
+    }
+
+    protected void setDomainObject(T domainObject) {
+        this.domainObject = domainObject;
     }
 
 }
