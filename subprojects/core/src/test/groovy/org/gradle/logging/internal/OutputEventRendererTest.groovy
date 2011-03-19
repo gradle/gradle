@@ -19,6 +19,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
+import org.gradle.api.specs.Spec
 
 class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -26,7 +27,7 @@ class OutputEventRendererTest extends OutputSpecification {
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer()
+        renderer = new OutputEventRenderer(Mock(Spec))
         renderer.addStandardOutput(outputs.stdOutPrintStream)
         renderer.addStandardError(outputs.stdErrPrintStream)
         renderer.configure(LogLevel.INFO)

@@ -39,9 +39,11 @@ import static org.junit.Assert.fail;
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final TestFile gradleHomeDir;
+    private final List<String> gradleOpts = new ArrayList<String>();
 
     public ForkingGradleExecuter(TestFile gradleHomeDir) {
         this.gradleHomeDir = gradleHomeDir;
+        gradleOpts.add("-ea");
     }
 
     public TestFile getGradleHomeDir() {
@@ -58,6 +60,13 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     protected ExecutionFailure doRunWithFailure() {
         Map result = doRun(true);
         return new ForkedExecutionFailure(result);
+    }
+
+    /**
+     * Adds some options to the GRADLE_OPTS environment variable to use.
+     */
+    public void addGradleOpts(String... opts) {
+        gradleOpts.addAll(Arrays.asList(opts));
     }
 
     protected Map doRun(boolean expectFailure) {
@@ -81,7 +90,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.setErrorOutput(errStream);
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", Jvm.current().getJavaHome());
-        builder.environment("GRADLE_OPTS", "-ea");
+        builder.environment("GRADLE_OPTS", GUtil.join(gradleOpts, " "));
         builder.environment(getEnvironmentVars());
         builder.workingDir(getWorkingDir());
 

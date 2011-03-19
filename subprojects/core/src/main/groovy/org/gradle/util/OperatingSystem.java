@@ -34,12 +34,26 @@ public class OperatingSystem {
             }
             return scriptPath + ".bat";
         }
+
+        @Override
+        public String getNativePrefix() {
+            String arch = System.getProperty("os.arch");
+            if ("i386".equals(arch)) {
+                arch = "x86";
+            }
+            return  "win32-" + arch;
+        }
     };
 
     private static final OperatingSystem OS_X = new OperatingSystem() {
         @Override
         public boolean isCaseSensitiveFileSystem() {
             return false;
+        }
+
+        @Override
+        public String getNativePrefix() {
+            return "darwin";
         }
     };
 
@@ -81,5 +95,26 @@ public class OperatingSystem {
 
     public String getScriptName(String scriptPath) {
         return scriptPath;
+    }
+
+    public String getNativePrefix() {
+        String name = System.getProperty("os.name");
+        String arch = System.getProperty("os.arch");
+        String osPrefix = name.toLowerCase();
+        if ("x86".equals(arch)) {
+            arch = "i386";
+        }
+        if ("x86_64".equals(arch)) {
+            arch = "amd64";
+        }
+        if ("powerpc".equals(arch)) {
+            arch = "ppc";
+        }
+        int space = osPrefix.indexOf(" ");
+        if (space != -1) {
+            osPrefix = osPrefix.substring(0, space);
+        }
+        osPrefix += "-" + arch;
+        return osPrefix;
     }
 }

@@ -16,20 +16,34 @@
 
 package org.gradle.logging;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.initialization.CommandLineConverter;
 import org.gradle.logging.internal.*;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.TrueTimeProvider;
+
+import java.io.FileDescriptor;
 
 /**
  * A {@link org.gradle.api.internal.project.ServiceRegistry} implementation which provides the logging services.
  */
 public class LoggingServiceRegistry extends DefaultServiceRegistry {
     private TextStreamOutputEventListener stdoutListener;
+    private final boolean detectConsole;
 
     public LoggingServiceRegistry() {
+        this(true);
+    }
+
+    /**
+     * @param detectConsole If true, attempts to detect if stdout/stderr are attached to a console. If false, assumes they are not.
+     */
+    public LoggingServiceRegistry(boolean detectConsole) {
+        this.detectConsole = detectConsole;
         stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
     }
 
@@ -65,6 +79,12 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
     
     protected OutputEventRenderer createOutputEventRenderer() {
-        return new OutputEventRenderer().addStandardOutputAndError();
+        Spec<FileDescriptor> terminalDetector;
+        if (detectConsole) {
+            terminalDetector = new TerminalDetector(StartParameter.DEFAULT_GRADLE_USER_HOME);
+        } else {
+            terminalDetector = Specs.satisfyNone();
+        }
+        return new OutputEventRenderer(terminalDetector).addStandardOutputAndError();
     }
 }

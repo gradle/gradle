@@ -340,6 +340,12 @@ public class TestFile extends File implements TestFileContext {
         return this;
     }
 
+    public TestFile assertIsEmptyDir() {
+        assertIsDir();
+        assertHasDescendants();
+        return this;
+    }
+
     private void visit(Set<String> names, String prefix, File file) {
         for (File child : file.listFiles()) {
             if (child.isFile()) {
