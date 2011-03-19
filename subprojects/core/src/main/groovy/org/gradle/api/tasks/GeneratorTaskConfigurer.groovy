@@ -20,6 +20,13 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.internal.tasks.generator.ConfigurationTarget
 
 /**
+ * A {@code GeneratorTaskConfigurer} configures necessary domain object for {@code GeneratorTask}.
+ * To define GeneratorTaskConfigurer correctly you should:
+ * <ul>
+ * <li>set your GeneratorTask instance to configurationTarget property.
+ * <li>make sure the GeneratorTask instance depends on GeneratorTaskConfigurer instance.
+ * </ul>
+ * <p>
  * @author Szczepan Faber, @date: 19.03.11
  */
 class GeneratorTaskConfigurer extends DefaultTask {

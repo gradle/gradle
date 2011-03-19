@@ -26,9 +26,10 @@ import org.gradle.listener.ActionBroadcast;
 import java.io.File;
 
 /**
- * <p>A {@code GeneratorTask} generates a configuration file based on a domain object of type T. When executed, the
- * task:</p>
- *
+ * <p>A {@code GeneratorTask} generates a configuration file based on a domain object of type T.
+ * In order to use this task you also need to define a {@code GeneratorTaskConfigurer} task.
+ * <p>
+ * Given that GeneratorTask was configured along with GeneratorTaskConfigurer, when executed the task:
  * <ul>
  *
  * <li>loads the object from the input file, if it exists.</li>
