@@ -40,7 +40,7 @@ class IdeaPluginTest extends Specification {
         childProject.tasks.findByName('ideaConfigurer') == null
     }
 
-    def "adds domain object configurers"() {
+    def "adds generator task configurers with required dependencies"() {
         when:
         applyPluginToProjects()
 
@@ -50,7 +50,17 @@ class IdeaPluginTest extends Specification {
         childProject.ideaModuleGeneratorTaskConfigurer.dependsOn.contains(project.ideaConfigurer)
     }
 
-    def "makes all generation tasks depend on configurer"() {
+    def "makes sure generator tasks act after they are configured"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        project.ideaWorkspace.dependsOn.contains(project.ideaWorkspaceGeneratorTaskConfigurer)
+        project.ideaProject.dependsOn.contains(project.ideaProjectGeneratorTaskConfigurer)
+        childProject.ideaModule.dependsOn.contains(childProject.ideaModuleGeneratorTaskConfigurer)
+    }
+
+    def "makes all generation and clean tasks depend on configurer"() {
         when:
         applyPluginToProjects()
 
