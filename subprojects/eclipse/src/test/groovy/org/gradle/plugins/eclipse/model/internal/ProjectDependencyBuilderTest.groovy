@@ -20,9 +20,9 @@ import spock.lang.Specification
 /**
  * @author Szczepan Faber, @date: 11.03.11
  */
-class ProjectDependencyFactoryTest extends Specification {
+class ProjectDependencyBuilderTest extends Specification {
 
-    def ProjectDependencyFactory factory = new ProjectDependencyFactory()
+    def ProjectDependencyBuilder builder = new ProjectDependencyBuilder()
 
     static class ProjectStub {
         String name
@@ -38,7 +38,7 @@ class ProjectDependencyFactoryTest extends Specification {
         def project = new ProjectStub(name: 'coolProject')
 
         when:
-        def dependency = factory.create(project)
+        def dependency = builder.build(project)
 
         then:
         dependency.path == '/coolProject'
@@ -50,7 +50,7 @@ class ProjectDependencyFactoryTest extends Specification {
         def project = new ProjectStub(eclipseProject: eclipseProject)
 
         when:
-        def dependency = factory.create(project)
+        def dependency = builder.build(project)
 
         then:
         dependency.path == '/eclipse-project'

@@ -18,9 +18,9 @@ package org.gradle.plugins.eclipse.model.internal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.SourceSet
+import org.gradle.plugins.eclipse.EclipseClasspath
 import org.gradle.api.artifacts.*
 import org.gradle.plugins.eclipse.model.*
-import org.gradle.plugins.eclipse.EclipseClasspath
 
 /**
  * @author Hans Dockter
@@ -75,7 +75,7 @@ class ClasspathFactory {
         return getDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations, { it instanceof org.gradle.api.artifacts.ProjectDependency }).collect { projectDependency ->
             projectDependency.dependencyProject
         }.collect { dependencyProject ->
-            new ProjectDependencyFactory().create(dependencyProject)
+            new ProjectDependencyBuilder().build(dependencyProject)
         }
     }
 

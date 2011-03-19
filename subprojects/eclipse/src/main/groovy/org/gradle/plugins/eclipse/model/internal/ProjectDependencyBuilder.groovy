@@ -20,8 +20,8 @@ import org.gradle.plugins.eclipse.model.ProjectDependency
 /**
  * @author Szczepan Faber, @date: 11.03.11
  */
-class ProjectDependencyFactory {
-    ProjectDependency create(gradleProject) {
+class ProjectDependencyBuilder {
+    ProjectDependency build(gradleProject) {
         def name
         if (gradleProject.hasProperty('eclipseProject') && gradleProject.eclipseProject) {
             name = gradleProject.eclipseProject.projectName

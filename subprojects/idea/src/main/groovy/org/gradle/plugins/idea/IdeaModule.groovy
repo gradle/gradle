@@ -24,6 +24,7 @@ import org.gradle.plugins.idea.model.Module
 import org.gradle.plugins.idea.model.ModuleLibrary
 import org.gradle.plugins.idea.model.Path
 import org.gradle.plugins.idea.model.PathFactory
+import org.gradle.plugins.idea.model.internal.ModuleDependencyBuilder
 import org.gradle.api.artifacts.*
 
 /**
@@ -185,7 +186,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
         if (scopes[scope]) {
             return getScopeDependencies(scopes[scope], { it instanceof ProjectDependency }).collect { ProjectDependency dependency ->
                 def project = dependency.dependencyProject
-                new org.gradle.plugins.idea.model.ModuleDependency(project.ideaModule.moduleName, scope)
+                return new ModuleDependencyBuilder().create(project, scope)
             }
         }
         return []

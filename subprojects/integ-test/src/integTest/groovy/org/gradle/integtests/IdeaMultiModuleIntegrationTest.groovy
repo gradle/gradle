@@ -202,4 +202,28 @@ project(':contrib') {
         assert !getFile(project: 'master/shared/api', "shared-api.iml").exists()
         assert !getFile(project: 'master/contrib', "cool-contrib.iml").exists()
     }
+
+    @Test
+    void handlesInternalDependenciesToNonIdeaProjects() {
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << "include 'api', 'nonIdeaProject'"
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+project(':api') {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    dependencies {
+        compile project(':nonIdeaProject')
+    }
+}
+"""
+
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+
+        //then
+        assert getFile(project: 'master/api', 'api.iml').exists()
+    }
 }
