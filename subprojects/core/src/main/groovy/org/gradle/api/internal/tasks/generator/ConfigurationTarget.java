@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.generator
+package org.gradle.api.internal.tasks.generator;
 
 /**
  * @author Szczepan Faber, @date: 19.03.11
  */
 public interface ConfigurationTarget {
 
-    void configureDomainObject()
+    void configureDomainObject();
 
 }

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.api.tasks;
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.internal.tasks.generator.ConfigurationTarget
+import org.gradle.api.DefaultTask;
+import org.gradle.api.internal.tasks.generator.ConfigurationTarget;
 
 /**
  * A {@code GeneratorTaskConfigurer} configures necessary domain object for {@code GeneratorTask}.
@@ -29,12 +29,20 @@ import org.gradle.api.internal.tasks.generator.ConfigurationTarget
  * <p>
  * @author Szczepan Faber, @date: 19.03.11
  */
-class GeneratorTaskConfigurer extends DefaultTask {
+public class GeneratorTaskConfigurer extends DefaultTask {
 
-    ConfigurationTarget configurationTarget
+    ConfigurationTarget configurationTarget;
 
     @TaskAction
-    void configure() {
-        configurationTarget.configureDomainObject()
+    public void configure() {
+        configurationTarget.configureDomainObject();
+    }
+
+    public ConfigurationTarget getConfigurationTarget() {
+        return configurationTarget;
+    }
+
+    public void setConfigurationTarget(ConfigurationTarget configurationTarget) {
+        this.configurationTarget = configurationTarget;
     }
 }
