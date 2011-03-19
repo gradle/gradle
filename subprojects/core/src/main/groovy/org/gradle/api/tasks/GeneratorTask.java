@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.generator.ConfigurationTarget;
 import org.gradle.api.internal.tasks.generator.Generator;
 import org.gradle.api.specs.Specs;
 import org.gradle.listener.ActionBroadcast;
@@ -44,7 +45,7 @@ import java.io.File;
  *
  * @param <T> The domain object for the configuration file.
  */
-public class GeneratorTask<T> extends ConventionTask {
+public class GeneratorTask<T> extends ConventionTask implements ConfigurationTarget {
     private File inputFile;
     private File outputFile;
     private final ActionBroadcast<T> beforeConfigured = new ActionBroadcast<T>();

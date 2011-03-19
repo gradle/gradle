@@ -45,9 +45,9 @@ class IdeaPluginTest extends Specification {
         applyPluginToProjects()
 
         then:
-        project.ideaWorkspaceDomainObjectConfigurer.dependsOn.contains(project.ideaConfigurer)
-        project.ideaProjectDomainObjectConfigurer.dependsOn.contains(project.ideaConfigurer)
-        childProject.ideaModuleDomainObjectConfigurer.dependsOn.contains(project.ideaConfigurer)
+        project.ideaWorkspaceGeneratorTaskConfigurer.dependsOn.contains(project.ideaConfigurer)
+        project.ideaProjectGeneratorTaskConfigurer.dependsOn.contains(project.ideaConfigurer)
+        childProject.ideaModuleGeneratorTaskConfigurer.dependsOn.contains(project.ideaConfigurer)
     }
 
     def "makes all generation tasks depend on configurer"() {

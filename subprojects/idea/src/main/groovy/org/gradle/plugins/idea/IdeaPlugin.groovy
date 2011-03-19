@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.plugins.IdePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.GeneratorTaskConfigurer
 
 /**
  * @author Hans Dockter
@@ -57,7 +58,7 @@ class IdeaPlugin extends IdePlugin {
                 outputFile = new File(project.projectDir, project.name + ".iws")
             }
             addWorker(task)
-            configureDomainObjectConfigurer(task)
+            configureGeneratorTaskConfigurer(task)
             shouldDependOnConfigurer(task)
         }
     }
@@ -72,7 +73,7 @@ class IdeaPlugin extends IdePlugin {
         }
 
         addWorker(task)
-        configureDomainObjectConfigurer(task)
+        configureGeneratorTaskConfigurer(task)
         shouldDependOnConfigurer(task)
     }
 
@@ -85,17 +86,17 @@ class IdeaPlugin extends IdePlugin {
                 wildcards = ['!?*.java', '!?*.groovy']
             }
             addWorker(task)
-            configureDomainObjectConfigurer(task)
+            configureGeneratorTaskConfigurer(task)
             shouldDependOnConfigurer(task)
         }
     }
 
-    private configureDomainObjectConfigurer(task) {
-        def domainObjConfigurer = task.project.task(task.name + 'DomainObjectConfigurer', description: 'Configures the domain object before generation task can act', type: IdeaDomainObjectConfigurer) {
+    private configureGeneratorTaskConfigurer(task) {
+        def generatorTaskConfigurer = task.project.task(task.name + 'GeneratorTaskConfigurer', description: 'Configures the domain object before generation task can act', type: GeneratorTaskConfigurer) {
             configurationTarget = task
         }
-        task.dependsOn(domainObjConfigurer)
-        domainObjConfigurer.dependsOn(task.project.rootProject.ideaConfigurer)
+        task.dependsOn(generatorTaskConfigurer)
+        generatorTaskConfigurer.dependsOn(task.project.rootProject.ideaConfigurer)
     }
 
     private shouldDependOnConfigurer(Task task) {

@@ -46,7 +46,7 @@ import org.gradle.api.artifacts.*
  *
  * @author Hans Dockter
  */
-public class IdeaModule extends XmlGeneratorTask<Module> implements ConfigurationTarget {
+public class IdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The content root directory of the module.
      */

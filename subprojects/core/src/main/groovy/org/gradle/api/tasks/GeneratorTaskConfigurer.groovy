@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.idea
+package org.gradle.api.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.internal.tasks.generator.ConfigurationTarget
 
 /**
  * @author Szczepan Faber, @date: 19.03.11
  */
-class IdeaDomainObjectConfigurer extends DefaultTask {
+class GeneratorTaskConfigurer extends DefaultTask {
 
     ConfigurationTarget configurationTarget
 

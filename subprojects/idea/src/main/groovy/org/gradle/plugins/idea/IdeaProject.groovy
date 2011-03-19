@@ -25,7 +25,7 @@ import org.gradle.plugins.idea.model.Project
  *
  * @author Hans Dockter
  */
-public class IdeaProject extends XmlGeneratorTask<Project> implements ConfigurationTarget {
+public class IdeaProject extends XmlGeneratorTask<Project> {
     /**
      * The subprojects that should be mapped to modules in the ipr file. The subprojects will only be mapped if the Idea plugin has been
      * applied to them.
