@@ -17,7 +17,6 @@ package org.gradle.plugins.eclipse
 
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.plugins.ide.DeduplicationTarget
-import org.gradle.api.internal.plugins.ide.DomainObjectPreConfigurer
 import org.gradle.api.internal.plugins.ide.ProjectDeduper
 import org.gradle.api.tasks.TaskAction
 
@@ -32,7 +31,5 @@ class EclipseConfigurer extends ConventionTask {
         new ProjectDeduper().dedupe(eclipseProjects, { project ->
             new DeduplicationTarget(project: project, moduleName: project.eclipseProject.projectName, moduleNameSetter: { project.eclipseProject.projectName = it })
         })
-
-        new DomainObjectPreConfigurer().preConfigure(eclipseProjects)
     }
 }

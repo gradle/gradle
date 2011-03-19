@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildAdapter;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -25,6 +26,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.GeneratorTaskConfigurer;
 import org.gradle.plugins.eclipse.EclipseConfigurer;
 import org.gradle.plugins.eclipse.EclipsePlugin;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
@@ -114,8 +116,18 @@ public class ModelBuilder extends BuildAdapter {
                 p.getPlugins().apply("eclipse");
             }
         }
+
+        //TODO SF: this is quite hacky for now. We should really execute 'eclipseConfigurer' task in a proper gradle fashion
         EclipseConfigurer eclipseConfigurer = (EclipseConfigurer) root.getTasks().getByName("eclipseConfigurer");
         eclipseConfigurer.configure();
+
+        for (Project p : allprojects) {
+            p.getTasks().withType(GeneratorTaskConfigurer.class, new Action<GeneratorTaskConfigurer>() {
+                public void execute(GeneratorTaskConfigurer generatorTaskConfigurer) {
+                    generatorTaskConfigurer.configure();
+                }
+            });
+        }
     }
 
     private void addProject(Project project, DefaultEclipseProject eclipseProject) {

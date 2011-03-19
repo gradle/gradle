@@ -45,9 +45,9 @@ class IdeaPluginTest extends Specification {
         applyPluginToProjects()
 
         then:
-        project.ideaWorkspaceGeneratorTaskConfigurer.dependsOn.contains(project.ideaConfigurer)
-        project.ideaProjectGeneratorTaskConfigurer.dependsOn.contains(project.ideaConfigurer)
-        childProject.ideaModuleGeneratorTaskConfigurer.dependsOn.contains(project.ideaConfigurer)
+        project.ideaWorkspaceConfigurer.dependsOn.contains(project.ideaConfigurer)
+        project.ideaProjectConfigurer.dependsOn.contains(project.ideaConfigurer)
+        childProject.ideaModuleConfigurer.dependsOn.contains(project.ideaConfigurer)
     }
 
     def "makes sure generator tasks act after they are configured"() {
@@ -55,9 +55,9 @@ class IdeaPluginTest extends Specification {
         applyPluginToProjects()
 
         then:
-        project.ideaWorkspace.dependsOn.contains(project.ideaWorkspaceGeneratorTaskConfigurer)
-        project.ideaProject.dependsOn.contains(project.ideaProjectGeneratorTaskConfigurer)
-        childProject.ideaModule.dependsOn.contains(childProject.ideaModuleGeneratorTaskConfigurer)
+        project.ideaWorkspace.dependsOn.contains(project.ideaWorkspaceConfigurer)
+        project.ideaProject.dependsOn.contains(project.ideaProjectConfigurer)
+        childProject.ideaModule.dependsOn.contains(childProject.ideaModuleConfigurer)
     }
 
     def "makes all generation and clean tasks depend on configurer"() {

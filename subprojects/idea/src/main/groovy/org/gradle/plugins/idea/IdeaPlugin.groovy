@@ -92,7 +92,7 @@ class IdeaPlugin extends IdePlugin {
     }
 
     private configureGeneratorTaskConfigurer(task) {
-        def generatorTaskConfigurer = task.project.task(task.name + 'GeneratorTaskConfigurer', description: 'Configures the domain object before generation task can act', type: GeneratorTaskConfigurer) {
+        def generatorTaskConfigurer = task.project.task(task.name + 'Configurer', description: 'Configures the domain object before generation task can act', type: GeneratorTaskConfigurer) {
             configurationTarget = task
         }
         task.dependsOn(generatorTaskConfigurer)

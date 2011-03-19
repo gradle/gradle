@@ -42,17 +42,6 @@ class EclipsePluginTest extends Specification {
         thrown IllegalStateException
     }
 
-    def "provides eclipse model"() {
-        given:
-        eclipsePlugin.apply(project)
-
-        when:
-        def model = eclipsePlugin.getEclipseDomainModel()
-
-        then:
-        model != null
-    }
-
     def "adds configurer task to root project only"() {
         given:
         def child = HelperUtil.createChildProject(project, "child")
@@ -66,13 +55,28 @@ class EclipsePluginTest extends Specification {
         child.tasks.findByName('eclipseConfigurer') == null
     }
 
-    def "makes tasks depend on configurer"() {
+    def "makes sure that generator tasks are configured before they act"() {
         when:
         project.apply(plugin: 'java-base')
         eclipsePlugin.apply(project)
 
         then:
         [project.eclipseClasspath, project.eclipseJdt, project.eclipseProject].each {
+            assert it.dependsOn.contains(project.eclipseConfigurer)
+        }
+
+        project.eclipseClasspath.dependsOn.contains(project.eclipseClasspathConfigurer)
+        project.eclipseJdt.dependsOn.contains(project.eclipseJdtConfigurer)
+        project.eclipseProject.dependsOn.contains(project.eclipseProjectConfigurer)
+    }
+
+    def "makes sure that generator configuration tasks run after plugin configurer"() {
+        when:
+        project.apply(plugin: 'java-base')
+        eclipsePlugin.apply(project)
+
+        then:
+        [project.eclipseClasspathConfigurer, project.eclipseJdtConfigurer, project.eclipseProjectConfigurer].each {
             assert it.dependsOn.contains(project.eclipseConfigurer)
         }
     }
