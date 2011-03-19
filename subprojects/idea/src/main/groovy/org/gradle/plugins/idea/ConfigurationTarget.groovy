@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.plugins.idea
 
-import org.gradle.api.tasks.XmlGeneratorTask
-import org.gradle.plugins.idea.model.Workspace
-
 /**
- * Generates an IDEA workspace file.
- *
- * @author Hans Dockter
+ * @author Szczepan Faber, @date: 19.03.11
  */
-public class IdeaWorkspace extends XmlGeneratorTask<Workspace> implements ConfigurationTarget {
+public interface ConfigurationTarget {
 
-    @Override protected Workspace create() {
-        return new Workspace(xmlTransformer)
-    }
+    void configureDomainObject()
 
-    @Override protected void configure(Workspace object) {
-    }
 }

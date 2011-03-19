@@ -23,6 +23,7 @@ import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.idea.model.Module
 import org.gradle.plugins.idea.model.ModuleLibrary
 import org.gradle.plugins.idea.model.Path
+import org.gradle.plugins.idea.model.PathFactory
 import org.gradle.api.artifacts.*
 
 /**
@@ -45,7 +46,7 @@ import org.gradle.api.artifacts.*
  *
  * @author Hans Dockter
  */
-public class IdeaModule extends XmlGeneratorTask<Module> {
+public class IdeaModule extends XmlGeneratorTask<Module> implements ConfigurationTarget {
     /**
      * The content root directory of the module.
      */
@@ -137,11 +138,10 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
      */
     Map<String, Map<String, Configuration>> scopes = [:]
 
-    Module moduleModel
-
     @Override protected Module create() {
-        configurePathFactory(moduleModel)
-        return moduleModel
+        Module module = new Module(xmlTransformer)
+        configurePathFactory(module)
+        return module
     }
 
     @Override protected void configure(Module module) {
@@ -299,14 +299,20 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     }
 
     protected Path getPath(File file) {
-        return moduleModel.pathFactory.path(file)
+        return pathFactory.path(file)
     }
 
-    def configurePathFactory(Module moduleModel) {
-        moduleModel.pathFactory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
+    def configurePathFactory(Module module) {
+        module.pathFactory = pathFactory
+    }
+
+    protected PathFactory getPathFactory() {
+        PathFactory factory = new PathFactory()
+        factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
         variables.each { key, value ->
-            moduleModel.pathFactory.addPathVariable(key, value)
+            factory.addPathVariable(key, value)
         }
+        return factory
     }
 
     /**

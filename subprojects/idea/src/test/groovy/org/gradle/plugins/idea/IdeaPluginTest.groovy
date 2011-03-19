@@ -40,6 +40,16 @@ class IdeaPluginTest extends Specification {
         childProject.tasks.findByName('ideaConfigurer') == null
     }
 
+    def "adds domain object configurers"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        project.ideaWorkspaceDomainObjectConfigurer.dependsOn.contains(project.ideaConfigurer)
+        project.ideaProjectDomainObjectConfigurer.dependsOn.contains(project.ideaConfigurer)
+        childProject.ideaModuleDomainObjectConfigurer.dependsOn.contains(project.ideaConfigurer)
+    }
+
     def "makes all generation tasks depend on configurer"() {
         when:
         applyPluginToProjects()

@@ -59,35 +59,23 @@ public class GeneratorTask<T> extends ConventionTask {
 
     @TaskAction
     void generate() {
-        T object;
-        if (domainObject != null) {
-            object = domainObject;
-        } else {
-            object = configureDomainObject();
+        if (domainObject == null) {
+            throw new IllegalStateException("Domain object was not configured for this task. See configureDomainObject() method.");
         }
-        try {
-            generator.write(object, getOutputFile());
-        } finally {
-            domainObject = null;
-        }
+        generator.write(domainObject, getOutputFile());
     }
 
-    void preConfigureDomainObject() {
-        domainObject = configureDomainObject();
-    }
-
-    private T configureDomainObject() {
-        File inputFile = getInputFile();
+    public void configureDomainObject() {
         T object;
-        if (inputFile.exists()) {
-            object = generator.read(inputFile);
+        if (getInputFile().exists()) {
+            object = generator.read(getInputFile());
         } else {
             object = generator.defaultInstance();
         }
         beforeConfigured.execute(object);
         generator.configure(object);
         afterConfigured.execute(object);
-        return object;
+        domainObject = object;
     }
 
     /**

@@ -49,18 +49,12 @@ class GeneratorTaskTest extends Specification {
         task.inputFile == inputFile
     }
 
-    def "uses preconfigured domain object"() {
-        def configObject = new TestConfigurationObject()
-        inputFile.text = 'config'
-        task.domainObject = configObject
+    def "fails gracefully when domainObject not configured"() {
+        task.domainObject = null
 
-        when:
-        task.generate()
+        when: task.generate()
 
-        then:
-        1 * task.generator.write(configObject, outputFile)
-        0 * _._
-        task.domainObject == null
+        then: thrown IllegalStateException
     }
     
     def mergesConfigurationWhenInputFileExists() {
@@ -68,6 +62,7 @@ class GeneratorTaskTest extends Specification {
         inputFile.text = 'config'
 
         when:
+        task.configureDomainObject()
         task.generate()
 
         then:
@@ -81,6 +76,7 @@ class GeneratorTaskTest extends Specification {
         def configObject = new TestConfigurationObject()
 
         when:
+        task.configureDomainObject()
         task.generate()
 
         then:
@@ -96,6 +92,7 @@ class GeneratorTaskTest extends Specification {
         task.beforeConfigured(action)
 
         when:
+        task.configureDomainObject()
         task.generate()
 
         then:
@@ -110,6 +107,7 @@ class GeneratorTaskTest extends Specification {
         task.whenConfigured(action)
 
         when:
+        task.configureDomainObject()
         task.generate()
 
         then:

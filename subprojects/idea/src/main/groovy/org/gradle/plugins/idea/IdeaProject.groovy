@@ -25,7 +25,7 @@ import org.gradle.plugins.idea.model.Project
  *
  * @author Hans Dockter
  */
-public class IdeaProject extends XmlGeneratorTask<Project> {
+public class IdeaProject extends XmlGeneratorTask<Project> implements ConfigurationTarget {
     /**
      * The subprojects that should be mapped to modules in the ipr file. The subprojects will only be mapped if the Idea plugin has been
      * applied to them.
@@ -44,11 +44,10 @@ public class IdeaProject extends XmlGeneratorTask<Project> {
     @Input
     Set wildcards
 
-    Project projectModel
-
     Project create() {
-        configurePathFactory(projectModel)
-        return projectModel
+        def project = new Project(xmlTransformer)
+        configurePathFactory(project)
+        return project
     }
 
     void configure(Project projectModel) {
@@ -62,7 +61,7 @@ public class IdeaProject extends XmlGeneratorTask<Project> {
         projectModel.configure(modules, javaVersion, wildcards)
     }
 
-    private def configurePathFactory(Project projectModel) {
-        projectModel.pathFactory.addPathVariable('PROJECT_DIR', outputFile.parentFile)
+    private def configurePathFactory(Project project) {
+        project.pathFactory.addPathVariable('PROJECT_DIR', outputFile.parentFile)
     }
 }

@@ -55,9 +55,9 @@ class IdeaPlugin extends IdePlugin {
         if (isRoot(project)) {
             def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: IdeaWorkspace) {
                 outputFile = new File(project.projectDir, project.name + ".iws")
-                workspaceModel = new org.gradle.plugins.idea.model.Workspace(xmlTransformer)
             }
             addWorker(task)
+            configureDomainObjectConfigurer(task)
             shouldDependOnConfigurer(task)
         }
     }
@@ -69,10 +69,10 @@ class IdeaPlugin extends IdePlugin {
             conventionMapping.sourceDirs = { [] as LinkedHashSet }
             conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
             conventionMapping.testSourceDirs = { [] as LinkedHashSet }
-            moduleModel = new org.gradle.plugins.idea.model.Module(xmlTransformer)
         }
 
         addWorker(task)
+        configureDomainObjectConfigurer(task)
         shouldDependOnConfigurer(task)
     }
 
@@ -83,11 +83,19 @@ class IdeaPlugin extends IdePlugin {
                 subprojects = project.rootProject.allprojects
                 javaVersion = JavaVersion.VERSION_1_6.toString()
                 wildcards = ['!?*.java', '!?*.groovy']
-                projectModel = new org.gradle.plugins.idea.model.Project(xmlTransformer)
             }
             addWorker(task)
+            configureDomainObjectConfigurer(task)
             shouldDependOnConfigurer(task)
         }
+    }
+
+    private configureDomainObjectConfigurer(task) {
+        def domainObjConfigurer = task.project.task(task.name + 'DomainObjectConfigurer', description: 'Configures the domain object before generation task can act', type: IdeaDomainObjectConfigurer) {
+            configurationTarget = task
+        }
+        task.dependsOn(domainObjConfigurer)
+        domainObjConfigurer.dependsOn(task.project.rootProject.ideaConfigurer)
     }
 
     private shouldDependOnConfigurer(Task task) {
