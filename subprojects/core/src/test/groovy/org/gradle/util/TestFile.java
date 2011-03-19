@@ -341,8 +341,10 @@ public class TestFile extends File implements TestFileContext {
     }
 
     public TestFile assertIsEmptyDir() {
-        assertIsDir();
-        assertHasDescendants();
+        if (exists()) {
+            assertIsDir();
+            assertHasDescendants();
+        }
         return this;
     }
 

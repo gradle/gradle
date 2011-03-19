@@ -19,4 +19,6 @@ public interface FileSnapshotRepository {
     FileCollectionSnapshot get(Long id);
 
     Long add(FileCollectionSnapshot snapshot);
+
+    void remove(Long id);
 }

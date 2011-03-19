@@ -51,7 +51,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         if (previousExecution != null) {
             previousExecution.snapshotRepository = snapshotRepository;
         }
-        history.addConfiguration(currentExecution);
+        history.configurations.add(0, currentExecution);
 
         return new History() {
             public TaskExecution getPreviousExecution() {
@@ -68,6 +68,15 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
                 if (currentExecution.outputFilesSnapshotId == null && currentExecution.outputFilesSnapshot != null) {
                     currentExecution.outputFilesSnapshotId = snapshotRepository.add(currentExecution.outputFilesSnapshot);
+                }
+                while (history.configurations.size() > TaskHistory.MAX_HISTORY_ENTRIES) {
+                    LazyTaskExecution execution = history.configurations.remove(history.configurations.size() - 1);
+                    if (execution.inputFilesSnapshotId != null) {
+                        snapshotRepository.remove(execution.inputFilesSnapshotId);
+                    }
+                    if (execution.outputFilesSnapshotId != null) {
+                        snapshotRepository.remove(execution.outputFilesSnapshotId);
+                    }
                 }
                 taskHistoryCache.put(task.getPath(), history);
             }
@@ -121,14 +130,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private static class TaskHistory implements Serializable {
         private static final int MAX_HISTORY_ENTRIES = 3;
         private final List<LazyTaskExecution> configurations = new ArrayList<LazyTaskExecution>();
-
-        public void addConfiguration(LazyTaskExecution configuration) {
-            configurations.add(0, configuration);
-            // Only keep a few of the most recent configurations
-            while (configurations.size() > MAX_HISTORY_ENTRIES) {
-                configurations.remove(MAX_HISTORY_ENTRIES);
-            }
-        }
     }
 
     private static class LazyTaskExecution extends TaskExecution {
@@ -142,6 +143,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public FileCollectionSnapshot getInputFilesSnapshot() {
             if (inputFilesSnapshot == null) {
                 inputFilesSnapshot = snapshotRepository.get(inputFilesSnapshotId);
+                assert inputFilesSnapshot != null;
             }
             return inputFilesSnapshot;
         }
@@ -156,6 +158,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public FileCollectionSnapshot getOutputFilesSnapshot() {
             if (outputFilesSnapshot == null) {
                 outputFilesSnapshot = snapshotRepository.get(outputFilesSnapshotId);
+                assert outputFilesSnapshot != null;
             }
             return outputFilesSnapshot;
         }

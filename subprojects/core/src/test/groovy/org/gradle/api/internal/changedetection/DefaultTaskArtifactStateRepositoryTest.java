@@ -585,8 +585,11 @@ public class DefaultTaskArtifactStateRepositoryTest {
             atMost(1).of(fileSnapshotCacheBuilder).open();
             will(returnValue(persistentCache));
 
-            between(1, 2).of(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
-            will(onConsecutiveCalls(returnValue(new InMemoryIndexedCache()), returnValue(new InMemoryIndexedCache())));
+            one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
+            will(returnValue(new InMemoryIndexedCache()));
+
+            atMost(1).of(persistentCache).openIndexedCache();
+            will(returnValue(new InMemoryIndexedCache()));
         }});
     }
 

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 
 public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository {
@@ -32,10 +31,8 @@ public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository
         Long id = (Long) cache.get("nextId");
         if (id == null) {
             id = 1L;
-        } else {
-            id++;
         }
-        cache.put("nextId", id);
+        cache.put("nextId", id + 1);
         cache.put(id, snapshot);
         return id;
     }
@@ -45,9 +42,14 @@ public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository
         return (FileCollectionSnapshot) cache.get(id);
     }
 
+    public void remove(Long id) {
+        open();
+        cache.remove(id);
+    }
+
     private void open() {
         if (cache == null) {
-            cache = repository.cache("fileSnapshots").open().openIndexedCache(new DefaultSerializer<Object>());
+            cache = repository.cache("fileSnapshots").open().openIndexedCache();
         }
     }
 }
