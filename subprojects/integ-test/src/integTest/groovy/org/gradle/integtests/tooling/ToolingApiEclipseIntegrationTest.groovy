@@ -38,9 +38,20 @@ apply plugin: 'java'
 
     def canBuildEclipseSourceDirectoriesForAProject() {
         def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = '''
-apply plugin: 'java'
-'''
+        projectDir.file('build.gradle').text = "apply plugin: 'java'"
+
+        projectDir.create {
+            src {
+                main {
+                    java {}
+                    resources{}
+                }
+                test {
+                    java {}
+                    resources {}
+                }
+            }
+        }
 
         when:
         EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }

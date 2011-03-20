@@ -23,4 +23,5 @@ package org.gradle.plugins.eclipse.model
  */
 class EclipseDomainModel {
     Project project
+    Classpath classpath
 }

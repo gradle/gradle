@@ -25,6 +25,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.GeneratorTaskConfigurer
+import org.gradle.plugins.eclipse.internal.EclipseDomainModelFactory
 import org.gradle.plugins.eclipse.model.*
 
 /**
@@ -41,13 +42,8 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
 
-    EclipseProject eclipseProjectTask
-
     EclipseDomainModel getEclipseDomainModel() {
-        if (eclipseProjectTask == null) {
-            throw new IllegalStateException("Tasks have not yet been configured. Was the plugin applied?")
-        }
-        new EclipseDomainModel(project: eclipseProjectTask.domainObject);
+        new EclipseDomainModelFactory().create(project)
     }
 
     @Override protected String getLifecycleTaskName() {
@@ -130,7 +126,6 @@ class EclipsePlugin extends IdePlugin {
                 }
             }
         }
-        eclipseProjectTask = project.eclipseProject
     }
 
     private void configureEclipseClasspath(Project project) {

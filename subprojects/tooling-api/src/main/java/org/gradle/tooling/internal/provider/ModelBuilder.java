@@ -29,6 +29,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GeneratorTaskConfigurer;
 import org.gradle.plugins.eclipse.EclipseConfigurer;
 import org.gradle.plugins.eclipse.EclipsePlugin;
+import org.gradle.plugins.eclipse.model.EclipseDomainModel;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
@@ -89,18 +90,16 @@ public class ModelBuilder extends BuildAdapter {
             }
         }
 
-        List<EclipseSourceDirectoryVersion1> sourceDirectories = new ArrayList<EclipseSourceDirectoryVersion1>();
-        sourceDirectories.add(sourceDirectory(project, "src/main/java"));
-        sourceDirectories.add(sourceDirectory(project, "src/main/resources"));
-        sourceDirectories.add(sourceDirectory(project, "src/test/java"));
-        sourceDirectories.add(sourceDirectory(project, "src/test/resources"));
+        EclipseDomainModel eclipseDomainModel = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
+
+        List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, eclipseDomainModel.getClasspath());
 
         List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
         for (Project child : project.getChildProjects().values()) {
             children.add(build(child));
         }
 
-        String name = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel().getProject().getName();
+        String name = eclipseDomainModel.getProject().getName();
         DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
@@ -135,18 +134,6 @@ public class ModelBuilder extends BuildAdapter {
             currentProject = eclipseProject;
         }
         projectMapping.put(project.getPath(), eclipseProject);
-    }
-
-    private EclipseSourceDirectoryVersion1 sourceDirectory(final Project project, final String path) {
-        return new EclipseSourceDirectoryVersion1() {
-            public File getDirectory() {
-                return project.file(path);
-            }
-
-            public String getPath() {
-                return path;
-            }
-        };
     }
 
     public DefaultEclipseProject getCurrentProject() {

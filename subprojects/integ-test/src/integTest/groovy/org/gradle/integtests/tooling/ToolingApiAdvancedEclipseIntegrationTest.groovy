@@ -87,4 +87,30 @@ eclipseProject {
         then:
         eclipseProject.name == 'fancy-impl'
     }
+
+    def "should honor reconfigured source folders"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceSets {
+    main { java { srcDir 'src' }}
+
+    test { java { srcDir 'test' }}
+}
+'''
+        //if we don't create the folders eclipse plugin will not build the classpath
+        projectDir.create {
+            src {}
+            test {}
+        }
+
+        when:
+        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        eclipseProject.sourceDirectories[0].path == 'src'
+        eclipseProject.sourceDirectories[1].path == 'test'
+    }
 }

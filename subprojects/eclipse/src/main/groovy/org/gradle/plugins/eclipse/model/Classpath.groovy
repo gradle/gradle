@@ -30,6 +30,10 @@ class Classpath extends XmlPersistableConfigurationObject {
         super(xmlTransformer)
     }
 
+    Classpath() {
+        super(new XmlTransformer())
+    }
+
     @Override protected String getDefaultResourceName() {
         return 'defaultClasspath.xml'
     }
