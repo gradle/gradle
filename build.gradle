@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import java.util.jar.Attributes
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.Version
 import org.gradle.build.Install
 import org.gradle.build.Git
+import java.util.jar.Attributes
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -584,7 +583,7 @@ def runtimeProjects() {
 }
 
 def pluginProjects() {
-    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'eclipse', 'idea', 'announce', 'scala', 'sonar'].collect {
+    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'ide', 'announce', 'scala', 'sonar'].collect {
         project(it)
     }
 }
