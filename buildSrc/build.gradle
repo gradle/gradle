@@ -20,7 +20,7 @@ apply plugin: 'idea'
 apply plugin: 'eclipse'
 
 repositories {
-    mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
+    mavenRepo(urls: 'http://repo.gradle.org/gradle/libs')
 }
 
 dependencies {

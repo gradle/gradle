@@ -92,7 +92,7 @@ allprojects {
     }
 
     repositories {
-        mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
+        mavenRepo(urls: 'http://repo.gradle.org/gradle/libs')
     }
 
     version = this.version
@@ -504,7 +504,7 @@ uploadDists {
     dependsOn testedDists
     uploadDescriptor = false
     doFirst {
-        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'gradle.artifactoryonline.com', artifactoryUserName, artifactoryUserPassword)
+        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'repo.gradle.org', artifactoryUserName, artifactoryUserPassword)
         repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
             name = 'gradleReleases'
             addArtifactPattern("${version.distributionUrl}/[artifact]-[revision](-[classifier]).[ext]" as String)

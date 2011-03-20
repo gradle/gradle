@@ -95,15 +95,15 @@ public class WrapperTest extends AbstractTaskTest {
     @Test
     public void testDownloadsFromReleaseRepositoryForReleaseVersions() {
         wrapper.setGradleVersion("0.9.1");
-        assertEquals("http://gradle.artifactoryonline.com/gradle/distributions", wrapper.getUrlRoot());
-        assertEquals("http://gradle.artifactoryonline.com/gradle/distributions/gradle-0.9.1-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("http://repo.gradle.org/gradle/distributions", wrapper.getUrlRoot());
+        assertEquals("http://repo.gradle.org/gradle/distributions/gradle-0.9.1-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test
     public void testDownloadsFromReleaseRepositoryForPreviewReleaseVersions() {
         wrapper.setGradleVersion("1.0-milestone-1");
-        assertEquals("http://gradle.artifactoryonline.com/gradle/distributions", wrapper.getUrlRoot());
-        assertEquals("http://gradle.artifactoryonline.com/gradle/distributions/gradle-1.0-milestone-1-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("http://repo.gradle.org/gradle/distributions", wrapper.getUrlRoot());
+        assertEquals("http://repo.gradle.org/gradle/distributions/gradle-1.0-milestone-1-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test
@@ -116,8 +116,8 @@ public class WrapperTest extends AbstractTaskTest {
     @Test
     public void testDownloadsFromSnapshotRepositoryForSnapshotVersions() {
         wrapper.setGradleVersion("0.9.1-20101224110000+1100");
-        assertEquals("http://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots", wrapper.getUrlRoot());
-        assertEquals("http://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots/gradle-0.9.1-20101224110000+1100-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("http://repo.gradle.org/gradle/distributions/gradle-snapshots", wrapper.getUrlRoot());
+        assertEquals("http://repo.gradle.org/gradle/distributions/gradle-snapshots/gradle-0.9.1-20101224110000+1100-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test
@@ -131,7 +131,7 @@ public class WrapperTest extends AbstractTaskTest {
     public void testUsesExplicitlyDefinedDistributionUrl() {
         wrapper.setGradleVersion("0.9");
         wrapper.setDistributionUrl("http://some-url");
-        assertEquals("http://gradle.artifactoryonline.com/gradle/distributions", wrapper.getUrlRoot());
+        assertEquals("http://repo.gradle.org/gradle/distributions", wrapper.getUrlRoot());
         assertEquals("http://some-url", wrapper.getDistributionUrl());
     }
 

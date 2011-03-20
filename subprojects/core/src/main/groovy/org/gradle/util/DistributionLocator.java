@@ -16,8 +16,8 @@
 package org.gradle.util;
 
 public class DistributionLocator {
-    private static final String ARTIFACTORY_RELEASE_REPOSITORY = "http://gradle.artifactoryonline.com/gradle/distributions";
-    private static final String ARTIFACTORY_SNAPSHOT_REPOSITORY = "http://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots";
+    private static final String ARTIFACTORY_RELEASE_REPOSITORY = "http://repo.gradle.org/gradle/distributions";
+    private static final String ARTIFACTORY_SNAPSHOT_REPOSITORY = "http://repo.gradle.org/gradle/distributions/gradle-snapshots";
     private static final String CODEHAUS_RELEASE_REPOSITORY = "http://dist.codehaus.org/gradle";
     private static final String CODEHAUS_SNAPSHOT_REPOSITORY = "http://snapshots.dist.codehaus.org/gradle";
 

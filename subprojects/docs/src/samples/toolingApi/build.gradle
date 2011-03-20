@@ -5,7 +5,7 @@ if (!hasProperty('toolingApiVersion')) {
     toolingApiVersion = gradle.gradleVersion
 }
 if (!hasProperty('toolingApiRepo')) {
-    toolingApiRepo = 'http://gradle.artifactoryonline.com/gradle/libs-releases-local'
+    toolingApiRepo = 'http://repo.gradle.org/gradle/libs-releases-local'
 }
 
 repositories {

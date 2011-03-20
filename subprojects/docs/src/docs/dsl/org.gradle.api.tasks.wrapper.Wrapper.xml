@@ -38,9 +38,9 @@
             </tr>
             <tr>
                 <td>distributionUrl</td>
-                <td><literal>'http://gradle.artifactoryonline.com/gradle/distributions/gradle-${gradleVersion}-bin.zip'</literal>
+                <td><literal>'http://repo.gradle.org/gradle/distributions/gradle-${gradleVersion}-bin.zip'</literal>
                     (or
-                    <literal>'http://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots/gradle-${gradleVersion}-bin.zip'</literal>
+                    <literal>'http://repo.gradle.org/gradle/distributions/gradle-snapshots/gradle-${gradleVersion}-bin.zip'</literal>
                     for snapshot versions).
                 </td>
             </tr>
