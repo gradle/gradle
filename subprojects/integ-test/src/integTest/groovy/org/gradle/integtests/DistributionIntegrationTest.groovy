@@ -93,14 +93,13 @@ class DistributionIntegrationTest {
 
         // TODO - these should be in lib/plugins
         assertIsGradleJar(contentsDir.file("lib/gradle-plugins-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/gradle-eclipse-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-ide-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-scala-${version}.jar"))
 
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-code-quality-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-antlr-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-announce-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-idea-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-sonar-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${version}.jar"))
