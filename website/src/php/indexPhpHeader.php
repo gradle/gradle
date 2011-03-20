@@ -4,7 +4,7 @@
 require_once('../php/simplepie.inc');
 
 // We'll process this feed with all of the default options.
-$feed = new SimplePie('http://docs.codehaus.org/createrssfeed.action?types=blogpost&sort=created&showContent=false&showDiff=true&spaces=GRADLE&labelString=&rssType=rss2&maxResults=5&timeSpan=500&publicFeed=true&title=Gradle+RSS+Feed');
+$feed = new SimplePie('http://wiki.gradle.org/createrssfeed.action?types=blogpost&sort=created&showContent=false&showDiff=true&spaces=GRADLE&labelString=&rssType=rss2&maxResults=5&timeSpan=500&publicFeed=true&title=Gradle+RSS+Feed');
 
 // This makes sure that the content is sent to the browser as text/html and the UTF-8 character set (since we didn't change it).
 $feed->handle_content_type();

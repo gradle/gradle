@@ -49,6 +49,8 @@ webSrcDir = file('src')
 
 if (!hasProperty('gradleCorePath')) {
     gradleCorePath = projectDir.parentFile
+} else {
+    gradleCorePath = file(gradleCorePath)
 }
 File generatedDocs = new File("$gradleCorePath/subprojects/docs/build/websiteDocs")
 
@@ -321,7 +323,7 @@ class Release {
     def String getDistributionBase() {
         def version = majorVersion as BigDecimal
         if (version >= 0.9) {
-            return "http://gradle.artifactoryonline.com/gradle/distributions/"
+            return "http://repo.gradle.org/gradle/distributions/"
         } else {
             return "http://dist.codehaus.org/gradle/"
         }
@@ -332,7 +334,7 @@ class Release {
     }
 
     def String getReleaseNotesUrl() {
-        return "http://docs.codehaus.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes"
+        return "http://wiki.gradle.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes"
     }
 
     def String getUserGuideHtmlUrl() {
