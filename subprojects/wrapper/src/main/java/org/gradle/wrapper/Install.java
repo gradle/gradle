@@ -16,6 +16,8 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.util.SystemProperties;
+
 import java.io.*;
 import java.net.URI;
 import java.util.Enumeration;
@@ -84,7 +86,7 @@ public class Install {
                 errorMessage = "";
                 String line;
                 while ((line = is.readLine()) != null) {
-                    errorMessage += line + System.getProperty("line.separator");
+                    errorMessage += line + SystemProperties.getLineSeparator();
                 }
             }
         } catch (IOException e) {

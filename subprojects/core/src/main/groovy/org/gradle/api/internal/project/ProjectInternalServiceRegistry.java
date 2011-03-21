@@ -104,7 +104,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultConvention();
     }
 
-    protected Factory<RepositoryHandler> createRepositoryHandlerFactory(Factory<? extends RepositoryHandler> factory) {
+    protected Factory<RepositoryHandler> createRepositoryHandlerFactory(Factory<RepositoryHandler> factory) {
         return new SharedConventionRepositoryHandlerFactory(factory, get(Convention.class));
     }
 

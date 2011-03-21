@@ -20,7 +20,7 @@ import org.gradle.api.internal.TaskExecutionHistory;
 /**
  * Encapsulates the state of the task when its outputs were last generated.
  */
-public interface TaskArtifactState extends TaskExecutionHistory {
+public interface TaskArtifactState {
     /**
      * Returns true if the task outputs were generated using the given task inputs.
      */
@@ -30,4 +30,9 @@ public interface TaskArtifactState extends TaskExecutionHistory {
      * Marks current state as valid.
      */
     void update();
+
+    /**
+     * Returns the history for this task.
+     */
+    TaskExecutionHistory getExecutionHistory();
 }

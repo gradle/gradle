@@ -29,7 +29,7 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import java.io.File;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
-    private final Factory<? extends WorkerProcessBuilder> workerFactory;
+    private final Factory<WorkerProcessBuilder> workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
@@ -38,7 +38,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
 
-    public ForkingTestClassProcessor(Factory<? extends WorkerProcessBuilder> workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
+    public ForkingTestClassProcessor(Factory<WorkerProcessBuilder> workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;

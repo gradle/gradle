@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.generator.ConfigurationTarget;
 import org.gradle.api.internal.tasks.generator.Generator;
 import org.gradle.api.specs.Specs;
 import org.gradle.listener.ActionBroadcast;
@@ -25,9 +26,10 @@ import org.gradle.listener.ActionBroadcast;
 import java.io.File;
 
 /**
- * <p>A {@code GeneratorTask} generates a configuration file based on a domain object of type T. When executed, the
- * task:</p>
- *
+ * <p>A {@code GeneratorTask} generates a configuration file based on a domain object of type T.
+ * In order to use this task you also need to define a {@code GeneratorTaskConfigurer} task.
+ * <p>
+ * Given that GeneratorTask was configured along with GeneratorTaskConfigurer, when executed the task:
  * <ul>
  *
  * <li>loads the object from the input file, if it exists.</li>
@@ -44,12 +46,14 @@ import java.io.File;
  *
  * @param <T> The domain object for the configuration file.
  */
-public class GeneratorTask<T> extends ConventionTask {
+public class GeneratorTask<T> extends ConventionTask implements ConfigurationTarget {
     private File inputFile;
     private File outputFile;
     private final ActionBroadcast<T> beforeConfigured = new ActionBroadcast<T>();
     private final ActionBroadcast<T> afterConfigured = new ActionBroadcast<T>();
     protected Generator<T> generator;
+
+    protected T domainObject;
 
     public GeneratorTask() {
         getOutputs().upToDateWhen(Specs.satisfyNone());
@@ -57,17 +61,20 @@ public class GeneratorTask<T> extends ConventionTask {
 
     @TaskAction
     void generate() {
-        File inputFile = getInputFile();
+        generator.write(getDomainObject(), getOutputFile());
+    }
+
+    public void configureDomainObject() {
         T object;
-        if (inputFile.exists()) {
-            object = generator.read(inputFile);
+        if (getInputFile().exists()) {
+            object = generator.read(getInputFile());
         } else {
             object = generator.defaultInstance();
         }
         beforeConfigured.execute(object);
         generator.configure(object);
         afterConfigured.execute(object);
-        generator.write(object, getOutputFile());
+        domainObject = object;
     }
 
     /**
@@ -158,6 +165,17 @@ public class GeneratorTask<T> extends ConventionTask {
      */
     public void whenConfigured(Action<? super T> action) {
         afterConfigured.add(action);
+    }
+
+    protected T getDomainObject() {
+        if (this.domainObject == null) {
+            throw new IllegalStateException("Domain object was not configured for this task. See configureDomainObject() method. Did the configuration task run?");
+        }
+        return this.domainObject;
+    }
+
+    protected void setDomainObject(T domainObject) {
+        this.domainObject = domainObject;
     }
 
 }

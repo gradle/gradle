@@ -66,7 +66,7 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public String getGradleVersion() {
-        return new GradleVersion().getVersion();
+        return GradleVersion.current().getVersion();
     }
 
     public File getGradleHomeDir() {

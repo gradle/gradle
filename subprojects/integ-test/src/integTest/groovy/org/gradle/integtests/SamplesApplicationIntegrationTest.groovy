@@ -15,14 +15,10 @@
  */
 package org.gradle.integtests
 
-import spock.lang.Specification
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.junit.Rule
-import org.gradle.integtests.fixtures.GradleExecuter
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
-import org.gradle.process.internal.ExecHandleBuilder
+import org.junit.Rule
+import spock.lang.Specification
+import org.gradle.integtests.fixtures.*
 
 class SamplesApplicationIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -42,7 +38,7 @@ class SamplesApplicationIntegrationTest extends Specification {
         executer.inDirectory(sample.dir).withTasks('install').run()
 
         then:
-        def installDir = sample.dir.file('build/install')
+        def installDir = sample.dir.file('build/install/application')
         installDir.assertIsDir()
 
         checkApplicationImage(installDir)
@@ -53,27 +49,28 @@ class SamplesApplicationIntegrationTest extends Specification {
         executer.inDirectory(sample.dir).withTasks('distZip').run()
 
         then:
-        def distFile = sample.dir.file('build/distributions/application.zip')
+        def distFile = sample.dir.file('build/distributions/application-1.0.2.zip')
         distFile.assertIsFile()
 
         def installDir = sample.dir.file('unzip')
         distFile.usingNativeTools().unzipTo(installDir)
 
-        checkApplicationImage(installDir)
+        checkApplicationImage(installDir.file('application-1.0.2'))
     }
     
     private void checkApplicationImage(TestFile installDir) {
-        installDir.file('application/bin/application').assertIsFile()
-        installDir.file('application/bin/application.bat').assertIsFile()
-        installDir.file('application/lib/application.jar').assertIsFile()
+        installDir.file('bin/application').assertIsFile()
+        installDir.file('bin/application.bat').assertIsFile()
+        installDir.file('lib/application-1.0.2.jar').assertIsFile()
+        installDir.file('lib/commons-collections-3.2.1.jar').assertIsFile()
 
-        def builder = new ExecHandleBuilder()
-        builder.workingDir installDir
-        builder.executable 'application/bin/application'
+        def builder = new ScriptExecuter()
+        builder.workingDir installDir.file('bin')
+        builder.executable 'application'
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()
 
-        def result = builder.build().start().waitForFinish()
+        def result = builder.run()
         result.assertNormalExitValue()
 
         assert builder.standardOutput.toString().contains('Greetings from the sample application.')

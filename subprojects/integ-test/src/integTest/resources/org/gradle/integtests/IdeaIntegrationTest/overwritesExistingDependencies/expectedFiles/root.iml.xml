@@ -7,8 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk"/>
     <orderEntry type="sourceFolder" forTests="false"/>
-    <output url="file://$MODULE_DIR$/out/production/root"/>
-    <output-test url="file://$MODULE_DIR$/out/test/root"/>
     <orderEntry type="module-library" exported="" scope="RUNTIME">
       <library>
         <CLASSES>

@@ -50,7 +50,6 @@ class JUnitTestExecutionResult implements TestExecutionResult {
 
     private def findClasses() {
         buildDir.file('test-results').assertIsDir()
-        buildDir.file('test-results/TESTS-TestSuites.xml').assertIsFile()
         buildDir.file('reports/tests/index.html').assertIsFile()
 
         Map<String, File> classes = [:]
@@ -97,6 +96,16 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         for (int i = 0; i < messageMatchers.length; i++) {
             assertThat(failures[i].@message.text(), messageMatchers[i])
         }
+        this
+    }
+
+    TestClassExecutionResult assertTestSkipped(String name) {
+        throw new UnsupportedOperationException()
+    }
+
+    TestClassExecutionResult assertTestsSkipped(String... testNames) {
+        Map<String, Node> testMethods = findIgnoredTests()
+        assertThat(testMethods.keySet(), equalTo(testNames as Set))
         this
     }
 
@@ -150,4 +159,9 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return testMethods
     }
 
+    private def findIgnoredTests() {
+        Map testMethods = [:]
+        testClassNode."ignored-testcase".each { testMethods[it.@name.text()] = it }
+        return testMethods
+    }
 }

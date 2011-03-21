@@ -141,14 +141,14 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                 serviceType.getSimpleName(), this));
     }
 
-    public <T> Factory<? extends T> getFactory(Class<T> type) {
+    public <T> Factory<T> getFactory(Class<T> type) {
         if (closed) {
             throw new IllegalStateException(String.format("Cannot locate factory for objects of type %s, as %s has been closed.",
                     type.getSimpleName(), this));
         }
 
         for (Service service : services) {
-            Factory<? extends T> factory = service.getFactory(type);
+            Factory<T> factory = service.getFactory(type);
             if (factory != null) {
                 return factory;
             }
@@ -231,7 +231,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             }
         }
 
-        public <T> Factory<? extends T> getFactory(Class<T> elementType) {
+        public <T> Factory<T> getFactory(Class<T> elementType) {
             if (!Factory.class.isAssignableFrom(serviceClass)) {
                 return null;
             }
@@ -314,7 +314,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             if (Factory.class.isAssignableFrom(method.getParameterTypes()[0])) {
                 ParameterizedType fatoryType = (ParameterizedType) method.getGenericParameterTypes()[0];
                 Type typeArg = fatoryType.getActualTypeArguments()[0];
-                Class type;
+                Class<?> type;
                 if (typeArg instanceof WildcardType) {
                     WildcardType wildcardType = (WildcardType) typeArg;
                     type = (Class) wildcardType.getUpperBounds()[0];

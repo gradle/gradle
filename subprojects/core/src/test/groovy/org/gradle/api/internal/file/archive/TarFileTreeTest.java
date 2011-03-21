@@ -73,7 +73,7 @@ public class TarFileTreeTest {
         tarFile.createDir();
 
         try {
-            tree.getFiles();
+            tree.visit(null);
             fail();
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("Cannot expand TAR '" + tarFile + "' as it is not a file."));
@@ -86,7 +86,7 @@ public class TarFileTreeTest {
         tarFile.write("not a tar file");
 
         try {
-            tree.getFiles();
+            tree.visit(null);
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo("Could not expand TAR '" + tarFile + "'."));

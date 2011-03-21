@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
@@ -38,25 +36,22 @@ import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPom
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.util.DeleteOnExit;
-import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultResolverFactory implements ResolverFactory {
-    private final Factory<? extends LoggingManagerInternal> loggingManagerFactory;
+    private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final LocalMavenCacheLocator localMavenCacheLocator;
 
-    public DefaultResolverFactory(Factory<? extends LoggingManagerInternal> loggingManagerFactory) {
+    public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory) {
         this(loggingManagerFactory, new LocalMavenCacheLocator());
     }
 
-    DefaultResolverFactory(Factory<? extends LoggingManagerInternal> loggingManagerFactory, LocalMavenCacheLocator localMavenCacheLocator) {
+    DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenCacheLocator localMavenCacheLocator) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.localMavenCacheLocator = localMavenCacheLocator;
     }
@@ -81,33 +76,12 @@ public class DefaultResolverFactory implements ResolverFactory {
         FileSystemResolver resolver = new FileSystemResolver();
         resolver.setName(name);
         for (File root : roots) {
-            String pattern = root.getAbsolutePath() + "/" + ResolverContainer.FLAT_DIR_RESOLVER_PATTERN;
-            resolver.addArtifactPattern(pattern);
+            resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
+            resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
         }
         resolver.setValidate(false);
-        resolver.setRepositoryCacheManager(createUseOriginCacheManager(name));
+        resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
         return resolver;
-    }
-
-    private RepositoryCacheManager createUseOriginCacheManager(String name) {
-        File tmpIvyCache = createTmpDir();
-        WharfCacheManager cacheManager = new WharfCacheManager();
-        cacheManager.setBasedir(tmpIvyCache);
-        cacheManager.setName(name);
-        return cacheManager;
-    }
-
-    private File createTmpDir() {
-        File tmpFile;
-        try {
-            tmpFile = File.createTempFile("gradle_ivy_cache", "");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        tmpFile.delete();
-        tmpFile.mkdir();
-        DeleteOnExit.addFile(tmpFile);
-        return tmpFile;
     }
 
     public AbstractResolver createMavenLocalResolver(String name) {
@@ -180,4 +154,5 @@ public class DefaultResolverFactory implements ResolverFactory {
         return new BaseMavenInstaller(name, pomFilterContainer, new DefaultArtifactPomContainer(pomMetaInfoProvider,
                 pomFilterContainer, new DefaultArtifactPomFactory()), loggingManagerFactory.create());
     }
+
 }

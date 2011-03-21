@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
@@ -23,7 +24,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import junit.framework.AssertionFailedError
 
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -78,11 +78,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         runIdeaTask("apply plugin: 'java'; apply plugin: 'idea'")
 
         def module = parseImlFile("root")
-        def outputUrl = module.component.output[0].@url
-        def testOutputUrl = module.component."output-test"[0].@url
-
-        assert outputUrl.text() == 'file://$MODULE_DIR$/out/production/root'
-        assert testOutputUrl.text() == 'file://$MODULE_DIR$/out/test/root'
+        assert module.component.@"inherit-compiler-output" == "true"
     }
 
     @Test
@@ -122,7 +118,7 @@ sourceSets.main.resources.srcDirs.each { it.mkdirs() }
 sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
         """
 
-        def module = parseImlFile("root", true)
+        def module = parseImlFile("root")
         def sourceFolders = module.component.content.sourceFolder
         def urls = sourceFolders*.@url*.text()
 
@@ -132,6 +128,38 @@ sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
         assert !containsDir("src/test/java", urls)
         assert containsDir("src/test/groovy", urls)
         assert !containsDir("src/test/resources", urls)
+    }
+
+    @Test
+    void triggersBeforeAndWhenConfigurationHooks() {
+        //this test is a bit peculiar as it has assertions inside the gradle script
+        //couldn't find a better way of asserting on before/when configured hooks
+        runIdeaTask '''
+apply plugin: 'java'
+apply plugin: 'idea'
+
+def beforeConfiguredObjects = 0
+def whenConfiguredObjects = 0
+
+ideaModule {
+    beforeConfigured { beforeConfiguredObjects++ }
+    whenConfigured { whenConfiguredObjects++ }
+}
+ideaProject {
+    beforeConfigured { beforeConfiguredObjects++ }
+    whenConfigured { whenConfiguredObjects++ }
+}
+ideaWorkspace {
+    beforeConfigured { beforeConfiguredObjects++ }
+    whenConfigured { whenConfiguredObjects++ }
+}
+
+idea << {
+    assert beforeConfiguredObjects == 3 : "beforeConfigured() hooks shoold be fired for domain model objects"
+    assert whenConfiguredObjects == 3 : "whenConfigured() hooks shoold be fired for domain model objects"
+}
+'''
+
     }
 
     private void assertHasExpectedContents(String path) {
@@ -155,8 +183,8 @@ sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
         runTask("idea", buildScript)
     }
 
-    private parseImlFile(projectName, print = false) {
-        parseXmlFile("${projectName}.iml", print)
+    private parseImlFile(Map options = [:], String projectName) {
+        parseFile(options, "${projectName}.iml")
     }
 
     private containsDir(path, urls) {

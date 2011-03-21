@@ -26,7 +26,12 @@ public interface EclipseProject extends Project {
     /**
      * {@inheritDoc}
      */
-    DomainObjectSet<? extends EclipseProject> getChildProjects();
+    EclipseProject getParent();
+
+    /**
+     * {@inheritDoc}
+     */
+    DomainObjectSet<? extends EclipseProject> getChildren();
 
     /**
      * Returns the source directories for this project.

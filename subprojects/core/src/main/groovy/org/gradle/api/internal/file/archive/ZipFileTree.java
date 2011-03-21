@@ -17,25 +17,28 @@ package org.gradle.api.internal.file.archive;
 
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.file.AbstractFileTree;
-import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.DefaultConfigurableFileTree;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.util.HashUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ZipFileTree extends AbstractFileTree {
+public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File zipFile;
     private final File tmpDir;
 
@@ -49,18 +52,16 @@ public class ZipFileTree extends AbstractFileTree {
         return String.format("ZIP '%s'", zipFile);
     }
 
-    @Override
-    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
-        visitAll();
-        return zipFile.exists() ? Collections.singleton(new DefaultConfigurableFileTree(tmpDir, null, null)) : Collections.<DefaultConfigurableFileTree>emptyList();
+    public DirectoryFileTree getMirror() {
+        return new DirectoryFileTree(tmpDir);
     }
 
-    public FileTree visit(FileVisitor visitor) {
+    public void visit(FileVisitor visitor) {
         if (!zipFile.exists()) {
-            return this;
+            return;
         }
         if (!zipFile.isFile()) {
-            throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", this));
+            throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", getDisplayName()));
         }
 
         AtomicBoolean stopFlag = new AtomicBoolean();
@@ -89,10 +90,8 @@ public class ZipFileTree extends AbstractFileTree {
                 zip.close();
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not expand %s.", this), e);
+            throw new GradleException(String.format("Could not expand %s.", getDisplayName()), e);
         }
-
-        return this;
     }
 
     private class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {

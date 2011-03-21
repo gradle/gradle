@@ -3,10 +3,18 @@
         <title>Properties</title>
         <table>
             <thead>
-                <tr><td>Name</td></tr>
+                <tr><td>Name</td>
+                    <td>Default values</td>
+                </tr>
             </thead>
-            <tr><td>mainClassName</td></tr>
-            <tr><td>installDirPath</td></tr>
+            <tr>
+                <td>applicationName</td>
+                <td><literal>project.name</literal></td>
+            </tr>
+            <tr>
+                <td>mainClassName</td>
+                <td><literal>null</literal></td>
+            </tr>
         </table>
     </section>
     <section>

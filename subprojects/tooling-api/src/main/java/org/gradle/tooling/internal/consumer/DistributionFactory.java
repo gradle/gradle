@@ -49,7 +49,7 @@ public class DistributionFactory {
             };
         }
 
-        return getDownloadedDistribution(new GradleVersion().getVersion());
+        return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
 
     public Distribution getDistribution(final File gradleHomeDir) {
@@ -69,7 +69,7 @@ public class DistributionFactory {
     }
 
     public Distribution getDistribution(String gradleVersion) {
-        if (gradleVersion.equals(new GradleVersion().getVersion())) {
+        if (gradleVersion.equals(GradleVersion.current().getVersion())) {
             return getCurrentDistribution();
         }
         return getDownloadedDistribution(gradleVersion);
@@ -78,7 +78,7 @@ public class DistributionFactory {
     private Distribution getDownloadedDistribution(String gradleVersion) {
         URI distUri;
         try {
-            distUri = new URI(new DistributionLocator().getDistributionFor(new GradleVersion(gradleVersion)));
+            distUri = new URI(new DistributionLocator().getDistributionFor(GradleVersion.version(gradleVersion)));
         } catch (URISyntaxException e) {
             throw UncheckedException.asUncheckedException(e);
         }

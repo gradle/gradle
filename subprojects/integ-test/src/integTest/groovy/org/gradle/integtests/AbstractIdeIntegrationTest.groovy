@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.util.TestFile
+
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
     protected void runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {
         def settingsFile = file("settings.gradle")
@@ -26,42 +29,27 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks(taskName).run()
     }
 
-    protected parseXmlFile(filename, print) {
-        def file = file(filename).assertExists()
-        if (print) { println file.text }
+    protected File getFile(Map options, String filename) {
+        def file = options?.project ? file(options.project, filename) : file(filename)
+        if (options?.print) { println file.text }
+        file
+    }
+
+    protected parseFile(Map options, String filename) {
+        def file = getFile(options, filename)
         new XmlSlurper().parse(file)
     }
 
+    protected void createJavaSourceDirs(TestFile buildFile) {
+        buildFile.parentFile.file("src/main/java").createDir()
+        buildFile.parentFile.file("src/main/resources").createDir()
+    }
+
     protected File publishArtifact(dir, group, artifact, dependency = null) {
-        def artifactDir = new File("$dir/$group/$artifact/1.0")
-        assert artifactDir.mkdirs()
-
-        def pomFile = new File("$artifactDir/$artifact-1.0.pom")
-        pomFile << """
-<project xmlns="http://maven.apache.org/POM/4.0.0">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>$group</groupId>
-  <artifactId>$artifact</artifactId>
-  <packaging>jar</packaging>
-  <version>1.0</version>"""
-
+        def module = new MavenRepository(new TestFile(dir)).module(group, artifact, 1.0)
         if (dependency) {
-            pomFile << """
-  <dependencies>
-    <dependency>
-      <groupId>$group</groupId>
-      <artifactId>$dependency</artifactId>
-      <version>1.0</version>
-    </dependency>
-  </dependencies>"""
+            module.dependsOn(dependency)
         }
-
-        pomFile << "\n</project>"
-
-
-        def jarFile = new File("$artifactDir/$artifact-1.0.jar")
-        jarFile << "add some content so that file size isn't zero"
-
-        jarFile
+        return module.publishArtifact()
     }
 }

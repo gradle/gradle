@@ -1,0 +1,83 @@
+<!--
+  ~ Copyright 2011 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id="sonar_plugin">
+    <title>The Sonar Plugin</title>
+
+    <para>The Sonar plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
+        a web-based platform for monitoring code quality. The plugin adds a <literal>sonar</literal> task
+        to the project, which analyzes the project's source code and stores the results in Sonar's database.
+    </para>
+
+    <para>
+        The <literal>sonar</literal> task is a standalone task that needs to be executed explicitly. By default,
+        it gets configured to analyze the Java code in the main source set. In a typical setup, the task would
+        be run once per day on a build server.
+    </para>
+
+    <para>
+        Only projects which have the Java plugin applied (possibly by way of another plugin) are affected by the
+        Sonar plugin. Other projects can still declare a task of type <apilink class="org.gradle.api.plugins.sonar.Sonar"/>
+        and configure it manually.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>At a minimum, the Sonar plugin has to be applied to the project.</para>
+        <sample id="useSonarPlugin" dir="sonar" title="Using the Sonar plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>Typically, it is also necessary to configure connection settings for the Sonar server and database.</para>
+        <sample id="useSonarPlugin" dir="sonar" title="Configuring connection settings">
+            <sourcefile file="build.gradle" snippet="connection-settings"/>
+        </sample>
+        <para>For a complete documentation of all Sonar-specific configuration properties, see the
+            <ulink url= "http://docs.codehaus.org/display/SONAR/Advanced+parameters">Sonar documentation</ulink>.
+        </para>.
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The Sonar plugin adds the following tasks to the project.</para>
+        <table>
+            <title>Sonar plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><literal>sonar</literal></td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.sonar.Sonar"/></td>
+                <td>Analyzes the project's source code and stores results in Sonar's database.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Limitations</title>
+        <itemizedlist>
+            <listitem>
+                <para>The projects of a multi-project build are currently analyzed independently. This means that no
+                    aggregated view will be available.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+</chapter>

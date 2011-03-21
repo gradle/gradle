@@ -25,6 +25,11 @@ public interface TestClassExecutionResult {
     TestClassExecutionResult assertTestsExecuted(String... testNames);
 
     /**
+     * Asserts that the given tests (and only the given tests) were skipped for the given test class.
+     */
+    TestClassExecutionResult assertTestsSkipped(String... testNames);
+
+    /**
      * Asserts that the given test passed.
      */
     TestClassExecutionResult assertTestPassed(String name);
@@ -33,6 +38,11 @@ public interface TestClassExecutionResult {
      * Asserts that the given test failed.
      */
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
+
+    /**
+     * Asserts that the given test was skipped.
+     */
+    TestClassExecutionResult assertTestSkipped(String name);
 
     /**
      * Asserts that the given config method passed.

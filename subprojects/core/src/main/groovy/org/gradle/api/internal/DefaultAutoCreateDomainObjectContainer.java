@@ -20,9 +20,9 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.util.ReflectionUtil;
 
 public class DefaultAutoCreateDomainObjectContainer<T> extends AutoCreateDomainObjectContainer<T> {
-    private final NamedDomainObjectFactory<? extends T> factory;
+    private final NamedDomainObjectFactory<T> factory;
 
-    public DefaultAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, NamedDomainObjectFactory<? extends T> factory) {
+    public DefaultAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, NamedDomainObjectFactory<T> factory) {
         super(type, classGenerator);
         this.factory = factory;
     }

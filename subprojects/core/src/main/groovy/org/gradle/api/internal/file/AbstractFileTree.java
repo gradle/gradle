@@ -83,16 +83,20 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     /**
      * Visits all the files of this tree.
      */
-    protected void visitAll() {
+    protected boolean visitAll() {
+        final AtomicBoolean hasContent = new AtomicBoolean();
         visit(new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {
                 dirDetails.getFile();
+                hasContent.set(true);
             }
 
             public void visitFile(FileVisitDetails fileDetails) {
                 fileDetails.getFile();
+                hasContent.set(true);
             }
         });
+        return hasContent.get();
     }
 
     @Override

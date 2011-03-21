@@ -20,7 +20,7 @@ import org.gradle.tooling.internal.consumer.DistributionFactory
 import org.junit.Rule
 import org.gradle.util.SetSystemProperties
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.tooling.BuildConnection
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.GradleConnector
 
 class ToolingApiSpecification extends Specification {
@@ -37,14 +37,18 @@ class ToolingApiSpecification extends Specification {
     }
 
     def withConnection(GradleConnector connector, Closure cl) {
-        connector.forProjectDirectory(dist.testDir)
         connector.useGradleUserHomeDir(dist.userHomeDir)
+        connector.forProjectDirectory(dist.testDir)
         connector.searchUpwards(false)
-        BuildConnection connection = connector.connect()
+        withConnectionRaw(connector, cl)
+    }
+
+    def withConnectionRaw(GradleConnector connector, Closure cl) {
+        ProjectConnection connection = connector.connect()
         try {
             return cl.call(connection)
         } finally {
-            connector.close()
+            connection.close()
         }
     }
 }

@@ -1,0 +1,88 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>sonar</literal> and <literal>java</literal> plugins</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>serverUrl</td>
+                <td><literal>http://localhost:9000</literal></td>
+            </tr>
+            <tr>
+                <td>bootstrapDir</td>
+                <td>Gradle-managed per-project cache directory</td>
+            </tr>
+            <tr>
+                <td>projectDir</td>
+                <td><literal>project.projectDir</literal></td>
+            </tr>
+            <tr>
+                <td>projectMainSourceDirs</td>
+                <td><literal>project.sourceSets.main.java.srcDirs</literal></td>
+            </tr>
+            <tr>
+                <td>projectTestSourceDirs</td>
+                <td>
+                    <literal>project.sourceSets.main.java.srcDirs</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>projectClassesDirs</td>
+                <td><literal>project.sourceSets.main.classesDir</literal></td>
+            </tr>
+            <tr>
+                <td>projectDependencies</td>
+                <td><literal>project.configurations.compile.resolve()</literal></td></tr>
+            <tr>
+                <td>projectKey</td>
+                <td><literal><replaceable>$project.group</replaceable>:<replaceable>$project.name</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>projectName</td>
+                <td><literal>project.name</literal></td>
+            </tr>
+            <tr>
+                <td>projectDescription</td>
+                <td><literal>project.description</literal></td>
+            </tr>
+            <tr>
+                <td>projectVersion</td>
+                <td><literal>project.version</literal></td>
+            </tr>
+            <tr>
+                <td>projectProperties</td>
+                <td>
+                    <literal>["sonar.java.source": project.sourceCompatibility,
+                        "sonar.java.target": project.targetCompatibility,
+                        "sonar.dynamicAnalysis": "reuseReports",
+                        "sonar.surefire.reportsPath": project.test.testResultsDir]
+                    </literal>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr><td>Name</td></tr>
+            </thead>
+            <tr><td>projectMainSourceDir</td></tr>
+            <tr><td>projectMainSourceDirs</td></tr>
+            <tr><td>projectTestSourceDir</td></tr>
+            <tr><td>projectTestSourceDirs</td></tr>
+            <tr><td>projectClassesDir</td> </tr>
+            <tr><td>projectClassesDirs</td></tr>
+            <tr><td>projectDependency</td></tr>
+            <tr><td>projectDependencies</td></tr>
+            <tr><td>globalProperty</td></tr>
+            <tr><td>globalProperties</td></tr>
+            <tr><td>projectProperty</td></tr>
+            <tr><td>projectProperties</td></tr>
+        </table>
+    </section>
+</section>

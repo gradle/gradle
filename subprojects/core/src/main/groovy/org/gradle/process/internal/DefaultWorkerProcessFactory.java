@@ -36,6 +36,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessFactory.class);
@@ -72,9 +73,10 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
                 throw new IllegalStateException("No worker action specified for this worker process.");
             }
 
-            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess();
+            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
             URI localAddress = server.accept(workerProcess.getConnectAction());
 
+            // Build configuration for GradleWorkerMain
             List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
             Object id = idGenerator.generateId();
             String displayName = String.format("Gradle Worker %s", id);
@@ -88,18 +90,17 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
                         implementationClassPath, localAddress, classPathRegistry);
             }
             Callable<?> workerMain = workerFactory.create();
-            getJavaCommand().classpath(workerFactory.getSystemClasspath());
-
-            // Build configuration for GradleWorkerMain
             byte[] config = GUtil.serialize(workerMain);
 
             LOGGER.debug("Creating {}", displayName);
             LOGGER.debug("Using application classpath {}", getApplicationClasspath());
             LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
-            getJavaCommand().setStandardInput(new ByteArrayInputStream(config));
-            getJavaCommand().setDisplayName(displayName);
-            ExecHandle execHandle = getJavaCommand().build();
+            JavaExecHandleBuilder javaCommand = getJavaCommand();
+            javaCommand.classpath(workerFactory.getSystemClasspath());
+            javaCommand.setStandardInput(new ByteArrayInputStream(config));
+            javaCommand.setDisplayName(displayName);
+            ExecHandle execHandle = javaCommand.build();
 
             workerProcess.setExecHandle(execHandle);
 

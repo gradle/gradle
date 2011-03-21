@@ -265,7 +265,7 @@ public class DefaultServiceRegistryTest {
             return new TestFactory();
         }
 
-        protected Factory<Long> createLongFactory(final Factory<? extends Long> factory) {
+        protected Factory<Long> createLongFactory(final Factory<Long> factory) {
             return new Factory<Long>() {
                 public Long create() {
                     return factory.create() + 2;

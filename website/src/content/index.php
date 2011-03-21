@@ -38,17 +38,14 @@
 <div id="training" class="homeList">
     <h2>Upcoming training</h2>
     <ul>
-        <li><a href="http://gradle.biz/training.html">Dec 6-7, 2010, Reston, U.S.</a></li>
-        <li><a href="http://gradle.biz/training.html">February 8-10, 2011, Frankfurt, DE</li>
-        <li><a href="http://gradle.biz/training.html">February 21-23, 2011, London, UK</li>
-        <li><a href="http://gradle.biz/training.html">March 8-10, 2011, M&uuml;nchen, DE</li>
-        <li><a href="http://gradle.biz/training.html">April 5-7, 2011, Z&uuml;rich, CH</li>
-        <li><a href="http://gradle.biz/training.html">May 10-12, 2011, Stuttgart, DE</li>
-        <li><a href="http://gradle.biz/training.html">June 7-9, 2011, Berlin, DE</li>
-        <li><a href="http://gradle.biz/training.html">June 20-22, 2011, London, UK</li>
+        <li><a href="http://gradleware.com/home/training">July  21-23, 2011, M&uuml;nchen, DE</li>
+        <li><a href="http://gradleware.com/home/training">July  25-27, 2011, London, UK</li>
+        <li><a href="http://gradleware.com/home/training">September 20-22, 2011, Frankfurt, DE</li>
+        <li><a href="http://gradleware.com/home/training">October 11-13, 2011, Stuttgart, DE</li>
+        <li><a href="http://gradleware.com/home/training">November 1-3, 2011, Berlin, DE</li>
         <li>2011 U.S. DATES SOON TO COME</li>
     </ul>
-    <div class="more"><a href="http://gradle.biz/training.html">learn more</a></div>
+    <div class="more"><a href="http://gradleware.com/home/training">learn more</a></div>
 </div>
 
 <div id="who_uses" class="homeList">
@@ -62,7 +59,7 @@
             <li><a href="http://static.springsource.org/spring-security/site/">Spring Security</a></li>
             <li><a href="http://griffon.codehaus.org/">Griffon</a></li>
             <li><a href="http://gaelyk.appspot.com">Gaelyk</a></li>
-            <li><a href="http://code.google.com/p/aluminumproject/">Aluminum</a></li>
+            <li><a href="http://www.qi4j.org/">Qi4j</a></li>
         </ul>
     </div>
     <div>
@@ -73,6 +70,7 @@
             <li><a href="http://www.zeppelin.com">Zeppelin</a></li>
             <li><a href="http://gpars.codehaus.org">GPars</a></li>
             <li><a href="http://code.google.com/p/spock/">Spock</a></li>
+            <li><a href="http://code.google.com/p/aluminumproject/">Aluminum</a></li>
             <li><a href="http://gant.codehaus.org">Gant</a></li>
         </ul>
     </div>

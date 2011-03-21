@@ -30,14 +30,19 @@
                 <td/>
             </tr>
             <tr>
+                <td>inheritOutputDirs</td>
+                <td><literal>null</literal></td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>outputDir</td>
                 <td><literal>null</literal></td>
-                <td><literal>project.sourceSets.main.classesDir</literal></td>
+                <td><literal>null</literal></td>
             </tr>
             <tr>
                 <td>testOutputDir</td>
                 <td><literal>null</literal></td>
-                <td><literal>project.sourceSets.test.classesDir</literal></td>
+                <td><literal>null</literal></td>
             </tr>
             <tr>
                 <td>javaVersion</td>
@@ -72,7 +77,15 @@
             </tr>
             <tr>
                 <td>outputFile</td>
-                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iml</literal></td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iml</literal>
+                    (sometimes the <replaceable>project.name</replaceable> is prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqeness).
+                    Bear in mind that usually it is easier to use moduleName property instead of outputFile property.
+                </td>
+                <td/>
+            </tr>
+            <tr>
+                <td>moduleName</td>
+                <td><literal><replaceable>${project.name}</replaceable> (sometimes prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqeness)</literal></td>
                 <td/>
             </tr>
         </table>

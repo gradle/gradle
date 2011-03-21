@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.GradleException
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
@@ -44,28 +45,27 @@ public class ApplicationPlugin implements Plugin<Project> {
         project.plugins.apply(JavaPlugin.class)
         ApplicationPluginConvention applicationPluginConvention = new ApplicationPluginConvention(project)
         project.convention.plugins.put("application", applicationPluginConvention)
+        applicationPluginConvention.applicationName = project.name
         configureRunTask(project)
         configureCreateScriptsTask(project, applicationPluginConvention)
 
-        def distSpec = createDistSpec(project)
+        def distSpec = createDistSpec(project, applicationPluginConvention)
         configureInstallTask(project, applicationPluginConvention, distSpec)
         configureDistZipTask(project, applicationPluginConvention, distSpec)
     }
 
-    private def CopySpec createDistSpec(Project project) {
+    private def CopySpec createDistSpec(Project project, ApplicationPluginConvention applicationPluginConvention) {
         Jar jar = project.tasks.withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME)
         CreateStartScripts startScripts = project.tasks.withType(CreateStartScripts.class).getByName(TASK_START_SCRIPTS_NAME)
 
         project.copySpec {
-            into(project.name){
-                into("lib") {
-                    from(jar.outputs.files)
-                    from(project.configurations.runtime)
-                }
-                into("bin") {
-                    from(startScripts.outputs.files)
-                    fileMode = 0755
-                }
+            into("lib") {
+                from(jar.outputs.files)
+                from(project.configurations.runtime)
+            }
+            into("bin") {
+                from(startScripts.outputs.files)
+                fileMode = 0755
             }
         }
     }
@@ -77,7 +77,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         run.classpath = project.convention.getPlugin(JavaPluginConvention.class).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).runtimeClasspath
     }
 
-    /** @Todo: refactor this task configuration to extend a copy task and use replace tokens  */
+    /** @Todo: refactor this task configuration to extend a copy task and use replace tokens    */
     private void configureCreateScriptsTask(Project project, ApplicationPluginConvention applicationPluginConvention) {
         CreateStartScripts startScripts = project.tasks.add(TASK_START_SCRIPTS_NAME, CreateStartScripts.class)
         startScripts.description = "Creates OS specific scripts to run the project as a JVM application."
@@ -85,8 +85,8 @@ public class ApplicationPlugin implements Plugin<Project> {
         Jar jar = project.tasks.withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME)
         startScripts.classpath = jar.outputs.files + project.configurations.runtime
 
-        startScripts.conventionMapping.mainClassName = {applicationPluginConvention.mainClassName}
-        startScripts.conventionMapping.applicationName = {project.name}
+        startScripts.conventionMapping.mainClassName = { applicationPluginConvention.mainClassName }
+        startScripts.conventionMapping.applicationName = { applicationPluginConvention.applicationName }
         startScripts.conventionMapping.outputDir = {new File(project.buildDir, 'scripts')}
     }
 
@@ -95,9 +95,19 @@ public class ApplicationPlugin implements Plugin<Project> {
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
         installTask.with(distSpec)
-        installTask.into { project.file(pluginConvention.installDirPath) }
-        installTask.doLast{
-            project.getAnt().chmod(file: "${installTask.destinationDir.absolutePath}/${project.name}/bin/${project.name}", perm: 'ugo+x')
+        installTask.into { project.file("${project.buildDir}/install/${pluginConvention.applicationName}") }
+        installTask.doFirst {
+            if (destinationDir.directory) {
+                if (!new File(destinationDir, 'lib').directory || !new File(destinationDir, 'bin')) {
+                    throw new GradleException("The specified installation directory '${destinationDir}' does not appear to contain an installation for '${pluginConvention.applicationName}'.\n" +
+                            "Note that the install task will replace any existing contents of this directory.\n" +
+                            "You should either delete this directory manually, or change the installation directory."
+                    )
+                }
+            }
+        }
+        installTask.doLast {
+            project.getAnt().chmod(file: "${destinationDir.absolutePath}/bin/${pluginConvention.applicationName}", perm: 'ugo+x')
         }
     }
 
@@ -105,6 +115,10 @@ public class ApplicationPlugin implements Plugin<Project> {
         Zip distZipTask = project.tasks.add(TASK_DIST_ZIP_NAME, Zip.class)
         distZipTask.description = "Bundles the project as a JVM application with libs and OS specific scripts.";
         distZipTask.group = APPLICATION_GROUP;
-        distZipTask.with(distSpec)
+        distZipTask.conventionMapping.baseName = { applicationPluginConvention.applicationName }
+        def prefix = { applicationPluginConvention.applicationPrefix }
+        distZipTask.into(prefix) {
+            with(distSpec)
+        }
     }
 }

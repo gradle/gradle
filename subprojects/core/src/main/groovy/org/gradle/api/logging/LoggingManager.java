@@ -70,6 +70,13 @@ public interface LoggingManager extends LoggingOutput {
     LogLevel getStandardErrorCaptureLevel();
 
     /**
+     * Returns the current logging level.
+     *
+     * @return The current logging level.
+     */
+    LogLevel getLevel();
+
+    /**
      * Sets the minimum logging level. All messages at a lower level are discarded.
      *
      * @param logLevel The minimum logging level.

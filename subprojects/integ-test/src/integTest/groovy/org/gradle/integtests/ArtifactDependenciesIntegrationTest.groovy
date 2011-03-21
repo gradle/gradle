@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.HttpServer
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -33,7 +35,13 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     public void setup() {
         distribution.requireOwnUserHomeDir()
     }
-    
+
+    @Test
+    public void canResolveDependenciesFromAFlatDir() {
+        File buildFile = testFile("projectWithFlatDir.gradle");
+        usingBuildFile(buildFile).run();
+    }
+
     @Test
     public void canHaveConfigurationHierarchy() {
         File buildFile = testFile("projectWithConfigurationHierarchy.gradle");
@@ -163,6 +171,66 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canHaveCycleInProjectDependencies() {
         inTestDirectory().withTasks('listJars').run();
+    }
+
+    @Test
+    public void canHaveNonTransitiveProjectDependencies() {
+        repo().module("group", "externalA", 1.5).publishArtifact()
+
+        testFile('settings.gradle') << "include 'a', 'b'"
+
+        testFile('build.gradle') << '''
+allprojects {
+    apply plugin: 'java'
+    repositories { mavenRepo urls: rootProject.uri('repo') }
+}
+project(':a') {
+    dependencies {
+        compile 'group:externalA:1.5'
+        compile files('libs/externalB.jar')
+    }
+}
+project(':b') {
+    configurations.compile.transitive = false
+    dependencies {
+        compile project(':a') { transitive = false }
+    }
+    task listJars << {
+        assert configurations.compile.collect { it.name } == ['a.jar']
+    }
+}
+'''
+
+        inTestDirectory().withTasks('listJars').run()
+    }
+
+    @Test
+    public void reportsFailedHttpDownload() {
+        HttpServer server = new HttpServer()
+        server.addBroken('/')
+        server.start()
+
+        testFile("build.gradle") << """
+apply plugin: 'java'
+repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
+    name = 'gradleReleases'
+    addArtifactPattern("http://localhost:${server.port}/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]" as String)
+}
+dependencies {
+    compile 'group:org:1.2'
+}
+task show << { println configurations.compile.files }
+"""
+
+        def result = executer.withTasks("show").runWithFailure()
+        result.assertHasDescription('Execution failed for task \':show\'.')
+        result.assertHasCause('Could not resolve all dependencies for configuration \':compile\':')
+
+        server.stop()
+    }
+
+    MavenRepository repo() {
+        return new MavenRepository(testFile('repo'))
     }
 }
 

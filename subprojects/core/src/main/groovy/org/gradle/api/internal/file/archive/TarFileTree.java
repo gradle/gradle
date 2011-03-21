@@ -15,29 +15,27 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import org.apache.tools.tar.TarEntry;
+import org.apache.tools.tar.TarInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.AbstractFileTree;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.DefaultConfigurableFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TarFileTree extends AbstractFileTree {
+public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File tarFile;
     private final File tmpDir;
 
@@ -51,18 +49,16 @@ public class TarFileTree extends AbstractFileTree {
         return String.format("TAR '%s'", tarFile);
     }
 
-    @Override
-    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
-        visitAll();
-        return tarFile.exists() ? Collections.singleton(new DefaultConfigurableFileTree(tmpDir, null, null)) : Collections.<DefaultConfigurableFileTree>emptyList();
+    public DirectoryFileTree getMirror() {
+        return new DirectoryFileTree(tmpDir);
     }
 
-    public FileTree visit(FileVisitor visitor) {
+    public void visit(FileVisitor visitor) {
         if (!tarFile.exists()) {
-            return this;
+            return;
         }
         if (!tarFile.isFile()) {
-            throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", this));
+            throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", getDisplayName()));
         }
 
         AtomicBoolean stopFlag = new AtomicBoolean();
@@ -83,10 +79,8 @@ public class TarFileTree extends AbstractFileTree {
                 inputStream.close();
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not expand %s.", this), e);
+            throw new GradleException(String.format("Could not expand %s.", getDisplayName()), e);
         }
-
-        return this;
     }
 
     private class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {

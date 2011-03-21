@@ -20,9 +20,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.api.tasks.*;
-import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GUtil;
@@ -34,6 +34,26 @@ import java.util.List;
 
 /**
  * <p>Generates HTML API documentation for Java classes.</p>
+ * <p>
+ * If you create your own Javadoc tasks remember to specify the 'source' property!
+ * Without source the javadoc task will not create any documentation. Example:
+ * <pre>
+ * task myJavadocs(type: Javadoc) {
+ *   source = sourceSets.main.allJava
+ * }
+ * </pre>
+ *
+ * <p>
+ * An example how to create a task that runs a custom doclet implementation:
+ * <pre>
+ * task generateRestApiDocs(type: Javadoc) {
+ *   source = sourceSets.main.allJava
+ *   destinationDir = file("${reportsDir.absolutePath}/rest-api-docs")
+ *   options.docletpath = configurations.jaxDoclet.files.asType(List)
+ *   options.doclet = "com.lunatech.doclets.jax.jaxrs.JAXRSDoclet"
+ *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")
+ * }
+ * </pre>
  *
  * @author Hans Dockter
  */

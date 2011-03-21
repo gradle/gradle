@@ -17,54 +17,55 @@ package org.gradle.logging.internal
 
 import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
+import org.gradle.util.TextUtil
 import java.text.SimpleDateFormat
 
 class OutputSpecification extends Specification {
-    def String toNative(String value) {
-        return value.replaceAll('\n', System.getProperty('line.separator'))
+    protected String toNative(String value) {
+        return TextUtil.toNativeLineSeparators(value)
     }
 
     /**
      * Returns timestamp representing 10AM today in local time.
      */
-    def long getTenAm() {
+    long getTenAm() {
         return getTime('10:00:00.000')
     }
 
-    def long getTime(String time) {
+    long getTime(String time) {
         String today = new SimpleDateFormat("yyyyMMdd").format(new Date())
         return new SimpleDateFormat('yyyyMMdd HH:mm:ss.SSS').parse(today + ' ' + time).getTime()
     }
 
-    def LogEvent event(String text) {
+    LogEvent event(String text) {
         return new LogEvent(tenAm, 'category', LogLevel.INFO, text, null)
     }
 
-    def LogEvent event(String text, LogLevel logLevel) {
+    LogEvent event(String text, LogLevel logLevel) {
         return new LogEvent(tenAm, 'category', logLevel, text, null)
     }
 
-    def LogEvent event(long timestamp, String text, LogLevel logLevel) {
+    LogEvent event(long timestamp, String text, LogLevel logLevel) {
         return new LogEvent(timestamp, 'category', logLevel, text, null)
     }
 
-    def LogEvent event(long timestamp, String text) {
+    LogEvent event(long timestamp, String text) {
         return new LogEvent(timestamp, 'category', LogLevel.INFO, text, null)
     }
 
-    def LogEvent event(String text, Throwable throwable) {
+    LogEvent event(String text, Throwable throwable) {
         return new LogEvent(tenAm, 'category', LogLevel.INFO, text, throwable)
     }
 
-    def ProgressStartEvent start(String description) {
+    ProgressStartEvent start(String description) {
         return new ProgressStartEvent(tenAm, 'category', description)
     }
 
-    def ProgressEvent progress(String status) {
+    ProgressEvent progress(String status) {
         return new ProgressEvent(tenAm, 'category', status)
     }
 
-    def ProgressCompleteEvent complete(String status) {
+    ProgressCompleteEvent complete(String status) {
         return new ProgressCompleteEvent(tenAm, 'category', status)
     }
 }

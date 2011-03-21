@@ -2,6 +2,7 @@
 .gradle
 /build
 /out
+/subprojects/*/out
 /intellij
 /buildSrc/lib
 /buildSrc/build
@@ -26,3 +27,4 @@
 /subprojects/*/bin
 /intTestHomeDir
 .DS_Store
+/performanceTest/lib

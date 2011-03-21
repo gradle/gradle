@@ -15,16 +15,16 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1
-import org.gradle.tooling.internal.protocol.ConnectionVersion1
-import spock.lang.Specification
+import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion2
 import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1
+import org.gradle.tooling.internal.protocol.ConnectionVersion2
+import spock.lang.Specification
 
 class ConnectionFactoryTest extends Specification {
     final ToolingImplementationLoader implementationLoader = Mock()
     final Distribution distribution = Mock()
-    final ConnectionFactoryVersion1 connectionImplFactory = Mock()
-    final ConnectionVersion1 connectionImpl = Mock()
+    final ConnectionFactoryVersion2 connectionImplFactory = Mock()
+    final ConnectionVersion2 connectionImpl = Mock()
     final ConnectionParametersVersion1 parameters = Mock()
     final ConnectionFactory factory = new ConnectionFactory(implementationLoader)
 
@@ -36,19 +36,5 @@ class ConnectionFactoryTest extends Specification {
         1 * implementationLoader.create(distribution) >> connectionImplFactory
         1 * connectionImplFactory.create(parameters) >> connectionImpl
         0 * _._
-    }
-
-    def stopsAllConnectionFactoriesOnStop() {
-        when:
-        factory.create(distribution, parameters)
-
-        then:
-        1 * implementationLoader.create(distribution) >> connectionImplFactory
-        
-        when:
-        factory.stop()
-
-        then:
-        1 * connectionImplFactory.stop()
     }
 }

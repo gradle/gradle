@@ -16,7 +16,7 @@ project(':api') {
 project(':services:personService') {
     dependencies {
         compile project(':shared'), project(':api')
-        testCompile "junit:junit:3.8.2"
+        testCompile "junit:junit:4.8.2"
     }
 }
 

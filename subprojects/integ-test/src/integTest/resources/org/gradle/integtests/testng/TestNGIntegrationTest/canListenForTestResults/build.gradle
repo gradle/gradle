@@ -1,6 +1,6 @@
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile 'org.testng:testng:5.13.1' }
+dependencies { testCompile 'org.testng:testng:5.14.10' }
 def listener = new TestListenerImpl()
 
 test {

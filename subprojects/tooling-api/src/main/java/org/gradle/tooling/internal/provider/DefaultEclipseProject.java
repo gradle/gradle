@@ -17,32 +17,55 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.util.List;
 
-class DefaultEclipseProject implements EclipseProjectVersion1 {
+class DefaultEclipseProject implements EclipseProjectVersion2 {
     private final String name;
+    private final String path;
+    private EclipseProjectVersion2 parent;
     private final List<ExternalDependencyVersion1> classpath;
-    private final List<EclipseProjectVersion1> children;
+    private final List<EclipseProjectVersion2> children;
     private final List<EclipseSourceDirectoryVersion1> sourceDirectories;
     private final List<EclipseProjectDependencyVersion1> projectDependencies;
+    private final File projectDirectory;
 
-    public DefaultEclipseProject(String name, Iterable<? extends EclipseProjectVersion1> children, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion1> projectDependencies) {
+    public DefaultEclipseProject(String name, String path, File projectDirectory, Iterable<? extends EclipseProjectVersion2> children, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion1> projectDependencies) {
         this.name = name;
+        this.path = path;
+        this.projectDirectory = projectDirectory;
         this.children = GUtil.addLists(children);
         this.classpath = GUtil.addLists(classpath);
         this.sourceDirectories = GUtil.addLists(sourceDirectories);
         this.projectDependencies = GUtil.addLists(projectDependencies);
     }
 
+    @Override
+    public String toString() {
+        return String.format("project '%s'", path);
+    }
+
     public String getName() {
         return name;
     }
 
-    public List<EclipseProjectVersion1> getChildProjects() {
+    public EclipseProjectVersion2 getParent() {
+        return parent;
+    }
+
+    public File getProjectDirectory() {
+        return projectDirectory;
+    }
+
+    public void setParent(EclipseProjectVersion2 parent) {
+        this.parent = parent;
+    }
+
+    public List<EclipseProjectVersion2> getChildren() {
         return children;
     }
 

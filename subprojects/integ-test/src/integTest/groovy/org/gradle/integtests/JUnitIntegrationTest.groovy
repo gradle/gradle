@@ -53,17 +53,26 @@ public class JUnitIntegrationTest {
     }
 
     @Test
+    public void canRunMixOfJunit3And4Tests() {
+        executer.withTasks('check').run()
+
+        def result = new JUnitTestExecutionResult(dist.testDir)
+        result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest')
+        result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
+        result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
+        result.testClass('org.gradle.Junit4Test').assertTestsExecuted('ok')
+        result.testClass('org.gradle.Junit4Test').assertTestPassed('ok')
+        result.testClass('org.gradle.Junit4Test').assertTestsSkipped('broken')
+        result.testClass('org.gradle.IgnoredTest').assertTestsExecuted()
+    }
+
+    @Test
     public void canRunJunit3Tests() {
-        executer.withTasks('check').withArguments('-PjunitVersion=4.8.1').run()
+        executer.withTasks('check').run()
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(dist.testDir)
+        def result = new JUnitTestExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.Test1')
-        result.testClass('org.gradle.Test1').assertTestPassed('testRenamesItself')
-
-        executer.withTasks('clean', 'check').withArguments('-PjunitVersion=3.8').run()
-
-        result = new JUnitTestExecutionResult(dist.testDir)
-        result.assertTestClassesExecuted('org.gradle.Test1')
+        result.testClass('org.gradle.Test1').assertTestsExecuted('testRenamesItself')
         result.testClass('org.gradle.Test1').assertTestPassed('testRenamesItself')
     }
 

@@ -48,7 +48,7 @@ public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
      * @return the version of gradle being run. This is basically the version from the jar file.
      */
     public String getVersion() {
-        return new GradleVersion().getVersion();
+        return GradleVersion.current().getVersion();
     }
 
     /**

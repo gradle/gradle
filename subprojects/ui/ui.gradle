@@ -37,7 +37,7 @@ dependencies {
 task integTest(type: Test) {
     doFirst {
         systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTestUserDir.absolutePath
+        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
         systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
     }
 }

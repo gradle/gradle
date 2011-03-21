@@ -83,6 +83,10 @@ private class TestNgTestClassExecutionResult implements TestClassExecutionResult
         this
     }
 
+    TestClassExecutionResult assertTestsSkipped(String... testNames) {
+        throw new UnsupportedOperationException()
+    }
+
     TestClassExecutionResult assertTestSkipped(String name) {
         def testMethodNode = findTestMethod(name)
         assertEquals('SKIP', testMethodNode.@status as String)

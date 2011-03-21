@@ -16,7 +16,8 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
-import org.gradle.util.TextUtil;
+
+import org.gradle.util.SystemProperties;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class LineFilter extends Reader {
         StringBuilder result = new StringBuilder();
         result.append(closure.call(line.toString()).toString());
         if (eol) {
-            result.append(TextUtil.LINE_SEPARATOR);
+            result.append(SystemProperties.getLineSeparator());
         }
         return result.toString();
     }

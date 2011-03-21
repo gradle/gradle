@@ -16,21 +16,55 @@
 
 package org.gradle.logging.internal;
 
+import org.apache.commons.io.IOUtils;
 import org.fusesource.jansi.WindowsAnsiOutputStream;
+import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.OperatingSystem;
 import org.gradle.util.PosixUtil;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileDescriptor;
-import java.io.IOException;
+import java.io.*;
 
 public class TerminalDetector implements Spec<FileDescriptor> {
+    public TerminalDetector(File libCacheDir) {
+        // Some hackery to prevent JNA from creating a shared lib in the tmp dir, as it does not clean things up
+        File tmpDir = new File(libCacheDir, "jna");
+        tmpDir.mkdirs();
+        String libName = System.mapLibraryName("jnidispatch");
+        File libFile = new File(tmpDir, libName);
+        if (!libFile.exists()) {
+            String resourceName = "/com/sun/jna/" + OperatingSystem.current().getNativePrefix() + "/" + libName;
+            try {
+                InputStream lib = getClass().getResourceAsStream(resourceName);
+                if (lib == null) {
+                    throw new GradleException(String.format("Could not locate JNA native lib resource '%s'.", resourceName));
+                }
+                try {
+                    FileOutputStream outputStream = new FileOutputStream(libFile);
+                    try {
+                        IOUtils.copy(lib, outputStream);
+                    } finally {
+                        outputStream.close();
+                    }
+                } finally {
+                    lib.close();
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+//        System.load(libFile.getAbsolutePath());
+        System.setProperty("jna.boot.library.path", tmpDir.getAbsolutePath());
+    }
+
     public boolean isSatisfiedBy(FileDescriptor element) {
+
         if (OperatingSystem.current().isWindows()) {
             // Use Jansi's detection mechanism
             try {
                 new WindowsAnsiOutputStream(new ByteArrayOutputStream());
+                return true;
             } catch (IOException ignore) {
                 // Not attached to a console
                 return false;

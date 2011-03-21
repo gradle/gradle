@@ -21,6 +21,7 @@ import org.gradle.api.PathValidation;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
+import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.WorkResult;
@@ -84,11 +85,11 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     public FileTree zipTree(Object zipPath) {
-        return new ZipFileTree(file(zipPath), getExpandDir());
+        return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir()));
     }
 
     public FileTree tarTree(Object tarPath) {
-        return new TarFileTree(file(tarPath), getExpandDir());
+        return new FileTreeAdapter(new TarFileTree(file(tarPath), getExpandDir()));
     }
 
     private File getExpandDir() {

@@ -24,7 +24,7 @@ import org.gradle.api.tasks.Delete;
 public abstract class IdePlugin implements Plugin<Project> {
     private Task lifecycleTask;
     private Task cleanTask;
-    private Project project;
+    protected Project project;
 
     public void apply(Project target) {
         project = target;

@@ -15,12 +15,12 @@
  */
 package org.gradle.api
 
+import org.gradle.api.internal.tasks.generator.Generator
 import org.gradle.api.tasks.GeneratorTask
 import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.internal.tasks.generator.Generator
 
 class GeneratorTaskTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -48,12 +48,21 @@ class GeneratorTaskTest extends Specification {
         then:
         task.inputFile == inputFile
     }
+
+    def "fails gracefully when domainObject not configured"() {
+        given: task.domainObject = null
+
+        when: task.generate()
+
+        then: thrown IllegalStateException
+    }
     
     def mergesConfigurationWhenInputFileExists() {
         def configObject = new TestConfigurationObject()
         inputFile.text = 'config'
 
         when:
+        task.configureDomainObject()
         task.generate()
 
         then:
@@ -67,6 +76,7 @@ class GeneratorTaskTest extends Specification {
         def configObject = new TestConfigurationObject()
 
         when:
+        task.configureDomainObject()
         task.generate()
 
         then:
@@ -82,6 +92,7 @@ class GeneratorTaskTest extends Specification {
         task.beforeConfigured(action)
 
         when:
+        task.configureDomainObject()
         task.generate()
 
         then:
@@ -96,12 +107,21 @@ class GeneratorTaskTest extends Specification {
         task.whenConfigured(action)
 
         when:
+        task.configureDomainObject()
         task.generate()
 
         then:
         1 * generator.defaultInstance() >> configObject
         1 * generator.configure(configObject)
         1 * action.execute(configObject)
+    }
+
+    def "fails gracefully when domain object not ready yet"() {
+        when:
+        task.domainObject
+
+        then:
+        thrown IllegalStateException
     }
 }
 

@@ -81,7 +81,11 @@ public class TestFile extends File implements TestFileContext {
     }
 
     public TestFile file(Object... path) {
-        return new TestFile(this, path);
+        try {
+            return new TestFile(this, path);
+        } catch (RuntimeException e) {
+            throw new UncheckedIOException(String.format("Could not locate file '%s' relative to '%s'.", Arrays.toString(path), this), e);
+        }
     }
 
     public List<TestFile> files(Object... paths) {
@@ -333,6 +337,14 @@ public class TestFile extends File implements TestFileContext {
 
         assertEquals(String.format("Extra files: %s, missing files: %s, expected: %s", extras, missing, expected), expected, actual);
 
+        return this;
+    }
+
+    public TestFile assertIsEmptyDir() {
+        if (exists()) {
+            assertIsDir();
+            assertHasDescendants();
+        }
         return this;
     }
 

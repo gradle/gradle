@@ -1,0 +1,25 @@
+apply plugin: "java"
+
+// START SNIPPET use-plugin
+apply plugin: "sonar"
+// END SNIPPET use-plugin
+
+// START SNIPPET connection-settings
+sonar {
+    serverUrl = "http://my.server.com"
+
+    globalProperty "sonar.jdbc.url", "jdbc:mysql://my.server.com/sonar"
+    globalProperty "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
+    globalProperty "sonar.jdbc.username", "myusername"
+    globalProperty "sonar.jdbc.password", "mypassword"
+}
+// END SNIPPET connection-settings
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}

@@ -103,7 +103,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     private FileResolver fileResolver;
     private FileOperations fileOperations;
 
-    private Factory<? extends AntBuilder> antBuilderFactory;
+    private Factory<AntBuilder> antBuilderFactory;
 
     private AntBuilder ant;
 
@@ -125,7 +125,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private ArtifactHandler artifactHandler;
 
-    private Factory<? extends RepositoryHandler> repositoryHandlerFactory;
+    private Factory<RepositoryHandler> repositoryHandlerFactory;
 
     private RepositoryHandler repositoryHandler;
 
@@ -360,7 +360,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return repositoryHandler;
     }
 
-    public Factory<? extends RepositoryHandler> getRepositoryHandlerFactory() {
+    public Factory<RepositoryHandler> getRepositoryHandlerFactory() {
         return repositoryHandlerFactory;
     }
 
@@ -761,11 +761,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         this.taskContainer = taskContainer;
     }
 
-    public Factory<? extends AntBuilder> getAntBuilderFactory() {
+    public Factory<AntBuilder> getAntBuilderFactory() {
         return antBuilderFactory;
     }
 
-    public void setAntBuilderFactory(Factory<? extends AntBuilder> antBuilderFactory) {
+    public void setAntBuilderFactory(Factory<AntBuilder> antBuilderFactory) {
         this.antBuilderFactory = antBuilderFactory;
     }
 
@@ -964,7 +964,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return classGenerator.newInstance(DefaultAutoCreateDomainObjectContainer.class, type, classGenerator);
     }
 
-    public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<? extends T> factory) {
+    public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
         ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
         return classGenerator.newInstance(DefaultAutoCreateDomainObjectContainer.class, type, classGenerator, factory);
     }

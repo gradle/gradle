@@ -28,6 +28,8 @@ eclipseClasspath {
     plusConfigurations.add(configurations.integTestRuntime)
 }
 
+integTestUserDir = rootProject.file('intTestHomeDir')
+
 integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
 
 integTestTasks.all {

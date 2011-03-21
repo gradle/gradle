@@ -1,5 +1,5 @@
 <module relativePaths="true" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output/>
     <orderEntry type="inheritedJdk"/>
     <content url="file://$MODULE_DIR$/">
@@ -9,8 +9,6 @@
       <excludeFolder url="file://$MODULE_DIR$/build"/>
     </content>
     <orderEntry type="sourceFolder" forTests="false"/>
-    <output url="file://$MODULE_DIR$/out/production/api"/>
-    <output-test url="file://$MODULE_DIR$/out/test/api"/>
     <orderEntry type="module-library" exported="" scope="RUNTIME">
       <library>
         <CLASSES>

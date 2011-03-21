@@ -29,7 +29,7 @@ import static org.junit.Assert.*
 class DistributionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    private String version = new GradleVersion().version
+    private String version = GradleVersion.current().version
 
     @Test
     public void binZipContents() {
@@ -90,9 +90,19 @@ class DistributionIntegrationTest {
         assertIsGradleJar(contentsDir.file("lib/gradle-launcher-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-tooling-api-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-wrapper-${version}.jar"))
+
+        // TODO - these should be in lib/plugins
+        assertIsGradleJar(contentsDir.file("lib/gradle-plugins-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-ide-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-scala-${version}.jar"))
+
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-code-quality-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-plugins-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-antlr-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-announce-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-sonar-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${version}.jar"))
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()

@@ -20,6 +20,9 @@ import org.mortbay.jetty.Server
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.mortbay.jetty.handler.*
+import org.mortbay.jetty.Handler
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class HttpServer {
     private Logger logger = LoggerFactory.getLogger(HttpServer.class)
@@ -51,6 +54,19 @@ class HttpServer {
         context.contextPath = contextPath ?: '/'
         context.resourceBase = srcFile.parentFile.path
         context.addHandler(new ResourceHandler())
+        collection.addHandler(context)
+    }
+
+    def addBroken(String path) {
+        assert path.startsWith('/')
+        ContextHandler context = new ContextHandler()
+        String contextPath = StringUtils.substringBeforeLast(path, '/')
+        context.contextPath = contextPath ?: '/'
+        context.addHandler(new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                response.sendError(500, "broken")
+            }
+        })
         collection.addHandler(context)
     }
 

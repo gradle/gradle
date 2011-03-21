@@ -1,3 +1,5 @@
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -15,6 +17,7 @@
  */
 
 configurations {
+    reports
     testFixtures
 }
 
@@ -27,22 +30,45 @@ dependencies {
             libraries.commons_lang,
             libraries.asm_all,
             libraries.junit,
-            libraries.ant_junit,
             libraries.ant,
-            'org.testng:testng:5.12.1'
+            'org.testng:testng:5.14.10'
 
-    // This is for the ant junit task. Without it, we get file locking problems with some jvms because the default
-    // transformer does not close files
-    runtime 'xalan:xalan:2.7.1'
-
-    testCompile libraries.xmlunit
+    reports 'css3-pie:css3-pie:1.0beta3'
+    testCompile libraries.xmlunit, 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
     testFixtures sourceSets.test.classes
 }
 
+task reportResources << {
+    copy {
+        from(configurations.reports)
+        into "${sourceSets.main.classesDir}/org/gradle/api/internal/tasks/testing/junit/report"
+    }
+}
+
+classes.dependsOn reportResources
+
+task ideResources(type: Copy) {
+    from(configurations.reports)
+    into "${ideDir}/resources/test/org/gradle/api/internal/tasks/testing/junit/report"
+}
+
+ide.dependsOn ideResources
+
+ideaModule {
+    dependsOn ideResources
+    scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
+}
+
+eclipseClasspath {
+    dependsOn ideResources
+    plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
+}
+
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
+    exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
     jvmArgs '-Xms128m', '-Xmx256m', '-XX:+HeapDumpOnOutOfMemoryError'
 }

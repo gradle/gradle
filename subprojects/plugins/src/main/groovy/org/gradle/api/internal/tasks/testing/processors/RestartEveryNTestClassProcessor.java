@@ -22,13 +22,13 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 
 public class RestartEveryNTestClassProcessor implements TestClassProcessor {
-    private final Factory<? extends TestClassProcessor> factory;
+    private final Factory<TestClassProcessor> factory;
     private final long restartEvery;
     private long testCount;
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
 
-    public RestartEveryNTestClassProcessor(Factory<? extends TestClassProcessor> factory, long restartEvery) {
+    public RestartEveryNTestClassProcessor(Factory<TestClassProcessor> factory, long restartEvery) {
         this.factory = factory;
         this.restartEvery = restartEvery;
     }

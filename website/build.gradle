@@ -35,7 +35,7 @@ configurations {
     integTestCompile { extendsFrom groovy }
 }
 dependencies {
-    ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
+    ftpAntTask module("org.apache.ant:ant-commons-net:1.8.2") {
         module("commons-net:commons-net:1.4.1") {
             dependencies("oro:oro:2.0.8@jar")
         }
@@ -49,6 +49,8 @@ webSrcDir = file('src')
 
 if (!hasProperty('gradleCorePath')) {
     gradleCorePath = projectDir.parentFile
+} else {
+    gradleCorePath = file(gradleCorePath)
 }
 File generatedDocs = new File("$gradleCorePath/subprojects/docs/build/websiteDocs")
 
@@ -74,9 +76,9 @@ task configureReleases << {
 
     version = gradleCoreProperties.version
     releases << new Release(version: version, status: 'Current Release')
+    releases << new Release(version: '0.9.2')
     releases << new Release(version: '0.9.1')
     releases << new Release(version: '0.9')
-    releases << new Release(version: '0.8')
 }
 
 task html(dependsOn: configureReleases) << {
@@ -217,23 +219,6 @@ class Ftp extends DefaultTask {
     }
 }
 
-void ftp(Map args, Closure antFileset = {}) {
-    ant {
-        taskdef(name: 'ftp',
-                classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: configurations.ftpAntTask.asPath)
-        Map ftpArgs = args + [
-                server: 'ftp.gradle.org',
-                userid: websiteFtpUserName,
-                password: websiteFtpUserPassword
-        ]
-        delegate.ftp(ftpArgs) {
-            antFileset.delegate = delegate
-            antFileset()
-        }
-    }
-}
-
 class Page {
     def File srcFile
     def File destFile
@@ -316,9 +301,7 @@ class Release {
     }
 
     def String getReleaseNoteVersion() {
-        Matcher matcher = version =~ /(\d+(\.\d+)+).*/
-        matcher.matches()
-        return matcher.group(1)
+        return version
     }
 
     def String getDisplayName() {
@@ -340,7 +323,7 @@ class Release {
     def String getDistributionBase() {
         def version = majorVersion as BigDecimal
         if (version >= 0.9) {
-            return "http://gradle.artifactoryonline.com/gradle/distributions/"
+            return "http://repo.gradle.org/gradle/distributions/"
         } else {
             return "http://dist.codehaus.org/gradle/"
         }
@@ -351,7 +334,7 @@ class Release {
     }
 
     def String getReleaseNotesUrl() {
-        return "http://docs.codehaus.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes"
+        return "http://wiki.gradle.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes"
     }
 
     def String getUserGuideHtmlUrl() {

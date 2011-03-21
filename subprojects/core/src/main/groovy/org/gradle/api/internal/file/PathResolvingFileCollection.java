@@ -16,17 +16,14 @@
 
 package org.gradle.api.internal.file;
 
-import groovy.lang.Closure;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.util.UncheckedException;
 
-import java.io.File;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link FileResolver}.
@@ -62,9 +59,7 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
     }
 
     public ConfigurableFileCollection from(Object... paths) {
-        for (Object path : paths) {
-            files.add(path);
-        }
+        files.add(paths);
         return this;
     }
 
@@ -90,56 +85,8 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
 
     @Override
     protected void addSourceCollections(Collection<FileCollection> sources) {
-        for (Object element : resolveToFilesAndFileCollections()) {
-            if (element instanceof FileCollection) {
-                FileCollection collection = (FileCollection) element;
-                sources.add(collection);
-            } else {
-                File file = (File) element;
-                sources.add(new SingletonFileCollection(file, buildDependency));
-            }
-        }
-    }
-
-    /**
-     * Converts everything in this collection which is not a FileCollection to Files, but leave FileCollections
-     * unresolved.
-     */
-    private List<Object> resolveToFilesAndFileCollections() {
-        List<Object> result = new ArrayList<Object>();
-        LinkedList<Object> queue = new LinkedList<Object>();
-        queue.addAll(files);
-        while (!queue.isEmpty()) {
-            Object first = queue.removeFirst();
-            if (first instanceof FileCollection) {
-                result.add(first);
-            } else if (first instanceof Closure) {
-                Closure closure = (Closure) first;
-                Object closureResult = closure.call();
-                if (closureResult != null) {
-                    queue.addFirst(closureResult);
-                }
-            } else if (first instanceof Collection) {
-                Collection<?> collection = (Collection<?>) first;
-                queue.addAll(0, collection);
-            } else if (first instanceof Object[]) {
-                Object[] array = (Object[]) first;
-                queue.addAll(0, Arrays.asList(array));
-            } else if (first instanceof Callable) {
-                Callable callable = (Callable) first;
-                Object callableResult;
-                try {
-                    callableResult = callable.call();
-                } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
-                }
-                if (callableResult != null) {
-                    queue.add(0, callableResult);
-                }
-            } else {
-                result.add(resolver.resolve(first));
-            }
-        }
-        return result;
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver, buildDependency);
+        context.add(files);
+        sources.addAll(context.resolve());
     }
 }

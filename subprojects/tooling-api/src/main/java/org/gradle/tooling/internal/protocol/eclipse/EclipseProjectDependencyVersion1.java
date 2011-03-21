@@ -21,7 +21,7 @@ import org.gradle.tooling.internal.protocol.ProjectDependencyVersion1;
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface EclipseProjectDependencyVersion1 extends ProjectDependencyVersion1 {
-    EclipseProjectVersion1 getTargetProject();
+    EclipseProjectVersion2 getTargetProject();
 
     String getPath();
 }

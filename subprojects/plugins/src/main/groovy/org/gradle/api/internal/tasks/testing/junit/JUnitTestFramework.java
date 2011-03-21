@@ -21,6 +21,8 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
+import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.process.internal.WorkerProcessBuilder;
@@ -33,14 +35,14 @@ import java.io.Serializable;
  * @author Tom Eyckmans
  */
 public class JUnitTestFramework implements TestFramework {
-    private AntJUnitReport antJUnitReport;
+    private TestReporter reporter;
     private JUnitOptions options;
     private JUnitDetector detector;
     private final Test testTask;
 
     public JUnitTestFramework(Test testTask) {
         this.testTask = testTask;
-        antJUnitReport = new AntJUnitReport();
+        reporter = new DefaultTestReport();
         options = new JUnitOptions();
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
@@ -64,7 +66,9 @@ public class JUnitTestFramework implements TestFramework {
         if (!testTask.isTestReport()) {
             return;
         }
-        antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(), testTask.getProject().getAnt());
+        reporter.setTestReportDir(testTask.getTestReportDir());
+        reporter.setTestResultsDir(testTask.getTestResultsDir());
+        reporter.generateReport();
     }
 
     public JUnitOptions getOptions() {
@@ -75,12 +79,12 @@ public class JUnitTestFramework implements TestFramework {
         this.options = options;
     }
 
-    AntJUnitReport getAntJUnitReport() {
-        return antJUnitReport;
+    TestReporter getReporter() {
+        return reporter;
     }
 
-    void setAntJUnitReport(AntJUnitReport antJUnitReport) {
-        this.antJUnitReport = antJUnitReport;
+    void setReporter(TestReporter reporter) {
+        this.reporter = reporter;
     }
 
     public JUnitDetector getDetector() {

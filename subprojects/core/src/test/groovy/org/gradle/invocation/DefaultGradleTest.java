@@ -100,7 +100,7 @@ public class DefaultGradleTest {
 
     @Test
     public void usesGradleVersion() {
-        assertThat(gradle.getGradleVersion(), equalTo(new GradleVersion().getVersion()));
+        assertThat(gradle.getGradleVersion(), equalTo(GradleVersion.current().getVersion()));
     }
 
     @Test

@@ -445,6 +445,12 @@ public interface Project extends Comparable<Project> {
      * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>A closure or {@link Action} to add to the
      * task.</td><td><code>null</code></td></tr>
      *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_DESCRIPTION}</code></td><td>A description of the task.
+     * </td><td><code>null</code></td></tr>
+     *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_GROUP}</code></td><td>A task group which this task belongs to.
+     * </td><td><code>null</code></td></tr>
+     *
      * </table>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
@@ -819,15 +825,15 @@ public interface Project extends Comparable<Project> {
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
      * types to this method:</p>
      *
-     * <ul> <li>A {@code String}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
+     * <ul> <li>A {@link String}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
      * that starts with {@code file:} is treated as a file URL.</li>
      *
-     * <li>A {@code File}. Interpreted relative to the project directory, as for {@link #file(Object)}.</li>
+     * <li>A {@link File}. Interpreted relative to the project directory, as for {@link #file(Object)}.</li>
      *
      * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
      * {@code file:} URLs are supported.
      *
-     * <li>A {@code Collection} or an array. May contain any of the types listed here. The elements of the collection
+     * <li>A {@link java.util.Collection}, {@link Iterable}, or an array. May contain any of the types listed here. The elements of the collection
      * are recursively converted to files.</li>
      *
      * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned
@@ -1468,7 +1474,7 @@ public interface Project extends Comparable<Project> {
      * @param <T> The type of objects for the container to contain.
      * @return The container.
      */
-    <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<? extends T> factory);
+    <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory);
 
     /**
      * Creates a container for managing named objects of the specified type. The given closure is used to create object instances. The name of the instance to be created is passed as a parameter to

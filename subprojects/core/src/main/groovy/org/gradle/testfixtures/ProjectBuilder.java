@@ -15,17 +15,17 @@
  */
 package org.gradle.testfixtures;
 
+import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.api.internal.project.*;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.cache.AutoCloseCacheFactory;
-import org.gradle.cache.CacheFactory;
-import org.gradle.cache.DefaultCacheFactory;
+import org.gradle.cache.*;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.*;
 import org.gradle.invocation.DefaultGradle;
@@ -43,6 +43,7 @@ import org.gradle.util.TrueTimeProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * <p>Creates dummy instances of {@link org.gradle.api.Project} which you can use in testing custom task and plugin
@@ -121,6 +122,7 @@ public class ProjectBuilder {
     }
 
     private static class NoOpLoggingManager implements LoggingManagerInternal {
+        private LogLevel level = LogLevel.LIFECYCLE;
         private LogLevel stdoutLevel = LogLevel.LIFECYCLE;
 
         public LoggingManagerInternal captureStandardOutput(LogLevel level) {
@@ -145,7 +147,12 @@ public class ProjectBuilder {
             return this;
         }
 
-        public LoggingManagerInternal setLevel(LogLevel logLevel) {
+        public LogLevel getLevel() {
+            return level;
+        }
+
+        public LoggingManagerInternal setLevel(LogLevel level) {
+            this.level = level;
             return this;
         }
 
@@ -183,6 +190,39 @@ public class ProjectBuilder {
         }
     }
 
+    private static class InMemoryCacheFactory implements CacheFactory {
+        public void close(PersistentCache cache) {
+        }
+
+        public PersistentCache open(final File cacheDir, CacheUsage usage, Map<String, ?> properties) {
+            cacheDir.mkdirs();
+            return new PersistentCache() {
+                public File getBaseDir() {
+                    return cacheDir;
+                }
+
+                public boolean isValid() {
+                    return false;
+                }
+
+                public void markValid() {
+                }
+
+                public <K, V> PersistentIndexedCache<K, V> openIndexedCache(Serializer<V> serializer) {
+                    return new InMemoryIndexedCache<K, V>();
+                }
+
+                public <K, V> PersistentIndexedCache<K, V> openIndexedCache() {
+                    return new InMemoryIndexedCache<K, V>();
+                }
+
+                public <T> PersistentStateCache<T> openStateCache() {
+                    return new SimpleStateCache<T>(this, new DefaultSerializer<T>());
+                }
+            };
+        }
+    }
+
     private static class GlobalTestServices extends DefaultServiceRegistry {
         protected ListenerManager createListenerManager() {
             return new DefaultListenerManager();
@@ -197,7 +237,7 @@ public class ProjectBuilder {
         }
 
         protected CacheFactory createCacheFactory() {
-            return new AutoCloseCacheFactory(new DefaultCacheFactory());
+            return new AutoCloseCacheFactory(new InMemoryCacheFactory());
         }
 
         protected ProgressLoggerFactory createProgressLoggerFactory() {
@@ -219,6 +259,7 @@ public class ProjectBuilder {
         protected IsolatedAntBuilder createIsolatedAntBuilder() {
             return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
         }
+
     }
 
     private static class TestTopLevelBuildServiceRegistry extends TopLevelBuildServiceRegistry {

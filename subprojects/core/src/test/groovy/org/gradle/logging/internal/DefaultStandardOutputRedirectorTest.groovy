@@ -16,12 +16,14 @@
 package org.gradle.logging.internal
 
 import org.gradle.api.logging.StandardOutputListener
+import org.gradle.util.SystemProperties
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultStandardOutputRedirectorTest extends Specification {
-    private static final String EOL = System.getProperty('line.separator')
+    private static final String EOL = SystemProperties.lineSeparator
+
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final DefaultStandardOutputRedirector redirector = new DefaultStandardOutputRedirector()
     private final StandardOutputListener stdOutListener = Mock()

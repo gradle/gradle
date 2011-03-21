@@ -1,0 +1,28 @@
+defaultTasks 'list'
+
+repositories {
+    flatDir dirs: file('repo')
+}
+
+configurations {
+    compile
+}
+
+dependencies {
+    compile 'group:a:1.4'
+    compile 'group:b:2.0'
+    compile 'group:c:'
+}
+
+task list << {
+    def a = file('repo/a-1.4.jar')
+    def b = file('repo/b.jar')
+    def c = file('repo/c.jar')
+    a.parentFile.mkdirs()
+    a << 'content'
+    b << 'content'
+    c << 'content'
+
+    def files = configurations.compile.files
+    assert files == [a, b, c] as Set
+}

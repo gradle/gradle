@@ -17,12 +17,13 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
-import org.gradle.api.internal.file.MapFileTree
+import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.java.archives.Manifest
+import org.gradle.api.internal.file.collections.FileTreeAdapter
 
 /**
  * Assembles a JAR archive.
@@ -46,7 +47,7 @@ public class Jar extends Zip {
                 Manifest manifest = getManifest() ?: new DefaultManifest(null)
                 manifest.writeTo(new OutputStreamWriter(outstr))
             }
-            manifestSource
+            return new FileTreeAdapter(manifestSource)
         }
         copyAction.mainSpec.eachFile { FileCopyDetails details ->
             if (details.path.equalsIgnoreCase('META-INF/MANIFEST.MF')) {

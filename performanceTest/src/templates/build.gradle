@@ -21,16 +21,18 @@ repositories {
 }
 
 dependencies {
-    compile 'org.slf4j:slf4j-api:1.6.1'
-    runtime 'org.slf4j:slf4j-simple:1.6.1'
-    testCompile 'junit:junit:4.8.1'
+    testCompile 'junit:junit:4.8.2'
+
 }
-test.testReport = false
+test {
+    jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
+//    testReport = false
+}
 
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    groovy 'org.codehaus.groovy:groovy:1.7.6'
+    groovy 'org.codehaus.groovy:groovy-all:1.7.8'
 }
 <% } %>
 

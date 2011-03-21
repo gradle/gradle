@@ -5,5 +5,5 @@ repositories {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.7'
+    testCompile 'junit:junit:4.8.2'
 }

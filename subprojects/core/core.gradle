@@ -40,16 +40,16 @@ dependencies {
 
     compile libraries.ivy, "com.jcraft:jsch:0.1.42@jar", 'com.jcraft:jzlib:1.0.7@jar'
 
+    publishCompile libraries.slf4j_api
+
     compile libraries.ant,
-            libraries.ant_nodeps,
             libraries.logback_classic,
             libraries.logback_core,
-            libraries.slf4j_api,
             libraries.jul_to_slf4j,
             libraries.commons_io,
             libraries.commons_lang,
             "commons-codec:commons-codec:1.2@jar",
-            libraries.google_collections,
+            libraries.guava,
             "commons-collections:commons-collections:3.2.1@jar",
             "slide:webdavlib:2.0@jar",
             "org.apache.maven:maven-ant-tasks:2.1.1@jar",
@@ -73,9 +73,6 @@ dependencies {
 
     testFixtures sourceSets.test.classes, sourceSets.main.classes
     integTestFixtures sourceSets.integTest.classes
-
-    // TODO - remove this duplication
-    publishRuntime libraries.slf4j_api
 }
 
 task versionProperties(type: WriteVersionProperties) {

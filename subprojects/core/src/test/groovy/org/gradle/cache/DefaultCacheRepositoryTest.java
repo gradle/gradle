@@ -44,7 +44,7 @@ public class DefaultCacheRepositoryTest {
     private final TestFile homeDir = tmpDir.createDir("home");
     private final TestFile buildRootDir = tmpDir.createDir("build");
     private final TestFile sharedCacheDir = homeDir.file("caches");
-    private final String version = new GradleVersion().getVersion();
+    private final String version = GradleVersion.current().getVersion();
     private final Map<String, ?> properties = GUtil.map("a", "value", "b", "value2");
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
     private final PersistentCache cache = context.mock(PersistentCache.class);

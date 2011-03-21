@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.MavenRepository
 
 class MavenProjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()

@@ -165,8 +165,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     classLoader);
             return urlClassLoader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not load compiled classes for %s from cache.",
-                    source.getDisplayName()), e);
+            throw new GradleException(String.format("Could not load compiled classes for %s from cache.\n"
+                    + "*****\n"
+                    + "Sometimes this error occurs when the cache was tinkered with.\n"
+                    + "You may try to resolve it by deleting this folder:\n"
+                    + "%s\n"
+                    + "*****\n",
+                    source.getDisplayName(), scriptCacheDir.getAbsolutePath()), e);
         }
     }
 

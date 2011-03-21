@@ -15,15 +15,15 @@
   -->
 
 <chapter id="idea_plugin">
-    <title>The Idea Plugin</title>
+    <title>The IDEA Plugin</title>
 
-    <para>The Idea plugin generates files that are used by <ulink url="http://www.jetbrains.com/idea/">IntelliJ Idea IDE</ulink>, thus
-        making it possible to open the project from Idea (<guimenuitem>File</guimenuitem> - <guimenuitem>Open Project</guimenuitem>).
-        Both external (including associated source and javadoc files) and project dependencies are considered.</para>
+    <para>The IDEA plugin generates files that are used by <ulink url="http://www.jetbrains.com/idea/">IntelliJ IDEA</ulink>, thus
+        making it possible to open the project from IDEA (<guimenuitem>File</guimenuitem> - <guimenuitem>Open Project</guimenuitem>).
+        Both external dependencies (including associated source and javadoc files) and project dependencies are considered.</para>
 
-    <para>The Idea plugin will create different content depending on which other plugins being used:</para>
+    <para>What exactly the IDEA plugin generates depends on which other plugins are used:</para>
     <table>
-        <title>IDEA support for other plugins</title>
+        <title>IDEA plugin behavior</title>
         <thead>
             <tr>
                 <td>Plugin</td><td>Description</td>
@@ -37,29 +37,31 @@
             <td>
                 <link linkend="java_plugin">Java</link>
             </td>
-            <td>Adds java configuration to the module and project files.</td>
+            <td>Adds Java configuration to the module and project files.</td>
         </tr>
     </table>
 
-    <para>One focus of the Idea tasks is to be open to customizations. They provide a couple of hooks to add or remove
-        content from the generated files.
+    <para>One focus of the IDEA plugin is to be open to customization. Each task provides a standardized set of hooks
+        for adding and removing content from the generated files.
     </para>
+
     <section>
         <title>Usage</title>
-    <para>To use the Idea plugin, include in your build script:</para>
-    <sample id="useIdeaPlugin" dir="idea" title="Using the Idea plugin">
-        <sourcefile file="build.gradle" snippet="use-plugin"/>
-    </sample>
-        <para>The IDEA plugin adds a number of tasks to your project, as discussed below. The main task that you use is
-            the <literal>idea</literal> task.</para>
+        <para>To use the IDEA plugin, include this in your build script:</para>
+        <sample id="useIdeaPlugin" dir="idea" title="Using the IDEA plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>The IDEA plugin adds a number of tasks to your project. The main tasks that you will use
+            are the <literal>idea</literal> and <literal>cleanIdea</literal> tasks.
+        </para>
     </section>
     <section>
         <title>Tasks</title>
 
-        <para>The Idea plugin adds the tasks shown below to a project.</para>
+        <para>The IDEA plugin adds the tasks shown below to a project.</para>
 
         <table id='ideatasks'>
-            <title>Idea plugin - Tasks</title>
+            <title>IDEA plugin - Tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -74,7 +76,7 @@
                 </td>
                 <td><literal>ideaProject</literal>, <literal>ideaModule</literal>, <literal>ideaWorkspace</literal></td>
                 <td><literal>-</literal></td>
-                <td>Generates all the idea configuration files</td>
+                <td>Generates all IDEA configuration files</td>
             </tr>
             <tr>
                 <td>
@@ -84,7 +86,7 @@
                     <literal>cleanIdeaProject</literal>, <literal>cleanIdeaModule</literal>, <literal>cleanIdeaWorkspace</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Removes all idea configuration files</td>
+                <td>Removes all IDEA configuration files</td>
             </tr>
             <tr>
                 <td>
@@ -94,7 +96,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Removes the idea project file</td>
+                <td>Removes the IDEA project file</td>
             </tr>
             <tr>
                 <td>
@@ -104,7 +106,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Removes the idea module file</td>
+                <td>Removes the IDEA module file</td>
             </tr>
             <tr>
                 <td>
@@ -114,7 +116,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Removes the idea workspace file</td>
+                <td>Removes the IDEA workspace file</td>
             </tr>
             <tr>
                 <td>
@@ -124,7 +126,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.plugins.idea.IdeaProject"/></td>
-                <td>Generates the <filename>.ipr</filename> file. The Idea plugin adds this task only to the root project.</td>
+                <td>Generates the <literal>.ipr</literal> file. This task is only added to the root project.</td>
             </tr>
             <tr>
                 <td>
@@ -134,7 +136,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.plugins.idea.IdeaModule"/></td>
-                <td>Generates the <filename>.iml</filename> file</td>
+                <td>Generates the <literal>.iml</literal> file</td>
             </tr>
             <tr>
                 <td>
@@ -144,7 +146,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.plugins.idea.IdeaWorkspace"/></td>
-                <td>Generates the <filename>.iws</filename> file</td>
+                <td>Generates the <literal>.iws</literal> file</td>
             </tr>
         </table>
 
@@ -179,7 +181,21 @@
                 </td>
                 <td><literal><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable>.iml</literal></td>
                 <td>-</td>
-                <td>The iml file. Used to look for existing files and as the target for generation. Must not be null.</td>
+                <td>The <filename>.iml</filename> file. Used to look for existing files and as the target for generation. Must not be null.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>inheritOutputDirs</literal>
+                </td>
+                <td>
+                    <classname>Boolean</classname>
+                </td>
+                <td>null</td>
+                <td>null</td>
+                <td>If <literal>null</literal>, the value in the existing or default module file is used (the default file uses
+                    <literal>true</literal>). If <literal>true</literal>, the module output directories will be located below the
+                    project output directories. If <literal>false</literal>, the directories specified with the <literal>sourceDirs</literal>
+                    and <literal>testSourceDirs</literal> properties are used.</td>
             </tr>
             <tr>
                 <td>
@@ -189,8 +205,8 @@
                     <classname>Set&lt;File&gt;</classname>
                 </td>
                 <td>empty set</td>
-                <td>The source dirs of <literal>sourceSets.main</literal></td>
-                <td>The dirs containing the production sources. Must not be null.</td>
+                <td>The source directories of <literal>sourceSets.main</literal></td>
+                <td>The directories containing the production sources. Must not be null.</td>
             </tr>
             <tr>
                 <td>
@@ -200,8 +216,8 @@
                     <classname>Set&lt;File&gt;</classname>
                 </td>
                 <td>empty set</td>
-                <td>The source dirs of <literal>sourceSets.test</literal></td>
-                <td>The dirs containing the test sources. Must not be null.</td>
+                <td>The source directories of <literal>sourceSets.test</literal></td>
+                <td>The directories containing the test sources. Must not be null.</td>
             </tr>
             <tr>
                 <td>
@@ -212,7 +228,7 @@
                 </td>
                 <td>empty set</td>
                 <td>-</td>
-                <td>The dirs to be excluded by idea. Must not be null.</td>
+                <td>The directories to be excluded by IDEA. Must not be null.</td>
             </tr>
             <tr>
                 <td>
@@ -224,8 +240,8 @@
                 <td>
                     <literal>null</literal>
                 </td>
-                <td><literal>sourceSets.main.classesDir</literal></td>
-                <td>The idea output dir for the production sources. If null no entry for output dirs is created.</td>
+                <td><literal>null</literal></td>
+                <td>The IDEA output directory for the production sources. If null, no entry is created.</td>
             </tr>
             <tr>
                 <td>
@@ -237,8 +253,8 @@
                 <td>
                     <literal>null</literal>
                 </td>
-                <td><literal>sourceSets.test.classesDir</literal></td>
-                <td>The idea output dir for the test sources. If null no entry for test output dirs is created.</td>
+                <td><literal>null</literal></td>
+                <td>The IDEA output directory for the test sources. If null, no entry is created.</td>
             </tr>
             <tr>
                 <td>
@@ -251,9 +267,9 @@
                     <literal>null</literal>
                 </td>
                 <td>-</td>
-                <td>If this is null the value of the existing or default ipr XML (inherited) is used. If it is set
-                to <literal>inherited</literal>, the project SDK is used. Otherwise the SDK for the corresponding
-                value of java version is used for this module</td>
+                <td>If null, the value of the existing or default <literal>.ipr</literal> file is used (the default file uses
+                    <literal>inherited</literal>). If set to <literal>inherited</literal>, the project SDK is used. Otherwise,
+                    the SDK for the corresponding value of java version is used.</td>
             </tr>
             <tr>
                 <td>
@@ -266,7 +282,7 @@
                     <literal>true</literal>
                 </td>
                 <td>-</td>
-                <td>Whether to download and add source jars associated with the dependency jars.</td>
+                <td>Whether to download and add source Jars associated with the dependency Jars.</td>
             </tr>
             <tr>
                 <td>
@@ -279,7 +295,7 @@
                     <literal>false</literal>
                 </td>
                 <td>-</td>
-                <td>Whether to download and add javadoc jars associated with the dependency jars. </td>
+                <td>Whether to download and add javadoc Jars associated with the dependency Jars. </td>
             </tr>
             <tr>
                 <td>
@@ -292,7 +308,7 @@
                     <classname>[:]</classname>
                 </td>
                 <td>COMPILE(compile), RUNTIME(runtime - compile), TEST(testRuntime - runtime)</td>
-                <td>The keys of this map are the Idea scopes. Each key points to another map that has two keys, plus and minus.
+                <td>The keys of this map are the IDEA scopes. Each key points to another map that has two keys, plus and minus.
                     The values of those keys are sets of <link linkend="sub:configurations">Configuration</link> objects. The files of the
                     plus configurations are added minus the files from the minus configurations. </td>
                 </tr>
@@ -307,8 +323,8 @@
                     <literal>[:]</literal>
                 </td>
                 <td>-</td>
-                <td>The variables to be used for replacing absolute paths in the iml entries. For example, you might add
-                    a <literal>GRADLE_USER_HOME</literal> variable to point to the Gradle user home dir.</td>
+                <td>The variables to be used for replacing absolute paths in the .iml file. For example, you might add
+                    a <literal>GRADLE_USER_HOME</literal> variable to point to the Gradle user home directory.</td>
             </tr>
         </table>
      
@@ -332,8 +348,8 @@
                 </td>
                 <td><literal>rootProject.allprojects</literal></td>
                 <td>-</td>
-                <td>The subprojects that should be mapped to modules in the <literal>ipr</literal>
-                    file. The subprojects will only be mapped, if the Idea plugin has been
+                <td>The subprojects that should be mapped to modules in the <literal>.ipr</literal>
+                    file. The subprojects will only be mapped if the IDEA plugin has been
                     applied to them.</td>
             </tr>
             <tr>
@@ -345,7 +361,7 @@
                 </td>
                 <td><literal><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable>.ipr</literal></td>
                 <td>-</td>
-                <td>The ipr file. Used to look for existing files and as the target for generation. Must not be null.</td>
+                <td>The <literal>.ipr</literal> file. Used to look for existing files and as the target for generation. Must not be null.</td>
             </tr>
             <tr>
                 <td>
@@ -358,7 +374,7 @@
                     <literal>1.6</literal>
                 </td>
                 <td>-</td>
-                <td>The java version used for defining the project sdk.</td>
+                <td>The Java version used for defining the project SDK.</td>
             </tr>
             <tr>
                 <td>
@@ -395,101 +411,90 @@
                 </td>
                 <td><literal><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable>.iws</literal></td>
                 <td>-</td>
-                <td>The iws file. Used to look for existing files and as the target for generation. Must not be null.</td>
-            </tr>
-        </table>
-
-
-        <table id='idea-task-hooks'>
-            <title>Task Hooks</title>
-            <thead>
-                <tr>
-                    <td>Method</td>
-                    <td>Project Task Argument</td>
-                    <td>Module Task Argument</td>
-                    <td>Workspace Task Argument</td>
-                    <td>Description</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>
-                    <literal><code>beforeConfigured { arg -> }</code></literal>
-                </td>
-                <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
-                <td>Gets called directly after the domain objects have been populated with the content of the
-                    existing XML file (if there is one).</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal><code>whenConfigured { arg -> }</code></literal>
-                </td>
-                <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
-                <td>Gets called after the domain objects have been populated with the content of the
-                    existing XML file and the content from the build script.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal><code>withXml { arg -> }</code></literal>
-                </td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
-                <td>The root node of the XML just before the XML is written to disk.</td>
+                <td>The <literal>.iws</literal> file. Used to look for existing files and as the target for generation. Must not be null.</td>
             </tr>
         </table>
     </section>
     <section>
         <title>Customizing the generated files</title>
-        <para>Both, the <literal>IdeaProject</literal> and the <literal>IdeaModule</literal> task provide the
-            same hooks and behavior for customizing the generated content. The <literal>IdeaWorkspace</literal> only provides a hook
-            for direct XML manipulation.</para>
-        <para>The plugin recognizes existing idea files. If an idea module, project or workspace file does not exists,
-        a default one is used. Otherwise the existing ones are merged.</para>
+        <para>All IDEA tasks provide the same hooks and behavior for customizing the generated content.
+            However, the workspace file can effectively only be manipulated via the <code>withXml</code> hook,
+            because its corresponding domain object is essentially empty.</para>
+        <para>The tasks recognize existing IDEA files, and merge them with the generated content.</para>
         <section>
             <title>Merging</title>
-            <para>The first option to customize the Idea files is to have an existing Idea <literal>ipr</literal> or
-            <literal>iml</literal> file before the tasks are run.
-            Existing files will be merged together with the generated content.
-            Any section of the existing Idea files that are not the target of generated content will neither be changed nor removed.</para>
+            <para>Sections of existing IDEA files that are also the target of generated content will be amended or overwritten,
+                depending on the particular section. The remaining sections will be left as-is.</para>
             <section id="sec:complete-overwrite">
                 <title>Disabling merging with a complete overwrite</title>
-                <para>If you want Gradle to completely overwrite existing Idea files you can specify this on the command line by
-                    executing something like <userinput>gradle cleanIdea idea</userinput> or <userinput>gradle cleanIdeaModule ideaModule</userinput>.
-                    You can specify this also in the build script. Just make the generating tasks depending on the deleting tasks. You can tailor this
-                    to your needs. You could make the <literal>idea</literal> task dependent on the <literal>cleanIdea</literal> task. If you only want
-                    to overwrite for example the module files you simply make the <literal>ideaModule</literal> task dependent on the
-                    <literal>cleanIdeaModule</literal> task.
+                <para>To completely overwrite existing IDEA files, execute a clean task together with its corresponding generation task,
+                    for example <userinput>gradle cleanIdea idea</userinput> (in that order). If you want to make this
+                    the default behavior, add <code>idea.dependsOn(cleanIdea)</code> to your build script. This makes it
+                    unnecessary to execute the clean task explicitly.
                 </para>
+                <para>Complete overwrite works equally well for individual files, for example by executing<userinput>gradle cleanIdeaModule ideaModule</userinput>.</para>
             </section>
         </section>
         <section>
             <title>Hooking into the generation lifecycle</title>
-            <para>The Idea plugin provides a couple of domain classes that model Idea project and module files.
-                But only the sections that are autogenerated by Gradle. The generation lifecycle is the following.
-                If there is an existing Idea file, its whole XML is parsed and stored in memory. Then the domain
-                objects are populated with the relevant content of the the existing XML. After that the build script information
-                is used to further populate those objects (e.g. add additional dependencies).
-                Then all sections modelled by the domain objects are removed from the XML in memory. After that the domain objects are used to inject
-                their content into the XML. Finally the XML is written to disk. The lifecycle provides hooks to modify the result according to your needs.
+            <para>The IDEA plugin provides domain classes modeling the sections of the IDEA files
+                that are autogenerated by Gradle. The generation lifecycle is as follows:
+                <orderedlist>
+                    <listitem>If there is an existing file, its whole XML content is parsed and stored in memory; otherwise, a default file is used in its place</listitem>
+                    <listitem>The domain objects are populated with the relevant content of the existing file</listitem>
+                    <listitem>The <code>beforeConfigured</code> hook is executed</listitem>
+                    <listitem>The domain objects are populated with content from Gradle's build model, which may require merging with content from the existing file</listitem>
+                    <listitem>The <code>whenConfigured</code> hook is executed</listitem>
+                    <listitem>All sections modeled by the domain objects are removed from the in-memory XML representation</listitem>
+                    <listitem>The domain objects inject their content into the in-memory XML representation</listitem>
+                    <listitem>The <code>withXml</code> hook is executed</listitem>
+                    <listitem>The in-memory XML representation is written to disk</listitem>
+                </orderedlist>
+                The following table lists the domain objects used for each of the IDEA task types:
             </para>
+            <table id='idea-task-hooks'>
+                <title>Task Hooks</title>
+                <thead>
+                    <tr>
+                        <td>Task type</td>
+                        <td><literal>beforeConfigured { arg -> }</literal> argument type</td>
+                        <td><literal>whenConfigured { arg -> }</literal> argument type</td>
+                        <td><literal>withXml { arg -> }</literal> argument type</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.idea.IdeaProject"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.idea.IdeaModule"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.plugins.idea.IdeaWorkspace"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
+                    <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
+                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                </tr>
+            </table>
             <section id="sec:partial-overwrite">
-                <title>Partial Overwrite</title>
-                <para>Doing a <link linkend="sec:complete-overwrite">complete overwrite</link> removes all your manual customizations.
-                    This might be not what you want.
-                    Therefore Gradle provides the option for a partial overwrite. You can hook into the phase just after the existing
-                    Idea files have populated the domain objects. You could then for example remove all the dependencies
-                    from the <literal>module</literal> object.
+                <title>Partial overwrite of existing content</title>
+                <para>A <link linkend="sec:complete-overwrite">complete overwrite</link> causes all existing content to be discarded,
+                    thereby losing any changes made directly in the IDE. The <code>beforeConfigured</code> hook makes it possible
+                    to overwrite just certain parts of the existing content. The following example removes all existing dependencies
+                    from the <literal>Module</literal> domain object:
                     <sample id="partialOverwrites" dir="idea"
                             title="Partial Overwrite for Module">
                         <sourcefile file="build.gradle" snippet="module-before-configured"/>
                     </sample>
-                    The generated XML will have all sections of the existing Idea module file,
-                    except for the dependencies, where only the information of the build script is used. You could do something
-                    similar for the project file.
+                    The resulting module file will only contain Gradle-generated dependency entries, but
+                    not any other dependency entries that may have been present in the original file. (In the case of dependency entries,
+                    this is also the default behavior.) Other sections of the module file will be either left as-is or merged.
+                    The same could be done for the module paths in the project file:
                     <sample id="partialOverwritesProject" dir="idea"
                             title="Partial Overwrite for Project">
                         <sourcefile file="build.gradle" snippet="project-before-configured"/>
@@ -498,9 +503,8 @@
             </section>
             <section>
                 <title>Modifying the fully populated domain objects</title>
-                <para>You can also hook into the phase after the existing Idea files and the build script metadata have
-                    populated the domain objects. You could then for example export all the dependencies
-                    of the <literal>module</literal> object.
+                <para>The <code>whenConfigured</code> hook allows to manipulate the fully populated domain objects. Often this is the
+                    preferred way to customize IDEA files. Here is how you would export all the dependencies of an IDEA module:
                     <sample id="exportDependencies" dir="idea"
                             title="Export Dependencies">
                         <sourcefile file="build.gradle" snippet="module-when-configured"/>
@@ -509,9 +513,10 @@
                 </para>
             </section>
             <section>
-                <title>Modifying the XML</title>
-                <para>You can also hook into the phase after the XML DOM is fully populated but not written to disk.
-                    That hook provides total control over what is generated.
+                <title>Modifying the XML representation</title>
+                <para>The <code>withXml</code>hook allows to manipulate the in-memory XML representation just before the file gets written to disk.
+                    Although Groovy's XML support makes up for a lot, this approach is less convenient than manipulating the domain objects.
+                    In return, you get total control over the generated file, including sections not modeled by the domain objects.
                     <sample id="projectWithXml" dir="idea"
                             title="Customizing the XML">
                         <sourcefile file="build.gradle" snippet="project-with-xml"/>
@@ -523,8 +528,8 @@
     </section>
     <section>
         <title>Further things to consider</title>
-        <para>The paths of the dependencies in the generated Idea files are absolute. If you manually define a path variable,
-            pointing to the gradle dependency cache, Idea will automatically replace the absolute dependency paths with
+        <para>The paths of the dependencies in the generated IDEA files are absolute. If you manually define a path variable
+            pointing to the Gradle dependency cache, IDEA will automatically replace the absolute dependency paths with
             this path variable. If you use such a path variable, you need to tell the ideaModule task the name of this variable,
             so that it can do a proper merge without creating duplicates.</para>
     </section>

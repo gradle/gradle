@@ -45,7 +45,7 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
         }
         LOGGER.debug("{} is not up-to-date", task);
 
-        task.getOutputs().setHistory(taskArtifactState);
+        task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
         try {
             executer.execute(task, state);
             if (state.getFailure() == null) {

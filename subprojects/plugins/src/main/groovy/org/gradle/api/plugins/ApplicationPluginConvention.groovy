@@ -25,31 +25,36 @@ import org.gradle.api.tasks.JavaExec
  * @author Rene Groeschke
  */
 public class ApplicationPluginConvention {
+    /**
+     * The name of the application.
+     */
+    String applicationName;
 
     /**
      * The full qualified name of the main class.
      */
     String mainClassName;
 
-    /**
-     * The path of the installation directory.
-     */
-    String installDirPath;
+    private String installDir;
 
     private final Project project;
 
-    public ApplicationPluginConvention(final Project project){
+    public ApplicationPluginConvention(final Project project) {
         this.project = project;
-        this.installDirPath = project.file("build/install")
     }
 
     /**
      * Sets the full qualified name of the main class of an application.
      */
-    public void setMainClassName(String mainClassName){
+    public void setMainClassName(String mainClassName) {
         this.mainClassName = mainClassName;
-        JavaExec runTask = project.getTasks().withType(JavaExec.class).find{task ->
-            task.name == ApplicationPlugin.TASK_RUN_NAME};
+        JavaExec runTask = project.getTasks().withType(JavaExec.class).find {task ->
+            task.name == ApplicationPlugin.TASK_RUN_NAME
+        };
         runTask.main = mainClassName;
+    }
+
+    public String getApplicationPrefix() {
+        return "${applicationName}${project.version == Project.DEFAULT_VERSION ? '' : '-' + project.version }"
     }
 }

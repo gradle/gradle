@@ -23,8 +23,6 @@ import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 
-import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
-
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to provide support for compiling and documenting Groovy
  * source files.</p>
@@ -37,26 +35,26 @@ public class GroovyPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPlugins().apply(GroovyBasePlugin.class);
         project.getPlugins().apply(JavaPlugin.class);
+        configureConfigurations(project);
+        configureGroovydoc(project);
+    }
 
-        project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(
+    private void configureConfigurations(Project project) {
+        project.getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(
                 project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)
         );
-        configureGroovydoc(project);
     }
 
     private void configureGroovydoc(final Project project) {
         Groovydoc groovyDoc = project.getTasks().add(GROOVYDOC_TASK_NAME, Groovydoc.class);
-        groovyDoc.setDescription("Generates the groovydoc for the main source code.");
+        groovyDoc.setDescription("Generates Groovydoc API documentation for the main source code.");
         groovyDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-        groovyDoc.setSource(mainGroovy(project.getConvention()).getGroovy());
-    }
 
-    private SourceSet main(Convention convention) {
-        return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-    }
+        JavaPluginConvention convention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        SourceSet sourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        groovyDoc.setClasspath(sourceSet.getClasses().plus(sourceSet.getCompileClasspath()));
 
-    private GroovySourceSet mainGroovy(Convention convention) {
-        return ((DynamicObjectAware) main(convention)).getConvention().getPlugin(GroovySourceSet.class);
+        GroovySourceSet groovySourceSet = ((DynamicObjectAware) sourceSet).getConvention().getPlugin(GroovySourceSet.class);
+        groovyDoc.setSource(groovySourceSet.getGroovy());
     }
-
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling.model;
 
+import java.io.File;
+
 /**
  * Represents a Gradle project.
  */
@@ -27,9 +29,23 @@ public interface Project {
     String getName();
 
     /**
+     * Returns the project directory for this project.
+     *
+     * @return The project directory. Does not return null.
+     */
+    File getProjectDirectory();
+
+    /**
+     * Returns the parent project of this project, if any.
+     *
+     * @return The parent, or null if this project has no parent.
+     */
+    Project getParent();
+
+    /**
      * Returns the child projects of this project.
      *
      * @return The child projects. Returns an empty set if this project has no children.
      */
-    DomainObjectSet<? extends Project> getChildProjects();
+    DomainObjectSet<? extends Project> getChildren();
 }

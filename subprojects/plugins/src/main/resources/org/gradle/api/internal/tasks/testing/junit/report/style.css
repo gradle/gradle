@@ -1,0 +1,212 @@
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    font-size: 12pt;
+}
+
+body, a, a:visited {
+    color: #303030;
+}
+
+ul {
+    margin-left: 0;
+}
+
+#content {
+    padding-left: 50px;
+    padding-right: 50px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+#content h1 {
+    font-size: 160%;
+    margin-bottom: 10px;
+}
+
+#summary {
+    margin-top: 30px;
+    margin-bottom: 40px;
+}
+
+#summary table {
+    border-collapse: collapse;
+}
+
+#summary td {
+    vertical-align: top;
+}
+
+#footer {
+    margin-top: 100px;
+    font-size: 80%;
+}
+
+#footer, #footer a {
+    color: #a0a0a0;
+}
+
+.breadcrumbs, .breadcrumbs a {
+    color: #606060;
+}
+
+.infoBox {
+    width: 110px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    text-align: center;
+}
+
+.infoBox p {
+    margin: 0;
+}
+
+.counter, .percent {
+    font-size: 120%;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+#duration {
+    width: 125px;
+}
+
+#successRate, .summaryGroup {
+    border: solid 2px #d0d0d0;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    behavior: url(css3-pie-1.0beta3.htc);
+}
+
+#successRate {
+    width: 140px;
+    margin-left: 35px;
+}
+
+#successRate .percent {
+    font-size: 180%;
+}
+
+.success, .success a {
+    color: #008000;
+}
+
+div.success, #successRate.success {
+    background-color: #bbd9bb;
+    border-color: #008000;
+}
+
+.failures, .failures a {
+    color: #b60808;
+}
+
+div.failures, #successRate.failures {
+    background-color: #ecdada;
+    border-color: #b60808;
+}
+
+h2 {
+    font-size: 120%;
+}
+
+ul.linkList {
+    padding-left: 0;
+}
+
+ul.linkList li {
+    list-style: none;
+    margin-bottom: 5px;
+}
+
+ul.tabLinks {
+    padding-left: 0;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    overflow: hidden;
+}
+
+ul.tabLinks li {
+    float: left;
+    height: 100%;
+    list-style: none;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 0;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+    margin-right: 25px;
+    border: solid 1px #d4d4d4;
+    background-color: #f0f0f0;
+    behavior: url(css3-pie-1.0beta3.htc);
+}
+
+ul.tabLinks li:hover {
+    background-color: #fafafa;
+}
+
+ul.tabLinks li.selected {
+    background-color: #c5f0f5;
+    border-color: #c5f0f5;
+}
+
+ul.tabLinks a {
+    font-size: 120%;
+    display: block;
+    outline: none;
+    text-decoration: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul.tabLinks li:hover a {
+    text-decoration: underline;
+}
+
+ul.tabLinks li h2 {
+    margin: 0;
+    padding: 0;
+}
+
+div.tab {
+}
+
+div.selected {
+    display: block;
+}
+
+div.deselected {
+    display: none;
+}
+
+div.tab table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+div.tab th, div.tab table {
+    border-bottom: solid #d0d0d0 1px;
+}
+
+div.tab th {
+    text-align: left;
+}
+
+div.tab td {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+div.tab pre {
+    font-size: 11pt;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: #f7f7f7;
+    border: solid 1px #d0d0d0;
+    overflow-x: auto;
+}

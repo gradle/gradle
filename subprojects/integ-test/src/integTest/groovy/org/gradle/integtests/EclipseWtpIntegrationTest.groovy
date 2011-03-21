@@ -17,59 +17,49 @@ package org.gradle.integtests
 
 import org.junit.Test
 
+// TODO: run prepareWebProject() only once per class for performance reasons (not as simply as it seems)
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
-    void firstLevelJavaProjectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
+    void projectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
         prepareWebProject()
 
-        def facetFile1 = testFile("java1/.settings/org.eclipse.wst.common.project.facet.core.xml")
-        assert hasUtilityFacet(facetFile1)
-
-        def facetFile2 = testFile("java2/.settings/org.eclipse.wst.common.project.facet.core.xml")
-        assert !facetFile2.exists() || !hasUtilityFacet(facetFile2)
+        hasUtilityFacet("java1")
+        hasUtilityFacet("java2")
+        hasUtilityFacet("groovy")
     }
 
     @Test
-    void firstLevelJavaProjectDependenciesOfWebProjectHaveNecessaryNaturesAdded() {
+    void projectDependenciesOfWebProjectHaveNecessaryNaturesAdded() {
         prepareWebProject()
 
-        def projectFile = testFile("java1/.project")
-        def projectDescription = new XmlSlurper().parse(projectFile)
-
-        assert projectDescription.natures.nature*.text().containsAll(["org.eclipse.wst.common.project.facet.core.nature",
-                "org.eclipse.jem.workbench.JavaEMFNature", "org.eclipse.wst.common.modulecore.ModuleCoreNature"])
+        hasNecessaryNaturesAdded("java1")
+        hasNecessaryNaturesAdded("java2")
+        hasNecessaryNaturesAdded("groovy")
     }
 
     @Test
-    void firstLevelJavaProjectDependenciesOfWebProjectHaveNecessaryBuildersAdded() {
+    void projectDependenciesOfWebProjectHaveNecessaryBuildersAdded() {
         prepareWebProject()
 
-        def projectFile = testFile("java1/.project")
-        def projectDescription = new XmlSlurper().parse(projectFile)
-
-        assert projectDescription.buildSpec.buildCommand.name*.text().containsAll(
-                ["org.eclipse.wst.common.project.facet.core.builder", "org.eclipse.wst.validation.validationbuilder"])
+        hasNecessaryBuildersAdded("java1")
+        hasNecessaryBuildersAdded("java2")
+        hasNecessaryBuildersAdded("groovy")
     }
 
     @Test
-    void firstLevelJavaProjectDependenciesOfWebProjectHaveComponentSettingsFile() {
+    void projectDependenciesOfWebProjectHaveTrimmedDownComponentSettingsFile() {
         prepareWebProject()
 
-        def componentFile = testFile("java1/.settings/org.eclipse.wst.common.component")
-        def projectModules = new XmlSlurper().parse(componentFile)
-
-        assert getDeployNames(projectModules) == ["java1"]
-        assert getHandleFilenames(projectModules) == ["java2", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
-        assert getDependencyTypes(projectModules) == ["uses", "uses", "uses"] as Set
+        hasTrimmedDownComponentSettingsFile("java1", "src/main/java", "src/main/resources")
+        hasTrimmedDownComponentSettingsFile("java2", "src/main/java", "src/main/resources")
+        hasTrimmedDownComponentSettingsFile("groovy", "src/main/java", "src/main/groovy", "src/main/resources")
     }
 
     @Test
-    void jarDependenciesOfUtilityProjectsMustBeFlaggedAsRuntimeDependency() {
+    void jarDependenciesOfUtilityProjectsAreFlaggedAsRuntimeDependency() {
         prepareWebProject()
 
-        def classpathFile = testFile("java1/.classpath")
-        println classpathFile.text
-        def classpath = new XmlSlurper().parse(classpathFile)
+        def classpath = parseClasspathFile(project: "java1")
 
         def firstLevelDep = classpath.classpathentry.find { it.@path.text().endsWith("myartifact-1.0.jar") }
         assert firstLevelDep.attributes.attribute.find { it.@name.text() == "org.eclipse.jst.component.dependency" }
@@ -80,16 +70,14 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     }
 
     @Test
-    void allProjectDependenciesOfWebProjectMustBeAddedAsRuntimeDependencies() {
+    void allProjectDependenciesOfWebProjectAreAddedAsRuntimeDependencies() {
         prepareWebProject()
 
-        def componentFile = testFile(".settings/org.eclipse.wst.common.component")
-        println componentFile.text
-        def projectModules = new XmlSlurper().parse(componentFile)
+        def projectModules = parseComponentFile(project: "web")
 
-		assert getDeployNames(projectModules) == ["root"]
-		assert getHandleFilenames(projectModules) == ["java1", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
-		assert getDependencyTypes(projectModules) == ["uses", "uses", "uses"] as Set
+		assert getDeployName(projectModules) == "web"
+		assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
+		assert getDependencyTypes(projectModules) == ["uses"] * 5 as Set
     }
 
     private prepareWebProject() {
@@ -97,57 +85,125 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
         publishArtifact(repoDir, "mygroup", "myartifact", "myartifactdep")
         publishArtifact(repoDir, "mygroup", "myartifactdep")
 
-        runEclipseTask """
-rootProject.name = "root"
-
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+include("web")
 include("java1")
 include("java2")
-        """, """
-allprojects {
-    apply plugin: "java"
-    apply plugin: "eclipse"
+include("groovy")
+        """
 
-    repositories {
-        mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
-    }
-}
+        def webBuildFile = getFile(project: "web", "build.gradle")
+        createJavaSourceDirs(webBuildFile)
+        webBuildFile.parentFile.file("src/main/webapp").createDir()
 
+        webBuildFile << """
+apply plugin: "eclipse"
 apply plugin: "war"
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
 
 dependencies {
     compile project(":java1")
+    compile project(":groovy")
     runtime "mygroup:myartifact:1.0"
 }
+        """
 
-project("java1") {
-    dependencies {
-        compile project(":java2")
-        runtime "mygroup:myartifact:1.0"
-    }
+        def java1BuildFile = getFile(project: "java1", "build.gradle")
+        createJavaSourceDirs(java1BuildFile)
+
+        java1BuildFile << """
+apply plugin: "eclipse"
+apply plugin: "java"
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
 }
 
-project("java2") {
-    dependencies {
-        runtime "mygroup:myartifact:1.0"
-    }
+dependencies {
+    compile project(":java2")
+    runtime "mygroup:myartifact:1.0"
 }
         """
+
+        def java2BuildFile = getFile(project: "java2", "build.gradle")
+        createJavaSourceDirs(java2BuildFile)
+
+        java2BuildFile << """
+apply plugin: "eclipse"
+apply plugin: "java"
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
+
+dependencies {
+    runtime "mygroup:myartifact:1.0"
+}
+        """
+
+        def groovyBuildFile = getFile(project: "groovy", "build.gradle")
+        createJavaSourceDirs(groovyBuildFile)
+        groovyBuildFile.parentFile.file("src/main/groovy").createDir()
+
+        groovyBuildFile << """
+apply plugin: "eclipse"
+apply plugin: "groovy"
+        """
+
+        executer.usingSettingsFile(settingsFile).withTasks("eclipse").run()
     }
 
-    private hasUtilityFacet(file) {
+    private void hasUtilityFacet(String project) {
+        def file = getFacetFile(project: project)
         def facetedProject = new XmlSlurper().parse(file)
-        facetedProject.children().any { it.@facet.text() == "jst.utility" && it.@version.text() == "1.0" }
+        assert facetedProject.children().any { it.@facet.text() == "jst.utility" && it.@version.text() == "1.0" }
     }
 
-	private getDeployNames(projectModules) {
-		projectModules."wb-module".@"deploy-name"*.text()
+    private void hasNecessaryBuildersAdded(String project) {
+        def projectDescription = parseProjectFile(project: project)
+        assert projectDescription.buildSpec.buildCommand.name*.text().containsAll(
+                ["org.eclipse.wst.common.project.facet.core.builder", "org.eclipse.wst.validation.validationbuilder"])
+    }
+
+    private void hasNecessaryNaturesAdded(String project) {
+        def projectDescription = parseProjectFile(project: project)
+        assert projectDescription.natures.nature*.text().containsAll(["org.eclipse.wst.common.project.facet.core.nature",
+                "org.eclipse.jem.workbench.JavaEMFNature", "org.eclipse.wst.common.modulecore.ModuleCoreNature"])
+    }
+
+    private void hasTrimmedDownComponentSettingsFile(String projectName, String... sourcePaths) {
+        def projectModules = parseComponentFile(project: projectName, print: true)
+
+        assert getDeployName(projectModules) == projectName
+        assert getSourcePaths(projectModules) == sourcePaths as Set
+        assert getDeployPaths(projectModules) == ["/"] * sourcePaths.size() as Set
+        assert getHandleFilenames(projectModules) == [] as Set
+        assert getDependencyTypes(projectModules) == [] as Set
+    }
+
+    private String getDeployName(projectModules) {
+		def names = projectModules."wb-module".@"deploy-name"*.text()
+        assert names.size() == 1
+        names[0]
 	}
 
-	private getHandleFilenames(projectModules) {
+    private Set getSourcePaths(projectModules) {
+        projectModules."wb-module"."wb-resource".@"source-path"*.text() as Set
+    }
+
+    private Set getDeployPaths(projectModules) {
+        projectModules."wb-module"."wb-resource".@"deploy-path"*.text() as Set
+    }
+
+	private Set getHandleFilenames(projectModules) {
 		projectModules."wb-module"."dependent-module".@handle*.text().collect { it.substring(it.lastIndexOf("/") + 1) } as Set
 	}
 
-	private getDependencyTypes(projectModules) {
+	private Set getDependencyTypes(projectModules) {
 		projectModules."wb-module"."dependent-module"."dependency-type"*.text() as Set
 	}
 }

@@ -23,7 +23,7 @@ public interface FileSnapshotter {
      *
      * @return The snapshot.
      */
-    FileCollectionSnapshot snapshot();
+    FileCollectionSnapshot emptySnapshot();
 
     /**
      * Creates a snapshot of the contents of the given collection

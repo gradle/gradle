@@ -30,13 +30,15 @@ class ApplicationPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
     private final ApplicationPlugin plugin = new ApplicationPlugin();
 
-    public void appliesJavaPluginAndAddsConventionObject() {
+    public void appliesJavaPluginAndAddsConventionObjectWithDefaultValues() {
         when:
         plugin.apply(project)
 
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
+        project.applicationName == project.name
+        project.mainClassName == null
     }
 
     public void addsRunTasksToProject() {
@@ -57,7 +59,7 @@ class ApplicationPluginTest extends Specification {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         task instanceof CreateStartScripts
-        task.applicationName == project.name
+        task.applicationName == project.applicationName
         task.outputDir == project.file('build/scripts')
     }
 
@@ -68,7 +70,7 @@ class ApplicationPluginTest extends Specification {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_INSTALL_NAME]
         task instanceof Sync
-        task.destinationDir == project.file("build/install")
+        task.destinationDir == project.file("build/install/${project.applicationName}")
     }
 
     public void addsDistZipTaskToProject() {
@@ -78,8 +80,25 @@ class ApplicationPluginTest extends Specification {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
+        task.archiveName == "${project.applicationName}.zip"
     }
 
+    public void canChangeApplicationName() {
+        when:
+        plugin.apply(project)
+        project.applicationName = "SuperApp";
+
+        then:
+        def startScriptsTask = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
+        startScriptsTask.applicationName == 'SuperApp'
+
+        def installTest = project.tasks[ApplicationPlugin.TASK_INSTALL_NAME]
+        installTest.destinationDir == project.file("build/install/SuperApp")
+
+        def distZipTask = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
+        distZipTask.archiveName == "SuperApp.zip"
+    }
+    
     public void setMainClassNameSetsMainInRunTask() {
         when:
         plugin.apply(project)

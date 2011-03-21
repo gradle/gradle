@@ -51,8 +51,8 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
         dirIdentiferCache = cacheRepository.cache("outputFileStates").open().openIndexedCache();
     }
 
-    public FileCollectionSnapshot snapshot() {
-        return new OutputFilesSnapshot(new HashMap<String, Long>(), snapshotter.snapshot());
+    public FileCollectionSnapshot emptySnapshot() {
+        return new OutputFilesSnapshot(new HashMap<String, Long>(), snapshotter.emptySnapshot());
     }
 
     public FileCollectionSnapshot snapshot(FileCollection files) {

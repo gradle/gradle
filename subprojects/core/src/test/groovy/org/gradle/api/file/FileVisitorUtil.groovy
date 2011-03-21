@@ -17,8 +17,14 @@ package org.gradle.api.file
 
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import org.gradle.api.internal.file.collections.MinimalFileTree
+import org.gradle.api.internal.file.collections.FileTreeAdapter
 
 class FileVisitorUtil {
+    static def assertCanStopVisiting(MinimalFileTree tree) {
+        assertCanStopVisiting(new FileTreeAdapter(tree))
+    }
+
     static def assertCanStopVisiting(FileTree tree) {
         boolean found = false
         FileVisitor visitor = [
@@ -36,6 +42,10 @@ class FileVisitorUtil {
         assertTrue(found)
     }
     
+    static def assertVisits(MinimalFileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
+        assertVisits(new FileTreeAdapter(tree), expectedFiles, expectedDirs)
+    }
+
     static def assertVisits(FileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
         Set files = [] as Set
         Set dirs = [] as Set

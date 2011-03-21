@@ -1,32 +1,32 @@
 package org.gradle.sample;
 
 import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.BuildConnection;
+import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.ExternalDependency;
-import org.gradle.tooling.model.eclipse.EclipseBuild;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.io.File;
 
 public class Main {
     public static void main(String[] args) {
+        // Configure the connector and create the connection
         GradleConnector connector = GradleConnector.newConnector();
-        try {
-            // Configure the connector and create the connection
-            connector.forProjectDirectory(new File("."));
-            if (args.length > 0) {
-                connector.useInstallation(new File(args[0]));
-            }
-            BuildConnection connection = connector.connect();
+        connector.forProjectDirectory(new File("."));
+        if (args.length > 0) {
+            connector.useInstallation(new File(args[0]));
+        }
 
+        ProjectConnection connection = connector.connect();
+        try {
             // Load the Eclipse model for the project
-            EclipseBuild build = connection.getModel(EclipseBuild.class);
+            EclipseProject project = connection.getModel(EclipseProject.class);
             System.out.println("Project classpath:");
-            for (ExternalDependency externalDependency : build.getRootProject().getClasspath()) {
+            for (ExternalDependency externalDependency : project.getClasspath()) {
                 System.out.println(externalDependency.getFile().getName());
             }
         } finally {
             // Clean up
-            connector.close();
+            connection.close();
         }
     }
 }

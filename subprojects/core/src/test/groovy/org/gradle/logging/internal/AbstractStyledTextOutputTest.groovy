@@ -16,6 +16,7 @@
 package org.gradle.logging.internal
 
 import org.gradle.logging.StyledTextOutput.Style
+import org.gradle.util.SystemProperties
 
 class AbstractStyledTextOutputTest extends OutputSpecification {
     private final TestStyledTextOutput output = new TestStyledTextOutput()
@@ -41,7 +42,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.println()
 
         then:
-        output.rawValue == System.getProperty('line.separator')
+        output.rawValue == SystemProperties.lineSeparator
     }
 
     def appendsCharacter() {
@@ -201,7 +202,7 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
     def String getValue() {
         StringBuilder normalised = new StringBuilder()
 
-        String eol = System.getProperty('line.separator')
+        String eol = SystemProperties.lineSeparator
         boolean inStackTrace = false
         new StringTokenizer(result.toString().replaceAll(eol, '\n'), '\n', true).each { String line ->
             if (line == '\n') {

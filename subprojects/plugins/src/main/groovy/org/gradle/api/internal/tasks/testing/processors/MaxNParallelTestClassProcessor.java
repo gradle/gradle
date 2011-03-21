@@ -35,7 +35,7 @@ import java.util.List;
  */
 public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     private final int maxProcessors;
-    private final Factory<? extends TestClassProcessor> factory;
+    private final Factory<TestClassProcessor> factory;
     private final ActorFactory actorFactory;
     private TestResultProcessor resultProcessor;
     private int pos;
@@ -43,7 +43,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     private List<Actor> actors = new ArrayList<Actor>();
     private Actor resultProcessorActor;
 
-    public MaxNParallelTestClassProcessor(int maxProcessors, Factory<? extends TestClassProcessor> factory, ActorFactory actorFactory) {
+    public MaxNParallelTestClassProcessor(int maxProcessors, Factory<TestClassProcessor> factory, ActorFactory actorFactory) {
         this.maxProcessors = maxProcessors;
         this.factory = factory;
         this.actorFactory = actorFactory;

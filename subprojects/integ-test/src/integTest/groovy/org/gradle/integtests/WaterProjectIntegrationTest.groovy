@@ -19,16 +19,18 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.util.SystemProperties
 import org.junit.Rule
 import org.junit.Test
+
 import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
  */
 class WaterProjectIntegrationTest {
-    final static String NL = System.properties['line.separator']
+    final static String NL = SystemProperties.lineSeparator
 
     final static String HELLO_CLAUSE = "Hello, I'm "
     final static String CHILDREN_TEXT = 'I love water.'

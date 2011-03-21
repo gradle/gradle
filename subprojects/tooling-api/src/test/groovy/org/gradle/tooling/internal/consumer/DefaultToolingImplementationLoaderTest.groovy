@@ -20,12 +20,15 @@ import org.gradle.tooling.internal.provider.DefaultConnectionFactory
 import spock.lang.Specification
 import org.gradle.messaging.actor.ActorFactory
 import org.slf4j.Logger
+import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.util.GradleVersion
 
 class DefaultToolingImplementationLoaderTest extends Specification {
     final Distribution distribution = Mock()
-    final DefaultToolingImplementationLoader loader = new DefaultToolingImplementationLoader()
-    
+
     def usesMetaInfServiceToDetermineFactoryImplementation() {
+        def loader = new DefaultToolingImplementationLoader()
+
         when:
         def factory = loader.create(distribution)
 
@@ -37,5 +40,18 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 AbstractClassPathProvider.getClasspathForClass(ActorFactory.class),
                 AbstractClassPathProvider.getClasspathForClass(Logger.class)
         ] as Set)
+    }
+
+    def failsWhenNoImplementationDeclared() {
+        ClassLoader cl = new ClassLoader() {}
+        def loader = new DefaultToolingImplementationLoader(cl)
+
+        when:
+        loader.create(distribution)
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == "The specified Gradle distribution is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 2)"
+        _ * distribution.toolingImplementationClasspath >> ([] as Set)
     }
 }

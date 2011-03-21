@@ -27,27 +27,27 @@ import spock.lang.Specification;
  * @author Hans Dockter
  */
 class GradleVersionTest extends Specification {
-    final GradleVersion version = new GradleVersion()
+    final GradleVersion version = GradleVersion.current()
 
     def equalsAndHashCode() {
         expect:
-        Matchers.strictlyEquals(new GradleVersion('0.9'), new GradleVersion('0.9'))
-        new GradleVersion('0.9') != new GradleVersion('1.0')
+        Matchers.strictlyEquals(GradleVersion.version('0.9'), GradleVersion.version('0.9'))
+        GradleVersion.version('0.9') != GradleVersion.version('1.0')
     }
 
     def canConstructSnapshotVersion() {
         expect:
-        new GradleVersion('0.9-20101220110000+1100').snapshot
-        new GradleVersion('0.9-20101220110000-0800').snapshot
-        !new GradleVersion('0.9-rc-1').snapshot
+        GradleVersion.version('0.9-20101220110000+1100').snapshot
+        GradleVersion.version('0.9-20101220110000-0800').snapshot
+        !GradleVersion.version('0.9-rc-1').snapshot
     }
 
     def canCompareMajorVersions() {
         expect:
-        new GradleVersion(a) > new GradleVersion(b)
-        new GradleVersion(b) < new GradleVersion(a)
-        new GradleVersion(a) == new GradleVersion(a)
-        new GradleVersion(b) == new GradleVersion(b)
+        GradleVersion.version(a) > GradleVersion.version(b)
+        GradleVersion.version(b) < GradleVersion.version(a)
+        GradleVersion.version(a) == GradleVersion.version(a)
+        GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
         a | b
@@ -59,10 +59,10 @@ class GradleVersionTest extends Specification {
 
     def canComparePointVersions() {
         expect:
-        new GradleVersion(a) > new GradleVersion(b)
-        new GradleVersion(b) < new GradleVersion(a)
-        new GradleVersion(a) == new GradleVersion(a)
-        new GradleVersion(b) == new GradleVersion(b)
+        GradleVersion.version(a) > GradleVersion.version(b)
+        GradleVersion.version(b) < GradleVersion.version(a)
+        GradleVersion.version(a) == GradleVersion.version(a)
+        GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
         a | b
@@ -72,10 +72,10 @@ class GradleVersionTest extends Specification {
 
     def canComparePointVersionAndMajorVersions() {
         expect:
-        new GradleVersion(a) > new GradleVersion(b)
-        new GradleVersion(b) < new GradleVersion(a)
-        new GradleVersion(a) == new GradleVersion(a)
-        new GradleVersion(b) == new GradleVersion(b)
+        GradleVersion.version(a) > GradleVersion.version(b)
+        GradleVersion.version(b) < GradleVersion.version(a)
+        GradleVersion.version(a) == GradleVersion.version(a)
+        GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
         a | b
@@ -85,10 +85,10 @@ class GradleVersionTest extends Specification {
 
     def canComparePreviewsMilestonesAndRCVersions() {
         expect:
-        new GradleVersion(a) > new GradleVersion(b)
-        new GradleVersion(b) < new GradleVersion(a)
-        new GradleVersion(a) == new GradleVersion(a)
-        new GradleVersion(b) == new GradleVersion(b)
+        GradleVersion.version(a) > GradleVersion.version(b)
+        GradleVersion.version(b) < GradleVersion.version(a)
+        GradleVersion.version(a) == GradleVersion.version(a)
+        GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
         a | b
@@ -102,10 +102,10 @@ class GradleVersionTest extends Specification {
 
     def canCompareSnapshotVersions() {
         expect:
-        new GradleVersion(a) > new GradleVersion(b)
-        new GradleVersion(b) < new GradleVersion(a)
-        new GradleVersion(a) == new GradleVersion(a)
-        new GradleVersion(b) == new GradleVersion(b)
+        GradleVersion.version(a) > GradleVersion.version(b)
+        GradleVersion.version(b) < GradleVersion.version(a)
+        GradleVersion.version(a) == GradleVersion.version(a)
+        GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
         a | b

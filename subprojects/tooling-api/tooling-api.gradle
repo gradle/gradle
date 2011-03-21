@@ -3,7 +3,8 @@ apply plugin: 'groovy'
 dependencies {
     groovy libraries.groovy_depends
 
-    compile project(':core'), project(':wrapper')
+    publishCompile project(':core'), project(':wrapper')
+    compile project(':ide')
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')

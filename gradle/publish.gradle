@@ -1,7 +1,11 @@
 apply plugin: 'maven'
 
 configurations {
+    publishCompile
     publishRuntime
+    compile {
+        extendsFrom publishCompile
+    }
 }
 
 task sourceJar(type: Jar) {
@@ -13,8 +17,11 @@ task generatePom {
     pomFile = new File(temporaryDir, 'pom.xml')
     doLast {
         dependencies {
-            configurations.runtime.getAllDependencies(ProjectDependency).each {
+            configurations.publishCompile.getAllDependencies(ProjectDependency).each {
                 publishRuntime "org.gradle:gradle-${it.dependencyProject.name}:${version}"
+            }
+            configurations.publishCompile.getAllDependencies(ExternalModuleDependency).each {
+                publishRuntime it
             }
         }
 
@@ -43,7 +50,7 @@ uploadArchives {
     dependsOn generatePom
     uploadDescriptor = false
     doFirst {
-        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'gradle.artifactoryonline.com', artifactoryUserName, artifactoryUserPassword)
+        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'repo.gradle.org', artifactoryUserName, artifactoryUserPassword)
         repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
             name = 'gradleReleases'
             addArtifactPattern("${version.libsUrl}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]" as String)

@@ -22,11 +22,11 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 
 public class SharedConventionRepositoryHandlerFactory implements Factory<RepositoryHandler> {
-    private final Factory<? extends RepositoryHandler> factory;
+    private final Factory<RepositoryHandler> factory;
     private final Convention convention;
     private ConventionMapping conventionMapping;
 
-    public SharedConventionRepositoryHandlerFactory(Factory<? extends RepositoryHandler> factory, Convention convention) {
+    public SharedConventionRepositoryHandlerFactory(Factory<RepositoryHandler> factory, Convention convention) {
         this.factory = factory;
         this.convention = convention;
     }

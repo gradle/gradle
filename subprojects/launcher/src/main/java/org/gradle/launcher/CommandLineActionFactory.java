@@ -168,7 +168,7 @@ public class CommandLineActionFactory {
 
     private static class ShowVersionAction implements Runnable {
         public void run() {
-            System.out.println(new GradleVersion().prettyPrint());
+            System.out.println(GradleVersion.current().prettyPrint());
         }
     }
 

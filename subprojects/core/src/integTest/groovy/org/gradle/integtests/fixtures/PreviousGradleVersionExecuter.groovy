@@ -26,7 +26,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
 
     PreviousGradleVersionExecuter(GradleDistribution dist, String version) {
         this.dist = dist
-        this.version = new GradleVersion(version)
+        this.version = GradleVersion.version(version)
     }
 
     def String toString() {
@@ -38,7 +38,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     boolean worksWith(Jvm jvm) {
-        return version == new GradleVersion('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
+        return version == GradleVersion.version('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
     }
 
     protected ExecutionResult doRun() {

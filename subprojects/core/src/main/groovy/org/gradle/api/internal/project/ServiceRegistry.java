@@ -39,7 +39,7 @@ public interface ServiceRegistry {
      * @return The factory. Never returns null.
      * @throws IllegalArgumentException When there is no factory available for services of the given type.
      */
-    <T> Factory<? extends T> getFactory(Class<T> type) throws IllegalArgumentException;
+    <T> Factory<T> getFactory(Class<T> type) throws IllegalArgumentException;
 
     /**
      * Creates a new service instance of the given type.

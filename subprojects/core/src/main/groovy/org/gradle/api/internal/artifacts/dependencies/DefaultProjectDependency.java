@@ -89,13 +89,10 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Override
     public void resolve(DependencyResolveContext context) {
         boolean transitive = isTransitive() && context.isTransitive();
-        for (Dependency dependency : getProjectConfiguration().getAllDependencies()) {
-            if (!(dependency instanceof ProjectDependency)) {
-                context.add(dependency);
-            } else if (transitive) {
+        if (transitive) {
+            for (Dependency dependency : getProjectConfiguration().getAllDependencies()) {
                 context.add(dependency);
             }
-            // else project dep and non-transitive, so skip
         }
     }
 

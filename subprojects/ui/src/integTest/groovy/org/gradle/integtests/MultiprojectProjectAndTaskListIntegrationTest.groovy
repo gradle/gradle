@@ -29,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 import org.gradle.foundation.TestUtility
+import org.gradle.util.TestFile
 
 /**
  This tests the multiproject sample with the GradleView mechanism.
@@ -43,7 +44,7 @@ class MultiprojectProjectAndTaskListIntegrationTest {
     static final String SERVICES_NAME = 'services'
     static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
-    private File javaprojectDir
+    private TestFile javaprojectDir
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
@@ -66,14 +67,8 @@ class MultiprojectProjectAndTaskListIntegrationTest {
 
     @Test
     public void multiProjectjavaProjectSample() {
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('assemble').run();
-
-        File multiProjectDirectory = sample.getDir();
-        Assert.assertTrue(multiProjectDirectory.exists());
-
         GradlePluginLord gradlePluginLord = new GradlePluginLord();
-        gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
+        gradlePluginLord.setCurrentDirectory(javaprojectDir);
         gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
 
         //refresh the projects and wait. This will throw an exception if it fails.
@@ -117,14 +112,8 @@ class MultiprojectProjectAndTaskListIntegrationTest {
    @Test
    public void testOpenAPIWrapperProjectAndTaskList()
    {
-     // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('assemble').run();
-
-        File multiProjectDirectory = sample.getDir();
-        Assert.assertTrue(multiProjectDirectory.exists());
-
         GradlePluginLord gradlePluginLord = new GradlePluginLord();
-        gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
+        gradlePluginLord.setCurrentDirectory(javaprojectDir);
         gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
 
         GradleInterfaceWrapperVersion1 wrapper = new GradleInterfaceWrapperVersion1( gradlePluginLord );
@@ -178,13 +167,8 @@ class MultiprojectProjectAndTaskListIntegrationTest {
    @Test
    public void testSubProjectFromFullPath()
    {
-     executer.inDirectory(javaprojectDir).withTasks('assemble').run();
-
-      File multiProjectDirectory = sample.getDir();
-      Assert.assertTrue(multiProjectDirectory.exists());
-
       GradlePluginLord gradlePluginLord = new GradlePluginLord();
-      gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
+      gradlePluginLord.setCurrentDirectory(javaprojectDir);
       gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
 
       //refresh the projects and wait. This will throw an exception if it fails.
@@ -216,13 +200,8 @@ class MultiprojectProjectAndTaskListIntegrationTest {
    @Test
    public void testGetTaskFromFullPath()
    {
-     executer.inDirectory(javaprojectDir).withTasks('assemble').run();
-
-      File multiProjectDirectory = sample.getDir();
-      Assert.assertTrue(multiProjectDirectory.exists());
-
       GradlePluginLord gradlePluginLord = new GradlePluginLord();
-      gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
+      gradlePluginLord.setCurrentDirectory(javaprojectDir);
       gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
 
       //refresh the projects and wait. This will throw an exception if it fails.

@@ -98,7 +98,7 @@ public class Wrapper extends DefaultTask {
         archiveName = DEFAULT_ARCHIVE_NAME;
         archiveClassifier = DEFAULT_ARCHIVE_CLASSIFIER;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
-        gradleVersion = new GradleVersion();
+        gradleVersion = GradleVersion.current();
     }
 
     @TaskAction
@@ -251,7 +251,7 @@ public class Wrapper extends DefaultTask {
      * use for building your project.
      */
     public void setGradleVersion(String gradleVersion) {
-        this.gradleVersion = new GradleVersion(gradleVersion);
+        this.gradleVersion = GradleVersion.version(gradleVersion);
     }
 
     /**

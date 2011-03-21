@@ -147,7 +147,19 @@
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
 
-        <para>We just follow the convention for where the source for the plugin class should go.</para>
+	<para>
+            So how does Gradle find the <apilink class="org.gradle.api.Plugin"/> implementation? The answer is you need to provide a properties file in the jar's
+	    <filename>META-INF/gradle-plugins</filename> directory that matches the name of your plugin.
+	</para>
+
+        <sample id="customPluginStandalone" dir="customPlugin" title="Wiring for a custom plugin">
+            <sourcefile file="src/main/resources/META-INF/gradle-plugins/greeting.properties"/>
+        </sample>	
+
+	<para>
+	    Notice that the properties filename matches the plugin's name and is placed in the resources folder, and
+	    that the <literal>implementation-class</literal> property identifies the <apilink class="org.gradle.api.Plugin"/> implementation class.
+	</para>
 
         <section>
             <title>Using your plugin in another project</title>

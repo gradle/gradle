@@ -17,6 +17,7 @@ package org.gradle.logging.internal
 
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Color
+import org.gradle.util.SystemProperties
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutput.Style
 import org.gradle.util.JUnit4GroovyMockery
@@ -26,7 +27,8 @@ import org.junit.runner.RunWith
 
 @RunWith(JMock.class)
 class AnsiConsoleTest {
-    private static final String EOL = System.getProperty('line.separator')
+    private static final String EOL = SystemProperties.lineSeparator
+
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Ansi ansi = context.mock(Ansi.class)
     private final Appendable target = {} as Appendable

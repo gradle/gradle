@@ -15,59 +15,88 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.ExternalDependency
-import org.gradle.tooling.model.eclipse.EclipseBuild
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
 
-    def canBuildEclipseSourceDirectoriesForAProject() {
+    def canBuildProjectMetaDataForAProject() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 '''
+        projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
 
         when:
-        EclipseBuild build = withConnection { connection -> connection.getModel(EclipseBuild.class) }
-        EclipseProject rootProject = build.getRootProject()
+        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
-        rootProject != null
+        eclipseProject.name == 'test project'
+        eclipseProject.projectDirectory == projectDir
+    }
 
-        rootProject.sourceDirectories.size() == 4
-        rootProject.sourceDirectories[0].path == 'src/main/java'
-        rootProject.sourceDirectories[0].directory == projectDir.file('src/main/java')
-        rootProject.sourceDirectories[1].path == 'src/main/resources'
-        rootProject.sourceDirectories[1].directory == projectDir.file('src/main/resources')
-        rootProject.sourceDirectories[2].path == 'src/test/java'
-        rootProject.sourceDirectories[2].directory == projectDir.file('src/test/java')
-        rootProject.sourceDirectories[3].path == 'src/test/resources'
-        rootProject.sourceDirectories[3].directory == projectDir.file('src/test/resources')
+    def canBuildEclipseSourceDirectoriesForAProject() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = "apply plugin: 'java'"
+
+        projectDir.create {
+            src {
+                main {
+                    java {}
+                    resources{}
+                }
+                test {
+                    java {}
+                    resources {}
+                }
+            }
+        }
+
+        when:
+        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        eclipseProject != null
+
+        eclipseProject.sourceDirectories.size() == 4
+        eclipseProject.sourceDirectories[0].path == 'src/main/java'
+        eclipseProject.sourceDirectories[0].directory == projectDir.file('src/main/java')
+        eclipseProject.sourceDirectories[1].path == 'src/main/resources'
+        eclipseProject.sourceDirectories[1].directory == projectDir.file('src/main/resources')
+        eclipseProject.sourceDirectories[2].path == 'src/test/java'
+        eclipseProject.sourceDirectories[2].directory == projectDir.file('src/test/java')
+        eclipseProject.sourceDirectories[3].path == 'src/test/resources'
+        eclipseProject.sourceDirectories[3].directory == projectDir.file('src/test/resources')
     }
 
     def canBuildEclipseExternalDependenciesForAProject() {
         def projectDir = dist.testDir
+        projectDir.file('settings.gradle').text = '''
+include "a"
+rootProject.name = 'root'
+'''
         projectDir.file('build.gradle').text = '''
-apply plugin: 'java'
+allprojects { apply plugin: 'java' }
 repositories { mavenCentral() }
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
+    compile project(':a')
     runtime 'commons-io:commons-io:1.4'
 }
 '''
 
         when:
-        EclipseBuild build = withConnection { connection -> connection.getModel(EclipseBuild.class) }
-        EclipseProject rootProject = build.getRootProject()
+        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
-        rootProject != null
+        eclipseProject != null
 
-        rootProject.classpath.size() == 2
-        rootProject.classpath[0] instanceof ExternalDependency
-        rootProject.classpath[0].file.name == 'commons-io-1.4.jar'
-        rootProject.classpath[1] instanceof ExternalDependency
-        rootProject.classpath[1].file.name == 'commons-lang-2.5.jar'
+        eclipseProject.classpath.size() == 2
+        eclipseProject.classpath[0] instanceof ExternalDependency
+        eclipseProject.classpath[0].file.name == 'commons-io-1.4.jar'
+        eclipseProject.classpath[1] instanceof ExternalDependency
+        eclipseProject.classpath[1].file.name == 'commons-lang-2.5.jar'
     }
 
     def canBuildEclipseProjectDependenciesForAProject() {
@@ -89,11 +118,10 @@ project(':a') {
 '''
 
         when:
-        EclipseBuild build = withConnection { connection -> connection.getModel(EclipseBuild.class) }
-        EclipseProject rootProject = build.getRootProject()
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
-        EclipseProject project = rootProject.childProjects[0]
+        EclipseProject project = rootProject.children[0]
 
         project.projectDependencies.size() == 2
 
@@ -101,31 +129,51 @@ project(':a') {
         project.projectDependencies[0].targetProject == rootProject
 
         project.projectDependencies[1].path == 'b'
-        project.projectDependencies[1].targetProject == project.childProjects[0]
+        project.projectDependencies[1].targetProject == project.children[0]
     }
 
     def canBuildEclipseProjectHierarchyForAMultiProjectBuild() {
         def projectDir = dist.testDir
         projectDir.file('settings.gradle').text = '''
-            include "child1", "child2", "child1:child1"
+            include "child1", "child2", "child1:grandChild1"
             rootProject.name = 'root'
 '''
+        projectDir.file('child1').mkdirs()
 
         when:
-        EclipseBuild build = withConnection { connection -> connection.getModel(EclipseBuild.class) }
-        EclipseProject rootProject = build.getRootProject()
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
         rootProject != null
         rootProject.name == 'root'
-        rootProject.childProjects.size() == 2
-        rootProject.childProjects[0].name == 'child1'
-        rootProject.childProjects[0].childProjects.size() == 1
+        rootProject.parent == null
 
-        rootProject.childProjects[0].childProjects[0].name == 'child1'
-        rootProject.childProjects[0].childProjects[0].childProjects.size() == 0
+        rootProject.children.size() == 2
 
-        rootProject.childProjects[1].name == 'child2'
-        rootProject.childProjects[1].childProjects.size() == 0
+        EclipseProject child1 = rootProject.children[0]
+        child1.name == 'child1'
+        child1.parent == rootProject
+        child1.children.size() == 1
+
+        EclipseProject child1Child1 = child1.children[0]
+        child1Child1.name == 'grandChild1'
+        child1Child1.parent == child1
+        child1Child1.children.size() == 0
+
+        EclipseProject child2 = rootProject.children[1]
+        child2.name == 'child2'
+        child2.parent == rootProject
+        child2.children.size() == 0
+
+        when:
+        GradleConnector connector = GradleConnector.newConnector()
+        connector.forProjectDirectory(projectDir.file('child1'))
+        EclipseProject child = withConnectionRaw(connector) { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        child.name == 'child1'
+        child.parent != null
+        child.parent.name == 'root'
+        child.children.size() == 1
     }
 }

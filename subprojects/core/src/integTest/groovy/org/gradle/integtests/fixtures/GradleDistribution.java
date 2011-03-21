@@ -55,7 +55,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
 
     @Override
     public String toString() {
-        return String.format("Gradle %s", new GradleVersion().getVersion());
+        return String.format("Gradle %s", GradleVersion.current().getVersion());
     }
 
     public boolean worksWith(Jvm jvm) {
@@ -95,7 +95,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     }
 
     public String getVersion() {
-        return new GradleVersion().getVersion();
+        return GradleVersion.current().getVersion();
     }
 
     public TestFile getBinDistribution() {
