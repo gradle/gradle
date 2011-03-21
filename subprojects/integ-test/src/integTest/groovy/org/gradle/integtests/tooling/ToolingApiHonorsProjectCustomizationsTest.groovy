@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling
 
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiAdvancedEclipseIntegrationTest extends ToolingApiSpecification {
+class ToolingApiHonorsProjectCustomizationsTest extends ToolingApiSpecification {
 
     def "should honour reconfigured project names"() {
         def projectDir = dist.testDir
