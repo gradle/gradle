@@ -73,7 +73,7 @@ public class ZipFileTreeTest {
         zipFile.createDir();
 
         try {
-            tree.getFiles();
+            tree.visit(null);
             fail();
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + zipFile + "' as it is not a file."));
@@ -85,7 +85,7 @@ public class ZipFileTreeTest {
         zipFile.write("not a zip file");
 
         try {
-            tree.getFiles();
+            tree.visit(null);
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo("Could not expand ZIP '" + zipFile + "'."));

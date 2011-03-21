@@ -73,7 +73,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
                 throw new IllegalStateException("No worker action specified for this worker process.");
             }
 
-            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(30, TimeUnit.SECONDS);
+            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
             URI localAddress = server.accept(workerProcess.getConnectAction());
 
             // Build configuration for GradleWorkerMain

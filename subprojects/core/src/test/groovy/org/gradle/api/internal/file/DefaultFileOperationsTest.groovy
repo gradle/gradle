@@ -36,6 +36,7 @@ import org.junit.Test
 import spock.lang.Specification
 import org.gradle.util.OperatingSystem
 import org.gradle.util.ClasspathUtil
+import org.gradle.api.internal.file.collections.FileTreeAdapter
 
 public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()
@@ -124,7 +125,8 @@ public class DefaultFileOperationsTest extends Specification {
         def zipTree = fileOperations.zipTree('path')
 
         then:
-        zipTree instanceof ZipFileTree
+        zipTree instanceof FileTreeAdapter
+        zipTree.tree instanceof ZipFileTree
     }
 
     def createsTarFileTree() {
@@ -135,7 +137,8 @@ public class DefaultFileOperationsTest extends Specification {
         def tarTree = fileOperations.tarTree('path')
 
         then:
-        tarTree instanceof TarFileTree
+        tarTree instanceof FileTreeAdapter
+        tarTree.tree instanceof TarFileTree
     }
 
     def copiesFiles() {

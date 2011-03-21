@@ -65,6 +65,9 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             } else if (element instanceof MinimalFileCollection) {
                 MinimalFileCollection fileCollection = (MinimalFileCollection) element;
                 result.add(new FileCollectionAdapter(fileCollection));
+            } else if (element instanceof MinimalFileTree) {
+                MinimalFileTree fileTree = (MinimalFileTree) element;
+                result.add(new FileTreeAdapter(fileTree));
             } else if (element instanceof Closure) {
                 Closure closure = (Closure) element;
                 Object closureResult = closure.call();

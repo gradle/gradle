@@ -24,23 +24,23 @@ import java.util.Set;
 /**
  * Adapts a {@link MinimalFileCollection} into a full {@link org.gradle.api.file.FileCollection}.
  */
-public class FileCollectionAdapter extends AbstractFileCollection implements MinimalFileCollection, CompositeFileCollection {
-    private final MinimalFileCollection delegate;
+public class FileCollectionAdapter extends AbstractFileCollection implements CompositeFileCollection {
+    private final MinimalFileCollection fileCollection;
 
-    public FileCollectionAdapter(MinimalFileCollection delegate) {
-        this.delegate = delegate;
+    public FileCollectionAdapter(MinimalFileCollection fileCollection) {
+        this.fileCollection = fileCollection;
     }
 
     @Override
     public String getDisplayName() {
-        return delegate.getDisplayName();
+        return fileCollection.getDisplayName();
     }
 
     public void resolve(FileCollectionResolveContext context) {
-        context.add(delegate);
+        context.add(fileCollection);
     }
 
     public Set<File> getFiles() {
-        return GUtil.addSets(delegate);
+        return GUtil.addSets(fileCollection);
     }
 }

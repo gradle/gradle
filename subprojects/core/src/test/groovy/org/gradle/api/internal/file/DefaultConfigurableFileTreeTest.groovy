@@ -42,7 +42,7 @@ import static org.junit.Assert.*
 /**
  * @author Hans Dockter
  */
-class FileSetTest extends AbstractTestForPatternSet {
+class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     JUnit4Mockery context = new JUnit4GroovyMockery();
     TaskResolver taskResolverStub = context.mock(TaskResolver.class);
     DefaultConfigurableFileTree fileSet
@@ -253,7 +253,7 @@ class FileSetTest extends AbstractTestForPatternSet {
     }
 
     @Test public void testDisplayName() {
-        assertThat(fileSet.displayName, equalTo("file set '$testDir'".toString()))
+        assertThat(fileSet.displayName, equalTo("directory '$testDir'".toString()))
     }
 
     @Test public void testStopExecutionIfEmptyWhenNoMatchingFilesFound() {
@@ -264,7 +264,7 @@ class FileSetTest extends AbstractTestForPatternSet {
             fileSet.stopExecutionIfEmpty()
             fail()
         } catch (StopExecutionException e) {
-            assertThat(e.message, equalTo("File set '$testDir' does not contain any files." as String))
+            assertThat(e.message, equalTo("Directory '$testDir' does not contain any files." as String))
         }
     }
 

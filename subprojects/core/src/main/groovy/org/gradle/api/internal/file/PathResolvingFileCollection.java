@@ -59,9 +59,7 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
     }
 
     public ConfigurableFileCollection from(Object... paths) {
-        for (Object path : paths) {
-            files.add(path);
-        }
+        files.add(paths);
         return this;
     }
 
@@ -89,8 +87,6 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
     protected void addSourceCollections(Collection<FileCollection> sources) {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver, buildDependency);
         context.add(files);
-        for (FileCollection collection : context.resolve()) {
-            sources.add(collection);
-        }
+        sources.addAll(context.resolve());
     }
 }

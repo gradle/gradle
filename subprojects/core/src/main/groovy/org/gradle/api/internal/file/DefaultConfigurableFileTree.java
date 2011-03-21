@@ -53,6 +53,7 @@ public class DefaultConfigurableFileTree extends AbstractFileTree implements Con
 
     public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver) {
         this.resolver = resolver != null ? resolver : new IdentityFileResolver();
+        this.taskResolver = taskResolver;
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
     }
@@ -83,7 +84,7 @@ public class DefaultConfigurableFileTree extends AbstractFileTree implements Con
     }
 
     public String getDisplayName() {
-        return String.format("file set '%s'", dir);
+        return String.format("directory '%s'", dir);
     }
 
     public FileTree matching(PatternFilterable patterns) {

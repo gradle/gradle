@@ -42,7 +42,20 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         then:
         result.size() == 1
         result[0] instanceof FileCollectionAdapter
-        result[0].delegate == fileCollection
+        result[0].fileCollection == fileCollection
+    }
+
+    def resolvesAMinimalFileTree() {
+        MinimalFileTree fileTree = Mock()
+
+        when:
+        context.add(fileTree)
+        def result = context.resolve()
+
+        then:
+        result.size() == 1
+        result[0] instanceof FileTreeAdapter
+        result[0].tree == fileTree
     }
 
     def resolvesAFileCollection() {

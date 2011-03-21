@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,25 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A {@link FileTree} which is composed using a mapping from relative path to file source.
+ * A {@link MinimalFileTree} which is composed using a mapping from relative path to file source.
  */
-public class MapFileTree extends AbstractFileTree {
+public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final Map<RelativePath, Closure> elements = new LinkedHashMap<RelativePath, Closure>();
     private final File tmpDir;
 
@@ -42,13 +46,11 @@ public class MapFileTree extends AbstractFileTree {
         return "file tree";
     }
 
-    @Override
-    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
-        visitAll();
-        return Collections.singleton(new DefaultConfigurableFileTree(tmpDir, null, null));
+    public DefaultConfigurableFileTree getMirror() {
+        return new DefaultConfigurableFileTree(tmpDir, null, null);
     }
 
-    public FileTree visit(FileVisitor visitor) {
+    public void visit(FileVisitor visitor) {
         AtomicBoolean stopFlag = new AtomicBoolean();
         Visit visit = new Visit(visitor, stopFlag);
         for (Map.Entry<RelativePath, Closure> entry : elements.entrySet()) {
@@ -59,9 +61,7 @@ public class MapFileTree extends AbstractFileTree {
             Closure generator = entry.getValue();
             visit.visit(path, generator);
         }
-        return this;
     }
-
 
     /**
      * Adds an element to this tree. The given closure is passed an OutputStream which it can use to write the content

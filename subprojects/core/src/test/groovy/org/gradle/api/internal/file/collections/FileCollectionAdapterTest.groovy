@@ -18,8 +18,8 @@ package org.gradle.api.internal.file.collections
 import spock.lang.Specification
 
 class FileCollectionAdapterTest extends Specification {
-    MinimalFileCollection target = Mock()
-    FileCollectionAdapter adapter = new FileCollectionAdapter(target)
+    MinimalFileCollection collection = Mock()
+    FileCollectionAdapter adapter = new FileCollectionAdapter(collection)
 
     def delegatesToTargetCollectionToBuildSetOfFiles() {
         def expectedFiles = [new File('a'), new File('b')]
@@ -29,7 +29,7 @@ class FileCollectionAdapterTest extends Specification {
 
         then:
         files == (expectedFiles as LinkedHashSet)
-        1 * target.iterator() >> expectedFiles.iterator()
+        1 * collection.iterator() >> expectedFiles.iterator()
         0 * _._
     }
 
@@ -40,7 +40,7 @@ class FileCollectionAdapterTest extends Specification {
         adapter.resolve(context)
 
         then:
-        1 * context.add(target)
+        1 * context.add(collection)
         0 * _._
     }
 }
