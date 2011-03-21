@@ -825,15 +825,15 @@ public interface Project extends Comparable<Project> {
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
      * types to this method:</p>
      *
-     * <ul> <li>A {@code String}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
+     * <ul> <li>A {@link String}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
      * that starts with {@code file:} is treated as a file URL.</li>
      *
-     * <li>A {@code File}. Interpreted relative to the project directory, as for {@link #file(Object)}.</li>
+     * <li>A {@link File}. Interpreted relative to the project directory, as for {@link #file(Object)}.</li>
      *
      * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
      * {@code file:} URLs are supported.
      *
-     * <li>A {@code Collection} or an array. May contain any of the types listed here. The elements of the collection
+     * <li>A {@link java.util.Collection}, {@link Iterable}, or an array. May contain any of the types listed here. The elements of the collection
      * are recursively converted to files.</li>
      *
      * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned

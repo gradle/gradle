@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-class SingletonFileCollection extends AbstractFileCollection {
+public class SingletonFileCollection extends AbstractFileCollection {
     private final File file;
     private final TaskDependency builtBy;
 
