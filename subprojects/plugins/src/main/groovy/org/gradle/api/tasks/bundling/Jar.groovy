@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
-import org.gradle.api.internal.file.MapFileTree
+import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.file.copy.CopySpecImpl

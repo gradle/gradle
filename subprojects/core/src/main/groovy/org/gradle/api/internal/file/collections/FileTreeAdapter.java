@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
-import org.gradle.api.internal.file.DefaultConfigurableFileTree;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +42,7 @@ public class FileTreeAdapter extends AbstractFileTree implements CompositeFileCo
     }
 
     @Override
-    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
+    protected Collection<DirectoryFileTree> getAsFileTrees() {
         if (tree instanceof FileSystemMirroringFileTree) {
             FileSystemMirroringFileTree mirroringTree = (FileSystemMirroringFileTree) tree;
             if (visitAll()) {

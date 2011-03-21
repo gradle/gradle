@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.*;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
@@ -96,8 +97,7 @@ public class DefaultConfigurableFileTree extends AbstractFileTree implements Con
     }
 
     public DefaultConfigurableFileTree visit(FileVisitor visitor) {
-        DefaultDirectoryWalker walker = new DefaultDirectoryWalker(visitor);
-        walker.match(patternSet).start(getDir());
+        new DirectoryFileTree(getDir(), patternSet).visit(visitor);
         return this;
     }
 
@@ -180,25 +180,13 @@ public class DefaultConfigurableFileTree extends AbstractFileTree implements Con
         return patternSet.getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(file, path));
     }
 
-    protected void addAsFileSet(Object builder, String nodeName) {
-        File dir = getDir();
-        if (!dir.exists()) {
-            return;
-        }
-        doAddFileSet(builder, dir, nodeName);
-    }
-
     protected void addAsResourceCollection(Object builder, String nodeName) {
         addAsFileSet(builder, nodeName);
     }
 
-    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
-        return getDir().exists() ? Collections.singletonList(this) : Collections.<DefaultConfigurableFileTree>emptyList();
-    }
-
-    protected Object doAddFileSet(Object builder, File dir, String nodeName) {
-        new FileSetHelper().addToAntBuilder(builder, dir, patternSet, nodeName);
-        return this;
+    protected Collection<DirectoryFileTree> getAsFileTrees() {
+        File dir = getDir();
+        return dir.exists() ? Collections.singletonList(new DirectoryFileTree(dir, patternSet)) : Collections.<DirectoryFileTree>emptyList();
     }
 
     public ConfigurableFileTree builtBy(Object... tasks) {

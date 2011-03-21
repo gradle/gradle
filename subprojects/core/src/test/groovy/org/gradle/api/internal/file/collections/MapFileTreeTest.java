@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
 import static org.gradle.api.file.FileVisitorUtil.*;

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.AbstractFileTreeElement;
 
 import java.io.File;
 import java.io.InputStream;
@@ -46,8 +45,8 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         return "file tree";
     }
 
-    public DefaultConfigurableFileTree getMirror() {
-        return new DefaultConfigurableFileTree(tmpDir, null, null);
+    public DirectoryFileTree getMirror() {
+        return new DirectoryFileTree(tmpDir);
     }
 
     public void visit(FileVisitor visitor) {

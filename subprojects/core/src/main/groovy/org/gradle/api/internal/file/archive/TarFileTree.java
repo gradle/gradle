@@ -23,7 +23,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.DefaultConfigurableFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.util.GFileUtils;
@@ -49,8 +49,8 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         return String.format("TAR '%s'", tarFile);
     }
 
-    public DefaultConfigurableFileTree getMirror() {
-        return new DefaultConfigurableFileTree(tmpDir, null, null);
+    public DirectoryFileTree getMirror() {
+        return new DirectoryFileTree(tmpDir);
     }
 
     public void visit(FileVisitor visitor) {

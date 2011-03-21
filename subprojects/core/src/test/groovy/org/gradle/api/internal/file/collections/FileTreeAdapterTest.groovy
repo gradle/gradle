@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.DefaultConfigurableFileTree
 import spock.lang.Specification
 
 class FileTreeAdapterTest extends Specification {
@@ -60,7 +59,7 @@ class FileTreeAdapterTest extends Specification {
     def delegatesToMirroringTreeToBuildFileSystemMirror() {
         FileSystemMirroringFileTree tree = Mock()
         FileTreeAdapter adapter = new FileTreeAdapter(tree)
-        DefaultConfigurableFileTree mirror = new DefaultConfigurableFileTree((Object) null, null, null)
+        DirectoryFileTree mirror = new DirectoryFileTree(new File('a'))
 
         when:
         def result = adapter.asFileTrees

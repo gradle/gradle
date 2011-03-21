@@ -18,8 +18,8 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.DefaultDirectoryWalker;
-import org.gradle.api.internal.file.DirectoryWalker;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -76,8 +76,8 @@ public class SyncCopySpecVisitor extends DelegatingCopySpecVisitor {
             }
         };
 
-        DirectoryWalker walker = new DefaultDirectoryWalker(visitor).depthFirst();
-        walker.start(baseDestDir);
+        MinimalFileTree walker = new DirectoryFileTree(baseDestDir).depthFirst();
+        walker.visit(visitor);
         visited.clear();
 
         getVisitor().endVisit();
