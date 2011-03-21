@@ -21,6 +21,7 @@ import org.hamcrest.Matcher
 import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 class CodeQualityIntegrationTest extends AbstractIntegrationTest {
     @Test

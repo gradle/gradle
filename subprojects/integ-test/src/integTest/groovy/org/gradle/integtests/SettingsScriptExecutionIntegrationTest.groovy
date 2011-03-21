@@ -21,6 +21,7 @@ import org.gradle.util.TestFile
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test

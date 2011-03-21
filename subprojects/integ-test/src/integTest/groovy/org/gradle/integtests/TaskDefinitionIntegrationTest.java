@@ -16,6 +16,7 @@
 
 package org.gradle.integtests;
 
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest;
 import org.junit.Test;
 
 public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {

@@ -1,4 +1,0 @@
-apply plugin: 'idea'
-project('a') {
-    apply plugin: 'idea'
-}

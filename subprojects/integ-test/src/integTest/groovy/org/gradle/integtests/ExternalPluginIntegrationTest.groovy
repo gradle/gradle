@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.junit.Test
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 public class ExternalPluginIntegrationTest extends AbstractIntegrationTest {
     @Test

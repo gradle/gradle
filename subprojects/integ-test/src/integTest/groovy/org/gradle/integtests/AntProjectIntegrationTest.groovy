@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.util.TestFile
 import org.junit.Test
 import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 public class AntProjectIntegrationTest extends AbstractIntegrationTest {
     @Test

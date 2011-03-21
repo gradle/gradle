@@ -20,6 +20,7 @@ import org.gradle.util.OperatingSystem
 import org.gradle.util.TestFile
 import org.junit.Assert
 import org.junit.Test
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
