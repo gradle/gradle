@@ -35,6 +35,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * This service class will be initialized for each project/task tree.
+ * It means that buildSrc has a separate instance, so the ivySettings and list of resolvers/publishers can
+ * be cached here.
+ * So the result of ivyForResolve and ivyForPublish will be cached.
+ *
  * @author Hans Dockter
  */
 public class DefaultIvyService implements IvyService {

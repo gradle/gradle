@@ -85,7 +85,6 @@ class DefaultSettingsConverterTest {
 
         assertEquals(new File(testGradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME),
                 settings.defaultCache)
-        assertEquals(settings.defaultCacheArtifactPattern, ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN)
     }
 
     @Test public void testConvertForPublish() {
@@ -114,7 +113,6 @@ class DefaultSettingsConverterTest {
         assert settings.getResolver(TEST_RESOLVER_2.name).is(TEST_RESOLVER_2)
         assertEquals(new File(testGradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME),
                 settings.defaultCache)
-        assertEquals(settings.defaultCacheArtifactPattern, ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN)
     }
 
     @Test
@@ -133,11 +131,13 @@ class DefaultSettingsConverterTest {
     }
 
     @Test public void testWithGivenSettings() {
-        IvySettings ivySettings = [:] as IvySettings
-        converter.ivySettings = ivySettings
-        assert ivySettings.is(converter.convertForResolve([TEST_RESOLVER], new File(''),
+        IvySettings ivySettings1 = [:] as IvySettings
+        IvySettings ivySettings2 = [:] as IvySettings
+        converter.ivySettingsForResolve = ivySettings1
+        converter.ivySettingsForPublish = ivySettings2
+        assert ivySettings1.is(converter.convertForResolve([TEST_RESOLVER], new File(''),
                 TEST_BUILD_RESOLVER, clientModuleRegistry))
-        assert ivySettings.is(converter.convertForPublish([TEST_RESOLVER], new File(''),
+        assert ivySettings2.is(converter.convertForPublish([TEST_RESOLVER], new File(''),
                 TEST_BUILD_RESOLVER))
     }
 }

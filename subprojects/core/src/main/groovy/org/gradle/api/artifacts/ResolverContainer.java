@@ -57,11 +57,9 @@ public interface ResolverContainer extends NamedDomainObjectContainer<Dependency
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
     String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
-    String DEFAULT_CACHE_ARTIFACT_PATTERN
-            = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";
-    String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
+    String FLAT_DIR_RESOLVER_PATTERN = "[artifact](-[revision])(-[classifier]).[ext]";
     String INTERNAL_REPOSITORY_NAME = "internal-repository";
-    String DEFAULT_CACHE_DIR_NAME = "cache";
+    String DEFAULT_CACHE_DIR_NAME = "wharf-cache";
     String RESOLVER_NAME = "name";
     String RESOLVER_URL = "url";
 

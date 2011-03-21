@@ -42,7 +42,7 @@ public class ClientModuleDependencyDescriptorFactory extends AbstractDependencyD
 
     public ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
         return IvyUtil.createModuleRevisionId(dependency,
-                WrapUtil.toMap(getClientModule(dependency).CLIENT_MODULE_KEY, getClientModule(dependency).getId()));
+                WrapUtil.toMap(ClientModule.CLIENT_MODULE_KEY, getClientModule(dependency).getId()));
     }
 
     public DependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
