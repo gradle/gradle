@@ -50,6 +50,9 @@ public class FileTreeAdapter extends AbstractFileTree implements CompositeFileCo
             } else {
                 return Collections.emptyList();
             }
+        } else if (tree instanceof DirectoryFileTree) {
+            DirectoryFileTree fileTree = (DirectoryFileTree) tree;
+            return Collections.singletonList(fileTree);
         }
         throw new UnsupportedOperationException(String.format("Cannot convert %s to a file system mirror.", tree));
     }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
@@ -29,8 +29,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.Collection;
 
 @RunWith(JMock.class)
 public class CompositeFileTreeTest {
@@ -44,9 +42,9 @@ public class CompositeFileTreeTest {
         }
 
         @Override
-        protected void addSourceCollections(Collection<FileCollection> sources) {
-            sources.add(source1);
-            sources.add(source2);
+        protected void resolve(FileCollectionResolveContext context) {
+            context.add(source1);
+            context.add(source2);
         }
     };
 

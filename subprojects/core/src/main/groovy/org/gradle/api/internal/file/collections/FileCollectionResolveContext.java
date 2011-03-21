@@ -15,11 +15,29 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.tasks.TaskDependency;
+
 public interface FileCollectionResolveContext {
     /**
-     * Adds the given element to be resolved.
+     * Adds the given element to be resolved. Handles the following types:
+     *
+     * <ul>
+     *     <li>{@link Iterable}
+     *     <li>{@link groovy.lang.Closure}
+     *     <li>{@link java.util.concurrent.Callable}
+     *     <li>{@link org.gradle.api.file.FileCollection}
+     *     <li>{@link MinimalFileCollection}
+     *     <li>{@link MinimalFileTree}
+     *     <li>{@link CompositeFileCollection}
+     * </ul>
      *
      * @param element The element to add.
      */
     void add(Object element);
+
+    /**
+     * Adds a nested context, which resolves elements using the given resolvers.
+     */
+    FileCollectionResolveContext push(FileResolver fileResolver, TaskDependency defaultBuiltBy);
 }

@@ -17,13 +17,15 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link FileResolver}.
@@ -84,9 +86,8 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
     }
 
     @Override
-    protected void addSourceCollections(Collection<FileCollection> sources) {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver, buildDependency);
-        context.add(files);
-        sources.addAll(context.resolve());
+    protected void resolve(FileCollectionResolveContext context) {
+        FileCollectionResolveContext nested = context.push(resolver, buildDependency);
+        nested.add(files);
     }
 }

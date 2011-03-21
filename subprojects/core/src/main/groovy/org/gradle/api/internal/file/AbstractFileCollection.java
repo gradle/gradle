@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -185,10 +186,10 @@ public abstract class AbstractFileCollection implements FileCollection {
             }
 
             @Override
-            protected void addSourceCollections(Collection<FileCollection> sources) {
+            protected void resolve(FileCollectionResolveContext context) {
                 TaskDependency taskDependency = AbstractFileCollection.this.getBuildDependencies();
                 for (File file : AbstractFileCollection.this.getFiles()) {
-                    sources.add(new SingletonFileTree(file, taskDependency));
+                    context.add(new SingletonFileTree(file, taskDependency));
                 }
             }
 

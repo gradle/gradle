@@ -56,7 +56,7 @@ class FileTreeAdapterTest extends Specification {
         0 * _._
     }
 
-    def delegatesToMirroringTreeToBuildFileSystemMirror() {
+    def getAsFileTreesConvertsMirroringFileTreeByVisitingAllElementsAndReturingLocalMirror() {
         FileSystemMirroringFileTree tree = Mock()
         FileTreeAdapter adapter = new FileTreeAdapter(tree)
         DirectoryFileTree mirror = new DirectoryFileTree(new File('a'))
@@ -71,7 +71,7 @@ class FileTreeAdapterTest extends Specification {
         0 * _._
     }
     
-    def delegatesToEmptyMirroringTreeToBuildFileSystemMirror() {
+    def getAsFileTreesConvertsEmptyMirroringTree() {
         FileSystemMirroringFileTree tree = Mock()
         FileTreeAdapter adapter = new FileTreeAdapter(tree)
 
@@ -81,6 +81,18 @@ class FileTreeAdapterTest extends Specification {
         then:
         result == []
         1 * tree.visit(!null)
+        0 * _._
+    }
+
+    def getAsFileTreesConvertsDirectoryFileTree() {
+        DirectoryFileTree tree = Mock()
+        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+
+        when:
+        def result = adapter.asFileTrees
+
+        then:
+        result == [tree]
         0 * _._
     }
 }

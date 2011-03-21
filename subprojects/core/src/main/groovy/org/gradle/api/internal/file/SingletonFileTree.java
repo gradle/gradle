@@ -16,10 +16,10 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.*;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
-import java.util.Collection;
 
 class SingletonFileTree extends CompositeFileTree {
     private final File file;
@@ -40,11 +40,11 @@ class SingletonFileTree extends CompositeFileTree {
         return builtBy;
     }
 
-    protected void addSourceCollections(Collection<FileCollection> sources) {
+    protected void resolve(FileCollectionResolveContext context) {
         if (file.isDirectory()) {
-            sources.add(new DefaultConfigurableFileTree(file, null, null));
+            context.add(new DefaultConfigurableFileTree(file, null, null));
         } else if (file.isFile()) {
-            sources.add(new FileFileTree());
+            context.add(new FileFileTree());
         }
     }
 

@@ -79,7 +79,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [contents]
-        1 * composite.resolve(context) >> { context.add(contents) }
+        1 * composite.resolve(!null) >> { it[0].add(contents) }
     }
 
     def resolvesCompositeFileCollectionsInDepthwiseOrder() {
@@ -96,8 +96,8 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [child1, child2, child3]
-        1 * parent1.resolve(context) >> { context.add(child1); context.add(parent2) }
-        1 * parent2.resolve(context) >> { context.add(child2) }
+        1 * parent1.resolve(!null) >> { it[0].add(child1); it[0].add(parent2) }
+        1 * parent2.resolve(!null) >> { it[0].add(child2) }
     }
 
     def resolvesAClosure() {
@@ -132,7 +132,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * callable.call() >> content
         result == [content]
     }
-    
+
     def resolvesACallableWhichReturnsNull() {
         Callable<?> callable = Mock()
 
@@ -188,5 +188,22 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[1].builtBy == builtBy
         1 * resolver.resolve('a') >> file1
         1 * resolver.resolve('b') >> file2
+    }
+
+    def canPushContext() {
+        FileResolver fileResolver = Mock()
+        TaskDependency taskDependency = Mock()
+        File file = new File('a')
+
+        when:
+        context.push(fileResolver, taskDependency).add('a')
+        def result = context.resolve()
+
+        then:
+        result.size() == 1
+        result[0] instanceof SingletonFileCollection
+        result[0].file == file
+        result[0].builtBy == taskDependency
+        1 * fileResolver.resolve('a') >> file
     }
 }

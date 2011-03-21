@@ -18,7 +18,9 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -81,9 +83,9 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
-            protected void addSourceCollections(Collection<FileCollection> sources) {
+            protected void resolve(FileCollectionResolveContext context) {
                 for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
-                    sources.add(collection.getAsFileTree());
+                    context.add(collection.getAsFileTree());
                 }
             }
 
@@ -103,9 +105,9 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
     public FileCollection filter(final Spec<? super File> filterSpec) {
         return new CompositeFileCollection() {
             @Override
-            protected void addSourceCollections(Collection<FileCollection> sources) {
+            protected void resolve(FileCollectionResolveContext context) {
                 for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
-                    sources.add(collection.filter(filterSpec));
+                    context.add(collection.filter(filterSpec));
                 }
             }
 
@@ -141,10 +143,10 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
     }
 
     protected List<? extends FileCollection> getSourceCollections() {
-        List<FileCollection> collections = new ArrayList<FileCollection>();
-        addSourceCollections(collections);
-        return collections;
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
+        resolve(context);
+        return context.resolve();
     }
 
-    protected abstract void addSourceCollections(Collection<FileCollection> sources);
+    protected abstract void resolve(FileCollectionResolveContext context);
 }

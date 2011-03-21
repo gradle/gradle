@@ -18,7 +18,9 @@ package org.gradle.api.internal.file.collections;
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.SingletonFileCollection;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GUtil;
 import org.gradle.util.UncheckedException;
@@ -32,8 +34,12 @@ import java.util.concurrent.Callable;
 public class DefaultFileCollectionResolveContext implements FileCollectionResolveContext {
     private final FileResolver fileResolver;
     private final TaskDependency defaultBuiltBy;
-    private final LinkedList<Object> queue = new LinkedList<Object>();
+    private final List<Object> queue = new LinkedList<Object>();
     private List<Object> addTo = queue;
+
+    public DefaultFileCollectionResolveContext() {
+        this(new IdentityFileResolver(), new DefaultTaskDependency());
+    }
 
     public DefaultFileCollectionResolveContext(FileResolver fileResolver, TaskDependency defaultBuiltBy) {
         this.fileResolver = fileResolver;
@@ -44,21 +50,25 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
         addTo.add(element);
     }
 
+    public DefaultFileCollectionResolveContext push(FileResolver fileResolver, TaskDependency defaultBuiltBy) {
+        DefaultFileCollectionResolveContext nestedContext = new DefaultFileCollectionResolveContext(fileResolver, defaultBuiltBy);
+        add(nestedContext);
+        return nestedContext;
+    }
+
     /**
      * Resolves the contents of this context as a list of atomic {@link FileCollection} instances.
      */
     public List<FileCollection> resolve() {
         List<FileCollection> result = new ArrayList<FileCollection>();
         while (!queue.isEmpty()) {
-            Object element = queue.removeFirst();
-            if (element instanceof CompositeFileCollection) {
+            Object element = queue.remove(0);
+            if (element instanceof DefaultFileCollectionResolveContext) {
+                DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
+                result.addAll(0, nestedContext.resolve());
+            } else if (element instanceof CompositeFileCollection) {
                 CompositeFileCollection fileCollection = (CompositeFileCollection) element;
-                addTo = queue.subList(0, 0);
-                try {
-                    fileCollection.resolve(this);
-                } finally {
-                    addTo = queue;
-                }
+                resolveNested(fileCollection);
             } else if (element instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) element;
                 result.add(fileCollection);
@@ -72,7 +82,7 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
                 Closure closure = (Closure) element;
                 Object closureResult = closure.call();
                 if (closureResult != null) {
-                    queue.addFirst(closureResult);
+                    queue.add(0, closureResult);
                 }
             } else if (element instanceof Callable) {
                 Callable callable = (Callable) element;
@@ -83,7 +93,7 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
                     throw UncheckedException.asUncheckedException(e);
                 }
                 if (callableResult != null) {
-                    queue.addFirst(callableResult);
+                    queue.add(0, callableResult);
                 }
             } else if (element instanceof Iterable) {
                 Iterable<?> iterable = (Iterable) element;
@@ -96,6 +106,15 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             }
         }
         return result;
+    }
+
+    private void resolveNested(CompositeFileCollection fileCollection) {
+        addTo = queue.subList(0, 0);
+        try {
+            fileCollection.resolve(this);
+        } finally {
+            addTo = queue;
+        }
     }
 }
 
