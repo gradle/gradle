@@ -17,7 +17,10 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
@@ -32,11 +35,10 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * @author Hans Dockter
@@ -168,23 +170,15 @@ public class DefaultConfigurableFileTree extends AbstractFileTree implements Con
     }
 
     public boolean contains(File file) {
-        String prefix = getDir().getAbsolutePath() + File.separator;
-        if (!file.getAbsolutePath().startsWith(prefix)) {
-            return false;
-        }
-        if (!file.isFile()) {
-            return false;
-        }
-        RelativePath path = new RelativePath(true, file.getAbsolutePath().substring(prefix.length()).split(
-                Pattern.quote(File.separator)));
-        return patternSet.getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(file, path));
+        List<DirectoryFileTree> fileTrees = getAsFileTrees();
+        return !fileTrees.isEmpty() && fileTrees.get(0).contains(file);
     }
 
     protected void addAsResourceCollection(Object builder, String nodeName) {
         addAsFileSet(builder, nodeName);
     }
 
-    protected Collection<DirectoryFileTree> getAsFileTrees() {
+    protected List<DirectoryFileTree> getAsFileTrees() {
         File dir = getDir();
         return dir.exists() ? Collections.singletonList(new DirectoryFileTree(dir, patternSet)) : Collections.<DirectoryFileTree>emptyList();
     }

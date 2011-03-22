@@ -23,6 +23,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 /**
  * Directory walker supporting {@link Spec}s for includes and excludes.
@@ -43,7 +45,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author Steve Appling
  */
-public class DirectoryFileTree implements MinimalFileTree {
+public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection {
     private static Logger logger = LoggerFactory.getLogger(DirectoryFileTree.class);
 
     private final File root;
@@ -69,6 +71,25 @@ public class DirectoryFileTree implements MinimalFileTree {
 
     public File getRoot() {
         return root;
+    }
+
+    public DirectoryFileTree filter(PatternFilterable patterns) {
+        PatternSet patternSet = this.patternSet.intersect();
+        patternSet.copyFrom(patterns);
+        return new DirectoryFileTree(root, patternSet);
+    }
+
+    public boolean contains(File file) {
+        String prefix = root.getAbsolutePath() + File.separator;
+        if (!file.getAbsolutePath().startsWith(prefix)) {
+            return false;
+        }
+        if (!file.isFile()) {
+            return false;
+        }
+        RelativePath path = new RelativePath(true, file.getAbsolutePath().substring(prefix.length()).split(
+                Pattern.quote(File.separator)));
+        return patternSet.getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(file, path));
     }
 
     /**

@@ -15,6 +15,14 @@
  */
 package org.gradle.api.internal.file.collections;
 
-public interface CompositeFileCollection extends MinimalFileCollection {
+/**
+ * A file collection made up of other file collections. Generally, this is either a simple collection, or may be a factory for file collections.
+ */
+public interface FileCollectionContainer {
+    String getDisplayName();
+
+    /**
+     * Adds the contents of this container to the given context.
+     */
     void resolve(FileCollectionResolveContext context);
 }

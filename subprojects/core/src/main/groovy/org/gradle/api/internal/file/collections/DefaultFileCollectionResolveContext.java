@@ -66,8 +66,8 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
                 result.addAll(0, nestedContext.resolve());
-            } else if (element instanceof CompositeFileCollection) {
-                CompositeFileCollection fileCollection = (CompositeFileCollection) element;
+            } else if (element instanceof FileCollectionContainer) {
+                FileCollectionContainer fileCollection = (FileCollectionContainer) element;
                 resolveNested(fileCollection);
             } else if (element instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) element;
@@ -108,7 +108,7 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
         return result;
     }
 
-    private void resolveNested(CompositeFileCollection fileCollection) {
+    private void resolveNested(FileCollectionContainer fileCollection) {
         addTo = queue.subList(0, 0);
         try {
             fileCollection.resolve(this);

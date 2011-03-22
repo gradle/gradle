@@ -29,7 +29,7 @@ public interface FileCollectionResolveContext {
      *     <li>{@link org.gradle.api.file.FileCollection}
      *     <li>{@link MinimalFileCollection}
      *     <li>{@link MinimalFileTree}
-     *     <li>{@link CompositeFileCollection}
+     *     <li>{@link FileCollectionContainer}
      * </ul>
      *
      * @param element The element to add.

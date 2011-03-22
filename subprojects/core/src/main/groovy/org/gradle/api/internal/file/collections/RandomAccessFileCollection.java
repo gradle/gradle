@@ -18,13 +18,8 @@ package org.gradle.api.internal.file.collections;
 import java.io.File;
 
 /**
- * A minimal file collection. An implementation can optionally also implement the following interfaces:
- *
- * <ul>
- * <li>{@link org.gradle.api.Buildable}</li>
- * <li>{@link RandomAccessFileCollection}</li>
- * </ul>
+ * A file collection/tree which can provide an efficient implementation to determine if it contains a given file.
  */
-public interface MinimalFileCollection extends Iterable<File> {
-    String getDisplayName();
+public interface RandomAccessFileCollection {
+    boolean contains(File file);
 }

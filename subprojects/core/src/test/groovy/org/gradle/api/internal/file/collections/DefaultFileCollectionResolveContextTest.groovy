@@ -70,7 +70,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
     }
 
     def resolvesACompositeFileCollection() {
-        CompositeFileCollection composite = Mock()
+        FileCollectionContainer composite = Mock()
         FileCollection contents = Mock()
 
         when:
@@ -83,9 +83,9 @@ class DefaultFileCollectionResolveContextTest extends Specification {
     }
 
     def resolvesCompositeFileCollectionsInDepthwiseOrder() {
-        CompositeFileCollection parent1 = Mock()
+        FileCollectionContainer parent1 = Mock()
         FileCollection child1 = Mock()
-        CompositeFileCollection parent2 = Mock()
+        FileCollectionContainer parent2 = Mock()
         FileCollection child2 = Mock()
         FileCollection child3 = Mock()
 

@@ -15,16 +15,11 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import java.io.File;
+import org.gradle.api.tasks.util.PatternFilterable;
 
 /**
- * A minimal file collection. An implementation can optionally also implement the following interfaces:
- *
- * <ul>
- * <li>{@link org.gradle.api.Buildable}</li>
- * <li>{@link RandomAccessFileCollection}</li>
- * </ul>
+ * A file tree which can provide an efficient implementation for filtering using patterns.
  */
-public interface MinimalFileCollection extends Iterable<File> {
-    String getDisplayName();
+public interface PatternFilterableFileTree extends MinimalFileTree {
+    MinimalFileTree filter(PatternFilterable patterns);
 }
