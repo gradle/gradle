@@ -21,7 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.GeneratorTaskConfigurer
-import org.gradle.plugins.ide.IdePlugin
+import org.gradle.plugins.ide.internal.IdePlugin
 
 /**
  * @author Hans Dockter

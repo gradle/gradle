@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide
+package org.gradle.plugins.ide.internal
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -53,7 +53,7 @@ class IdePluginTest extends Specification {
     }
 }
 
-class TestIdePlugin extends org.gradle.plugins.ide.IdePlugin {
+class TestIdePlugin extends IdePlugin {
     @Override protected String getLifecycleTaskName() {
         return 'testIde'
     }

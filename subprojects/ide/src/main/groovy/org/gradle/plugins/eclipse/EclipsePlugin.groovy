@@ -25,7 +25,7 @@ import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.GeneratorTaskConfigurer
 import org.gradle.plugins.eclipse.internal.EclipseDomainModelFactory
-import org.gradle.plugins.ide.IdePlugin
+import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.eclipse.model.*
 
 /**
