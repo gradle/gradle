@@ -20,10 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.Library;
-import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
-import sun.org.mozilla.javascript.internal.ObjArray;
 
 import java.io.File;
 import java.util.LinkedList;

@@ -20,12 +20,9 @@ import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GeneratorTaskConfigurer;
 import org.gradle.plugins.ide.eclipse.EclipseConfigurer;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
@@ -35,7 +32,6 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVers
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 
-import java.io.File;
 import java.util.*;
 
 /**

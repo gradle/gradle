@@ -18,10 +18,9 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.Project
 import org.gradle.plugins.ide.eclipse.model.Classpath
-import org.gradle.plugins.ide.eclipse.model.Container
+import org.gradle.plugins.ide.eclipse.model.Library
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import spock.lang.Specification
-import org.gradle.plugins.ide.eclipse.model.Library
 
 /**
  * @author Szczepan Faber, @date: 20.03.11
