@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide
+package org.gradle.plugins.ide.generator
 
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.util.TemporaryFolder
@@ -24,7 +24,7 @@ import spock.lang.Specification
 class XmlPersistableConfigurationObjectTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
     String rootElement
-    final org.gradle.plugins.ide.XmlPersistableConfigurationObject object = new org.gradle.plugins.ide.XmlPersistableConfigurationObject(new XmlTransformer()) {
+    final XmlPersistableConfigurationObject object = new XmlPersistableConfigurationObject(new XmlTransformer()) {
         @Override protected String getDefaultResourceName() {
             return 'defaultResource.xml'
         }

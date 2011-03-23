@@ -17,7 +17,7 @@ package org.gradle.plugins.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.plugins.eclipse.EclipseProject
-import org.gradle.plugins.ide.XmlPersistableConfigurationObject
+import org.gradle.plugins.ide.generator.XmlPersistableConfigurationObject
 
 /**
  * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).
