@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.generator
+package org.gradle.plugins.ide.generator
 
 import org.gradle.util.Matchers
 import org.gradle.util.TemporaryFolder
@@ -23,7 +23,7 @@ import spock.lang.Specification
 class PropertiesPersistableConfigurationObjectTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
     String propertyValue
-    final PropertiesPersistableConfigurationObject object = new PropertiesPersistableConfigurationObject() {
+    final org.gradle.plugins.ide.generator.PropertiesPersistableConfigurationObject object = new org.gradle.plugins.ide.generator.PropertiesPersistableConfigurationObject() {
         @Override protected String getDefaultResourceName() {
             return 'defaultResource.properties'
         }
