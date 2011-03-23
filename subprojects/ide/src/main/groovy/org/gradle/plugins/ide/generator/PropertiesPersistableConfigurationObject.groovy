@@ -15,13 +15,9 @@
  */
 package org.gradle.plugins.ide.generator;
 
-import org.gradle.api.internal.tasks.generator.AbstractPersistableConfigurationObject;
+
 import org.gradle.util.UncheckedException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Properties;
 
 public abstract class PropertiesPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
     private Properties properties;
