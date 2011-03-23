@@ -19,10 +19,11 @@ import org.sonar.batch.bootstrapper.Bootstrapper
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ClasspathUtil
-import org.gradle.api.logging.LogLevel
-import org.gradle.logging.LoggingManagerInternal
 import org.gradle.api.plugins.sonar.internal.ClassesOnlyClassLoader
 import org.gradle.util.GradleVersion
+import org.slf4j.LoggerFactory
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.Level
 
 /**
  * Analyzes a project and stores the results in Sonar's database.
@@ -100,7 +101,7 @@ class Sonar extends ConventionTask {
 
     @TaskAction
     void execute() {
-        withErrorLogLevel {
+        withErrorSqlLogging {
             getBootstrapDir().mkdirs()
             def bootstrapper = new Bootstrapper("Gradle", getServerUrl(), getBootstrapDir())
 
@@ -238,17 +239,20 @@ class Sonar extends ConventionTask {
         url
     }
 
-    private void withErrorLogLevel(Closure block) {
-        def logging = services.getFactory(LoggingManagerInternal).create()
-        logging.level = LogLevel.ERROR
-        logging.captureStandardOutput(LogLevel.ERROR)
-        logging.captureStandardError(LogLevel.ERROR)
+    // limit Hibernate SQL logging to errors, no matter what the Gradle log level is
+    // this is a workaround for org.sonar.jpa.session.AbstractDatabaseConnector, line 158:
+    // props.put("hibernate.show_sql", Boolean.valueOf(LOG_SQL.isInfoEnabled()).toString());
+    // without this workaround, each SQL statement gets logged even if Gradle log level
+    // is set to QUIET
+    private void withErrorSqlLogging(Closure block) {
+        Logger sqlLogger = (Logger) LoggerFactory.getLogger("org.hibernate.SQL")
+        def oldLevel = sqlLogger.level
 
-        logging.start()
         try {
+            sqlLogger.level = Level.ERROR
             block()
         } finally {
-            logging.stop()
+            sqlLogger.level = oldLevel
         }
     }
 }
