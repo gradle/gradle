@@ -107,7 +107,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public FileCollection getPreviousOutputFiles() {
-            return lastExecution != null ? lastExecution.getOutputFilesSnapshot().getFiles() : new SimpleFileCollection();
+            return lastExecution != null && lastExecution.getOutputFilesSnapshot() != null ? lastExecution.getOutputFilesSnapshot().getFiles() : new SimpleFileCollection();
         }
 
         public List<String> isUpToDate() {
