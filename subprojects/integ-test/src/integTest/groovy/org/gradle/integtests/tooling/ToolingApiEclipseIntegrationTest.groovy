@@ -106,10 +106,10 @@ dependencies {
         eclipseProject != null
 
         eclipseProject.classpath.size() == 2
-        eclipseProject.classpath[0] instanceof ExternalDependency
-        eclipseProject.classpath[0].file.name == 'commons-io-1.4.jar'
         eclipseProject.classpath[1] instanceof ExternalDependency
-        eclipseProject.classpath[1].file.name == 'commons-lang-2.5.jar'
+        eclipseProject.classpath[1].file.name == 'commons-io-1.4.jar'
+        eclipseProject.classpath[0] instanceof ExternalDependency
+        eclipseProject.classpath[0].file.name == 'commons-lang-2.5.jar'
     }
 
     def canBuildEclipseProjectDependenciesForAProject() {

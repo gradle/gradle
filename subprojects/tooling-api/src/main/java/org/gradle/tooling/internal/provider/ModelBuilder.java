@@ -59,24 +59,13 @@ public class ModelBuilder extends BuildAdapter {
     }
 
     private DefaultEclipseProject build(Project project) {
-        Configuration configuration = project.getConfigurations().findByName(
-                "testRuntime");
-        List<ExternalDependencyVersion1> dependencies = new ArrayList<ExternalDependencyVersion1>();
+        EclipseDomainModel eclipseDomainModel = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
+
+        Configuration configuration = project.getConfigurations().findByName("testRuntime");
+        List<ExternalDependencyVersion1> dependencies = new ExternalDependenciesFactory().create(project, eclipseDomainModel.getClasspath());
         final List<EclipseProjectDependencyVersion1> projectDependencies = new ArrayList<EclipseProjectDependencyVersion1>();
 
         if (configuration != null) {
-            Set<File> classpath = configuration.files(new Spec<Dependency>() {
-                public boolean isSatisfiedBy(Dependency element) {
-                    return element instanceof ExternalModuleDependency;
-                }
-            });
-            for (final File file : classpath) {
-                dependencies.add(new ExternalDependencyVersion1() {
-                    public File getFile() {
-                        return file;
-                    }
-                });
-            }
             for (final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
                 projectDependencies.add(new EclipseProjectDependencyVersion1() {
                     public EclipseProjectVersion2 getTargetProject() {
@@ -89,8 +78,6 @@ public class ModelBuilder extends BuildAdapter {
                 });
             }
         }
-
-        EclipseDomainModel eclipseDomainModel = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
 
         List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, eclipseDomainModel.getClasspath());
 
