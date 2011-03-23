@@ -399,6 +399,10 @@ public class TestFile extends File implements TestFileContext {
         return this;
     }
 
+    public TestFile createFile(Object path) {
+        return file(path).createFile();
+    }
+
     public TestFile zipTo(TestFile zipFile) {
         Zip zip = new Zip();
         zip.setBasedir(this);

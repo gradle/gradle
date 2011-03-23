@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.tooling.internal.consumer.ConnectionFactory;
@@ -113,7 +114,7 @@ public abstract class GradleConnector {
         }
 
         protected DistributionFactory createDistributionFactory() {
-            return new DistributionFactory();
+            return new DistributionFactory(StartParameter.DEFAULT_GRADLE_USER_HOME);
         }
     }
 }

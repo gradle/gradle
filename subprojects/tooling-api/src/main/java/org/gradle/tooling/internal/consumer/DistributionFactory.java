@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.tasks.wrapper.Wrapper;
 import org.gradle.util.DistributionLocator;
@@ -37,35 +36,22 @@ import java.util.Set;
 public class DistributionFactory {
     public static final String USE_CLASSPATH_AS_DISTRIBUTION = "org.gradle.useClasspathAsDistribution";
     private static final Logger LOGGER = LoggerFactory.getLogger(DistributionFactory.class);
+    private final File userHomeDir;
+
+    public DistributionFactory(File userHomeDir) {
+        this.userHomeDir = userHomeDir;
+    }
 
     public Distribution getCurrentDistribution() {
         if ("true".equalsIgnoreCase(System.getProperty(USE_CLASSPATH_AS_DISTRIBUTION))) {
-            return new Distribution() {
-                public Set<File> getToolingImplementationClasspath() {
-                    LOGGER.info("Using provider from Classpath");
-                    DefaultClassPathProvider provider = new DefaultClassPathProvider();
-                    return provider.findClassPath("GRADLE_RUNTIME");
-                }
-            };
+            return new ClasspathDistribution();
         }
 
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
 
     public Distribution getDistribution(final File gradleHomeDir) {
-        return new Distribution() {
-            public Set<File> getToolingImplementationClasspath() {
-                LOGGER.info("Using provider from distribution in {}.", gradleHomeDir);
-                Set<File> files = new LinkedHashSet<File>();
-                File libDir = new File(gradleHomeDir, "lib");
-                for (File file : libDir.listFiles()) {
-                    if (file.getName().endsWith(".jar")) {
-                        files.add(file);
-                    }
-                }
-                return files;
-            }
-        };
+        return new InstalledDistribution(gradleHomeDir, String.format("specified Gradle distribution directory '%s'", gradleHomeDir));
     }
 
     public Distribution getDistribution(String gradleVersion) {
@@ -86,12 +72,52 @@ public class DistributionFactory {
     }
 
     public Distribution getDistribution(URI gradleDistribution) {
+        File installDir;
         try {
-            Install install = new Install(false, false, new Download(), new PathAssembler(StartParameter.DEFAULT_GRADLE_USER_HOME));
-            File installDir = install.createDist(gradleDistribution, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME);
-            return getDistribution(installDir);
+            Install install = new Install(false, false, new Download(), new PathAssembler(userHomeDir));
+            installDir = install.createDist(gradleDistribution, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME);
         } catch (Exception e) {
             throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", gradleDistribution), e);
+        }
+        return new InstalledDistribution(installDir, String.format("specified Gradle distribution '%s'", gradleDistribution));
+    }
+
+    private static class InstalledDistribution implements Distribution {
+        private final File gradleHomeDir;
+        private final String displayName;
+
+        public InstalledDistribution(File gradleHomeDir, String displayName) {
+            this.gradleHomeDir = gradleHomeDir;
+            this.displayName = displayName;
+        }
+
+        public Set<File> getToolingImplementationClasspath() {
+            LOGGER.info("Using provider from distribution in {}.", gradleHomeDir);
+            if (!gradleHomeDir.exists()) {
+                throw new IllegalArgumentException(String.format("The %s does not exist.", displayName));
+            }
+            if (!gradleHomeDir.isDirectory()) {
+                throw new IllegalArgumentException(String.format("The %s is not a directory.", displayName));
+            }
+            File libDir = new File(gradleHomeDir, "lib");
+            if (!libDir.isDirectory()) {
+                throw new IllegalArgumentException(String.format("The %s does not appear to contain a Gradle distribution.", displayName));
+            }
+            Set<File> files = new LinkedHashSet<File>();
+            for (File file : libDir.listFiles()) {
+                if (file.getName().endsWith(".jar")) {
+                    files.add(file);
+                }
+            }
+            return files;
+        }
+    }
+
+    private static class ClasspathDistribution implements Distribution {
+        public Set<File> getToolingImplementationClasspath() {
+            LOGGER.info("Using provider from Classpath");
+            DefaultClassPathProvider provider = new DefaultClassPathProvider();
+            return provider.findClassPath("GRADLE_RUNTIME");
         }
     }
 }
