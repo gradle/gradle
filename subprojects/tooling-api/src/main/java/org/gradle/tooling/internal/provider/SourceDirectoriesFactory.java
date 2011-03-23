@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
-import org.gradle.plugins.eclipse.model.Classpath;
-import org.gradle.plugins.eclipse.model.ClasspathEntry;
-import org.gradle.plugins.eclipse.model.SourceFolder;
+import org.gradle.plugins.ide.eclipse.model.Classpath;
+import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
+import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 
 import java.io.File;
