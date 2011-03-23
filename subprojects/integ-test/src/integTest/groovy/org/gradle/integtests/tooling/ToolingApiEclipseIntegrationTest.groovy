@@ -36,6 +36,19 @@ apply plugin: 'java'
         eclipseProject.projectDirectory == projectDir
     }
 
+    def canBuildEclipseMetaDataForAnEmptyProject() {
+        when:
+        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        eclipseProject != null
+
+        eclipseProject.children.empty
+        eclipseProject.sourceDirectories.empty
+        eclipseProject.classpath.empty
+        eclipseProject.projectDependencies.empty
+    }
+
     def canBuildEclipseSourceDirectoriesForAProject() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = "apply plugin: 'java'"
@@ -44,7 +57,7 @@ apply plugin: 'java'
             src {
                 main {
                     java {}
-                    resources{}
+                    resources {}
                 }
                 test {
                     java {}
