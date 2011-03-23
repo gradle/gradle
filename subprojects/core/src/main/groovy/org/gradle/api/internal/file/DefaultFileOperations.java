@@ -21,6 +21,8 @@ import org.gradle.api.PathValidation;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -65,7 +67,7 @@ public class DefaultFileOperations implements FileOperations {
     }
     
     public ConfigurableFileCollection files(Object... paths) {
-        return new PathResolvingFileCollection(fileResolver, taskResolver, paths);
+        return new DefaultConfigurableFileCollection(fileResolver, taskResolver, paths);
     }
 
     public ConfigurableFileCollection files(Object paths, Closure configureClosure) {

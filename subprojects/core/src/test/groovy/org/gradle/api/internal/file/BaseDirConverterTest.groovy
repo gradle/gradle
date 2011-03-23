@@ -29,6 +29,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import java.util.concurrent.Callable
 import org.gradle.util.OperatingSystem
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 
 /**
  * @author Hans Dockter
@@ -240,7 +241,7 @@ class BaseDirConverterTest {
 
     @Test public void testFiles() {
         FileCollection collection = baseDirConverter.resolveFiles('a', 'b')
-        assertThat(collection, instanceOf(PathResolvingFileCollection))
+        assertThat(collection, instanceOf(DefaultConfigurableFileCollection))
         assertThat(collection.sources, equalTo(['a', 'b']))
     }
 

@@ -111,9 +111,7 @@ public abstract class AbstractFileCollection implements FileCollection {
     }
 
     protected void addAsFileSet(Object builder, String nodeName) {
-        for (DirectoryFileTree fileTree : getAsFileTrees()) {
-            new FileSetHelper().addToAntBuilder(builder, fileTree.getRoot(), fileTree.getPatternSet(), nodeName);
-        }
+        new AntFileSetBuilder(getAsFileTrees()).addToAntBuilder(builder, nodeName);
     }
 
     protected void addAsResourceCollection(Object builder, String nodeName) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file
+package org.gradle.api.internal.file.collections
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
@@ -38,6 +38,8 @@ import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.*
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.UnionFileTree
 
 /**
  * @author Hans Dockter

@@ -20,9 +20,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.api.internal.file.UnionFileTree;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.specs.Spec;
@@ -42,7 +42,7 @@ public class DefaultSourceSet implements SourceSet {
     private final SourceDirectorySet javaSource;
     private final UnionFileTree allJavaSource;
     private final SourceDirectorySet resources;
-    private final PathResolvingFileCollection classes;
+    private final DefaultConfigurableFileCollection classes;
     private final String displayName;
     private final UnionFileTree allSource;
 
@@ -69,7 +69,7 @@ public class DefaultSourceSet implements SourceSet {
         allSource = new UnionFileTree(allSourceDisplayName, resources, javaSource);
 
         String classesDisplayName = String.format("%s classes", displayName);
-        classes = new PathResolvingFileCollection(classesDisplayName, fileResolver, taskResolver, new Callable() {
+        classes = new DefaultConfigurableFileCollection(classesDisplayName, fileResolver, taskResolver, new Callable() {
             public Object call() throws Exception {
                 return getClassesDir();
             }

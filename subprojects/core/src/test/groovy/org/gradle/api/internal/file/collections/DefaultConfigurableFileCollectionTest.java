@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
@@ -43,13 +43,13 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
-public class PathResolvingFileCollectionTest {
+public class DefaultConfigurableFileCollectionTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
     private final FileResolver resolverMock = context.mock(FileResolver.class);
     private final TaskResolver taskResolverStub = context.mock(TaskResolver.class);
-    private final PathResolvingFileCollection collection = new PathResolvingFileCollection(resolverMock,
+    private final DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock,
             taskResolverStub);
 
     @Test
@@ -57,7 +57,7 @@ public class PathResolvingFileCollectionTest {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        PathResolvingFileCollection collection = new PathResolvingFileCollection(resolverMock, taskResolverStub, file1,
+        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, file1,
                 file2);
 
         context.checking(new Expectations() {{
@@ -92,7 +92,7 @@ public class PathResolvingFileCollectionTest {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        PathResolvingFileCollection collection = new PathResolvingFileCollection(resolverMock, taskResolverStub, "src1",
+        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, "src1",
                 "src2");
 
         context.checking(new Expectations() {{

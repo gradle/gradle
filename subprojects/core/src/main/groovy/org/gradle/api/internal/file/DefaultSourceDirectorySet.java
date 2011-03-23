@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.specs.Spec;
@@ -30,14 +31,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
-    private final PathResolvingFileCollection srcDirs;
+    private final DefaultConfigurableFileCollection srcDirs;
     private final String displayName;
     private final PatternSet patterns = new PatternSet();
     private final PatternSet filter = new PatternSet();
 
     public DefaultSourceDirectorySet(String displayName, FileResolver fileResolver) {
         this.displayName = displayName;
-        srcDirs = new PathResolvingFileCollection(fileResolver, null);
+        srcDirs = new DefaultConfigurableFileCollection(fileResolver, null);
     }
 
     public Set<File> getSrcDirs() {

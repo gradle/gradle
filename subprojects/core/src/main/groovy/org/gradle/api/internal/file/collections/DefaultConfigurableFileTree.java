@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.CompositeFileTree;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
@@ -45,7 +46,6 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private Object dir;
     private final FileResolver resolver;
     private final DefaultTaskDependency buildDependency;
-    private TaskResolver taskResolver;
 
     public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver) {
         this(Collections.singletonMap("dir", dir), resolver, taskResolver);
@@ -53,7 +53,6 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
 
     public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver) {
         this.resolver = resolver != null ? resolver : new IdentityFileResolver();
-        this.taskResolver = taskResolver;
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
     }
@@ -153,17 +152,11 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         return this;
     }
 
-    protected void addAsResourceCollection(Object builder, String nodeName) {
-        addAsFileSet(builder, nodeName);
-    }
-
     @Override
     protected void resolve(FileCollectionResolveContext context) {
         File dir = getDir();
         context.add(buildDependency);
-        if (dir.exists()) {
-            context.add(new DirectoryFileTree(dir, patternSet));
-        }
+        context.add(new DirectoryFileTree(dir, patternSet));
     }
 
     public ConfigurableFileTree builtBy(Object... tasks) {

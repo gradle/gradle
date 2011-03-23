@@ -15,12 +15,24 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.tasks.AntBuilderAware
 
-class FileSetHelper {
-    def addToAntBuilder(def node, File dir, PatternSet patternSet, String nodeName) {
-        node."${nodeName ?: 'fileset'}"(dir: dir) {
-            patternSet.addToAntBuilder(node, null)
+class AntFileSetBuilder implements AntBuilderAware {
+    private final Iterable<DirectoryFileTree> trees
+
+    AntFileSetBuilder(Iterable<DirectoryFileTree> trees) {
+        this.trees = trees
+    }
+
+    def addToAntBuilder(def node, String nodeName) {
+        trees.each { tree ->
+            if (!tree.root.exists()) {
+                return
+            }
+            node."${nodeName ?: 'fileset'}"(dir: tree.root) {
+                tree.patternSet.addToAntBuilder(node, null)
+            }
         }
     }
 }

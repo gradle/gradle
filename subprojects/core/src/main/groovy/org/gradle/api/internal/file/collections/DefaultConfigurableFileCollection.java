@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 
@@ -27,26 +28,26 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link FileResolver}.
+ * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class PathResolvingFileCollection extends CompositeFileCollection implements ConfigurableFileCollection {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection {
     private final List<Object> files;
     private final String displayName;
     private final FileResolver resolver;
     private final DefaultTaskDependency buildDependency;
 
-    public PathResolvingFileCollection(FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+    public DefaultConfigurableFileCollection(FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
         this("file collection", fileResolver, taskResolver, files);
     }
 
-    public PathResolvingFileCollection(String displayName, FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+    public DefaultConfigurableFileCollection(String displayName, FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.files = new ArrayList<Object>(Arrays.asList(files));
         buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
-    public PathResolvingFileCollection clear() {
+    public DefaultConfigurableFileCollection clear() {
         files.clear();
         return this;
     }

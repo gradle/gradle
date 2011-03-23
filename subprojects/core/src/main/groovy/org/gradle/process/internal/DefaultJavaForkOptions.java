@@ -18,7 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.PathResolvingFileCollection;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Jvm;
 
@@ -45,7 +45,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     public DefaultJavaForkOptions(FileResolver resolver, Jvm jvm) {
         super(resolver);
-        this.bootstrapClasspath = new PathResolvingFileCollection(resolver, null);
+        this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
         setExecutable(jvm.getJavaExecutable());
     }
 
