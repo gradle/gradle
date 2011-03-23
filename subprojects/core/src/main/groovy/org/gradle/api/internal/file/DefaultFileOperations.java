@@ -76,11 +76,11 @@ public class DefaultFileOperations implements FileOperations {
         return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver);
     }
 
-    public DefaultConfigurableFileTree fileTree(Map<String, ?> args) {
+    public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return new DefaultConfigurableFileTree(args, fileResolver, taskResolver);
     }
 
-    public DefaultConfigurableFileTree fileTree(Closure closure) {
+    public ConfigurableFileTree fileTree(Closure closure) {
         return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver));
     }
 

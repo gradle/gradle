@@ -76,7 +76,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
 
     @Test(expected = InvalidUserDataException) public void testFileSetConstructionWithNoBaseDirSpecified() {
         DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree([:], fileResolverStub, taskResolverStub)
-        fileSet.matching {}
+        fileSet.contains(new File('unknown'))
     }
 
     @Test public void testFileSetConstructionWithBaseDirAsString() {
@@ -185,7 +185,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             file.text = 'some text'
         }
 
-        DefaultConfigurableFileTree filtered = fileSet.matching {
+        FileTree filtered = fileSet.matching {
             include('*/*included*')
             exclude('**/not*')
         }
@@ -209,7 +209,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         }
 
         PatternSet patternSet = new PatternSet(includes: ['*/*included*'], excludes: ['**/not*'])
-        DefaultConfigurableFileTree filtered = fileSet.matching(patternSet)
+        FileTree filtered = fileSet.matching(patternSet)
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
@@ -232,7 +232,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
 
         fileSet.exclude '**/excluded*'
 
-        DefaultConfigurableFileTree filtered = fileSet.matching {
+        FileTree filtered = fileSet.matching {
             include('*/*included*')
             exclude('**/not*')
         }

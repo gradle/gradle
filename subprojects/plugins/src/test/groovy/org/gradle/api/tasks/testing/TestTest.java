@@ -17,11 +17,13 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
@@ -42,9 +44,12 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.WrapUtil.toLinkedSet;
+import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -136,11 +141,7 @@ public class TestTest extends AbstractConventionTaskTest {
         test.exclude("exclude");
 
         FileTree classFiles = test.getCandidateClassFiles();
-        assertThat(classFiles, instanceOf(ConfigurableFileTree.class));
-        ConfigurableFileTree files = (ConfigurableFileTree) classFiles;
-        assertThat(files.getDir(), equalTo(classesDir));
-        assertThat(files.getIncludes(), equalTo(toSet("include")));
-        assertThat(files.getExcludes(), equalTo(toSet("exclude")));
+        assertIsDirectoryTree(classFiles, toSet("include"), toSet("exclude"));
     }
 
     @org.junit.Test
@@ -148,10 +149,20 @@ public class TestTest extends AbstractConventionTaskTest {
         configureTask();
         test.setScanForTestClasses(false);
 
-        ConfigurableFileTree files = (ConfigurableFileTree) test.getCandidateClassFiles();
-        assertThat(files.getDir(), equalTo(classesDir));
-        assertThat(files.getIncludes(), equalTo(toSet("**/*Tests.class", "**/*Test.class")));
-        assertThat(files.getExcludes(), equalTo(toSet("**/Abstract*.class")));
+        FileTree classFiles = test.getCandidateClassFiles();
+        assertIsDirectoryTree(classFiles, toSet("**/*Tests.class", "**/*Test.class"), toSet("**/Abstract*.class"));
+    }
+
+    private void assertIsDirectoryTree(FileTree classFiles, Set<String> includes, Set<String> excludes) {
+        assertThat(classFiles, instanceOf(CompositeFileTree.class));
+        CompositeFileTree files = (CompositeFileTree) classFiles;
+        List<FileTree> contents = files.getSourceCollections();
+        FileTreeAdapter adapter = (FileTreeAdapter) contents.get(1);
+        assertThat(adapter.getTree(), instanceOf(DirectoryFileTree.class));
+        DirectoryFileTree directoryFileTree = (DirectoryFileTree) adapter.getTree();
+        assertThat(directoryFileTree.getRoot(), equalTo(classesDir));
+        assertThat(directoryFileTree.getPatternSet().getIncludes(), equalTo(includes));
+        assertThat(directoryFileTree.getPatternSet().getExcludes(), equalTo(excludes));
     }
 
     @org.junit.Test

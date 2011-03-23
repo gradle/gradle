@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -45,7 +47,7 @@ import java.util.regex.Pattern;
  *
  * @author Steve Appling
  */
-public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection {
+public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree {
     private static Logger logger = LoggerFactory.getLogger(DirectoryFileTree.class);
 
     private final File root;
@@ -71,6 +73,10 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     public File getRoot() {
         return root;
+    }
+
+    public Collection<DirectoryFileTree> getLocalContents() {
+        return Collections.singletonList(this);
     }
 
     public DirectoryFileTree filter(PatternFilterable patterns) {

@@ -18,10 +18,9 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
@@ -30,20 +29,18 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultConfigurableFileTree extends AbstractFileTree implements ConfigurableFileTree {
+public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
     private PatternSet patternSet = new PatternSet();
     private Object dir;
     private final FileResolver resolver;
@@ -88,19 +85,6 @@ public class DefaultConfigurableFileTree extends AbstractFileTree implements Con
 
     public String getDisplayName() {
         return String.format("directory '%s'", dir);
-    }
-
-    public FileTree matching(PatternFilterable patterns) {
-        PatternSet patternSet = this.patternSet.intersect();
-        patternSet.copyFrom(patterns);
-        DefaultConfigurableFileTree filtered = new DefaultConfigurableFileTree(getDir(), resolver, taskResolver);
-        filtered.setPatternSet(patternSet);
-        return filtered;
-    }
-
-    public DefaultConfigurableFileTree visit(FileVisitor visitor) {
-        new DirectoryFileTree(getDir(), patternSet).visit(visitor);
-        return this;
     }
 
     public WorkResult copy(Closure closure) {
@@ -169,18 +153,17 @@ public class DefaultConfigurableFileTree extends AbstractFileTree implements Con
         return this;
     }
 
-    public boolean contains(File file) {
-        List<DirectoryFileTree> fileTrees = getAsFileTrees();
-        return !fileTrees.isEmpty() && fileTrees.get(0).contains(file);
-    }
-
     protected void addAsResourceCollection(Object builder, String nodeName) {
         addAsFileSet(builder, nodeName);
     }
 
-    protected List<DirectoryFileTree> getAsFileTrees() {
+    @Override
+    protected void resolve(FileCollectionResolveContext context) {
         File dir = getDir();
-        return dir.exists() ? Collections.singletonList(new DirectoryFileTree(dir, patternSet)) : Collections.<DirectoryFileTree>emptyList();
+        context.add(buildDependency);
+        if (dir.exists()) {
+            context.add(new DirectoryFileTree(dir, patternSet));
+        }
     }
 
     public ConfigurableFileTree builtBy(Object... tasks) {

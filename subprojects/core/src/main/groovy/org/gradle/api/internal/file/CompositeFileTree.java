@@ -25,7 +25,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import java.util.List;
 
 public abstract class CompositeFileTree extends CompositeFileCollection implements FileTree {
-    protected List<FileTree> getSourceCollections() {
+    public List<FileTree> getSourceCollections() {
         return (List) super.getSourceCollections();
     }
 

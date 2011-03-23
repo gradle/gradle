@@ -32,7 +32,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         context.resolve() == []
     }
 
-    def resolvesAMinimalFileCollection() {
+    def resolveWrapsAMinimalFileCollection() {
         MinimalFileCollection fileCollection = Mock()
 
         when:
@@ -45,7 +45,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0].fileCollection == fileCollection
     }
 
-    def resolvesAMinimalFileTree() {
+    def resolveWrapsAMinimalFileTree() {
         MinimalFileTree fileTree = Mock()
 
         when:
@@ -100,7 +100,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * parent2.resolve(!null) >> { it[0].add(child2) }
     }
 
-    def resolvesAClosure() {
+    def recursivelyResolvesReturnValueOfAClosure() {
         FileCollection content = Mock()
 
         when:
@@ -120,7 +120,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == []
     }
 
-    def resolvesACallable() {
+    def recursivelyResolvesReturnValueOfACallable() {
         FileCollection content = Mock()
         Callable<?> callable = Mock()
 
@@ -145,7 +145,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == []
     }
 
-    def resolvesAnIterable() {
+    def recursivelyResolvesElementsOfAnIterable() {
         FileCollection content = Mock()
         Iterable<Object> iterable = Mock()
 
@@ -158,7 +158,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [content]
     }
 
-    def resolvesAnArray() {
+    def recursivelyResolvesElementsAnArray() {
         FileCollection content = Mock()
 
         when:
@@ -167,6 +167,20 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [content]
+    }
+
+    def resolvesATaskDependency() {
+        TaskDependency dependency = Mock()
+
+        when:
+        context.add(dependency)
+        def result = context.resolve()
+
+        then:
+        result.size() == 1
+        result[0] instanceof FileTreeAdapter
+        result[0].tree instanceof EmptyFileTree
+        result[0].tree.buildDependencies == dependency
     }
 
     def usesFileResolverToResolveOtherTypes() {
@@ -192,18 +206,17 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
     def canPushContext() {
         FileResolver fileResolver = Mock()
-        TaskDependency taskDependency = Mock()
         File file = new File('a')
 
         when:
-        context.push(fileResolver, taskDependency).add('a')
+        context.push(fileResolver).add('a')
         def result = context.resolve()
 
         then:
         result.size() == 1
         result[0] instanceof SingletonFileCollection
         result[0].file == file
-        result[0].builtBy == taskDependency
+        result[0].builtBy == builtBy
         1 * fileResolver.resolve('a') >> file
     }
 }

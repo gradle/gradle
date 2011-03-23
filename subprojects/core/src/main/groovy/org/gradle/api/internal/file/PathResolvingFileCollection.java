@@ -19,7 +19,6 @@ package org.gradle.api.internal.file;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 
 import java.util.ArrayList;
@@ -80,14 +79,9 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
     }
 
     @Override
-    protected void addDependencies(TaskDependencyResolveContext context) {
-        super.addDependencies(context);
-        context.add(buildDependency);
-    }
-
-    @Override
     protected void resolve(FileCollectionResolveContext context) {
-        FileCollectionResolveContext nested = context.push(resolver, buildDependency);
+        FileCollectionResolveContext nested = context.push(resolver);
+        nested.add(buildDependency);
         nested.add(files);
     }
 }

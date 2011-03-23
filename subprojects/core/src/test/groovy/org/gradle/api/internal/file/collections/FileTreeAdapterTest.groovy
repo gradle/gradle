@@ -87,15 +87,17 @@ class FileTreeAdapterTest extends Specification {
         0 * _._
     }
 
-    def getAsFileTreesConvertsDirectoryFileTree() {
-        DirectoryFileTree tree = Mock()
+    def getAsFileTreesConvertsLocalFileTree() {
+        LocalFileTree tree = Mock()
+        DirectoryFileTree contents = Mock()
         FileTreeAdapter adapter = new FileTreeAdapter(tree)
 
         when:
         def result = adapter.asFileTrees
 
         then:
-        result == [tree]
+        result == [contents]
+        1 * tree.localContents >> [contents]
         0 * _._
     }
 

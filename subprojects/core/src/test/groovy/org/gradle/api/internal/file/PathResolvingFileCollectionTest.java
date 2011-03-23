@@ -18,10 +18,11 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -35,17 +36,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class PathResolvingFileCollectionTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
-    private final File testDir = tmpDir.getDir();
     private final FileResolver resolverMock = context.mock(FileResolver.class);
     private final TaskResolver taskResolverStub = context.mock(TaskResolver.class);
     private final PathResolvingFileCollection collection = new PathResolvingFileCollection(resolverMock,
@@ -262,25 +263,22 @@ public class PathResolvingFileCollectionTest {
     }
 
     @Test
-    public void treatsEachFileAsASingletonFileCollection() {
-        final File file = new File(testDir, "f");
-        GFileUtils.touch(file);
-
-        context.checking(new Expectations() {{
-            one(resolverMock).resolve("file");
-            will(returnValue(file));
-        }});
-
-        collection.from("file");
-        assertThat(collection.getSourceCollections().get(0), instanceOf(SingletonFileCollection.class));
-    }
-
-    @Test
-    public void treatsEachFileCollectionAsFileCollection() {
+    public void resolveAddsEachSourceObjectAndBuildDependencies() {
+        final FileCollectionResolveContext resolveContext = context.mock(FileCollectionResolveContext.class);
+        final FileCollectionResolveContext nestedContext = context.mock(FileCollectionResolveContext.class);
         final FileCollection fileCollectionMock = context.mock(FileCollection.class);
 
+        collection.from("file");
         collection.from(fileCollectionMock);
-        assertThat((Iterable<FileCollection>) collection.getSourceCollections(), hasItem(fileCollectionMock));
+
+        context.checking(new Expectations() {{
+            one(resolveContext).push(resolverMock);
+            will(returnValue(nestedContext));
+            one(nestedContext).add(with(notNullValue(TaskDependency.class)));
+            one(nestedContext).add(collection.getSources());
+        }});
+
+        collection.resolve(resolveContext);
     }
 
     @Test

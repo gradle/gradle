@@ -50,7 +50,7 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
         addTo.add(element);
     }
 
-    public DefaultFileCollectionResolveContext push(FileResolver fileResolver, TaskDependency defaultBuiltBy) {
+    public DefaultFileCollectionResolveContext push(FileResolver fileResolver) {
         DefaultFileCollectionResolveContext nestedContext = new DefaultFileCollectionResolveContext(fileResolver, defaultBuiltBy);
         add(nestedContext);
         return nestedContext;
@@ -101,6 +101,8 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             } else if (element instanceof Object[]) {
                 Object[] array = (Object[]) element;
                 GUtil.addToCollection(queue.subList(0, 0), Arrays.asList(array));
+            } else if (element instanceof TaskDependency) {
+                result.add(new FileTreeAdapter(new EmptyFileTree((TaskDependency)element)));
             } else {
                 result.add(new SingletonFileCollection(fileResolver.resolve(element), defaultBuiltBy));
             }

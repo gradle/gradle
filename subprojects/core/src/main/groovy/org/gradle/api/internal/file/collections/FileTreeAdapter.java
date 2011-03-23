@@ -36,6 +36,10 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         this.tree = tree;
     }
 
+    public MinimalFileTree getTree() {
+        return tree;
+    }
+
     @Override
     public String getDisplayName() {
         return tree.getDisplayName();
@@ -54,11 +58,11 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             } else {
                 return Collections.emptyList();
             }
-        } else if (tree instanceof DirectoryFileTree) {
-            DirectoryFileTree fileTree = (DirectoryFileTree) tree;
-            return Collections.singletonList(fileTree);
+        } else if (tree instanceof LocalFileTree) {
+            LocalFileTree fileTree = (LocalFileTree) tree;
+            return fileTree.getLocalContents();
         }
-        throw new UnsupportedOperationException(String.format("Cannot convert %s to a file system mirror.", tree));
+        throw new UnsupportedOperationException(String.format("Cannot convert %s to local file system directories.", tree));
     }
 
     @Override

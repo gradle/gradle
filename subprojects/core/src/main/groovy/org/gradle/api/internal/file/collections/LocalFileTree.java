@@ -15,24 +15,11 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileVisitor;
+import java.util.Collection;
 
 /**
- * A minimal file tree implementation. An implementation can optionally also implement the following interfaces:
- *
- * <ul>
- *  <li>{@link FileSystemMirroringFileTree}</li>
- *  <li>{@link LocalFileTree}</li>
- *  <li>{@link PatternFilterableFileTree}</li>
- *  <li>{@link RandomAccessFileCollection}</li>
- *  <li>{@link org.gradle.api.Buildable}</li>
- * </ul>
+ * A file tree whose contents are contained in zero or more local directories.
  */
-public interface MinimalFileTree {
-    String getDisplayName();
-
-    /**
-     * Visits the elements of this tree, in breadth-wise order.
-     */
-    void visit(FileVisitor visitor);
+public interface LocalFileTree extends MinimalFileTree {
+    Collection<DirectoryFileTree> getLocalContents();
 }

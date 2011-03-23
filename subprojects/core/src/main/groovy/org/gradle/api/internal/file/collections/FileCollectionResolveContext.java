@@ -16,28 +16,31 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.TaskDependency;
 
 public interface FileCollectionResolveContext {
     /**
      * Adds the given element to be resolved. Handles the following types:
      *
      * <ul>
-     *     <li>{@link Iterable}
-     *     <li>{@link groovy.lang.Closure}
-     *     <li>{@link java.util.concurrent.Callable}
-     *     <li>{@link org.gradle.api.file.FileCollection}
-     *     <li>{@link MinimalFileCollection}
-     *     <li>{@link MinimalFileTree}
-     *     <li>{@link FileCollectionContainer}
+     *     <li>{@link Iterable} - elements are recursively resolved.
+     *     <li>{@link groovy.lang.Closure} - return value is recursively resolved, if not null.
+     *     <li>{@link java.util.concurrent.Callable} - return value is recursively resolved, if not null.
+     *     <li>{@link org.gradle.api.file.FileCollection} - resolved as is.
+     *     <li>{@link MinimalFileCollection} - wrapped as a {@link org.gradle.api.file.FileCollection}.
+     *     <li>{@link MinimalFileTree} - wrapped as a {@link org.gradle.api.file.FileTree}.
+     *     <li>{@link FileCollectionContainer} - recursively resolved.
+     *     <li>{@link org.gradle.api.tasks.TaskDependency} - resolved to an empty {@link org.gradle.api.file.FileCollection} which is builtBy the given dependency.
+     *     <li>Everything else - resolved to a File and wrapped in a singleton {@link org.gradle.api.file.FileCollection}.
      * </ul>
+     *
+     * Generally, the result of resolution is a composite {@link org.gradle.api.file.FileCollection} which contains the union of all files and dependencies add to this context.
      *
      * @param element The element to add.
      */
     void add(Object element);
 
     /**
-     * Adds a nested context, which resolves elements using the given resolvers.
+     * Adds a nested context which resolves elements using the given resolvers.
      */
-    FileCollectionResolveContext push(FileResolver fileResolver, TaskDependency defaultBuiltBy);
+    FileCollectionResolveContext push(FileResolver fileResolver);
 }

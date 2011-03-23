@@ -142,7 +142,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
         }
     }
 
-    protected List<? extends FileCollection> getSourceCollections() {
+    public List<? extends FileCollection> getSourceCollections() {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
         resolve(context);
         return context.resolve();

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.*;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -42,7 +43,7 @@ class SingletonFileTree extends CompositeFileTree {
 
     protected void resolve(FileCollectionResolveContext context) {
         if (file.isDirectory()) {
-            context.add(new DefaultConfigurableFileTree(file, null, null));
+            context.add(new DirectoryFileTree(file));
         } else if (file.isFile()) {
             context.add(new FileFileTree());
         }
