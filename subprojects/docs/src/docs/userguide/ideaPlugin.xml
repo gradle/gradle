@@ -146,7 +146,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.plugins.idea.IdeaWorkspace"/></td>
-                <td>Generates the <literal>.iws</literal> file</td>
+                <td>Generates the <literal>.iws</literal> file. This task is only added to the root project.</td>
             </tr>
         </table>
 
