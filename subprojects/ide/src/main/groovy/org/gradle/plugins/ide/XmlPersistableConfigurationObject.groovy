@@ -15,13 +15,9 @@
  */
 package org.gradle.plugins.ide;
 
-import groovy.util.Node;
-import groovy.util.XmlParser;
-import org.gradle.api.internal.XmlTransformer;
-import org.gradle.api.internal.tasks.generator.AbstractPersistableConfigurationObject;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.tasks.generator.AbstractPersistableConfigurationObject
 
 /**
  * A {@link org.gradle.api.internal.tasks.generator.PersistableConfigurationObject} which is stored in an XML file.

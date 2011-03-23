@@ -15,11 +15,12 @@
  */
 package org.gradle.plugins.ide;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.tasks.Delete;
+
+import org.apache.commons.lang.StringUtils
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.Delete
 
 public abstract class IdePlugin implements Plugin<Project> {
     private Task lifecycleTask;
