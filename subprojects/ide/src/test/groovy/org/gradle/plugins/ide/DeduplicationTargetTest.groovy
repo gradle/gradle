@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins.ide
+package org.gradle.plugins.ide
 
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -32,9 +32,9 @@ class DeduplicationTargetTest extends Specification {
         def grandChildProject = HelperUtil.createChildProject(childProject, "grandChild", new File("."))
 
         then:
-        new DeduplicationTarget(project: project, moduleName: 'test' ).candidateNames == ['test']
-        new DeduplicationTarget(project: childProject, moduleName: 'child' ).candidateNames == ['child', 'test-child']
-        new DeduplicationTarget(project: grandChildProject, moduleName: 'grandChild' ).candidateNames == ['grandChild', 'child-grandChild', 'test-child-grandChild']
+        new org.gradle.plugins.ide.DeduplicationTarget(project: project, moduleName: 'test' ).candidateNames == ['test']
+        new org.gradle.plugins.ide.DeduplicationTarget(project: childProject, moduleName: 'child' ).candidateNames == ['child', 'test-child']
+        new org.gradle.plugins.ide.DeduplicationTarget(project: grandChildProject, moduleName: 'grandChild' ).candidateNames == ['grandChild', 'child-grandChild', 'test-child-grandChild']
     }
 
     def "uses passed module name instead of project name"() {
@@ -44,7 +44,7 @@ class DeduplicationTargetTest extends Specification {
         def childProject = HelperUtil.createChildProject(project, "child", new File("."))
 
         then:
-        new DeduplicationTarget(project: project, moduleName: 'ROOT' ).candidateNames == ['ROOT']
-        new DeduplicationTarget(project: childProject, moduleName: 'CHILD' ).candidateNames == ['CHILD', 'test-CHILD']
+        new org.gradle.plugins.ide.DeduplicationTarget(project: project, moduleName: 'ROOT' ).candidateNames == ['ROOT']
+        new org.gradle.plugins.ide.DeduplicationTarget(project: childProject, moduleName: 'CHILD' ).candidateNames == ['CHILD', 'test-CHILD']
     }
 }

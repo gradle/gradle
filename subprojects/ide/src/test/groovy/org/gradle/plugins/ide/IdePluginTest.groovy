@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.plugins
+package org.gradle.plugins.ide
 
-import spock.lang.Specification
-import org.gradle.api.Project
-import org.gradle.util.HelperUtil
-import org.gradle.api.Task
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
 
 class IdePluginTest extends Specification {
     final Project project = HelperUtil.createRootProject()
@@ -53,7 +53,7 @@ class IdePluginTest extends Specification {
     }
 }
 
-class TestIdePlugin extends IdePlugin {
+class TestIdePlugin extends org.gradle.plugins.ide.IdePlugin {
     @Override protected String getLifecycleTaskName() {
         return 'testIde'
     }

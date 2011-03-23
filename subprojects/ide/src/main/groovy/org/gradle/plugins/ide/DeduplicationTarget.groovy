@@ -14,23 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins.ide
+package org.gradle.plugins.ide
 
 import org.gradle.api.Project
 
 /**
  * @author Szczepan Faber, @date: 14.03.11
  */
-class ProjectDeduper {
+ class DeduplicationTarget {
 
-    ModuleNameDeduper moduleNameDeduper = new ModuleNameDeduper()
+     def String moduleName
+     def Project project
+     def Closure moduleNameSetter
 
-    void dedupe(Collection<Project> projects, Closure deduplicationTargetCreator) {
-        //Deduper acts on first-come first-served basis.
-        //Therefore it's better if the inputs are sorted that first items are least wanted to be prefixed
-        //Hence I'm sorting by nesting level:
-        def sorted = projects.sort { (it.parent == null)? 0 : it.path.count(":") }
-        def deduplicationTargets = sorted.collect({ deduplicationTargetCreator.call(it) })
-        moduleNameDeduper.dedupe(deduplicationTargets)
-    }
+     Collection<String> getCandidateNames() {
+        def out = []
+        def p = project.parent
+        def currentName = moduleName
+        out << currentName
+        while (p) {
+            currentName = p.name + "-" + currentName
+            out.add(currentName)
+            p = p.parent
+        }
+        return out
+     }
 }

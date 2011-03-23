@@ -18,7 +18,6 @@ package org.gradle.plugins.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.plugins.IdePlugin
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -26,6 +25,7 @@ import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.GeneratorTaskConfigurer
 import org.gradle.plugins.eclipse.internal.EclipseDomainModelFactory
+import org.gradle.plugins.ide.IdePlugin
 import org.gradle.plugins.eclipse.model.*
 
 /**

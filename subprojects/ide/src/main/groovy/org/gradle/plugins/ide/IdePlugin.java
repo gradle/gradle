@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.plugins;
+package org.gradle.plugins.ide;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Plugin;
