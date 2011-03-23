@@ -16,7 +16,7 @@
 package org.gradle.plugins.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
+import org.gradle.plugins.ide.XmlPersistableConfigurationObject
 
 /**
  * Creates the .settings/org.eclipse.wst.common.project.facet.core.xml file for WTP projects.

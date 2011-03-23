@@ -16,7 +16,7 @@
 package org.gradle.plugins.idea.model
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
+import org.gradle.plugins.ide.XmlPersistableConfigurationObject
 
 /**
  * Represents the customizable elements of an iml (via XML hooks everything of the iml is customizable).

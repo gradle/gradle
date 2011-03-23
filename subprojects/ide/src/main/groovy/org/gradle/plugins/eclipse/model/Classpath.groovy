@@ -16,7 +16,7 @@
 package org.gradle.plugins.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
+import org.gradle.plugins.ide.XmlPersistableConfigurationObject
 
 /**
  * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).

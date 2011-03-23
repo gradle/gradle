@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.generator;
+package org.gradle.plugins.ide;
 
 import groovy.util.Node;
 import groovy.util.XmlParser;
 import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.internal.tasks.generator.AbstractPersistableConfigurationObject;
 
-import java.io.*;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
- * A {@link PersistableConfigurationObject} which is stored in an XML file.
+ * A {@link org.gradle.api.internal.tasks.generator.PersistableConfigurationObject} which is stored in an XML file.
  */
 public abstract class XmlPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
     private final XmlTransformer xmlTransformer;
