@@ -13,40 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.generator
+package org.gradle.plugins.ide.internal.generator
 
-import org.gradle.api.internal.XmlTransformer
+import org.gradle.util.Matchers
 import org.gradle.util.TemporaryFolder
-import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-class XmlPersistableConfigurationObjectTest extends Specification {
+class PropertiesPersistableConfigurationObjectTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
-    String rootElement
-    final XmlPersistableConfigurationObject object = new XmlPersistableConfigurationObject(new XmlTransformer()) {
+    String propertyValue
+    final org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject object = new org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject() {
         @Override protected String getDefaultResourceName() {
-            return 'defaultResource.xml'
+            return 'defaultResource.properties'
         }
 
-        @Override protected void load(Node xml) {
-            rootElement = xml.name() as String
+        @Override protected void load(Properties properties) {
+            propertyValue = properties['prop']
         }
 
-        @Override protected void store(Node xml) {
-            xml.name = rootElement
+        @Override protected void store(Properties properties) {
+            properties['prop'] = propertyValue
         }
     }
 
-    def loadsFromXmlFile() {
-        def inputFile = tmpDir.file('input.xml')
-        inputFile.text = '<some-xml/>'
+    def loadsFromPropertiesFile() {
+        def inputFile = tmpDir.file('input.properties')
+        inputFile.text = 'prop=value'
 
         when:
         object.load(inputFile)
 
         then:
-        rootElement == 'some-xml'
+        propertyValue == 'value'
     }
 
     def loadsFromDefaultResource() {
@@ -54,18 +53,18 @@ class XmlPersistableConfigurationObjectTest extends Specification {
         object.loadDefaults()
 
         then:
-        rootElement == 'default-xml'
+        propertyValue == 'default-value'
     }
 
     def storesToXmlFile() {
         object.loadDefaults()
-        rootElement = 'modified-xml'
-        def outputFile = tmpDir.file('output.xml')
+        propertyValue = 'modified-value'
+        def outputFile = tmpDir.file('output.properties')
 
         when:
         object.store(outputFile)
 
         then:
-        outputFile.text == TextUtil.toNativeLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n<modified-xml/>\n')
+        Matchers.containsLine(outputFile.text, 'prop=modified-value')
     }
 }

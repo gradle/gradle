@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide
+package org.gradle.plugins.ide.internal.configurer
 
 import org.gradle.api.Project
 

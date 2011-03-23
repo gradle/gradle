@@ -13,23 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide
+
+package org.gradle.plugins.ide.internal.configurer
+
+import org.gradle.api.Project
 
 /**
- * Able to deduplicate names. Useful for IDE plugins to make sure module names (IDEA) or project names (Eclipse) are unique.
- * <p>
- * @author Szczepan Faber, @date 11.03.11
+ * @author Szczepan Faber, @date: 14.03.11
  */
-class ModuleNameDeduper {
+ class DeduplicationTarget {
 
-    void dedupe(Collection<DeduplicationTarget> targets) {
-        def allNames = []
-        targets.each { target ->
-            def name = target.candidateNames.find { !allNames.contains(it) }
-            if (name) {
-                allNames << name
-                target.moduleNameSetter.call(name)
-            }
+     def String moduleName
+     def Project project
+     def Closure moduleNameSetter
+
+     Collection<String> getCandidateNames() {
+        def out = []
+        def p = project.parent
+        def currentName = moduleName
+        out << currentName
+        while (p) {
+            currentName = p.name + "-" + currentName
+            out.add(currentName)
+            p = p.parent
         }
-    }
+        return out
+     }
 }

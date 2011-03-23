@@ -16,7 +16,7 @@
 package org.gradle.plugins.eclipse.model;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.plugins.ide.generator.PropertiesPersistableConfigurationObject;
+import org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject;
 
 import java.util.Properties;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide
+package org.gradle.plugins.ide.internal.configurer
 
 import spock.lang.Specification
 
@@ -23,13 +23,13 @@ import spock.lang.Specification
  */
 class ModuleNameDeduperTest extends Specification {
 
-    public static class TargetStub extends org.gradle.plugins.ide.DeduplicationTarget {
+    public static class TargetStub extends DeduplicationTarget {
         String moduleName
         Collection<String> candidateNames
         Closure moduleNameSetter = { moduleName = it }
     }
 
-    org.gradle.plugins.ide.ModuleNameDeduper deduper = new org.gradle.plugins.ide.ModuleNameDeduper()
+    ModuleNameDeduper deduper = new ModuleNameDeduper()
 
     TargetStub ferrari = new TargetStub(moduleName: "ferrari", candidateNames: [])
     TargetStub fiat = new TargetStub(moduleName: "fiat", candidateNames: [])

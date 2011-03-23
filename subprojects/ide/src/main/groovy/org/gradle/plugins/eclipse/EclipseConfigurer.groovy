@@ -17,8 +17,8 @@ package org.gradle.plugins.eclipse
 
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.ide.DeduplicationTarget
-import org.gradle.plugins.ide.ProjectDeduper
+import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
+import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
 
 /**
  * @author Szczepan Faber, @date 11.03.11

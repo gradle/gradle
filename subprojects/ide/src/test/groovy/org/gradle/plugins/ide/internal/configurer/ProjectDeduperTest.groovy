@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.plugins.ide
+package org.gradle.plugins.ide.internal.configurer
 
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -30,11 +30,11 @@ class ProjectDeduperTest extends Specification {
     def childProject = HelperUtil.createChildProject(project, "child", new File("."))
     def grandChildProject = HelperUtil.createChildProject(childProject, "grandChild", new File("."))
 
-    def deduper = new org.gradle.plugins.ide.ProjectDeduper()
+    def deduper = new ProjectDeduper()
 
     def "should order projects by depth and pass them to module deduper"() {
         given:
-        deduper.moduleNameDeduper = Mock(org.gradle.plugins.ide.ModuleNameDeduper)
+        deduper.moduleNameDeduper = Mock(ModuleNameDeduper)
         def unordered = [childProject, grandChildProject, project]
 
         when:
