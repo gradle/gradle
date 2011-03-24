@@ -42,6 +42,10 @@ public abstract class AbstractModelBuilder extends BuildAdapter {
         }
     }
 
+    protected Map<String, DefaultEclipseProject> getProjectMapping() {
+        return projectMapping;
+    }
+
     protected abstract DefaultEclipseProject build(Project project);
 
     protected abstract void configureEclipsePlugin(Project root);

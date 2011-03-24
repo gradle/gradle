@@ -59,7 +59,7 @@ class ProjectDependencyTest extends Specification {
     }
 
     private ProjectDependency createProjectDependency() {
-        return new ProjectDependency('/test2', true, 'mynative', [new AccessRule('nonaccessible', 'secret**')] as Set)
+        return new ProjectDependency('/test2', true, 'mynative', [new AccessRule('nonaccessible', 'secret**')] as Set, null)
     }
 
 

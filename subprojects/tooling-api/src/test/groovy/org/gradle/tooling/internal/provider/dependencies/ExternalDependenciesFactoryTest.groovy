@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.internal.provider.dependencies
 
 import org.gradle.api.Project
 import org.gradle.plugins.ide.eclipse.model.Classpath
@@ -29,7 +29,7 @@ class ExternalDependenciesFactoryTest extends Specification {
 
     def factory = new ExternalDependenciesFactory()
 
-    def "creates source directories"() {
+    def "creates instances"() {
         given:
         def project = Mock(Project)
         def somePathDir = new File('/projects/someLibrary')
