@@ -21,7 +21,11 @@ import java.io.File;
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface ProjectVersion3 {
+    String getPath();
+
     String getName();
+
+    String getDescription();
 
     File getProjectDirectory();
 }

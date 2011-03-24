@@ -33,6 +33,7 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVers
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
+import org.gradle.util.GUtil;
 
 import java.util.*;
 
@@ -86,8 +87,10 @@ public class ModelBuilder extends BuildAdapter {
             children.add(build(child));
         }
 
-        String name = eclipseDomainModel.getProject().getName();
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), project.getProjectDir(), children, tasks, sourceDirectories, dependencies, projectDependencies);
+        org.gradle.plugins.ide.eclipse.model.Project internalProject = eclipseDomainModel.getProject();
+        String name = internalProject.getName();
+        String description = GUtil.elvis(internalProject.getComment(), null);
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children, tasks, sourceDirectories, dependencies, projectDependencies);
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
         }

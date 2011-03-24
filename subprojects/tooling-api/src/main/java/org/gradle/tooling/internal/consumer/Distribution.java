@@ -19,5 +19,7 @@ import java.io.File;
 import java.util.Set;
 
 public interface Distribution {
+    String getDisplayName();
+
     Set<File> getToolingImplementationClasspath();
 }

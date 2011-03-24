@@ -20,9 +20,21 @@ package org.gradle.tooling.model;
  */
 public interface Task {
     /**
+     * Returns the path of this task. This is a fully qualified unique name for this task.
+     */
+    String getPath();
+
+    /**
      * Returns the name of this task. Note that the name is not necessarily a unique identifier for the task.
      *
      * @return The name.
      */
     String getName();
+
+    /**
+     * Returns the description of this task.
+     *
+     * @return The description. May be null.
+     */
+    String getDescription();
 }

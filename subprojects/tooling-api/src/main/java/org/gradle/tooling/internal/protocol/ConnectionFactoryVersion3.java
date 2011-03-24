@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.protocol;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface ConnectionFactoryVersion2 {
+public interface ConnectionFactoryVersion3 {
     /**
      * Stops this factory, blocking until complete.
      */
@@ -30,5 +30,5 @@ public interface ConnectionFactoryVersion2 {
      * @return The connection.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    ConnectionVersion2 create(ConnectionParametersVersion1 parameters) throws IllegalStateException;
+    ConnectionVersion3 create(ConnectionParametersVersion1 parameters) throws IllegalStateException;
 }

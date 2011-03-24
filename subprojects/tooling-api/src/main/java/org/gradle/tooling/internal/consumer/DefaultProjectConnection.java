@@ -36,12 +36,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultProjectConnection implements ProjectConnection {
-    private final ConnectionVersion2 connection;
+    private final ConnectionVersion3 connection;
     private final Map<Class<? extends Project>, Class<? extends ProjectVersion3>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion3>>();
     private ProtocolToModelAdapter adapter;
     private AtomicBoolean closed = new AtomicBoolean();
 
-    public DefaultProjectConnection(ConnectionVersion2 connection, ProtocolToModelAdapter adapter) {
+    public DefaultProjectConnection(ConnectionVersion3 connection, ProtocolToModelAdapter adapter) {
         this.connection = connection;
         this.adapter = adapter;
         modelTypeMap.put(Project.class, ProjectVersion3.class);

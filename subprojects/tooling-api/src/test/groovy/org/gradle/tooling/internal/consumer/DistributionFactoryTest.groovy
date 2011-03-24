@@ -24,7 +24,12 @@ class DistributionFactoryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'))
 
-    def usesContentsOfDistributionLibDirectoryAsImplementationClasspath() {
+    def createsADisplayNameForAnInstallation() {
+        expect:
+        factory.getDistribution(tmpDir.dir).displayName == "Gradle installation '${tmpDir.dir}'"
+    }
+
+    def usesContentsOfInstallationLibDirectoryAsImplementationClasspath() {
         def libA = tmpDir.createFile("lib/a.jar")
         def libB = tmpDir.createFile("lib/b.jar")
 
@@ -33,7 +38,7 @@ class DistributionFactoryTest extends Specification {
         dist.toolingImplementationClasspath == [libA, libB] as Set
     }
 
-    def failsWhenDistributionDirectoryDoesNotExist() {
+    def failsWhenInstallationDirectoryDoesNotExist() {
         TestFile distDir = tmpDir.file('unknown')
 
         when:
@@ -42,10 +47,10 @@ class DistributionFactoryTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "The specified Gradle distribution directory '$distDir' does not exist."
+        e.message == "The specified Gradle installation directory '$distDir' does not exist."
     }
 
-    def failsWhenDistributionDirectoryIsAFile() {
+    def failsWhenInstallationDirectoryIsAFile() {
         TestFile distDir = tmpDir.createFile('dist')
 
         when:
@@ -54,10 +59,10 @@ class DistributionFactoryTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "The specified Gradle distribution directory '$distDir' is not a directory."
+        e.message == "The specified Gradle installation directory '$distDir' is not a directory."
     }
 
-    def failsWhenDistributionDirectoryDoesNotContainALibDirectory() {
+    def failsWhenInstallationDirectoryDoesNotContainALibDirectory() {
         TestFile distDir = tmpDir.createDir('dist')
 
         when:
@@ -66,21 +71,23 @@ class DistributionFactoryTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "The specified Gradle distribution directory '$distDir' does not appear to contain a Gradle distribution."
+        e.message == "The specified Gradle installation directory '$distDir' does not appear to contain a Gradle distribution."
+    }
+
+    def createsADisplayNameForADistribution() {
+        def zipFile = createZip { }
+
+        expect:
+        factory.getDistribution(zipFile.toURI()).displayName == "Gradle distribution '${zipFile.toURI()}'"
     }
 
     def usesContentsOfDistributionZipLibDirectoryAsImplementationClasspath() {
-        def distDir = tmpDir.createDir('dist')
-        distDir.create {
-            "dist-9.0-beta1" {
-                lib {
-                   file("a.jar")
-                   file("b.jar")
-                }
+        def zipFile = createZip {
+            lib {
+                file("a.jar")
+                file("b.jar")
             }
         }
-        def zipFile = tmpDir.file('dist-9.0-beta1.zip')
-        distDir.zipTo(zipFile)
 
         expect:
         def dist = factory.getDistribution(zipFile.toURI())
@@ -88,14 +95,7 @@ class DistributionFactoryTest extends Specification {
     }
 
     def failsWhenDistributionZipDoesNotContainALibDirectory() {
-        def distDir = tmpDir.createDir('dist')
-        distDir.create {
-            "dist-0.9" {
-                file('other')
-            }
-        }
-        def zipFile = tmpDir.file("dist-0.9.zip")
-        distDir.zipTo(zipFile)
+        TestFile zipFile = createZip { file("other") }
 
         when:
         def dist = factory.getDistribution(zipFile.toURI())
@@ -104,6 +104,19 @@ class DistributionFactoryTest extends Specification {
         then:
         IllegalArgumentException e = thrown()
         e.message == "The specified Gradle distribution '${zipFile.toURI()}' does not appear to contain a Gradle distribution."
+    }
+
+    private TestFile createZip(Closure cl) {
+        def distDir = tmpDir.createDir('dist')
+        distDir.create {
+            "dist-0.9" {
+                cl.delegate = delegate
+                cl.call()
+            }
+        }
+        def zipFile = tmpDir.file("dist-0.9.zip")
+        distDir.zipTo(zipFile)
+        return zipFile
     }
 
 }

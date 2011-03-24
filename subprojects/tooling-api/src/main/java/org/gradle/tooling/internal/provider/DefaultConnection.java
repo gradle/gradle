@@ -20,12 +20,12 @@ import org.gradle.StartParameter;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion2;
+import org.gradle.tooling.internal.protocol.ConnectionVersion3;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
-public class DefaultConnection implements ConnectionVersion2 {
+public class DefaultConnection implements ConnectionVersion3 {
     private final ActorFactory actorFactory;
     private final ConnectionParametersVersion1 parameters;
     private Worker worker;

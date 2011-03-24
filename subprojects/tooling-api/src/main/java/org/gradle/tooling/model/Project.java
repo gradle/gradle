@@ -22,11 +22,25 @@ import java.io.File;
  */
 public interface Project {
     /**
+     * Returns the fully-qualified path of this project. This is a unique identifier for the project.
+     *
+     * @return The path.
+     */
+    String getPath();
+
+    /**
      * Returns the name of this project. Note that the name is not a unique identifier for the project.
      *
      * @return The name.
      */
     String getName();
+
+    /**
+     * Returns the description of this project.
+     *
+     * @return The description. May be null.
+     */
+    String getDescription();
 
     /**
      * Returns the project directory for this project.

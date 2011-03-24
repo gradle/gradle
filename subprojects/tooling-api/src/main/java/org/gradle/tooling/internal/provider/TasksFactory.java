@@ -26,7 +26,7 @@ public class TasksFactory {
     public List<TaskVersion1> create(Project project) {
         List<TaskVersion1> tasks = new ArrayList<TaskVersion1>();
         for (final Task task : project.getTasks()) {
-            tasks.add(new DefaultTaskVersion1(task.getPath(), task.getName()));
+            tasks.add(new DefaultTaskVersion1(task.getPath(), task.getName(), task.getDescription()));
         }
         return tasks;
     }
@@ -34,10 +34,12 @@ public class TasksFactory {
     private static class DefaultTaskVersion1 implements TaskVersion1 {
         private final String path;
         private final String name;
+        private final String description;
 
-        public DefaultTaskVersion1(String path, String name) {
+        public DefaultTaskVersion1(String path, String name, String description) {
             this.path = path;
             this.name = name;
+            this.description = description;
         }
 
         @Override
@@ -45,8 +47,16 @@ public class TasksFactory {
             return String.format("task '%s'", path);
         }
 
+        public String getPath() {
+            return path;
+        }
+
         public String getName() {
             return name;
+        }
+
+        public String getDescription() {
+            return description;
         }
     }
 }

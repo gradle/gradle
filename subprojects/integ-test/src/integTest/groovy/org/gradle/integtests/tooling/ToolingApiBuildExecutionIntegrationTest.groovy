@@ -20,7 +20,9 @@ import org.gradle.tooling.model.BuildableProject
 class ToolingApiBuildExecutionIntegrationTest extends ToolingApiSpecification {
     def "can build the set of tasks for a project"() {
         dist.testFile('build.gradle') << '''
-task a
+task a {
+   description = 'this is task a'
+}
 task b
 task c
 '''
@@ -29,7 +31,10 @@ task c
         BuildableProject project = withConnection { connection -> connection.getModel(BuildableProject.class) }
 
         then:
-        project.tasks.find { it.name == 'a' }
+        def taskA = project.tasks.find { it.name == 'a' }
+        taskA != null
+        taskA.path == ':a'
+        taskA.description == 'this is task a'
         project.tasks.find { it.name == 'b' }
         project.tasks.find { it.name == 'c' }
     }

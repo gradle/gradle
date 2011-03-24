@@ -18,14 +18,14 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.internal.protocol.ConnectionVersion2
+import org.gradle.tooling.internal.protocol.ConnectionVersion3
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.Project
 import org.gradle.util.ConcurrentSpecification
 
 class DefaultProjectConnectionTest extends ConcurrentSpecification {
-    final ConnectionVersion2 protocolConnection = Mock()
+    final ConnectionVersion3 protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, adapter)
 

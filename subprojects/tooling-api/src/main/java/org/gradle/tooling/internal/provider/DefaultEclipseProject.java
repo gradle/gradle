@@ -33,14 +33,16 @@ class DefaultEclipseProject implements EclipseProjectVersion3 {
     private final List<EclipseProjectVersion3> children;
     private final List<EclipseSourceDirectoryVersion1> sourceDirectories;
     private final List<EclipseProjectDependencyVersion2> projectDependencies;
+    private final String description;
     private final File projectDirectory;
     private final Iterable<? extends TaskVersion1> tasks;
 
-    public DefaultEclipseProject(String name, String path, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children,
+    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children,
                                  Iterable<? extends TaskVersion1> tasks, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories,
                                  Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion2> projectDependencies) {
         this.name = name;
         this.path = path;
+        this.description = description;
         this.projectDirectory = projectDirectory;
         this.tasks = tasks;
         this.children = GUtil.addLists(children);
@@ -54,8 +56,16 @@ class DefaultEclipseProject implements EclipseProjectVersion3 {
         return String.format("project '%s'", path);
     }
 
+    public String getPath() {
+        return path;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public EclipseProjectVersion3 getParent() {

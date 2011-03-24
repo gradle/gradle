@@ -19,5 +19,9 @@ package org.gradle.tooling.internal.protocol;
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface TaskVersion1 {
+    String getPath();
+
     String getName();
+
+    String getDescription();
 }

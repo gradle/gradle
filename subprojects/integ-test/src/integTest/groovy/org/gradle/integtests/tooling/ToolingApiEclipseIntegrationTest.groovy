@@ -26,6 +26,7 @@ class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
+description = 'this is a project'
 '''
         projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
 
@@ -33,7 +34,9 @@ apply plugin: 'java'
         HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
 
         then:
+        minimalProject.path == ':'
         minimalProject.name == 'test project'
+        minimalProject.description == 'this is a project'
         minimalProject.projectDirectory == projectDir
         minimalProject.parent == null
         minimalProject.children.empty
@@ -42,7 +45,9 @@ apply plugin: 'java'
         EclipseProject fullProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
+        fullProject.path == ':'
         fullProject.name == 'test project'
+        fullProject.description == 'this is a project'
         fullProject.projectDirectory == projectDir
         fullProject.parent == null
         fullProject.children.empty
@@ -55,10 +60,10 @@ apply plugin: 'java'
         then:
         minimalProject != null
 
-        minimalProject.children.empty
-        minimalProject.projectDependencies.empty
+        minimalProject.description == null
         minimalProject.parent == null
         minimalProject.children.empty
+        minimalProject.projectDependencies.empty
 
         when:
         EclipseProject fullProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
@@ -66,6 +71,7 @@ apply plugin: 'java'
         then:
         fullProject != null
 
+        fullProject.description == null
         fullProject.parent == null
         fullProject.children.empty
         fullProject.sourceDirectories.empty

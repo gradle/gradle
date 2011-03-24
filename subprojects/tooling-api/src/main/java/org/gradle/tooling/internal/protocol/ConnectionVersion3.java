@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.protocol;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface ConnectionVersion2 {
+public interface ConnectionVersion3 {
     /**
      * Stops this connection, blocking until complete.
      */

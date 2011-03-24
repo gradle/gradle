@@ -34,7 +34,9 @@ class TasksFactoryTest extends Specification {
 
         then:
         result.size() == 2
+        result[0].path == ':a'
         result[0].name == 'a'
+        result[0].description == 'task a'
         result[1].name == 'b'
         1 * project.tasks >> tasks
         tasks.iterator() >> [taskA, taskB].iterator()
@@ -42,7 +44,9 @@ class TasksFactoryTest extends Specification {
 
     def task(String name) {
         Task task = Mock()
+        _ * task.path >> ":$name"
         _ * task.name >> name
+        _ * task.description >> "task $name"
         return task
     }
 }
