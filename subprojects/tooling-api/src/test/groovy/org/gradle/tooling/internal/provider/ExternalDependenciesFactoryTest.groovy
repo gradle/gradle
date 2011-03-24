@@ -29,7 +29,7 @@ class ExternalDependenciesFactoryTest extends Specification {
 
     def factory = new ExternalDependenciesFactory()
 
-    def "creates source directories"() {
+    def "creates instances"() {
         given:
         def project = Mock(Project)
         def somePathDir = new File('/projects/someLibrary')

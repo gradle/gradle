@@ -29,7 +29,7 @@ class SourceDirectoriesFactoryTest extends Specification {
 
     def factory = new SourceDirectoriesFactory()
 
-    def "creates source directories"() {
+    def "creates instances"() {
         given:
         def project = Mock(Project)
         def somePathDir = new File('/projects/somePath')
