@@ -30,6 +30,9 @@ import org.gradle.tooling.internal.protocol.TaskVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
+import org.gradle.tooling.internal.provider.dependencies.EclipseProjectDependenciesFactory;
+import org.gradle.tooling.internal.provider.dependencies.ExternalDependenciesFactory;
+import org.gradle.tooling.internal.provider.dependencies.SourceDirectoriesFactory;
 import org.gradle.util.GUtil;
 
 import java.util.*;

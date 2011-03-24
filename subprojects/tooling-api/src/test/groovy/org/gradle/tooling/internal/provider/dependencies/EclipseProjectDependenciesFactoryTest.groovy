@@ -14,37 +14,39 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.internal.provider.dependencies
 
-import org.gradle.api.Project
 import org.gradle.plugins.ide.eclipse.model.Classpath
-import org.gradle.plugins.ide.eclipse.model.Container
+import org.gradle.plugins.ide.eclipse.model.ProjectDependency
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
 import spock.lang.Specification
 
 /**
  * @author Szczepan Faber, @date: 20.03.11
  */
-class SourceDirectoriesFactoryTest extends Specification {
+class EclipseProjectDependenciesFactoryTest extends Specification {
 
-    def factory = new SourceDirectoriesFactory()
+    def factory = new EclipseProjectDependenciesFactory()
 
     def "creates instances"() {
         given:
-        def project = Mock(Project)
-        def somePathDir = new File('/projects/somePath')
-        project.file('somePath') >> { somePathDir }
+        def projectAInstance = Mock(EclipseProjectVersion3)
+        def projectMapping = [':projectA' : projectAInstance]
         def classpath = new Classpath()
         classpath.entries = [
-                new SourceFolder('somePath', '', [] as Set, '', [], []),
-                new Container('foo', true, '', [] as Set) ]
+                new SourceFolder('foo', '', [] as Set, '', [], []),
+                new ProjectDependency('/projectA', true, '', [] as Set, ':projectA'),
+                new ProjectDependency('/projectB', true, '', [] as Set, ':projectB') ]
 
         when:
-        def dirs = factory.create(project, classpath)
+        def deps = factory.create(projectMapping, classpath)
 
         then:
-        dirs.size() == 1
-        dirs[0].path == 'somePath'
-        dirs[0].directory == somePathDir
+        deps.size() == 2
+        deps[0].path == 'projectA'
+        deps[0].targetProject == projectAInstance
+        deps[1].path == 'projectB'
+        deps[1].targetProject == null
     }
 }

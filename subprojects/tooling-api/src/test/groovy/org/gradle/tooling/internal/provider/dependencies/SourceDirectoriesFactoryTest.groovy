@@ -14,36 +14,37 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.internal.provider.dependencies
 
 import org.gradle.api.Project
 import org.gradle.plugins.ide.eclipse.model.Classpath
-import org.gradle.plugins.ide.eclipse.model.Library
+import org.gradle.plugins.ide.eclipse.model.Container
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import spock.lang.Specification
 
 /**
  * @author Szczepan Faber, @date: 20.03.11
  */
-class ExternalDependenciesFactoryTest extends Specification {
+class SourceDirectoriesFactoryTest extends Specification {
 
-    def factory = new ExternalDependenciesFactory()
+    def factory = new SourceDirectoriesFactory()
 
     def "creates instances"() {
         given:
         def project = Mock(Project)
-        def somePathDir = new File('/projects/someLibrary')
-        project.file('someLibrary') >> { somePathDir }
+        def somePathDir = new File('/projects/somePath')
+        project.file('somePath') >> { somePathDir }
         def classpath = new Classpath()
         classpath.entries = [
-                new SourceFolder('foo', '', [] as Set, '', [], []),
-                new Library('someLibrary', true, '', [] as Set, '', '') ]
+                new SourceFolder('somePath', '', [] as Set, '', [], []),
+                new Container('foo', true, '', [] as Set) ]
 
         when:
-        def deps = factory.create(project, classpath)
+        def dirs = factory.create(project, classpath)
 
         then:
-        deps.size() == 1
-        deps[0].file == somePathDir
+        dirs.size() == 1
+        dirs[0].path == 'somePath'
+        dirs[0].directory == somePathDir
     }
 }

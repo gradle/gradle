@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.dependencies;
 
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
