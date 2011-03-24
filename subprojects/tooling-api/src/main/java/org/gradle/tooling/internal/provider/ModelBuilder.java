@@ -19,8 +19,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.GeneratorTaskConfigurer;
@@ -32,7 +30,6 @@ import org.gradle.tooling.internal.protocol.TaskVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -60,24 +57,8 @@ public class ModelBuilder extends BuildAdapter {
     private DefaultEclipseProject build(Project project) {
         EclipseDomainModel eclipseDomainModel = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
 
-        Configuration configuration = project.getConfigurations().findByName("testRuntime");
         List<ExternalDependencyVersion1> dependencies = new ExternalDependenciesFactory().create(project, eclipseDomainModel.getClasspath());
-        final List<EclipseProjectDependencyVersion2> projectDependencies = new ArrayList<EclipseProjectDependencyVersion2>();
-
-        if (configuration != null) {
-            for (final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
-                projectDependencies.add(new EclipseProjectDependencyVersion2() {
-                    public HierarchicalEclipseProjectVersion1 getTargetProject() {
-                        return projectMapping.get(projectDependency.getDependencyProject().getPath());
-                    }
-
-                    public String getPath() {
-                        return projectDependency.getDependencyProject().getName();
-                    }
-                });
-            }
-        }
-
+        List<EclipseProjectDependencyVersion2> projectDependencies = new EclipseProjectDependenciesFactory().create(projectMapping, eclipseDomainModel.getClasspath());
         List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, eclipseDomainModel.getClasspath());
 
         List<TaskVersion1> tasks = new TasksFactory().create(project);

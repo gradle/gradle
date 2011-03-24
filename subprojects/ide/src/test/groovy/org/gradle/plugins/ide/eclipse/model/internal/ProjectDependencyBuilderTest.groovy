@@ -26,6 +26,7 @@ class ProjectDependencyBuilderTest extends Specification {
 
     static class ProjectStub {
         String name
+        String path
         EclipseProjectStub eclipseProject
     }
 

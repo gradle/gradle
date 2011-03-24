@@ -26,7 +26,7 @@ import spock.lang.Specification
  */
 public class ClasspathTest extends Specification {
     private static final CUSTOM_ENTRIES = [
-            new ProjectDependency("/test2", false, null, [] as Set),
+            new ProjectDependency("/test2", false, null, [] as Set, null),
             new Container("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6",
                 false, null, [] as Set),
             new Library("/apache-ant-1.7.1/lib/ant-antlr.jar", false, null, [] as Set, null, null),
