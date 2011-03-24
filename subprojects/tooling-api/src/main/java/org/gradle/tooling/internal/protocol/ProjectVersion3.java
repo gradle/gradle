@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.internal.protocol;
 
-import spock.lang.Specification
+import java.io.File;
 
-class DefaultEclipseProjectTest extends Specification {
-    def usesPathForToStringValue() {
-        def project = new DefaultEclipseProject("name", ":path", null, [], [], [], [], [])
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ */
+public interface ProjectVersion3 {
+    String getName();
 
-        expect:
-        project.toString() == "project ':path'"
-    }
+    File getProjectDirectory();
 }

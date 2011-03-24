@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
-
-import java.io.File;
+package org.gradle.tooling.model;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Represents a project which belongs to some hierarchy.
  */
-public interface ProjectVersion2 {
-    String getName();
+public interface HierarchicalProject extends Project {
+    /**
+     * Returns the parent project of this project, if any.
+     *
+     * @return The parent, or null if this project has no parent.
+     */
+    HierarchicalProject getParent();
 
-    File getProjectDirectory();
-
-    ProjectVersion2 getParent();
-
-    Iterable<? extends ProjectVersion2> getChildren();
+    /**
+     * Returns the child projects of this project.
+     *
+     * @return The child projects. Returns an empty set if this project has no children.
+     */
+    DomainObjectSet<? extends HierarchicalProject> getChildren();
 }

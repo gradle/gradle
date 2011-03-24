@@ -15,32 +15,22 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.tooling.model.BuildableProject;
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.ExternalDependency;
+import org.gradle.tooling.model.HierarchicalProject;
 
 /**
- * The complete model of an Eclipse project.
- *
- * <p>Note that the names of Eclipse projects are unique, and can be used as an identifier for the project.
+ * Represents the basic information about an Eclipse project.
  */
-public interface EclipseProject extends HierarchicalEclipseProject, BuildableProject {
+public interface HierarchicalEclipseProject extends HierarchicalProject {
     /**
      * {@inheritDoc}
      */
-    EclipseProject getParent();
+    HierarchicalEclipseProject getParent();
 
     /**
      * {@inheritDoc}
      */
-    DomainObjectSet<? extends EclipseProject> getChildren();
-
-    /**
-     * Returns the source directories for this project.
-     *
-     * @return The source directories. Returns an empty set if the project has no source directories.
-     */
-    DomainObjectSet<? extends EclipseSourceDirectory> getSourceDirectories();
+    DomainObjectSet<? extends HierarchicalEclipseProject> getChildren();
 
     /**
      * Returns the project dependencies for this project.
@@ -48,11 +38,4 @@ public interface EclipseProject extends HierarchicalEclipseProject, BuildablePro
      * @return The project dependencies. Returns an empty set if the project has no project dependencies.
      */
     DomainObjectSet<? extends EclipseProjectDependency> getProjectDependencies();
-
-    /**
-     * Returns the external dependencies which make up the classpath of this project.
-     *
-     * @return The dependencies. Returns an empty set if the project has no external dependencies.
-     */
-    DomainObjectSet<? extends ExternalDependency> getClasspath();
 }

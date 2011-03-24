@@ -13,15 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider
+package org.gradle.integtests.tooling
 
-import spock.lang.Specification
+import org.gradle.tooling.model.BuildableProject
 
-class DefaultEclipseProjectTest extends Specification {
-    def usesPathForToStringValue() {
-        def project = new DefaultEclipseProject("name", ":path", null, [], [], [], [], [])
+class ToolingApiBuildExecutionIntegrationTest extends ToolingApiSpecification {
+    def "can build the set of tasks for a project"() {
+        dist.testFile('build.gradle') << '''
+task a
+task b
+task c
+'''
 
-        expect:
-        project.toString() == "project ':path'"
+        when:
+        BuildableProject project = withConnection { connection -> connection.getModel(BuildableProject.class) }
+
+        then:
+        project.tasks.find { it.name == 'a' }
+        project.tasks.find { it.name == 'b' }
+        project.tasks.find { it.name == 'c' }
     }
 }

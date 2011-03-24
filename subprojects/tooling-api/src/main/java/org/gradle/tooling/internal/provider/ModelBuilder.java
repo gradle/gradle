@@ -28,9 +28,11 @@ import org.gradle.plugins.ide.eclipse.EclipseConfigurer;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseDomainModel;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
+import org.gradle.tooling.internal.protocol.TaskVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 
 import java.util.*;
 
@@ -39,7 +41,7 @@ import java.util.*;
 */
 public class ModelBuilder extends BuildAdapter {
     private DefaultEclipseProject currentProject;
-    private final Map<String, EclipseProjectVersion2> projectMapping = new HashMap<String, EclipseProjectVersion2>();
+    private final Map<String, EclipseProjectVersion3> projectMapping = new HashMap<String, EclipseProjectVersion3>();
     private GradleInternal gradle;
 
     @Override
@@ -59,12 +61,12 @@ public class ModelBuilder extends BuildAdapter {
 
         Configuration configuration = project.getConfigurations().findByName("testRuntime");
         List<ExternalDependencyVersion1> dependencies = new ExternalDependenciesFactory().create(project, eclipseDomainModel.getClasspath());
-        final List<EclipseProjectDependencyVersion1> projectDependencies = new ArrayList<EclipseProjectDependencyVersion1>();
+        final List<EclipseProjectDependencyVersion2> projectDependencies = new ArrayList<EclipseProjectDependencyVersion2>();
 
         if (configuration != null) {
             for (final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
-                projectDependencies.add(new EclipseProjectDependencyVersion1() {
-                    public EclipseProjectVersion2 getTargetProject() {
+                projectDependencies.add(new EclipseProjectDependencyVersion2() {
+                    public HierarchicalEclipseProjectVersion1 getTargetProject() {
                         return projectMapping.get(projectDependency.getDependencyProject().getPath());
                     }
 
@@ -77,13 +79,15 @@ public class ModelBuilder extends BuildAdapter {
 
         List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, eclipseDomainModel.getClasspath());
 
+        List<TaskVersion1> tasks = new TasksFactory().create(project);
+
         List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
         for (Project child : project.getChildProjects().values()) {
             children.add(build(child));
         }
 
         String name = eclipseDomainModel.getProject().getName();
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), project.getProjectDir(), children, tasks, sourceDirectories, dependencies, projectDependencies);
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
         }

@@ -18,10 +18,11 @@ package org.gradle.integtests.tooling
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
 class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
 
-    def canBuildProjectMetaDataForAProject() {
+    def "can build the eclipse model for a java project"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
@@ -29,27 +30,50 @@ apply plugin: 'java'
         projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
 
         when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
 
         then:
-        eclipseProject.name == 'test project'
-        eclipseProject.projectDirectory == projectDir
-    }
+        minimalProject.name == 'test project'
+        minimalProject.projectDirectory == projectDir
+        minimalProject.parent == null
+        minimalProject.children.empty
 
-    def canBuildEclipseMetaDataForAnEmptyProject() {
         when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject fullProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
-        eclipseProject != null
-
-        eclipseProject.children.empty
-        eclipseProject.sourceDirectories.empty
-        eclipseProject.classpath.empty
-        eclipseProject.projectDependencies.empty
+        fullProject.name == 'test project'
+        fullProject.projectDirectory == projectDir
+        fullProject.parent == null
+        fullProject.children.empty
     }
 
-    def canBuildEclipseSourceDirectoriesForAProject() {
+    def "can build the eclipse model for an empty project"() {
+        when:
+        HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+
+        then:
+        minimalProject != null
+
+        minimalProject.children.empty
+        minimalProject.projectDependencies.empty
+        minimalProject.parent == null
+        minimalProject.children.empty
+
+        when:
+        EclipseProject fullProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        fullProject != null
+
+        fullProject.parent == null
+        fullProject.children.empty
+        fullProject.sourceDirectories.empty
+        fullProject.classpath.empty
+        fullProject.projectDependencies.empty
+    }
+
+    def "can build the eclipse source directories for a java project"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = "apply plugin: 'java'"
 
@@ -83,7 +107,7 @@ apply plugin: 'java'
         eclipseProject.sourceDirectories[3].directory == projectDir.file('src/test/resources')
     }
 
-    def canBuildEclipseExternalDependenciesForAProject() {
+    def "can build the eclipse external dependencies for a java project"() {
         def projectDir = dist.testDir
         projectDir.file('settings.gradle').text = '''
 include "a"
@@ -112,7 +136,7 @@ dependencies {
         eclipseProject.classpath[0].file.name == 'commons-lang-2.5.jar'
     }
 
-    def canBuildEclipseProjectDependenciesForAProject() {
+    def "can build the eclipse project dependencies for a java project"() {
         def projectDir = dist.testDir
         projectDir.file('settings.gradle').text = '''
 include "a", "a:b"
@@ -145,7 +169,7 @@ project(':a') {
         project.projectDependencies[1].targetProject == project.children[0]
     }
 
-    def canBuildEclipseProjectHierarchyForAMultiProjectBuild() {
+    def "can build the eclipse project hierarchy for a multi-project build"() {
         def projectDir = dist.testDir
         projectDir.file('settings.gradle').text = '''
             include "child1", "child2", "child1:grandChild1"

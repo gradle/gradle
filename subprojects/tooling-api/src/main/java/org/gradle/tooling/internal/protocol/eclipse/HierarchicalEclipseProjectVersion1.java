@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.internal.protocol.eclipse;
 
-import spock.lang.Specification
+import org.gradle.tooling.internal.protocol.HierarchicalProjectVersion1;
 
-class DefaultEclipseProjectTest extends Specification {
-    def usesPathForToStringValue() {
-        def project = new DefaultEclipseProject("name", ":path", null, [], [], [], [], [])
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ */
+public interface HierarchicalEclipseProjectVersion1 extends HierarchicalProjectVersion1 {
+    HierarchicalEclipseProjectVersion1 getParent();
 
-        expect:
-        project.toString() == "project ':path'"
-    }
+    Iterable<? extends HierarchicalEclipseProjectVersion1> getChildren();
+
+    Iterable<? extends EclipseProjectDependencyVersion2> getProjectDependencies();
 }

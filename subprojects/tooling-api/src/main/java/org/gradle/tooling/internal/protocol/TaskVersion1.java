@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol.eclipse;
-
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.ProjectVersion2;
+package org.gradle.tooling.internal.protocol;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface EclipseProjectVersion2 extends ProjectVersion2 {
-    EclipseProjectVersion2 getParent();
-
-    Iterable<? extends EclipseProjectVersion2> getChildren();
-
-    Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories();
-
-    Iterable<? extends EclipseProjectDependencyVersion1> getProjectDependencies();
-
-    Iterable<? extends ExternalDependencyVersion1> getClasspath();
+public interface TaskVersion1 {
+    String getName();
 }

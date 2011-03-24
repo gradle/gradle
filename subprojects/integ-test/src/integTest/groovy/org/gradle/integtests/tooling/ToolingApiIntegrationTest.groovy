@@ -72,7 +72,7 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         model != null
     }
 
-    def handlesPreviousVersionOfGradleWhichDoesNotSupportToolingApi() {
+    def reportsErrorWhenSpecifiedVersionOfGradleDoesNotSupportToolingApi() {
         def dist = dist.previousVersion('0.9.2').binDistribution
 
         when:

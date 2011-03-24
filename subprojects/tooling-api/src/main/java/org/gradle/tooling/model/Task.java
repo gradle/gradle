@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.model;
 
-import spock.lang.Specification
-
-class DefaultEclipseProjectTest extends Specification {
-    def usesPathForToStringValue() {
-        def project = new DefaultEclipseProject("name", ":path", null, [], [], [], [], [])
-
-        expect:
-        project.toString() == "project ':path'"
-    }
+/**
+ * Represents a task which is executable by Gradle.
+ */
+public interface Task {
+    /**
+     * Returns the name of this task. Note that the name is not necessarily a unique identifier for the task.
+     *
+     * @return The name.
+     */
+    String getName();
 }

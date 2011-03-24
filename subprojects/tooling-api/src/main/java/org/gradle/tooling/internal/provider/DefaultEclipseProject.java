@@ -16,28 +16,33 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
+import org.gradle.tooling.internal.protocol.TaskVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.List;
 
-class DefaultEclipseProject implements EclipseProjectVersion2 {
+class DefaultEclipseProject implements EclipseProjectVersion3 {
     private final String name;
     private final String path;
-    private EclipseProjectVersion2 parent;
+    private EclipseProjectVersion3 parent;
     private final List<ExternalDependencyVersion1> classpath;
-    private final List<EclipseProjectVersion2> children;
+    private final List<EclipseProjectVersion3> children;
     private final List<EclipseSourceDirectoryVersion1> sourceDirectories;
-    private final List<EclipseProjectDependencyVersion1> projectDependencies;
+    private final List<EclipseProjectDependencyVersion2> projectDependencies;
     private final File projectDirectory;
+    private final Iterable<? extends TaskVersion1> tasks;
 
-    public DefaultEclipseProject(String name, String path, File projectDirectory, Iterable<? extends EclipseProjectVersion2> children, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion1> projectDependencies) {
+    public DefaultEclipseProject(String name, String path, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children,
+                                 Iterable<? extends TaskVersion1> tasks, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories,
+                                 Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion2> projectDependencies) {
         this.name = name;
         this.path = path;
         this.projectDirectory = projectDirectory;
+        this.tasks = tasks;
         this.children = GUtil.addLists(children);
         this.classpath = GUtil.addLists(classpath);
         this.sourceDirectories = GUtil.addLists(sourceDirectories);
@@ -53,7 +58,7 @@ class DefaultEclipseProject implements EclipseProjectVersion2 {
         return name;
     }
 
-    public EclipseProjectVersion2 getParent() {
+    public EclipseProjectVersion3 getParent() {
         return parent;
     }
 
@@ -61,11 +66,11 @@ class DefaultEclipseProject implements EclipseProjectVersion2 {
         return projectDirectory;
     }
 
-    public void setParent(EclipseProjectVersion2 parent) {
+    public void setParent(EclipseProjectVersion3 parent) {
         this.parent = parent;
     }
 
-    public List<EclipseProjectVersion2> getChildren() {
+    public List<EclipseProjectVersion3> getChildren() {
         return children;
     }
 
@@ -73,11 +78,15 @@ class DefaultEclipseProject implements EclipseProjectVersion2 {
         return sourceDirectories;
     }
 
-    public Iterable<? extends EclipseProjectDependencyVersion1> getProjectDependencies() {
+    public Iterable<? extends EclipseProjectDependencyVersion2> getProjectDependencies() {
         return projectDependencies;
     }
 
     public List<ExternalDependencyVersion1> getClasspath() {
         return classpath;
+    }
+
+    public Iterable<? extends TaskVersion1> getTasks() {
+        return tasks;
     }
 }
