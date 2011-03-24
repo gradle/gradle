@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion3;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
+import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 
 public class DefaultConnection implements ConnectionVersion3 {
     private final ActorFactory actorFactory;
@@ -76,7 +77,7 @@ public class DefaultConnection implements ConnectionVersion3 {
                 StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
 
                 final GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-                final ModelBuilder builder = new ModelBuilder();
+                final AbstractModelBuilder builder = type.isAssignableFrom(HierarchicalEclipseProjectVersion1.class) ? new MinimalModelBuilder() : new ModelBuilder();
                 gradleLauncher.addListener(builder);
                 gradleLauncher.getBuildAnalysis().rethrowFailure();
                 return type.cast(builder.getCurrentProject());

@@ -13,41 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.tasks.GeneratorTaskConfigurer;
-import org.gradle.plugins.ide.eclipse.EclipseConfigurer;
-import org.gradle.plugins.ide.eclipse.EclipsePlugin;
-import org.gradle.plugins.ide.eclipse.model.EclipseDomainModel;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.TaskVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
-import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
-* @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
-*/
-public class ModelBuilder extends AbstractModelBuilder {
-
-    @Override
+ * Builds the minimal Eclipse model. This is a copy of {@link ModelBuilder}, for now.
+ *
+ * TODO: merge this into {@link ModelBuilder}
+ *
+ * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
+ */
+public class MinimalModelBuilder extends AbstractModelBuilder {
     protected DefaultEclipseProject build(Project project) {
-        EclipseDomainModel eclipseDomainModel = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
-
         Configuration configuration = project.getConfigurations().findByName("testRuntime");
-        List<ExternalDependencyVersion1> dependencies = new ExternalDependenciesFactory().create(project, eclipseDomainModel.getClasspath());
         final List<EclipseProjectDependencyVersion2> projectDependencies = new ArrayList<EclipseProjectDependencyVersion2>();
-
         if (configuration != null) {
             for (final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
                 projectDependencies.add(new EclipseProjectDependencyVersion2() {
@@ -62,15 +53,13 @@ public class ModelBuilder extends AbstractModelBuilder {
             }
         }
 
-        List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, eclipseDomainModel.getClasspath());
-
-        List<TaskVersion1> tasks = new TasksFactory().create(project);
-
         List<DefaultEclipseProject> children = buildChildren(project);
 
-        org.gradle.plugins.ide.eclipse.model.Project internalProject = eclipseDomainModel.getProject();
-        String name = internalProject.getName();
-        String description = GUtil.elvis(internalProject.getComment(), null);
+        String name = project.getName();
+        String description = project.getDescription();
+        List<TaskVersion1> tasks = Collections.emptyList();
+        List<EclipseSourceDirectoryVersion1> sourceDirectories = Collections.emptyList();
+        List<ExternalDependencyVersion1> dependencies = Collections.emptyList();
         DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children, tasks, sourceDirectories, dependencies, projectDependencies);
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
@@ -81,24 +70,5 @@ public class ModelBuilder extends AbstractModelBuilder {
 
     @Override
     protected void configureEclipsePlugin(Project root) {
-        Set<Project> allprojects = root.getAllprojects();
-        for (Project p : allprojects) {
-            if (!p.getPlugins().hasPlugin("eclipse")) {
-                p.getPlugins().apply("eclipse");
-            }
-        }
-
-        //TODO SF: this is quite hacky for now. We should really execute 'eclipseConfigurer' task in a proper gradle fashion
-        EclipseConfigurer eclipseConfigurer = (EclipseConfigurer) root.getTasks().getByName("eclipseConfigurer");
-        eclipseConfigurer.configure();
-
-        for (Project p : allprojects) {
-            p.getTasks().withType(GeneratorTaskConfigurer.class, new Action<GeneratorTaskConfigurer>() {
-                public void execute(GeneratorTaskConfigurer generatorTaskConfigurer) {
-                    generatorTaskConfigurer.configure();
-                }
-            });
-        }
     }
-
 }
