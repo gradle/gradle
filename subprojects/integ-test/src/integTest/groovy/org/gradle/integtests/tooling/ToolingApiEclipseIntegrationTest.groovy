@@ -175,6 +175,45 @@ project(':a') {
         project.projectDependencies[1].targetProject == project.children[0]
     }
 
+    def "can build project dependencies with targetProject references for complex scenarios"() {
+        def projectDir = dist.testDir
+        projectDir.file('settings.gradle').text = '''
+include "c", "a", "a:b"
+rootProject.name = 'root'
+'''
+        projectDir.file('build.gradle').text = '''
+allprojects {
+    apply plugin: 'java'
+}
+project(':a') {
+    dependencies {
+        compile project(':')
+        compile project(':a:b')
+        compile project(':c')
+    }
+}
+project(':c') {
+    dependencies {
+        compile project(':a:b')
+    }
+}
+'''
+
+        when:
+        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        def projectC = rootProject.children.find { it.name == 'c'}
+        def projectA = rootProject.children.find { it.name == 'a'}
+        def projectAB = projectA.children.find { it.name == 'b' }
+
+        projectC.projectDependencies.any {it.targetProject == projectAB}
+
+        projectA.projectDependencies.any {it.targetProject == projectAB}
+        projectA.projectDependencies.any {it.targetProject == projectC}
+        projectA.projectDependencies.any {it.targetProject == rootProject}
+    }
+
     def "can build the eclipse project hierarchy for a multi-project build"() {
         def projectDir = dist.testDir
         projectDir.file('settings.gradle').text = '''
