@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
-import org.gradle.plugins.ide.eclipse.EclipseConfigurer;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseDomainModel;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
@@ -30,7 +29,6 @@ import org.gradle.tooling.internal.provider.dependencies.SourceDirectoriesFactor
 import org.gradle.util.GUtil;
 
 import java.util.List;
-import java.util.Set;
 
 /**
 * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
@@ -59,19 +57,4 @@ public class ModelBuilder extends AbstractModelBuilder {
         addProject(project, eclipseProject);
         return eclipseProject;
     }
-
-    @Override
-    protected void configureEclipsePlugin(Project root) {
-        Set<Project> allprojects = root.getAllprojects();
-        for (Project p : allprojects) {
-            if (!p.getPlugins().hasPlugin("eclipse")) {
-                p.getPlugins().apply("eclipse");
-            }
-        }
-
-        //TODO SF: this is quite hacky for now. We should really execute 'eclipseConfigurer' task in a proper gradle fashion
-        EclipseConfigurer eclipseConfigurer = (EclipseConfigurer) root.getTasks().getByName("eclipseConfigurer");
-        eclipseConfigurer.configure();
-    }
-
 }

@@ -76,11 +76,16 @@ public class DefaultConnection implements ConnectionVersion3 {
             if (type.isAssignableFrom(EclipseProjectVersion3.class)) {
                 StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
 
-                final GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-                final AbstractModelBuilder builder = type.isAssignableFrom(HierarchicalEclipseProjectVersion1.class) ? new MinimalModelBuilder() : new ModelBuilder();
-                gradleLauncher.addListener(builder);
+                GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
+
+                boolean minimalModelOnly = type.isAssignableFrom(HierarchicalEclipseProjectVersion1.class);
+
+                AbstractModelBuilder builder = minimalModelOnly ? new MinimalModelBuilder() : new ModelBuilder();
+                ModelBuildingAdapter adapter = minimalModelOnly ? new ModelBuildingAdapter(builder) : new ModelBuildingAdapter(builder).configurer(new EclipsePluginApplier());
+
+                gradleLauncher.addListener(adapter);
                 gradleLauncher.getBuildAnalysis().rethrowFailure();
-                return type.cast(builder.getCurrentProject());
+                return type.cast(adapter.getProject());
             }
 
             throw new UnsupportedOperationException();

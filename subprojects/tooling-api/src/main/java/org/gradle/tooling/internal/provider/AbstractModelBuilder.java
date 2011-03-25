@@ -15,31 +15,26 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.BuildAdapter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractModelBuilder extends BuildAdapter {
+public abstract class AbstractModelBuilder implements ModelBuildingAdapter.Builder {
     private DefaultEclipseProject currentProject;
     private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
     private GradleInternal gradle;
 
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
-        this.gradle = (GradleInternal) gradle;
-        try {
-            Project root = gradle.getRootProject();
-            configureEclipsePlugin(root);
-            build(root);
-        } finally {
-            this.gradle = null;
-        }
+    public void buildAll(GradleInternal gradle) {
+        this.gradle = gradle;
+        build(gradle.getRootProject());
+    }
+
+    public DefaultEclipseProject getProject() {
+        return currentProject;
     }
 
     protected Map<String, DefaultEclipseProject> getProjectMapping() {
@@ -47,8 +42,6 @@ public abstract class AbstractModelBuilder extends BuildAdapter {
     }
 
     protected abstract DefaultEclipseProject build(Project project);
-
-    protected abstract void configureEclipsePlugin(Project root);
 
     protected List<DefaultEclipseProject> buildChildren(Project project) {
         List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
@@ -67,9 +60,5 @@ public abstract class AbstractModelBuilder extends BuildAdapter {
 
     protected DefaultEclipseProject get(Project project) {
         return projectMapping.get(project.getPath());
-    }
-
-    public DefaultEclipseProject getCurrentProject() {
-        return currentProject;
     }
 }

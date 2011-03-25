@@ -67,8 +67,4 @@ public class MinimalModelBuilder extends AbstractModelBuilder {
         addProject(project, eclipseProject);
         return eclipseProject;
     }
-
-    @Override
-    protected void configureEclipsePlugin(Project root) {
-    }
 }
