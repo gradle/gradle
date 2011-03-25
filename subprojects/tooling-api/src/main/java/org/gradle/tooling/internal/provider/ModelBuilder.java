@@ -16,9 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.tasks.GeneratorTaskConfigurer;
 import org.gradle.plugins.ide.eclipse.EclipseConfigurer;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseDomainModel;
@@ -74,14 +72,6 @@ public class ModelBuilder extends AbstractModelBuilder {
         //TODO SF: this is quite hacky for now. We should really execute 'eclipseConfigurer' task in a proper gradle fashion
         EclipseConfigurer eclipseConfigurer = (EclipseConfigurer) root.getTasks().getByName("eclipseConfigurer");
         eclipseConfigurer.configure();
-
-        for (Project p : allprojects) {
-            p.getTasks().withType(GeneratorTaskConfigurer.class, new Action<GeneratorTaskConfigurer>() {
-                public void execute(GeneratorTaskConfigurer generatorTaskConfigurer) {
-                    generatorTaskConfigurer.configure();
-                }
-            });
-        }
     }
 
 }
