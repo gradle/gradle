@@ -23,7 +23,6 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.api.tasks.GeneratorTaskConfigurer
 import org.gradle.plugins.ide.eclipse.internal.EclipseDomainModelFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.eclipse.model.*
@@ -66,12 +65,6 @@ class EclipsePlugin extends IdePlugin {
         project.tasks.withType(DependsOnConfigurer) { task ->
             //making sure eclipse plugin configurer acts before generator tasks
             task.dependsOn(project.rootProject.eclipseConfigurer)
-            //adding generator task configurer and setting the dependencies
-            def generatorTaskConfigurer = task.project.task(task.name + 'Configurer', description: 'Configures the domain object before generation task can act', type: GeneratorTaskConfigurer) {
-                configurationTarget = task
-            }
-            task.dependsOn(generatorTaskConfigurer)
-            generatorTaskConfigurer.dependsOn(project.rootProject.eclipseConfigurer)
         }
     }
 

@@ -27,9 +27,7 @@ import java.io.File;
 
 /**
  * <p>A {@code GeneratorTask} generates a configuration file based on a domain object of type T.
- * In order to use this task you also need to define a {@code GeneratorTaskConfigurer} task.
- * <p>
- * Given that GeneratorTask was configured along with GeneratorTaskConfigurer, when executed the task:
+ * When executed the task:
  * <ul>
  *
  * <li>loads the object from the input file, if it exists.</li>
@@ -169,7 +167,7 @@ public class GeneratorTask<T> extends ConventionTask implements ConfigurationTar
 
     protected T getDomainObject() {
         if (this.domainObject == null) {
-            throw new IllegalStateException("Domain object was not configured for this task. See configureDomainObject() method. Did the configuration task run?");
+            throw new IllegalStateException("Domain object was not configured for this task. See configureDomainObject() method.");
         }
         return this.domainObject;
     }

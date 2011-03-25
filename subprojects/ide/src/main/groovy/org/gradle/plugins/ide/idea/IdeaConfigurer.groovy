@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.tasks.generator.ConfigurationTarget
 import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
 import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
@@ -31,5 +32,9 @@ class IdeaConfigurer extends ConventionTask {
         new ProjectDeduper().dedupe(ideaProjects, { project ->
             new DeduplicationTarget(project: project, moduleName: project.ideaModule.moduleName, moduleNameSetter: { project.ideaModule.moduleName = it } )
         })
+
+        ideaProjects.each { project ->
+            project.tasks.withType(ConfigurationTarget) { it.configureDomainObject() }
+        }
     }
 }

@@ -56,21 +56,6 @@ class EclipsePluginTest extends Specification {
         [project.eclipseClasspath, project.eclipseJdt, project.eclipseProject].each {
             assert it.dependsOn.contains(project.eclipseConfigurer)
         }
-
-        project.eclipseClasspath.dependsOn.contains(project.eclipseClasspathConfigurer)
-        project.eclipseJdt.dependsOn.contains(project.eclipseJdtConfigurer)
-        project.eclipseProject.dependsOn.contains(project.eclipseProjectConfigurer)
-    }
-
-    def "makes sure that generator configuration tasks run after plugin configurer"() {
-        when:
-        project.apply(plugin: 'java-base')
-        eclipsePlugin.apply(project)
-
-        then:
-        [project.eclipseClasspathConfigurer, project.eclipseJdtConfigurer, project.eclipseProjectConfigurer].each {
-            assert it.dependsOn.contains(project.eclipseConfigurer)
-        }
     }
 
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {
