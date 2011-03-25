@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
-import org.gradle.plugins.ide.eclipse.EclipseConfigurer;
+import org.gradle.api.internal.GradleInternal;
 
 import java.util.Set;
 
@@ -25,16 +25,12 @@ import java.util.Set;
  * @author Szczepan Faber, @date: 25.03.11
  */
 public class EclipsePluginApplier implements ModelBuildingAdapter.Configurer {
-    public void configure(Project rootProject) {
-        Set<Project> allprojects = rootProject.getAllprojects();
+    public void configure(GradleInternal gradle) {
+        Set<Project> allprojects = gradle.getRootProject().getAllprojects();
         for (Project p : allprojects) {
             if (!p.getPlugins().hasPlugin("eclipse")) {
                 p.getPlugins().apply("eclipse");
             }
         }
-
-        //TODO SF: this is quite hacky for now. We should really execute 'eclipseConfigurer' task in a proper gradle fashion
-        EclipseConfigurer eclipseConfigurer = (EclipseConfigurer) rootProject.getTasks().getByName("eclipseConfigurer");
-        eclipseConfigurer.configure();
     }
 }

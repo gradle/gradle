@@ -26,6 +26,8 @@ import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 
+import static org.codehaus.groovy.runtime.InvokerHelper.asList;
+
 public class DefaultConnection implements ConnectionVersion3 {
     private final ActorFactory actorFactory;
     private final ConnectionParametersVersion1 parameters;
@@ -75,16 +77,23 @@ public class DefaultConnection implements ConnectionVersion3 {
         private <T extends ProjectVersion3> T build(Class<T> type) throws UnsupportedOperationException {
             if (type.isAssignableFrom(EclipseProjectVersion3.class)) {
                 StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
+                startParameter.setTaskNames(asList(":eclipseConfigurer"));
 
                 GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
 
-                boolean minimalModelOnly = type.isAssignableFrom(HierarchicalEclipseProjectVersion1.class);
-
-                AbstractModelBuilder builder = minimalModelOnly ? new MinimalModelBuilder() : new ModelBuilder();
-                ModelBuildingAdapter adapter = minimalModelOnly ? new ModelBuildingAdapter(builder) : new ModelBuildingAdapter(builder).configurer(new EclipsePluginApplier());
-
+                ModelBuildingAdapter adapter = new ModelBuildingAdapter();
                 gradleLauncher.addListener(adapter);
-                gradleLauncher.getBuildAnalysis().rethrowFailure();
+
+                boolean minimalModelOnly = type.isAssignableFrom(HierarchicalEclipseProjectVersion1.class);
+                if (minimalModelOnly) {
+                    adapter.setBuilder(new MinimalModelBuilder());
+                    gradleLauncher.getBuildAnalysis().rethrowFailure();
+                } else {
+                    adapter.setConfigurer(new EclipsePluginApplier());
+                    adapter.setBuilder(new ModelBuilder());
+                    gradleLauncher.run().rethrowFailure();
+                }
+
                 return type.cast(adapter.getProject());
             }
 
