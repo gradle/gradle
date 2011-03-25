@@ -21,3 +21,12 @@ task startScripts << {
     ant.mkdir(dir: startScriptsDir)
     StartScriptsGenerator.generate(jar.archiveName, startScriptsDir, 'gradle')
 }
+
+ideaModule {
+    scopes.RUNTIME.plus << rootProject.configurations.runtime
+    scopes.RUNTIME.plus << rootProject.configurations.plugins
+}
+eclipseClasspath {
+    plusConfigurations << rootProject.configurations.runtime
+    plusConfigurations << rootProject.configurations.plugins
+}
