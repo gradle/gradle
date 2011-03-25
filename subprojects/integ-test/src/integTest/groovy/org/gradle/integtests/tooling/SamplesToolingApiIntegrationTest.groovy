@@ -15,11 +15,13 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.junit.Rule
-import spock.lang.Specification
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.internal.IntegrationTestHint
+import org.junit.Rule
+import spock.lang.Specification
 
 class SamplesToolingApiIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -35,11 +37,19 @@ class SamplesToolingApiIntegrationTest extends Specification {
         }
 
         when:
-        def result = executer.inDirectory(sample.dir).withTasks('run').run()
+        def result = run(sample.dir, 'run')
 
         then:
         result.output.contains("gradle-tooling-api-${distribution.version}.jar")
         result.output.contains("gradle-core-${distribution.version}.jar")
         result.output.contains("gradle-wrapper-${distribution.version}.jar")
+    }
+
+    private ExecutionResult run(dir, task) {
+        try {
+            return executer.inDirectory(dir).withTasks(task).run()
+        } catch (Exception e) {
+            throw new IntegrationTestHint(e);
+        }
     }
 }

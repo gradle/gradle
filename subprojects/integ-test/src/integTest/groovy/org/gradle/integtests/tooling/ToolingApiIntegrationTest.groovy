@@ -16,9 +16,9 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Project
 import org.gradle.util.GradleVersion
-import org.gradle.tooling.UnsupportedVersionException
 
 class ToolingApiIntegrationTest extends ToolingApiSpecification {
     def "tooling api uses to the current version of gradle when none has been specified"() {
@@ -78,10 +78,10 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         when:
         GradleConnector connector = GradleConnector.newConnector()
         connector.useDistribution(dist.toURI())
-        withConnection(connector) { connection -> connection.getModel(Project.class) }
+        def e = maybeFailWithConnection(connector) { connection -> connection.getModel(Project.class) }
 
         then:
-        UnsupportedVersionException e = thrown()
+        e.class == UnsupportedVersionException
         e.message == "The specified Gradle distribution '${dist.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 3)"
     }
 }
