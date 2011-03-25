@@ -17,33 +17,30 @@ package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.file.SingletonFileCollection;
+import org.gradle.api.internal.file.SingletonFileTree;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GUtil;
 import org.gradle.util.UncheckedException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.File;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 public class DefaultFileCollectionResolveContext implements FileCollectionResolveContext {
     private final FileResolver fileResolver;
-    private final TaskDependency defaultBuiltBy;
     private final List<Object> queue = new LinkedList<Object>();
     private List<Object> addTo = queue;
 
     public DefaultFileCollectionResolveContext() {
-        this(new IdentityFileResolver(), new DefaultTaskDependency());
+        this(new IdentityFileResolver());
     }
 
-    public DefaultFileCollectionResolveContext(FileResolver fileResolver, TaskDependency defaultBuiltBy) {
+    public DefaultFileCollectionResolveContext(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
-        this.defaultBuiltBy = defaultBuiltBy;
     }
 
     public void add(Object element) {
@@ -51,33 +48,37 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
     }
 
     public DefaultFileCollectionResolveContext push(FileResolver fileResolver) {
-        DefaultFileCollectionResolveContext nestedContext = new DefaultFileCollectionResolveContext(fileResolver, defaultBuiltBy);
+        DefaultFileCollectionResolveContext nestedContext = new DefaultFileCollectionResolveContext(fileResolver);
         add(nestedContext);
         return nestedContext;
     }
 
     /**
+     * Resolves the contents of this context as a list of atomic {@link FileTree} instances.
+     */
+    public List<FileTree> resolveAsFileTrees() {
+        return doResolve(new FileTreeConverter());
+    }
+
+    /**
      * Resolves the contents of this context as a list of atomic {@link FileCollection} instances.
      */
-    public List<FileCollection> resolve() {
-        List<FileCollection> result = new ArrayList<FileCollection>();
+    public List<FileCollection> resolveAsFileCollections() {
+        return doResolve(new FileCollectionConverter());
+    }
+
+    private <T> List<T> doResolve(Converter<T> converter) {
+        List<T> result = new ArrayList<T>();
         while (!queue.isEmpty()) {
             Object element = queue.remove(0);
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
-                result.addAll(0, nestedContext.resolve());
+                converter.convertInto(nestedContext, result);
             } else if (element instanceof FileCollectionContainer) {
                 FileCollectionContainer fileCollection = (FileCollectionContainer) element;
                 resolveNested(fileCollection);
-            } else if (element instanceof FileCollection) {
-                FileCollection fileCollection = (FileCollection) element;
-                result.add(fileCollection);
-            } else if (element instanceof MinimalFileCollection) {
-                MinimalFileCollection fileCollection = (MinimalFileCollection) element;
-                result.add(new FileCollectionAdapter(fileCollection));
-            } else if (element instanceof MinimalFileTree) {
-                MinimalFileTree fileTree = (MinimalFileTree) element;
-                result.add(new FileTreeAdapter(fileTree));
+            } else if (element instanceof FileCollection || element instanceof MinimalFileCollection || element instanceof MapFileTree) {
+                converter.convertInto(element, result);
             } else if (element instanceof Closure) {
                 Closure closure = (Closure) element;
                 Object closureResult = closure.call();
@@ -101,10 +102,8 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             } else if (element instanceof Object[]) {
                 Object[] array = (Object[]) element;
                 GUtil.addToCollection(queue.subList(0, 0), Arrays.asList(array));
-            } else if (element instanceof TaskDependency) {
-                result.add(new FileTreeAdapter(new EmptyFileTree((TaskDependency)element)));
             } else {
-                result.add(new SingletonFileCollection(fileResolver.resolve(element), defaultBuiltBy));
+                converter.convertInto(element, result);
             }
         }
         return result;
@@ -116,6 +115,59 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             fileCollection.resolve(this);
         } finally {
             addTo = queue;
+        }
+    }
+
+    private interface Converter<T> {
+        void convertInto(Object o, Collection<? super T> result);
+    }
+
+    private class FileCollectionConverter implements Converter<FileCollection> {
+        public void convertInto(Object element, Collection<? super FileCollection> result) {
+            if (element instanceof DefaultFileCollectionResolveContext) {
+                DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
+                result.addAll(nestedContext.resolveAsFileCollections());
+            } else if (element instanceof FileCollection) {
+                FileCollection fileCollection = (FileCollection) element;
+                result.add(fileCollection);
+            } else if (element instanceof MinimalFileCollection) {
+                MinimalFileCollection fileCollection = (MinimalFileCollection) element;
+                result.add(new FileCollectionAdapter(fileCollection));
+            } else if (element instanceof MinimalFileTree) {
+                MinimalFileTree fileTree = (MinimalFileTree) element;
+                result.add(new FileTreeAdapter(fileTree));
+            } else if (element instanceof TaskDependency) {
+                result.add(new FileTreeAdapter(new EmptyFileTree((TaskDependency) element)));
+            } else {
+                result.add(new FileCollectionAdapter(new ListBackedFileCollection(fileResolver.resolve(element))));
+            }
+        }
+    }
+
+    private class FileTreeConverter implements Converter<FileTree> {
+        public void convertInto(Object element, Collection<? super FileTree> result) {
+            if (element instanceof DefaultFileCollectionResolveContext) {
+                DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
+                result.addAll(nestedContext.resolveAsFileTrees());
+            } else if (element instanceof FileTree) {
+                FileTree fileTree = (FileTree) element;
+                result.add(fileTree);
+            } else if (element instanceof FileCollection) {
+                FileCollection fileCollection = (FileCollection) element;
+                result.add(fileCollection.getAsFileTree());
+            } else if (element instanceof MinimalFileCollection) {
+                MinimalFileCollection fileCollection = (MinimalFileCollection) element;
+                for (File file : fileCollection.getFiles()) {
+                    result.add(new SingletonFileTree(file, new DefaultTaskDependency()));
+                }
+            } else if (element instanceof MinimalFileTree) {
+                MinimalFileTree fileTree = (MinimalFileTree) element;
+                result.add(new FileTreeAdapter(fileTree));
+            } else if (element instanceof TaskDependency) {
+                result.add(new FileTreeAdapter(new EmptyFileTree((TaskDependency) element)));
+            } else {
+                result.add(new SingletonFileTree(fileResolver.resolve(element), new DefaultTaskDependency()));
+            }
         }
     }
 }

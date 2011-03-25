@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.internal.file.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.util.WrapUtil;
 import org.junit.Test;

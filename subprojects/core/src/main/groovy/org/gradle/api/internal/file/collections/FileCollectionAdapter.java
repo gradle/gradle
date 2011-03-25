@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Set;
@@ -43,7 +42,7 @@ public class FileCollectionAdapter extends AbstractFileCollection implements Fil
     }
 
     public Set<File> getFiles() {
-        return GUtil.addSets(fileCollection);
+        return fileCollection.getFiles();
     }
 
     @Override

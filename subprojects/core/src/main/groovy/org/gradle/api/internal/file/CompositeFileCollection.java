@@ -84,19 +84,14 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
         return new CompositeFileTree() {
             @Override
             protected void resolve(FileCollectionResolveContext context) {
-                for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
-                    context.add(collection.getAsFileTree());
-                }
+                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext();
+                CompositeFileCollection.this.resolve(nested);
+                context.add(nested.resolveAsFileTrees());
             }
 
             @Override
             public String getDisplayName() {
                 return CompositeFileCollection.this.getDisplayName();
-            }
-
-            @Override
-            public TaskDependency getBuildDependencies() {
-                return CompositeFileCollection.this.getBuildDependencies();
             }
         };
     }
@@ -145,7 +140,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
     public List<? extends FileCollection> getSourceCollections() {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
         resolve(context);
-        return context.resolve();
+        return context.resolveAsFileCollections();
     }
 
     protected abstract void resolve(FileCollectionResolveContext context);

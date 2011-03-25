@@ -44,8 +44,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DirectoryFileTreeTest {
@@ -257,6 +257,21 @@ public class DirectoryFileTreeTest {
         assertFalse(fileTree.contains(excludedFile));
         assertFalse(fileTree.contains(notUnderRoot));
         assertFalse(fileTree.contains(doesNotExist));
+    }
+
+    @Test
+    public void hasUsefulDisplayName() {
+        DirectoryFileTree treeWithNoIncludesOrExcludes = new DirectoryFileTree(tmpDir.getDir());
+        PatternSet includesOnly = new PatternSet();
+        includesOnly.include("a/b", "c");
+        DirectoryFileTree treeWithIncludes = new DirectoryFileTree(tmpDir.getDir(), includesOnly);
+        PatternSet excludesOnly = new PatternSet();
+        excludesOnly.exclude("a/b", "c");
+        DirectoryFileTree treeWithExcludes = new DirectoryFileTree(tmpDir.getDir(), excludesOnly);
+
+        assertThat(treeWithNoIncludesOrExcludes.getDisplayName(), equalTo(String.format("directory '%s'", tmpDir.getDir())));
+        assertThat(treeWithIncludes.getDisplayName(), equalTo(String.format("directory '%s' include 'a/b', 'c'", tmpDir.getDir())));
+        assertThat(treeWithExcludes.getDisplayName(), equalTo(String.format("directory '%s' exclude 'a/b', 'c'", tmpDir.getDir())));
     }
 
     private Action stopVisiting() {

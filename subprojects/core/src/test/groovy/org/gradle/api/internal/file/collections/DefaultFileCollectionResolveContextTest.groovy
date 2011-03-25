@@ -19,25 +19,31 @@ import spock.lang.Specification
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.file.FileCollection
 import java.util.concurrent.Callable
-import org.gradle.api.internal.file.SingletonFileCollection
+
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.SingletonFileTree
 
 class DefaultFileCollectionResolveContextTest extends Specification {
     final FileResolver resolver = Mock()
-    final TaskDependency builtBy = Mock()
-    final DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver, builtBy)
+    final DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver)
 
-    def resolvesWhenNothingAdded() {
+    def resolveAsFileCollectionReturnsEmptyListWhenContextIsEmpty() {
         expect:
-        context.resolve() == []
+        context.resolveAsFileCollections() == []
     }
 
-    def resolveWrapsAMinimalFileCollection() {
+    def resolveAsFileTreeReturnsEmptyListWhenContextIsEmpty() {
+        expect:
+        context.resolveAsFileTrees() == []
+    }
+
+    def resolveAsFileCollectionWrapsAMinimalFileCollection() {
         MinimalFileCollection fileCollection = Mock()
 
         when:
         context.add(fileCollection)
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result.size() == 1
@@ -45,12 +51,30 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0].fileCollection == fileCollection
     }
 
-    def resolveWrapsAMinimalFileTree() {
+    def resolveAsFileTreeConvertsTheElementsOfMinimalFileCollection() {
+        MinimalFileCollection fileCollection = Mock()
+        File file1 = new File('file1')
+        File file2 = new File('file2')
+
+        when:
+        context.add(fileCollection)
+        def result = context.resolveAsFileTrees()
+
+        then:
+        result.size() == 2
+        result[0] instanceof SingletonFileTree
+        result[0].file == file1
+        result[1] instanceof SingletonFileTree
+        result[1].file == file2
+        1 * fileCollection.files >> ([file1, file2] as LinkedHashSet)
+    }
+
+    def resolveAsFileCollectionWrapsAMinimalFileTree() {
         MinimalFileTree fileTree = Mock()
 
         when:
         context.add(fileTree)
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result.size() == 1
@@ -58,24 +82,63 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0].tree == fileTree
     }
 
-    def resolvesAFileCollection() {
+    def resolveAsFileTreesWrapsAMinimalFileTree() {
+        MinimalFileTree fileTree = Mock()
+
+        when:
+        context.add(fileTree)
+        def result = context.resolveAsFileTrees()
+
+        then:
+        result.size() == 1
+        result[0] instanceof FileTreeAdapter
+        result[0].tree == fileTree
+    }
+
+    def resolveAsFileCollectionsForAFileCollection() {
         FileCollection fileCollection = Mock()
 
         when:
         context.add(fileCollection)
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result == [fileCollection]
     }
 
-    def resolvesACompositeFileCollection() {
+    def resolveAsFileTreesDelegatesToAFileCollection() {
+        FileCollection fileCollection = Mock()
+        FileTree fileTree = Mock()
+
+        when:
+        context.add(fileCollection)
+        def result = context.resolveAsFileTrees()
+
+        then:
+        result == [fileTree]
+        1 * fileCollection.asFileTree >> fileTree
+    }
+    
+    def resolveAsFileCollectionsDelegatesToACompositeFileCollection() {
         FileCollectionContainer composite = Mock()
         FileCollection contents = Mock()
 
         when:
         context.add(composite)
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
+
+        then:
+        result == [contents]
+        1 * composite.resolve(!null) >> { it[0].add(contents) }
+    }
+
+    def resolveAsFileTreesDelegatesToACompositeFileCollection() {
+        FileCollectionContainer composite = Mock()
+        FileTree contents = Mock()
+
+        when:
+        context.add(composite)
+        def result = context.resolveAsFileTrees()
 
         then:
         result == [contents]
@@ -92,7 +155,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         when:
         context.add(parent1)
         context.add(child3)
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result == [child1, child2, child3]
@@ -105,7 +168,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         when:
         context.add { content }
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result == [content]
@@ -114,7 +177,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
     def resolvesAClosureWhichReturnsNull() {
         when:
         context.add { null }
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result == []
@@ -126,7 +189,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         when:
         context.add(callable)
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         1 * callable.call() >> content
@@ -138,7 +201,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         when:
         context.add(callable)
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         1 * callable.call() >> null
@@ -151,7 +214,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         when:
         context.add(iterable)
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         1 * iterable.iterator() >> [content].iterator()
@@ -163,18 +226,18 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         when:
         context.add([content] as Object[])
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result == [content]
     }
 
-    def resolvesATaskDependency() {
+    def resolveAsFileCollectionsWrapsATaskDependencyInAnEmptyFileTree() {
         TaskDependency dependency = Mock()
 
         when:
         context.add(dependency)
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result.size() == 1
@@ -183,40 +246,88 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0].tree.buildDependencies == dependency
     }
 
-    def usesFileResolverToResolveOtherTypes() {
+    def resolveAsFileTreesWrapsATaskDependencyInAnEmptyFileTree() {
+        TaskDependency dependency = Mock()
+
+        when:
+        context.add(dependency)
+        def result = context.resolveAsFileTrees()
+
+        then:
+        result.size() == 1
+        result[0] instanceof FileTreeAdapter
+        result[0].tree instanceof EmptyFileTree
+        result[0].tree.buildDependencies == dependency
+    }
+
+    def resolveAsFileCollectionsUsesFileResolverToResolveOtherTypes() {
         File file1 = new File('a')
         File file2 = new File('b')
 
         when:
         context.add('a')
         context.add('b')
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result.size() == 2
-        result[0] instanceof SingletonFileCollection
-        result[0].file == file1
-        result[0].builtBy == builtBy
-        result[1] instanceof SingletonFileCollection
-        result[1].file == file2
-        result[1].builtBy == builtBy
+        result[0] instanceof FileCollectionAdapter
+        result[0].fileCollection instanceof ListBackedFileCollection
+        result[0].fileCollection.files as List == [file1]
+        result[1] instanceof FileCollectionAdapter
+        result[1].fileCollection instanceof ListBackedFileCollection
+        result[1].fileCollection.files as List == [file2]
         1 * resolver.resolve('a') >> file1
         1 * resolver.resolve('b') >> file2
     }
 
-    def canPushContext() {
+    def resolveAsFileTreeUsesFileResolverToResolveOtherTypes() {
+        File file1 = new File('a')
+        File file2 = new File('b')
+
+        when:
+        context.add('a')
+        context.add('b')
+        def result = context.resolveAsFileTrees()
+
+        then:
+        result.size() == 2
+        result[0] instanceof SingletonFileTree
+        result[0].file == file1
+        result[1] instanceof SingletonFileTree
+        result[1].file == file2
+        1 * resolver.resolve('a') >> file1
+        1 * resolver.resolve('b') >> file2
+    }
+
+    def canPushContextWhichUsesADifferentFileResolverToConvertToFileCollections() {
         FileResolver fileResolver = Mock()
         File file = new File('a')
 
         when:
         context.push(fileResolver).add('a')
-        def result = context.resolve()
+        def result = context.resolveAsFileCollections()
 
         then:
         result.size() == 1
-        result[0] instanceof SingletonFileCollection
+        result[0] instanceof FileCollectionAdapter
+        result[0].fileCollection instanceof ListBackedFileCollection
+        result[0].fileCollection.files as List == [file]
+        1 * fileResolver.resolve('a') >> file
+    }
+
+    def canPushContextWhichUsesADifferentFileResolverToConvertToFileTrees() {
+        FileResolver fileResolver = Mock()
+        File file = new File('a')
+
+        when:
+        context.push(fileResolver).add('a')
+        def result = context.resolveAsFileTrees()
+
+        then:
+        result.size() == 1
+        result[0] instanceof SingletonFileTree
         result[0].file == file
-        result[0].builtBy == builtBy
         1 * fileResolver.resolve('a') >> file
     }
 }

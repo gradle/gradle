@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +65,9 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     public String getDisplayName() {
-        return String.format("directory '%s'", root);
+        String includes = patternSet.getIncludes().isEmpty() ? "" : String.format(" include %s", GUtil.toString(patternSet.getIncludes()));
+        String excludes = patternSet.getExcludes().isEmpty() ? "" : String.format(" exclude %s", GUtil.toString(patternSet.getExcludes()));
+        return String.format("directory '%s'%s%s", root, includes, excludes);
     }
 
     public PatternSet getPatternSet() {

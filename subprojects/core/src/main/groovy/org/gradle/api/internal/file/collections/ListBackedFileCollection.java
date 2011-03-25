@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.collections;
 
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
-public class SimpleFileCollection extends AbstractFileCollection {
+/**
+ * Adapts a java util collection into a file collection.
+ */
+public class ListBackedFileCollection implements MinimalFileCollection {
     private final Set<File> files;
 
-    public SimpleFileCollection(File... files) {
-        if (files.length > 0) {
-            this.files = new LinkedHashSet<File>(Arrays.asList(files));
-        } else {
-            this.files = Collections.emptySet();
-        }
+    public ListBackedFileCollection(File... files) {
+        this(Arrays.asList(files));
     }
 
-    public SimpleFileCollection(Iterable<File> files) {
-        this.files = new LinkedHashSet<File>();
-        GUtil.addToCollection(this.files, files);
+    public ListBackedFileCollection(Collection<File> files) {
+        this.files = new LinkedHashSet<File>(files);
     }
 
-    @Override
     public String getDisplayName() {
-        return "file collection";
+        switch (files.size()) {
+            case 0:
+                return "empty file collection";
+            case 1:
+                return String.format("file '%s'", files.iterator().next());
+            default:
+                return String.format("files %s", GUtil.toString(files));
+        }
     }
 
     public Set<File> getFiles() {

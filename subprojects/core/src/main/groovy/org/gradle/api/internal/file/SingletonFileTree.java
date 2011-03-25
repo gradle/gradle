@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.*;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 
-class SingletonFileTree extends CompositeFileTree {
+public class SingletonFileTree extends CompositeFileTree {
     private final File file;
     private final TaskDependency builtBy;
 
@@ -45,27 +44,7 @@ class SingletonFileTree extends CompositeFileTree {
         if (file.isDirectory()) {
             context.add(new DirectoryFileTree(file));
         } else if (file.isFile()) {
-            context.add(new FileFileTree());
-        }
-    }
-
-    private class FileVisitDetailsImpl extends DefaultFileTreeElement implements FileVisitDetails {
-        private FileVisitDetailsImpl() {
-            super(file, new RelativePath(true, file.getName()));
-        }
-
-        public void stopVisiting() {
-        }
-    }
-
-    private class FileFileTree extends AbstractFileTree {
-        public String getDisplayName() {
-            return SingletonFileTree.this.getDisplayName();
-        }
-
-        public FileTree visit(FileVisitor visitor) {
-            visitor.visitFile(new FileVisitDetailsImpl());
-            return this;
+            context.add(new org.gradle.api.internal.file.collections.SingletonFileTree(file));
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.collections;
+package org.gradle.api.internal.file.collections
 
-import java.io.File;
-import java.util.Set;
+import spock.lang.Specification
 
-/**
- * A minimal file collection. An implementation can optionally also implement the following interfaces:
- *
- * <ul>
- * <li>{@link org.gradle.api.Buildable}</li>
- * <li>{@link RandomAccessFileCollection}</li>
- * </ul>
- */
-public interface MinimalFileCollection {
-    Set<File> getFiles();
+class SimpleFileCollectionTest extends Specification {
+    def collectionContainsFixedSetOfFiles() {
+        File file1 = new File('file1')
+        File file2 = new File('file2')
 
-    String getDisplayName();
+        expect:
+        SimpleFileCollection collection = new SimpleFileCollection(file1, file2)
+        collection.files as List == [file1, file2]
+    }
 }

@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.CompositeFileTree;
-import org.gradle.api.internal.file.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.tasks.testing.TestFramework;

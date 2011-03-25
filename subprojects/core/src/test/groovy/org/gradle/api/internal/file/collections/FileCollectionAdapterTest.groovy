@@ -24,14 +24,14 @@ class FileCollectionAdapterTest extends Specification {
     def delegatesToTargetCollectionToBuildSetOfFiles() {
         MinimalFileCollection collection = Mock()
         FileCollectionAdapter adapter = new FileCollectionAdapter(collection)
-        def expectedFiles = [new File('a'), new File('b')]
+        def expectedFiles = [new File('a'), new File('b')] as Set
 
         when:
         def files = adapter.files
 
         then:
-        files == (expectedFiles as LinkedHashSet)
-        1 * collection.iterator() >> expectedFiles.iterator()
+        files == expectedFiles
+        1 * collection.getFiles() >> expectedFiles
         0 * _._
     }
 

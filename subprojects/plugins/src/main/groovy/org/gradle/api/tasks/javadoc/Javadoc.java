@@ -18,7 +18,6 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
@@ -70,7 +69,7 @@ public class Javadoc extends SourceTask {
 
     private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
 
-    private FileCollection classpath = new SimpleFileCollection();
+    private FileCollection classpath = getProject().files();
 
     private String executable;
 

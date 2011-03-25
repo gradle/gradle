@@ -19,7 +19,7 @@ package org.gradle.api.tasks.javadoc;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;

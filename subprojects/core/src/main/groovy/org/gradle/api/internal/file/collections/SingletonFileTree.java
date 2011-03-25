@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,40 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.DefaultFileTreeElement;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 
-public class SingletonFileCollection extends AbstractFileCollection {
+public class SingletonFileTree implements MinimalFileTree {
     private final File file;
-    private final TaskDependency builtBy;
 
-    public SingletonFileCollection(File file, TaskDependency builtBy) {
+    public SingletonFileTree(File file) {
         this.file = file;
-        this.builtBy = builtBy;
     }
 
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return builtBy;
-    }
-
-    @Override
     public String getDisplayName() {
         return String.format("file '%s'", file);
     }
 
-    public Set<File> getFiles() {
-        return Collections.singleton(file);
+    public void visit(FileVisitor visitor) {
+        visitor.visitFile(new FileVisitDetailsImpl());
     }
 
-    @Override
-    public FileTree getAsFileTree() {
-        return new SingletonFileTree(file, builtBy);
+    private class FileVisitDetailsImpl extends DefaultFileTreeElement implements FileVisitDetails {
+        private FileVisitDetailsImpl() {
+            super(file, new RelativePath(true, file.getName()));
+        }
+
+        public void stopVisiting() {
+        }
     }
+
 }

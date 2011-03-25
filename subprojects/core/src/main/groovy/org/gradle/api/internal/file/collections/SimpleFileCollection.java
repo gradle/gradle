@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file
+package org.gradle.api.internal.file.collections;
 
-import spock.lang.Specification
+import java.io.File;
+import java.util.Collection;
 
-class SimpleFileCollectionTest extends Specification {
-    def collectionContainsFixedSetOfFiles() {
-        File file1 = new File('file1')
-        File file2 = new File('file2')
+public class SimpleFileCollection extends FileCollectionAdapter {
+    public SimpleFileCollection(File... files) {
+        super(new ListBackedFileCollection(files));
+    }
 
-        expect:
-        SimpleFileCollection collection = new SimpleFileCollection(file1, file2)
-        collection.files as List == [file1, file2]
+    public SimpleFileCollection(Collection<File> files) {
+        super(new ListBackedFileCollection(files));
     }
 }
