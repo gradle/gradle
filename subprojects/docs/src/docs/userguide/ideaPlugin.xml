@@ -125,7 +125,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.idea.IdeaProject"/></td>
+                <td><apilink class="org.gradle.plugins.ide.idea.IdeaProject"/></td>
                 <td>Generates the <literal>.ipr</literal> file. This task is only added to the root project.</td>
             </tr>
             <tr>
@@ -135,7 +135,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.idea.IdeaModule"/></td>
+                <td><apilink class="org.gradle.plugins.ide.idea.IdeaModule"/></td>
                 <td>Generates the <literal>.iml</literal> file</td>
             </tr>
             <tr>
@@ -145,8 +145,8 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.idea.IdeaWorkspace"/></td>
-                <td>Generates the <literal>.iws</literal> file</td>
+                <td><apilink class="org.gradle.plugins.ide.idea.IdeaWorkspace"/></td>
+                <td>Generates the <literal>.iws</literal> file. This task is only added to the root project.</td>
             </tr>
         </table>
 
@@ -463,21 +463,21 @@
                     </tr>
                 </thead>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.idea.IdeaProject"/></td>
-                    <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
-                    <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.IdeaProject"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.model.Project"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.model.Project"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.idea.IdeaModule"/></td>
-                    <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
-                    <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.IdeaModule"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.model.Module"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.model.Module"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.idea.IdeaWorkspace"/></td>
-                    <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
-                    <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.IdeaWorkspace"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.model.Workspace"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.model.Workspace"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
             </table>

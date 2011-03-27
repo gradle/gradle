@@ -19,7 +19,7 @@ import spock.lang.Specification
 
 class DefaultEclipseProjectTest extends Specification {
     def usesPathForToStringValue() {
-        def project = new DefaultEclipseProject("name", ":path", null, [], [], [], [])
+        def project = new DefaultEclipseProject("name", ":path", null, null, [], [], [], [], [])
 
         expect:
         project.toString() == "project ':path'"

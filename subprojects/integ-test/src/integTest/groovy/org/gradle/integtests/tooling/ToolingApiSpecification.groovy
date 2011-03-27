@@ -15,13 +15,15 @@
  */
 package org.gradle.integtests.tooling
 
-import spock.lang.Specification
-import org.gradle.tooling.internal.consumer.DistributionFactory
-import org.junit.Rule
-import org.gradle.util.SetSystemProperties
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.tooling.ProjectConnection
+import org.gradle.integtests.fixtures.internal.IntegrationTestHint
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.internal.consumer.DistributionFactory
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
+import spock.lang.Specification
 
 class ToolingApiSpecification extends Specification {
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
@@ -37,10 +39,28 @@ class ToolingApiSpecification extends Specification {
     }
 
     def withConnection(GradleConnector connector, Closure cl) {
+        configureConnector(connector)
+        try {
+            withConnectionRaw(connector, cl)
+        } catch (UnsupportedVersionException e) {
+            throw new IntegrationTestHint(e);
+        }
+    }
+
+    private def configureConnector(GradleConnector connector) {
         connector.useGradleUserHomeDir(dist.userHomeDir)
         connector.forProjectDirectory(dist.testDir)
         connector.searchUpwards(false)
-        withConnectionRaw(connector, cl)
+    }
+
+    def maybeFailWithConnection(GradleConnector connector, Closure cl) {
+        configureConnector(connector)
+        try {
+            withConnectionRaw(connector, cl)
+        } catch (Throwable e) {
+            return e
+        }
+        return null
     }
 
     def withConnectionRaw(GradleConnector connector, Closure cl) {

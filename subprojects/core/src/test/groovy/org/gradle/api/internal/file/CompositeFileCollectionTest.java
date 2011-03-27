@@ -18,6 +18,8 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.jmock.Expectations;
@@ -271,8 +273,8 @@ public class CompositeFileCollectionTest {
         }
 
         @Override
-        protected void addSourceCollections(Collection<FileCollection> sources) {
-            sources.addAll(sourceCollections);
+        protected void resolve(FileCollectionResolveContext context) {
+            context.add(sourceCollections);
         }
     }
 }

@@ -485,7 +485,7 @@ def guessMaxForks() {
     return Math.max(2, (int) (processors / 2))
 }
 
-task testedDists(dependsOn: [assemble, check, 'integTest:integTest', 'integTest:embeddedIntegTest', 'openApi:integTest', ':ui:integTest'])
+task testedDists(dependsOn: [assemble, check, 'integTest:integTest', 'integTest:embeddedIntegTest', 'openApi:integTest', ':ui:integTest', 'ide:integTest'])
 
 task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 

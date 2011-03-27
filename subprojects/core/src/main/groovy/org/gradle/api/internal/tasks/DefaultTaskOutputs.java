@@ -23,18 +23,18 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.PathResolvingFileCollection;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
-    private final PathResolvingFileCollection outputFiles;
+    private final DefaultConfigurableFileCollection outputFiles;
     private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
     private TaskExecutionHistory history;
 
     public DefaultTaskOutputs(FileResolver resolver, TaskInternal task) {
-        outputFiles = new PathResolvingFileCollection("task output files", resolver, null);
+        outputFiles = new DefaultConfigurableFileCollection("task output files", resolver, null);
         outputFiles.builtBy(task);
     }
 

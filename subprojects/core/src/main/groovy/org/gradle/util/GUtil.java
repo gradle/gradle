@@ -211,10 +211,10 @@ public class GUtil {
         return map;
     }
 
-    public static String toString(Iterable<String> names) {
+    public static String toString(Iterable<?> names) {
         Formatter formatter = new Formatter();
         boolean first = true;
-        for (String name : names) {
+        for (Object name : names) {
             if (first) {
                 formatter.format("'%s'", name);
                 first = false;

@@ -51,10 +51,16 @@ public abstract class TaskExecution implements Serializable {
         this.inputProperties = inputProperties;
     }
 
+    /**
+     * @return May return null.
+     */
     public abstract FileCollectionSnapshot getOutputFilesSnapshot();
 
     public abstract void setOutputFilesSnapshot(FileCollectionSnapshot outputFilesSnapshot);
 
+    /**
+     * @return May return null.
+     */
     public abstract FileCollectionSnapshot getInputFilesSnapshot();
 
     public abstract void setInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);

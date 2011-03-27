@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resource = new TestResources()

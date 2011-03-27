@@ -143,7 +143,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public FileCollectionSnapshot getInputFilesSnapshot() {
             if (inputFilesSnapshot == null) {
                 inputFilesSnapshot = snapshotRepository.get(inputFilesSnapshotId);
-                assert inputFilesSnapshot != null;
             }
             return inputFilesSnapshot;
         }
@@ -158,7 +157,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public FileCollectionSnapshot getOutputFilesSnapshot() {
             if (outputFilesSnapshot == null) {
                 outputFilesSnapshot = snapshotRepository.get(outputFilesSnapshotId);
-                assert outputFilesSnapshot != null;
             }
             return outputFilesSnapshot;
         }

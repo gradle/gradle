@@ -17,9 +17,12 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.api.internal.file.copy.CopySpecVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -32,6 +35,7 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,43 +44,50 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
+
 @RunWith(JMock.class)
 public class DirectoryFileTreeTest {
+    @Rule
+    public final TemporaryFolder tmpDir = new TemporaryFolder();
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private CopySpecVisitor visitor;
-    private DirectoryFileTree fileTree;
 
     @Before
     public void setUp() {
         visitor = context.mock(CopySpecVisitor.class);
     }
 
-    @Test public void rootDirEmpty() throws IOException {
+    @Test
+    public void rootDirEmpty() throws IOException {
         final MockFile root = new MockFile(context, "root", false);
         root.setExpectations();
 
-        fileTree = new DirectoryFileTree(root.getMock());
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock());
         root.setExpectations();
 
         fileTree.visit(visitor);
     }
 
-    @Test public void testUsesSpecFromPatternSetToMatchFilesAndDirs() {
+    @Test
+    public void testUsesSpecFromPatternSetToMatchFilesAndDirs() {
         final PatternSet patternSet = context.mock(PatternSet.class);
         final Spec spec = context.mock(Spec.class);
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(patternSet).getAsSpec();
             will(returnValue(spec));
         }});
 
-        fileTree = new DirectoryFileTree(new File("root"), patternSet);
+        DirectoryFileTree fileTree = new DirectoryFileTree(new File("root"), patternSet);
         fileTree.visit(visitor);
     }
 
-    @Test public void walkSingleFile() throws IOException {
+    @Test
+    public void walkSingleFile() throws IOException {
 
         final MockFile root = new MockFile(context, "root", false);
         final MockFile fileToCopy = root.addFile("file.txt");
@@ -87,7 +98,7 @@ public class DirectoryFileTreeTest {
             one(visitor).visitFile(with(file(fileToCopy)));
         }});
 
-        fileTree = new DirectoryFileTree(fileToCopy.getMock());
+        DirectoryFileTree fileTree = new DirectoryFileTree(fileToCopy.getMock());
         fileTree.visit(visitor);
     }
 
@@ -102,8 +113,36 @@ public class DirectoryFileTreeTest {
 
         Test that the files are really walked breadth first
      */
-    @Test public void walkBreadthFirst() throws IOException {
+    @Test
+    public void walkBreadthFirst() throws IOException {
+        final MockFile root = new MockFile(context, "root", false);
+        final MockFile rootFile1 = root.addFile("rootFile1");
+        final MockFile dir1 = root.addDir("dir1");
+        final MockFile dirFile1 = dir1.addFile("dirFile1");
+        final MockFile dirFile2 = dir1.addFile("dirFile2");
+        final MockFile rootFile2 = root.addFile("rootFile2");
+        root.setExpectations();
 
+        final Sequence visiting = context.sequence("visiting");
+        context.checking(new Expectations() {{
+            one(visitor).visitFile(with(file(rootFile1)));
+            inSequence(visiting);
+            one(visitor).visitFile(with(file(rootFile2)));
+            inSequence(visiting);
+            one(visitor).visitDir(with(file(dir1)));
+            inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile1)));
+            inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile2)));
+            inSequence(visiting);
+        }});
+
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock());
+        fileTree.visit(visitor);
+    }
+
+    @Test
+    public void walkDepthFirst() throws IOException {
 
         final MockFile root = new MockFile(context, "root", false);
         final MockFile rootFile1 = root.addFile("rootFile1");
@@ -115,41 +154,50 @@ public class DirectoryFileTreeTest {
 
         final Sequence visiting = context.sequence("visiting");
         context.checking(new Expectations() {{
-            one(visitor).visitFile(with(file(rootFile1))); inSequence(visiting);
-            one(visitor).visitFile(with(file(rootFile2))); inSequence(visiting);
-            one(visitor).visitDir(with(file(dir1))); inSequence(visiting);
-            one(visitor).visitFile(with(file(dirFile1))); inSequence(visiting);
-            one(visitor).visitFile(with(file(dirFile2))); inSequence(visiting);
+            one(visitor).visitFile(with(file(rootFile1)));
+            inSequence(visiting);
+            one(visitor).visitFile(with(file(rootFile2)));
+            inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile1)));
+            inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile2)));
+            inSequence(visiting);
+            one(visitor).visitDir(with(file(dir1)));
+            inSequence(visiting);
         }});
 
-        fileTree = new DirectoryFileTree(root.getMock());
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock()).depthFirst();
         fileTree.visit(visitor);
     }
 
-    @Test public void walkDepthFirst() throws IOException {
-
+    @Test
+    public void canApplyFilter() throws IOException {
         final MockFile root = new MockFile(context, "root", false);
-        final MockFile rootFile1 = root.addFile("rootFile1");
+        root.addFile("rootFile1");
         final MockFile dir1 = root.addDir("dir1");
-        final MockFile dirFile1 = dir1.addFile("dirFile1");
+        dir1.addFile("dirFile1");
         final MockFile dirFile2 = dir1.addFile("dirFile2");
-        final MockFile rootFile2 = root.addFile("rootFile2");
+        root.addFile("rootFile2");
         root.setExpectations();
 
         final Sequence visiting = context.sequence("visiting");
         context.checking(new Expectations() {{
-            one(visitor).visitFile(with(file(rootFile1))); inSequence(visiting);
-            one(visitor).visitFile(with(file(rootFile2))); inSequence(visiting);
-            one(visitor).visitFile(with(file(dirFile1))); inSequence(visiting);
-            one(visitor).visitFile(with(file(dirFile2))); inSequence(visiting);
-            one(visitor).visitDir(with(file(dir1))); inSequence(visiting);
+            one(visitor).visitDir(with(file(dir1)));
+            inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile2)));
+            inSequence(visiting);
         }});
 
-        fileTree = new DirectoryFileTree(root.getMock()).depthFirst();
+        PatternSet patterns = new PatternSet();
+        patterns.include("**/*2");
+        PatternSet filter = new PatternSet();
+        filter.include("dir1/**");
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock(), patterns).filter(filter);
         fileTree.visit(visitor);
     }
 
-    @Test public void canVisitorCanStopVisit() throws IOException {
+    @Test
+    public void canVisitorCanStopVisit() throws IOException {
         final MockFile root = new MockFile(context, "root", false);
         final MockFile rootFile1 = root.addFile("rootFile1");
         final MockFile dir1 = root.addDir("dir1");
@@ -160,21 +208,70 @@ public class DirectoryFileTreeTest {
         root.setExpectations();
 
         context.checking(new Expectations() {{
-            one(visitor).visitFile(with(file(rootFile1))); will(stopVisiting());
+            one(visitor).visitFile(with(file(rootFile1)));
+            will(stopVisiting());
         }});
 
-        fileTree = new DirectoryFileTree(root.getMock());
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock());
         fileTree.visit(visitor);
 
         final Sequence visiting = context.sequence("visiting");
         context.checking(new Expectations() {{
-            one(visitor).visitFile(with(file(rootFile1))); inSequence(visiting);
-            one(visitor).visitFile(with(file(rootFile2))); inSequence(visiting);
-            one(visitor).visitDir(with(file(dir1))); inSequence(visiting);
-            one(visitor).visitFile(with(file(dirFile1))); will(stopVisiting()); inSequence(visiting);
+            one(visitor).visitFile(with(file(rootFile1)));
+            inSequence(visiting);
+            one(visitor).visitFile(with(file(rootFile2)));
+            inSequence(visiting);
+            one(visitor).visitDir(with(file(dir1)));
+            inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile1)));
+            will(stopVisiting());
+            inSequence(visiting);
         }});
 
         fileTree.visit(visitor);
+    }
+
+    @Test
+    public void canTestForFileMembership() {
+        TestFile rootDir = tmpDir.createDir("root");
+        TestFile rootTextFile = rootDir.file("a.txt").createFile();
+        TestFile nestedTextFile = rootDir.file("a/b/c.txt").createFile();
+        TestFile notTextFile = rootDir.file("a/b/c.html").createFile();
+        TestFile excludedFile = rootDir.file("subdir1/a/b/c.html").createFile();
+        TestFile notUnderRoot = tmpDir.createDir("root2").file("a.txt").createFile();
+        TestFile doesNotExist = rootDir.file("b.txt");
+
+        PatternSet patterns = new PatternSet();
+        patterns.include("**/*.txt");
+        patterns.exclude("subdir1/**");
+        DirectoryFileTree fileTree = new DirectoryFileTree(rootDir, patterns);
+
+        System.out.println("rootDir " + rootDir);
+        System.out.println("rootTextFile " + rootTextFile);
+
+        assertTrue(fileTree.getPatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "a.txt"))));
+
+        assertTrue(fileTree.contains(rootTextFile));
+        assertTrue(fileTree.contains(nestedTextFile));
+        assertFalse(fileTree.contains(notTextFile));
+        assertFalse(fileTree.contains(excludedFile));
+        assertFalse(fileTree.contains(notUnderRoot));
+        assertFalse(fileTree.contains(doesNotExist));
+    }
+
+    @Test
+    public void hasUsefulDisplayName() {
+        DirectoryFileTree treeWithNoIncludesOrExcludes = new DirectoryFileTree(tmpDir.getDir());
+        PatternSet includesOnly = new PatternSet();
+        includesOnly.include("a/b", "c");
+        DirectoryFileTree treeWithIncludes = new DirectoryFileTree(tmpDir.getDir(), includesOnly);
+        PatternSet excludesOnly = new PatternSet();
+        excludesOnly.exclude("a/b", "c");
+        DirectoryFileTree treeWithExcludes = new DirectoryFileTree(tmpDir.getDir(), excludesOnly);
+
+        assertThat(treeWithNoIncludesOrExcludes.getDisplayName(), equalTo(String.format("directory '%s'", tmpDir.getDir())));
+        assertThat(treeWithIncludes.getDisplayName(), equalTo(String.format("directory '%s' include 'a/b', 'c'", tmpDir.getDir())));
+        assertThat(treeWithExcludes.getDisplayName(), equalTo(String.format("directory '%s' exclude 'a/b', 'c'", tmpDir.getDir())));
     }
 
     private Action stopVisiting() {

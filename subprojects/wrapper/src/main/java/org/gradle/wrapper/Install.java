@@ -63,7 +63,7 @@ public class Install {
         unzip(localZipFile, distDest);
         if (!gradleHome.isDirectory()) {
             throw new RuntimeException(String.format(
-                    "Gradle distribution '%s' does not contain expected directory '%s'.", distributionUrl,
+                    "Gradle distribution '%s' does not contain expected root directory '%s'.", distributionUrl,
                     gradleHome.getName()));
         }
         setExecutablePermissions(gradleHome);

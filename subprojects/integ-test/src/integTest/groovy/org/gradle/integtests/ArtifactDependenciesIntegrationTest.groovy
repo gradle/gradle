@@ -26,6 +26,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule

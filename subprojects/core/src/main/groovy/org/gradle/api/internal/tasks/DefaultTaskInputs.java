@@ -17,8 +17,8 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.UncheckedException;
 
@@ -27,13 +27,13 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class DefaultTaskInputs implements TaskInputs {
-    private final PathResolvingFileCollection inputFiles;
+    private final DefaultConfigurableFileCollection inputFiles;
     private final FileResolver resolver;
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
     public DefaultTaskInputs(FileResolver resolver) {
         this.resolver = resolver;
-        inputFiles = new PathResolvingFileCollection("task input files", resolver, null);
+        inputFiles = new DefaultConfigurableFileCollection("task input files", resolver, null);
     }
 
     public boolean getHasInputs() {

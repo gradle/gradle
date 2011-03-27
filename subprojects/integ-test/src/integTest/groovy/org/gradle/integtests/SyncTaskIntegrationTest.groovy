@@ -16,6 +16,7 @@
 package org.gradle.integtests
 
 import org.junit.Test
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 class SyncTaskIntegrationTest extends AbstractIntegrationTest {
     @Test

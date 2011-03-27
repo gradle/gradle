@@ -21,6 +21,7 @@ import org.gradle.util.TestFile
 import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 public class ArchiveIntegrationTest extends AbstractIntegrationTest {
     @Test public void canCopyFromAZip() {

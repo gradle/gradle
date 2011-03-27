@@ -28,7 +28,9 @@ import org.gradle.tooling.model.Project;
  */
 public interface ProjectConnection {
     /**
-     * Fetches a snapshot of the model for this project. This method blocks until the model is available.
+     * Fetches a snapshot of the model of the given type for this project.
+     *
+     * <p>This method blocks until the model is available.
      *
      * @param viewType The model type.
      * @param <T> The model type.

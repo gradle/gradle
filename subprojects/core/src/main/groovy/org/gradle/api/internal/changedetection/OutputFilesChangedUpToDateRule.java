@@ -36,6 +36,10 @@ public class OutputFilesChangedUpToDateRule implements UpToDateRule {
 
         return new TaskUpToDateState() {
             public void checkUpToDate(final Collection<String> messages) {
+                if (previousExecution.getOutputFilesSnapshot() == null) {
+                    messages.add(String.format("Output file history is not available for %s.", task));
+                    return;
+                }
                 outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(), new ChangeListener<File>() {
                     public void added(File element) {
                         messages.add(String.format("Output file '%s' has been added for %s.", element, task));
@@ -52,7 +56,12 @@ public class OutputFilesChangedUpToDateRule implements UpToDateRule {
             }
 
             public void snapshotAfterTask() {
-                FileCollectionSnapshot lastExecutionOutputFiles = previousExecution == null ? outputFilesSnapshotter.emptySnapshot() : previousExecution.getOutputFilesSnapshot();
+                FileCollectionSnapshot lastExecutionOutputFiles;
+                if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
+                    lastExecutionOutputFiles = outputFilesSnapshotter.emptySnapshot();
+                } else {
+                    lastExecutionOutputFiles = previousExecution.getOutputFilesSnapshot();
+                }
                 FileCollectionSnapshot newOutputFiles = outputFilesBefore.changesSince(lastExecutionOutputFiles).applyTo(
                         lastExecutionOutputFiles, new ChangeListener<FileCollectionSnapshot.Merge>() {
                             public void added(FileCollectionSnapshot.Merge element) {

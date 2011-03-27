@@ -16,8 +16,8 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GUtil;
@@ -39,7 +39,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         super(fileResolver);
         this.fileResolver = fileResolver;
         javaOptions = new DefaultJavaForkOptions(fileResolver);
-        classpath = new PathResolvingFileCollection(fileResolver, null);
+        classpath = new DefaultConfigurableFileCollection(fileResolver, null);
         executable(javaOptions.getExecutable());
     }
 

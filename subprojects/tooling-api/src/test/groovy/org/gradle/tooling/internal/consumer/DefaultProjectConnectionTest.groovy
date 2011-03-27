@@ -18,28 +18,28 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.internal.protocol.ConnectionVersion2
-import org.gradle.tooling.internal.protocol.ProjectVersion2
+import org.gradle.tooling.internal.protocol.ConnectionVersion3
+import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.Project
 import org.gradle.util.ConcurrentSpecification
 
 class DefaultProjectConnectionTest extends ConcurrentSpecification {
-    final ConnectionVersion2 protocolConnection = Mock()
+    final ConnectionVersion3 protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, adapter)
 
     def getModelDelegatesToProtocolConnectionToFetchModel() {
         ResultHandler<Project> handler = Mock()
-        ResultHandlerVersion1<ProjectVersion2> adaptedHandler
-        ProjectVersion2 result = Mock()
+        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
+        ProjectVersion3 result = Mock()
         Project adaptedResult = Mock()
 
         when:
         connection.getModel(Project.class, handler)
 
         then:
-        1 * protocolConnection.getModel(ProjectVersion2.class, !null) >> {args -> adaptedHandler = args[1]}
+        1 * protocolConnection.getModel(ProjectVersion3.class, !null) >> {args -> adaptedHandler = args[1]}
 
         when:
         adaptedHandler.onComplete(result)
@@ -52,7 +52,7 @@ class DefaultProjectConnectionTest extends ConcurrentSpecification {
 
     def getModelWrapsFailureToFetchModel() {
         ResultHandler<Project> handler = Mock()
-        ResultHandlerVersion1<ProjectVersion2> adaptedHandler
+        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
         RuntimeException failure = new RuntimeException()
         GradleConnectionException wrappedFailure
 
@@ -60,7 +60,7 @@ class DefaultProjectConnectionTest extends ConcurrentSpecification {
         connection.getModel(Project.class, handler)
 
         then:
-        1 * protocolConnection.getModel(ProjectVersion2.class, !null) >> {args -> adaptedHandler = args[1]}
+        1 * protocolConnection.getModel(ProjectVersion3.class, !null) >> {args -> adaptedHandler = args[1]}
 
         when:
         adaptedHandler.onFailure(failure)
@@ -84,7 +84,7 @@ class DefaultProjectConnectionTest extends ConcurrentSpecification {
 
     def getModelBlocksUntilResultReceivedFromProtocolConnection() {
         def supplyResult = later()
-        ProjectVersion2 result = Mock()
+        ProjectVersion3 result = Mock()
         Project adaptedResult = Mock()
         _ * adapter.adapt(Project.class, result) >> adaptedResult
 
@@ -96,7 +96,7 @@ class DefaultProjectConnectionTest extends ConcurrentSpecification {
 
         then:
         action.waitsFor(supplyResult)
-        1 * protocolConnection.getModel(ProjectVersion2.class, !null) >> { args ->
+        1 * protocolConnection.getModel(ProjectVersion3.class, !null) >> { args ->
             def handler = args[1]
             supplyResult.activate {
                 handler.onComplete(result)
@@ -122,7 +122,7 @@ class DefaultProjectConnectionTest extends ConcurrentSpecification {
 
         then:
         action.waitsFor(supplyResult)
-        1 * protocolConnection.getModel(ProjectVersion2.class, !null) >> { args ->
+        1 * protocolConnection.getModel(ProjectVersion3.class, !null) >> { args ->
             def handler = args[1]
             supplyResult.activate {
                 handler.onFailure(failure)

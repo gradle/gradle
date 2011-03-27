@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -42,7 +43,7 @@ public class UnionFileCollection extends CompositeFileCollection {
     }
 
     @Override
-    protected void addSourceCollections(Collection<FileCollection> sources) {
-        sources.addAll(sourceCollections);
+    protected void resolve(FileCollectionResolveContext context) {
+        context.add(sourceCollections);
     }
 }

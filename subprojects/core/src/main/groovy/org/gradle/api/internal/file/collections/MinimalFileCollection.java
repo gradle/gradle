@@ -16,10 +16,18 @@
 package org.gradle.api.internal.file.collections;
 
 import java.io.File;
+import java.util.Set;
 
 /**
- * A minimal file collection.
+ * A minimal file collection. An implementation can optionally also implement the following interfaces:
+ *
+ * <ul>
+ * <li>{@link org.gradle.api.Buildable}</li>
+ * <li>{@link RandomAccessFileCollection}</li>
+ * </ul>
  */
-public interface MinimalFileCollection extends Iterable<File> {
+public interface MinimalFileCollection {
+    Set<File> getFiles();
+
     String getDisplayName();
 }

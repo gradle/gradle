@@ -15,21 +15,29 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.util.PatternFilterable;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
 /**
  * Adapts a {@link MinimalFileTree} into a full {@link FileTree} implementation.
  */
-public class FileTreeAdapter extends AbstractFileTree implements CompositeFileCollection {
+public class FileTreeAdapter extends AbstractFileTree implements FileCollectionContainer {
     private final MinimalFileTree tree;
 
     public FileTreeAdapter(MinimalFileTree tree) {
         this.tree = tree;
+    }
+
+    public MinimalFileTree getTree() {
+        return tree;
     }
 
     @Override
@@ -50,8 +58,38 @@ public class FileTreeAdapter extends AbstractFileTree implements CompositeFileCo
             } else {
                 return Collections.emptyList();
             }
+        } else if (tree instanceof LocalFileTree) {
+            LocalFileTree fileTree = (LocalFileTree) tree;
+            return fileTree.getLocalContents();
         }
-        throw new UnsupportedOperationException(String.format("Cannot convert %s to a file system mirror.", tree));
+        throw new UnsupportedOperationException(String.format("Cannot convert %s to local file system directories.", tree));
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        if (tree instanceof Buildable) {
+            Buildable buildable = (Buildable) tree;
+            return buildable.getBuildDependencies();
+        }
+        return super.getBuildDependencies();
+    }
+
+    @Override
+    public boolean contains(File file) {
+        if (tree instanceof RandomAccessFileCollection) {
+            RandomAccessFileCollection randomAccess = (RandomAccessFileCollection) tree;
+            return randomAccess.contains(file);
+        }
+        return super.contains(file);
+    }
+
+    @Override
+    public FileTree matching(PatternFilterable patterns) {
+        if (tree instanceof PatternFilterableFileTree) {
+            PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
+            return new FileTreeAdapter(filterableTree.filter(patterns));
+        }
+        return super.matching(patterns);
     }
 
     public FileTree visit(FileVisitor visitor) {

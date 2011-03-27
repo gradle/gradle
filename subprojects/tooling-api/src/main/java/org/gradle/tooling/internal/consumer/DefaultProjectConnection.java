@@ -19,12 +19,14 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.internal.protocol.ConnectionVersion2;
-import org.gradle.tooling.internal.protocol.ProjectVersion2;
-import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
+import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
+import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
+import org.gradle.tooling.model.BuildableProject;
+import org.gradle.tooling.model.HierarchicalProject;
 import org.gradle.tooling.model.Project;
 import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.util.UncheckedException;
 
 import java.util.HashMap;
@@ -34,16 +36,19 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultProjectConnection implements ProjectConnection {
-    private final ConnectionVersion2 connection;
-    private final Map<Class<? extends Project>, Class<? extends ProjectVersion2>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion2>>();
+    private final ConnectionVersion3 connection;
+    private final Map<Class<? extends Project>, Class<? extends ProjectVersion3>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion3>>();
     private ProtocolToModelAdapter adapter;
     private AtomicBoolean closed = new AtomicBoolean();
 
-    public DefaultProjectConnection(ConnectionVersion2 connection, ProtocolToModelAdapter adapter) {
+    public DefaultProjectConnection(ConnectionVersion3 connection, ProtocolToModelAdapter adapter) {
         this.connection = connection;
         this.adapter = adapter;
-        modelTypeMap.put(Project.class, ProjectVersion2.class);
-        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion2.class);
+        modelTypeMap.put(Project.class, ProjectVersion3.class);
+        modelTypeMap.put(BuildableProject.class, BuildableProjectVersion1.class);
+        modelTypeMap.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
+        modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
+        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion3.class);
     }
 
     public void close() {
@@ -82,8 +87,8 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public <T extends Project> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
-        connection.getModel(mapToProtocol(viewType), new ResultHandlerVersion1<ProjectVersion2>() {
-            public void onComplete(ProjectVersion2 result) {
+        connection.getModel(mapToProtocol(viewType), new ResultHandlerVersion1<ProjectVersion3>() {
+            public void onComplete(ProjectVersion3 result) {
                 handler.onComplete(adapter.adapt(viewType, result));
             }
 
@@ -93,8 +98,8 @@ class DefaultProjectConnection implements ProjectConnection {
         });
     }
 
-    private Class<? extends ProjectVersion2> mapToProtocol(Class<? extends Project> viewType) {
-        Class<? extends ProjectVersion2> protocolViewType = modelTypeMap.get(viewType);
+    private Class<? extends ProjectVersion3> mapToProtocol(Class<? extends Project> viewType) {
+        Class<? extends ProjectVersion3> protocolViewType = modelTypeMap.get(viewType);
         if (protocolViewType == null) {
             throw new UnsupportedVersionException(String.format("Model of type '%s' is not supported.", viewType.getSimpleName()));
         }

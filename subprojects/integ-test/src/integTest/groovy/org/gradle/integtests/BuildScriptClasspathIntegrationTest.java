@@ -17,6 +17,7 @@ package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.ArtifactBuilder;
 import org.gradle.integtests.fixtures.ExecutionFailure;
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest;
 import org.junit.Ignore;
 import org.junit.Test;
 

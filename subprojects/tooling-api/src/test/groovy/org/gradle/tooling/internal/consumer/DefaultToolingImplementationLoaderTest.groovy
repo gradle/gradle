@@ -51,7 +51,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The specified Gradle distribution is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 2)"
+        e.message == "The specified <dist-display-name> is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 3)"
         _ * distribution.toolingImplementationClasspath >> ([] as Set)
+        _ * distribution.displayName >> '<dist-display-name>'
     }
 }

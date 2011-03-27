@@ -26,11 +26,12 @@ class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
     }
 
     def addToAntBuilder(Object node, String childNodeName) {
-        fileTrees.each {DirectoryFileTree fileTree ->
+        def existing = fileTrees.findAll { it.root.exists()}
+        existing.each {DirectoryFileTree fileTree ->
             node."$childNodeName"(location: fileTree.root)
         }
         node.or {
-            fileTrees.each {DirectoryFileTree fileTree ->
+            existing.each {DirectoryFileTree fileTree ->
                 and {
                     gradleBaseDirSelector(baseDir: fileTree.root)
                     fileTree.patternSet.addToAntBuilder(node, null)

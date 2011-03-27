@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.util.GUtil;
+import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.Set;
@@ -24,7 +25,7 @@ import java.util.Set;
 /**
  * Adapts a {@link MinimalFileCollection} into a full {@link org.gradle.api.file.FileCollection}.
  */
-public class FileCollectionAdapter extends AbstractFileCollection implements CompositeFileCollection {
+public class FileCollectionAdapter extends AbstractFileCollection implements FileCollectionContainer {
     private final MinimalFileCollection fileCollection;
 
     public FileCollectionAdapter(MinimalFileCollection fileCollection) {
@@ -41,6 +42,15 @@ public class FileCollectionAdapter extends AbstractFileCollection implements Com
     }
 
     public Set<File> getFiles() {
-        return GUtil.addSets(fileCollection);
+        return fileCollection.getFiles();
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        if (fileCollection instanceof Buildable) {
+            Buildable buildable = (Buildable) fileCollection;
+            return buildable.getBuildDependencies();
+        }
+        return super.getBuildDependencies();
     }
 }

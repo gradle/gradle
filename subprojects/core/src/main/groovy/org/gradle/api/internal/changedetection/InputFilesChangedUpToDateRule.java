@@ -36,6 +36,10 @@ public class InputFilesChangedUpToDateRule implements UpToDateRule {
 
         return new TaskUpToDateState() {
             public void checkUpToDate(final Collection<String> messages) {
+                if (previousExecution.getInputFilesSnapshot() == null) {
+                    messages.add(String.format("Input file history is not available for %s.", task));
+                    return;
+                }
                 inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(), new ChangeListener<File>() {
                     public void added(File file) {
                         messages.add(String.format("Input file %s for %s added.", file, task));

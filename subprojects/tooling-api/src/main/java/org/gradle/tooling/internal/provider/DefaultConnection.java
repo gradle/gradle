@@ -20,12 +20,15 @@ import org.gradle.StartParameter;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion2;
-import org.gradle.tooling.internal.protocol.ProjectVersion2;
+import org.gradle.tooling.internal.protocol.ConnectionVersion3;
+import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion2;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
+import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 
-public class DefaultConnection implements ConnectionVersion2 {
+import static org.codehaus.groovy.runtime.InvokerHelper.asList;
+
+public class DefaultConnection implements ConnectionVersion3 {
     private final ActorFactory actorFactory;
     private final ConnectionParametersVersion1 parameters;
     private Worker worker;
@@ -41,10 +44,16 @@ public class DefaultConnection implements ConnectionVersion2 {
     }
 
     public void stop() {
-        actor.stop();
+        if (actor != null) {
+            try {
+                actor.stop();
+            } finally {
+                actor = null;
+            }
+        }
     }
 
-    public <T extends ProjectVersion2> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException {
+    public <T extends ProjectVersion3> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException {
         if (worker == null) {
             actor = actorFactory.createActor(new WorkerImpl());
             worker = actor.getProxy(Worker.class);
@@ -53,11 +62,11 @@ public class DefaultConnection implements ConnectionVersion2 {
     }
 
     private interface Worker {
-        <T extends ProjectVersion2> void build(Class<T> type, ResultHandlerVersion1<? super T> handler);
+        <T extends ProjectVersion3> void build(Class<T> type, ResultHandlerVersion1<? super T> handler);
     }
 
     private class WorkerImpl implements Worker {
-        public <T extends ProjectVersion2> void build(Class<T> type, ResultHandlerVersion1<? super T> handler) {
+        public <T extends ProjectVersion3> void build(Class<T> type, ResultHandlerVersion1<? super T> handler) {
             try {
                 handler.onComplete(build(type));
             } catch (Throwable t) {
@@ -65,15 +74,27 @@ public class DefaultConnection implements ConnectionVersion2 {
             }
         }
 
-        private <T extends ProjectVersion2> T build(Class<T> type) throws UnsupportedOperationException {
-            if (type.isAssignableFrom(EclipseProjectVersion2.class)) {
+        private <T extends ProjectVersion3> T build(Class<T> type) throws UnsupportedOperationException {
+            if (type.isAssignableFrom(EclipseProjectVersion3.class)) {
                 StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
+                startParameter.setTaskNames(asList(":eclipseConfigurer"));
 
-                final GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-                final ModelBuilder builder = new ModelBuilder();
-                gradleLauncher.addListener(builder);
-                gradleLauncher.getBuildAnalysis().rethrowFailure();
-                return type.cast(builder.getCurrentProject());
+                GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
+
+                ModelBuildingAdapter adapter = new ModelBuildingAdapter();
+                gradleLauncher.addListener(adapter);
+
+                boolean minimalModelOnly = type.isAssignableFrom(HierarchicalEclipseProjectVersion1.class);
+                if (minimalModelOnly) {
+                    adapter.setBuilder(new MinimalModelBuilder());
+                    gradleLauncher.getBuildAnalysis().rethrowFailure();
+                } else {
+                    adapter.setConfigurer(new EclipsePluginApplier());
+                    adapter.setBuilder(new ModelBuilder());
+                    gradleLauncher.run().rethrowFailure();
+                }
+
+                return type.cast(adapter.getProject());
             }
 
             throw new UnsupportedOperationException();

@@ -19,7 +19,7 @@ import java.util.Set;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.util.WrapUtil;
 import org.junit.Before;

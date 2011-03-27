@@ -21,6 +21,7 @@ import org.gradle.api.PathValidation;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.OperatingSystem;
 
@@ -200,7 +201,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         if (paths.length == 1 && paths[0] instanceof FileCollection) {
             return (FileCollection) paths[0];
         }
-        return new PathResolvingFileCollection(this, null, paths);
+        return new DefaultConfigurableFileCollection(this, null, paths);
     }
 
     public FileTree resolveFilesAsTree(Object... paths) {

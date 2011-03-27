@@ -15,36 +15,30 @@
  */
 package org.gradle.api.internal.file;
 
+import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import groovy.lang.Closure;
-
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
-    private final PathResolvingFileCollection srcDirs;
+    private final DefaultConfigurableFileCollection srcDirs;
     private final String displayName;
-    private final FileResolver resolver;
-    private final PatternFilterable patterns = new PatternSet();
-    private final PatternFilterable filter = new PatternSet();
-
-    public DefaultSourceDirectorySet(FileResolver fileResolver) {
-        this("source set", fileResolver);
-    }
+    private final PatternSet patterns = new PatternSet();
+    private final PatternSet filter = new PatternSet();
 
     public DefaultSourceDirectorySet(String displayName, FileResolver fileResolver) {
         this.displayName = displayName;
-        this.resolver = fileResolver;
-        srcDirs = new PathResolvingFileCollection(fileResolver, null);
+        srcDirs = new DefaultConfigurableFileCollection(fileResolver, null);
     }
 
     public Set<File> getSrcDirs() {
@@ -114,11 +108,9 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     @Override
-    protected void addSourceCollections(Collection<FileCollection> sources) {
+    protected void resolve(FileCollectionResolveContext context) {
         for (File sourceDir : getExistingSourceDirs()) {
-            DefaultConfigurableFileTree fileset = new DefaultConfigurableFileTree(sourceDir, resolver, null);
-            fileset.getPatternSet().copyFrom(patterns);
-            sources.add(fileset.matching(filter));
+            context.add(new DirectoryFileTree(sourceDir, patterns).filter(filter));
         }
     }
 

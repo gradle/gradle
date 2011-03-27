@@ -21,6 +21,7 @@ import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     @Rule

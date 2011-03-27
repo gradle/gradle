@@ -161,19 +161,19 @@
                 <td>org.gradle.api.tasks.diagnostics.DependencyReportTask</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.eclipse.EclipseClasspath</td>
+                <td>org.gradle.plugins.ide.eclipse.EclipseClasspath</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.eclipse.EclipseJdt</td>
+                <td>org.gradle.plugins.ide.eclipse.EclipseJdt</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.eclipse.EclipseProject</td>
+                <td>org.gradle.plugins.ide.eclipse.EclipseProject</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.eclipse.EclipseWtpComponent</td>
+                <td>org.gradle.plugins.ide.eclipse.EclipseWtpComponent</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.eclipse.EclipseWtpFacet</td>
+                <td>org.gradle.plugins.ide.eclipse.EclipseWtpFacet</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Exec</td>
@@ -188,13 +188,13 @@
                 <td>org.gradle.api.tasks.javadoc.Groovydoc</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.idea.IdeaModule</td>
+                <td>org.gradle.plugins.ide.idea.IdeaModule</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.idea.IdeaProject</td>
+                <td>org.gradle.plugins.ide.idea.IdeaProject</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.idea.IdeaWorkspace</td>
+                <td>org.gradle.plugins.ide.idea.IdeaWorkspace</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Jar</td>

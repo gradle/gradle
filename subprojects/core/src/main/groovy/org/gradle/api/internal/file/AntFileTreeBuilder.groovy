@@ -28,6 +28,7 @@ class AntFileTreeBuilder implements AntBuilderAware {
     def addToAntBuilder(node, String childNodeName = null) {
         node."${childNodeName ?: 'resources'}"() {
             files.each { String name, File file ->
+                // gradleFileResource type is mapped to AntFileResource
                 gradleFileResource(file: file.absolutePath, name: name)
             }
         }

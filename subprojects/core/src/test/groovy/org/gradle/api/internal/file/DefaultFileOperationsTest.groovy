@@ -37,6 +37,7 @@ import spock.lang.Specification
 import org.gradle.util.OperatingSystem
 import org.gradle.util.ClasspathUtil
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 
 public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()
@@ -75,7 +76,7 @@ public class DefaultFileOperationsTest extends Specification {
         def fileCollection = fileOperations.files('a', 'b')
 
         then:
-        fileCollection instanceof PathResolvingFileCollection
+        fileCollection instanceof DefaultConfigurableFileCollection
         fileCollection.sources == ['a', 'b']
         fileCollection.resolver.is(resolver)
         fileCollection.buildDependency.resolver.is(taskResolver)
@@ -160,7 +161,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     def deletes() {
         TestFile fileToBeDeleted = tmpDir.file("file")
-        ConfigurableFileCollection fileCollection = new PathResolvingFileCollection(resolver, null, "file")
+        ConfigurableFileCollection fileCollection = new DefaultConfigurableFileCollection(resolver, null, "file")
         resolver.resolveFiles(["file"] as Object[]) >> fileCollection
         resolver.resolve("file") >> fileToBeDeleted
         fileToBeDeleted.touch();

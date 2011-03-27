@@ -24,7 +24,7 @@ public interface EclipseProjectDependency extends ProjectDependency {
     /**
      * {@inheritDoc}
      */
-    EclipseProject getTargetProject();
+    HierarchicalEclipseProject getTargetProject();
 
     /**
      * Returns the path to use for this project dependency.
