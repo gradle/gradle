@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.jfrog.wharf.ivy.resolver.FileSystemWharfResolver;
+import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -90,7 +92,7 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls) {
-        GradleIBiblioResolver iBiblioResolver = createIBiblioResolver(name, root);
+        IBiblioWharfResolver iBiblioResolver = createIBiblioResolver(name, root);
         if (jarRepoUrls.length == 0) {
             iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
             return iBiblioResolver;
@@ -100,8 +102,8 @@ public class DefaultResolverFactory implements ResolverFactory {
         return createDualResolver(name, iBiblioResolver, urlResolver);
     }
 
-    private GradleIBiblioResolver createIBiblioResolver(String name, String root) {
-        GradleIBiblioResolver iBiblioResolver = new GradleIBiblioResolver();
+    private IBiblioWharfResolver createIBiblioResolver(String name, String root) {
+        IBiblioWharfResolver iBiblioResolver = new IBiblioWharfResolver();
         iBiblioResolver.setUsepoms(true);
         iBiblioResolver.setName(name);
         iBiblioResolver.setRoot(root);
@@ -122,7 +124,7 @@ public class DefaultResolverFactory implements ResolverFactory {
         return urlResolver;
     }
 
-    private DualResolver createDualResolver(String name, GradleIBiblioResolver iBiblioResolver, URLResolver urlResolver) {
+    private DualResolver createDualResolver(String name, IBiblioWharfResolver iBiblioResolver, URLResolver urlResolver) {
         DualResolver dualResolver = new DualResolver();
         dualResolver.setName(name);
         dualResolver.setIvyResolver(iBiblioResolver);

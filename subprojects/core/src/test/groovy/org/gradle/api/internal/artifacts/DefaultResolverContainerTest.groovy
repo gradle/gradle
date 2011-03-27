@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
@@ -35,6 +34,8 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.ClassGenerator
+import org.jfrog.wharf.ivy.cache.WharfCacheManager
+import org.jfrog.wharf.ivy.resolver.FileSystemWharfResolver
 
 /**
  * @author Hans Dockter
@@ -44,7 +45,7 @@ class DefaultResolverContainerTest {
     
     DefaultResolverContainer resolverContainer
 
-    RepositoryCacheManager dummyCacheManager = new DefaultRepositoryCacheManager()
+    RepositoryCacheManager dummyCacheManager = new WharfCacheManager()
     def expectedUserDescription
     def expectedUserDescription2
     def expectedUserDescription3
@@ -71,9 +72,9 @@ class DefaultResolverContainerTest {
         expectedName = 'somename'
         expectedName2 = 'somename2'
         expectedName3 = 'somename3'
-        expectedResolver = new FileSystemResolver()
-        expectedResolver2 = new FileSystemResolver()
-        expectedResolver3 = new FileSystemResolver()
+        expectedResolver = new FileSystemWharfResolver()
+        expectedResolver2 = new FileSystemWharfResolver()
+        expectedResolver3 = new FileSystemWharfResolver()
         expectedResolver.name = expectedName
         expectedResolver2.name = expectedName2
         expectedResolver3.name = expectedName3

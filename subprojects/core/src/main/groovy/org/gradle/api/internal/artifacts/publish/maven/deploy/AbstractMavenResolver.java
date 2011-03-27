@@ -42,11 +42,11 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
+import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
-import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -223,7 +223,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     }
 
     public RepositoryCacheManager getRepositoryCacheManager() {
-        return new WharfCacheManager();
+        return new NoOpRepositoryCacheManager(name);
     }
 
     public ArtifactPomContainer getArtifactPomContainer() {

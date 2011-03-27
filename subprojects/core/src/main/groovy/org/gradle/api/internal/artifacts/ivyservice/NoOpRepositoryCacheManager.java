@@ -31,9 +31,9 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import java.text.ParseException;
 
 /**
- * A cache manager which does nothing. Only useful for local meta-data only repositories.
+ * A cache manager which does nothing. Only useful for local meta-data only repositories, and maven publisher.
  */
-class NoOpRepositoryCacheManager implements RepositoryCacheManager {
+public class NoOpRepositoryCacheManager implements RepositoryCacheManager {
     private final String name;
 
     public NoOpRepositoryCacheManager(String name) {

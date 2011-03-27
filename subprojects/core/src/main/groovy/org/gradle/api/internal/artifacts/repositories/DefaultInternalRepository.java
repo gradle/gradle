@@ -38,11 +38,11 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.util.ReflectionUtil;
-import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +62,7 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         this.gradle = gradle;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         setName(ResolverContainer.INTERNAL_REPOSITORY_NAME);
-        setRepositoryCacheManager(new WharfCacheManager());
+        setRepositoryCacheManager(new NoOpRepositoryCacheManager(ResolverContainer.INTERNAL_REPOSITORY_NAME));
     }
 
     @Override

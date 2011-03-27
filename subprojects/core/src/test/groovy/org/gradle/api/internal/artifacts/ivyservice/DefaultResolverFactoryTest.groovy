@@ -24,6 +24,7 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.apache.ivy.plugins.resolver.*
+import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.*
@@ -116,7 +117,7 @@ class DefaultResolverFactoryTest {
         }
 
         def repo = factory.createMavenLocalResolver('name')
-        assertThat(repo, instanceOf(GradleIBiblioResolver))
+        assertThat(repo, instanceOf(IBiblioWharfResolver))
         assertThat(repo.root, equalTo(repoDir.toURI().toString() + '/'))
     }
 }

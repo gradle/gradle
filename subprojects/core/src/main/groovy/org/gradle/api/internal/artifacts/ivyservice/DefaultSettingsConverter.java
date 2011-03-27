@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
@@ -149,10 +150,17 @@ public class DefaultSettingsConverter implements SettingsConverter {
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
-            if ((dependencyResolver instanceof AbstractResolver) && !(dependencyResolver instanceof ClientModuleResolver)) {
-                ((AbstractResolver)dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
-            }
             ivySettings.addResolver(dependencyResolver);
+            if (dependencyResolver instanceof AbstractResolver) {
+                AbstractResolver abstractResolver = (AbstractResolver) dependencyResolver;
+                RepositoryCacheManager cacheManager = abstractResolver.getRepositoryCacheManager();
+                // Can be only the Wharf, NoOp or Local Cache Manager
+                if (cacheManager != ivySettings.getDefaultRepositoryCacheManager() &&
+                        !(cacheManager instanceof NoOpRepositoryCacheManager) &&
+                        !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
+                    throw new IllegalStateException("Cannot have a cache manager="+cacheManager);
+                }
+            }
             if (dependencyResolver instanceof RepositoryResolver) {
                 Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
                 if (!repository.hasTransferListener(transferListener)) {

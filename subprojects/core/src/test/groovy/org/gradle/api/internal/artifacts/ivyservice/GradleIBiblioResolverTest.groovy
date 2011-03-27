@@ -16,16 +16,17 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import spock.lang.Specification
+import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
 
 /**
  * @author Hans Dockter
  */
 class GradleIBiblioResolverTest extends Specification {
-    GradleIBiblioResolver gradleIBiblioResolver = new GradleIBiblioResolver()
+    IBiblioWharfResolver gradleIBiblioResolver = new IBiblioWharfResolver()
 
     def defaults() {
         expect:
-        gradleIBiblioResolver.getSnapshotTimeout().is(GradleIBiblioResolver.DAILY)
+        gradleIBiblioResolver.getSnapshotTimeout().is(IBiblioWharfResolver.DAILY)
     }
 
     def usesDailyExpiryForRemoteUrls() {
@@ -33,7 +34,7 @@ class GradleIBiblioResolverTest extends Specification {
         gradleIBiblioResolver.setRoot("http://server/repo")
 
         then:
-        gradleIBiblioResolver.getSnapshotTimeout().is(GradleIBiblioResolver.DAILY)
+        gradleIBiblioResolver.getSnapshotTimeout().is(IBiblioWharfResolver.DAILY)
     }
 
     def usesAlwaysExpiryForLocalUrls() {
@@ -41,29 +42,29 @@ class GradleIBiblioResolverTest extends Specification {
         gradleIBiblioResolver.setRoot(new File(".").toURI().toString())
 
         then:
-        gradleIBiblioResolver.getSnapshotTimeout().is(GradleIBiblioResolver.ALWAYS)
+        gradleIBiblioResolver.getSnapshotTimeout().is(IBiblioWharfResolver.ALWAYS)
     }
 
     def timeoutStrategyNever_shouldReturnAlwaysFalse() {
         expect:
-        !GradleIBiblioResolver.NEVER.isCacheTimedOut(0)
-        !GradleIBiblioResolver.NEVER.isCacheTimedOut(System.currentTimeMillis())
+        !IBiblioWharfResolver.NEVER.isCacheTimedOut(0)
+        !IBiblioWharfResolver.NEVER.isCacheTimedOut(System.currentTimeMillis())
     }
 
     def timeoutStrategyAlways_shouldReturnAlwaysTrue() {
         expect:
-        GradleIBiblioResolver.ALWAYS.isCacheTimedOut(0)
-        GradleIBiblioResolver.ALWAYS.isCacheTimedOut(System.currentTimeMillis())
+        IBiblioWharfResolver.ALWAYS.isCacheTimedOut(0)
+        IBiblioWharfResolver.ALWAYS.isCacheTimedOut(System.currentTimeMillis())
     }
 
     def timeoutStrategyDaily() {
         expect:
-        !GradleIBiblioResolver.DAILY.isCacheTimedOut(System.currentTimeMillis())
-        GradleIBiblioResolver.ALWAYS.isCacheTimedOut(System.currentTimeMillis() - 24 * 60 * 60 * 1000)
+        !IBiblioWharfResolver.DAILY.isCacheTimedOut(System.currentTimeMillis())
+        IBiblioWharfResolver.ALWAYS.isCacheTimedOut(System.currentTimeMillis() - 24 * 60 * 60 * 1000)
     }
 
     def timeoutInterval() {
-        def interval = new GradleIBiblioResolver.Interval(1000)
+        def interval = new IBiblioWharfResolver.Interval(1000)
 
         expect:
         interval.isCacheTimedOut(System.currentTimeMillis() - 5000)
@@ -75,14 +76,14 @@ class GradleIBiblioResolverTest extends Specification {
         gradleIBiblioResolver.setSnapshotTimeout(1000)
 
         then:
-        ((GradleIBiblioResolver.Interval) gradleIBiblioResolver.getSnapshotTimeout()).interval == 1000
+        ((IBiblioWharfResolver.Interval) gradleIBiblioResolver.getSnapshotTimeout()).interval == 1000
     }
 
     def setTimeoutByStrategy() {
         when:
-        gradleIBiblioResolver.setSnapshotTimeout(GradleIBiblioResolver.NEVER)
+        gradleIBiblioResolver.setSnapshotTimeout(IBiblioWharfResolver.NEVER)
 
         then:
-        gradleIBiblioResolver.getSnapshotTimeout().is(GradleIBiblioResolver.NEVER)
+        gradleIBiblioResolver.getSnapshotTimeout().is(IBiblioWharfResolver.NEVER)
     }
 }
