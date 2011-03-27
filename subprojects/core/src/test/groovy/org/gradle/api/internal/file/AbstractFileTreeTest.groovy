@@ -15,46 +15,69 @@
  */
 package org.gradle.api.internal.file
 
-
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
-import org.junit.Test
 import org.gradle.api.file.FileTree
-import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.RelativePath
+import org.gradle.api.tasks.TaskDependency
+import spock.lang.Specification
 
-@RunWith(JMock.class)
-public class AbstractFileTreeTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-
-    @Test
-    public void isEmptyWhenVisitsNoFiles() {
+public class AbstractFileTreeTest extends Specification {
+    def isEmptyWhenVisitsNoFiles() {
         def tree = new TestFileTree([])
-        assertTrue(tree.empty)
+
+        expect:
+        tree.empty
     }
 
-    @Test
-    public void isNotEmptyWhenVisitsFirstFile() {
-        FileVisitDetails file = context.mock(FileVisitDetails.class)
+    def isNotEmptyWhenVisitsFirstFile() {
+        FileVisitDetails file = Mock()
         def tree = new TestFileTree([file])
 
-        context.checking {
-            one(file).stopVisiting()
-        }
+        when:
+        def empty = tree.empty
 
-        assertFalse(tree.empty)
+        then:
+        !empty
+        1 * file.stopVisiting()
+    }
+
+    def canFilterTreeUsingClosure() {
+        FileVisitDetails file1 = Mock()
+        FileVisitDetails file2 = Mock()
+        FileVisitor visitor = Mock()
+        def tree = new TestFileTree([file1, file2])
+
+        when:
+        def filtered = tree.matching { include '*.txt' }
+        filtered.visit(visitor)
+
+        then:
+        1 * visitor.visitFile(file1)
+        _ * file1.relativePath >> new RelativePath(true, 'a.txt')
+        _ * file2.relativePath >> new RelativePath(true, 'b.html')
+        0 * visitor._
+    }
+
+    def filteredTreeHasSameDependenciesAsThis() {
+        TaskDependency buildDependencies = Mock()
+        def tree = new TestFileTree([], buildDependencies)
+
+        when:
+        def filtered = tree.matching { include '*.txt' }
+
+        then:
+        filtered.buildDependencies == buildDependencies
     }
 }
 
 class TestFileTree extends AbstractFileTree {
     List contents
+    TaskDependency buildDependencies
 
-    def TestFileTree(List files) {
+    def TestFileTree(List files, TaskDependency dependencies = null) {
         this.contents = files
+        this.buildDependencies = dependencies
     }
 
     String getDisplayName() {

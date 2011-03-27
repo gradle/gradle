@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
@@ -124,6 +125,11 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         @Override
         public String getDisplayName() {
             return fileTree.getDisplayName();
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return fileTree.getBuildDependencies();
         }
 
         public FileTree visit(final FileVisitor visitor) {

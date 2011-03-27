@@ -22,7 +22,6 @@ import java.util.concurrent.Callable
 
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.SingletonFileTree
 
 class DefaultFileCollectionResolveContextTest extends Specification {
     final FileResolver resolver = Mock()
@@ -53,8 +52,9 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
     def resolveAsFileTreeConvertsTheElementsOfMinimalFileCollection() {
         MinimalFileCollection fileCollection = Mock()
-        File file1 = new File('file1')
-        File file2 = new File('file2')
+        File file = this.file('file1')
+        File dir = directory('file2')
+        File doesNotExist = nonExistent('file3')
 
         when:
         context.add(fileCollection)
@@ -62,11 +62,13 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result.size() == 2
-        result[0] instanceof SingletonFileTree
-        result[0].file == file1
-        result[1] instanceof SingletonFileTree
-        result[1].file == file2
-        1 * fileCollection.files >> ([file1, file2] as LinkedHashSet)
+        result[0] instanceof FileTreeAdapter
+        result[0].tree instanceof SingletonFileTree
+        result[0].tree.file == file
+        result[1] instanceof FileTreeAdapter
+        result[1].tree instanceof DirectoryFileTree
+        result[1].tree.root == dir
+        1 * fileCollection.files >> ([file, dir, doesNotExist] as LinkedHashSet)
     }
 
     def resolveAsFileCollectionWrapsAMinimalFileTree() {
@@ -118,7 +120,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [fileTree]
         1 * fileCollection.asFileTree >> fileTree
     }
-    
+
     def resolveAsFileCollectionsDelegatesToACompositeFileCollection() {
         FileCollectionContainer composite = Mock()
         FileCollection contents = Mock()
@@ -282,22 +284,18 @@ class DefaultFileCollectionResolveContextTest extends Specification {
     }
 
     def resolveAsFileTreeUsesFileResolverToResolveOtherTypes() {
-        File file1 = new File('a')
-        File file2 = new File('b')
+        File file = file('a')
 
         when:
         context.add('a')
-        context.add('b')
         def result = context.resolveAsFileTrees()
 
         then:
-        result.size() == 2
-        result[0] instanceof SingletonFileTree
-        result[0].file == file1
-        result[1] instanceof SingletonFileTree
-        result[1].file == file2
-        1 * resolver.resolve('a') >> file1
-        1 * resolver.resolve('b') >> file2
+        result.size() == 1
+        result[0] instanceof FileTreeAdapter
+        result[0].tree instanceof SingletonFileTree
+        result[0].tree.file == file
+        1 * resolver.resolve('a') >> file
     }
 
     def canPushContextWhichUsesADifferentFileResolverToConvertToFileCollections() {
@@ -318,7 +316,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
     def canPushContextWhichUsesADifferentFileResolverToConvertToFileTrees() {
         FileResolver fileResolver = Mock()
-        File file = new File('a')
+        File file = file('a')
 
         when:
         context.push(fileResolver).add('a')
@@ -326,8 +324,31 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result.size() == 1
-        result[0] instanceof SingletonFileTree
-        result[0].file == file
+        result[0] instanceof FileTreeAdapter
+        result[0].tree instanceof SingletonFileTree
+        result[0].tree.file == file
         1 * fileResolver.resolve('a') >> file
+    }
+
+    def file(String name) {
+        File f = Mock()
+        _ * f.file >> true
+        _ * f.exists() >> true
+        _ * f.canonicalFile >> f
+        f
+    }
+
+    def directory(String name) {
+        File f = Mock()
+        _ * f.directory >> true
+        _ * f.exists() >> true
+        _ * f.canonicalFile >> f
+        f
+    }
+    
+    def nonExistent(String name) {
+        File f = Mock()
+        _ * f.canonicalFile >> f
+        f
     }
 }

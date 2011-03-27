@@ -18,6 +18,9 @@ package org.gradle.util;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.hamcrest.*;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
@@ -109,6 +112,7 @@ public class Matchers {
         return true;
 
     }
+
     @Factory
     public static Matcher<String> containsLine(final String line) {
         return new BaseMatcher<String>() {
@@ -139,7 +143,7 @@ public class Matchers {
     public static boolean containsLine(String action, String expected) {
         return containsLine(action, equalTo(expected));
     }
-    
+
     public static boolean containsLine(String actual, Matcher<? super String> matcher) {
         BufferedReader reader = new BufferedReader(new StringReader(actual));
         String line;
@@ -215,7 +219,7 @@ public class Matchers {
     public static Matcher<Task> dependsOn(final String... tasks) {
         return dependsOn(equalTo(new HashSet<String>(Arrays.asList(tasks))));
     }
-    
+
     @Factory
     public static Matcher<Task> dependsOn(final Matcher<? extends Iterable<String>> matcher) {
         return new BaseMatcher<Task>() {
@@ -267,6 +271,39 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("a Buildable that is built by ").appendDescriptionOf(matcher);
+            }
+        };
+    }
+
+    @Factory
+    public static <T extends FileCollection> Matcher<T> sameCollection(final FileCollection expected) {
+        return new BaseMatcher<T>() {
+            public boolean matches(Object o) {
+                FileCollection actual = (FileCollection) o;
+                List<? extends FileCollection> actualCollections = unpack(actual);
+                List<? extends FileCollection> expectedCollections = unpack(expected);
+                boolean equals = actualCollections.equals(expectedCollections);
+                if (!equals) {
+                    System.out.println("expected: " + expectedCollections);
+                    System.out.println("actual: " + actualCollections);
+                }
+                return equals;
+            }
+
+            private List<? extends FileCollection> unpack(FileCollection expected) {
+                if (expected instanceof UnionFileCollection) {
+                    UnionFileCollection collection = (UnionFileCollection) expected;
+                    return new ArrayList<FileCollection>(collection.getSources());
+                }
+                if (expected instanceof DefaultConfigurableFileCollection) {
+                    DefaultConfigurableFileCollection collection = (DefaultConfigurableFileCollection) expected;
+                    return (List) collection.getSources();
+                }
+                throw new RuntimeException("Cannot get children of " + expected);
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("same file collection as ").appendValue(expected);
             }
         };
     }

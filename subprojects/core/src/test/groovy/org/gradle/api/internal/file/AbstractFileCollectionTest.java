@@ -18,13 +18,14 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitorUtil;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.TestFile;
+import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
-import org.hamcrest.Matcher;
+import org.gradle.util.TestFile;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -32,7 +33,7 @@ import java.io.File;
 import java.util.*;
 
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -238,13 +239,12 @@ public class AbstractFileCollectionTest {
 
     @Test
     public void toFileTreeReturnsSingletonTreeForEachFileInCollection() {
-        File file = new File("f1");
+        File file = testDir.createFile("f1");
+        File file2 = testDir.createFile("f2");
 
-        TestFileCollection collection = new TestFileCollection(file);
+        TestFileCollection collection = new TestFileCollection(file, file2);
         FileTree tree = collection.getAsFileTree();
-        assertThat(tree, instanceOf(CompositeFileTree.class));
-        CompositeFileTree compositeTree = (CompositeFileTree) tree;
-        assertThat(compositeTree.getSourceCollections(), hasItems((Matcher) instanceOf(SingletonFileTree.class)));
+        FileVisitorUtil.assertVisits(tree, GUtil.map("f1", file, "f2", file2));
     }
 
     @Test

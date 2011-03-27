@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionContainer;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -33,7 +34,7 @@ import java.util.*;
  * A {@link org.gradle.api.file.FileCollection} which contains the union of the given source collections. Maintains file
  * ordering.
  */
-public abstract class CompositeFileCollection extends AbstractFileCollection {
+public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer {
     public Set<File> getFiles() {
         Set<File> files = new LinkedHashSet<File>();
         for (FileCollection collection : getSourceCollections()) {
@@ -83,7 +84,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
-            protected void resolve(FileCollectionResolveContext context) {
+            public void resolve(FileCollectionResolveContext context) {
                 DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext();
                 CompositeFileCollection.this.resolve(nested);
                 context.add(nested.resolveAsFileTrees());
@@ -100,7 +101,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
     public FileCollection filter(final Spec<? super File> filterSpec) {
         return new CompositeFileCollection() {
             @Override
-            protected void resolve(FileCollectionResolveContext context) {
+            public void resolve(FileCollectionResolveContext context) {
                 for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
                     context.add(collection.filter(filterSpec));
                 }
@@ -143,5 +144,5 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
         return context.resolveAsFileCollections();
     }
 
-    protected abstract void resolve(FileCollectionResolveContext context);
+    public abstract void resolve(FileCollectionResolveContext context);
 }

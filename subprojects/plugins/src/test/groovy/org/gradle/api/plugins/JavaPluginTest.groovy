@@ -38,6 +38,7 @@ import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import static org.gradle.util.Matchers.sameCollection
 
 /**
  * @author Hans Dockter
@@ -187,8 +188,7 @@ class JavaPluginTest {
         assertThat(task, instanceOf(Javadoc))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.source.files, equalTo(project.sourceSets.main.allJava.files))
-        assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.classes))
-        assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.compileClasspath))
+        assertThat(task.classpath, sameCollection(project.files(project.sourceSets.main.classes, project.sourceSets.main.compileClasspath)))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/javadoc")))
         assertThat(task.title, equalTo(project.apiDocTitle))
 

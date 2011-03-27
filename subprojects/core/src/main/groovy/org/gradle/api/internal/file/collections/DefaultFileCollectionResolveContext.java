@@ -20,8 +20,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.file.SingletonFileTree;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GUtil;
 import org.gradle.util.UncheckedException;
@@ -158,7 +156,7 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             } else if (element instanceof MinimalFileCollection) {
                 MinimalFileCollection fileCollection = (MinimalFileCollection) element;
                 for (File file : fileCollection.getFiles()) {
-                    result.add(new SingletonFileTree(file, new DefaultTaskDependency()));
+                    convertFileToFileTree(file, result);
                 }
             } else if (element instanceof MinimalFileTree) {
                 MinimalFileTree fileTree = (MinimalFileTree) element;
@@ -166,7 +164,15 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             } else if (element instanceof TaskDependency) {
                 result.add(new FileTreeAdapter(new EmptyFileTree((TaskDependency) element)));
             } else {
-                result.add(new SingletonFileTree(fileResolver.resolve(element), new DefaultTaskDependency()));
+                convertFileToFileTree(fileResolver.resolve(element), result);
+            }
+        }
+
+        private void convertFileToFileTree(File file, Collection<? super FileTree> result) {
+            if (file.isDirectory()) {
+                result.add(new FileTreeAdapter(new DirectoryFileTree(file)));
+            } else if (file.isFile()) {
+                result.add(new FileTreeAdapter(new SingletonFileTree(file)));
             }
         }
     }

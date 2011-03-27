@@ -273,7 +273,7 @@ public class CompositeFileCollectionTest {
         }
 
         @Override
-        protected void resolve(FileCollectionResolveContext context) {
+        public void resolve(FileCollectionResolveContext context) {
             context.add(sourceCollections);
         }
     }

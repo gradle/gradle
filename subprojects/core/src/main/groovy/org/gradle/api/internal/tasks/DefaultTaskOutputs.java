@@ -34,7 +34,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private TaskExecutionHistory history;
 
     public DefaultTaskOutputs(FileResolver resolver, TaskInternal task) {
-        outputFiles = new DefaultConfigurableFileCollection("task output files", resolver, null);
+        outputFiles = new DefaultConfigurableFileCollection(String.format("%s output files", task), resolver, null);
         outputFiles.builtBy(task);
     }
 

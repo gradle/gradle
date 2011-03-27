@@ -47,7 +47,7 @@ public class UnionFileTree extends CompositeFileTree {
     }
 
     @Override
-    protected void resolve(FileCollectionResolveContext context) {
+    public void resolve(FileCollectionResolveContext context) {
         context.add(sourceTrees);
     }
 

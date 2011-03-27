@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -184,11 +185,10 @@ public abstract class AbstractFileCollection implements FileCollection {
             }
 
             @Override
-            protected void resolve(FileCollectionResolveContext context) {
-                TaskDependency taskDependency = AbstractFileCollection.this.getBuildDependencies();
-                for (File file : AbstractFileCollection.this.getFiles()) {
-                    context.add(new SingletonFileTree(file, taskDependency));
-                }
+            public void resolve(FileCollectionResolveContext context) {
+                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext();
+                nested.add(AbstractFileCollection.this.getFiles());
+                context.add(nested.resolveAsFileTrees());
             }
 
             @Override

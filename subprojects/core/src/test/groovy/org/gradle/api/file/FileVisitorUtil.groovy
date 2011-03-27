@@ -41,7 +41,7 @@ class FileVisitorUtil {
         tree.visit(visitor)
         assertTrue(found)
     }
-    
+
     static def assertVisits(MinimalFileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
         assertVisits(new FileTreeAdapter(tree), expectedFiles, expectedDirs)
     }
@@ -86,4 +86,18 @@ class FileVisitorUtil {
         assertThat(files, equalTo(expectedFiles + expectedDirs as Set))
     }
 
+    static def assertVisits(FileTree tree, Map<String, File> files) {
+        Map<String, File> visited = [:]
+        FileVisitor visitor = [
+                visitFile: {FileVisitDetails details ->
+                    visited.put(details.path, details.file)
+                },
+                visitDir: {FileVisitDetails details ->
+                }
+        ] as FileVisitor
+
+        tree.visit(visitor)
+
+        assertThat(visited, equalTo(files))
+    }
 }

@@ -85,7 +85,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         }
 
         @Override
-        protected void resolve(FileCollectionResolveContext context) {
+        public void resolve(FileCollectionResolveContext context) {
             for (FileTree set : CompositeFileTree.this.getSourceCollections()) {
                 if (closure != null) {
                     context.add(set.matching(closure));

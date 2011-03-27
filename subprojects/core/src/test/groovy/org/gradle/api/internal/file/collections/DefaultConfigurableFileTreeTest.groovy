@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.util.AbstractTestForPatternSet
@@ -36,10 +37,7 @@ import static org.gradle.api.file.FileVisitorUtil.assertVisits
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.*
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.UnionFileTree
 
 /**
  * @author Hans Dockter
@@ -245,13 +243,6 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertTrue(filtered.contains(included1))
         assertFalse(filtered.contains(excluded1))
         assertFalse(filtered.contains(ignored1))
-    }
-
-    @Test public void testCanAddFileSetsTogether() {
-        FileTree other = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub)
-        FileTree sum = fileSet + other
-        assertThat(sum, instanceOf(UnionFileTree))
-        assertThat(sum.sourceCollections, equalTo([fileSet, other]))
     }
 
     @Test public void testDisplayName() {

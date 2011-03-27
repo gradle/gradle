@@ -80,7 +80,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    protected void resolve(FileCollectionResolveContext context) {
+    public void resolve(FileCollectionResolveContext context) {
         FileCollectionResolveContext nested = context.push(resolver);
         nested.add(buildDependency);
         nested.add(files);

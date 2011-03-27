@@ -22,28 +22,32 @@ import org.gradle.util.GUtil;
 import java.util.*;
 
 public class UnionFileCollection extends CompositeFileCollection {
-    private final Set<FileCollection> sourceCollections;
+    private final Set<FileCollection> source;
 
-    public UnionFileCollection(FileCollection... sourceCollections) {
-        this(Arrays.asList(sourceCollections));
+    public UnionFileCollection(FileCollection... source) {
+        this(Arrays.asList(source));
     }
 
-    public UnionFileCollection(Iterable<? extends FileCollection> sourceCollections) {
-        this.sourceCollections = GUtil.addToCollection(new LinkedHashSet<FileCollection>(), sourceCollections);
+    public UnionFileCollection(Iterable<? extends FileCollection> source) {
+        this.source = GUtil.addToCollection(new LinkedHashSet<FileCollection>(), source);
     }
 
     public String getDisplayName() {
         return "file collection";
     }
 
+    public Set<FileCollection> getSources() {
+        return source;
+    }
+
     @Override
     public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
-        sourceCollections.add(collection);
+        source.add(collection);
         return this;
     }
 
     @Override
-    protected void resolve(FileCollectionResolveContext context) {
-        context.add(sourceCollections);
+    public void resolve(FileCollectionResolveContext context) {
+        context.add(source);
     }
 }

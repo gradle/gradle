@@ -153,7 +153,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     @Override
-    protected void resolve(FileCollectionResolveContext context) {
+    public void resolve(FileCollectionResolveContext context) {
         File dir = getDir();
         context.add(buildDependency);
         context.add(new DirectoryFileTree(dir, patternSet));

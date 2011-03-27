@@ -37,7 +37,7 @@ public class EmptyFileTree implements MinimalFileTree, Buildable, LocalFileTree 
     }
 
     public String getDisplayName() {
-        return "empty file collection";
+        return "dependencies mix-in file collection";
     }
 
     public Collection<DirectoryFileTree> getLocalContents() {
