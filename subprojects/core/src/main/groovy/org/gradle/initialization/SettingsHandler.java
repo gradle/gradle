@@ -24,6 +24,7 @@ import org.gradle.groovy.scripts.StringScriptSource;
 
 import java.io.File;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that modules is
@@ -82,6 +83,8 @@ public class SettingsHandler {
         StartParameter buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setCurrentDir(new File(settingsLocation.getSettingsDir(),
                 BaseSettings.DEFAULT_BUILD_SRC_DIR));
+        buildSrcStartParameter.setInitScripts(new ArrayList<File>(startParameter.getInitScripts()));
+
         URLClassLoader buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
         return loadSettings(gradle, settingsLocation, buildSourceClassLoader, startParameter, gradlePropertiesLoader);
