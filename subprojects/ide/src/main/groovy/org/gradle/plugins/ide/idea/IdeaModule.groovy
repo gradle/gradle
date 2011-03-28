@@ -30,18 +30,22 @@ import org.gradle.api.artifacts.*
 /**
  * Generates an IDEA module file.
  * <p>
- * Usually it is not necessary to configure ideaModule directly because applying the 'idea' plugin on projects should be enough.
- * However, if you need to do it here's how:
- * <pre>
- * allprojects {
- *   apply plugin: 'java'
- *   apply plugin: 'idea'
+ * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'idea'
+ *
+ * configurations {
+ *   provided
+ *   provided.extendsFrom(compile)
  * }
  *
- * project(':model') {
- *   ideaModule {
- *     //...
- *   }
+ * dependencies {
+ *   //provided "some.interesting:dependency:1.0"
+ * }
+ *
+ * ideaModule {
+ *   scopes.COMPILE.plus += configurations.provided
  * }
  * </pre>
  *
@@ -121,19 +125,24 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
      * The values of those keys are sets of  {@link org.gradle.api.artifacts.Configuration}  objects. The files of the
-     * plus configurations are added minus the files from the minus configurations.
+     * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
-     * <pre>
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     * apply plugin: 'idea'
+     *
      * configurations {
      *   provided
      *   provided.extendsFrom(compile)
      * }
      *
-     * dependencies { ... }
+     * dependencies {
+     *   //provided "some.interesting:dependency:1.0"
+     * }
      *
      * ideaModule {
-     *   scopes.PROVIDED.plus += configurations.provided
+     *   scopes.COMPILE.plus += configurations.provided
      * }
      * </pre>
      */
@@ -335,17 +344,17 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
      * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b>
      * to make sure the moduleName is unique in the scope of a multi-module build.
      * The 'uniqeness' of a module name is required for correct import
-     * into IntelliJ IDEA and the task will make sure the name is unique.
+     * into IntelliJ IDEA and the task will make sure the name is unique. See example below...
      * <p>
      * <b>moduleName</b> is a synthethic property that actually modifies the <b>outputFile</b> property value.
      * This means that you should not configure both moduleName and outputFile at the same time. moduleName is recommended.
      * <p>
      * However, in case you really need to override the default moduleName this is the way to go:
-     * <pre>
-     * project(':someProject') {
-     *    ideaModule {
-     *      moduleName = 'some-important-project'
-     *    }
+     * <pre autoTested=''>
+     * apply plugin: 'idea'
+     *
+     * ideaModule {
+     *   moduleName = 'some-important-project'
      * }
      * </pre>
      * <p>
