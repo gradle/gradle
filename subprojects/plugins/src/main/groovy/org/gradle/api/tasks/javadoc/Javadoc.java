@@ -36,7 +36,9 @@ import java.util.List;
  * <p>
  * If you create your own Javadoc tasks remember to specify the 'source' property!
  * Without source the javadoc task will not create any documentation. Example:
- * <pre>
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ *
  * task myJavadocs(type: Javadoc) {
  *   source = sourceSets.main.allJava
  * }
@@ -44,7 +46,17 @@ import java.util.List;
  *
  * <p>
  * An example how to create a task that runs a custom doclet implementation:
- * <pre>
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ *
+ * configurations {
+ *   jaxDoclet
+ * }
+ *
+ * dependencies {
+ *   //jaxDoclet "some.interesting:Dependency:1.0"
+ * }
+ *
  * task generateRestApiDocs(type: Javadoc) {
  *   source = sourceSets.main.allJava
  *   destinationDir = file("${reportsDir.absolutePath}/rest-api-docs")
