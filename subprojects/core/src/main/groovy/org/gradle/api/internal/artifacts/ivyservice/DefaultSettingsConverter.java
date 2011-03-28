@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.lock.NoLockStrategy;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
@@ -43,6 +44,7 @@ import java.util.*;
 public class DefaultSettingsConverter implements SettingsConverter {
     private static Logger logger = Logging.getLogger(DefaultSettingsConverter.class);
 
+    private WharfCacheManager wharfCacheManager;
     private IvySettings ivySettingsForResolve;
     private IvySettings ivySettingsForPublish;
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -143,7 +145,11 @@ public class DefaultSettingsConverter implements SettingsConverter {
         IvySettings ivySettings = new IvySettings();
         ivySettings.setDefaultCache(new File(gradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME));
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
-        WharfCacheManager wharfCacheManager = WharfCacheManager.newInstance(ivySettings);
+        if (wharfCacheManager == null) {
+            wharfCacheManager = WharfCacheManager.newInstance(ivySettings);
+            // Locking is slowing down too much, and failing the UserGuideSamplesIntegrationTest.dependencyListReport test
+            wharfCacheManager.getMetadataHandler().setLockStrategy(new NoLockStrategy());
+        }
         ivySettings.setDefaultRepositoryCacheManager(wharfCacheManager);
         return ivySettings;
     }

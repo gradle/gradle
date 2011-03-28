@@ -128,6 +128,10 @@ class ClasspathFactory {
         new Library(binary.canonicalPath, true, null, [] as Set, source ? source.canonicalPath : null, javadoc ? javadoc.canonicalPath : null)
     }
 
+    private getCanonicalPath(File binary) {
+        
+    }
+
     private Set getDependencies(Set plusConfigurations, Set minusConfigurations, Closure filter) {
         Set declaredDependencies = new LinkedHashSet()
         plusConfigurations.each { configuration ->
