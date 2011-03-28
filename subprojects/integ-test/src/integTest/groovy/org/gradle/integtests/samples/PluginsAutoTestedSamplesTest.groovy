@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.internal.AutoTestedSamplesUtil
@@ -23,7 +23,7 @@ import org.junit.Test
 /**
  * Author: Szczepan Faber, created at: 3/28/11
  */
-class AutoTestedSamplesTest extends AbstractIntegrationTest {
+class PluginsAutoTestedSamplesTest extends AbstractIntegrationTest {
 
     @Test
     void runSamples() {
@@ -35,6 +35,7 @@ class AutoTestedSamplesTest extends AbstractIntegrationTest {
             def testFile = testFile('build.gradle')
             testFile.text = sample
             usingBuildFile(testFile).withTasks('tasks').run()
+            println 'ok'
         }
     }
 }
