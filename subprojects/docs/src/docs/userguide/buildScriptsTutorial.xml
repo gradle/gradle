@@ -172,11 +172,11 @@
         <para>Ant tasks are first-class citizens in Gradle. Gradle provides excellent integration for Ant tasks simply
             by relying on Groovy. Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks
             from Gradle is as convenient and more powerful than using Ant tasks from a <filename>build.xml</filename>
-            file. Let's look at an example:
+            file. From below example you can learn how to execute ant tasks and how to access ant properties:
         </para>
-        <sample id="antChecksum" dir="userguide/tutorial/antChecksum" title="Using AntBuilder to execute ant.checksum target">
+        <sample id="antLoadfile" dir="userguide/tutorial/antLoadfile" title="Using AntBuilder to execute ant.loadfile target">
             <sourcefile file="build.gradle"/>
-            <output args="-q checksum"/>
+            <output args="-q loadfile"/>
         </sample>
 
         <para>There is lots more you can do with Ant in your build scripts. You can find out more in <xref linkend="ant"/>.</para>
@@ -186,9 +186,9 @@
         <para>Gradle scales in how you can organize your build logic. The first level of organizing your build logic for
             the example above, is extracting a method.
         </para>
-        <sample id="antChecksumWithMethod" dir="userguide/tutorial/antChecksumWithMethod" title="Using methods to organize your build logic">
+        <sample id="antLoadfileWithMethod" dir="userguide/tutorial/antLoadfileWithMethod" title="Using methods to organize your build logic">
             <sourcefile file="build.gradle"/>
-            <output args="-q checksum"/>
+            <output args="-q loadfile"/>
         </sample>
         <para>Later you will see that such methods can be shared among subprojects in multi-project builds. If your
             build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have

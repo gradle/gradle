@@ -78,7 +78,7 @@ tasks.withType(AssembleDslDocTask) {
 task samples(type: ExtractSnippetsTask) {
     source samplesSrcDir
     exclude 'userguideOutput/**'
-    exclude 'userguide/tutorial/antChecksumFiles/**'
+    exclude 'userguide/tutorial/antLoadfileResources/**'
     exclude '**/readme.xml'
     destDir = samplesDir
     snippetsDir = new File(buildDir, 'snippets')
@@ -86,7 +86,7 @@ task samples(type: ExtractSnippetsTask) {
         copy {
             from samplesSrcDir
             into samplesDir
-            include 'userguide/tutorial/antChecksumFiles/**'
+            include 'userguide/tutorial/antLoadfileResources/**'
         }
     }
 }
