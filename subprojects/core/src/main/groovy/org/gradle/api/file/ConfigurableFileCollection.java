@@ -25,8 +25,28 @@ import java.util.Set;
  */
 public interface ConfigurableFileCollection extends FileCollection {
     /**
-     * Adds a set of files to this collection. The given paths are evaluated as for {@link
-     * org.gradle.api.Project#files(Object...)}.
+     * Returns the set of source paths for this collection. The paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     *
+     * @return The set of source paths. Returns an empty set if none.
+     */
+    Set<Object> getFrom();
+
+    /**
+     * Sets the source paths for this collection. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     *
+     * @param paths The paths.
+     */
+    void setFrom(Iterable<?> paths);
+
+    /**
+     * Sets the source paths for this collection. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     *
+     * @param paths The paths.
+     */
+    void setFrom(Object... paths);
+
+    /**
+     * Adds a set of source paths to this collection. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param paths The files to add.
      * @return this

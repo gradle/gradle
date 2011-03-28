@@ -51,7 +51,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public boolean getHasOutput() {
-        return !outputFiles.getSources().isEmpty() || !upToDateSpec.getSpecs().isEmpty();
+        return !outputFiles.getFrom().isEmpty() || !upToDateSpec.getSpecs().isEmpty();
     }
 
     public FileCollection getFiles() {

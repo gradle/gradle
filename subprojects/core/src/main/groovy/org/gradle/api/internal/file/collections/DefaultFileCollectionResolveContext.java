@@ -28,7 +28,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-public class DefaultFileCollectionResolveContext implements FileCollectionResolveContext {
+public class DefaultFileCollectionResolveContext implements ResolvableFileCollectionResolveContext {
     private final FileResolver fileResolver;
     private final List<Object> queue = new LinkedList<Object>();
     private List<Object> addTo = queue;
@@ -51,10 +51,14 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
         return nestedContext;
     }
 
+    public ResolvableFileCollectionResolveContext newContext() {
+        return new DefaultFileCollectionResolveContext(fileResolver);
+    }
+
     /**
      * Resolves the contents of this context as a list of atomic {@link FileTree} instances.
      */
-    public List<FileTree> resolveAsFileTrees() {
+    public List<FileTreeInternal> resolveAsFileTrees() {
         return doResolve(new FileTreeConverter());
     }
 
@@ -75,7 +79,7 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             } else if (element instanceof FileCollectionContainer) {
                 FileCollectionContainer fileCollection = (FileCollectionContainer) element;
                 resolveNested(fileCollection);
-            } else if (element instanceof FileCollection || element instanceof MinimalFileCollection || element instanceof MapFileTree) {
+            } else if (element instanceof FileCollection || element instanceof MinimalFileCollection || element instanceof MinimalFileTree) {
                 converter.convertInto(element, result);
             } else if (element instanceof Closure) {
                 Closure closure = (Closure) element;
@@ -142,17 +146,21 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
         }
     }
 
-    private class FileTreeConverter implements Converter<FileTree> {
-        public void convertInto(Object element, Collection<? super FileTree> result) {
+    private class FileTreeConverter implements Converter<FileTreeInternal> {
+        public void convertInto(Object element, Collection<? super FileTreeInternal> result) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
                 result.addAll(nestedContext.resolveAsFileTrees());
-            } else if (element instanceof FileTree) {
-                FileTree fileTree = (FileTree) element;
+            } else if (element instanceof FileTreeInternal) {
+                FileTreeInternal fileTree = (FileTreeInternal) element;
                 result.add(fileTree);
-            } else if (element instanceof FileCollection) {
-                FileCollection fileCollection = (FileCollection) element;
+            } else if (element instanceof FileTree) {
+                throw new UnsupportedOperationException("Cannot convert instance of FileTree to FileTreeInternal");
+            } else if (element instanceof FileCollectionInternal) {
+                FileCollectionInternal fileCollection = (FileCollectionInternal) element;
                 result.add(fileCollection.getAsFileTree());
+            } else if (element instanceof FileCollection) {
+                throw new UnsupportedOperationException("Cannot convert instance of FileCollection to FileTreeInternal");
             } else if (element instanceof MinimalFileCollection) {
                 MinimalFileCollection fileCollection = (MinimalFileCollection) element;
                 for (File file : fileCollection.getFiles()) {
@@ -168,7 +176,7 @@ public class DefaultFileCollectionResolveContext implements FileCollectionResolv
             }
         }
 
-        private void convertFileToFileTree(File file, Collection<? super FileTree> result) {
+        private void convertFileToFileTree(File file, Collection<? super FileTreeInternal> result) {
             if (file.isDirectory()) {
                 result.add(new FileTreeAdapter(new DirectoryFileTree(file)));
             } else if (file.isFile()) {

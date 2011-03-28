@@ -19,9 +19,7 @@ import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -33,7 +31,7 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.*;
 
-public abstract class AbstractFileCollection implements FileCollection {
+public abstract class AbstractFileCollection implements FileCollectionInternal {
     /**
      * Returns the display name of this file collection. Used in log and error messages.
      *
@@ -177,7 +175,7 @@ public abstract class AbstractFileCollection implements FileCollection {
         return new DefaultTaskDependency();
     }
 
-    public FileTree getAsFileTree() {
+    public FileTreeInternal getAsFileTree() {
         return new CompositeFileTree() {
             @Override
             public TaskDependency getBuildDependencies() {
@@ -186,7 +184,7 @@ public abstract class AbstractFileCollection implements FileCollection {
 
             @Override
             public void resolve(FileCollectionResolveContext context) {
-                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext();
+                ResolvableFileCollectionResolveContext nested = context.newContext();
                 nested.add(AbstractFileCollection.this.getFiles());
                 context.add(nested.resolveAsFileTrees());
             }

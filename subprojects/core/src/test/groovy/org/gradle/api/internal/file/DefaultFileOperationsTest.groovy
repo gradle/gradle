@@ -24,20 +24,20 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
+import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.CopyActionImpl
 import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.process.ExecResult
+import org.gradle.process.internal.ExecException
+import org.gradle.util.ClasspathUtil
+import org.gradle.util.OperatingSystem
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
-import org.gradle.process.internal.ExecException
-import org.gradle.process.ExecResult
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification
-import org.gradle.util.OperatingSystem
-import org.gradle.util.ClasspathUtil
-import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 
 public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()
@@ -77,7 +77,7 @@ public class DefaultFileOperationsTest extends Specification {
 
         then:
         fileCollection instanceof DefaultConfigurableFileCollection
-        fileCollection.sources == ['a', 'b']
+        fileCollection.from == ['a', 'b'] as LinkedHashSet
         fileCollection.resolver.is(resolver)
         fileCollection.buildDependency.resolver.is(taskResolver)
     }

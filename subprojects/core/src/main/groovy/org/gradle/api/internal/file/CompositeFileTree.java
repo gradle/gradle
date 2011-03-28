@@ -19,12 +19,13 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.FileTreeInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 import java.util.List;
 
-public abstract class CompositeFileTree extends CompositeFileCollection implements FileTree {
+public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
     public List<FileTree> getSourceCollections() {
         return (List) super.getSourceCollections();
     }
@@ -56,7 +57,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     @Override
-    public FileTree getAsFileTree() {
+    public FileTreeInternal getAsFileTree() {
         return this;
     }
 

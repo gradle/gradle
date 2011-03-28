@@ -22,6 +22,9 @@ import org.gradle.api.internal.file.DefaultFileTreeElement;
 
 import java.io.File;
 
+/**
+ * A file tree with a single file entry.
+ */
 public class SingletonFileTree implements MinimalFileTree {
     private final File file;
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.*;
+import org.gradle.api.internal.file.collections.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -31,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class AbstractFileTree extends AbstractFileCollection implements FileTree {
+public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
     public Set<File> getFiles() {
         final Set<File> files = new LinkedHashSet<File>();
         visit(new EmptyFileVisitor() {
@@ -101,7 +102,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public FileTree getAsFileTree() {
+    public FileTreeInternal getAsFileTree() {
         return this;
     }
 

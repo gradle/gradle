@@ -40,7 +40,14 @@ public interface FileCollectionResolveContext {
     void add(Object element);
 
     /**
-     * Adds a nested context which resolves elements using the given resolvers.
+     * Adds a nested context which resolves elements using the given resolvers. Any element added to the returned context will be added to this context. Those elements
+     * which need to be resolved using a file resolver will use the provided resolver, instead of the default used by this context.
      */
     FileCollectionResolveContext push(FileResolver fileResolver);
+
+    /**
+     * Creates a new context which can be used to resolve element. Elements added to the returned context will not be added to this context. Instead, the caller should use
+     * one of {@link ResolvableFileCollectionResolveContext#resolveAsFileCollections()} or {@link ResolvableFileCollectionResolveContext#resolveAsFileTrees()}.
+     */
+    ResolvableFileCollectionResolveContext newContext();
 }

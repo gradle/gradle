@@ -157,7 +157,7 @@ public class TestTest extends AbstractConventionTaskTest {
         assertThat(classFiles, instanceOf(CompositeFileTree.class));
         CompositeFileTree files = (CompositeFileTree) classFiles;
         List<FileTree> contents = files.getSourceCollections();
-        FileTreeAdapter adapter = (FileTreeAdapter) contents.get(1);
+        FileTreeAdapter adapter = (FileTreeAdapter) contents.get(0);
         assertThat(adapter.getTree(), instanceOf(DirectoryFileTree.class));
         DirectoryFileTree directoryFileTree = (DirectoryFileTree) adapter.getTree();
         assertThat(directoryFileTree.getRoot(), equalTo(classesDir));

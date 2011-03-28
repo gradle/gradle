@@ -32,8 +32,8 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertTrue;
 
 public class Matchers {
     @Factory
@@ -297,7 +297,7 @@ public class Matchers {
                 }
                 if (expected instanceof DefaultConfigurableFileCollection) {
                     DefaultConfigurableFileCollection collection = (DefaultConfigurableFileCollection) expected;
-                    return (List) collection.getSources();
+                    return new ArrayList<FileCollection>((Set) collection.getFrom());
                 }
                 throw new RuntimeException("Cannot get children of " + expected);
             }

@@ -109,8 +109,8 @@ class DefaultFileCollectionResolveContextTest extends Specification {
     }
 
     def resolveAsFileTreesDelegatesToAFileCollection() {
-        FileCollection fileCollection = Mock()
-        FileTree fileTree = Mock()
+        FileCollectionInternal fileCollection = Mock()
+        FileTreeInternal fileTree = Mock()
 
         when:
         context.add(fileCollection)
@@ -136,7 +136,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
     def resolveAsFileTreesDelegatesToACompositeFileCollection() {
         FileCollectionContainer composite = Mock()
-        FileTree contents = Mock()
+        FileTreeInternal contents = Mock()
 
         when:
         context.add(composite)

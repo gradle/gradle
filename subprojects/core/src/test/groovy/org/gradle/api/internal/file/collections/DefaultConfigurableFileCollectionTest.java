@@ -57,34 +57,34 @@ public class DefaultConfigurableFileCollectionTest {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, file1,
-                file2);
+        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, "a", "b");
 
         context.checking(new Expectations() {{
-            one(resolverMock).resolve(file1);
+            one(resolverMock).resolve("a");
             will(returnValue(file1));
-            one(resolverMock).resolve(file2);
+            one(resolverMock).resolve("b");
             will(returnValue(file2));
         }});
 
+        assertThat(collection.getFrom(), equalTo(toLinkedSet((Object) "a", "b")));
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
     }
 
     @Test
     public void canAddPathsToTheCollection() {
-        final File file1 = new File("1");
-        final File file2 = new File("2");
-
         collection.from("src1", "src2");
+        assertThat(collection.getFrom(), equalTo(toLinkedSet((Object) "src1", "src2")));
+    }
 
-        context.checking(new Expectations() {{
-            one(resolverMock).resolve("src1");
-            will(returnValue(file1));
-            one(resolverMock).resolve("src2");
-            will(returnValue(file2));
-        }});
+    @Test
+    public void canSetThePathsOfTheCollection() {
+        collection.from("ignore-me");
 
-        assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
+        collection.setFrom("src1", "src2");
+        assertThat(collection.getFrom(), equalTo(toLinkedSet((Object) "src1", "src2")));
+
+        collection.setFrom(toList("a", "b"));
+        assertThat(collection.getFrom(), equalTo(toLinkedSet((Object) toList("a", "b"))));
     }
 
     @Test
@@ -274,8 +274,27 @@ public class DefaultConfigurableFileCollectionTest {
         context.checking(new Expectations() {{
             one(resolveContext).push(resolverMock);
             will(returnValue(nestedContext));
+            one(nestedContext).add(collection.getFrom());
+        }});
+
+        collection.resolve(resolveContext);
+    }
+
+    @Test
+    public void resolveBuildDependenciesWhenNoEmpty() {
+        final FileCollectionResolveContext resolveContext = context.mock(FileCollectionResolveContext.class);
+        final FileCollectionResolveContext nestedContext = context.mock(FileCollectionResolveContext.class);
+        final FileCollection fileCollectionMock = context.mock(FileCollection.class);
+
+        collection.from("file");
+        collection.builtBy("classes");
+        collection.from(fileCollectionMock);
+
+        context.checking(new Expectations() {{
+            one(resolveContext).push(resolverMock);
+            will(returnValue(nestedContext));
             one(nestedContext).add(with(notNullValue(TaskDependency.class)));
-            one(nestedContext).add(collection.getSources());
+            one(nestedContext).add(collection.getFrom());
         }});
 
         collection.resolve(resolveContext);

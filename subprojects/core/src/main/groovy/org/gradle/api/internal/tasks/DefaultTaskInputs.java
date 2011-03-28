@@ -38,7 +38,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public boolean getHasInputs() {
-        return !inputFiles.getSources().isEmpty() || !properties.isEmpty();
+        return !inputFiles.getFrom().isEmpty() || !properties.isEmpty();
     }
 
     public FileCollection getFiles() {

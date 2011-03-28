@@ -19,13 +19,15 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
+import org.gradle.api.internal.file.collections.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,14 +35,13 @@ import java.io.File;
 import java.util.*;
 
 import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class CompositeFileCollectionTest {
-    private final JUnit4Mockery context = new JUnit4Mockery(){{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final AbstractFileCollection source1 = context.mock(AbstractFileCollection.class, "source1");
     private final AbstractFileCollection source2 = context.mock(AbstractFileCollection.class, "source2");
     private final TestCompositeFileCollection collection = new TestCompositeFileCollection(source1, source2);
@@ -160,8 +161,8 @@ public class CompositeFileCollectionTest {
     
     @Test
     public void getAsFileTreeDelegatesToEachSet() {
-        final FileTree tree1 = context.mock(FileTree.class, "tree1");
-        final FileTree tree2 = context.mock(FileTree.class, "tree2");
+        final FileTreeInternal tree1 = context.mock(FileTreeInternal.class);
+        final FileTreeInternal tree2 = context.mock(FileTreeInternal.class);
 
         context.checking(new Expectations() {{
             one(source1).getAsFileTree();
@@ -177,10 +178,10 @@ public class CompositeFileCollectionTest {
 
     @Test
     public void fileTreeIsLive() {
-        final FileTree tree1 = context.mock(FileTree.class, "tree1");
-        final FileTree tree2 = context.mock(FileTree.class, "tree2");
-        final FileCollection source3 = context.mock(FileCollection.class);
-        final FileTree tree3 = context.mock(FileTree.class);
+        final FileTreeInternal tree1 = context.mock(FileTreeInternal.class);
+        final FileTreeInternal tree2 = context.mock(FileTreeInternal.class);
+        final FileCollectionInternal source3 = context.mock(FileCollectionInternal.class);
+        final FileTreeInternal tree3 = context.mock(FileTreeInternal.class);
 
         context.checking(new Expectations() {{
             one(source1).getAsFileTree();

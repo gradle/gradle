@@ -155,7 +155,9 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     @Override
     public void resolve(FileCollectionResolveContext context) {
         File dir = getDir();
-        context.add(buildDependency);
+        if (!buildDependency.getValues().isEmpty()) {
+            context.add(buildDependency);
+        }
         context.add(new DirectoryFileTree(dir, patternSet));
     }
 

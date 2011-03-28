@@ -21,17 +21,17 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection {
-    private final List<Object> files;
+    private final Set<Object> files;
     private final String displayName;
     private final FileResolver resolver;
     private final DefaultTaskDependency buildDependency;
@@ -43,25 +43,30 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     public DefaultConfigurableFileCollection(String displayName, FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
-        this.files = new ArrayList<Object>(Arrays.asList(files));
+        this.files = new LinkedHashSet<Object>(Arrays.asList(files));
         buildDependency = new DefaultTaskDependency(taskResolver);
-    }
-
-    public DefaultConfigurableFileCollection clear() {
-        files.clear();
-        return this;
     }
 
     public String getDisplayName() {
         return displayName;
     }
 
-    public List<?> getSources() {
+    public Set<Object> getFrom() {
         return files;
     }
 
+    public void setFrom(Iterable<?> path) {
+        files.clear();
+        files.add(path);
+    }
+
+    public void setFrom(Object... paths) {
+        files.clear();
+        GUtil.addToCollection(files, Arrays.asList(paths));
+    }
+
     public ConfigurableFileCollection from(Object... paths) {
-        files.add(paths);
+        GUtil.addToCollection(files, Arrays.asList(paths));
         return this;
     }
 
@@ -82,7 +87,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void resolve(FileCollectionResolveContext context) {
         FileCollectionResolveContext nested = context.push(resolver);
-        nested.add(buildDependency);
+        if (!buildDependency.getValues().isEmpty()) {
+            nested.add(buildDependency);
+        }
         nested.add(files);
     }
 }

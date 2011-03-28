@@ -17,11 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileCollectionContainer;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -81,11 +77,11 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    public FileTree getAsFileTree() {
+    public FileTreeInternal getAsFileTree() {
         return new CompositeFileTree() {
             @Override
             public void resolve(FileCollectionResolveContext context) {
-                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext();
+                ResolvableFileCollectionResolveContext nested = context.newContext();
                 CompositeFileCollection.this.resolve(nested);
                 context.add(nested.resolveAsFileTrees());
             }

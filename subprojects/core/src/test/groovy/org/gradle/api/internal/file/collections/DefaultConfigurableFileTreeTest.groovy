@@ -22,6 +22,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.AbstractTestForPatternSet
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
@@ -36,7 +37,7 @@ import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting
 import static org.gradle.api.file.FileVisitorUtil.assertVisits
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.gradle.util.Matchers.isEmpty
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 /**
@@ -84,6 +85,32 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertEquals(new File('dirname'), fileSet.dir);
     }
 
+    @Test public void testResolveAddsADirectoryFileTree() {
+        FileCollectionResolveContext resolveContext = context.mock(FileCollectionResolveContext)
+
+        context.checking {
+            one(resolveContext).add(withParam(notNullValue()))
+            will { fileTree ->
+                assertThat(fileTree, instanceOf(DirectoryFileTree))
+                assertThat(fileTree.root, equalTo(testDir))
+            }
+        }
+
+        fileSet.resolve(resolveContext)
+    }
+
+    @Test public void testResolveAddsBuildDependenciesIfNotEmpty() {
+        FileCollectionResolveContext resolveContext = context.mock(FileCollectionResolveContext)
+        fileSet.builtBy("classes")
+
+        context.checking {
+            one(resolveContext).add(withParam(instanceOf(DirectoryFileTree)))
+            one(resolveContext).add(withParam(instanceOf(TaskDependency)))
+        }
+
+        fileSet.resolve(resolveContext)
+    }
+    
     @Test public void testCanScanForFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
@@ -272,7 +299,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     public void canGetAndSetTaskDependencies() {
         FileResolver fileResolverStub = context.mock(FileResolver.class);
         fileSet = patternSetType.newInstance(testDir, fileResolverStub, taskResolverStub)
-        
+
         assertThat(fileSet.getBuiltBy(), isEmpty());
 
         fileSet.builtBy("a");
