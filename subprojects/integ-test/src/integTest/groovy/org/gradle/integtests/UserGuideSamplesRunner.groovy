@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests
 
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.ListMultimap
 import groovy.io.PlatformLineWriter
 import junit.framework.AssertionFailedError
 import org.apache.tools.ant.taskdefs.Delete
@@ -28,8 +30,6 @@ import org.junit.runner.Description
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
-import com.google.common.collect.ListMultimap
-import com.google.common.collect.ArrayListMultimap
 
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.lineSeparator
@@ -247,7 +247,7 @@ class UserGuideSamplesRunner extends Runner {
     static void assertSamplesGenerated(boolean assertion) {
         assert assertion : """Couldn't find any samples. Most likely, samples.xml was not generated.
 Please run 'gradle check devBuild' first (you can skip tests in this case)
-Probably some other task can help you as well but at the moment I don't know which one :) I tried gradle docs and it didn't help. If you find out please update this message. Thanks!"""
+Probably some other task can help you as well, please try: 'gradle docs intTestImage'"""
     }
 }
 
