@@ -22,12 +22,13 @@ import org.gradle.api.file.FileVisitorUtil;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
+import org.gradle.util.*;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.*;
@@ -38,9 +39,12 @@ import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+@RunWith(JMock.class)
 public class AbstractFileCollectionTest {
     @Rule
-    public TemporaryFolder testDir = new TemporaryFolder();
+    public final TemporaryFolder testDir = new TemporaryFolder();
+    final JUnit4Mockery context = new JUnit4GroovyMockery();
+    final TaskDependency dependency = context.mock(TaskDependency.class);
 
     @Test
     public void usesDisplayNameAsToString() {
@@ -295,15 +299,26 @@ public class AbstractFileCollectionTest {
         TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency();
         collection.files.add(new File("f1"));
 
-        assertThat(collection.getAsFileTree().getBuildDependencies(), sameInstance(collection.dependency));
-        assertThat(collection.getAsFileTree().matching(HelperUtil.TEST_CLOSURE).getBuildDependencies(), sameInstance(collection.dependency));
+        assertHasSameDependencies(collection.getAsFileTree());
+        assertHasSameDependencies(collection.getAsFileTree().matching(HelperUtil.TEST_CLOSURE));
     }
 
     @Test
     public void filteredCollectionHasSameDependenciesAsThis() {
         TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency();
 
-        assertThat(collection.filter(HelperUtil.toClosure("{true}")).getBuildDependencies(), sameInstance(collection.dependency));
+        assertHasSameDependencies(collection.filter(HelperUtil.toClosure("{true}")));
+    }
+
+    private void assertHasSameDependencies(FileCollection tree) {
+        final Task task = context.mock(Task.class);
+        final Task depTask = context.mock(Task.class);
+        context.checking(new Expectations() {{
+            one(dependency).getDependencies(task);
+            will(returnValue(toSet(depTask)));
+        }});
+
+        assertThat(tree.getBuildDependencies().getDependencies(task), equalTo((Object) toSet(depTask)));
     }
 
     private class TestFileCollection extends AbstractFileCollection {
@@ -323,12 +338,6 @@ public class AbstractFileCollectionTest {
     }
 
     private class TestFileCollectionWithDependency extends TestFileCollection {
-        TaskDependency dependency = new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                throw new UnsupportedOperationException();
-            }
-        };
-
         @Override
         public TaskDependency getBuildDependencies() {
             return dependency;

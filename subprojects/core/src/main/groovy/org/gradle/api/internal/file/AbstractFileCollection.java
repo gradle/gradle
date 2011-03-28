@@ -178,14 +178,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     public FileTreeInternal getAsFileTree() {
         return new CompositeFileTree() {
             @Override
-            public TaskDependency getBuildDependencies() {
-                return AbstractFileCollection.this.getBuildDependencies();
-            }
-
-            @Override
             public void resolve(FileCollectionResolveContext context) {
                 ResolvableFileCollectionResolveContext nested = context.newContext();
-                nested.add(AbstractFileCollection.this.getFiles());
+                nested.add(AbstractFileCollection.this);
                 context.add(nested.resolveAsFileTrees());
             }
 

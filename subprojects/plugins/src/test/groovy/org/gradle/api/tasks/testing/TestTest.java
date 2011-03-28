@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.CompositeFileTree;
+import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
@@ -156,7 +157,9 @@ public class TestTest extends AbstractConventionTaskTest {
     private void assertIsDirectoryTree(FileTree classFiles, Set<String> includes, Set<String> excludes) {
         assertThat(classFiles, instanceOf(CompositeFileTree.class));
         CompositeFileTree files = (CompositeFileTree) classFiles;
-        List<FileTree> contents = files.getSourceCollections();
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
+        files.resolve(context);
+        List<? extends FileTree> contents = context.resolveAsFileTrees();
         FileTreeAdapter adapter = (FileTreeAdapter) contents.get(0);
         assertThat(adapter.getTree(), instanceOf(DirectoryFileTree.class));
         DirectoryFileTree directoryFileTree = (DirectoryFileTree) adapter.getTree();

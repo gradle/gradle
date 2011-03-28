@@ -21,9 +21,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DependencyInternal;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
+import org.gradle.api.internal.file.collections.FileCollectionInternal;
 import org.gradle.api.specs.Specs;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
@@ -38,9 +38,10 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.WrapUtil.toLinkedSet;
+import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class SelfResolvingDependencyResolverTest {
@@ -95,7 +96,7 @@ public class SelfResolvingDependencyResolverTest {
 
         final File configFile = new File("from config");
         final File depFile = new File("from dep");
-        final FileCollection depFiles = context.mock(FileCollection.class);
+        final FileCollectionInternal depFiles = context.mock(FileCollectionInternal.class);
 
         final boolean transitive = true;
         context.checking(new Expectations() {{

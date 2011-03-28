@@ -16,14 +16,16 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import org.gradle.api.internal.file.collections.FileTreeInternal;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.gradle.util.WrapUtil.toList;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class UnionFileTreeTest {
@@ -32,7 +34,7 @@ public class UnionFileTreeTest {
 
     @Test
     public void canAddFileTree() {
-        FileTree set1 = context.mock(FileTree.class, "set1");
+        FileTreeInternal set1 = context.mock(FileTreeInternal.class, "set1");
 
         set.add(set1);
         assertThat(set.getSourceCollections(), equalTo((Iterable) toList((Object) set1)));

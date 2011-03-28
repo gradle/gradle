@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.api.internal.file.copy.CopySpecVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.hamcrest.BaseMatcher;
@@ -33,7 +34,6 @@ import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,9 +51,7 @@ import static org.junit.Assert.*;
 public class DirectoryFileTreeTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
     private CopySpecVisitor visitor;
 
     @Before

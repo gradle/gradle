@@ -34,7 +34,7 @@ class CachingDependencyResolveContextTest extends Specification {
         then:
         1 * dependency.resolve(context) >> { context.add(fileCollection) }
         files instanceof UnionFileCollection
-        files.sourceCollections == [fileCollection]
+        files.sources as List == [fileCollection]
     }
 
     def resolvesADependencyInternal() {
@@ -50,7 +50,7 @@ class CachingDependencyResolveContextTest extends Specification {
         1 * dependency.resolve(context) >> { context.add(otherDependency) }
         1 * otherDependency.resolve(context) >> { context.add(fileCollection) }
         files instanceof UnionFileCollection
-        files.sourceCollections == [fileCollection]
+        files.sources as List == [fileCollection]
     }
 
     def failsToResolveAnyOtherType() {
@@ -79,6 +79,6 @@ class CachingDependencyResolveContextTest extends Specification {
         1 * dependency.resolve(context) >> { context.add(otherDependency) }
         1 * otherDependency.resolve(context) >> { context.add(fileCollection); context.add(dependency) }
         files instanceof UnionFileCollection
-        files.sourceCollections == [fileCollection]
+        files.sources as List == [fileCollection]
     }
 }

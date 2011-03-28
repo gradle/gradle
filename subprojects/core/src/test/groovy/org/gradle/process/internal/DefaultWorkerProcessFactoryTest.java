@@ -19,11 +19,13 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.process.internal.child.IsolatedApplicationClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.IdGenerator;
+import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -58,7 +60,9 @@ public class DefaultWorkerProcessFactoryTest {
         context.checking(new Expectations() {{
             one(classPathRegistry).getClassPathFiles("WORKER_PROCESS");
             will(returnValue(processClassPath));
-            ignoring(fileResolver);
+            allowing(fileResolver).resolveLater(".");
+            allowing(fileResolver).resolveFiles(with(Matchers.<Object>notNullValue()));
+            will(returnValue(new SimpleFileCollection()));
         }});
 
         WorkerProcessBuilder builder = factory.create();

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
@@ -129,12 +130,14 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
      * @param context The context to add dependencies to.
      */
     protected void addDependencies(TaskDependencyResolveContext context) {
-        for (FileCollection collection : getSourceCollections()) {
-            context.add(collection);
+        BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext();
+        resolve(fileContext);
+        for (Buildable buildable : fileContext.resolveAsBuildables()) {
+            context.add(buildable);
         }
     }
 
-    public List<? extends FileCollection> getSourceCollections() {
+    protected List<? extends FileCollection> getSourceCollections() {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
         resolve(context);
         return context.resolveAsFileCollections();
