@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
@@ -38,7 +39,7 @@ public class DefaultResolverFactory implements ResolverFactory {
     private final MavenFactory mavenFactory = DefaultMavenFactory.getInstance();
 
     public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory) {
-        this(loggingManagerFactory, new LocalMavenCacheLocator());
+        this(loggingManagerFactory, DefaultMavenFactory.getInstance().newLocalMavenCacheLocator());
     }
 
     DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenCacheLocator localMavenCacheLocator) {

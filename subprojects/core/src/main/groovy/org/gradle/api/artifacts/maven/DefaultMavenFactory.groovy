@@ -20,57 +20,69 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomFactory
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPomFactory
-import org.gradle.api.internal.artifacts.publish.maven.DefaultArtifactPomFactory
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.ExcludeRuleConverter
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer
-import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer
-import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller
+import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
+import org.gradle.api.artifacts.Configuration
 
 class DefaultMavenFactory implements MavenFactory {
     private static final DefaultMavenFactory INSTANCE = new DefaultMavenFactory()
+
+    private ClassLoader classLoader
 
     static MavenFactory getInstance() {
         INSTANCE
     }
 
+    DefaultMavenFactory() {
+        classLoader = getClass().classLoader // TODO: use separate class loader
+    }
+
     ArtifactPomFactory newArtifactPomFactory() {
-        new DefaultArtifactPomFactory()
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.DefaultArtifactPomFactory").newInstance()
     }
 
     Factory<MavenPom> newMavenPomFactory(ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer mappingContainer,
                                          PomDependenciesConverter dependenciesConverter, FileResolver fileResolver) {
-        new DefaultMavenPomFactory(configurationContainer, mappingContainer, dependenciesConverter, fileResolver)
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPomFactory").newInstance(
+                configurationContainer, mappingContainer, dependenciesConverter, fileResolver)
     }
 
     PomDependenciesConverter newPomDependenciesConverter(ExcludeRuleConverter excludeRuleConverter) {
-        new DefaultPomDependenciesConverter(excludeRuleConverter)
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter").newInstance(excludeRuleConverter)
     }
 
     ExcludeRuleConverter newExcludeRuleConverter() {
-        new DefaultExcludeRuleConverter()
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter").newInstance()
     }
 
     ArtifactPomContainer newArtifactPomContainer(MavenPomMetaInfoProvider pomMetaInfoProvider, PomFilterContainer filterContainer,
                                                  ArtifactPomFactory pomFactory) {
-        new DefaultArtifactPomContainer(pomMetaInfoProvider, filterContainer, pomFactory)
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer").newInstance(
+                pomMetaInfoProvider, filterContainer, pomFactory)
     }
 
-    DefaultGroovyMavenDeployer newGroovyMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
-        new DefaultGroovyMavenDeployer(name, pomFilterContainer, artifactPomContainer, loggingManager)
+    GroovyMavenDeployer newGroovyMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer").newInstance(
+                name, pomFilterContainer, artifactPomContainer, loggingManager)
     }
 
     PomFilterContainer newPomFilterContainer(Factory<MavenPom> mavenPomFactory) {
-        new BasePomFilterContainer(mavenPomFactory)
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer").newInstance(mavenPomFactory)
     }
 
     MavenResolver newMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
-        new BaseMavenInstaller(name, pomFilterContainer, artifactPomContainer, loggingManager)
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller").newInstance(
+                name, pomFilterContainer, artifactPomContainer, loggingManager)
+    }
+
+    LocalMavenCacheLocator newLocalMavenCacheLocator() {
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.DefaultLocalMavenCacheLocator").newInstance()
+    }
+
+    Conf2ScopeMappingContainer newConf2ScopeMappingContainer(Map<Configuration, Conf2ScopeMapping> mappings) {
+        classLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer").newInstance(mappings)
     }
 }

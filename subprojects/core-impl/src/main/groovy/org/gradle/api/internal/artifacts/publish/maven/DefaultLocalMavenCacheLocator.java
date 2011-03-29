@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.publish.maven;
 
 import org.apache.maven.settings.DefaultMavenSettingsBuilder;
 import org.apache.maven.settings.MavenSettingsBuilder;
@@ -29,8 +29,8 @@ import java.lang.reflect.Field;
 /**
  * @author Steve Ebersole
  */
-public class LocalMavenCacheLocator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LocalMavenCacheLocator.class);
+public class DefaultLocalMavenCacheLocator implements LocalMavenCacheLocator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultLocalMavenCacheLocator.class);
     private static final String USER_HOME_MARKER = "${user.home}/";
 
     public File getLocalMavenCache() {

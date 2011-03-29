@@ -51,4 +51,11 @@ public interface MavenDeployment {
      * @param artifact The artifact to add.
      */
     void addArtifact(PublishArtifact artifact);
+
+    /**
+     * Returns the additional artifacts for this deployment.
+     *
+     * @return the additional artifacts for this deployment. Never null.
+     */
+    public Set<PublishArtifact> getAttachedArtifacts();
 }

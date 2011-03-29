@@ -30,7 +30,6 @@ import static org.junit.Assert.assertEquals
 @RunWith (org.jmock.integration.junit4.JMock.class)
 class DefaultGroovyMavenDeployerTest extends BaseMavenDeployerTest {
     private DefaultGroovyMavenDeployer groovyMavenDeployer;
-    private DefaultGroovyPomFilterContainerTest groovyMavenResolverHelper
 
     protected PomFilterContainer createPomFilterContainerMock() {
         context.mock(PomFilterContainer.class);

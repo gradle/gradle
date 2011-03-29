@@ -27,6 +27,7 @@ import org.apache.ivy.plugins.resolver.*
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.*
+import org.gradle.api.internal.artifacts.publish.maven.DefaultLocalMavenCacheLocator
 
 /**
  * @author Hans Dockter
@@ -45,7 +46,7 @@ class DefaultResolverFactoryTest {
     static final File TEST_CACHE_DIR = 'somepath' as File
 
     final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    final LocalMavenCacheLocator localMavenCacheLocator = context.mock(LocalMavenCacheLocator.class)
+    final DefaultLocalMavenCacheLocator localMavenCacheLocator = context.mock(DefaultLocalMavenCacheLocator.class)
     final DefaultResolverFactory factory = new DefaultResolverFactory(context.mock(Factory.class), localMavenCacheLocator)
 
     @Test(expected = InvalidUserDataException) public void testCreateResolver() {

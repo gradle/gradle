@@ -24,7 +24,8 @@ import org.gradle.api.internal.artifacts.publish.maven.dependencies.ExcludeRuleC
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer
+import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
+import org.gradle.api.artifacts.Configuration
 
 public interface MavenFactory {
     ArtifactPomFactory newArtifactPomFactory()
@@ -39,9 +40,13 @@ public interface MavenFactory {
     ArtifactPomContainer newArtifactPomContainer(MavenPomMetaInfoProvider pomMetaInfoProvider, PomFilterContainer filterContainer,
                                                  ArtifactPomFactory pomFactory)
 
-    DefaultGroovyMavenDeployer newGroovyMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager)
+    GroovyMavenDeployer newGroovyMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager)
 
     PomFilterContainer newPomFilterContainer(Factory<MavenPom> mavenPomFactory)
 
     MavenResolver newMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager)
+
+    LocalMavenCacheLocator newLocalMavenCacheLocator()
+
+    Conf2ScopeMappingContainer newConf2ScopeMappingContainer(Map<Configuration, Conf2ScopeMapping> mappings)
 }

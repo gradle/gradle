@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.CustomDeployTask;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultDeployTaskFactory;
 import org.junit.Test;
@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * @author Hans Dockter
  */
-public class DeployTaskFactoryTest {
+public class DefaultDeployTaskFactoryTest {
     @Test
     public void create() {
         assertTrue(new DefaultDeployTaskFactory().create() instanceof CustomDeployTask);
