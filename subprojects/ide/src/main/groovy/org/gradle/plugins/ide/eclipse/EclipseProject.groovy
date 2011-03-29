@@ -25,16 +25,12 @@ import org.gradle.plugins.ide.eclipse.model.Project
  * Generates an Eclipse <code>.project</code> file.
  * <p>
  * Example how to configure eclipse project generation:
- * <pre>
- * allprojects {
- *   apply plugin: 'java'
- *   apply plugin: 'eclipse'
- * }
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'eclipse'
  *
- * project(':model') {
- *   eclipseProject {
- *     //...
- *   }
+ * eclipseProject {
+ *   //...
  * }
  * </pre>
  * @author Hans Dockter
@@ -52,11 +48,11 @@ class EclipseProject extends XmlGeneratorTask<Project> implements DependsOnConfi
      * The logic that makes sure project names are uniqe is available <b>since</b> 1.0-milestone-2
      * <p>
      * In case you need to override the default projectName this is the way to go:
-     * <pre>
-     * project(':someProject') {
-     *    eclipseProject {
-     *      projectName = 'some-important-project'
-     *    }
+     * <pre autoTested=''>
+     * apply plugin: 'eclipse'
+     *
+     * eclipseProject {
+     *   projectName = 'some-important-project'
      * }
      * </pre>
      */
