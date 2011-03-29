@@ -27,7 +27,14 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     final Distribution distribution = Mock()
 
     def usesMetaInfServiceToDetermineFactoryImplementation() {
+        given:
         def loader = new DefaultToolingImplementationLoader()
+        distribution.toolingImplementationClasspath >> ([
+                getToolingApiResourcesDir(),
+                AbstractClassPathProvider.getClasspathForClass(DefaultConnectionFactory.class),
+                AbstractClassPathProvider.getClasspathForClass(ActorFactory.class),
+                AbstractClassPathProvider.getClasspathForClass(Logger.class)
+        ] as Set)
 
         when:
         def factory = loader.create(distribution)
@@ -35,12 +42,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         then:
         factory.class != DefaultConnectionFactory.class
         factory.class.name == DefaultConnectionFactory.class.name
-        _ * distribution.toolingImplementationClasspath >> ([
-                getToolingApiResourcesDir(),
-                AbstractClassPathProvider.getClasspathForClass(DefaultConnectionFactory.class),
-                AbstractClassPathProvider.getClasspathForClass(ActorFactory.class),
-                AbstractClassPathProvider.getClasspathForClass(Logger.class)
-        ] as Set)
     }
 
     private getToolingApiResourcesDir() {
