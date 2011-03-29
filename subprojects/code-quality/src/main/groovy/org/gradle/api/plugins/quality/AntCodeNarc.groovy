@@ -26,7 +26,10 @@ class AntCodeNarc {
         ant.project.addTaskDefinition('codenarc', CodeNarcTask)
         try {
             ant.codenarc(ruleSetFiles: "file:$configFile", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
-                report(type: reportFormat, toFile: reportFile)
+                report(type: 'console')
+                report(type: reportFormat) {
+                    option(name: 'outputFile', value: reportFile)
+                }
                 source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
             }
         } catch (BuildException e) {
