@@ -20,6 +20,7 @@ import org.apache.maven.artifact.ant.InstallTask;
 import org.apache.tools.ant.Project;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.MaybeUserMavenSettingsSupplier;
 import org.gradle.logging.LoggingManagerInternal;
 
 /**
@@ -30,6 +31,7 @@ public class BaseMavenInstaller extends AbstractMavenResolver {
 
     public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         super(name, pomFilterContainer, artifactPomContainer, loggingManager);
+        mavenSettingsSupplier = new MaybeUserMavenSettingsSupplier();
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {

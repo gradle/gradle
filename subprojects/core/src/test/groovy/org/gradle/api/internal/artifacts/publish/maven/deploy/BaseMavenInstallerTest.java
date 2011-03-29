@@ -19,7 +19,6 @@ import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.Factory;
 import org.jmock.Expectations;
@@ -44,7 +43,7 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
         return context.mock(PomFilterContainer.class);
     }
 
-    protected MavenResolver getMavenResolver() {
+    protected AbstractMavenResolver getMavenResolver() {
         return mavenInstaller;
     }
 

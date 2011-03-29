@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -27,8 +26,12 @@ import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.maven.*;
+import org.gradle.api.artifacts.maven.MavenDeployment;
+import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.artifacts.maven.PublishFilter;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.MavenSettingsSupplier;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
@@ -38,7 +41,6 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
-import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,8 +50,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -73,7 +76,7 @@ public abstract class AbstractMavenResolverTest {
 
     protected Settings mavenSettingsMock;
 
-    protected abstract MavenResolver getMavenResolver();
+    protected abstract AbstractMavenResolver getMavenResolver();
 
     protected abstract InstallDeployTaskSupport getInstallDeployTask();
 
@@ -90,6 +93,8 @@ public abstract class AbstractMavenResolverTest {
 
     @Test
     public void deployOrInstall() throws IOException, PlexusContainerException {
+        getMavenResolver().mavenSettingsSupplier = context.mock(MavenSettingsSupplier.class);
+
         PublishArtifact classifierArtifact = artifact(new File("classifier.jar"));
         final DefaultMavenDeployment deployment1 = new DefaultMavenDeployment(artifact(new File("pom1.pom")), artifact(new File("artifact1.jar")), Collections.<PublishArtifact>emptySet());
         final DefaultMavenDeployment deployment2 = new DefaultMavenDeployment(artifact(new File("pom2.pom")), artifact(new File("artifact2.jar")), WrapUtil.toSet(classifierArtifact));
@@ -128,12 +133,9 @@ public abstract class AbstractMavenResolverTest {
     }
 
     protected void checkTransaction(final Set<DefaultMavenDeployment> defaultMavenDeployments, final AttachedArtifact attachedArtifact, PublishArtifact classifierArtifact) throws IOException, PlexusContainerException {
-        final GrabSettingsFileAction grabSettingsFileAction = new GrabSettingsFileAction();
         context.checking(new Expectations() {
             {
                 one(getInstallDeployTask()).setProject(with(any(Project.class)));
-                one(getInstallDeployTask()).setSettingsFile(with(any(File.class)));
-                will(grabSettingsFileAction);
                 for (DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
                     one(getInstallDeployTask()).setFile(defaultMavenDeployment.getMainArtifact().getFile());
                     one(getInstallDeployTask()).addPom(with(pomMatcher(defaultMavenDeployment.getPomArtifact().getFile(), getInstallDeployTask().getProject())));
@@ -144,14 +146,14 @@ public abstract class AbstractMavenResolverTest {
                     one(loggingManagerMock).stop();
                     will(returnValue(loggingManagerMock));
                 }
+                one(getMavenResolver().mavenSettingsSupplier).supply(getInstallDeployTask());
+                one(getMavenResolver().mavenSettingsSupplier).done();
             }
         });
         getMavenResolver().commitPublishTransaction();
         assertThat(attachedArtifact.getFile(), equalTo(classifierArtifact.getFile()));
         assertThat(attachedArtifact.getType(), equalTo(classifierArtifact.getType()));
         assertThat(attachedArtifact.getClassifier(), equalTo(classifierArtifact.getClassifier()));
-        assertThat(grabSettingsFileAction.getSettingsFile().exists(), equalTo(false));
-        assertThat(grabSettingsFileAction.getSettingsFileContent(), equalTo(AbstractMavenResolver.SETTINGS_XML));
     }
 
     private static Matcher<Pom> pomMatcher(final File expectedPomFile, final Project expectedAntProject) {
@@ -232,27 +234,5 @@ public abstract class AbstractMavenResolverTest {
             will(returnValue(pomMock));
         }});
         assertSame(pomMock, getMavenResolver().pom(testName));
-    }
-
-    private static class GrabSettingsFileAction implements org.jmock.api.Action {
-        private File settingsFile;
-        private String settingsFileContent;
-
-        public void describeTo(Description description) {
-        }
-
-        public Object invoke(Invocation invocation) throws Throwable {
-            settingsFile = (File) invocation.getParameter(0);
-            settingsFileContent = FileUtils.readFileToString(settingsFile);
-            return null;
-        }
-
-        public File getSettingsFile() {
-            return settingsFile;
-        }
-
-        public String getSettingsFileContent() {
-            return settingsFileContent;
-        }
     }
 }

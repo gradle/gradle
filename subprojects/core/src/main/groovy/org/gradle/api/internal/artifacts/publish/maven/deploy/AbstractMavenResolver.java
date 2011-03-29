@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import groovy.lang.Closure;
-import org.apache.commons.io.FileUtils;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
@@ -40,9 +39,10 @@ import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
+import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.EmptyMavenSettingsSupplier;
+import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.MavenSettingsSupplier;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
@@ -58,7 +58,6 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public abstract class AbstractMavenResolver implements MavenResolver {
-    protected final static String SETTINGS_XML = "<settings/>"; 
 
     private String name;
     
@@ -71,6 +70,8 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     private LoggingManagerInternal loggingManager;
 
     private final ActionBroadcast<MavenDeployment> beforeDeploymentActions = new ActionBroadcast<MavenDeployment>();
+
+    protected MavenSettingsSupplier mavenSettingsSupplier = new EmptyMavenSettingsSupplier();
 
     public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         this.name = name;
@@ -172,14 +173,13 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
         Set<DefaultMavenDeployment> defaultMavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
-        File emptySettingsXml = createEmptyMavenSettingsXml();
-        installDeployTaskSupport.setSettingsFile(emptySettingsXml);
+        mavenSettingsSupplier.supply(installDeployTaskSupport);
         for (DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
             beforeDeploymentActions.execute(defaultMavenDeployment);
             addPomAndArtifact(installDeployTaskSupport, defaultMavenDeployment);
             execute(installDeployTaskSupport);
         }
-        emptySettingsXml.delete();
+        mavenSettingsSupplier.done();
         settings = ((CustomInstallDeployTaskSupport) installDeployTaskSupport).getSettings();
     }
 
@@ -205,16 +205,6 @@ public abstract class AbstractMavenResolver implements MavenResolver {
             attachedArtifact.setClassifier(classifierArtifact.getClassifier());
             attachedArtifact.setFile(classifierArtifact.getFile());
             attachedArtifact.setType(classifierArtifact.getType());
-        }
-    }
-
-    private File createEmptyMavenSettingsXml() {
-        try {
-            File settingsXml = File.createTempFile("gradle_empty_settings", ".xml");
-            FileUtils.writeStringToFile(settingsXml, SETTINGS_XML);
-            return settingsXml;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 

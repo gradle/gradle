@@ -22,7 +22,6 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.Factory;
 import org.gradle.util.WrapUtil;
@@ -34,7 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Hans Dockter
@@ -57,7 +56,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
         return new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
     }
 
-    protected MavenResolver getMavenResolver() {
+    protected AbstractMavenResolver getMavenResolver() {
         return mavenDeployer;
     }
 
