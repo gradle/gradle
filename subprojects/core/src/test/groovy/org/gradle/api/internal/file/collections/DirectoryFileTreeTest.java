@@ -244,9 +244,9 @@ public class DirectoryFileTreeTest {
         patterns.exclude("subdir1/**");
         DirectoryFileTree fileTree = new DirectoryFileTree(rootDir, patterns);
 
-        System.out.println("rootDir " + rootDir);
-        System.out.println("rootTextFile " + rootTextFile);
-
+        // TODO - remove these 3 assertions
+        assertTrue(rootTextFile.getAbsolutePath().startsWith(rootDir.getAbsolutePath() + File.separator));
+        assertTrue(rootTextFile.isFile());
         assertTrue(fileTree.getPatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "a.txt"))));
 
         assertTrue(fileTree.contains(rootTextFile));
