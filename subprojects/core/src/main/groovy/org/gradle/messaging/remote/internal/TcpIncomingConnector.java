@@ -94,6 +94,8 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
                         InetSocketAddress remoteAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
                         if (!localAddresses.contains(remoteAddress.getAddress())) {
                             LOGGER.error("Cannot accept connection from remote address {}.", remoteAddress.getAddress());
+                            socket.close();
+                            continue;
                         }
                         URI remoteUri = new URI(String.format("tcp://localhost:%d", remoteAddress.getPort()));
                         LOGGER.debug("Accepted connection from {}.", remoteUri);
