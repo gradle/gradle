@@ -87,7 +87,11 @@ class BasePlugin implements Plugin<Project> {
                     if (!taskName.startsWith(prefix)) {
                         return
                     }
-                    Task task = project.tasks.findByName(StringUtils.uncapitalize(taskName.substring(prefix.length())))
+                    String targetTaskName = taskName.substring(prefix.length())
+                    if (targetTaskName.charAt(0).isLowerCase()) {
+                        return
+                    }
+                    Task task = project.tasks.findByName(StringUtils.uncapitalize(targetTaskName))
                     if (task == null) {
                         return
                     }

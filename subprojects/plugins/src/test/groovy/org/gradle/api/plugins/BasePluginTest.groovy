@@ -105,6 +105,18 @@ class BasePluginTest {
         assertThat(cleanTest.delete, equalTo([test.outputs.files] as Set))
     }
 
+    @Test public void cleanRuleIsCaseSensitive() {
+        plugin.apply(project)
+
+        project.task('testTask')
+        project.task('12')
+
+        assertThat(project.tasks.findByName('cleantestTask'), nullValue())
+        assertThat(project.tasks.findByName('cleanTesttask'), nullValue())
+        assertThat(project.tasks.findByName('cleanTestTask'), instanceOf(Delete.class))
+        assertThat(project.tasks.findByName('clean12'), instanceOf(Delete.class))
+    }
+
     @Test public void appliesMappingsForArchiveTasks() {
         plugin.apply(project)
 

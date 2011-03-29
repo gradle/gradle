@@ -84,11 +84,11 @@ public class TaskNameResolvingBuildExecuterTest {
     @Test
     public void usesCamelCaseAbbreviationToSelectTasksWhenNoExactMatch() {
         assertMatches("soTaWN", "someTaskWithName", "saTaWN");
-        assertMatches("t1", "task1", "Task1", "T1", "t2");
+        assertMatches("ta1", "task1", "Task1", "T1", "t2");
         assertMatches("t1", "t1extra");
         assertMatches("t1", "t12");
         assertMatches("t1", "task1extra", "task2extra");
-        assertMatches("ABC", "AbcBbcCdc", "abc");
+        assertMatches("ABC", "AbcBbcCdc", "aabbcc");
         assertMatches("s-t", "some-task");
         assertMatches("s t", "some task");
         assertMatches("s.t", "some.task");

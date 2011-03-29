@@ -66,9 +66,24 @@ public class NameMatcherTest {
     }
 
     @Test
-    public void prefersExactMatchOverInexactMatch() {
+    public void prefersExactMatchOverCaseInsensitiveMatch() {
         assertMatches("name", "name", "Name", "NAME");
-        assertMatches("name", "name", "names");
+        assertMatches("someName", "someName", "SomeName", "somename", "SOMENAME");
+        assertMatches("some Name", "some Name", "Some Name", "some name", "SOME NAME");
+    }
+
+    @Test
+    public void prefersExactMatchOverPartialMatch() {
+        assertMatches("name", "name", "nam", "n", "NAM");
+    }
+
+    @Test
+    public void prefersExactMatchOverPrefixMatch() {
+        assertMatches("someName", "someName", "someNameWithExtra");
+    }
+
+    @Test
+    public void prefersExactMatchOverCamelCaseMatch() {
         assertMatches("sName", "sName", "someName", "sNames");
         assertMatches("so Name", "so Name", "some Name", "so name");
         assertMatches("ABC", "ABC", "AaBbCc");
@@ -82,10 +97,16 @@ public class NameMatcherTest {
     }
 
     @Test
-    public void prefersCaseSensitiveMatchOverCaseInsensitiveMatch() {
-        assertMatches("sN", "someName", "sn");
+    public void prefersCaseSensitiveCamelCaseMatchOverCaseInsensitiveCamelCaseMatch() {
+        assertMatches("soNa", "someName", "somename");
         assertMatches("SN", "SomeName", "someName");
-        assertMatches("n1", "name1", "Name1", "N1");
+        assertMatches("na1", "name1", "Name1", "NAME1");
+    }
+
+    @Test
+    public void prefersCaseInsensitiveMatchOverCamelCaseMatch() {
+        assertMatches("somename", "someName", "someNameWithExtra");
+        assertMatches("soNa", "sona", "someName");
     }
 
     @Test
@@ -100,9 +121,15 @@ public class NameMatcherTest {
     }
 
     @Test
-    public void doesNotSelectItemsWhenMultipleMatches() {
+    public void doesNotSelectItemsWhenMultipleCamelCaseMatches() {
         assertThat(matcher.find("sN", toList("someName", "soNa", "other")), nullValue());
         assertThat(matcher.getMatches(), equalTo(toSet("someName", "soNa")));
+    }
+
+    @Test
+    public void doesNotSelectItemsWhenMultipleCaseInsensitiveMatches() {
+        assertThat(matcher.find("someName", toList("somename", "SomeName", "other")), nullValue());
+        assertThat(matcher.getMatches(), equalTo(toSet("somename", "SomeName")));
     }
 
     @Test

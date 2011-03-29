@@ -65,16 +65,20 @@ public class NameMatcher {
         Pattern normalisedCamelCasePattern = Pattern.compile(camelCasePattern.pattern(), Pattern.CASE_INSENSITIVE);
         String normalisedPattern = pattern.toUpperCase();
 
-        Set<String> matches1 = new TreeSet<String>();
-        Set<String> matches2 = new TreeSet<String>();
+        Set<String> caseInsensitiveMatches = new TreeSet<String>();
+        Set<String> caseSensitiveCamelCaseMatches = new TreeSet<String>();
+        Set<String> caseInsensitiveCamelCaseMatches = new TreeSet<String>();
 
         for (String candidate : items) {
+            if (candidate.equalsIgnoreCase(pattern)) {
+                caseInsensitiveMatches.add(candidate);
+            }
             if (camelCasePattern.matcher(candidate).matches()) {
-                matches1.add(candidate);
+                caseSensitiveCamelCaseMatches.add(candidate);
                 continue;
             }
             if (normalisedCamelCasePattern.matcher(candidate).lookingAt()) {
-                matches2.add(candidate);
+                caseInsensitiveCamelCaseMatches.add(candidate);
                 continue;
             }
             if (StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase()) <= Math.min(3, pattern.length() / 2)) {
@@ -82,10 +86,12 @@ public class NameMatcher {
             }
         }
 
-        if (!matches1.isEmpty()) {
-            matches.addAll(matches1);
+        if (!caseInsensitiveMatches.isEmpty()) {
+            matches.addAll(caseInsensitiveMatches);
+        } else if (!caseSensitiveCamelCaseMatches.isEmpty()) {
+            matches.addAll(caseSensitiveCamelCaseMatches);
         } else {
-            matches.addAll(matches2);
+            matches.addAll(caseInsensitiveCamelCaseMatches);
         }
 
         if (matches.size() == 1) {
