@@ -59,7 +59,7 @@ ide.dependsOn ideResources
 
 ideaModule {
     dependsOn ideResources
-    scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
+    scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
 }
 
 eclipseClasspath {
