@@ -35,7 +35,6 @@ class PluginsAutoTestedSamplesTest extends AbstractIntegrationTest {
             def testFile = testFile('build.gradle')
             testFile.text = sample
             usingBuildFile(testFile).withTasks('tasks').run()
-            println 'ok'
         }
     }
 }
