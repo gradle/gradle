@@ -16,11 +16,11 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
-import org.gradle.plugins.ide.internal.XmlGeneratorTask
 
 /**
  * Generates the org.eclipse.wst.common.component settings file for Eclipse WTP.

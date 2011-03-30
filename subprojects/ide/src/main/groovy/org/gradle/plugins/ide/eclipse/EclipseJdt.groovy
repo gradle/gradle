@@ -16,8 +16,8 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.JavaVersion
+import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.eclipse.model.Jdt
-import org.gradle.plugins.ide.internal.GeneratorTask
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
 
 /**

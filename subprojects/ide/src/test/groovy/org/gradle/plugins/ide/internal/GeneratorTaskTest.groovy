@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.internal
 
 import org.gradle.api.Action
+import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.internal.generator.generator.Generator
 import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
@@ -27,7 +28,7 @@ class GeneratorTaskTest extends Specification {
     final Generator<TestConfigurationObject> generator = Mock()
     final File inputFile = tmpDir.file('input')
     final File outputFile = tmpDir.file('output')
-    final org.gradle.plugins.ide.internal.GeneratorTask<TestConfigurationObject> task = HelperUtil.createTask(org.gradle.plugins.ide.internal.GeneratorTask)
+    final GeneratorTask<TestConfigurationObject> task = HelperUtil.createTask(GeneratorTask)
 
     def setup() {
         task.inputFile = inputFile
