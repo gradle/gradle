@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 /**
- * A {@link TaskExecuter} which skips tasks whose onlyIf predicate evaluates to false
+ * A {@link org.gradle.api.internal.tasks.TaskExecuter} which skips tasks whose onlyIf predicate evaluates to false
  */
 public class SkipOnlyIfTaskExecuter implements TaskExecuter {
     private static Logger logger = Logging.getLogger(SkipOnlyIfTaskExecuter.class);

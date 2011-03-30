@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 
 /**
- * A {@link TaskExecuter} which will execute a task once only.
+ * A {@link TaskExecuter} which marks tasks as up-to-date if they did no work.
  */
-public class ExecuteAtMostOnceTaskExecuter implements TaskExecuter {
+public class PostExecutionAnalysisTaskExecuter implements TaskExecuter {
     private final TaskExecuter executer;
 
-    public ExecuteAtMostOnceTaskExecuter(TaskExecuter executer) {
+    public PostExecutionAnalysisTaskExecuter(TaskExecuter executer) {
         this.executer = executer;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state) {
-        if (state.getExecuted()) {
-            return;
-        }
         executer.execute(task, state);
+        if (!state.getDidWork()) {
+            state.upToDate();
+        }
     }
 }

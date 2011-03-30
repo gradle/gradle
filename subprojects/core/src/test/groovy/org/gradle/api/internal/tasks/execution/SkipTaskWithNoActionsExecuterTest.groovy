@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection
+package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.TaskStateInternal
-import spock.lang.Specification
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskDependency
+import spock.lang.Specification
+import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.TaskExecuter
 
 class SkipTaskWithNoActionsExecuterTest extends Specification {
     final TaskInternal task = Mock()

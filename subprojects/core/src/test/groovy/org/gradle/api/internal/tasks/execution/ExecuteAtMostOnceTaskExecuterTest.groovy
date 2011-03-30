@@ -13,51 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks.execution
 
-
-
-
-package org.gradle.api.internal.project.taskfactory
-
-import org.gradle.api.Action
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskStateInternal
 
 @RunWith(JMock.class)
-class PostExecutionAnalysisTaskExecuterTest {
+class ExecuteAtMostOnceTaskExecuterTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final TaskExecuter target = context.mock(TaskExecuter.class)
     private final TaskInternal task = context.mock(TaskInternal.class)
     private final TaskStateInternal state = context.mock(TaskStateInternal.class)
-    private final PostExecutionAnalysisTaskExecuter executer = new PostExecutionAnalysisTaskExecuter(target)
+    private final ExecuteAtMostOnceTaskExecuter executer = new ExecuteAtMostOnceTaskExecuter(target)
 
     @Test
-    public void marksTaskUpToDateWhenItHasActionsAndItDidNotDoWork() {
+    public void doesNothingWhenTaskHasAlreadyBeenExecuted() {
         context.checking {
-            one(target).execute(task, state)
-            allowing(task).getActions();
-            will(returnValue([{} as Action]))
-            allowing(state).getDidWork()
-            will(returnValue(false))
-            one(state).upToDate()
+            allowing(state).getExecuted()
+            will(returnValue(true))
         }
 
         executer.execute(task, state)
     }
 
     @Test
-    public void doesNotMarkTaskUpToDateWhenItHasActionsAndDidWork() {
+    public void delegatesToExecuterWhenTaskHasNotBeenExecuted() {
         context.checking {
+            allowing(state).getExecuted()
+            will(returnValue(false))
             one(target).execute(task, state)
-            allowing(task).getActions();
-            will(returnValue([{} as Action]))
-            allowing(state).getDidWork()
-            will(returnValue(true))
         }
 
         executer.execute(task, state)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection;
+package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
 /**
- * A {@link TaskExecuter} which skips tasks that have no actions.
+ * A {@link org.gradle.api.internal.tasks.TaskExecuter} which skips tasks that have no actions.
  */
 public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
     private final TaskExecuter executer;
