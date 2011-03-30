@@ -35,15 +35,16 @@ import java.util.Map;
  */
 public class DefaultResolverFactory implements ResolverFactory {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
+    private final MavenFactory mavenFactory;
     private final LocalMavenCacheLocator localMavenCacheLocator;
-    private final MavenFactory mavenFactory = DefaultMavenFactory.getInstance();
 
-    public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory) {
-        this(loggingManagerFactory, DefaultMavenFactory.getInstance().newLocalMavenCacheLocator());
+    public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, MavenFactory mavenFactory) {
+        this(loggingManagerFactory, mavenFactory, mavenFactory.newLocalMavenCacheLocator());
     }
 
-    DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenCacheLocator localMavenCacheLocator) {
+    DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, MavenFactory mavenFactory, LocalMavenCacheLocator localMavenCacheLocator) {
         this.loggingManagerFactory = loggingManagerFactory;
+        this.mavenFactory = mavenFactory;
         this.localMavenCacheLocator = localMavenCacheLocator;
     }
 

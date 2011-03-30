@@ -31,14 +31,15 @@ import java.util.Collections;
  * @author Hans Dockter
  */
 public class MavenPluginConvention {
-    private final MavenFactory mavenFactory = DefaultMavenFactory.getInstance();
-
-    private ProjectInternal project;
+    private final ProjectInternal project;
+    private final MavenFactory mavenFactory;
+    private Conf2ScopeMappingContainer conf2ScopeMappings;
     private String pomDirName = "poms";
-    private Conf2ScopeMappingContainer conf2ScopeMappings = mavenFactory.newConf2ScopeMappingContainer(Collections.<Configuration, Conf2ScopeMapping>emptyMap());
 
     public MavenPluginConvention(ProjectInternal project) {
         this.project = project;
+        mavenFactory = project.getServices().get(MavenFactory.class);
+        conf2ScopeMappings = mavenFactory.newConf2ScopeMappingContainer(Collections.<Configuration, Conf2ScopeMapping>emptyMap());
     }
 
     /**

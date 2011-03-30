@@ -22,6 +22,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.maven.DefaultMavenFactory;
+import org.gradle.api.artifacts.maven.MavenFactory;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
@@ -137,7 +139,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected Factory<RepositoryHandler> createRepositoryHandlerFactory() {
         return new DefaultRepositoryHandlerFactory(
                 new DefaultResolverFactory(
-                        getFactory(LoggingManagerInternal.class)),
+                        getFactory(LoggingManagerInternal.class), get(MavenFactory.class)),
                 get(ClassGenerator.class));
     }
 
@@ -328,6 +330,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new ProjectEvaluationConfigurer(),
                 new ProjectDependencies2TaskResolver(),
                 new ImplicitTasksConfigurer());
+    }
+
+    protected MavenFactory createMavenFactory() {
+        return new DefaultMavenFactory();
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

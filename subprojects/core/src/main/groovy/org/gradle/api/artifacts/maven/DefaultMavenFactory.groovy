@@ -28,13 +28,7 @@ import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
 import org.gradle.api.artifacts.Configuration
 
 class DefaultMavenFactory implements MavenFactory {
-    private static final DefaultMavenFactory INSTANCE = new DefaultMavenFactory()
-
     private ClassLoader classLoader
-
-    static MavenFactory getInstance() {
-        INSTANCE
-    }
 
     DefaultMavenFactory() {
         classLoader = getClass().classLoader // TODO: use separate class loader

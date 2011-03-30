@@ -17,22 +17,18 @@ package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
-import spock.lang.Specification
 import org.gradle.api.artifacts.maven.MavenPom
-import org.gradle.api.artifacts.maven.MavenFactory
-import org.gradle.api.artifacts.maven.DefaultMavenFactory
+
+import spock.lang.Specification
 
 /**
  * @author Hans Dockter
  */
 class MavenPluginConventionTest extends Specification {
-    MavenFactory mavenFactory = DefaultMavenFactory.getInstance()
-
     DefaultProject project = HelperUtil.createRootProject()
     MavenPluginConvention mavenPluginConvention = new MavenPluginConvention(project)
 
     def pomShouldCreateMavenPom() {
-        mavenPluginConvention.conf2ScopeMappings = mavenFactory.newConf2ScopeMappingContainer([:])
         project.group = 'someGroup'
         project.version = '1.0'
         MavenPom mavenPom = mavenPluginConvention.pom()
@@ -50,7 +46,6 @@ class MavenPluginConventionTest extends Specification {
     }
 
     def pomShouldCreateAndConfigureMavenPom() {
-        mavenPluginConvention.conf2ScopeMappings = mavenFactory.newConf2ScopeMappingContainer([:])
         MavenPom mavenPom = mavenPluginConvention.pom {
             project {
                 inceptionYear '1999'
