@@ -15,35 +15,22 @@
  */
 package org.gradle.testfixtures;
 
-import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.*;
-import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
-import org.gradle.api.internal.project.*;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.cache.*;
-import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.initialization.*;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.IProjectFactory;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.listener.DefaultListenerManager;
-import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.DefaultProgressLoggerFactory;
-import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.ProgressListener;
+import org.gradle.testfixtures.internal.GlobalTestServices;
+import org.gradle.testfixtures.internal.TestTopLevelBuildServiceRegistry;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.TrueTimeProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * <p>Creates dummy instances of {@link org.gradle.api.Project} which you can use in testing custom task and plugin
@@ -109,7 +96,7 @@ public class ProjectBuilder {
         StartParameter startParameter = new StartParameter();
         startParameter.setGradleUserHomeDir(new File(projectDir, "userHome"));
 
-        ServiceRegistryFactory topLevelRegistry = new TestTopLevelBuildServiceRegistry(startParameter, homeDir);
+        ServiceRegistryFactory topLevelRegistry = new TestTopLevelBuildServiceRegistry(GLOBAL_SERVICES, startParameter, homeDir);
         GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry);
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, "test", projectDir, new DefaultProjectDescriptorRegistry());
@@ -121,165 +108,4 @@ public class ProjectBuilder {
         return project;
     }
 
-    private static class NoOpLoggingManager implements LoggingManagerInternal {
-        private LogLevel level = LogLevel.LIFECYCLE;
-        private LogLevel stdoutLevel = LogLevel.LIFECYCLE;
-
-        public LoggingManagerInternal captureStandardOutput(LogLevel level) {
-            stdoutLevel = level;
-            return this;
-        }
-
-        public LoggingManager disableStandardOutputCapture() {
-            stdoutLevel = null;
-            return this;
-        }
-
-        public boolean isStandardOutputCaptureEnabled() {
-            return stdoutLevel != null;
-        }
-
-        public LogLevel getStandardOutputCaptureLevel() {
-            return stdoutLevel;
-        }
-
-        public LoggingManagerInternal captureStandardError(LogLevel level) {
-            return this;
-        }
-
-        public LogLevel getLevel() {
-            return level;
-        }
-
-        public LoggingManagerInternal setLevel(LogLevel level) {
-            this.level = level;
-            return this;
-        }
-
-        public LogLevel getStandardErrorCaptureLevel() {
-            return LogLevel.ERROR;
-        }
-
-        public LoggingManagerInternal start() {
-            return this;
-        }
-
-        public LoggingManagerInternal stop() {
-            return this;
-        }
-
-        public void addStandardErrorListener(StandardOutputListener listener) {
-        }
-
-        public void addStandardOutputListener(StandardOutputListener listener) {
-        }
-
-        public void removeStandardOutputListener(StandardOutputListener listener) {
-        }
-
-        public void removeStandardErrorListener(StandardOutputListener listener) {
-        }
-
-        public void addOutputEventListener(OutputEventListener listener) {
-        }
-
-        public void removeOutputEventListener(OutputEventListener listener) {
-        }
-
-        public void colorStdOutAndStdErr(boolean colorOutput) {
-        }
-    }
-
-    private static class InMemoryCacheFactory implements CacheFactory {
-        public void close(PersistentCache cache) {
-        }
-
-        public PersistentCache open(final File cacheDir, CacheUsage usage, Map<String, ?> properties) {
-            cacheDir.mkdirs();
-            return new PersistentCache() {
-                public File getBaseDir() {
-                    return cacheDir;
-                }
-
-                public boolean isValid() {
-                    return false;
-                }
-
-                public void markValid() {
-                }
-
-                public <K, V> PersistentIndexedCache<K, V> openIndexedCache(Serializer<V> serializer) {
-                    return new InMemoryIndexedCache<K, V>();
-                }
-
-                public <K, V> PersistentIndexedCache<K, V> openIndexedCache() {
-                    return new InMemoryIndexedCache<K, V>();
-                }
-
-                public <T> PersistentStateCache<T> openStateCache() {
-                    return new SimpleStateCache<T>(this, new DefaultSerializer<T>());
-                }
-            };
-        }
-    }
-
-    private static class GlobalTestServices extends DefaultServiceRegistry {
-        protected ListenerManager createListenerManager() {
-            return new DefaultListenerManager();
-        }
-
-        protected ClassPathRegistry createClassPathRegistry() {
-            return new DefaultClassPathRegistry();
-        }
-
-        protected ClassLoaderFactory createClassLoaderFactory() {
-            return new DefaultClassLoaderFactory(get(ClassPathRegistry.class));
-        }
-
-        protected CacheFactory createCacheFactory() {
-            return new AutoCloseCacheFactory(new InMemoryCacheFactory());
-        }
-
-        protected ProgressLoggerFactory createProgressLoggerFactory() {
-            return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class), new TrueTimeProvider());
-        }
-
-        protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
-            return new Factory<LoggingManagerInternal>() {
-                public LoggingManagerInternal create() {
-                    return new NoOpLoggingManager();
-                }
-            };
-        }
-
-        protected StyledTextOutputFactory createStyledTextOutputFactory() {
-            return new DefaultStyledTextOutputFactory(get(ListenerManager.class).getBroadcaster(OutputEventListener.class), new TrueTimeProvider());
-        }
-        
-        protected IsolatedAntBuilder createIsolatedAntBuilder() {
-            return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
-        }
-
-    }
-
-    private static class TestTopLevelBuildServiceRegistry extends TopLevelBuildServiceRegistry {
-        private final File homeDir;
-
-        public TestTopLevelBuildServiceRegistry(StartParameter startParameter, File homeDir) {
-            super(ProjectBuilder.GLOBAL_SERVICES, startParameter);
-            this.homeDir = homeDir;
-        }
-
-        protected BuildClientMetaData createClientMetaData() {
-            return new GradleLauncherMetaData();
-        }
-
-        protected GradleDistributionLocator createGradleDistributionLocator() {
-            return new GradleDistributionLocator() {
-                public File getGradleHome() {
-                    return homeDir;
-                }
-            };
-        }
-    }
 }
