@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
-public class ExecutionShortCircuitTaskExecuterTest {
+public class SkipUpToDateTaskExecuterTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final TaskExecuter delegate = context.mock(TaskExecuter.class);
     private final TaskOutputsInternal outputs = context.mock(TaskOutputsInternal.class);
@@ -42,7 +42,7 @@ public class ExecutionShortCircuitTaskExecuterTest {
     private final TaskArtifactStateRepository repository = context.mock(TaskArtifactStateRepository.class);
     private final TaskArtifactState taskArtifactState = context.mock(TaskArtifactState.class);
     private final TaskExecutionHistory executionHistory = context.mock(TaskExecutionHistory.class);
-    private final ExecutionShortCircuitTaskExecuter executer = new ExecutionShortCircuitTaskExecuter(delegate, repository);
+    private final SkipUpToDateTaskExecuter executer = new SkipUpToDateTaskExecuter(delegate, repository);
 
     @Before
     public void setup() {

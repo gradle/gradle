@@ -35,14 +35,14 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
-public class SkipTaskExecuterTest {
+public class SkipOnlyIfTaskExecuterTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final TaskInternal task = context.mock(TaskInternal.class, "<task>");
     private final Spec<Task> spec = context.mock(Spec.class);
     private final TaskStateInternal state = context.mock(TaskStateInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final TaskExecuter delegate = context.mock(TaskExecuter.class);
-    private final SkipTaskExecuter executer = new SkipTaskExecuter(delegate);
+    private final SkipOnlyIfTaskExecuter executer = new SkipOnlyIfTaskExecuter(delegate);
 
     @Before
     public void setUp() {

@@ -40,7 +40,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
-public class DefaultTaskExecuterTest {
+public class ExecuteActionsTaskExecuterTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final TaskInternal task = context.mock(TaskInternal.class, "<task>");
     private final Action<Task> action1 = context.mock(Action.class, "action1");
@@ -50,7 +50,7 @@ public class DefaultTaskExecuterTest {
     private final StandardOutputCapture standardOutputCapture = context.mock(StandardOutputCapture.class);
     private final Sequence sequence = context.sequence("seq");
     private final TaskActionListener listener = context.mock(TaskActionListener.class);
-    private final DefaultTaskExecuter executer = new DefaultTaskExecuter(listener);
+    private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(listener);
 
     @Before
     public void setUp() {

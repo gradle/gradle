@@ -41,9 +41,9 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.project.taskfactory.*;
-import org.gradle.api.internal.tasks.DefaultTaskExecuter;
+import org.gradle.api.internal.tasks.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.ExecuteAtMostOnceTaskExecuter;
-import org.gradle.api.internal.tasks.SkipTaskExecuter;
+import org.gradle.api.internal.tasks.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
@@ -126,11 +126,11 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected TaskExecuter createTaskExecuter() {
         return new ExecuteAtMostOnceTaskExecuter(
-                new SkipTaskExecuter(
+                new SkipOnlyIfTaskExecuter(
                         new SkipTaskWithNoActionsExecuter(
-                                new ExecutionShortCircuitTaskExecuter(
+                                new SkipUpToDateTaskExecuter(
                                         new PostExecutionAnalysisTaskExecuter(
-                                                new DefaultTaskExecuter(
+                                                new ExecuteActionsTaskExecuter(
                                                         get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
                                         get(TaskArtifactStateRepository.class)))));
     }

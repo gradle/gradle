@@ -27,12 +27,12 @@ import org.slf4j.LoggerFactory;
 /**
  * A {@link TaskExecuter} which skips tasks whose outputs are up-to-date.
  */
-public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExecutionShortCircuitTaskExecuter.class);
+public class SkipUpToDateTaskExecuter implements TaskExecuter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateTaskExecuter.class);
     private final TaskExecuter executer;
     private final TaskArtifactStateRepository repository;
 
-    public ExecutionShortCircuitTaskExecuter(TaskExecuter executer, TaskArtifactStateRepository repository) {
+    public SkipUpToDateTaskExecuter(TaskExecuter executer, TaskArtifactStateRepository repository) {
         this.executer = executer;
         this.repository = repository;
     }

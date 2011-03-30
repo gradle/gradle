@@ -29,11 +29,11 @@ import org.gradle.api.tasks.TaskExecutionException;
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
-public class DefaultTaskExecuter implements TaskExecuter {
-    private static Logger logger = Logging.getLogger(DefaultTaskExecuter.class);
+public class ExecuteActionsTaskExecuter implements TaskExecuter {
+    private static Logger logger = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final TaskActionListener listener;
 
-    public DefaultTaskExecuter(TaskActionListener listener) {
+    public ExecuteActionsTaskExecuter(TaskActionListener listener) {
         this.listener = listener;
     }
 
