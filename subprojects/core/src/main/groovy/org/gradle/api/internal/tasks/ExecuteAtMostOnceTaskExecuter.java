@@ -18,6 +18,9 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
 
+/**
+ * A {@link TaskExecuter} which will execute a task once only.
+ */
 public class ExecuteAtMostOnceTaskExecuter implements TaskExecuter {
     private final TaskExecuter executer;
 

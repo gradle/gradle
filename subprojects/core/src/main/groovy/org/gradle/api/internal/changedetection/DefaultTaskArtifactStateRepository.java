@@ -186,10 +186,16 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return new HistoricExecution(task, history, upToDateRule);
         }
 
-        public void update() {
+        public void afterTask() {
             if (execution.snapshot()) {
                 history.update();
             }
+        }
+
+        public void beforeTask() {
+        }
+
+        public void finished() {
         }
     }
 }

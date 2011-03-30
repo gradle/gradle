@@ -36,8 +36,9 @@ public interface FileCollectionResolveContext {
      * Generally, the result of resolution is a composite {@link org.gradle.api.file.FileCollection} which contains the union of all files and dependencies add to this context.
      *
      * @param element The element to add.
+     * @return this
      */
-    void add(Object element);
+    FileCollectionResolveContext add(Object element);
 
     /**
      * Adds a nested context which resolves elements using the given resolvers. Any element added to the returned context will be added to this context. Those elements

@@ -21,6 +21,9 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
+/**
+ * A {@link TaskExecuter} which skips tasks whose onlyIf predicate evaluates to false
+ */
 public class SkipTaskExecuter implements TaskExecuter {
     private static Logger logger = Logging.getLogger(SkipTaskExecuter.class);
     private final TaskExecuter executer;

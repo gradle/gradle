@@ -27,9 +27,19 @@ public interface TaskArtifactState {
     boolean isUpToDate();
 
     /**
-     * Marks current state as valid.
+     * Called before the task is to be executed. Note that {@link #isUpToDate()} may not necessarily have been called.
      */
-    void update();
+    void beforeTask();
+
+    /**
+     * Called on successful completion of task execution.
+     */
+    void afterTask();
+
+    /**
+     * Called when this state is finished with.
+     */
+    void finished();
 
     /**
      * Returns the history for this task.

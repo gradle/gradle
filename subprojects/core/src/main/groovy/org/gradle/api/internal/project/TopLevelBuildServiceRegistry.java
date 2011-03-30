@@ -127,11 +127,12 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected TaskExecuter createTaskExecuter() {
         return new ExecuteAtMostOnceTaskExecuter(
                 new SkipTaskExecuter(
-                        new ExecutionShortCircuitTaskExecuter(
-                                new PostExecutionAnalysisTaskExecuter(
-                                        new DefaultTaskExecuter(
-                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
-                                        get(TaskArtifactStateRepository.class))));
+                        new SkipTaskWithNoActionsExecuter(
+                                new ExecutionShortCircuitTaskExecuter(
+                                        new PostExecutionAnalysisTaskExecuter(
+                                                new DefaultTaskExecuter(
+                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
+                                        get(TaskArtifactStateRepository.class)))));
     }
 
     protected Factory<RepositoryHandler> createRepositoryHandlerFactory() {
@@ -254,11 +255,13 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                         cacheRepository));
 
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheRepository);
-        return new ShortCircuitTaskArtifactStateRepository(
-                startParameter,
-                new DefaultTaskArtifactStateRepository(cacheRepository,
-                        fileSnapshotter,
-                        outputFilesSnapshotter));
+        return new FileCacheBroadcastTaskArtifactStateRepository(
+                new ShortCircuitTaskArtifactStateRepository(
+                        startParameter,
+                        new DefaultTaskArtifactStateRepository(cacheRepository,
+                                fileSnapshotter,
+                                outputFilesSnapshotter)),
+                new DefaultFileCacheListener());
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory() {

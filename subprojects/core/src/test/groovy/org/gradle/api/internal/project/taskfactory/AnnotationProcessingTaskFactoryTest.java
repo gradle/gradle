@@ -17,9 +17,9 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.*;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.collections.FileCollectionInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.*;
@@ -40,8 +40,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -313,7 +314,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void skipsTaskWhenInputFileCollectionIsEmpty() {
-        final FileCollection inputFiles = context.mock(FileCollection.class);
+        final FileCollectionInternal inputFiles = context.mock(FileCollectionInternal.class);
         context.checking(new Expectations() {{
             one(inputFiles).stopExecutionIfEmpty();
             will(throwException(new StopExecutionException()));

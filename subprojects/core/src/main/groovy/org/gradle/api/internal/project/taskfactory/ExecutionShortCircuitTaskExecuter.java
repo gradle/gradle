@@ -24,6 +24,9 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A {@link TaskExecuter} which skips tasks whose outputs are up-to-date.
+ */
 public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutionShortCircuitTaskExecuter.class);
     private final TaskExecuter executer;
@@ -37,22 +40,27 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
     public void execute(TaskInternal task, TaskStateInternal state) {
         LOGGER.debug("Determining if {} is up-to-date", task);
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
-        if (taskArtifactState.isUpToDate()) {
-            LOGGER.debug("{} is up-to-date", task);
-            state.upToDate();
-            return;
-
-        }
-        LOGGER.debug("{} is not up-to-date", task);
-
-        task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
         try {
-            executer.execute(task, state);
-            if (state.getFailure() == null) {
-                taskArtifactState.update();
+            if (taskArtifactState.isUpToDate()) {
+                LOGGER.debug("{} is up-to-date", task);
+                state.upToDate();
+                return;
+
+            }
+            LOGGER.debug("{} is not up-to-date", task);
+
+            taskArtifactState.beforeTask();
+            task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
+            try {
+                executer.execute(task, state);
+                if (state.getFailure() == null) {
+                    taskArtifactState.afterTask();
+                }
+            } finally {
+                task.getOutputs().setHistory(null);
             }
         } finally {
-            task.getOutputs().setHistory(null);
+            taskArtifactState.finished();
         }
     }
 }

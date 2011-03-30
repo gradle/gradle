@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,34 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 
-public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
-    private final StartParameter startParameter;
+public class FileCacheBroadcastTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private final TaskArtifactStateRepository repository;
+    private final FileCacheListener listener;
 
-    public ShortCircuitTaskArtifactStateRepository(StartParameter startParameter, TaskArtifactStateRepository repository) {
-        this.startParameter = startParameter;
+    public FileCacheBroadcastTaskArtifactStateRepository(TaskArtifactStateRepository repository, FileCacheListener listener) {
         this.repository = repository;
+        this.listener = listener;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
         final TaskArtifactState state = repository.getStateFor(task);
         return new TaskArtifactState() {
             public boolean isUpToDate() {
-                return !startParameter.isNoOpt() && task.getOutputs().getUpToDateSpec().isSatisfiedBy(task) && state.isUpToDate();
-            }
+                listener.cacheable(task.getInputs().getFiles());
+                listener.cacheable(task.getOutputs().getFiles());
 
-            public TaskExecutionHistory getExecutionHistory() {
-                return state.getExecutionHistory();
+                return state.isUpToDate();
             }
 
             public void beforeTask() {
+                if (task.getOutputs().getHasOutput()) {
+                    listener.invalidate(task.getOutputs().getFiles());
+                } else {
+                    listener.invalidateAll();
+                }
                 state.beforeTask();
             }
 
@@ -49,6 +52,10 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
             public void finished() {
                 state.finished();
+            }
+
+            public TaskExecutionHistory getExecutionHistory() {
+                return state.getExecutionHistory();
             }
         };
     }

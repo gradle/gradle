@@ -26,6 +26,9 @@ import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 
+/**
+ * A {@link TaskExecuter} which executes the actions of a task.
+ */
 public class DefaultTaskExecuter implements TaskExecuter {
     private static Logger logger = Logging.getLogger(DefaultTaskExecuter.class);
     private final TaskActionListener listener;

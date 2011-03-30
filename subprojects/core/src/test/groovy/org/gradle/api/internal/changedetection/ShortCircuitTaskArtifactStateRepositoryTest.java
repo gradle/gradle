@@ -64,11 +64,15 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
         context.checking(new Expectations() {{
             one(taskArtifactState).getExecutionHistory();
             will(returnValue(executionHistory));
-            one(taskArtifactState).update();
+            one(taskArtifactState).beforeTask();
+            one(taskArtifactState).afterTask();
+            one(taskArtifactState).finished();
         }});
 
         assertThat(state.getExecutionHistory(), sameInstance(executionHistory));
-        state.update();
+        state.beforeTask();
+        state.afterTask();
+        state.finished();
     }
 
     @Test

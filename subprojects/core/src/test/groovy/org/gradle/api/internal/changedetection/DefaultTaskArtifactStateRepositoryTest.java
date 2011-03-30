@@ -328,7 +328,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(task1);
         assertFalse(state.isUpToDate());
-        state.update();
+        state.afterTask();
 
         outputDir.deleteDir();
 
@@ -336,7 +336,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
         state = repository.getStateFor(task2);
         assertFalse(state.isUpToDate());
         task2.execute();
-        state.update();
+        state.afterTask();
 
         // Task should be out-of-date
         state = repository.getStateFor(task1);
@@ -455,7 +455,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
         task.execute();
         otherFile.write("new content");
 
-        state.update();
+        state.afterTask();
 
         otherFile.delete();
 
@@ -472,14 +472,14 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());
-        state.update();
+        state.afterTask();
 
         outputDirFile.write("ignore me");
 
         state = repository.getStateFor(task());
         assertTrue(state.isUpToDate());
         assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), (Matcher) not(hasItem(outputDirFile)));
-        state.update();
+        state.afterTask();
     }
 
     @Test
@@ -561,7 +561,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
             TaskArtifactState state = repository.getStateFor(task);
             state.isUpToDate();
             task.execute();
-            state.update();
+            state.afterTask();
         }
     }
 

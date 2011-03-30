@@ -62,6 +62,8 @@ public class ExecutionShortCircuitTaskExecuterTest {
             will(returnValue(true));
 
             one(taskState).upToDate();
+
+            one(taskArtifactState).finished();
         }});
 
         executer.execute(task, taskState);
@@ -80,6 +82,9 @@ public class ExecutionShortCircuitTaskExecuterTest {
             will(returnValue(false));
             inSequence(sequence);
 
+            one(taskArtifactState).beforeTask();
+            inSequence(sequence);
+
             one(taskArtifactState).getExecutionHistory();
             will(returnValue(executionHistory));
 
@@ -92,10 +97,13 @@ public class ExecutionShortCircuitTaskExecuterTest {
             allowing(taskState).getFailure();
             will(returnValue(null));
 
-            one(taskArtifactState).update();
+            one(taskArtifactState).afterTask();
             inSequence(sequence);
 
             one(outputs).setHistory(null);
+            inSequence(sequence);
+
+            one(taskArtifactState).finished();
             inSequence(sequence);
         }});
 
@@ -111,6 +119,8 @@ public class ExecutionShortCircuitTaskExecuterTest {
             one(taskArtifactState).isUpToDate();
             will(returnValue(false));
 
+            one(taskArtifactState).beforeTask();
+
             one(taskArtifactState).getExecutionHistory();
             will(returnValue(executionHistory));
 
@@ -122,6 +132,8 @@ public class ExecutionShortCircuitTaskExecuterTest {
             will(returnValue(new RuntimeException()));
 
             one(outputs).setHistory(null);
+
+            one(taskArtifactState).finished();
         }});
 
         executer.execute(task, taskState);

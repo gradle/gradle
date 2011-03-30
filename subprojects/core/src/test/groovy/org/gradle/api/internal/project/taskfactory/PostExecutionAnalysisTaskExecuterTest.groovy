@@ -23,10 +23,8 @@ import org.gradle.api.Action
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -35,52 +33,8 @@ class PostExecutionAnalysisTaskExecuterTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final TaskExecuter target = context.mock(TaskExecuter.class)
     private final TaskInternal task = context.mock(TaskInternal.class)
-    private final TaskInternal dependency = context.mock(TaskInternal.class)
-    private final TaskDependency taskDependency = context.mock(TaskDependency.class)
     private final TaskStateInternal state = context.mock(TaskStateInternal.class)
-    private final TaskStateInternal dependencyState = context.mock(TaskStateInternal.class)
     private final PostExecutionAnalysisTaskExecuter executer = new PostExecutionAnalysisTaskExecuter(target)
-
-    @Before
-    public void setup() {
-        context.checking {
-            allowing(task).getTaskDependencies()
-            will(returnValue(taskDependency))
-            allowing(dependency).getState()
-            will(returnValue(dependencyState))
-        }
-    }
-    
-    @Test
-    public void marksTaskUpToDateWhenItHasNoActionsAndAllOfItsDependenciesWereSkipped() {
-        context.checking {
-            one(target).execute(task, state)
-            allowing(task).getActions();
-            will(returnValue([]))
-            allowing(taskDependency).getDependencies(task)
-            will(returnValue([dependency] as Set))
-            allowing(dependencyState).getSkipped()
-            will(returnValue(true))
-            one(state).upToDate()
-        }
-
-        executer.execute(task, state)
-    }
-
-    @Test
-    public void doesNotMarkTaskUpToDateWhenAnyDependencyWasNotSkipped() {
-        context.checking {
-            one(target).execute(task, state)
-            allowing(task).getActions();
-            will(returnValue([]))
-            allowing(taskDependency).getDependencies(task)
-            will(returnValue([dependency] as Set))
-            allowing(dependencyState).getSkipped()
-            will(returnValue(false))
-        }
-
-        executer.execute(task, state)
-    }
 
     @Test
     public void marksTaskUpToDateWhenItHasActionsAndItDidNotDoWork() {

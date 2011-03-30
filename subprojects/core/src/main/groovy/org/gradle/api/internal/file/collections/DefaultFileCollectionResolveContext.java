@@ -51,8 +51,9 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         this.fileTreeConverter = fileTreeConverter;
     }
 
-    public void add(Object element) {
+    public DefaultFileCollectionResolveContext add(Object element) {
         addTo.add(element);
+        return this;
     }
 
     public DefaultFileCollectionResolveContext push(FileResolver fileResolver) {
