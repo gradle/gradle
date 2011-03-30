@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts.maven;
 
-import org.apache.maven.artifact.ant.RemoteRepository;
-
 import java.io.File;
 import java.util.Collection;
 
@@ -41,9 +39,9 @@ public interface MavenDeployer extends MavenResolver {
     /**
      * Returns the repository o be used for uploading artifacts.
      *
-     * @see #setRepository(org.apache.maven.artifact.ant.RemoteRepository)
+     * @see #setRepository(Object)
      */
-    RemoteRepository getRepository();
+    Object getRepository();
 
     /**
      * Sets the repository to be used for uploading artifacts. If {@link #getRepository()} is not set, this repository
@@ -51,14 +49,14 @@ public interface MavenDeployer extends MavenResolver {
      *
      * @param repository The repository to be used
      */
-    void setRepository(RemoteRepository repository);
+    void setRepository(Object repository);
 
     /**
      * Returns the repository o be used for uploading snapshot artifacts.
      *
-     * @see #setSnapshotRepository(org.apache.maven.artifact.ant.RemoteRepository)
+     * @see #setSnapshotRepository(Object)
      */
-    RemoteRepository getSnapshotRepository();
+    Object getSnapshotRepository();
 
     /**
      * Sets the repository to be used for uploading snapshot artifacts. If this is not set, the {@link #getRepository()}
@@ -66,7 +64,7 @@ public interface MavenDeployer extends MavenResolver {
      *
      * @param snapshotRepository The repository to be used
      */
-    void setSnapshotRepository(RemoteRepository snapshotRepository);
+    void setSnapshotRepository(Object snapshotRepository);
 
     /**
      * Out of the box only uploading to the filesysten and via http is supported. If other protocolls should be used,

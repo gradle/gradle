@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.apache.maven.model.Exclusion;
 import org.gradle.api.artifacts.ExcludeRule;
 
 
@@ -23,5 +22,5 @@ import org.gradle.api.artifacts.ExcludeRule;
  * @author Hans Dockter
  */
 public interface ExcludeRuleConverter {
-    Exclusion convert(ExcludeRule excludeRule);
+    Object convert(ExcludeRule excludeRule);
 }

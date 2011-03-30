@@ -16,8 +16,6 @@
 package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Model;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurationContainer;
 
@@ -124,14 +122,14 @@ public interface MavenPom {
      * @see org.apache.maven.model.Model#setDependencies(java.util.List)
      * @return this
      */
-    MavenPom setDependencies(List<Dependency> dependencies);
+    MavenPom setDependencies(List<?> dependencies);
 
     /**
      * Returns the dependencies for this POM.
      * 
      * @see org.apache.maven.model.Model#getDependencies()
      */
-    List<Dependency> getDependencies();
+    List<?> getDependencies();
 
     /**
      * Returns the underlying native Maven {@link org.apache.maven.model.Model} object. The MavenPom object
@@ -141,7 +139,7 @@ public interface MavenPom {
      *
      * @return the underlying native Maven object
      */
-    Model getModel();
+    Object getModel();
 
     /**
      * Sets the underlying native Maven {@link org.apache.maven.model.Model} object.
@@ -150,7 +148,7 @@ public interface MavenPom {
      * @return this
      * @see #getModel() 
      */
-    MavenPom setModel(Model model);
+    MavenPom setModel(Object model);
 
     /**
      * Writes the {@link #getEffectivePom()} xml to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions.

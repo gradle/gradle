@@ -69,6 +69,7 @@ import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.*;
 
 import java.io.File;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -333,7 +334,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected MavenFactory createMavenFactory() {
-        return new DefaultMavenFactory();
+        // TODO: should we do some of this in DefaultClassLoaderFactory?
+        URL[] classPath = get(ClassPathRegistry.class).getClassPathUrls("GRADLE_CORE_IMPL");
+        ClassLoader rootClassLoader = get(ClassLoaderFactory.class).getRootClassLoader();
+        return new DefaultMavenFactory(new ParentLastClassLoader(classPath, rootClassLoader));
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

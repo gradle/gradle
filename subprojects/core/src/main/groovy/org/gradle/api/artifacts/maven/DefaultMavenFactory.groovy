@@ -28,10 +28,10 @@ import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
 import org.gradle.api.artifacts.Configuration
 
 class DefaultMavenFactory implements MavenFactory {
-    private ClassLoader classLoader
+    private final ClassLoader classLoader
 
-    DefaultMavenFactory() {
-        classLoader = getClass().classLoader // TODO: use separate class loader
+    DefaultMavenFactory(ClassLoader classLoader) {
+        this.classLoader = classLoader
     }
 
     ArtifactPomFactory newArtifactPomFactory() {
