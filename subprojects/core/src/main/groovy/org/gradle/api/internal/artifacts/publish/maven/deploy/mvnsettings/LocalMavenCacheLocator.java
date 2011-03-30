@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings;
 
 import org.apache.maven.settings.DefaultMavenSettingsBuilder;
 import org.apache.maven.settings.MavenSettingsBuilder;
@@ -34,10 +34,10 @@ public class LocalMavenCacheLocator {
     private static final String USER_HOME_MARKER = "${user.home}/";
 
     public File getLocalMavenCache() {
+        MavenSettingsProvider mavenSettingsProvider = new MavenSettingsProvider();
         File userHome = new File(System.getProperty("user.home"));
-        File m2Dir = new File(userHome, ".m2");
+        File userSettings = mavenSettingsProvider.getUserSettingsFile();
 
-        File userSettings = new File(m2Dir, "settings.xml");
         if (userSettings.exists()) {
             File overriddenMavenLocal = extractMavenLocal(userSettings, userHome);
             if (overriddenMavenLocal != null) {
@@ -45,7 +45,7 @@ public class LocalMavenCacheLocator {
             }
         }
 
-        return new File(m2Dir, "repository");
+        return mavenSettingsProvider.getLocalMavenRepository();
     }
 
     private File extractMavenLocal(File userSettings, File userHome) {

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.internal.Factory
+import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.LocalMavenCacheLocator
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test

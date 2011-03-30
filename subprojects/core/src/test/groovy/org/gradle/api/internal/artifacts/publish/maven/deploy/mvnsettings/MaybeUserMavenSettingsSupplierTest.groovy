@@ -30,9 +30,9 @@ class MaybeUserMavenSettingsSupplierTest extends Specification {
     def "supplies empty settings when user settings not found"() {
         given:
         supplier.emptySettingsSupplier = Mock(EmptyMavenSettingsSupplier)
-        supplier.userSettingsProvider = Mock(MaybeUserMavenSettingsSupplier.UserSettingsProvider)
+        supplier.mavenSettingsProvider = Mock(MavenSettingsProvider)
 
-        supplier.userSettingsProvider.getMavenSettingsFile() >> { new File('does not exist') }
+        supplier.mavenSettingsProvider.getUserSettingsFile() >> { new File('does not exist') }
 
         when:
         supplier.supply(support)
@@ -46,11 +46,11 @@ class MaybeUserMavenSettingsSupplierTest extends Specification {
     def "supplies user settings when file exists"() {
         given:
         supplier.emptySettingsSupplier = Mock(EmptyMavenSettingsSupplier)
-        supplier.userSettingsProvider = Mock(MaybeUserMavenSettingsSupplier.UserSettingsProvider)
+        supplier.mavenSettingsProvider = Mock(MavenSettingsProvider)
 
         def concreteFile = File.createTempFile('I exist', ', really')
         concreteFile.deleteOnExit()
-        supplier.userSettingsProvider.getMavenSettingsFile() >> { concreteFile }
+        supplier.mavenSettingsProvider.getUserSettingsFile() >> { concreteFile }
 
         when:
         supplier.supply(support)

@@ -26,10 +26,10 @@ import java.io.File;
 public class MaybeUserMavenSettingsSupplier implements MavenSettingsSupplier {
 
     EmptyMavenSettingsSupplier emptySettingsSupplier = new EmptyMavenSettingsSupplier();
-    UserSettingsProvider userSettingsProvider = new UserSettingsProvider();
+    MavenSettingsProvider mavenSettingsProvider = new MavenSettingsProvider();
 
     public void supply(InstallDeployTaskSupport installDeployTaskSupport) {
-        File userSettings = userSettingsProvider.getMavenSettingsFile();
+        File userSettings = mavenSettingsProvider.getUserSettingsFile();
         if (userSettings.exists()) {
             installDeployTaskSupport.setSettingsFile(userSettings);
             return;
@@ -42,11 +42,4 @@ public class MaybeUserMavenSettingsSupplier implements MavenSettingsSupplier {
         emptySettingsSupplier.done();
     }
 
-    public static class UserSettingsProvider {
-        public File getMavenSettingsFile() {
-            File userHome = new File(System.getProperty("user.home"));
-            File m2Dir = new File(userHome, ".m2");
-            return new File(m2Dir, "settings.xml");
-        }
-    }
 }

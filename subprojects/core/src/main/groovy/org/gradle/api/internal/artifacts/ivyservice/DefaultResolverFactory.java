@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
+import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.LocalMavenCacheLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
 
