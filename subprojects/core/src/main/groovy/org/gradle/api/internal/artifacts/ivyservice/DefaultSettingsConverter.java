@@ -161,9 +161,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
                 AbstractResolver abstractResolver = (AbstractResolver) dependencyResolver;
                 RepositoryCacheManager cacheManager = abstractResolver.getRepositoryCacheManager();
                 // Can be only the Wharf, NoOp or Local Cache Manager
-                if (cacheManager != ivySettings.getDefaultRepositoryCacheManager() &&
-                        !(cacheManager instanceof NoOpRepositoryCacheManager) &&
-                        !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
+                if (cacheManager != ivySettings.getDefaultRepositoryCacheManager()
+                        && !(cacheManager instanceof NoOpRepositoryCacheManager)
+                        && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
                     throw new IllegalStateException("Cannot have a cache manager="+cacheManager);
                 }
             }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.jfrog.wharf.ivy.resolver.FileSystemWharfResolver;
 import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
