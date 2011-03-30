@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.ide.idea
 
-import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.Workspace
+import org.gradle.plugins.ide.internal.XmlGeneratorTask
 
 /**
  * Generates an IDEA workspace file.

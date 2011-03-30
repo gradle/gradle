@@ -19,12 +19,12 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.Module
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
 import org.gradle.plugins.ide.idea.model.Path
 import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.idea.model.internal.ModuleDependencyBuilder
+import org.gradle.plugins.ide.internal.XmlGeneratorTask
 import org.gradle.api.artifacts.*
 
 /**

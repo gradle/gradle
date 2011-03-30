@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.plugins.ide.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.generator.ConfigurationTarget;
-import org.gradle.api.internal.tasks.generator.Generator;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.listener.ActionBroadcast;
+import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget;
+import org.gradle.plugins.ide.internal.generator.generator.Generator;
 
 import java.io.File;
 

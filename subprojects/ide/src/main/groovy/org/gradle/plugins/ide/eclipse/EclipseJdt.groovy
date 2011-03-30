@@ -16,9 +16,9 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.generator.PersistableConfigurationObjectGenerator
-import org.gradle.api.tasks.GeneratorTask
 import org.gradle.plugins.ide.eclipse.model.Jdt
+import org.gradle.plugins.ide.internal.GeneratorTask
+import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
 
 /**
  * Generates the Eclipse JDT configuration file.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ide.internal.generator.generator;
 
-package org.gradle.api.internal.tasks.generator;
+import java.io.File;
 
 /**
- * @author Szczepan Faber, @date: 19.03.11
+ * Responsible for reading, configuring and writing a config object of type T to/from a file.
+ * @param <T>
  */
-public interface ConfigurationTarget {
+public interface Generator<T> {
+    T read(File inputFile);
 
-    void configureDomainObject();
+    T defaultInstance();
 
+    void configure(T object);
+
+    void write(T object, File outputFile);
 }

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.plugins.ide.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.maven.XmlProvider;
 import org.gradle.api.internal.XmlTransformer;
-import org.gradle.api.internal.tasks.generator.PersistableConfigurationObject;
-import org.gradle.api.internal.tasks.generator.PersistableConfigurationObjectGenerator;
+import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject;
+import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
 
 /**
  * A convenience superclass for those tasks which generate XML configuration files from a domain object of type T.

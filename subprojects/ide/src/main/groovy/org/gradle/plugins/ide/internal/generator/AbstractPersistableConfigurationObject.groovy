@@ -15,8 +15,9 @@
  */
 package org.gradle.plugins.ide.internal.generator;
 
-import org.gradle.api.internal.tasks.generator.PersistableConfigurationObject;
-import org.gradle.util.UncheckedException;
+
+import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
+import org.gradle.util.UncheckedException
 
 public abstract class AbstractPersistableConfigurationObject implements PersistableConfigurationObject {
     public void load(File inputFile) {

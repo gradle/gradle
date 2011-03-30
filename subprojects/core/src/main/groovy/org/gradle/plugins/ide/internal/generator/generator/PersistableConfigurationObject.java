@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.generator;
+package org.gradle.plugins.ide.internal.generator.generator;
 
 import java.io.File;
 
-/**
- * Responsible for reading, configuring and writing a config object of type T to/from a file.
- * @param <T>
- */
-public interface Generator<T> {
-    T read(File inputFile);
+public interface PersistableConfigurationObject {
+    void load(File inputFile);
 
-    T defaultInstance();
+    void loadDefaults();
 
-    void configure(T object);
-
-    void write(T object, File outputFile);
+    void store(File outputFile);
 }

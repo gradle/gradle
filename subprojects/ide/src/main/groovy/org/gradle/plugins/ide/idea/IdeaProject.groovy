@@ -16,9 +16,9 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.ModulePath
 import org.gradle.plugins.ide.idea.model.Project
+import org.gradle.plugins.ide.internal.XmlGeneratorTask
 
 /**
  * Generates an IDEA project file.

@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.internal.generator;
 import org.gradle.api.internal.XmlTransformer
 
 /**
- * A {@link org.gradle.api.internal.tasks.generator.PersistableConfigurationObject} which is stored in an XML file.
+ * A {@link org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject} which is stored in an XML file.
  */
 public abstract class XmlPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
     private final XmlTransformer xmlTransformer;

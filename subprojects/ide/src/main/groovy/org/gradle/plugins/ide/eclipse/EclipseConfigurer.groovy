@@ -16,10 +16,10 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.tasks.generator.ConfigurationTarget
 import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
 import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
+import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * @author Szczepan Faber, @date 11.03.11

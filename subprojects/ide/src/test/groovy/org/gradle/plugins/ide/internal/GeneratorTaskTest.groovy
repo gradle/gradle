@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api
+package org.gradle.plugins.ide.internal
 
-import org.gradle.api.internal.tasks.generator.Generator
-import org.gradle.api.tasks.GeneratorTask
+import org.gradle.api.Action
+import org.gradle.plugins.ide.internal.generator.generator.Generator
 import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -27,7 +27,7 @@ class GeneratorTaskTest extends Specification {
     final Generator<TestConfigurationObject> generator = Mock()
     final File inputFile = tmpDir.file('input')
     final File outputFile = tmpDir.file('output')
-    final GeneratorTask<TestConfigurationObject> task = HelperUtil.createTask(GeneratorTask)
+    final org.gradle.plugins.ide.internal.GeneratorTask<TestConfigurationObject> task = HelperUtil.createTask(org.gradle.plugins.ide.internal.GeneratorTask)
 
     def setup() {
         task.inputFile = inputFile
