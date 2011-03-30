@@ -23,7 +23,10 @@
     <module name="JavadocPackage"/>
 
     <module name="TreeWalker">
-        <module name="JavadocStyle"/>
+        <module name="JavadocStyle">
+            <property name="checkFirstSentence" value="false"/>
+            <property name="checkEmptyJavadoc" value="true"/>
+        </module>
 
         <module name="JavadocType">
             <property name="scope" value="package"/>
