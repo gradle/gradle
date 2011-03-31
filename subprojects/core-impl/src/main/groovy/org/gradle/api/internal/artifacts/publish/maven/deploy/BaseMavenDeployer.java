@@ -86,16 +86,16 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         return remoteRepository;
     }
 
-    public void setRepository(RemoteRepository remoteRepository) {
-        this.remoteRepository = remoteRepository;
+    public void setRepository(Object remoteRepository) {
+        this.remoteRepository = (RemoteRepository) remoteRepository;
     }
 
     public RemoteRepository getSnapshotRepository() {
         return remoteSnapshotRepository;
     }
 
-    public void setSnapshotRepository(RemoteRepository remoteSnapshotRepository) {
-        this.remoteSnapshotRepository = remoteSnapshotRepository;
+    public void setSnapshotRepository(Object remoteSnapshotRepository) {
+        this.remoteSnapshotRepository = (RemoteRepository) remoteSnapshotRepository;
     }
 
     public Factory<CustomDeployTask> getDeployTaskFactory() {

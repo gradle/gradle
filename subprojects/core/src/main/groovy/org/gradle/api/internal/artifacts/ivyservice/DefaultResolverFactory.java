@@ -20,21 +20,10 @@ import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolverContainer;
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
-import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.publish.maven.DefaultArtifactPomFactory;
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPomFactory;
+import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.LocalMavenCacheLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -46,14 +35,16 @@ import java.util.Map;
  */
 public class DefaultResolverFactory implements ResolverFactory {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
+    private final MavenFactory mavenFactory;
     private final LocalMavenCacheLocator localMavenCacheLocator;
 
-    public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory) {
-        this(loggingManagerFactory, new LocalMavenCacheLocator());
+    public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, MavenFactory mavenFactory) {
+        this(loggingManagerFactory, mavenFactory, mavenFactory.createLocalMavenCacheLocator());
     }
 
-    DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenCacheLocator localMavenCacheLocator) {
+    DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, MavenFactory mavenFactory, LocalMavenCacheLocator localMavenCacheLocator) {
         this.loggingManagerFactory = loggingManagerFactory;
+        this.mavenFactory = mavenFactory;
         this.localMavenCacheLocator = localMavenCacheLocator;
     }
 
@@ -137,11 +128,11 @@ public class DefaultResolverFactory implements ResolverFactory {
     public GroovyMavenDeployer createMavenDeployer(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
                                                    ConfigurationContainer configurationContainer,
                                                    Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver) {
-        PomFilterContainer pomFilterContainer = new BasePomFilterContainer(
-                new DefaultMavenPomFactory(configurationContainer, scopeMapping, new DefaultPomDependenciesConverter(
-                        new DefaultExcludeRuleConverter()), fileResolver));
-        return new DefaultGroovyMavenDeployer(name, pomFilterContainer, new DefaultArtifactPomContainer(
-                pomMetaInfoProvider, pomFilterContainer, new DefaultArtifactPomFactory()), loggingManagerFactory.create());
+        PomFilterContainer pomFilterContainer = mavenFactory.createPomFilterContainer(
+                mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, mavenFactory.createPomDependenciesConverter(
+                        mavenFactory.createExcludeRuleConverter()), fileResolver));
+        return mavenFactory.createGroovyMavenDeployer(name, pomFilterContainer, mavenFactory.createArtifactPomContainer(
+                pomMetaInfoProvider, pomFilterContainer, mavenFactory.createArtifactPomFactory()), loggingManagerFactory.create());
     }
 
     // todo use MavenPluginConvention pom factory after modularization is done
@@ -149,11 +140,11 @@ public class DefaultResolverFactory implements ResolverFactory {
     public MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
                                               ConfigurationContainer configurationContainer,
                                               Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver) {
-        PomFilterContainer pomFilterContainer = new BasePomFilterContainer(
-                new DefaultMavenPomFactory(configurationContainer, scopeMapping, new DefaultPomDependenciesConverter(
-                        new DefaultExcludeRuleConverter()), fileResolver));
-        return new BaseMavenInstaller(name, pomFilterContainer, new DefaultArtifactPomContainer(pomMetaInfoProvider,
-                pomFilterContainer, new DefaultArtifactPomFactory()), loggingManagerFactory.create());
+        PomFilterContainer pomFilterContainer = mavenFactory.createPomFilterContainer(
+                mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, mavenFactory.createPomDependenciesConverter(
+                        mavenFactory.createExcludeRuleConverter()), fileResolver));
+        return mavenFactory.createMavenInstaller(name, pomFilterContainer, mavenFactory.createArtifactPomContainer(pomMetaInfoProvider,
+                pomFilterContainer, mavenFactory.createArtifactPomFactory()), loggingManagerFactory.create());
     }
 
 }

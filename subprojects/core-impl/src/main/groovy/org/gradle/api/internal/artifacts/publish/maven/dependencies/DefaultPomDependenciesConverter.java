@@ -133,7 +133,7 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
             excludeRules.addAll(configuration.getExcludeRules());
         }
         for (ExcludeRule excludeRule : excludeRules) {
-            Exclusion mavenExclusion = excludeRuleConverter.convert(excludeRule);
+            Exclusion mavenExclusion = (Exclusion) excludeRuleConverter.convert(excludeRule);
             if (mavenExclusion != null) {
                 mavenExclusions.add(mavenExclusion);
             }

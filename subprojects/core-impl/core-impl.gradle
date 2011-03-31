@@ -1,0 +1,17 @@
+apply plugin: "groovy"
+
+dependencies {
+    groovy libraries.groovy_depends
+
+    compile project(":core")
+    compile libraries.guava
+    compile libraries.commons_lang
+    compile libraries.ivy
+    compile "org.apache.maven:maven-ant-tasks:2.1.1@jar"
+    compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
+    compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
+    compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
+
+    testCompile libraries.junit
+    testCompile project(path: ':core', configuration: 'testFixtures')
+}

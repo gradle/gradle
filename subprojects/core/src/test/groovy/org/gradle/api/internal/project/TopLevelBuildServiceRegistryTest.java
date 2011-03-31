@@ -145,6 +145,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesARepositoryHandlerFactory() {
+        allowGetCoreImplClassLoader();
         assertThat(factory.getFactory(RepositoryHandler.class), instanceOf(DefaultRepositoryHandlerFactory.class));
     }
 
@@ -163,6 +164,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAnInitScriptHandler() {
+        allowGetCoreImplClassLoader();
         expectScriptClassLoaderCreated();
         expectListenerManagerCreated();
         assertThat(factory.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
@@ -171,6 +173,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAScriptObjectConfigurerFactory() {
+        allowGetCoreImplClassLoader();
         expectListenerManagerCreated();
         expectScriptClassLoaderCreated();
         assertThat(factory.get(ScriptPluginFactory.class), instanceOf(DefaultScriptPluginFactory.class));
@@ -179,6 +182,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesASettingsProcessor() {
+        allowGetCoreImplClassLoader();
         expectListenerManagerCreated();
         expectScriptClassLoaderCreated();
         assertThat(factory.get(SettingsProcessor.class), instanceOf(PropertiesLoadingSettingsProcessor.class));
@@ -194,12 +198,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAWorkerProcessFactory() {
-        context.checking(new Expectations() {{
-            one(classLoaderFactory).getRootClassLoader();
-            will(returnValue(new ClassLoader() {
-            }));
-        }});
-
+        allowGetRootClassLoader();
         assertThat(factory.getFactory(WorkerProcessBuilder.class), instanceOf(DefaultWorkerProcessFactory.class));
     }
 
@@ -237,6 +236,22 @@ public class TopLevelBuildServiceRegistryTest {
         context.checking(new Expectations() {{
             one(classLoaderFactory).createScriptClassLoader();
             will(returnValue(new MultiParentClassLoader()));
+        }});
+    }
+
+    private void allowGetRootClassLoader() {
+        context.checking(new Expectations() {{
+            allowing(classLoaderFactory).getRootClassLoader();
+            will(returnValue(new ClassLoader() {
+            }));
+        }});
+    }
+
+    private void allowGetCoreImplClassLoader() {
+        context.checking(new Expectations() {{
+            allowing(classLoaderFactory).getCoreImplClassLoader();
+            will(returnValue(new ClassLoader() {
+            }));
         }});
     }
 }

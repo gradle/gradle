@@ -30,8 +30,9 @@ import java.util.regex.Pattern;
 public abstract class AbstractClassPathProvider implements ClassPathProvider, GradleDistributionLocator {
     private final List<Pattern> all = Arrays.asList(Pattern.compile(".+"));
     private final Map<String, List<Pattern>> classPaths = new HashMap<String, List<Pattern>>();
-    private final Scanner pluginLibs;
     private final Scanner runtimeLibs;
+    private final Scanner pluginLibs;
+    private final Scanner coreImplLibs;
     private final File gradleHome;
 
     protected AbstractClassPathProvider() {
@@ -41,11 +42,13 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
             gradleHome = codeSource.getParentFile().getParentFile();
             runtimeLibs = new DirScanner(new File(gradleHome + "/lib"));
             pluginLibs = new DirScanner(new File(gradleHome + "/lib/plugins"));
+            coreImplLibs = new DirScanner(new File(gradleHome + "/lib/core-impl"));
         } else {
             // Loaded from a classes dir - assume we're running from the ide or tests
             gradleHome = null;
             runtimeLibs = new ClassPathScanner(codeSource);
             pluginLibs = runtimeLibs;
+            coreImplLibs = runtimeLibs;
         }
     }
 
@@ -67,18 +70,23 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
 
     public Set<File> findClassPath(String name) {
         Set<File> matches = new LinkedHashSet<File>();
+        if (name.equals("GRADLE_RUNTIME")) {
+            runtimeLibs.find(all, matches);
+            return matches;
+        }
         if (name.equals("GRADLE_PLUGINS")) {
             pluginLibs.find(all, matches);
             return matches;
         }
-        if (name.equals("GRADLE_RUNTIME")) {
-            runtimeLibs.find(all, matches);
+        if (name.equals("GRADLE_CORE_IMPL")) {
+            coreImplLibs.find(all, matches);
             return matches;
         }
         List<Pattern> classPathPatterns = classPaths.get(name);
         if (classPathPatterns != null) {
             runtimeLibs.find(classPathPatterns, matches);
             pluginLibs.find(classPathPatterns, matches);
+            coreImplLibs.find(classPathPatterns, matches);
             return matches;
         }
         return null;

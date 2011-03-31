@@ -15,10 +15,10 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
+import org.gradle.api.artifacts.maven.MavenPom
+
 import spock.lang.Specification
 
 /**
@@ -29,10 +29,9 @@ class MavenPluginConventionTest extends Specification {
     MavenPluginConvention mavenPluginConvention = new MavenPluginConvention(project)
 
     def pomShouldCreateMavenPom() {
-        mavenPluginConvention.conf2ScopeMappings = new DefaultConf2ScopeMappingContainer();
         project.group = 'someGroup'
         project.version = '1.0'
-        DefaultMavenPom mavenPom = mavenPluginConvention.pom()
+        MavenPom mavenPom = mavenPluginConvention.pom()
 
         expect:
         !mavenPluginConvention.conf2ScopeMappings.is(mavenPom.scopeMappings)
@@ -47,8 +46,7 @@ class MavenPluginConventionTest extends Specification {
     }
 
     def pomShouldCreateAndConfigureMavenPom() {
-        mavenPluginConvention.conf2ScopeMappings = new DefaultConf2ScopeMappingContainer();
-        DefaultMavenPom mavenPom = mavenPluginConvention.pom {
+        MavenPom mavenPom = mavenPluginConvention.pom {
             project {
                 inceptionYear '1999'
             }

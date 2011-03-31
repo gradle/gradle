@@ -30,6 +30,8 @@ dependencies {
     provided "org.codehaus.sonar:sonar-batch:2.6"
 
     testCompile project(path: ':core', configuration: 'testFixtures')
+
+    testRuntime project(":coreImpl")
 }
 
 sourceSets {

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings
+package org.gradle.api.internal.artifacts.publish.maven
 
+import spock.lang.Specification
+import org.junit.Rule
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import spock.lang.Specification
 
-class LocalMavenCacheLocatorTest extends Specification {
+class DefaultLocalMavenCacheLocatorTest extends Specification {
     @Rule public final SetSystemProperties systemProperties = new SetSystemProperties()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
-    final LocalMavenCacheLocator locator = new LocalMavenCacheLocator()
+    final DefaultLocalMavenCacheLocator locator = new DefaultLocalMavenCacheLocator()
 
     def setup() {
         System.setProperty('user.home', tmpDir.dir.absolutePath)

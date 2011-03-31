@@ -16,16 +16,14 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.maven.*;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
+import java.util.Collections;
 
 /**
  * Properties and methods added by the {@link org.gradle.api.plugins.MavenPlugin}.
@@ -33,12 +31,15 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class MavenPluginConvention {
-    private ProjectInternal project;
+    private final ProjectInternal project;
+    private final MavenFactory mavenFactory;
+    private Conf2ScopeMappingContainer conf2ScopeMappings;
     private String pomDirName = "poms";
-    private Conf2ScopeMappingContainer conf2ScopeMappings = new DefaultConf2ScopeMappingContainer();
 
     public MavenPluginConvention(ProjectInternal project) {
         this.project = project;
+        mavenFactory = project.getServices().get(MavenFactory.class);
+        conf2ScopeMappings = mavenFactory.createConf2ScopeMappingContainer(Collections.<Configuration, Conf2ScopeMapping>emptyMap());
     }
 
     /**
@@ -91,10 +92,11 @@ public class MavenPluginConvention {
      * @return The POM instance.
      */
     public MavenPom pom(Closure configureClosure) {
-        DefaultMavenPom pom = new DefaultMavenPom(project.getConfigurations(),
-                new DefaultConf2ScopeMappingContainer(conf2ScopeMappings.getMappings()),
-                new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter()),
+        Factory<MavenPom> pomFactory = mavenFactory.createMavenPomFactory(project.getConfigurations(),
+                mavenFactory.createConf2ScopeMappingContainer(conf2ScopeMappings.getMappings()),
+                mavenFactory.createPomDependenciesConverter(mavenFactory.createExcludeRuleConverter()),
                 project.getFileResolver());
+        MavenPom pom = pomFactory.create();
         pom.setGroupId(project.getGroup().toString());
         pom.setArtifactId(project.getName());
         pom.setVersion(project.getVersion().toString());

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.publish.maven.deploy.groovy
+
 
 import java.lang.reflect.Proxy
 import org.gradle.api.artifacts.maven.MavenPom

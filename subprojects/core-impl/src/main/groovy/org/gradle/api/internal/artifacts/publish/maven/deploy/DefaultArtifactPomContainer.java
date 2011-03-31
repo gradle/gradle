@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 
@@ -57,15 +58,15 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
         }
     }
 
-    public Set<DefaultMavenDeployment> createDeployableFilesInfos() {
-        Set<DefaultMavenDeployment> defaultMavenDeployments = new HashSet<DefaultMavenDeployment>();
+    public Set<MavenDeployment> createDeployableFilesInfos() {
+        Set<MavenDeployment> mavenDeployments = new HashSet<MavenDeployment>();
         for (String activeArtifactPomName : artifactPoms.keySet()) {
             ArtifactPom activeArtifactPom = artifactPoms.get(activeArtifactPomName);
             File pomFile = createPomFile(activeArtifactPomName);
             PublishArtifact pomArtifact = activeArtifactPom.writePom(pomFile);
-            defaultMavenDeployments.add(new DefaultMavenDeployment(pomArtifact, activeArtifactPom.getArtifact(), activeArtifactPom.getAttachedArtifacts()));
+            mavenDeployments.add(new DefaultMavenDeployment(pomArtifact, activeArtifactPom.getArtifact(), activeArtifactPom.getAttachedArtifacts()));
         }
-        return defaultMavenDeployments;
+        return mavenDeployments;
     }
 
     private File createPomFile(String artifactPomName) {

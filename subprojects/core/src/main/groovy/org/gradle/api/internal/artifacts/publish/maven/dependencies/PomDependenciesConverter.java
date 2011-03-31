@@ -25,5 +25,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface PomDependenciesConverter {
-    public List<org.apache.maven.model.Dependency> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations);
+    public List<?> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations);
 }

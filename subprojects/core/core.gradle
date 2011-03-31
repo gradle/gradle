@@ -52,17 +52,16 @@ dependencies {
             libraries.guava,
             "commons-collections:commons-collections:3.2.1@jar",
             "slide:webdavlib:2.0@jar",
-            "org.apache.maven:maven-ant-tasks:2.1.1@jar",
             libraries.asm_all,
             'org.fusesource.jansi:jansi:1.2.1',
-            'org.jruby.ext.posix:jna-posix:1.0.3',
-            'org.sonatype.pmaven:pmaven-common:0.8-20100325@jar',
-            'org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar',
-            'org.codehaus.plexus:plexus-component-annotations:1.5.2'
+            'org.jruby.ext.posix:jna-posix:1.0.3'
 
     runtime 'net.java.dev.jna:jna:3.2.2'
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
+
+    // tried with scope 'runtime' but this gives a cyclic task dependency
+    testRuntime project(":coreImpl")
 
     testCompile libraries.xmlunit
 

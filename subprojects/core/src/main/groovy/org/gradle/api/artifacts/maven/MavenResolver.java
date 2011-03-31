@@ -17,7 +17,6 @@ package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.maven.settings.Settings;
 import org.gradle.api.Action;
 
 /**
@@ -30,7 +29,7 @@ public interface MavenResolver extends DependencyResolver, PomFilterContainer {
      * Returns a maven settings object. This can be used for example to figure out where the local repository is
      * located. This property is filled after publishing. Before this property is null.
      */
-    Settings getSettings();
+    Object getSettings();
 
     /**
      * Adds an action to be executed immediately before a deployment to this resolver. The action is executed after all

@@ -13,23 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.api.internal.artifacts.publish.maven;
 
-import org.gradle.util.MultiParentClassLoader;
+import java.io.File;
 
-public interface ClassLoaderFactory {
-    /**
-     * Returns the root class loader shared by all builds.
-     */
-    ClassLoader getRootClassLoader();
-
-    /**
-     * Returns the class loader for the coreImpl project.
-     */
-    ClassLoader getCoreImplClassLoader();
-
-    /**
-     * Creates the script class loader for a build.
-     */
-    MultiParentClassLoader createScriptClassLoader();
+public interface LocalMavenCacheLocator {
+    File getLocalMavenCache();
 }

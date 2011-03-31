@@ -89,8 +89,9 @@ public class DefaultMavenPom implements MavenPom {
         return getModel().getArtifactId();
     }
 
-    public DefaultMavenPom setDependencies(List<Dependency> dependencies) {
-        getModel().setDependencies(dependencies);
+    @SuppressWarnings("unchecked")
+    public DefaultMavenPom setDependencies(List<?> dependencies) {
+        getModel().setDependencies((List<Dependency>) dependencies);
         return this;
     }
 
@@ -135,8 +136,8 @@ public class DefaultMavenPom implements MavenPom {
         return mavenProject.getModel();
     }
 
-    public DefaultMavenPom setModel(Model model) {
-        this.mavenProject = new MavenProject(model);
+    public DefaultMavenPom setModel(Object model) {
+        this.mavenProject = new MavenProject((Model) model);
         return this;
     }
 
@@ -149,11 +150,12 @@ public class DefaultMavenPom implements MavenPom {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Dependency> getGeneratedDependencies() {
         if (configurations == null) {
             return Collections.emptyList();
         }
-        return pomDependenciesConverter.convert(getScopeMappings(), configurations.getAll());
+        return (List<Dependency>) pomDependenciesConverter.convert(getScopeMappings(), configurations.getAll());
     }
 
     public DefaultMavenPom getEffectivePom() {

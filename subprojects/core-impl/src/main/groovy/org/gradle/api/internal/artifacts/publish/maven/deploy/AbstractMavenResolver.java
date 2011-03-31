@@ -172,11 +172,11 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
-        Set<DefaultMavenDeployment> defaultMavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
+        Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         mavenSettingsSupplier.supply(installDeployTaskSupport);
-        for (DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
-            beforeDeploymentActions.execute(defaultMavenDeployment);
-            addPomAndArtifact(installDeployTaskSupport, defaultMavenDeployment);
+        for (MavenDeployment mavenDeployment : mavenDeployments) {
+            beforeDeploymentActions.execute(mavenDeployment);
+            addPomAndArtifact(installDeployTaskSupport, mavenDeployment);
             execute(installDeployTaskSupport);
         }
         mavenSettingsSupplier.done();
@@ -192,15 +192,15 @@ public abstract class AbstractMavenResolver implements MavenResolver {
         }
     }
 
-    private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, DefaultMavenDeployment defaultMavenDeployment) {
+    private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, MavenDeployment mavenDeployment) {
         Pom pom = new Pom();
         pom.setProject(installOrDeployTask.getProject());
-        pom.setFile(defaultMavenDeployment.getPomArtifact().getFile());
+        pom.setFile(mavenDeployment.getPomArtifact().getFile());
         installOrDeployTask.addPom(pom);
-        if (defaultMavenDeployment.getMainArtifact() != null) {
-            installOrDeployTask.setFile(defaultMavenDeployment.getMainArtifact().getFile());
+        if (mavenDeployment.getMainArtifact() != null) {
+            installOrDeployTask.setFile(mavenDeployment.getMainArtifact().getFile());
         }
-        for (PublishArtifact classifierArtifact : defaultMavenDeployment.getAttachedArtifacts()) {
+        for (PublishArtifact classifierArtifact : mavenDeployment.getAttachedArtifacts()) {
             AttachedArtifact attachedArtifact = installOrDeployTask.createAttach();
             attachedArtifact.setClassifier(classifierArtifact.getClassifier());
             attachedArtifact.setFile(classifierArtifact.getFile());
