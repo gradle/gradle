@@ -15,14 +15,24 @@
  */
 package org.gradle.plugins.ide.idea
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ExternalDependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.plugins.ide.api.XmlGeneratorTask
+import org.gradle.plugins.ide.idea.model.IdeaModule
+import org.gradle.plugins.ide.idea.model.Module
+import org.gradle.plugins.ide.idea.model.ModuleLibrary
+import org.gradle.plugins.ide.idea.model.Path
+import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.idea.model.internal.ModuleDependencyBuilder
-import org.gradle.api.artifacts.*
-import org.gradle.plugins.ide.idea.model.*
 
 /**
  * Generates an IDEA module file.
@@ -109,7 +119,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * value of java version is used for this module
      */
     @Input @Optional
-    String javaVersion = org.gradle.plugins.ide.idea.model.Module.INHERITED
+    String javaVersion = Module.INHERITED
 
     /**
      * Whether to download and add sources associated with the dependency jars.
