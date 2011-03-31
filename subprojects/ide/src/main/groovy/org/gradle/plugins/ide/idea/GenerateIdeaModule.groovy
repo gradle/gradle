@@ -20,12 +20,9 @@ import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.plugins.ide.api.XmlGeneratorTask
-import org.gradle.plugins.ide.idea.model.Module
-import org.gradle.plugins.ide.idea.model.ModuleLibrary
-import org.gradle.plugins.ide.idea.model.Path
-import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.idea.model.internal.ModuleDependencyBuilder
 import org.gradle.api.artifacts.*
+import org.gradle.plugins.ide.idea.model.*
 
 /**
  * Generates an IDEA module file.
@@ -51,7 +48,13 @@ import org.gradle.api.artifacts.*
  *
  * @author Hans Dockter
  */
-public class IdeaModule extends XmlGeneratorTask<Module> {
+public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
+
+    /**
+     * Idea module model
+     */
+    IdeaModule module
+
     /**
      * The content root directory of the module.
      */
@@ -61,8 +64,13 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The directories containing the production sources.
      */
-    @Input
-    Set<File> sourceDirs
+    Set<File> getSourceDirs() {
+       module.sourceDirs
+    }
+
+    void setSourceDirs(Set<File> sourceDirs) {
+       module.sourceDirs = sourceDirs
+    }
 
     /**
      * The directories containing the test sources.
@@ -149,13 +157,13 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     Map<String, Map<String, Configuration>> scopes = [:]
 
     @Override protected Module create() {
-        Module module = new Module(xmlTransformer)
-        configurePathFactory(module)
-        return module
+        Module xmlModule = new Module(xmlTransformer, getModule())
+        configurePathFactory(xmlModule)
+        return xmlModule
     }
 
     @Override protected void configure(Module module) {
-        module.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(),
+        module.configure(getContentPath(), getTestSourcePaths(), getExcludePaths(),
                 inheritOutputDirs, getOutputPath(), getTestOutputPath(), getDependencies(), javaVersion)
     }
 
@@ -169,10 +177,6 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
 
     protected Path getTestOutputPath() {
         getTestOutputDir() ? getPath(getTestOutputDir()) : null
-    }
-
-    protected Set getSourcePaths() {
-        getSourceDirs().findAll { it.exists() }.collect { getPath(it) }
     }
 
     protected Set getTestSourcePaths() {
@@ -335,8 +339,11 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
      * @return
      */
     File getOutputFile() {
-        //this getter lives here only for the sake of generating the DSL documentation.
-        return super.outputFile
+        return new File(getModuleDir(), module.name + ".iml")
+    }
+
+    void setOutputFile(File newOutputFile) {
+        module.name = newOutputFile.name.replaceFirst(/\.iml$/,"");
     }
 
     /**
@@ -363,10 +370,10 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
      * @return
      */
     String getModuleName() {
-        return outputFile.name.replaceFirst(/\.iml$/,"");
+        return module.name
     }
 
     void setModuleName(String moduleName) {
-        outputFile = new File(outputFile.parentFile, moduleName + ".iml")
+        module.name = moduleName
     }
 }

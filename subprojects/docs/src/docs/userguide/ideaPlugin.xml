@@ -135,7 +135,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.ide.idea.IdeaModule"/></td>
+                <td><apilink class="org.gradle.plugins.ide.idea.GenerateIdeaModule"/></td>
                 <td>Generates the <literal>.iml</literal> file</td>
             </tr>
             <tr>
@@ -469,7 +469,7 @@
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.idea.IdeaModule"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.GenerateIdeaModule"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Module"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Module"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>

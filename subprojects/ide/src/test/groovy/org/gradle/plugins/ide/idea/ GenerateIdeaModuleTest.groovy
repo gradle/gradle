@@ -23,7 +23,7 @@ import spock.lang.Specification
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
-class IdeaModuleTest extends Specification {
+class GenerateIdeaModuleTest extends Specification {
 
     DefaultProject project = HelperUtil.createRootProject()
     Project childProject = HelperUtil.createChildProject(project, "child", new File("."))

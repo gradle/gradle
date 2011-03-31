@@ -72,8 +72,14 @@ class Module extends XmlPersistableConfigurationObject {
 
     PathFactory pathFactory = new PathFactory()
 
-    Module(XmlTransformer withXmlActions) {
+    /**
+     * idea module model
+     */
+    IdeaModule module
+
+    Module(XmlTransformer withXmlActions, IdeaModule module) {
         super(withXmlActions)
+        this.module = module
     }
 
     @Override protected String getDefaultResourceName() {
@@ -140,10 +146,10 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    void configure(Path contentPath, Set sourceFolders, Set testSourceFolders, Set excludeFolders, Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies,
+    void configure(Path contentPath, Set testSourceFolders, Set excludeFolders, Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies,
                   String javaVersion) {
         this.contentPath = contentPath
-        this.sourceFolders.addAll(sourceFolders)
+        this.sourceFolders.addAll(module.getSourcePaths(pathFactory))
         this.testSourceFolders.addAll(testSourceFolders)
         this.excludeFolders.addAll(excludeFolders)
         if (inheritOutputDirs != null) {

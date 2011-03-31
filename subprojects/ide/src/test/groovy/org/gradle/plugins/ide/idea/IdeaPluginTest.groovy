@@ -98,7 +98,7 @@ class IdeaPluginTest extends Specification {
         then:
         project.ideaProject.javaVersion == project.sourceCompatibility.toString()
 
-        IdeaModule ideaModuleTask = project.ideaModule
+        GenerateIdeaModule ideaModuleTask = project.ideaModule
         ideaModuleTask.sourceDirs == project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as Set
         ideaModuleTask.testSourceDirs == project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as Set
         def configurations = project.configurations
@@ -130,8 +130,8 @@ class IdeaPluginTest extends Specification {
     }
 
     private void assertThatIdeaModuleIsProperlyConfigured(Project project) {
-        IdeaModule ideaModuleTask = project.ideaModule
-        assert ideaModuleTask instanceof IdeaModule
+        GenerateIdeaModule ideaModuleTask = project.ideaModule
+        assert ideaModuleTask instanceof GenerateIdeaModule
         assert ideaModuleTask.outputFile == new File(project.projectDir, project.name + ".iml")
         assert ideaModuleTask.moduleDir == project.projectDir
         assert ideaModuleTask.sourceDirs == [] as Set

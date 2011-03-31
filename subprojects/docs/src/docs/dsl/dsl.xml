@@ -188,7 +188,7 @@
                 <td>org.gradle.api.tasks.javadoc.Groovydoc</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.ide.idea.IdeaModule</td>
+                <td>org.gradle.plugins.ide.idea.GenerateIdeaModule</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.ide.idea.IdeaProject</td>

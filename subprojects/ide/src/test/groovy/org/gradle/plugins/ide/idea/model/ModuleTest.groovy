@@ -35,7 +35,7 @@ class ModuleTest extends Specification {
                     [new JarDirectory(path('file://$MODULE_DIR$/ant/lib'), false)] as Set, "RUNTIME"),
             new ModuleDependency('someModule', null)]
 
-    Module module = new Module(xmlTransformer)
+    Module module = new Module(xmlTransformer, new IdeaModule())
 
     def loadFromReader() {
         when:
@@ -52,7 +52,6 @@ class ModuleTest extends Specification {
     }
 
     def configureOverwritesDependenciesAndAppendsAllOtherEntries() {
-        def constructorSourceFolders = [path('a')] as Set
         def constructorTestSourceFolders = [path('b')] as Set
         def constructorExcludeFolders = [path('c')] as Set
         def constructorInheritOutputDirs = false
@@ -65,17 +64,33 @@ class ModuleTest extends Specification {
 
         when:
         module.load(customModuleReader)
-        module.configure(null, constructorSourceFolders, constructorTestSourceFolders, constructorExcludeFolders,
+        module.configure(null, constructorTestSourceFolders, constructorExcludeFolders,
                 constructorInheritOutputDirs, constructorOutputDir, constructorTestOutputDir, constructorModuleDependencies, constructorJavaVersion)
 
         then:
-        module.sourceFolders == customSourceFolders + constructorSourceFolders
         module.testSourceFolders == customTestSourceFolders + constructorTestSourceFolders
         module.excludeFolders == customExcludeFolders + constructorExcludeFolders
         module.outputDir == constructorOutputDir
         module.testOutputDir == constructorTestOutputDir
         module.javaVersion == constructorJavaVersion
         module.dependencies == constructorModuleDependencies
+    }
+
+    def configureMergesSourceFolders() {
+        def constructorSourceFolders = [path('constructorSourceFolderA')] as Set
+
+        when:
+        module.load(customModuleReader)
+        module.module.sourceDirs = constructorSourceFolders.collect {
+            def f = new File(it.url)
+            f.mkdirs()
+            f
+        }
+        module.configure(null, [] as Set, [] as Set, false, path('someOut'), path('someTestOut'), [] as Set, '1.6')
+
+        then:
+        module.sourceFolders.size() == 2
+        module.sourceFolders.any { it.url.contains('constructorSourceFolderA') }
     }
 
     def loadDefaults() {
@@ -90,15 +105,14 @@ class ModuleTest extends Specification {
     }
 
     def generatedXmlShouldContainCustomValues() {
-        def constructorSourceFolders = [new Path('a')] as Set
         def constructorOutputDir = new Path('someOut')
         def constructorTestOutputDir = new Path('someTestOut')
 
         when:
         module.loadDefaults()
-        module.configure(null, constructorSourceFolders, [] as Set, [] as Set, false, constructorOutputDir, constructorTestOutputDir, [] as Set, null)
+        module.configure(null, [] as Set, [] as Set, false, constructorOutputDir, constructorTestOutputDir, [] as Set, null)
         def xml = toXmlReader
-        def newModule = new Module(xmlTransformer)
+        def newModule = new Module(xmlTransformer, new IdeaModule())
         newModule.load(xml)
 
         then:

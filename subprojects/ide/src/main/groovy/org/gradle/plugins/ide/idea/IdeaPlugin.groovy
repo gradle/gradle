@@ -19,7 +19,10 @@ package org.gradle.plugins.ide.idea;
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.internal.IdePlugin
 
 /**
@@ -29,6 +32,9 @@ import org.gradle.plugins.ide.internal.IdePlugin
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
  */
 class IdeaPlugin extends IdePlugin {
+
+    IdeaModel model
+
     @Override protected String getLifecycleTaskName() {
         return 'idea'
     }
@@ -36,6 +42,9 @@ class IdeaPlugin extends IdePlugin {
     @Override protected void onApply(Project project) {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
+
+        model = project.services.get(ClassGenerator).newInstance(IdeaModel)
+        project.convention.plugins.idea = model
 
         configureIdeaConfigurer(project)
         configureIdeaWorkspace(project)
@@ -62,10 +71,14 @@ class IdeaPlugin extends IdePlugin {
     }
 
     private configureIdeaModule(Project project) {
-        def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: IdeaModule) {
+        def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) {
+            module = services.get(ClassGenerator).newInstance(IdeaModule)
+            model.conventionMapping.module = { module }
+            module.conventionMapping.sourceDirs = { [] as LinkedHashSet }
+            module.conventionMapping.name = { project.name }
+
             conventionMapping.outputFile = { new File(project.projectDir, project.name + ".iml") }
             conventionMapping.moduleDir = { project.projectDir }
-            conventionMapping.sourceDirs = { [] as LinkedHashSet }
             conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
             conventionMapping.testSourceDirs = { [] as LinkedHashSet }
         }
@@ -110,7 +123,7 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaModuleForJava(Project project) {
         project.ideaModule {
-            conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
+            module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             def configurations = project.configurations
             scopes = [
