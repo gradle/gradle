@@ -28,7 +28,11 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.logging.*;
+import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
@@ -84,6 +88,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskStateInternal state;
 
     private final LoggingManagerInternal loggingManager;
+
+    private List<TaskValidator> validators = new ArrayList<TaskValidator>();
 
     protected AbstractTask() {
         this(taskInfo());
@@ -411,6 +417,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         File dir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
         dir.mkdirs();
         return dir;
+    }
+
+    public void addValidator(TaskValidator validator) {
+        validators.add(validator);
+    }
+
+    public List<TaskValidator> getValidators() {
+        return validators;
     }
 
     private Action<Task> convertClosureToAction(Closure actionClosure) {

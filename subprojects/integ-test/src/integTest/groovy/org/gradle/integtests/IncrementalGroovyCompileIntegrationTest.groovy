@@ -29,7 +29,7 @@ class IncrementalGroovyCompileIntegrationTest {
 
     @Test
     public void recompilesSourceWhenPropertiesChange() {
-        executer.withTasks('compileGroovy').run().assertTasksSkipped()
+        executer.withTasks('compileGroovy').run().assertTasksSkipped(':compileJava')
 
         distribution.testFile('build.gradle').text += '''
             compileGroovy.options.debug = false

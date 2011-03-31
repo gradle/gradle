@@ -34,7 +34,7 @@ import org.junit.runner.RunWith;
 
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class SkipOnlyIfTaskExecuterTest {
@@ -74,8 +74,6 @@ public class SkipOnlyIfTaskExecuterTest {
             will(returnValue(true));
 
             one(delegate).execute(task, state);
-
-            one(state).executed();
         }});
 
         executer.execute(task, state);
@@ -89,7 +87,6 @@ public class SkipOnlyIfTaskExecuterTest {
             one(spec).isSatisfiedBy(task);
             will(returnValue(false));
             one(state).skipped("SKIPPED");
-            one(state).executed();
         }});
 
         executer.execute(task, state);
@@ -106,7 +103,6 @@ public class SkipOnlyIfTaskExecuterTest {
             will(throwException(failure));
             one(state).executed(with(notNullValue(GradleException.class)));
             will(collectTo(wrappedFailure));
-            one(state).executed();
         }});
 
         executer.execute(task, state);

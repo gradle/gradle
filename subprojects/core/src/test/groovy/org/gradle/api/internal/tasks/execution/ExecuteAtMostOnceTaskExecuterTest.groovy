@@ -22,6 +22,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 @RunWith(JMock.class)
 class ExecuteAtMostOnceTaskExecuterTest {
@@ -47,8 +49,29 @@ class ExecuteAtMostOnceTaskExecuterTest {
             allowing(state).getExecuted()
             will(returnValue(false))
             one(target).execute(task, state)
+            one(state).executed()
         }
 
         executer.execute(task, state)
+    }
+
+    @Test
+    public void marksTaskExecutedOnFailureFromExecuter() {
+        def failure = new RuntimeException()
+
+        context.checking {
+            allowing(state).getExecuted()
+            will(returnValue(false))
+            one(target).execute(task, state)
+            will(throwException(failure))
+            one(state).executed()
+        }
+
+        try {
+            executer.execute(task, state)
+            fail()
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure))
+        }
     }
 }

@@ -30,6 +30,7 @@ class ZipTest extends AbstractArchiveTaskTest {
         super.setUp()
         zip = createTask(Zip)
         configure(zip)
+        zip.from tmpDir.createFile('file.txt')
     }
 
     AbstractArchiveTask getArchiveTask() {

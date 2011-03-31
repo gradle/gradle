@@ -255,7 +255,7 @@ public class TestFile extends File implements TestFileContext {
 
     @Override
     public TestFile getParentFile() {
-        return new TestFile(super.getParentFile());
+        return super.getParentFile() == null ? null : new TestFile(super.getParentFile());
     }
 
     @Override

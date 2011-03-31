@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -23,29 +22,20 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 /**
- * A {@link org.gradle.api.internal.tasks.TaskExecuter} which skips tasks that have no actions.
+ * A {@link TaskExecuter} which skips tasks whose source file collection is empty.
  */
-public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
-    private static final Logger LOGGER = Logging.getLogger(SkipTaskWithNoActionsExecuter.class);
+public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
+    private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskExecuter executer;
 
-    public SkipTaskWithNoActionsExecuter(TaskExecuter executer) {
+    public SkipEmptySourceFilesTaskExecuter(TaskExecuter executer) {
         this.executer = executer;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state) {
-        if (task.getActions().isEmpty()) {
-            LOGGER.info("Skipping {} as it has no actions.", task);
-            boolean upToDate = true;
-            for (Task dependency : task.getTaskDependencies().getDependencies(task)) {
-                if (!dependency.getState().getSkipped()) {
-                    upToDate = false;
-                    break;
-                }
-            }
-            if (upToDate) {
-                state.upToDate();
-            }
+        if (task.getInputs().getHasSourceFiles() && task.getInputs().getSourceFiles().isEmpty()) {
+            LOGGER.info("Skipping {} as it has no source files.", task);
+            state.upToDate();
             return;
         }
         executer.execute(task, state);

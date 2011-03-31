@@ -42,7 +42,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
         try {
             if (taskArtifactState.isUpToDate()) {
-                LOGGER.debug("{} is up-to-date", task);
+                LOGGER.info("Skipping {} as it is up-to-date", task);
                 state.upToDate();
                 return;
 

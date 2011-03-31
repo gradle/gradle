@@ -29,7 +29,7 @@ class IncrementalScalaCompileIntegrationTest {
 
     @Test
     public void recompilesSourceWhenPropertiesChange() {
-        executer.withTasks('compileScala').run().assertTasksSkipped()
+        executer.withTasks('compileScala').run().assertTasksSkipped(':compileJava')
 
         distribution.testFile('build.gradle').text += '''
             compileScala.options.debug = false

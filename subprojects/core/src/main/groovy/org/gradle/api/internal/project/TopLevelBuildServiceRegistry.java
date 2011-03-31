@@ -124,13 +124,15 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected TaskExecuter createTaskExecuter() {
         return new ExecuteAtMostOnceTaskExecuter(
-                new SkipOnlyIfTaskExecuter(
-                        new SkipTaskWithNoActionsExecuter(
-                                new SkipUpToDateTaskExecuter(
-                                        new PostExecutionAnalysisTaskExecuter(
-                                                new ExecuteActionsTaskExecuter(
-                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
-                                        get(TaskArtifactStateRepository.class)))));
+                new ValidatingTaskExecuter(
+                        new SkipOnlyIfTaskExecuter(
+                                new SkipTaskWithNoActionsExecuter(
+                                        new SkipEmptySourceFilesTaskExecuter(
+                                                new SkipUpToDateTaskExecuter(
+                                                        new PostExecutionAnalysisTaskExecuter(
+                                                                new ExecuteActionsTaskExecuter(
+                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
+                                                        get(TaskArtifactStateRepository.class)))))));
     }
 
     protected Factory<RepositoryHandler> createRepositoryHandlerFactory() {

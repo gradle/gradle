@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -27,9 +29,18 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
     private final ValidationAction outputDirValidation = new ValidationAction() {
         public void validate(String propertyName, Object value) throws InvalidUserDataException {
             File fileValue = (File) value;
-            if (!fileValue.isDirectory() && !fileValue.mkdirs()) {
-                throw new InvalidUserDataException(String.format(
-                        "Cannot create directory '%s' specified for property '%s'.", fileValue, propertyName));
+            if (fileValue.exists() && !fileValue.isDirectory()) {
+                throw new InvalidUserDataException(String.format("Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
+            }
+
+            for (File candidate = fileValue; candidate != null; candidate = candidate.getParentFile()) {
+                if (candidate.isDirectory()) {
+                    break;
+                }
+                if (candidate.exists() && !candidate.isDirectory()) {
+                    throw new InvalidUserDataException(String.format(
+                            "Cannot use directory '%s' specified for property '%s', as ancestor '%s' is a file.", fileValue, propertyName, candidate));
+                }
             }
         }
     };
@@ -38,11 +49,25 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
         return OutputDirectory.class;
     }
 
-    public void attachActions(PropertyActionContext context) {
+    public void attachActions(final PropertyActionContext context) {
         context.setValidationAction(outputDirValidation);
         context.setConfigureAction(new UpdateAction() {
-            public void update(Task task, Callable<Object> futureValue) {
+            public void update(Task task, final Callable<Object> futureValue) {
                 task.getOutputs().files(futureValue);
+                task.doFirst(new Action<Task>() {
+                    public void execute(Task task) {
+                        File fileValue;
+                        try {
+                            fileValue = (File) futureValue.call();
+                        } catch (Exception e) {
+                            throw UncheckedException.asUncheckedException(e);
+                        }
+                        if (!fileValue.isDirectory() && !fileValue.mkdirs()) {
+                            throw new InvalidUserDataException(String.format(
+                                    "Cannot create directory '%s' specified for property '%s'.", fileValue, context.getName()));
+                        }
+                    }
+                });
             }
         });
     }

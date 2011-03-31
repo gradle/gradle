@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.changedetection
 
-import spock.lang.Specification
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.TaskInputs
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.tasks.TaskInputs
+import spock.lang.Specification
 
 class FileCacheBroadcastTaskArtifactStateRepositoryTest extends Specification {
     final TaskArtifactStateRepository target = Mock()

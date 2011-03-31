@@ -31,6 +31,7 @@ class TarTest extends AbstractArchiveTaskTest {
         super.setUp()
         tar = createTask(Tar)
         configure(tar)
+        tar.from tmpDir.createFile('file.txt')
     }
 
     AbstractArchiveTask getArchiveTask() {

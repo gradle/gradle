@@ -20,7 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.api.tasks.StopExecutionException;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -40,14 +39,6 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
             }
         }
     };
-    private final ValidationAction skipEmptyDirectoryAction = new ValidationAction() {
-        public void validate(String propertyName, Object value) throws InvalidUserDataException {
-            File fileValue = (File) value;
-            if (!fileValue.exists() || fileValue.isDirectory() && fileValue.list().length == 0) {
-                throw new StopExecutionException(String.format("Directory %s is empty or does not exist.", fileValue));
-            }
-        }
-    };
 
     public Class<? extends Annotation> getAnnotationType() {
         return InputDirectory.class;
@@ -55,12 +46,14 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
 
     public void attachActions(PropertyActionContext context) {
         context.setValidationAction(inputDirValidation);
-        if (context.getTarget().getAnnotation(SkipWhenEmpty.class) != null) {
-            context.setSkipAction(skipEmptyDirectoryAction);
-        }
+        final boolean isSourceDir = context.getTarget().getAnnotation(SkipWhenEmpty.class) != null;
         context.setConfigureAction(new UpdateAction() {
             public void update(Task task, Callable<Object> futureValue) {
-                task.getInputs().dir(futureValue);
+                if (isSourceDir) {
+                    task.getInputs().sourceDir(futureValue);
+                } else {
+                    task.getInputs().dir(futureValue);
+                }
             }
         });
     }

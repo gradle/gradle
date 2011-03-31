@@ -18,8 +18,9 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.UncheckedException;
 
@@ -29,20 +30,22 @@ import java.util.concurrent.Callable;
 
 public class DefaultTaskInputs implements TaskInputs {
     private final DefaultConfigurableFileCollection inputFiles;
+    private final DefaultConfigurableFileCollection sourceFiles;
     private final FileResolver resolver;
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task) {
         this.resolver = resolver;
         inputFiles = new DefaultConfigurableFileCollection(String.format("%s input files", task), resolver, null);
+        sourceFiles = new DefaultConfigurableFileCollection(String.format("%s source files", task), resolver, null);
     }
 
     public boolean getHasInputs() {
-        return !inputFiles.getFrom().isEmpty() || !properties.isEmpty();
+        return !inputFiles.getFrom().isEmpty() || !properties.isEmpty() || !sourceFiles.getFrom().isEmpty();
     }
 
     public FileCollection getFiles() {
-        return inputFiles;
+        return new UnionFileCollection(inputFiles, sourceFiles);
     }
 
     public TaskInputs files(Object... paths) {
@@ -57,6 +60,29 @@ public class DefaultTaskInputs implements TaskInputs {
 
     public TaskInputs dir(Object dirPath) {
         inputFiles.from(resolver.resolveFilesAsTree(dirPath));
+        return this;
+    }
+
+    public boolean getHasSourceFiles() {
+        return !sourceFiles.getFrom().isEmpty();
+    }
+
+    public FileCollection getSourceFiles() {
+        return sourceFiles;
+    }
+
+    public TaskInputs source(Object... paths) {
+        sourceFiles.from(paths);
+        return this;
+    }
+
+    public TaskInputs source(Object path) {
+        sourceFiles.from(path);
+        return this;
+    }
+
+    public TaskInputs sourceDir(Object path) {
+        sourceFiles.from(resolver.resolveFilesAsTree(path));
         return this;
     }
 

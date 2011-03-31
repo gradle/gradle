@@ -15,37 +15,39 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.Task;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.TaskExecutionException;
+
+import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.List;
 
 /**
- * A {@link org.gradle.api.internal.tasks.TaskExecuter} which skips tasks that have no actions.
+ * A {@link TaskExecuter} which performs validation before executing the task.
  */
-public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
-    private static final Logger LOGGER = Logging.getLogger(SkipTaskWithNoActionsExecuter.class);
+public class ValidatingTaskExecuter implements TaskExecuter {
     private final TaskExecuter executer;
 
-    public SkipTaskWithNoActionsExecuter(TaskExecuter executer) {
+    public ValidatingTaskExecuter(TaskExecuter executer) {
         this.executer = executer;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state) {
-        if (task.getActions().isEmpty()) {
-            LOGGER.info("Skipping {} as it has no actions.", task);
-            boolean upToDate = true;
-            for (Task dependency : task.getTaskDependencies().getDependencies(task)) {
-                if (!dependency.getState().getSkipped()) {
-                    upToDate = false;
-                    break;
-                }
+        List<String> messages = new ArrayList<String>();
+        for (TaskValidator validator : task.getValidators()) {
+            validator.validate(task, messages);
+        }
+        if (!messages.isEmpty()) {
+            messages = messages.subList(0, Math.min(5, messages.size()));
+            Formatter formatter = new Formatter();
+            formatter.format("Some problems were found with the configuration of %s%n", task);
+            for (String message : messages) {
+                formatter.format("- %s%n", message);
             }
-            if (upToDate) {
-                state.upToDate();
-            }
+            state.executed(new TaskExecutionException(task, new InvalidUserDataException(formatter.toString())));
             return;
         }
         executer.execute(task, state);

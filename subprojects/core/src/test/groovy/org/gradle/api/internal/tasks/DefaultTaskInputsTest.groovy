@@ -15,18 +15,14 @@
  */
 package org.gradle.api.internal.tasks
 
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.file.FileTree
 import java.util.concurrent.Callable
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeInternal
+import spock.lang.Specification
 
-class DefaultTaskInputsTest {
+class DefaultTaskInputsTest extends Specification {
     private final File treeFile = new File('tree')
     private final FileTreeInternal tree = [getFiles: { [treeFile] as Set}] as FileTreeInternal
     private final FileResolver resolver = [
@@ -35,73 +31,152 @@ class DefaultTaskInputsTest {
     ] as FileResolver
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, {} as TaskInternal)
 
-    @Test
-    public void defaultValues() {
-        assertThat(inputs.files.files, isEmpty())
-        assertFalse(inputs.hasInputs)
+    def defaultValues() {
+        expect:
+        inputs.files.empty
+        inputs.properties.isEmpty()
+        !inputs.hasInputs
+        !inputs.hasSourceFiles
+        inputs.sourceFiles.empty
     }
 
-    @Test
-    public void canRegisterInputFiles() {
+    def canRegisterInputFiles() {
+        when:
         inputs.files('a')
-        assertThat(inputs.files.files, equalTo([new File('a')] as Set))
+
+        then:
+        inputs.files.files == [new File('a')] as Set
     }
 
-    @Test
-    public void canRegisterInputDir() {
+    def canRegisterInputDir() {
+        when:
         inputs.dir('a')
-        assertThat(inputs.files.files, equalTo([treeFile] as Set))
+
+        then:
+        inputs.files.files == [treeFile] as Set
     }
-    
-    @Test
-    public void canRegisterInputProperty() {
+
+    def canRegisterInputProperty() {
+        when:
         inputs.property('a', 'value')
-        assertThat(inputs.properties, equalTo([a: 'value']))
+
+        then:
+        inputs.properties == [a: 'value']
     }
-    
-    @Test
-    public void canRegisterInputPropertyUsingAClosure() {
+
+    def canRegisterInputPropertyUsingAClosure() {
+        when:
         inputs.property('a', { 'value' })
-        assertThat(inputs.properties, equalTo([a: 'value']))
+
+        then:
+        inputs.properties == [a: 'value']
     }
 
-    @Test
-    public void canRegisterInputPropertyUsingACallable() {
+    def canRegisterInputPropertyUsingACallable() {
+        when:
         inputs.property('a', { 'value' } as Callable)
-        assertThat(inputs.properties, equalTo([a: 'value']))
+
+        then:
+        inputs.properties == [a: 'value']
     }
 
-    @Test
-    public void canRegisterInputPropertyUsingAFileCollection() {
+    def canRegisterInputPropertyUsingAFileCollection() {
         def files = [new File('file')] as Set
+
+        when:
         inputs.property('a', [getFiles: { files }] as FileCollection)
-        assertThat(inputs.properties, equalTo([a: files]))
+
+        then:
+        inputs.properties == [a: files]
     }
 
-    @Test
-    public void inputPropertyCanBeNestedCallableAndClosure() {
+    def inputPropertyCanBeNestedCallableAndClosure() {
         def files = [new File('file')] as Set
         def fileCollection = [getFiles: { files }] as FileCollection
         def callable = {fileCollection} as Callable
+
+        when:
         inputs.property('a', { callable })
-        assertThat(inputs.properties, equalTo([a: files]))
+
+        then:
+        inputs.properties == [a: files]
     }
 
-    @Test
-    public void hasInputsWhenEmptyInputFilesRegistered() {
+    def canRegisterSourceFile() {
+        when:
+        inputs.source('file')
+
+        then:
+        inputs.sourceFiles.files == ([new File('file')] as Set)
+    }
+
+    def canRegisterSourceFiles() {
+        when:
+        inputs.source('file', 'file2')
+
+        then:
+        inputs.sourceFiles.files == ([new File('file'), new File('file2')] as Set)
+    }
+
+    def canRegisterSourceDir() {
+        when:
+        inputs.sourceDir('dir')
+
+        then:
+        inputs.sourceFiles.files == [treeFile] as Set
+    }
+
+    def sourceFilesAreAlsoInputFiles() {
+        when:
+        inputs.source('file')
+
+        then:
+        inputs.sourceFiles.files == ([new File('file')] as Set)
+        inputs.files.files == ([new File('file')] as Set)
+    }
+
+    def hasInputsWhenEmptyInputFilesRegistered() {
+        when:
         inputs.files([])
-        assertTrue(inputs.hasInputs)
+
+        then:
+        inputs.hasInputs
+        !inputs.hasSourceFiles
     }
 
-    @Test
-    public void hasInputsWhenNonEmptyInputFilesRegistered() {
+    def hasInputsWhenNonEmptyInputFilesRegistered() {
+        when:
         inputs.files('a')
-        assertTrue(inputs.hasInputs)
+
+        then:
+        inputs.hasInputs
+        !inputs.hasSourceFiles
     }
 
-    @Test
-    public void hasInputsWhenInputPropertyRegistered() {
+    def hasInputsWhenInputPropertyRegistered() {
+        when:
         inputs.property('a', 'value')
-        assertTrue(inputs.hasInputs)
+
+        then:
+        inputs.hasInputs
+        !inputs.hasSourceFiles
+    }
+
+    def hasInputsWhenEmptySourceFilesRegistered() {
+        when:
+        inputs.source([])
+
+        then:
+        inputs.hasInputs
+        inputs.hasSourceFiles
+    }
+    
+    def hasInputsWhenSourceFilesRegistered() {
+        when:
+        inputs.source('a')
+
+        then:
+        inputs.hasInputs
+        inputs.hasSourceFiles
     }
 }

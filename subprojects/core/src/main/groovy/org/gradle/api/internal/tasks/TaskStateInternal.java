@@ -46,14 +46,14 @@ public class TaskStateInternal implements TaskState {
     }
 
     /**
-     * Marks this task as executed with no failure.
+     * Marks this task as executed. This method can be called multiple times.
      */
     public void executed() {
         this.executed = true;
     }
 
     /**
-     * Marks this task as executed with the given failure.
+     * Marks this task as executed with the given failure. This method can be called at most once.
      */
     public void executed(Throwable failure) {
         assert this.failure == null;

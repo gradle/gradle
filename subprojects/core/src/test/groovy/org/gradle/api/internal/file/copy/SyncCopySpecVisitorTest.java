@@ -53,10 +53,10 @@ public class SyncCopySpecVisitorTest {
     @Test
     public void deletesExtraFilesFromDestinationDirectoryAtTheEndOfVisit() {
         TestFile destDir = tmpDir.createDir("dest");
-        destDir.file("subdir/included.txt").createFile();
-        destDir.file("subdir/extra.txt").createFile();
-        destDir.file("included.txt").createFile();
-        destDir.file("extra.txt").createFile();
+        destDir.createFile("subdir/included.txt");
+        destDir.createFile("subdir/extra.txt");
+        destDir.createFile("included.txt");
+        destDir.createFile("extra.txt");
 
         visitor.startVisit(action(destDir));
         visitor.visitDir(dir("subdir"));
@@ -70,8 +70,8 @@ public class SyncCopySpecVisitorTest {
     @Test
     public void deletesExtraDirectoriesFromDestinationDirectoryAtTheEndOfVisit() {
         TestFile destDir = tmpDir.createDir("dest");
-        destDir.file("included.txt").createFile();
-        destDir.file("extra/extra.txt").createFile();
+        destDir.createFile("included.txt");
+        destDir.createFile("extra/extra.txt");
 
         visitor.startVisit(action(destDir));
         visitor.visitFile(file("included.txt"));
@@ -83,8 +83,8 @@ public class SyncCopySpecVisitorTest {
     @Test
     public void doesNotDeleteDestDirectoryWhenNothingCopied() {
         TestFile destDir = tmpDir.createDir("dest");
-        destDir.file("extra.txt").createFile();
-        destDir.file("extra/extra.txt").createFile();
+        destDir.createFile("extra.txt");
+        destDir.createFile("extra/extra.txt");
 
         visitor.startVisit(action(destDir));
         visitor.endVisit();
@@ -105,7 +105,7 @@ public class SyncCopySpecVisitorTest {
     @Test
     public void didWorkWhenFilesDeleted() {
         TestFile destDir = tmpDir.createDir("dest");
-        destDir.file("extra.txt").createFile();
+        destDir.createFile("extra.txt");
 
         visitor.startVisit(action(destDir));
         visitor.endVisit();

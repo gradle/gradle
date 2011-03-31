@@ -40,12 +40,6 @@ public interface PropertyActionContext {
     void setValidationAction(ValidationAction action);
 
     /**
-     * Specifies the action used to skip the task based on the value of this property. Note that this action is called
-     * before the validation action.
-     */
-    void setSkipAction(ValidationAction action);
-
-    /**
      * Specified the action used to configure the task based on the value of this property. Note that this action is
      * called before the skip and validation actions.
      */

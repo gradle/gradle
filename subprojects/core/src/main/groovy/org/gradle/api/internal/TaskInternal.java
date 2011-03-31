@@ -18,9 +18,12 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.logging.StandardOutputCapture;
+import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.specs.Spec;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
+
+import java.util.List;
 
 public interface TaskInternal extends Task, Configurable<Task> {
     Spec<? super TaskInternal> getOnlyIf();
@@ -37,4 +40,8 @@ public interface TaskInternal extends Task, Configurable<Task> {
     void setExecuter(TaskExecuter executer);
 
     TaskOutputsInternal getOutputs();
+
+    List<TaskValidator> getValidators();
+
+    void addValidator(TaskValidator validator);
 }

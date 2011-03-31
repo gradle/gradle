@@ -51,7 +51,7 @@ public interface TaskInputs {
     /**
      * Registers some input file for this task.
      *
-     * @param path The input file. The given path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @param path The input file. The given path is evaluated as for {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
     TaskInputs file(Object path);
@@ -93,4 +93,46 @@ public interface TaskInputs {
      * @param properties The properties.
      */
     TaskInputs properties(Map<String, ?> properties);
+
+    /**
+     * Returns true if this task has declared that it accepts source files.
+     *
+     * @return true if this task has source files, false if not.
+     */
+    boolean getHasSourceFiles();
+
+    /**
+     * Returns the set of source files for this task. These are the subset of input files which the task does work on.
+     * A task is skipped if it has declared it accepts source files, and this collection is empty.
+     *
+     * @return The set of source files for this task.
+     */
+    FileCollection getSourceFiles();
+
+    /**
+     * Registers some source files for this task. Note that source files are also considered input files, so calling this method implies
+     * a call to {@link #files(Object...)}.
+     *
+     * @param paths The paths. These are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * @return this
+     */
+    TaskInputs source(Object... paths);
+
+    /**
+     * Registers some source files for this task. Note that source files are also considered input files, so calling this method implies
+     * a call to {@link #files(Object...)}.
+     *
+     * @param path The path. This is evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * @return this
+     */
+    TaskInputs source(Object path);
+
+    /**
+     * Registers a source directory for this task. All files under this directory are treated as source files for this task. Note that
+     * source files are also considered input files, so calling this method implies a call to {@link #dir(Object)}.
+     *
+     * @param path The path. This is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @return this
+     */
+    TaskInputs sourceDir(Object path);
 }
