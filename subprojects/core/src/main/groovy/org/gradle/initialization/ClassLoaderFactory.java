@@ -19,12 +19,17 @@ import org.gradle.util.MultiParentClassLoader;
 
 public interface ClassLoaderFactory {
     /**
-     * Returns the root ClassLoader shared by all builds.
+     * Returns the root class loader shared by all builds.
      */
     ClassLoader getRootClassLoader();
 
     /**
-     * Creates the script ClassLoader for a build.
+     * Returns the class loader for the coreImpl project.
+     */
+    ClassLoader getCoreImplClassLoader();
+
+    /**
+     * Creates the script class loader for a build.
      */
     MultiParentClassLoader createScriptClassLoader();
 }

@@ -145,7 +145,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesARepositoryHandlerFactory() {
-        allowGetRootClassLoader();
+        allowGetCoreImplClassLoader();
         assertThat(factory.getFactory(RepositoryHandler.class), instanceOf(DefaultRepositoryHandlerFactory.class));
     }
 
@@ -164,7 +164,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAnInitScriptHandler() {
-        allowGetRootClassLoader();
+        allowGetCoreImplClassLoader();
         expectScriptClassLoaderCreated();
         expectListenerManagerCreated();
         assertThat(factory.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
@@ -173,7 +173,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAScriptObjectConfigurerFactory() {
-        allowGetRootClassLoader();
+        allowGetCoreImplClassLoader();
         expectListenerManagerCreated();
         expectScriptClassLoaderCreated();
         assertThat(factory.get(ScriptPluginFactory.class), instanceOf(DefaultScriptPluginFactory.class));
@@ -182,7 +182,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesASettingsProcessor() {
-        allowGetRootClassLoader();
+        allowGetCoreImplClassLoader();
         expectListenerManagerCreated();
         expectScriptClassLoaderCreated();
         assertThat(factory.get(SettingsProcessor.class), instanceOf(PropertiesLoadingSettingsProcessor.class));
@@ -242,6 +242,14 @@ public class TopLevelBuildServiceRegistryTest {
     private void allowGetRootClassLoader() {
         context.checking(new Expectations() {{
             allowing(classLoaderFactory).getRootClassLoader();
+            will(returnValue(new ClassLoader() {
+            }));
+        }});
+    }
+
+    private void allowGetCoreImplClassLoader() {
+        context.checking(new Expectations() {{
+            allowing(classLoaderFactory).getCoreImplClassLoader();
             will(returnValue(new ClassLoader() {
             }));
         }});

@@ -60,9 +60,8 @@ dependencies {
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 
-    // tried with scope 'runtime' but this gives a cyclic task dependency between
-    // core-impl:compileGroovy and core-impl:jar (for reasons I don't understand)
-    testRuntime project(":core-impl")
+    // tried with scope 'runtime' but this gives a cyclic task dependency
+    testRuntime project(":coreImpl")
 
     testCompile libraries.xmlunit
 

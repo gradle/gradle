@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 include 'core'
-include 'core-impl'
+include 'coreImpl'
 include 'wrapper'
 include 'launcher'
 include 'plugins'

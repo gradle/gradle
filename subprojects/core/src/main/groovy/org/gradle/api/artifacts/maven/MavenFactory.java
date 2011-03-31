@@ -33,7 +33,7 @@ import java.util.Map;
  * Factory for various types related to Maven dependency management.
  * The motivation for having this factory is to allow implementation
  * types, and more importantly their dependencies, to be loaded from a
- * different (core-impl) class loader. This helps to prevent version conflicts,
+ * different (coreImpl) class loader. This helps to prevent version conflicts,
  * for example between Maven 2 and Maven 3 libraries.
  */
 public interface MavenFactory {

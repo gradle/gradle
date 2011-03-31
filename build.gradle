@@ -355,6 +355,9 @@ configurations {
     plugins {
         visible = false
     }
+    coreImpl {
+        visible = false
+    }
     testRuntime {
         extendsFrom runtime
         extendsFrom plugins
@@ -364,6 +367,7 @@ configurations {
 dependencies {
     runtime runtimeProjects()
     plugins pluginProjects()
+    coreImpl project(':coreImpl')
 }
 
 evaluationDependsOn(':docs')
@@ -392,6 +396,9 @@ binDistImage = copySpec {
         from configurations.runtime
         into('plugins') {
             from configurations.plugins - configurations.runtime
+        }
+        into('core-impl') {
+            from configurations.coreImpl - configurations.runtime
         }
     }
 }
@@ -579,7 +586,7 @@ def publishedProjects() {
 }
 
 def runtimeProjects() {
-    groovyProjects() - pluginProjects() - [project(':integTest')]
+    groovyProjects() - pluginProjects() - [project(':integTest'), project(':coreImpl')]
 }
 
 def pluginProjects() {

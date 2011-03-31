@@ -30,6 +30,7 @@ import java.util.Collections;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     private final URLClassLoader rootClassLoader;
+    private final URLClassLoader coreImplClassLoader;
 
     public DefaultClassLoaderFactory(ClassPathRegistry classPathRegistry) {
         // Add in tools.jar to the Ant classloader
@@ -41,12 +42,19 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
 
         // Add in libs for plugins
         ClassLoader runtimeClassloader = getClass().getClassLoader();
-        URL[] classPath = classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
-        rootClassLoader = new URLClassLoader(classPath, runtimeClassloader);
+        URL[] pluginsClassPath = classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
+        rootClassLoader = new URLClassLoader(pluginsClassPath, runtimeClassloader);
+
+        URL[] coreImplClassPath = classPathRegistry.getClassPathUrls("GRADLE_CORE_IMPL");
+        coreImplClassLoader = new URLClassLoader(coreImplClassPath, rootClassLoader);
     }
 
     public ClassLoader getRootClassLoader() {
         return rootClassLoader;
+    }
+
+    public ClassLoader getCoreImplClassLoader() {
+        return coreImplClassLoader;
     }
 
     public MultiParentClassLoader createScriptClassLoader() {

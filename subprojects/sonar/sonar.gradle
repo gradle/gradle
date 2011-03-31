@@ -31,7 +31,7 @@ dependencies {
 
     testCompile project(path: ':core', configuration: 'testFixtures')
 
-    testRuntime project(":core-impl")
+    testRuntime project(":coreImpl")
 }
 
 sourceSets {
