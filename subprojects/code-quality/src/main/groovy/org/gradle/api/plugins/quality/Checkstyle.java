@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.plugins.quality.internal.AntCheckstyle;
 import org.gradle.api.tasks.*;
 
 import java.io.File;
