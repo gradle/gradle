@@ -21,51 +21,43 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate and empty directories and
- * adds in missing directories.
+ * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate directories and
+ * adds in missing directories. Does NOT remove empty directories.
  */
 public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
     private final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
-    private final Map<RelativePath, FileVisitDetails> pendingDirs = new HashMap<RelativePath, FileVisitDetails>();
 
     public NormalizingCopySpecVisitor(CopySpecVisitor visitor) {
         super(visitor);
     }
 
+    @Override
     public void endVisit() {
         visitedDirs.clear();
-        pendingDirs.clear();
         getVisitor().endVisit();
     }
 
-    private void maybeVisit(RelativePath path) {
-        if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
-            return;
-        }
-        maybeVisit(path.getParent());
-        FileVisitDetails dir = pendingDirs.remove(path);
-        if (dir == null) {
-            dir = new FileVisitDetailsImpl(path);
-        }
-        getVisitor().visitDir(dir);
+    private void visitDirectoryDepthFirstIfUnvisited(RelativePath path) {
+        if (path != null && path.getParent() != null && visitedDirs.add(path)) {
+            visitDirectoryDepthFirstIfUnvisited(path.getParent());
+            FileVisitDetails dir = new FileVisitDetailsImpl(path);
+            getVisitor().visitDir(dir);
+        } // else: no parent dir or the current dir has already been visited, so we end recursion
     }
 
+    @Override
     public void visitFile(FileVisitDetails fileDetails) {
-        maybeVisit(fileDetails.getRelativePath().getParent());
+        visitDirectoryDepthFirstIfUnvisited(fileDetails.getRelativePath().getParent());
         getVisitor().visitFile(fileDetails);
     }
 
+    @Override
     public void visitDir(FileVisitDetails dirDetails) {
-        RelativePath path = dirDetails.getRelativePath();
-        if (!visitedDirs.contains(path)) {
-            pendingDirs.put(path, dirDetails);
-        }
+        visitDirectoryDepthFirstIfUnvisited(dirDetails.getRelativePath());
     }
 
     private static class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
