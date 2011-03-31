@@ -22,7 +22,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.maven.DefaultMavenFactory;
 import org.gradle.api.artifacts.maven.MavenFactory;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
@@ -70,6 +69,7 @@ import org.gradle.util.*;
 
 import java.io.File;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -335,9 +335,14 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected MavenFactory createMavenFactory() {
         // TODO: should we do some of this in DefaultClassLoaderFactory?
-        URL[] classPath = get(ClassPathRegistry.class).getClassPathUrls("GRADLE_CORE_IMPL");
         ClassLoader rootClassLoader = get(ClassLoaderFactory.class).getRootClassLoader();
-        return new DefaultMavenFactory(new ParentLastClassLoader(classPath, rootClassLoader));
+        URL[] classPath = get(ClassPathRegistry.class).getClassPathUrls("GRADLE_CORE_IMPL");
+        ClassLoader coreImplClassLoader = new URLClassLoader(classPath, rootClassLoader);
+        try {
+            return (MavenFactory) coreImplClassLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.DefaultMavenFactory").newInstance();
+        } catch (Exception e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

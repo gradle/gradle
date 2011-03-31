@@ -39,7 +39,7 @@ public class MavenPluginConvention {
     public MavenPluginConvention(ProjectInternal project) {
         this.project = project;
         mavenFactory = project.getServices().get(MavenFactory.class);
-        conf2ScopeMappings = mavenFactory.newConf2ScopeMappingContainer(Collections.<Configuration, Conf2ScopeMapping>emptyMap());
+        conf2ScopeMappings = mavenFactory.createConf2ScopeMappingContainer(Collections.<Configuration, Conf2ScopeMapping>emptyMap());
     }
 
     /**
@@ -92,9 +92,9 @@ public class MavenPluginConvention {
      * @return The POM instance.
      */
     public MavenPom pom(Closure configureClosure) {
-        Factory<MavenPom> pomFactory = mavenFactory.newMavenPomFactory(project.getConfigurations(),
-                mavenFactory.newConf2ScopeMappingContainer(conf2ScopeMappings.getMappings()),
-                mavenFactory.newPomDependenciesConverter(mavenFactory.newExcludeRuleConverter()),
+        Factory<MavenPom> pomFactory = mavenFactory.createMavenPomFactory(project.getConfigurations(),
+                mavenFactory.createConf2ScopeMappingContainer(conf2ScopeMappings.getMappings()),
+                mavenFactory.createPomDependenciesConverter(mavenFactory.createExcludeRuleConverter()),
                 project.getFileResolver());
         MavenPom pom = pomFactory.create();
         pom.setGroupId(project.getGroup().toString());
