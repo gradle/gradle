@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.InvalidUserDataException;
+import java.util.Collection;
 
 interface ValidationAction {
-    void validate(String propertyName, Object value) throws InvalidUserDataException;
+    void validate(String propertyName, Object value, Collection<String> messages);
 }

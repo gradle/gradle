@@ -41,7 +41,7 @@ import static org.gradle.logging.StyledTextOutput.Style.UserInput;
  */
 public class BuildExceptionReporter extends BuildAdapter {
     private enum ExceptionStyle {
-        NONE, SANITIZED, FULL;
+        NONE, SANITIZED, FULL
     }
 
     private final StyledTextOutputFactory textOutputFactory;
@@ -163,6 +163,7 @@ public class BuildExceptionReporter extends BuildAdapter {
 
         if (failure instanceof LocationAwareException) {
             LocationAwareException scriptException = (LocationAwareException) failure;
+            details.failure = scriptException.getCause();
             if (scriptException.getLocation() != null) {
                 details.location.text(scriptException.getLocation());
             }
@@ -202,7 +203,7 @@ public class BuildExceptionReporter extends BuildAdapter {
     }
 
     private static class FailureDetails {
-        final Throwable failure;
+        Throwable failure;
         final RecordingStyledTextOutput summary = new RecordingStyledTextOutput();
         final RecordingStyledTextOutput details = new RecordingStyledTextOutput();
         final RecordingStyledTextOutput location = new RecordingStyledTextOutput();

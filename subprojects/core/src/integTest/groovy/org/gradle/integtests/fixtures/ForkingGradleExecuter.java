@@ -32,6 +32,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.containsLine;
+import static org.gradle.util.Matchers.matchesRegexp;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -234,6 +235,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     private static class ForkedExecutionFailure extends ForkedExecutionResult implements ExecutionFailure {
+        private final Pattern causePattern = Pattern.compile("(?m)^Cause: ");
+
         public ForkedExecutionFailure(Map result) {
             super(result);
         }
@@ -254,7 +257,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertThatCause(Matcher<String> matcher) {
-            Pattern causePattern = Pattern.compile("(?m)^Cause: ");
             String error = getError();
             java.util.regex.Matcher regExpMatcher = causePattern.matcher(error);
             int pos = 0;
@@ -276,6 +278,11 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 }
             }
             fail(String.format("No matching cause found in '%s'", error));
+            return this;
+        }
+
+        public ExecutionFailure assertHasNoCause() {
+            assertThat(getError(), not(matchesRegexp(causePattern)));
             return this;
         }
 

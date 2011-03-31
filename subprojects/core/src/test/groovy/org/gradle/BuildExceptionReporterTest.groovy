@@ -24,6 +24,7 @@ import org.gradle.initialization.BuildClientMetaData
 import org.gradle.logging.StyledTextOutputFactory
 import org.gradle.logging.internal.TestStyledTextOutput
 import spock.lang.Specification
+import org.gradle.groovy.scripts.ScriptSource
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
@@ -156,6 +157,32 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 '''
     }
 
+    def showsStacktraceOfCauseOfLocationAwareException() {
+        startParameter.showStacktrace = ShowStacktrace.ALWAYS
+
+        Throwable exception = exception("<location>", "<message>", new GradleException('<failure>'))
+
+        expect:
+        reporter.buildFinished(result(exception))
+        output.value == '''
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* Where:
+<location>
+
+* What went wrong:
+<message>
+Cause: <failure>
+
+* Try:
+Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+
+* Exception is:
+org.gradle.api.GradleException: <failure>
+{stacktrace}
+'''
+    }
+
     def reportsTaskSelectionException() {
         Throwable exception = new TaskSelectionException("<message>");
 
@@ -246,9 +273,13 @@ org.gradle.api.GradleException: <message>
         _ * exception.location >> location
         _ * exception.originalMessage >> message
         _ * exception.reportableCauses >> (causes as List)
+        _ * exception.cause >> causes[0]
         exception
     }
 }
 
-public abstract class TestException extends GradleException implements LocationAwareException {
+public abstract class TestException extends LocationAwareException {
+    TestException(Throwable cause, ScriptSource source, Integer lineNumber) {
+        super(cause, source, lineNumber)
+    }
 }

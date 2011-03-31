@@ -34,7 +34,7 @@ class AutoTestedSamplesTest extends AbstractIntegrationTest {
             println "Found sample in $file"
             def testFile = testFile('build.gradle')
             testFile.text = sample
-            usingBuildFile(testFile).withTasks('tasks').run()
+            usingBuildFile(testFile).withTasks('tasks').withArguments("-s").run()
         }
     }
 }

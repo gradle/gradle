@@ -26,11 +26,6 @@ import org.gradle.api.internal.Contextual;
 public class TaskExecutionException extends GradleException {
     private final Task task;
 
-    // Required for @Contextual
-    public TaskExecutionException(TaskExecutionException source) {
-        this(source.task, source.getCause());
-    }
-    
     public TaskExecutionException(Task task, Throwable cause) {
         super(String.format("Execution failed for %s.", task), cause);
         this.task = task;

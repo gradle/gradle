@@ -47,6 +47,7 @@ public class FileCacheBroadcastTaskArtifactStateRepository implements TaskArtifa
             }
 
             public void afterTask() {
+                listener.cacheable(task.getOutputs().getFiles());
                 state.afterTask();
             }
 

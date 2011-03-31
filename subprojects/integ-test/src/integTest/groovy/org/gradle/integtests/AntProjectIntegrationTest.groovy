@@ -152,7 +152,6 @@ ant.importBuild('build.xml')
 ant.importBuild('build.xml')
 """
         ExecutionFailure failure = inTestDirectory().withTasks('target1').runWithFailure()
-        failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasDescription('Execution failed for task \':target1\'.')
         failure.assertHasCause('broken')
     }
