@@ -1,10 +1,13 @@
 subprojects {
-    repositories {
-        mavenCentral()
-    }
     apply plugin: 'java'
     group = 'org.gradle.sample'
     version = '1.0'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        testCompile "junit:junit:4.8.2"
+    }
 }
 
 project(':api') {
@@ -16,7 +19,6 @@ project(':api') {
 project(':services:personService') {
     dependencies {
         compile project(':shared'), project(':api')
-        testCompile "junit:junit:4.8.2"
     }
 }
 

@@ -244,9 +244,12 @@ public class DirectoryFileTreeTest {
         patterns.exclude("subdir1/**");
         DirectoryFileTree fileTree = new DirectoryFileTree(rootDir, patterns);
 
-        // TODO - remove these 3 assertions
+        // TODO - remove these assertions
         assertTrue(rootTextFile.getAbsolutePath().startsWith(rootDir.getAbsolutePath() + File.separator));
         assertTrue(rootTextFile.isFile());
+        assertTrue(new PatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "nested/some-file.txt"))));
+        assertTrue(fileTree.getPatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "nested/some-file.txt"))));
+        assertTrue(new PatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "a.txt"))));
         assertTrue(fileTree.getPatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "a.txt"))));
 
         assertTrue(fileTree.contains(rootTextFile));

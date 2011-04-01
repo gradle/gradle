@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.tasks.TaskValidationException
 
 class ValidatingTaskExecuterTest extends Specification {
     final TaskExecuter target = Mock()
@@ -47,10 +48,11 @@ class ValidatingTaskExecuterTest extends Specification {
         _ * task.validators >> [validator]
         1 * validator.validate(task, !null) >> { it[1] << 'failure' }
         1 * state.executed(!null) >> {
-            assert it[0].cause instanceof InvalidUserDataException
-            assert it[0].cause.message == """Some problems were found with the configuration of $task
-- failure
-"""
+            def failure = it[0]
+            assert failure instanceof TaskValidationException
+            assert failure.message == "A problem was found with the configuration of $task."
+            assert failure.cause instanceof InvalidUserDataException
+            assert failure.cause.message == 'failure'
         }
         0 * _._
     }
@@ -63,11 +65,13 @@ class ValidatingTaskExecuterTest extends Specification {
         _ * task.validators >> [validator]
         1 * validator.validate(task, !null) >> { it[1] << 'failure1'; it[1] << 'failure2' }
         1 * state.executed(!null) >> {
-            assert it[0].cause instanceof InvalidUserDataException
-            assert it[0].cause.message == """Some problems were found with the configuration of $task
-- failure1
-- failure2
-"""
+            def failure = it[0]
+            assert failure instanceof TaskValidationException
+            assert failure.message == "Some problems were found with the configuration of $task."
+            assert failure.causes[0] instanceof InvalidUserDataException
+            assert failure.causes[0].message == 'failure1'
+            assert failure.causes[1] instanceof InvalidUserDataException
+            assert failure.causes[1].message == 'failure2'
         }
         0 * _._
     }

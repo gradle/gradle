@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.quality
+package org.gradle.api.plugins.quality.internal
 
 import org.gradle.api.AntBuilder
 import org.gradle.api.GradleException

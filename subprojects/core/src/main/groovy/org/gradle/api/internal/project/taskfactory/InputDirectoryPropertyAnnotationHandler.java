@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.tasks.InputDirectory;
@@ -23,19 +22,17 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
 public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotationHandler {
     private final ValidationAction inputDirValidation = new ValidationAction() {
-        public void validate(String propertyName, Object value) throws InvalidUserDataException {
+        public void validate(String propertyName, Object value, Collection<String> messages) {
             File fileValue = (value instanceof ConfigurableFileTree) ? ((ConfigurableFileTree) value).getDir() : (File) value;
             if (!fileValue.exists()) {
-                throw new InvalidUserDataException(String.format(
-                        "Directory '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-            }
-            if (!fileValue.isDirectory()) {
-                throw new InvalidUserDataException(String.format(
-                        "Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
+                messages.add(String.format("Directory '%s' specified for property '%s' does not exist.", fileValue, propertyName));
+            } else if (!fileValue.isDirectory()) {
+                messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
             }
         }
     };

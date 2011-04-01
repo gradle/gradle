@@ -33,8 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.Matchers.isEmpty;
@@ -240,12 +239,18 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
-    public void validationActionSucceedsWhenSpecifiedOutputFileIsNotAFile() {
+    public void validationActionSucceedsWhenSpecifiedOutputFileDoesNotExist() {
         TaskWithOutputFile task = expectTaskCreated(TaskWithOutputFile.class, new File(testDir, "subdir/output.txt"));
 
         task.execute();
 
         assertTrue(new File(testDir, "subdir").isDirectory());
+    }
+
+    @Test
+    public void validationActionSucceedsWhenOptionalOutputFileNotSpecified() {
+        TaskWithOptionalOutputFile task = expectTaskCreated(TaskWithOptionalOutputFile.class);
+        task.execute();
     }
 
     @Test
@@ -267,9 +272,8 @@ public class AnnotationProcessingTaskFactoryTest {
         TaskWithOutputFile task = expectTaskCreated(TaskWithOutputFile.class, new File(testDir, "subdir/output.txt"));
         GFileUtils.touch(task.outputFile.getParentFile());
 
-        assertValidationFails(task, String.format(
-                "Cannot create parent directory '%s' of file specified for property 'outputFile'.",
-                task.outputFile.getParentFile()));
+        assertValidationFails(task, String.format("Cannot write to file '%s' specified for property 'outputFile', as ancestor '%s' is not a directory.",
+                task.getOutputFile(), task.outputFile.getParentFile()));
     }
 
     @Test
@@ -316,7 +320,7 @@ public class AnnotationProcessingTaskFactoryTest {
             will(returnValue(true));
         }});
 
-        TaskWithInputFiles task = expectTaskCreated(BrokenTaskWithInputFiles.class, inputFiles);
+        BrokenTaskWithInputFiles task = expectTaskCreated(BrokenTaskWithInputFiles.class, inputFiles);
 
         task.execute();
     }
@@ -332,6 +336,12 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void validationActionSucceedsWhenSpecifiedOutputDirectoryIsDirectory() {
         TaskWithOutputDir task = expectTaskCreated(TaskWithOutputDir.class, existingDir);
+        task.execute();
+    }
+
+    @Test
+    public void validationActionSucceedsWhenOptionalOutputDirectoryNotSpecified() {
+        TaskWithOptionalOutputDir task = expectTaskCreated(TaskWithOptionalOutputDir.class);
         task.execute();
     }
 
@@ -353,7 +363,7 @@ public class AnnotationProcessingTaskFactoryTest {
         TaskWithOutputDir task = expectTaskCreated(TaskWithOutputDir.class, new File(testDir, "subdir/output"));
         GFileUtils.touch(task.outputDir.getParentFile());
 
-        assertValidationFails(task, String.format("Cannot use directory '%s' specified for property 'outputDir', as ancestor '%s' is a file.", task.outputDir, task.outputDir.getParentFile()));
+        assertValidationFails(task, String.format("Cannot write to directory '%s' specified for property 'outputDir', as ancestor '%s' is not a directory.", task.outputDir, task.outputDir.getParentFile()));
     }
 
     @Test
@@ -475,15 +485,30 @@ public class AnnotationProcessingTaskFactoryTest {
         InputFileTask task = expectTaskCreated(InputFileTask.class);
         assertValidationFails(task, "No value has been specified for property 'srcFile'.");
     }
-    
-    private void assertValidationFails(TaskInternal task, String expectedErrorMessage) {
+
+    @Test
+    public void validationFailureListsViolationsForAllProperties() {
+        TaskWithMultipleProperties task = expectTaskCreated(TaskWithMultipleProperties.class, new Object[]{null});
+        assertValidationFails(task,
+                "No value has been specified for property 'outputFile'.",
+                "No value has been specified for property 'bean.inputFile'.");
+    }
+
+    private void assertValidationFails(TaskInternal task, String... expectedErrorMessages) {
         try {
             task.execute();
             fail();
-        } catch (GradleException e) {
-            assertThat(e.getCause(), instanceOf(InvalidUserDataException.class));
-            assertThat(e.getCause().getMessage(), containsString("Some problems were found with the configuration of " + task));
-            assertThat(e.getCause().getMessage(), Matchers.containsLine("- " + expectedErrorMessage));
+        } catch (TaskValidationException e) {
+            if (expectedErrorMessages.length == 1) {
+                assertThat(e.getMessage(), containsString("A problem was found with the configuration of " + task));
+            } else {
+                assertThat(e.getMessage(), containsString("Some problems were found with the configuration of " + task));
+            }
+            HashSet<String> actualMessages = new HashSet<String>();
+            for (Throwable cause : e.getCauses()) {
+                actualMessages.add(cause.getMessage());
+            }
+            assertThat(actualMessages, equalTo(new HashSet<String>(Arrays.asList(expectedErrorMessages))));
         }
     }
 
@@ -630,6 +655,13 @@ public class AnnotationProcessingTaskFactoryTest {
         }
     }
 
+    public static class TaskWithOptionalOutputFile extends DefaultTask {
+        @OutputFile @Optional
+        public File getOutputFile() {
+            return null;
+        }
+    }
+
     public static class TaskWithOutputDir extends DefaultTask {
         File outputDir;
 
@@ -643,6 +675,13 @@ public class AnnotationProcessingTaskFactoryTest {
         }
     }
 
+    public static class TaskWithOptionalOutputDir extends DefaultTask {
+        @OutputDirectory @Optional
+        public File getOutputDir() {
+            return null;
+        }
+    }
+
     public static class TaskWithInputFiles extends DefaultTask {
         Iterable<? extends File> input;
 
@@ -650,7 +689,7 @@ public class AnnotationProcessingTaskFactoryTest {
             this.input = input;
         }
 
-        @InputFiles @SkipWhenEmpty
+        @InputFiles
         public Iterable<? extends File> getInput() {
             return input;
         }
@@ -659,6 +698,11 @@ public class AnnotationProcessingTaskFactoryTest {
     public static class BrokenTaskWithInputFiles extends TaskWithInputFiles {
         public BrokenTaskWithInputFiles(Iterable<? extends File> input) {
             super(input);
+        }
+
+        @InputFiles @SkipWhenEmpty
+        public Iterable<? extends File> getInput() {
+            return input;
         }
 
         @TaskAction
@@ -684,6 +728,17 @@ public class AnnotationProcessingTaskFactoryTest {
         @Nested
         public Bean getBean() {
             return bean;
+        }
+    }
+
+    public static class TaskWithMultipleProperties extends TaskWithNestedBean {
+        public TaskWithMultipleProperties(File inputFile) {
+            super(inputFile);
+        }
+
+        @OutputFile
+        public File getOutputFile() {
+            return bean.getInputFile();
         }
     }
 

@@ -355,6 +355,16 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return this;
         }
 
+        public ExecutionFailure assertHasNoCause() {
+            if (failure instanceof LocationAwareException) {
+                LocationAwareException exception = (LocationAwareException) failure;
+                assertThat(exception.getReportableCauses(), isEmpty());
+            } else {
+                assertThat(failure.getCause(), nullValue());
+            }
+            return this;
+        }
+
         public ExecutionFailure assertHasDescription(String context) {
             assertThatDescription(startsWith(context));
             return this;

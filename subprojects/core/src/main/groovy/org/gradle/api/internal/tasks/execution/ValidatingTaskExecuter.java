@@ -19,10 +19,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.api.tasks.TaskValidationException;
 
 import java.util.ArrayList;
-import java.util.Formatter;
 import java.util.List;
 
 /**
@@ -41,13 +40,18 @@ public class ValidatingTaskExecuter implements TaskExecuter {
             validator.validate(task, messages);
         }
         if (!messages.isEmpty()) {
+            List<InvalidUserDataException> causes = new ArrayList<InvalidUserDataException>();
             messages = messages.subList(0, Math.min(5, messages.size()));
-            Formatter formatter = new Formatter();
-            formatter.format("Some problems were found with the configuration of %s%n", task);
             for (String message : messages) {
-                formatter.format("- %s%n", message);
+                causes.add(new InvalidUserDataException(message));
             }
-            state.executed(new TaskExecutionException(task, new InvalidUserDataException(formatter.toString())));
+            String errorMessage;
+            if (messages.size() == 1) {
+                errorMessage = String.format("A problem was found with the configuration of %s.", task);
+            } else {
+                errorMessage = String.format("Some problems were found with the configuration of %s.", task);
+            }
+            state.executed(new TaskValidationException(errorMessage, causes));
             return;
         }
         executer.execute(task, state);

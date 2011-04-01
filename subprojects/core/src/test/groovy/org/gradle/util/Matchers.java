@@ -78,6 +78,19 @@ public class Matchers {
     }
 
     @Factory
+    public static <T extends CharSequence> Matcher<T> matchesRegexp(final Pattern pattern) {
+        return new BaseMatcher<T>() {
+            public boolean matches(Object o) {
+                return pattern.matcher((CharSequence) o).matches();
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("a CharSequence that matches regexp ").appendValue(pattern);
+            }
+        };
+    }
+
+    @Factory
     public static <T> Matcher<T> strictlyEqual(final T other) {
         return new BaseMatcher<T>() {
             public boolean matches(Object o) {

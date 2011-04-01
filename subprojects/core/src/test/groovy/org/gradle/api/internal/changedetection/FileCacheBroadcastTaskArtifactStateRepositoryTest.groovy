@@ -82,6 +82,18 @@ class FileCacheBroadcastTaskArtifactStateRepositoryTest extends Specification {
         0 * listener._
     }
 
+    def marksTaskOutputsAsCacheableAfterTaskHasExecuted() {
+        when:
+        def state = repository.getStateFor(task)
+        state.afterTask()
+
+        then:
+        1 * listener.cacheable(outputs)
+        1 * target.getStateFor(task) >> targetState
+        1 * targetState.afterTask()
+        0 * listener._
+    }
+
     def delegatesToBackingStateForOtherMethods() {
         when:
         def state = repository.getStateFor(task)

@@ -29,4 +29,6 @@ public interface ExecutionFailure extends ExecutionResult {
     ExecutionFailure assertHasDescription(String context);
 
     ExecutionFailure assertThatDescription(Matcher<String> matcher);
+
+    ExecutionFailure assertHasNoCause();
 }

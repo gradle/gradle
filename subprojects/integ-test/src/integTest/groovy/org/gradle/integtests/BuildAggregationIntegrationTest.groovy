@@ -90,7 +90,6 @@ class BuildAggregationIntegrationTest {
     public void reportsBuildSrcFailure() {
         dist.testFile('buildSrc/src/main/java/Broken.java') << 'broken!'
         ExecutionFailure failure = executer.runWithFailure()
-        failure.assertHasFileName('Default buildSrc build script')
         failure.assertHasDescription('Execution failed for task \':compileJava\'')
     }
 }

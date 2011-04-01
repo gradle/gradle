@@ -55,6 +55,10 @@ public class AbstractFileTreeTest extends Specification {
 
         // TODO - remove this
         PatternSet patterns = new PatternSet()
+        assert file1.relativePath.pathString == 'a.txt'
+        assert file1.relativePath.segments == ['a.txt'] as String[]
+        assert patterns.asSpec.isSatisfiedBy(file1)
+        assert patterns.asSpec.isSatisfiedBy(file2)
         patterns.include '*.txt'
         assert patterns.asSpec.isSatisfiedBy(file1)
         assert !patterns.asSpec.isSatisfiedBy(file2)

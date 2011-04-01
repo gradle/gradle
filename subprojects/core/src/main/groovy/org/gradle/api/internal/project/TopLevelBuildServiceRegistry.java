@@ -125,10 +125,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected TaskExecuter createTaskExecuter() {
         return new ExecuteAtMostOnceTaskExecuter(
-                new ValidatingTaskExecuter(
-                        new SkipOnlyIfTaskExecuter(
-                                new SkipTaskWithNoActionsExecuter(
-                                        new SkipEmptySourceFilesTaskExecuter(
+                new SkipOnlyIfTaskExecuter(
+                        new SkipTaskWithNoActionsExecuter(
+                                new SkipEmptySourceFilesTaskExecuter(
+                                        new ValidatingTaskExecuter(
                                                 new SkipUpToDateTaskExecuter(
                                                         new PostExecutionAnalysisTaskExecuter(
                                                                 new ExecuteActionsTaskExecuter(

@@ -25,11 +25,6 @@ import org.gradle.api.internal.Contextual;
  */
 @Contextual
 public class GradleScriptException extends GradleException {
-    // Required for @Contextual
-    public GradleScriptException() {
-        super();
-    }
-
     public GradleScriptException(String message, Throwable cause) {
         super(message, cause);
     }

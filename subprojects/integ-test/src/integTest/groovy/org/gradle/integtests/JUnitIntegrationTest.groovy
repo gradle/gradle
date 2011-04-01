@@ -79,10 +79,8 @@ public class JUnitIntegrationTest {
     @Test
     public void reportsAndBreaksBuildWhenTestFails() {
         TestFile testDir = dist.getTestDir();
-        TestFile buildFile = testDir.file('build.gradle');
         ExecutionFailure failure = executer.withTasks('build').runWithFailure();
 
-        failure.assertHasFileName("Build file '${buildFile}'");
         failure.assertHasDescription("Execution failed for task ':test'.");
         failure.assertThatCause(startsWith('There were failing tests.'));
 

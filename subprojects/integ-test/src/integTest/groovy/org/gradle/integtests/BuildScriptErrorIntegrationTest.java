@@ -21,8 +21,6 @@ import org.gradle.util.TestFile;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.File;
-
 import static org.gradle.util.Matchers.containsLine;
 
 public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
@@ -75,82 +73,6 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void reportsTaskActionExecutionFailsWithError() {
-        TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns(
-                "task('do-stuff').doFirst",
-                "{",
-                "1/0",
-                "}");
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("do-stuff").runWithFailure();
-
-        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasLineNumber(3);
-        failure.assertHasDescription("Execution failed for task ':do-stuff'");
-        failure.assertHasCause("Division by zero");
-    }
-
-    @Test
-    public void reportsTaskActionExecutionFailsWithRuntimeException() {
-        File buildFile = testFile("build.gradle").writelns(
-                "task brokenClosure << {",
-                "    throw new RuntimeException('broken closure')",
-                "}");
-
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenClosure").runWithFailure();
-
-        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasLineNumber(2);
-        failure.assertHasDescription("Execution failed for task ':brokenClosure'");
-        failure.assertHasCause("broken closure");
-    }
-
-    @Test
-    public void reportsTaskActionExecutionFailsFromJavaWithRuntimeException() {
-        testFile("buildSrc/src/main/java/org/gradle/BrokenTask.java").writelns(
-                "package org.gradle;",
-                "import org.gradle.api.Action;",
-                "import org.gradle.api.DefaultTask;",
-                "import org.gradle.api.Task;",
-                "public class BrokenTask extends DefaultTask {",
-                "    public BrokenTask() {",
-                "        doFirst(new Action<Task>() {",
-                "            public void execute(Task task) {",
-                "                throw new RuntimeException(\"broken action\");",
-                "            }",
-                "        });",
-                "    }",
-                "}"
-        );
-        File buildFile = testFile("build.gradle").write("task brokenJavaTask(type: org.gradle.BrokenTask)");
-
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenJavaTask").runWithFailure();
-
-        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasDescription("Execution failed for task ':brokenJavaTask'");
-        failure.assertHasCause("broken action");
-    }
-
-    @Test
-    public void reportsTaskInjectedByOtherProjectFailsWithRuntimeException() {
-        testFile("settings.gradle").write("include 'a', 'b'");
-        TestFile buildFile = testFile("b/build.gradle");
-        buildFile.writelns(
-                "project(':a') {",
-                "    task a << {",
-                "        throw new RuntimeException('broken')",
-                "    }",
-                "}");
-
-        ExecutionFailure failure = inTestDirectory().withTasks("a").runWithFailure();
-
-        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasLineNumber(3);
-        failure.assertHasDescription("Execution failed for task ':a:a");
-        failure.assertHasCause("broken");
-    }
-
-    @Test
     public void reportsTaskGraphReadyEventFailsWithRuntimeException() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
@@ -163,8 +85,8 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(2);
-        failure.assertHasDescription("Failed to notify task execution graph listener");
-        failure.assertHasCause("broken closure");
+        failure.assertHasDescription("broken closure");
+        failure.assertHasNoCause();
     }
 
     @Test @Ignore

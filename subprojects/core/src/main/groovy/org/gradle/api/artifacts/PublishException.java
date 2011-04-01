@@ -24,10 +24,6 @@ import org.gradle.api.internal.Contextual;
  */
 @Contextual
 public class PublishException extends GradleException {
-    // Required for @Contextual
-    public PublishException() {
-    }
-
     public PublishException(String message, Throwable cause) {
         super(message, cause);
     }

@@ -15,25 +15,22 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.InputFile;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
 public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     private final ValidationAction inputFileValidation = new ValidationAction() {
-        public void validate(String propertyName, Object value) throws InvalidUserDataException {
+        public void validate(String propertyName, Object value, Collection<String> messages) {
             File fileValue = (File) value;
             if (!fileValue.exists()) {
-                throw new InvalidUserDataException(String.format(
-                        "File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-            }
-            if (!fileValue.isFile()) {
-                throw new InvalidUserDataException(String.format("File '%s' specified for property '%s' is not a file.",
-                        fileValue, propertyName));
+                messages.add(String.format("File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
+            } else if (!fileValue.isFile()) {
+                messages.add(String.format("File '%s' specified for property '%s' is not a file.", fileValue, propertyName));
             }
         }
     };

@@ -20,19 +20,18 @@ import org.gradle.api.LocationAwareException;
 import org.gradle.api.ScriptCompilationException;
 import org.gradle.api.internal.Contextual;
 import org.gradle.api.internal.ExceptionAnalyser;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerManager;
+import org.gradle.listener.ListenerNotificationException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecutionListener {
     private final Map<String, ScriptSource> scripts = new HashMap<String, ScriptSource>();
-    private final ExceptionDecoratingClassGenerator generator = new ExceptionDecoratingClassGenerator();
 
     public DefaultExceptionAnalyser(ListenerManager listenerManager) {
         listenerManager.addListener(this);
@@ -57,12 +56,16 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
 
         ScriptSource source = null;
         Integer lineNumber = null;
+        Throwable target = actualException;
 
-        // todo - remove this special case
+        // todo - remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
             source = scriptCompilationException.getScriptSource();
             lineNumber = scriptCompilationException.getLineNumber();
+        }
+        if (actualException instanceof ListenerNotificationException && actualException.getCause() != null) {
+            target = actualException.getCause();
         }
 
         if (source == null) {
@@ -79,27 +82,28 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
             }
         }
 
-        if (source == null) {
-            if (actualException instanceof TaskExecutionException) {
-                TaskExecutionException taskExecutionException = (TaskExecutionException) actualException;
-                source = ((ProjectInternal) taskExecutionException.getTask().getProject()).getBuildScriptSource();
-            }
-        }
-
-        return generator.newInstance(actualException.getClass(), actualException, source, lineNumber);
+        return new LocationAwareException(actualException, target, source, lineNumber);
     }
 
     private Throwable findDeepest(Throwable exception) {
+        Throwable locationAware = null;
         Throwable result = null;
         Throwable contextMatch = null;
         for (Throwable current = exception; current != null; current = current.getCause()) {
-            if (current instanceof GradleScriptException || current instanceof TaskExecutionException) {
+            if (current instanceof LocationAwareException) {
+                locationAware = current;
+            } else if (current instanceof GradleScriptException || current instanceof TaskExecutionException) {
                 result = current;
-            }
-            if (current.getClass().getAnnotation(Contextual.class) != null) {
+            } else if (current.getClass().getAnnotation(Contextual.class) != null) {
                 contextMatch = current;
             }
         }
-        return result != null ? result : contextMatch;
+        if (locationAware != null) {
+            return locationAware;
+        } else if (result != null) {
+            return result;
+        } else {
+            return contextMatch;
+        }
     }
 }
