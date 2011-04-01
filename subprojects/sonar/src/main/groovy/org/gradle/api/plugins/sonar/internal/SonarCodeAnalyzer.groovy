@@ -30,7 +30,9 @@ class SonarCodeAnalyzer {
     def sonarTask
 
     void execute() {
-        def globalProperties = new MapConfiguration(sonarTask.globalProperties)
+        def globalProperties = [:]
+        globalProperties.putAll(sonarTask.globalProperties)
+        globalProperties["sonar.host.url"] = sonarTask.serverUrl
 
         def projectProperties = new Properties()
         projectProperties.putAll(sonarTask.projectProperties)
@@ -46,7 +48,7 @@ class SonarCodeAnalyzer {
 
         def reactor = new Reactor(project)
         def environment = new EnvironmentInformation("Gradle", gradleVersion)
-        def batch = new Batch(globalProperties, project, reactor, environment)
+        def batch = new Batch(new MapConfiguration(globalProperties), project, reactor, environment)
         batch.execute()
     }
 }
