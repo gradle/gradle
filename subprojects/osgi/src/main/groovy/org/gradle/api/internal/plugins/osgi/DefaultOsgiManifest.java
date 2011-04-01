@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.jar.Manifest;
 
-
 /**
  * @author Hans Dockter
  */
@@ -84,13 +83,11 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
             }
         }
         Set<String> instructionNames = instructions.keySet();
-        if( ! instructionNames.contains(Analyzer.IMPORT_PACKAGE))
-        {
+        if( !instructionNames.contains(Analyzer.IMPORT_PACKAGE)) {
             analyzer.setProperty(Analyzer.IMPORT_PACKAGE,
                     "*, !org.apache.ant.*, !org.junit.*, !org.jmock.*, !org.easymock.*, !org.mockito.*" );
         }
-        if( ! instructionNames.contains(Analyzer.EXPORT_PACKAGE))
-        {
+        if( !instructionNames.contains(Analyzer.EXPORT_PACKAGE)) {
             analyzer.setProperty(Analyzer.EXPORT_PACKAGE, "*;-noimport:=false;version=" + version);
         }
         for (String instructionName : instructionNames) {
