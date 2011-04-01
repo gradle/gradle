@@ -1,4 +1,3 @@
-import org.apache.maven.settings.Settings
 
 apply plugin: 'java'
 // START SNIPPET use-plugin
@@ -21,7 +20,7 @@ uploadArchives {
 // For our integration tests
 
 install.doLast {
-    Settings settings = repositories.mavenInstaller.settings
+    def settings = repositories.mavenInstaller.settings
     new File(buildDir, "localRepoPath.txt").write(settings.localRepository)
 }
 
