@@ -22,6 +22,8 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.gradle.util.UncheckedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -33,9 +35,16 @@ import java.util.Date;
  * @author Hans Dockter
  */
 public class GradleIBiblioResolver extends IBiblioResolver {
+    Logger logger = LoggerFactory.getLogger(GradleIBiblioResolver.class);
+
     public static final CacheTimeoutStrategy NEVER = new CacheTimeoutStrategy() {
         public boolean isCacheTimedOut(long lastResolvedTime) {
             return false;
+        }
+
+        @Override
+        public String toString() {
+            return "NEVER Timeout Strategy";
         }
     };
 
@@ -43,6 +52,12 @@ public class GradleIBiblioResolver extends IBiblioResolver {
         public boolean isCacheTimedOut(long lastResolvedTime) {
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "ALWAYS Timeout Strategy";
+        }
+
     };
 
     public static final CacheTimeoutStrategy DAILY = new CacheTimeoutStrategy() {
@@ -59,6 +74,11 @@ public class GradleIBiblioResolver extends IBiblioResolver {
                 return false;
             }
             return true;
+        }
+
+        @Override
+        public String toString() {
+            return "DAILY Timeout Strategy";
         }
     };
 
@@ -111,16 +131,20 @@ public class GradleIBiblioResolver extends IBiblioResolver {
         setChangingPattern(null);
         ResolvedModuleRevision moduleRevision = super.findModuleInCache(dd, data);
         if (moduleRevision == null) {
+            logger.debug("Dependency not found in cache.");
             setChangingPattern(".*-SNAPSHOT");
             return null;
         }
         PropertiesFile cacheProperties = getCacheProperties(dd, moduleRevision);
         Long lastResolvedTime = getLastResolvedTime(cacheProperties);
         updateCachePropertiesToCurrentTime(cacheProperties);
+        logger.debug("Using the SnapshotTimeOutStrategy=" + snapshotTimeout.toString());
         if (snapshotTimeout.isCacheTimedOut(lastResolvedTime)) {
+            logger.debug("Cache has timed out.");
             setChangingPattern(".*-SNAPSHOT");
             return null;
         } else {
+            logger.debug("Dependency found in cache..");
             return moduleRevision;
         }
     }
@@ -161,6 +185,8 @@ public class GradleIBiblioResolver extends IBiblioResolver {
     }
 
     public static class Interval implements CacheTimeoutStrategy {
+        Logger logger = LoggerFactory.getLogger(Interval.class);
+
         private long interval;
 
         public Interval(long interval) {
@@ -168,7 +194,18 @@ public class GradleIBiblioResolver extends IBiblioResolver {
         }
 
         public boolean isCacheTimedOut(long lastResolvedTime) {
-            return System.currentTimeMillis() - lastResolvedTime > interval;
+            logger.debug("Last resolved time: " + lastResolvedTime);
+            long currentTime = System.currentTimeMillis();
+            logger.debug("Current time: " + currentTime);
+            boolean timedOut = currentTime - lastResolvedTime > interval;
+            return timedOut;
+        }
+
+        @Override
+        public String toString() {
+            return "Interval{" +
+                    "interval=" + interval +
+                    '}';
         }
     }
 }
