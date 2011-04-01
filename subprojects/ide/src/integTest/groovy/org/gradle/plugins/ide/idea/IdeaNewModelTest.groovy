@@ -38,13 +38,24 @@ class IdeaNewModelTest extends AbstractIdeIntegrationTest {
 apply plugin: "java"
 apply plugin: "idea"
 
+configurations {
+  provided
+  provided.extendsFrom(compile)
+}
+
+dependencies { provided "junit:junit:4.8.2" }
+
 idea {
     module {
         sourceDirs += file('additionalCustomSources')
         name = 'foo'
+        scopes.PROVIDED.plus += configurations.provided
+        downloadJavadoc = true
+        downloadSources = false
     }
 }
 '''
+
         //then
         def iml = parseImlFile('foo') //println getFile([:], 'root.iml').text
         ['additionalCustomSources', 'src/main/java'].each { expectedSrcFolder ->

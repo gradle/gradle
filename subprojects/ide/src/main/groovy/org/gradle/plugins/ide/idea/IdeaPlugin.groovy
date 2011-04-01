@@ -73,7 +73,9 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaModule(Project project) {
         def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) {
             module = services.get(ClassGenerator).newInstance(IdeaModule)
+            module.project = project
             model.conventionMapping.module = { module }
+
             module.conventionMapping.sourceDirs = { [] as LinkedHashSet }
             module.conventionMapping.name = { project.name }
 
@@ -126,12 +128,12 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             def configurations = project.configurations
-            scopes = [
+            module.conventionMapping.scopes = {[
                     PROVIDED: [plus: [], minus: []],
                     COMPILE: [plus: [configurations.compile], minus: []],
                     RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
                     TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
-            ]
+            ]}
         }
     }
 
