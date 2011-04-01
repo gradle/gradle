@@ -14,3 +14,7 @@ task checkSystemPropertyGradleUserHomeHasPrecedence << {
 task checkJavaHome << {
     assert Jvm.current().javaHome == file(expectedJavaHome)
 }
+
+task checkSystemProperty << {
+    assert System.getProperty('customSystemProperty') == 'custom-value'
+}

@@ -116,6 +116,18 @@ public class CommandLineIntegrationTest {
                 .run();
     }
 
+    @Test
+    public void canSpecifySystemPropertyFromCommandLine() {
+        // the actual testing is done in the build script.
+        executer.withTasks("checkSystemProperty").withArguments('-DcustomSystemProperty=custom-value').run();
+    }
+
+    @Test
+    public void canSpecifySystemPropertyUsingGradleOptsEnvironmentVariable() {
+        // the actual testing is done in the build script.
+        executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": '-DcustomSystemProperty=custom-value').run();
+    }
+
     @Test @Ignore
     public void systemPropGradleUserHomeHasPrecedenceOverEnvVariable() {
         // the actual testing is done in the build script.

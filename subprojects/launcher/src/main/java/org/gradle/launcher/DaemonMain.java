@@ -148,8 +148,11 @@ public class DaemonMain implements Runnable {
         loggingManager.setLevel(startParameter.getLogLevel());
         loggingManager.start();
 
-        Properties sysProperties = new Properties();
-        sysProperties.putAll(System.getProperties());
+        Properties originalSystemProperties = new Properties();
+        originalSystemProperties.putAll(System.getProperties());
+        Properties clientSystemProperties = new Properties();
+        clientSystemProperties.putAll(build.getSystemProperties());
+        System.setProperties(clientSystemProperties);
 
         try {
             RunBuildAction action = new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(build.getClientMetaData(), build.getStartTime())) {
@@ -167,7 +170,7 @@ public class DaemonMain implements Runnable {
 
         loggingManager.stop();
 
-        System.setProperties(sysProperties);
+        System.setProperties(originalSystemProperties);
     }
 
     private static class ExecutionListenerImpl implements ExecutionListener {

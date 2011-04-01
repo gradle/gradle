@@ -19,17 +19,24 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.ParsedCommandLine;
 
 import java.io.File;
+import java.util.Map;
 
 public class Build extends Command {
     private final ParsedCommandLine args;
     private final File currentDir;
     private final long startTime;
+    private final Map<String, String> systemProperties;
 
-    public Build(File currentDir, ParsedCommandLine args, long startTime, BuildClientMetaData clientMetaData) {
+    public Build(File currentDir, ParsedCommandLine args, long startTime, BuildClientMetaData clientMetaData, Map<String, String> systemProperties) {
         super(clientMetaData);
         this.currentDir = currentDir;
         this.args = args;
         this.startTime = startTime;
+        this.systemProperties = systemProperties;
+    }
+
+    public Map<String, String> getSystemProperties() {
+        return systemProperties;
     }
 
     public ParsedCommandLine getArgs() {

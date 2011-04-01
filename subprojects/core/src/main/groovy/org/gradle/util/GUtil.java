@@ -149,11 +149,9 @@ public class GUtil {
         return map;
     }
 
-    public static void addToMap(Map<String, String> dest, Properties src) {
-        Enumeration<?> enumeration = src.propertyNames();
-        while (enumeration.hasMoreElements()) {
-            Object o = enumeration.nextElement();
-            dest.put(o.toString(), src.getProperty(o.toString()));
+    public static void addToMap(Map<String, String> dest, Map<?, ?> src) {
+        for (Map.Entry<?, ?> entry : src.entrySet()) {
+            dest.put(entry.getKey().toString(), entry.getValue().toString());
         }
     }
 

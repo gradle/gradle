@@ -31,7 +31,8 @@ class DaemonBuildActionTest extends Specification {
     final BuildClientMetaData clientMetaData = Mock()
     final File currentDir = new File('current-dir')
     final long startTime = 90
-    final DaemonBuildAction action = new DaemonBuildAction(listener, connector, commandLine, currentDir, clientMetaData, startTime)
+    final Map<String, String> systemProperties = [key: 'value']
+    final DaemonBuildAction action = new DaemonBuildAction(listener, connector, commandLine, currentDir, clientMetaData, startTime, systemProperties)
 
     def runsBuildUsingDaemon() {
         Connection<Object> connection = Mock()
@@ -47,6 +48,7 @@ class DaemonBuildActionTest extends Specification {
             assert build.args == commandLine
             assert build.clientMetaData == clientMetaData
             assert build.startTime == startTime
+            assert build.systemProperties == systemProperties
         }
         1 * connection.receive() >> new CommandComplete(null)
         1 * connection.stop()

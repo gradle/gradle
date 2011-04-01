@@ -121,7 +121,7 @@ public class CommandLineActionFactory {
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         if (useDaemon) {
-            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), connector, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime);
+            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), connector, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime, System.getProperties());
         }
 
         return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData, startTime));

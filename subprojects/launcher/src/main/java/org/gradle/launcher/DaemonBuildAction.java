@@ -23,8 +23,11 @@ import org.gradle.initialization.ParsedCommandLine;
 import org.gradle.launcher.protocol.Build;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DaemonBuildAction extends DaemonClientAction implements Action<ExecutionListener> {
     private static final Logger LOGGER = Logging.getLogger(DaemonBuildAction.class);
@@ -33,20 +36,23 @@ public class DaemonBuildAction extends DaemonClientAction implements Action<Exec
     private final File currentDir;
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
+    private final Map<String, String> systemProperties;
 
-    public DaemonBuildAction(OutputEventListener outputEventListener, DaemonConnector connector, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime) {
+    public DaemonBuildAction(OutputEventListener outputEventListener, DaemonConnector connector, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties) {
         super(outputEventListener);
         this.connector = connector;
         this.args = args;
         this.currentDir = currentDir;
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
+        this.systemProperties = new HashMap<String, String>();
+        GUtil.addToMap(this.systemProperties, systemProperties);
     }
 
     public void execute(ExecutionListener executionListener) {
         LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
         LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
         Connection<Object> connection = connector.connect();
-        run(new Build(currentDir, args, startTime, clientMetaData), connection, executionListener);
+        run(new Build(currentDir, args, startTime, clientMetaData, systemProperties), connection, executionListener);
     }
 }
