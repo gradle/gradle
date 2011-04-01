@@ -31,8 +31,7 @@ class IdeaModule {
      */
     Set<File> sourceDirs
 
-
-    protected Set getSourcePaths(PathFactory pathFactory) {
+    protected Set<Path> getSourcePaths(PathFactory pathFactory) {
         getSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
     }
 }
