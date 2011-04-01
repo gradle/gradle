@@ -40,12 +40,13 @@ apply plugin: "idea"
 
 idea {
     module {
-         sourceDirs += file('additionalCustomSources')
+        sourceDirs += file('additionalCustomSources')
+        name = 'foo'
     }
 }
 '''
         //then
-        def iml = parseImlFile('root') //println getFile([:], 'root.iml').text
+        def iml = parseImlFile('foo') //println getFile([:], 'root.iml').text
         ['additionalCustomSources', 'src/main/java'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
         }
