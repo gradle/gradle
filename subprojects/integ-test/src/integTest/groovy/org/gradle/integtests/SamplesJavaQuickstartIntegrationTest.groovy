@@ -56,7 +56,8 @@ class SamplesJavaQuickstartIntegrationTest {
         javaprojectDir.file('repos/quickstart-1.0.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class'
+                'org/gradle/Person.class',
+                'org/gradle/resource.xml'
         )
 
         // Check contents of manifest
