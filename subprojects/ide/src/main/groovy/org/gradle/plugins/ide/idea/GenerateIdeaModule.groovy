@@ -234,12 +234,11 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * @return
      */
     File getOutputFile() {
-        return new File(module.generateTo, module.name + ".iml")
+        return module.outputFile
     }
 
     void setOutputFile(File newOutputFile) {
-        module.name = newOutputFile.name.replaceFirst(/\.iml$/,"");
-        module.generateTo = newOutputFile.parentFile
+        module.outputFile = newOutputFile
     }
 
     /**

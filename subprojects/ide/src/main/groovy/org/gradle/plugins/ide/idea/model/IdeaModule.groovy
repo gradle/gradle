@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.XmlTransformer
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 
 /**
@@ -78,6 +79,12 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *
  *     //if you want parts of paths in resulting *.iml to be replaced by variables
  *     variables = [GRADLE_HOME: '~/cool-software/gradle']
+ *
+ *     //if you want to mess with the resulting xml in whatever way you fancy
+ *     withXml {
+ *       def node = it.asNode()
+ *       node.appendNode('iLoveGradle', 'true')
+ *     }
  *   }
  * }
  *
@@ -88,6 +95,7 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 class IdeaModule {
 
     org.gradle.api.Project project
+    XmlTransformer xmlTransformer
 
    /**
      * Idea module name; controls the name of the *.iml file
@@ -186,6 +194,15 @@ class IdeaModule {
      */
     String javaVersion = Module.INHERITED
 
+    protected File getOutputFile() {
+        new File((File) getGenerateTo(), getName() + ".iml")
+    }
+
+    protected void setOutputFile(File newOutputFile) {
+        name = newOutputFile.name.replaceFirst(/\.iml$/,"");
+        generateTo = newOutputFile.parentFile
+    }
+
     protected Set<Path> getSourcePaths(PathFactory pathFactory) {
         getSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
     }
@@ -208,5 +225,16 @@ class IdeaModule {
 
     protected Path getTestOutputPath(PathFactory pathFactory) {
         getTestOutputDir() ? pathFactory.path(getTestOutputDir()) : null
+    }
+
+    /**
+     * Adds a closure to be called when the XML document has been created. The XML is passed to the closure as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML before
+     * it is written to the output file.
+     *
+     * @param closure The closure to execute when the XML has been created.
+     */
+    public void withXml(Closure closure) {
+        xmlTransformer.addAction(closure);
     }
 }

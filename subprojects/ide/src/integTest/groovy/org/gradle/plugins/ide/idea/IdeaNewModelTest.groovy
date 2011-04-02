@@ -71,6 +71,11 @@ idea {
 
         javaVersion = '1.6'
         variables = [CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile]
+
+        withXml {
+            def node = it.asNode()
+            node.appendNode('someInterestingConfiguration', 'hey!')
+        }
     }
 }
 '''
@@ -90,6 +95,7 @@ idea {
         assert iml.component.output.@url.text().endsWith('muchBetterOutputDir')
         assert iml.component."output-test".@url.text().endsWith('muchBetterTestOutputDir')
         assert iml.component.orderEntry.any { it.@type.text() == 'jdk' && it.@jdkName.text() == '1.6' }
+        assert iml.someInterestingConfiguration.text() == 'hey!'
     }
 
     //TODO: test with inheritOutputDirs=true
