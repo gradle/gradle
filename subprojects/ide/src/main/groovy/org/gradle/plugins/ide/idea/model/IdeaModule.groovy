@@ -218,38 +218,46 @@ class IdeaModule {
         generateTo = newOutputFile.parentFile
     }
 
-    protected Set<Path> getSourcePaths(PathFactory pathFactory) {
-        getSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
+    protected Set<Path> getSourcePaths() {
+        getSourceDirs().findAll { it.exists() }.collect { path(it) }
     }
 
-    protected Set getDependencies(PathFactory pathFactory) {
-        new IdeaDependenciesProvider().provide(this, pathFactory);
+    protected Set getDependencies() {
+        new IdeaDependenciesProvider().provide(this, getPathFactory());
     }
 
-    protected Set<Path> getTestSourcePaths(PathFactory pathFactory) {
-        getTestSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
+    protected Set<Path> getTestSourcePaths() {
+        getTestSourceDirs().findAll { it.exists() }.collect { getPathFactory().path(it) }
     }
 
-    protected Set<Path> getExcludePaths(PathFactory pathFactory) {
-        getExcludeDirs().collect { pathFactory.path(it) }
+    protected Set<Path> getExcludePaths() {
+        getExcludeDirs().collect { path(it) }
     }
 
-    protected Path getOutputPath(PathFactory pathFactory) {
-        getOutputDir() ? pathFactory.path(getOutputDir()) : null
+    protected Path getOutputPath() {
+        getOutputDir() ? path(getOutputDir()) : null
     }
 
-    protected Path getTestOutputPath(PathFactory pathFactory) {
-        getTestOutputDir() ? pathFactory.path(getTestOutputDir()) : null
+    protected Path getTestOutputPath() {
+        getTestOutputDir() ? path(getTestOutputDir()) : null
     }
 
     protected void applyXmlModule(Module xmlModule) {
-        xmlModule.pathFactory = getPathFactory()
-        //TODO SF: refactor
-        xmlModule.configure(this)
+        xmlModule.pathFactory = pathFactory
+        xmlModule.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(),
+                getInheritOutputDirs(), getOutputPath(), getTestOutputPath(), getDependencies(), getJavaVersion())
         this.xmlModule = xmlModule
     }
 
     protected void generate() {
         xmlModule.store(getOutputFile())
+    }
+
+    protected Path getContentPath() {
+        path(getModuleDir())
+    }
+
+    protected def path(File dir) {
+        getPathFactory().path(dir)
     }
 }
