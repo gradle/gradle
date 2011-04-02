@@ -58,6 +58,9 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *     outputDir = file('muchBetterOutputDir')
  *     testOutputDir = file('muchBetterTestOutputDir')
  *
+ *     //if you prefer different java version than inherited from IDEA project
+ *     javaVersion = '1.6'
+ *
  *     //if you need to put provided dependencies on the classpath
  *     scopes.COMPILE.plus += configurations.provided
  *
@@ -72,6 +75,9 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *
  *     //and hate reading sources :)
  *     downloadSources = false
+ *
+ *     //if you want parts of paths in resulting *.iml to be replaced by variables
+ *     variables = [GRADLE_HOME: '~/cool-software/gradle']
  *   }
  * }
  *
@@ -166,6 +172,19 @@ class IdeaModule {
      * The output directory for test classes. If {@code null}, no entry will be created.
      */
     File testOutputDir
+
+    /**
+     * The variables to be used for replacing absolute paths in the iml entries. For example, you might add a
+     * {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
+     */
+    Map<String, File> variables = [:]
+
+    /**
+     * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (inherited)
+     * is used. If it is set to <code>inherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
+     * value of java version is used for this module
+     */
+    String javaVersion = Module.INHERITED
 
     protected Set<Path> getSourcePaths(PathFactory pathFactory) {
         getSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }

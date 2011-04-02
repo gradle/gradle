@@ -16,12 +16,9 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.Module
-import org.gradle.plugins.ide.idea.model.Path
 import org.gradle.plugins.ide.idea.model.PathFactory
 
 /**
@@ -54,6 +51,21 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * Idea module model
      */
     IdeaModule module
+
+    @Override protected Module create() {
+        Module xmlModule = new Module(xmlTransformer, getModule())
+        PathFactory factory = new PathFactory()
+        factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
+        variables.each { key, value ->
+            factory.addPathVariable(key, value)
+        }
+        xmlModule.pathFactory = factory
+        return xmlModule
+    }
+
+    @Override protected void configure(Module xmlModule) {
+        xmlModule.configure()
+    }
 
     /**
      * The content root directory of the module.
@@ -138,8 +150,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * is used. If it is set to <code>inherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
      * value of java version is used for this module
      */
-    @Input @Optional
-    String javaVersion = Module.INHERITED
+    String getJavaVersion() {
+        module.javaVersion
+    }
+
+    void setJavaVersion(String javaVersion) {
+        module.javaVersion = javaVersion
+    }
 
     /**
      * Whether to download and add sources associated with the dependency jars.
@@ -167,8 +184,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * The variables to be used for replacing absolute paths in the iml entries. For example, you might add a
      * {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
      */
-    @Input
-    Map<String, File> variables = [:]
+    Map<String, File> getVariables() {
+        module.variables
+    }
+
+    void setVariables(Map<String, File> variables) {
+        module.variables = variables
+    }
 
     /**
      * The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
@@ -200,33 +222,6 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     Map<String, Map<String, Configuration>> setScopes(Map<String, Map<String, Configuration>> scopes) {
         module.scopes = scopes
-    }
-
-    @Override protected Module create() {
-        Module xmlModule = new Module(xmlTransformer, getModule())
-        configurePathFactory(xmlModule)
-        return xmlModule
-    }
-
-    @Override protected void configure(Module xmlModule) {
-        xmlModule.configure(javaVersion)
-    }
-
-    protected Path getPath(File file) {
-        return pathFactory.path(file)
-    }
-
-    def configurePathFactory(Module module) {
-        module.pathFactory = pathFactory
-    }
-
-    protected PathFactory getPathFactory() {
-        PathFactory factory = new PathFactory()
-        factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
-        variables.each { key, value ->
-            factory.addPathVariable(key, value)
-        }
-        return factory
     }
 
     /**

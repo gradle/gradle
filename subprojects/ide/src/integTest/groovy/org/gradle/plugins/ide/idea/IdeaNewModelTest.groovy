@@ -68,6 +68,9 @@ idea {
         inheritOutputDirs = false
         outputDir = file('muchBetterOutputDir')
         testOutputDir = file('muchBetterTestOutputDir')
+
+        javaVersion = '1.6'
+        variables = [CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile]
     }
 }
 '''
@@ -78,15 +81,19 @@ idea {
         ['additionalCustomSources', 'additionalCustomTestSources', 'src/main/java'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
         }
-        iml.component.content.@url.text().endsWith('customModuleContentRoot')
+        ['customModuleContentRoot', 'CUSTOM_VARIABLE'].each {
+            assert iml.component.content.@url.text().contains(it)
+        }
         ['.gradle', 'build', 'excludeMePlease'].each { expectedExclusion ->
             assert iml.component.content.excludeFolder.find { it.@url.text().endsWith(expectedExclusion) }
         }
         assert iml.component.output.@url.text().endsWith('muchBetterOutputDir')
         assert iml.component."output-test".@url.text().endsWith('muchBetterTestOutputDir')
+        assert iml.component.orderEntry.any { it.@type.text() == 'jdk' && it.@jdkName.text() == '1.6' }
     }
 
     //TODO: test with inheritOutputDirs=true
+    //TODO: test with defaults, for example without specyfing javaVersion
 
     private parseImlFile(Map options = [:], String projectName) {
         parseFile(options, "${projectName}.iml")
