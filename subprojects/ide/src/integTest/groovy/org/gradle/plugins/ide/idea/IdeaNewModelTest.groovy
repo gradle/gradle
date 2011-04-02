@@ -30,6 +30,7 @@ class IdeaNewModelTest extends AbstractIdeIntegrationTest {
         //given
         testResources.dir.create {
             additionalCustomSources {}
+            customImlFolder {}
             src { main { java {} } }
         }
 
@@ -52,12 +53,13 @@ idea {
         scopes.PROVIDED.plus += configurations.provided
         downloadJavadoc = true
         downloadSources = false
+        generateTo = file('customImlFolder')
     }
 }
 '''
 
         //then
-        def iml = parseImlFile('foo') //println getFile([:], 'root.iml').text
+        def iml = parseImlFile('customImlFolder/foo') //println getFile([:], 'root.iml').text
         ['additionalCustomSources', 'src/main/java'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
         }

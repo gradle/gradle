@@ -50,6 +50,9 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *     //if you need to put provided dependencies on the classpath
  *     scopes.COMPILE.plus += configurations.provided
  *
+ *     //if you like to keep *.iml in a secret folder
+ *     generateTo = file('secret-modules-folder')
+ *
  *     //if you love browsing javadocs
  *     downloadJavadoc = true
  *
@@ -113,6 +116,11 @@ class IdeaModule {
      * Whether to download and add javadoc associated with the dependency jars.
      */
     boolean downloadJavadoc = false
+
+    /**
+     * Folder where the *.iml file will be generated to
+     */
+    File generateTo
 
     protected Set<Path> getSourcePaths(PathFactory pathFactory) {
         getSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
