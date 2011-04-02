@@ -42,7 +42,10 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  * idea {
  *   module {
  *     //if for some reason you want add an extra sourceDirs
- *     sourceDirs += file('some-custom-source-folder')
+ *     sourceDirs += file('some-extra-source-folder')
+ *
+ *     //and some extra test source dirs
+ *     testSourceDirs += file('some-extra-test-dir')
  *
  *     //if you don't like the name Gradle have chosen
  *     name = 'some-better-name'
@@ -130,11 +133,20 @@ class IdeaModule {
      */
     File moduleDir
 
+    /**
+     * The directories containing the test sources.
+     */
+    Set<File> testSourceDirs
+
     protected Set<Path> getSourcePaths(PathFactory pathFactory) {
         getSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
     }
 
     protected Set getDependencies(PathFactory pathFactory) {
         new IdeaDependenciesProvider().provide(this, pathFactory);
+    }
+
+    protected Set<Path> getTestSourcePaths(PathFactory pathFactory) {
+        getTestSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
     }
 }

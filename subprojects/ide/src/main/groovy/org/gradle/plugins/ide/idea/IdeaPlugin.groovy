@@ -80,9 +80,9 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.name = { project.name }
             module.conventionMapping.generateTo = { project.projectDir }
             module.conventionMapping.moduleDir = { project.projectDir }
+            module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
 
             conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
-            conventionMapping.testSourceDirs = { [] as LinkedHashSet }
         }
 
         addWorker(task)
@@ -126,7 +126,7 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaModuleForJava(Project project) {
         project.ideaModule {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
-            conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
+            module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             def configurations = project.configurations
             module.conventionMapping.scopes = {[
                     PROVIDED: [plus: [], minus: []],

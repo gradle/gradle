@@ -80,8 +80,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The directories containing the test sources.
      */
-    @Input
-    Set<File> testSourceDirs
+    Set<File> getTestSourceDirs() {
+        module.testSourceDirs
+    }
+
+    void setTestSourceDirs(Set<File> testSourceDirs) {
+        module.testSourceDirs = testSourceDirs
+    }
 
     /**
      * The directories to be excluded.
@@ -184,7 +189,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     @Override protected void configure(Module xmlModule) {
-        xmlModule.configure(getTestSourcePaths(), getExcludePaths(),
+        xmlModule.configure(getExcludePaths(),
                 inheritOutputDirs, getOutputPath(), getTestOutputPath(), javaVersion)
     }
 
@@ -194,10 +199,6 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     protected Path getTestOutputPath() {
         getTestOutputDir() ? getPath(getTestOutputDir()) : null
-    }
-
-    protected Set getTestSourcePaths() {
-        getTestSourceDirs().findAll { it.exists() }.collect { getPath(it) }
     }
 
     protected Set getExcludePaths() {

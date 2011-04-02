@@ -30,6 +30,7 @@ class IdeaNewModelTest extends AbstractIdeIntegrationTest {
         //given
         testResources.dir.create {
             additionalCustomSources {}
+            additionalCustomTestSources {}
             customImlFolder {}
             customModuleContentRoot {}
             src { main { java {} } }
@@ -50,6 +51,7 @@ dependencies { provided "junit:junit:4.8.2" }
 idea {
     module {
         sourceDirs += file('additionalCustomSources')
+        testSourceDirs += file('additionalCustomTestSources')
         name = 'foo'
         scopes.PROVIDED.plus += configurations.provided
         downloadJavadoc = true
@@ -61,8 +63,9 @@ idea {
 '''
 
         //then
-        def iml = parseImlFile('customImlFolder/foo') //println getFile([:], 'root.iml').text
-        ['additionalCustomSources', 'src/main/java'].each { expectedSrcFolder ->
+        def iml = parseImlFile('customImlFolder/foo')
+        println getFile([:], 'customImlFolder/foo.iml').text
+        ['additionalCustomSources', 'additionalCustomTestSources', 'src/main/java'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
         }
         iml.component.content.@url.text().endsWith('customModuleContentRoot')
