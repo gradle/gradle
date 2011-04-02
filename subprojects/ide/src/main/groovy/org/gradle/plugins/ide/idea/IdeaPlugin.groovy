@@ -81,8 +81,7 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.generateTo = { project.projectDir }
             module.conventionMapping.moduleDir = { project.projectDir }
             module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
-
-            conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
+            module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
         }
 
         addWorker(task)

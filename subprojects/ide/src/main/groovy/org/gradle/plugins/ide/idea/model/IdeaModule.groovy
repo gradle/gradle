@@ -41,11 +41,14 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *
  * idea {
  *   module {
- *     //if for some reason you want add an extra sourceDirs
+ *     //if for some reason you want to add an extra sourceDirs
  *     sourceDirs += file('some-extra-source-folder')
  *
  *     //and some extra test source dirs
  *     testSourceDirs += file('some-extra-test-dir')
+ *
+ *     //and some extra dirs that should be excluded by IDEA
+ *     excludeDirs += file('some-extra-exclude-dir')
  *
  *     //if you don't like the name Gradle have chosen
  *     name = 'some-better-name'
@@ -138,6 +141,11 @@ class IdeaModule {
      */
     Set<File> testSourceDirs
 
+    /**
+     * The directories to be excluded.
+     */
+    Set<File> excludeDirs
+
     protected Set<Path> getSourcePaths(PathFactory pathFactory) {
         getSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
     }
@@ -148,5 +156,9 @@ class IdeaModule {
 
     protected Set<Path> getTestSourcePaths(PathFactory pathFactory) {
         getTestSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
+    }
+
+    protected Set<Path> getExcludePaths(PathFactory pathFactory) {
+        getExcludeDirs().collect { pathFactory.path(it) }
     }
 }

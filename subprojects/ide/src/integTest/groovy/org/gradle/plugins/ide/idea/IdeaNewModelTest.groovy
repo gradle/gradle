@@ -32,6 +32,7 @@ class IdeaNewModelTest extends AbstractIdeIntegrationTest {
             additionalCustomSources {}
             additionalCustomTestSources {}
             customImlFolder {}
+            excludeMePlease {}
             customModuleContentRoot {}
             src { main { java {} } }
         }
@@ -50,14 +51,15 @@ dependencies { provided "junit:junit:4.8.2" }
 
 idea {
     module {
+        name = 'foo'
+        generateTo = file('customImlFolder')
+        moduleDir = file('customModuleContentRoot')
         sourceDirs += file('additionalCustomSources')
         testSourceDirs += file('additionalCustomTestSources')
-        name = 'foo'
         scopes.PROVIDED.plus += configurations.provided
         downloadJavadoc = true
         downloadSources = false
-        generateTo = file('customImlFolder')
-        moduleDir = file('customModuleContentRoot')
+        excludeDirs += file('excludeMePlease')
     }
 }
 '''
@@ -69,6 +71,9 @@ idea {
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
         }
         iml.component.content.@url.text().endsWith('customModuleContentRoot')
+        ['.gradle', 'build', 'excludeMePlease'].each { expectedExclusion ->
+            assert iml.component.content.excludeFolder.find { it.@url.text().endsWith(expectedExclusion) }
+        }
     }
 
     private parseImlFile(Map options = [:], String projectName) {

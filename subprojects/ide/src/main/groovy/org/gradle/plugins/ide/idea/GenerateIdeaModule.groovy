@@ -91,8 +91,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The directories to be excluded.
      */
-    @Input
-    Set<File> excludeDirs
+    Set<File> getExcludeDirs() {
+        module.excludeDirs
+    }
+
+    void setExcludeDirs(Set<File> excludeDirs) {
+        module.excludeDirs = excludeDirs
+    }
 
     /**
      * If true, output directories for this module will be located below the output directory for the project;
@@ -189,8 +194,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     @Override protected void configure(Module xmlModule) {
-        xmlModule.configure(getExcludePaths(),
-                inheritOutputDirs, getOutputPath(), getTestOutputPath(), javaVersion)
+        xmlModule.configure(inheritOutputDirs, getOutputPath(), getTestOutputPath(), javaVersion)
     }
 
     protected Path getOutputPath() {
@@ -199,10 +203,6 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     protected Path getTestOutputPath() {
         getTestOutputDir() ? getPath(getTestOutputDir()) : null
-    }
-
-    protected Set getExcludePaths() {
-        getExcludeDirs().collect { getPath(it) }
     }
 
     protected Path getPath(File file) {
