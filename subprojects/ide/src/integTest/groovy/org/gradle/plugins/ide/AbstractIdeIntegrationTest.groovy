@@ -18,8 +18,8 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.util.TestFile
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.util.TestFile
 
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
     protected void runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {
@@ -54,5 +54,13 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
             module.dependsOn(dependency)
         }
         return module.publishArtifact()
+    }
+
+    protected runIdeaTask(buildScript) {
+        runTask("idea", buildScript)
+    }
+
+    protected parseImlFile(Map options = [:], String projectName) {
+        parseFile(options, "${projectName}.iml")
     }
 }

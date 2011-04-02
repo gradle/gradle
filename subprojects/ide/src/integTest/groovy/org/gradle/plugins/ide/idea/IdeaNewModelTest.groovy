@@ -100,8 +100,4 @@ idea {
 
     //TODO: test with inheritOutputDirs=true
     //TODO: test with defaults, for example without specyfing javaVersion
-
-    private parseImlFile(Map options = [:], String projectName) {
-        parseFile(options, "${projectName}.iml")
-    }
 }
