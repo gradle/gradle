@@ -52,8 +52,6 @@ public class ModelBuildingAdapter extends BuildAdapter {
     public void projectsEvaluated(Gradle gradle) {
         if (configurer != null) {
             configurer.configure((GradleInternal) gradle);
-        } else {
-            builder.buildAll((GradleInternal) gradle);
         }
     }
 

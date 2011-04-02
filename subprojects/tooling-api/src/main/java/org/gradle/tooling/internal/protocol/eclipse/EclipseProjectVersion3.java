@@ -28,7 +28,5 @@ public interface EclipseProjectVersion3 extends HierarchicalEclipseProjectVersio
 
     Iterable<? extends EclipseProjectVersion3> getChildren();
 
-    Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories();
-
     Iterable<? extends ExternalDependencyVersion1> getClasspath();
 }

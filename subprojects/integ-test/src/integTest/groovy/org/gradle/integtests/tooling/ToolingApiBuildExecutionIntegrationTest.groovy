@@ -62,4 +62,20 @@ task c
         project.tasks.find { it.name == 'b' }
         project.tasks.find { it.name == 'c' }
     }
+
+    def "does not resolve dependencies when building the set of tasks for a project"() {
+        dist.testFile('build.gradle') << '''
+apply plugin: 'java'
+dependencies {
+    compile files { throw new RuntimeException('broken') }
+}
+'''
+
+        when:
+        def project = withConnection { connection -> connection.getModel(BuildableProject.class) }
+
+        then:
+        !project.tasks.empty
+    }
+
 }

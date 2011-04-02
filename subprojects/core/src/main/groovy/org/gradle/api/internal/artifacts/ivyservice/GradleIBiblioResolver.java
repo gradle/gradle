@@ -203,9 +203,7 @@ public class GradleIBiblioResolver extends IBiblioResolver {
 
         @Override
         public String toString() {
-            return "Interval{" +
-                    "interval=" + interval +
-                    '}';
+            return "Interval{interval=" + interval + '}';
         }
     }
 }

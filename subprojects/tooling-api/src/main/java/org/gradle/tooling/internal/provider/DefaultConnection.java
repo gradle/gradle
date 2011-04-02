@@ -19,12 +19,8 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion3;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 
@@ -84,16 +80,16 @@ public class DefaultConnection implements ConnectionVersion3 {
                 ModelBuildingAdapter adapter = new ModelBuildingAdapter();
                 gradleLauncher.addListener(adapter);
 
-                boolean minimalModelOnly = type.isAssignableFrom(HierarchicalEclipseProjectVersion1.class);
-                if (minimalModelOnly) {
-                    adapter.setBuilder(new MinimalModelBuilder());
-                    gradleLauncher.getBuildAnalysis().rethrowFailure();
-                } else {
+                boolean fullModel = EclipseProjectVersion3.class.isAssignableFrom(type);
+                boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
+                if (fullModel) {
                     adapter.setConfigurer(new EclipsePluginApplier());
-                    adapter.setBuilder(new ModelBuilder());
-                    gradleLauncher.run().rethrowFailure();
+                } else {
+                    adapter.setConfigurer(new MinimalModelConfigurer());
                 }
+                adapter.setBuilder(new ModelBuilder(includeTasks));
 
+                gradleLauncher.run().rethrowFailure();
                 return type.cast(adapter.getProject());
             }
 

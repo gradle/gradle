@@ -38,4 +38,11 @@ public interface HierarchicalEclipseProject extends HierarchicalProject {
      * @return The project dependencies. Returns an empty set if the project has no project dependencies.
      */
     DomainObjectSet<? extends EclipseProjectDependency> getProjectDependencies();
+
+    /**
+     * Returns the source directories for this project.
+     *
+     * @return The source directories. Returns an empty set if the project has no source directories.
+     */
+    DomainObjectSet<? extends EclipseSourceDirectory> getSourceDirectories();
 }

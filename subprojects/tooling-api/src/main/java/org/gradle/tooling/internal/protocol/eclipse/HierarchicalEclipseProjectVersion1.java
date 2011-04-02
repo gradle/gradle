@@ -25,5 +25,7 @@ public interface HierarchicalEclipseProjectVersion1 extends HierarchicalProjectV
 
     Iterable<? extends HierarchicalEclipseProjectVersion1> getChildren();
 
+    Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories();
+
     Iterable<? extends EclipseProjectDependencyVersion2> getProjectDependencies();
 }

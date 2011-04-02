@@ -34,6 +34,12 @@ import java.util.List;
 */
 public class ModelBuilder extends AbstractModelBuilder {
 
+    private final boolean includeTasks;
+
+    public ModelBuilder(boolean includeTasks) {
+        this.includeTasks = includeTasks;
+    }
+
     @Override
     protected DefaultEclipseProject build(Project project) {
         EclipseDomainModel eclipseDomainModel = project.getPlugins().getPlugin(EclipsePlugin.class).getEclipseDomainModel();
@@ -42,14 +48,15 @@ public class ModelBuilder extends AbstractModelBuilder {
         List<EclipseProjectDependencyVersion2> projectDependencies = new EclipseProjectDependenciesFactory().create(getProjectMapping(), eclipseDomainModel.getClasspath());
         List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, eclipseDomainModel.getClasspath());
 
-
         List<DefaultEclipseProject> children = buildChildren(project);
 
         org.gradle.plugins.ide.eclipse.model.Project internalProject = eclipseDomainModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
         DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
-        eclipseProject.setTasks(new TasksFactory().create(project, eclipseProject));
+        if (includeTasks) {
+            eclipseProject.setTasks(new TasksFactory().create(project, eclipseProject));
+        }
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
         }
