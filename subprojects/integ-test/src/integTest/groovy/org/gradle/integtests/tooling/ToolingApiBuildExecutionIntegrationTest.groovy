@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.tooling.model.BuildableProject
+import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiBuildExecutionIntegrationTest extends ToolingApiSpecification {
     def "can build the set of tasks for a project"() {
@@ -28,13 +29,36 @@ task c
 '''
 
         when:
-        BuildableProject project = withConnection { connection -> connection.getModel(BuildableProject.class) }
+        def project = withConnection { connection -> connection.getModel(BuildableProject.class) }
 
         then:
         def taskA = project.tasks.find { it.name == 'a' }
         taskA != null
         taskA.path == ':a'
         taskA.description == 'this is task a'
+        taskA.project == project
+        project.tasks.find { it.name == 'b' }
+        project.tasks.find { it.name == 'c' }
+    }
+
+    def "can build the set of tasks for an Eclipse project"() {
+        dist.testFile('build.gradle') << '''
+task a {
+   description = 'this is task a'
+}
+task b
+task c
+'''
+
+        when:
+        def project = withConnection { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        def taskA = project.tasks.find { it.name == 'a' }
+        taskA != null
+        taskA.path == ':a'
+        taskA.description == 'this is task a'
+        taskA.project == project
         project.tasks.find { it.name == 'b' }
         project.tasks.find { it.name == 'c' }
     }

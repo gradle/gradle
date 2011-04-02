@@ -15,8 +15,11 @@
  */
 package org.gradle.tooling.internal.protocol;
 
+import java.io.File;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface ExternalDependencyVersion1 extends DependencyVersion1 {
+    File getFile();
 }

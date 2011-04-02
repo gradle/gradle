@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseDomainModel;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.TaskVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.tooling.internal.provider.dependencies.EclipseProjectDependenciesFactory;
@@ -43,14 +42,14 @@ public class ModelBuilder extends AbstractModelBuilder {
         List<EclipseProjectDependencyVersion2> projectDependencies = new EclipseProjectDependenciesFactory().create(getProjectMapping(), eclipseDomainModel.getClasspath());
         List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, eclipseDomainModel.getClasspath());
 
-        List<TaskVersion1> tasks = new TasksFactory().create(project);
 
         List<DefaultEclipseProject> children = buildChildren(project);
 
         org.gradle.plugins.ide.eclipse.model.Project internalProject = eclipseDomainModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children, tasks, sourceDirectories, dependencies, projectDependencies);
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
+        eclipseProject.setTasks(new TasksFactory().create(project, eclipseProject));
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
         }

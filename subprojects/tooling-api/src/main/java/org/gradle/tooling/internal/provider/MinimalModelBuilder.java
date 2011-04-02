@@ -19,7 +19,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.TaskVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
@@ -57,10 +56,9 @@ public class MinimalModelBuilder extends AbstractModelBuilder {
 
         String name = project.getName();
         String description = project.getDescription();
-        List<TaskVersion1> tasks = Collections.emptyList();
         List<EclipseSourceDirectoryVersion1> sourceDirectories = Collections.emptyList();
         List<ExternalDependencyVersion1> dependencies = Collections.emptyList();
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children, tasks, sourceDirectories, dependencies, projectDependencies);
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
         }

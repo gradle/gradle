@@ -36,6 +36,11 @@ public interface EclipseProject extends HierarchicalEclipseProject, BuildablePro
     DomainObjectSet<? extends EclipseProject> getChildren();
 
     /**
+     * {@inheritDoc}
+     */
+    DomainObjectSet<? extends EclipseTask> getTasks();
+
+    /**
      * Returns the source directories for this project.
      *
      * @return The source directories. Returns an empty set if the project has no source directories.

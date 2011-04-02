@@ -16,13 +16,14 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.TaskVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 class DefaultEclipseProject implements EclipseProjectVersion3 {
@@ -35,16 +36,16 @@ class DefaultEclipseProject implements EclipseProjectVersion3 {
     private final List<EclipseProjectDependencyVersion2> projectDependencies;
     private final String description;
     private final File projectDirectory;
-    private final Iterable<? extends TaskVersion1> tasks;
+    private Iterable<? extends EclipseTaskVersion1> tasks;
 
     public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children,
-                                 Iterable<? extends TaskVersion1> tasks, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories,
-                                 Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion2> projectDependencies) {
+                                 Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath,
+                                 Iterable<? extends EclipseProjectDependencyVersion2> projectDependencies) {
         this.name = name;
         this.path = path;
         this.description = description;
         this.projectDirectory = projectDirectory;
-        this.tasks = tasks;
+        this.tasks = Collections.emptyList();
         this.children = GUtil.addLists(children);
         this.classpath = GUtil.addLists(classpath);
         this.sourceDirectories = GUtil.addLists(sourceDirectories);
@@ -96,7 +97,11 @@ class DefaultEclipseProject implements EclipseProjectVersion3 {
         return classpath;
     }
 
-    public Iterable<? extends TaskVersion1> getTasks() {
+    public Iterable<? extends EclipseTaskVersion1> getTasks() {
         return tasks;
+    }
+
+    public void setTasks(Iterable<? extends EclipseTaskVersion1> tasks) {
+        this.tasks = tasks;
     }
 }

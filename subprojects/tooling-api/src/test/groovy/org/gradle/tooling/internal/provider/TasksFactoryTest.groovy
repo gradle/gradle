@@ -19,9 +19,11 @@ import spock.lang.Specification
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.Task
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
 
 class TasksFactoryTest extends Specification {
     final Project project = Mock()
+    final EclipseProjectVersion3 eclipseProject = Mock()
     final TaskContainer tasks = Mock()
     final TasksFactory factory = new TasksFactory()
 
@@ -30,13 +32,14 @@ class TasksFactoryTest extends Specification {
         def taskB = task('b')
 
         when:
-        def result = factory.create(project)
+        def result = factory.create(project, eclipseProject)
 
         then:
         result.size() == 2
         result[0].path == ':a'
         result[0].name == 'a'
         result[0].description == 'task a'
+        result[0].project == eclipseProject
         result[1].name == 'b'
         1 * project.tasks >> tasks
         tasks.iterator() >> [taskA, taskB].iterator()

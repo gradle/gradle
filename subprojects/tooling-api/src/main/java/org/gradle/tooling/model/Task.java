@@ -37,4 +37,11 @@ public interface Task {
      * @return The description. May be null.
      */
     String getDescription();
+
+    /**
+     * Returns the project which this task belongs to.
+     *
+     * @return The project.
+     */
+    Project getProject();
 }

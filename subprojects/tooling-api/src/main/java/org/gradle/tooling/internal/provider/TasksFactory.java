@@ -17,26 +17,29 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.tooling.internal.protocol.TaskVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TasksFactory {
-    public List<TaskVersion1> create(Project project) {
-        List<TaskVersion1> tasks = new ArrayList<TaskVersion1>();
+    public List<EclipseTaskVersion1> create(Project project, EclipseProjectVersion3 eclipseProject) {
+        List<EclipseTaskVersion1> tasks = new ArrayList<EclipseTaskVersion1>();
         for (final Task task : project.getTasks()) {
-            tasks.add(new DefaultTaskVersion1(task.getPath(), task.getName(), task.getDescription()));
+            tasks.add(new DefaultTaskVersion1(eclipseProject, task.getPath(), task.getName(), task.getDescription()));
         }
         return tasks;
     }
 
-    private static class DefaultTaskVersion1 implements TaskVersion1 {
+    private static class DefaultTaskVersion1 implements EclipseTaskVersion1 {
+        private final EclipseProjectVersion3 project;
         private final String path;
         private final String name;
         private final String description;
 
-        public DefaultTaskVersion1(String path, String name, String description) {
+        public DefaultTaskVersion1(EclipseProjectVersion3 project, String path, String name, String description) {
+            this.project = project;
             this.path = path;
             this.name = name;
             this.description = description;
@@ -45,6 +48,10 @@ public class TasksFactory {
         @Override
         public String toString() {
             return String.format("task '%s'", path);
+        }
+
+        public EclipseProjectVersion3 getProject() {
+            return project;
         }
 
         public String getPath() {

@@ -24,4 +24,6 @@ public interface TaskVersion1 {
     String getName();
 
     String getDescription();
+
+    ProjectVersion3 getProject();
 }
