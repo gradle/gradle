@@ -53,6 +53,11 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *     //if you don't like the name Gradle have chosen
  *     name = 'some-better-name'
  *
+ *     //if you prefer different output folders
+ *     inheritOutputDirs = false
+ *     outputDir = file('muchBetterOutputDir')
+ *     testOutputDir = file('muchBetterTestOutputDir')
+ *
  *     //if you need to put provided dependencies on the classpath
  *     scopes.COMPILE.plus += configurations.provided
  *
@@ -146,6 +151,22 @@ class IdeaModule {
      */
     Set<File> excludeDirs
 
+    /**
+     * If true, output directories for this module will be located below the output directory for the project;
+     * otherwise, they will be set to the directories specified by {@link #outputDir} and {@link #testOutputDir}.
+     */
+    Boolean inheritOutputDirs
+
+    /**
+     * The output directory for production classes. If {@code null}, no entry will be created.
+     */
+    File outputDir
+
+    /**
+     * The output directory for test classes. If {@code null}, no entry will be created.
+     */
+    File testOutputDir
+
     protected Set<Path> getSourcePaths(PathFactory pathFactory) {
         getSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
     }
@@ -160,5 +181,13 @@ class IdeaModule {
 
     protected Set<Path> getExcludePaths(PathFactory pathFactory) {
         getExcludeDirs().collect { pathFactory.path(it) }
+    }
+
+    protected Path getOutputPath(PathFactory pathFactory) {
+        getOutputDir() ? pathFactory.path(getOutputDir()) : null
+    }
+
+    protected Path getTestOutputPath(PathFactory pathFactory) {
+        getTestOutputDir() ? pathFactory.path(getTestOutputDir()) : null
     }
 }

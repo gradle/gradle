@@ -31,6 +31,8 @@ class IdeaNewModelTest extends AbstractIdeIntegrationTest {
         testResources.dir.create {
             additionalCustomSources {}
             additionalCustomTestSources {}
+            muchBetterOutputDir {}
+            muchBetterTestOutputDir {}
             customImlFolder {}
             excludeMePlease {}
             customModuleContentRoot {}
@@ -54,12 +56,18 @@ idea {
         name = 'foo'
         generateTo = file('customImlFolder')
         moduleDir = file('customModuleContentRoot')
+
         sourceDirs += file('additionalCustomSources')
         testSourceDirs += file('additionalCustomTestSources')
+        excludeDirs += file('excludeMePlease')
+
         scopes.PROVIDED.plus += configurations.provided
         downloadJavadoc = true
         downloadSources = false
-        excludeDirs += file('excludeMePlease')
+
+        inheritOutputDirs = false
+        outputDir = file('muchBetterOutputDir')
+        testOutputDir = file('muchBetterTestOutputDir')
     }
 }
 '''
@@ -74,7 +82,11 @@ idea {
         ['.gradle', 'build', 'excludeMePlease'].each { expectedExclusion ->
             assert iml.component.content.excludeFolder.find { it.@url.text().endsWith(expectedExclusion) }
         }
+        assert iml.component.output.@url.text().endsWith('muchBetterOutputDir')
+        assert iml.component."output-test".@url.text().endsWith('muchBetterTestOutputDir')
     }
+
+    //TODO: test with inheritOutputDirs=true
 
     private parseImlFile(Map options = [:], String projectName) {
         parseFile(options, "${projectName}.iml")

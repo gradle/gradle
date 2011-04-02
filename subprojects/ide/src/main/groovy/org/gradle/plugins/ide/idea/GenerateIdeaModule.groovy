@@ -101,22 +101,37 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     /**
      * If true, output directories for this module will be located below the output directory for the project;
-     * otherwise, they will be set to the directories specified by {@link #outputDir} and {@link #testOutputDir}.
+     * otherwise, they will be set to the directories specified by #outputDir and #testOutputDir.
      */
-    @Input @Optional
-    Boolean inheritOutputDirs
+    Boolean getInheritOutputDirs() {
+        module.inheritOutputDirs
+    }
+
+    void setInheritOutputDirs(Boolean inheritOutputDirs) {
+        module.inheritOutputDirs
+    }
 
     /**
      * The output directory for production classes. If {@code null}, no entry will be created.
      */
-    @Input @Optional
-    File outputDir
+    File getOutputDir() {
+        module.outputDir
+    }
+
+    void setOutputDir(File outputDir) {
+        module.outputDir
+    }
 
     /**
      * The output directory for test classes. If {@code null}, no entry will be created.
      */
-    @Input @Optional
-    File testOutputDir
+    File getTestOutputDir() {
+        module.testOutputDir
+    }
+
+    void setTestOutputDir(File testOutputDir) {
+        module.testOutputDir
+    }
 
     /**
      * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (inherited)
@@ -194,15 +209,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     @Override protected void configure(Module xmlModule) {
-        xmlModule.configure(inheritOutputDirs, getOutputPath(), getTestOutputPath(), javaVersion)
-    }
-
-    protected Path getOutputPath() {
-        getOutputDir() ? getPath(getOutputDir()) : null
-    }
-
-    protected Path getTestOutputPath() {
-        getTestOutputDir() ? getPath(getTestOutputDir()) : null
+        xmlModule.configure(javaVersion)
     }
 
     protected Path getPath(File file) {
