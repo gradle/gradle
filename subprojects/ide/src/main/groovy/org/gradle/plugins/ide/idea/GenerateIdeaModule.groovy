@@ -58,8 +58,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The content root directory of the module.
      */
-    @Input
-    File moduleDir
+    File getModuleDir() {
+        module.moduleDir
+    }
+
+    void setModuleDir(File moduleDir) {
+        module.moduleDir = moduleDir
+    }
 
     /**
      * The directories containing the production sources.
@@ -179,12 +184,8 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     @Override protected void configure(Module xmlModule) {
-        xmlModule.configure(getContentPath(), getTestSourcePaths(), getExcludePaths(),
+        xmlModule.configure(getTestSourcePaths(), getExcludePaths(),
                 inheritOutputDirs, getOutputPath(), getTestOutputPath(), javaVersion)
-    }
-
-    protected Path getContentPath() {
-        getPath(getModuleDir())
     }
 
     protected Path getOutputPath() {

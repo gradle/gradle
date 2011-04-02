@@ -31,6 +31,7 @@ class IdeaNewModelTest extends AbstractIdeIntegrationTest {
         testResources.dir.create {
             additionalCustomSources {}
             customImlFolder {}
+            customModuleContentRoot {}
             src { main { java {} } }
         }
 
@@ -54,6 +55,7 @@ idea {
         downloadJavadoc = true
         downloadSources = false
         generateTo = file('customImlFolder')
+        moduleDir = file('customModuleContentRoot')
     }
 }
 '''
@@ -63,6 +65,7 @@ idea {
         ['additionalCustomSources', 'src/main/java'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
         }
+        iml.component.content.@url.text().endsWith('customModuleContentRoot')
     }
 
     private parseImlFile(Map options = [:], String projectName) {

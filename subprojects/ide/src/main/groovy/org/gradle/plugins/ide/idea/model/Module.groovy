@@ -146,8 +146,9 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    void configure(Path contentPath, Set testSourceFolders, Set excludeFolders, Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, String javaVersion) {
+    void configure(Set testSourceFolders, Set excludeFolders, Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, String javaVersion) {
         def dependencies = module.getDependencies(pathFactory)
+        def contentPath = pathFactory.path(module.moduleDir)
         //TODO SF: below delegation is only until we finish the refactoring of GeneratorTasks. It helps reusing existing unit test at the moment.
         configure(contentPath, testSourceFolders, excludeFolders, inheritOutputDirs, outputDir, testOutputDir, dependencies, javaVersion)
     }

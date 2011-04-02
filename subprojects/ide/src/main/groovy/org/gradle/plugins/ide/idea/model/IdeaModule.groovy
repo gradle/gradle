@@ -53,6 +53,9 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *     //if you like to keep *.iml in a secret folder
  *     generateTo = file('secret-modules-folder')
  *
+ *     //if 'content root' (as IDEA calls it) of the module is different
+ *     moduleDir = file('my-module-content-root')
+ *
  *     //if you love browsing javadocs
  *     downloadJavadoc = true
  *
@@ -121,6 +124,11 @@ class IdeaModule {
      * Folder where the *.iml file will be generated to
      */
     File generateTo
+
+    /**
+     * The content root directory of the module.
+     */
+    File moduleDir
 
     protected Set<Path> getSourcePaths(PathFactory pathFactory) {
         getSourceDirs().findAll { it.exists() }.collect { pathFactory.path(it) }
