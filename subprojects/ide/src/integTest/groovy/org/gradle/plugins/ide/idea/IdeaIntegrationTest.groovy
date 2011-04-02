@@ -21,10 +21,10 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -161,6 +161,24 @@ idea << {
 }
 '''
 
+    }
+
+    @Test
+    void triggersWithXmlConfigurationHooks() {
+        runIdeaTask '''
+apply plugin: 'java'
+apply plugin: 'idea'
+
+def hookActivated = 0
+
+ideaModule {
+    withXml { hookActivated++ }
+}
+
+idea << {
+    assert hookActivated == 1 : "withXml() hook shoold be fired"
+}
+'''
     }
 
     private void assertHasExpectedContents(String path) {
