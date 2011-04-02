@@ -49,8 +49,8 @@ import java.io.File;
 public class GeneratorTask<T> extends ConventionTask implements ConfigurationTarget {
     private File inputFile;
     private File outputFile;
-    private final ActionBroadcast<T> beforeConfigured = new ActionBroadcast<T>();
-    private final ActionBroadcast<T> afterConfigured = new ActionBroadcast<T>();
+    protected final ActionBroadcast<T> beforeConfigured = new ActionBroadcast<T>();
+    protected final ActionBroadcast<T> afterConfigured = new ActionBroadcast<T>();
     protected Generator<T> generator;
 
     protected T domainObject;

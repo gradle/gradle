@@ -15,8 +15,7 @@
  */
 package org.gradle.plugins.ide.idea
 
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.Project
 import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
 import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
 import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
@@ -24,11 +23,10 @@ import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
-class IdeaConfigurer extends ConventionTask {
+class IdeaConfigurer {
 
-    @TaskAction
-    void configure() {
-        def ideaProjects = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }
+    void configure(Project theProject) {
+        def ideaProjects = theProject.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }
         new ProjectDeduper().dedupe(ideaProjects, { project ->
             new DeduplicationTarget(project: project, moduleName: project.ideaModule.moduleName, moduleNameSetter: { project.ideaModule.moduleName = it } )
         })
@@ -36,5 +34,8 @@ class IdeaConfigurer extends ConventionTask {
         ideaProjects.each { project ->
             project.tasks.withType(ConfigurationTarget) { it.configureDomainObject() }
         }
+
+        //creation of the domainObject... Necessary for backwards compatibility for now
+        theProject.ideaModule.configureDomainObjectNow()
     }
 }

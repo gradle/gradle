@@ -18,11 +18,11 @@ package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.plugins.ide.idea.model.IdeaModule
+import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 
 /**
@@ -46,17 +46,13 @@ class IdeaPlugin extends IdePlugin {
         model = project.services.get(ClassGenerator).newInstance(IdeaModel)
         project.convention.plugins.idea = model
 
-        configureIdeaConfigurer(project)
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
         configureIdeaModule(project)
         configureForJavaPlugin(project)
-    }
 
-    private configureIdeaConfigurer(Project project) {
-        def root = project.rootProject
-        if (!root.tasks.findByName('ideaConfigurer')) {
-            root.task('ideaConfigurer', description: 'Performs extra configuration on idea generator tasks', type: IdeaConfigurer)
+        project.afterEvaluate {
+            new IdeaConfigurer().configure(project)
         }
     }
 
@@ -66,7 +62,6 @@ class IdeaPlugin extends IdePlugin {
                 outputFile = new File(project.projectDir, project.name + ".iws")
             }
             addWorker(task)
-            shouldDependOnConfigurer(task)
         }
     }
 
@@ -83,10 +78,18 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.moduleDir = { project.projectDir }
             module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
             module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
+
+            module.conventionMapping.pathFactory = {
+                PathFactory factory = new PathFactory()
+                factory.addPathVariable('MODULE_DIR', outputFile.parentFile)
+                variables.each { key, value ->
+                    factory.addPathVariable(key, value)
+                }
+                factory
+            }
         }
 
         addWorker(task)
-        shouldDependOnConfigurer(task)
     }
 
     private configureIdeaProject(Project project) {
@@ -98,14 +101,7 @@ class IdeaPlugin extends IdePlugin {
                 wildcards = ['!?*.java', '!?*.groovy']
             }
             addWorker(task)
-            shouldDependOnConfigurer(task)
         }
-    }
-
-    private shouldDependOnConfigurer(Task task) {
-        def ideaConfigurer = task.project.rootProject.ideaConfigurer
-        task.dependsOn(ideaConfigurer)
-        getCleanTask(task).dependsOn(ideaConfigurer)
     }
 
     private configureForJavaPlugin(Project project) {

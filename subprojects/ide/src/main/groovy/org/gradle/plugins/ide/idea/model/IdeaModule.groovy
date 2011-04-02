@@ -77,8 +77,8 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *     //and hate reading sources :)
  *     downloadSources = false
  *
- *     //if you want parts of paths in resulting *.iml to be replaced by variables
- *     variables = [GRADLE_HOME: '~/cool-software/gradle']
+ *     //if you want parts of paths in resulting *.iml to be replaced by variables (files)
+ *     variables = [GRADLE_HOME: file('~/cool-software/gradle')]
  *
  *     //if you want to mess with the resulting xml in whatever way you fancy
  *     withXml {
@@ -96,6 +96,8 @@ class IdeaModule {
 
     org.gradle.api.Project project
     XmlTransformer xmlTransformer
+    Module xmlModule
+    PathFactory pathFactory
 
    /**
      * Idea module name; controls the name of the *.iml file
@@ -194,6 +196,19 @@ class IdeaModule {
      */
     String javaVersion = Module.INHERITED
 
+    /**
+     * Adds a closure to be called when the XML document has been created. The XML is passed to the closure as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML before
+     * it is written to the output file.
+     *
+     * @param closure The closure to execute when the XML has been created.
+     */
+    public void withXml(Closure closure) {
+        xmlTransformer.addAction(closure);
+    }
+
+    //TODO SF: most likely what's above should be a part of an interface and what's below should not be exposed. For now, below methods are protected
+
     protected File getOutputFile() {
         new File((File) getGenerateTo(), getName() + ".iml")
     }
@@ -227,14 +242,14 @@ class IdeaModule {
         getTestOutputDir() ? pathFactory.path(getTestOutputDir()) : null
     }
 
-    /**
-     * Adds a closure to be called when the XML document has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML before
-     * it is written to the output file.
-     *
-     * @param closure The closure to execute when the XML has been created.
-     */
-    public void withXml(Closure closure) {
-        xmlTransformer.addAction(closure);
+    protected void applyXmlModule(Module xmlModule) {
+        xmlModule.pathFactory = getPathFactory()
+        //TODO SF: refactor
+        xmlModule.configure(this)
+        this.xmlModule = xmlModule
+    }
+
+    protected void generate() {
+        xmlModule.store(getOutputFile())
     }
 }

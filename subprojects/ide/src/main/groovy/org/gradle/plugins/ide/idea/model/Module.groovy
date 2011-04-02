@@ -72,14 +72,8 @@ class Module extends XmlPersistableConfigurationObject {
 
     PathFactory pathFactory = new PathFactory()
 
-    /**
-     * idea module model
-     */
-    IdeaModule module
-
-    Module(XmlTransformer withXmlActions, IdeaModule module) {
+    Module(XmlTransformer withXmlActions) {
         super(withXmlActions)
-        this.module = module
     }
 
     @Override protected String getDefaultResourceName() {
@@ -146,20 +140,23 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    void configure() {
+    void configure(IdeaModule module) {
+
+        def sourcePaths = module.getSourcePaths(pathFactory)
         def dependencies = module.getDependencies(pathFactory)
         def contentPath = pathFactory.path(module.moduleDir)
         def testSourcePaths = module.getTestSourcePaths(pathFactory)
         def excludePaths = module.getExcludePaths(pathFactory)
         def outputPath = module.getOutputPath(pathFactory)
         def testOutputPath = module.getTestOutputPath(pathFactory)
+
         //TODO SF: below delegation is only until we finish the refactoring of GeneratorTasks. It helps reusing existing unit test at the moment.
-        configure(contentPath, testSourcePaths, excludePaths, module.inheritOutputDirs, outputPath, testOutputPath, dependencies, module.javaVersion)
+        configure(contentPath, sourcePaths, testSourcePaths, excludePaths, module.inheritOutputDirs, outputPath, testOutputPath, dependencies, module.javaVersion)
     }
 
-    protected def configure(Path contentPath, Set testSourceFolders, Set excludeFolders, Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies, String javaVersion) {
+    protected def configure(Path contentPath, Set sourceFolders, Set testSourceFolders, Set excludeFolders, Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies, String javaVersion) {
         this.contentPath = contentPath
-        sourceFolders.addAll(module.getSourcePaths(pathFactory))
+        this.sourceFolders.addAll(sourceFolders)
         this.testSourceFolders.addAll(testSourceFolders)
         this.excludeFolders.addAll(excludeFolders)
         if (inheritOutputDirs != null) {

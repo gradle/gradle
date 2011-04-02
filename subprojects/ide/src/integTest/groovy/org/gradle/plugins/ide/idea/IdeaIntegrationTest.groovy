@@ -160,6 +160,7 @@ idea << {
     assert whenConfiguredObjects == 3 : "whenConfigured() hooks shoold be fired for domain model objects"
 }
 '''
+        //TODO SF: I want a proper integration test that checks if whenConfigured actually configures the domain object
 
     }
 

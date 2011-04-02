@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.Module
-import org.gradle.plugins.ide.idea.model.PathFactory
 
 /**
  * Generates an IDEA module file.
@@ -52,19 +51,36 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     IdeaModule module
 
+    //TODO SF: IMPORTANT
+    //for the sake of backwards compatibility there are lots of hacks here.
+    // - overridden methods with no implementation
+    // - configureDomainObjectNow() method that is called after projects evaluated
+    // - delegating getters & setters
+    //Once we decide to break backwards compatibility below madness will be gone
+    //and the implementation of this task will dwindle into few lines of code or disappear completely
+
     @Override protected Module create() {
-        Module xmlModule = new Module(xmlTransformer, getModule())
-        PathFactory factory = new PathFactory()
-        factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
-        variables.each { key, value ->
-            factory.addPathVariable(key, value)
-        }
-        xmlModule.pathFactory = factory
+        Module xmlModule = new Module(xmlTransformer)
         return xmlModule
     }
 
     @Override protected void configure(Module xmlModule) {
-        xmlModule.configure()
+        //do nothing, we configure the object at configuration time
+    }
+
+    @Override public void configureDomainObject() {
+        //just like above
+    }
+
+    public void configureDomainObjectNow() {
+        if (getInputFile().exists()) {
+            domainObject = generator.read(getInputFile());
+        } else {
+            domainObject = generator.defaultInstance();
+        }
+        beforeConfigured.execute(domainObject);
+        getModule().applyXmlModule(domainObject)
+        afterConfigured.execute(domainObject);
     }
 
     /**

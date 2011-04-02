@@ -31,27 +31,6 @@ class IdeaPluginTest extends Specification {
     private final Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
     private final IdeaPlugin ideaPlugin = new IdeaPlugin()
 
-    def "adds configurer task to root project only"() {
-        when:
-        applyPluginToProjects()
-
-        then:
-        project.ideaConfigurer instanceof IdeaConfigurer
-        childProject.tasks.findByName('ideaConfigurer') == null
-    }
-
-    def "makes all generation and clean tasks depend on configurer"() {
-        when:
-        applyPluginToProjects()
-
-        then:
-        [project.ideaWorkspace, project.cleanIdeaWorkspace,
-         project.ideaModule, project.cleanIdeaModule,
-         project.ideaProject, project.cleanIdeaProject].each {
-            assert it.dependsOn.contains(project.rootProject.ideaConfigurer)
-        }
-    }
-
     def "adds 'ideaProject' task to root project"() {
         when:
         applyPluginToProjects()
