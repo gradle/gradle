@@ -401,25 +401,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return projectRegistry;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        AbstractProject that = (AbstractProject) o;
-
-        return path.equals(that.path);
-    }
-
-    @Override
-    public int hashCode() {
-        return path.hashCode();
-    }
-
     public int depthCompare(Project otherProject) {
         return new Integer(getDepth()).compareTo(otherProject.getDepth());
     }

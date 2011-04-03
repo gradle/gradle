@@ -43,7 +43,6 @@ import java.io.File;
 import java.util.*;
 
 import static org.gradle.util.Matchers.isEmpty;
-import static org.gradle.util.Matchers.strictlyEqual;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -343,15 +342,6 @@ public class DefaultConfigurationTest {
     @Test
     public void uploadTaskName() {
         assertThat(configuration.getUploadTaskName(), equalTo("uploadName"));
-    }
-
-    @Test
-    public void equality() {
-        Configuration sameConf = createNamedConfiguration("path", "name");
-        Configuration differentPath = createNamedConfiguration("other", "name");
-
-        assertThat(configuration, strictlyEqual(sameConf));
-        assertThat(configuration, not(equalTo(differentPath)));
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {

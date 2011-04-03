@@ -341,24 +341,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Configurations.uploadTaskName(getName());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultConfiguration that = (DefaultConfiguration) o;
-        return path.equals(that.path);
-    }
-
-    @Override
-    public int hashCode() {
-        return path.hashCode();
-    }
-
     public String getDisplayName() {
         return String.format("configuration '%s'", path);
     }
