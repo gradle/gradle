@@ -32,27 +32,12 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     IdeaProject ideaProject;
 
     @Override protected void configure(Project xmlModule) {
-        //do nothing, we configure the object at configuration time
-    }
-
-    @Override public void configureDomainObject() {
-        //just like above
+        getIdeaProject().applyXmlProject(xmlModule)
     }
 
     @Override Project create() {
         def project = new Project(xmlTransformer)
         return project
-    }
-
-    public void configureDomainObjectNow() {
-        if (getInputFile().exists()) {
-            domainObject = generator.read(getInputFile());
-        } else {
-            domainObject = generator.defaultInstance();
-        }
-        beforeConfigured.execute(domainObject);
-        getIdeaProject().applyXmlProject(domainObject)
-        afterConfigured.execute(domainObject);
     }
 
     /**

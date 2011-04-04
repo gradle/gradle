@@ -34,11 +34,5 @@ class IdeaConfigurer {
         ideaProjects.each { project ->
             project.tasks.withType(ConfigurationTarget) { it.configureDomainObject() }
         }
-
-        //creation of the domainObject... Necessary for backwards compatibility for now
-        theProject.ideaModule.configureDomainObjectNow()
-        if (theProject.rootProject.plugins.hasPlugin(IdeaPlugin)) {
-            theProject.rootProject.ideaProject.configureDomainObjectNow()
-        }
     }
 }

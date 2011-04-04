@@ -65,23 +65,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     @Override protected void configure(Module xmlModule) {
-        //do nothing, we configure the object at configuration time
-    }
-
-    @Override public void configureDomainObject() {
-        //just like above
-    }
-
-    public void configureDomainObjectNow() {
-        //TODO SF: it's possible to simplify this class and rip the hierarchies
-        if (getInputFile().exists()) {
-            domainObject = generator.read(getInputFile());
-        } else {
-            domainObject = generator.defaultInstance();
-        }
-        beforeConfigured.execute(domainObject);
-        getModule().applyXmlModule(domainObject)
-        afterConfigured.execute(domainObject);
+        getModule().applyXmlModule(xmlModule)
     }
 
     /**
