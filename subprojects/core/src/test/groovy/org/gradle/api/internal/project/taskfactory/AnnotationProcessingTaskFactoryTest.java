@@ -16,14 +16,20 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
+import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.collections.FileCollectionInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.*;
-import org.gradle.util.*;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -33,7 +39,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.Matchers.isEmpty;
@@ -314,7 +323,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void skipsTaskWhenInputFileCollectionIsEmpty() {
-        final FileCollectionInternal inputFiles = context.mock(FileCollectionInternal.class);
+        final FileCollection inputFiles = context.mock(FileCollection.class);
         context.checking(new Expectations() {{
             one(inputFiles).isEmpty();
             will(returnValue(true));

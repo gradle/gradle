@@ -17,14 +17,14 @@ package org.gradle.api.internal.tasks
 
 import java.util.concurrent.Callable
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.collections.FileTreeInternal
 import spock.lang.Specification
 
 class DefaultTaskInputsTest extends Specification {
     private final File treeFile = new File('tree')
-    private final FileTreeInternal tree = [getFiles: { [treeFile] as Set}] as FileTreeInternal
+    private final FileTree tree = [getFiles: { [treeFile] as Set}] as FileTree
     private final FileResolver resolver = [
             resolve: {new File(it)},
             resolveFilesAsTree: {tree}

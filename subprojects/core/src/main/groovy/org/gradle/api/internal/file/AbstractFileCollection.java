@@ -31,7 +31,7 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.*;
 
-public abstract class AbstractFileCollection implements FileCollectionInternal {
+public abstract class AbstractFileCollection implements FileCollection, MinimalFileSet {
     /**
      * Returns the display name of this file collection. Used in log and error messages.
      *
@@ -175,7 +175,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return new DefaultTaskDependency();
     }
 
-    public FileTreeInternal getAsFileTree() {
+    public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
             public void resolve(FileCollectionResolveContext context) {

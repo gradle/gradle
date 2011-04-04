@@ -20,10 +20,10 @@ import java.util.Collection;
 
 public class SimpleFileCollection extends FileCollectionAdapter {
     public SimpleFileCollection(File... files) {
-        super(new ListBackedFileCollection(files));
+        super(new ListBackedFileSet(files));
     }
 
     public SimpleFileCollection(Collection<File> files) {
-        super(new ListBackedFileCollection(files));
+        super(new ListBackedFileSet(files));
     }
 }

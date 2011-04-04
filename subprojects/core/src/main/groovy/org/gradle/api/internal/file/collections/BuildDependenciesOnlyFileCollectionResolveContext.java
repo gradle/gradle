@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.tasks.TaskDependency;
@@ -42,8 +43,8 @@ public class BuildDependenciesOnlyFileCollectionResolveContext extends DefaultFi
         return resolveAsFileCollections();
     }
 
-    private static class BuildableFileTreeInternalConverter implements Converter<FileTreeInternal> {
-        public void convertInto(Object element, Collection<? super FileTreeInternal> result, FileResolver resolver) {
+    private static class BuildableFileTreeInternalConverter implements Converter<FileTree> {
+        public void convertInto(Object element, Collection<? super FileTree> result, FileResolver resolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
                 result.addAll(nestedContext.resolveAsFileTrees());

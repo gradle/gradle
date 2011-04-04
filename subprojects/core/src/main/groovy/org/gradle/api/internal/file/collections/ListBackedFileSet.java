@@ -21,16 +21,16 @@ import java.io.File;
 import java.util.*;
 
 /**
- * Adapts a java util collection into a file collection.
+ * Adapts a java util collection into a file set.
  */
-public class ListBackedFileCollection implements MinimalFileCollection {
+public class ListBackedFileSet implements MinimalFileSet {
     private final Set<File> files;
 
-    public ListBackedFileCollection(File... files) {
+    public ListBackedFileSet(File... files) {
         this(Arrays.asList(files));
     }
 
-    public ListBackedFileCollection(Collection<File> files) {
+    public ListBackedFileSet(Collection<File> files) {
         this.files = new LinkedHashSet<File>(files);
     }
 

@@ -26,7 +26,7 @@ public interface FileCollectionResolveContext {
      *     <li>{@link groovy.lang.Closure} - return value is recursively resolved, if not null.
      *     <li>{@link java.util.concurrent.Callable} - return value is recursively resolved, if not null.
      *     <li>{@link org.gradle.api.file.FileCollection} - resolved as is.
-     *     <li>{@link MinimalFileCollection} - wrapped as a {@link org.gradle.api.file.FileCollection}.
+     *     <li>{@link MinimalFileSet} - wrapped as a {@link org.gradle.api.file.FileCollection}.
      *     <li>{@link MinimalFileTree} - wrapped as a {@link org.gradle.api.file.FileTree}.
      *     <li>{@link FileCollectionContainer} - recursively resolved.
      *     <li>{@link org.gradle.api.tasks.TaskDependency} - resolved to an empty {@link org.gradle.api.file.FileCollection} which is builtBy the given dependency.

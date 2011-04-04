@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
@@ -36,8 +35,8 @@ import org.junit.runner.RunWith;
 @RunWith(JMock.class)
 public class CompositeFileTreeTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
-    private final FileTreeInternal source1 = context.mock(FileTreeInternal.class);
-    private final FileTreeInternal source2 = context.mock(FileTreeInternal.class);
+    private final FileTree source1 = context.mock(FileTree.class);
+    private final FileTree source2 = context.mock(FileTree.class);
     private final CompositeFileTree tree = new CompositeFileTree() {
         @Override
         public String getDisplayName() {
@@ -54,8 +53,8 @@ public class CompositeFileTreeTest {
     @Test
     public void matchingWithClosureReturnsUnionOfFilteredSets() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
-        final FileTreeInternal filtered1 = context.mock(FileTreeInternal.class);
-        final FileTreeInternal filtered2 = context.mock(FileTreeInternal.class);
+        final FileTree filtered1 = context.mock(FileTree.class);
+        final FileTree filtered2 = context.mock(FileTree.class);
 
         context.checking(new Expectations() {{
             one(source1).matching(closure);
@@ -74,8 +73,8 @@ public class CompositeFileTreeTest {
     @Test
     public void matchingWithPatternSetReturnsUnionOfFilteredSets() {
         final PatternSet patternSet = new PatternSet();
-        final FileTreeInternal filtered1 = context.mock(FileTreeInternal.class);
-        final FileTreeInternal filtered2 = context.mock(FileTreeInternal.class);
+        final FileTree filtered1 = context.mock(FileTree.class);
+        final FileTree filtered2 = context.mock(FileTree.class);
 
         context.checking(new Expectations() {{
             one(source1).matching(patternSet);
@@ -93,7 +92,7 @@ public class CompositeFileTreeTest {
 
     @Test
     public void plusReturnsUnionOfThisTreeAndSourceTree() {
-        FileTreeInternal other = context.mock(FileTreeInternal.class);
+        FileTree other = context.mock(FileTree.class);
 
         FileTree sum = tree.plus(other);
         assertThat(sum, instanceOf(CompositeFileTree.class));

@@ -22,13 +22,13 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileTreeElement;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
  * @author Steve Appling
  */
 public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree {
-    private static Logger logger = LoggerFactory.getLogger(DirectoryFileTree.class);
+    private static final Logger LOGGER = Logging.getLogger(DirectoryFileTree.class);
 
     private final File root;
     private PatternSet patternSet;
@@ -68,6 +68,11 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         String includes = patternSet.getIncludes().isEmpty() ? "" : String.format(" include %s", GUtil.toString(patternSet.getIncludes()));
         String excludes = patternSet.getExcludes().isEmpty() ? "" : String.format(" exclude %s", GUtil.toString(patternSet.getExcludes()));
         return String.format("directory '%s'%s%s", root, includes, excludes);
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     public PatternSet getPatternSet() {
@@ -117,7 +122,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
                 walkDir(root, new RelativePath(false), visitor, spec, stopFlag);
             }
         } else {
-            logger.info("file or directory '" + root + "', not found");
+            LOGGER.info("file or directory '" + root + "', not found");
         }
     }
 

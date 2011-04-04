@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileTree;
+import java.io.File;
+import java.util.Set;
 
-public interface FileTreeInternal extends FileTree, FileCollectionInternal {
-    FileTreeInternal getAsFileTree();
+/**
+ * A minimal file set.
+ */
+public interface MinimalFileSet extends MinimalFileCollection {
+    Set<File> getFiles();
 }

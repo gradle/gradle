@@ -15,9 +15,6 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import java.io.File;
-import java.util.Set;
-
 /**
  * A minimal file collection. An implementation can optionally also implement the following interfaces:
  *
@@ -27,7 +24,5 @@ import java.util.Set;
  * </ul>
  */
 public interface MinimalFileCollection {
-    Set<File> getFiles();
-
     String getDisplayName();
 }

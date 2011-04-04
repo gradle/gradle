@@ -16,7 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.FileTreeInternal;
+import org.gradle.api.file.FileTree;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class UnionFileTreeTest {
 
     @Test
     public void canAddFileTree() {
-        FileTreeInternal set1 = context.mock(FileTreeInternal.class, "set1");
+        FileTree set1 = context.mock(FileTree.class, "set1");
 
         set.add(set1);
         assertThat(set.getSourceCollections(), equalTo((Iterable) toList((Object) set1)));

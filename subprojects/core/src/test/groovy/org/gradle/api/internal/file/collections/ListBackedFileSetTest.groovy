@@ -16,20 +16,19 @@
 package org.gradle.api.internal.file.collections
 
 import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+
 import spock.lang.Specification
 
-class ListBackedFileCollectionTest extends Specification {
+class ListBackedFileSetTest extends Specification {
 
     public void hasUsefulDisplayName() {
         def testFile = new File('test-file')
         def testFile2 = new File('test-file2')
 
         expect:
-        new ListBackedFileCollection().displayName == "empty file collection"
-        new ListBackedFileCollection(testFile).displayName == "file '$testFile'"
-        new ListBackedFileCollection(testFile, testFile2).displayName == "files '$testFile', '$testFile2'"
+        new ListBackedFileSet().displayName == "empty file collection"
+        new ListBackedFileSet(testFile).displayName == "file '$testFile'"
+        new ListBackedFileSet(testFile, testFile2).displayName == "files '$testFile', '$testFile2'"
     }
 
     @Test
@@ -37,6 +36,6 @@ class ListBackedFileCollectionTest extends Specification {
         def testFile = new File('test-file')
 
         expect:
-        new ListBackedFileCollection(testFile).files == [testFile] as Set
+        new ListBackedFileSet(testFile).files == [testFile] as Set
     }
 }

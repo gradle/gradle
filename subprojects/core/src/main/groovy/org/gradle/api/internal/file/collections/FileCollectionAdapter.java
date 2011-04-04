@@ -23,13 +23,13 @@ import java.io.File;
 import java.util.Set;
 
 /**
- * Adapts a {@link MinimalFileCollection} into a full {@link org.gradle.api.file.FileCollection}.
+ * Adapts a {@link MinimalFileSet} into a full {@link org.gradle.api.file.FileCollection}.
  */
 public class FileCollectionAdapter extends AbstractFileCollection implements FileCollectionContainer {
-    private final MinimalFileCollection fileCollection;
+    private final MinimalFileSet fileCollection;
 
-    public FileCollectionAdapter(MinimalFileCollection fileCollection) {
-        this.fileCollection = fileCollection;
+    public FileCollectionAdapter(MinimalFileSet fileSet) {
+        this.fileCollection = fileSet;
     }
 
     @Override

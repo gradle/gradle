@@ -17,7 +17,6 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.FileCollectionInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,15 +26,15 @@ public class DefaultFileCacheListener implements FileCacheListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileCacheListener.class);
 
     public void cacheable(FileCollection files) {
-        List<FileCollectionInternal> collections = new DefaultFileCollectionResolveContext().add(files).resolveAsFileCollections();
-        for (FileCollectionInternal collection : collections) {
+        List<FileCollection> collections = new DefaultFileCollectionResolveContext().add(files).resolveAsFileCollections();
+        for (FileCollection collection : collections) {
             LOGGER.debug("Can cache files for {}", collection);
         }
     }
 
     public void invalidate(FileCollection files) {
-        List<FileCollectionInternal> collections = new DefaultFileCollectionResolveContext().add(files).resolveAsFileCollections();
-        for (FileCollectionInternal collection : collections) {
+        List<FileCollection> collections = new DefaultFileCollectionResolveContext().add(files).resolveAsFileCollections();
+        for (FileCollection collection : collections) {
             LOGGER.debug("Invalidate cached files for {}", collection);
         }
     }

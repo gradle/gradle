@@ -211,7 +211,7 @@ public class DefaultConfigurableFileCollectionTest {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        final FileCollectionInternal src = context.mock(FileCollectionInternal.class);
+        final FileCollection src = context.mock(FileCollection.class);
 
         collection.from(src);
 

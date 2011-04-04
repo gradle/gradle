@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -78,7 +79,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    public FileTreeInternal getAsFileTree() {
+    public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
             public void resolve(FileCollectionResolveContext context) {

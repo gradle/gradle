@@ -18,6 +18,8 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
+import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileCollection
 
 class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specification {
     final BuildDependenciesOnlyFileCollectionResolveContext context = new BuildDependenciesOnlyFileCollectionResolveContext()
@@ -39,7 +41,7 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
     }
 
     def resolveAsBuildableWrapsAMinimalFileCollectionWhichImplementsBuildableInAnEmptyFileTree() {
-        TestFileCollection fileCollection = Mock()
+        TestFileSet fileCollection = Mock()
         TaskDependency buildDependency = Mock()
 
         when:
@@ -82,7 +84,7 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
     }
 
     def resolveAsBuildablesForAFileCollection() {
-        FileCollectionInternal fileCollection = Mock()
+        FileCollection fileCollection = Mock()
         TaskDependency dependency = Mock()
 
         when:
@@ -99,7 +101,7 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
 
     def resolveAsBuildablesDelegatesToACompositeFileCollection() {
         FileCollectionContainer composite = Mock()
-        FileTreeInternal contents = Mock()
+        FileTree contents = Mock()
 
         when:
         context.add(composite)

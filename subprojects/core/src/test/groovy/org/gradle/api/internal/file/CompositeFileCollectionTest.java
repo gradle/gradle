@@ -166,10 +166,10 @@ public class CompositeFileCollectionTest {
         assertThat(fileTree, instanceOf(CompositeFileTree.class));
 
         context.checking(new Expectations() {{
-            one(source1).iterator();
-            will(returnIterator(file1));
-            one(source2).iterator();
-            will(returnIterator(file2));
+            one(source1).getFiles();
+            will(returnValue(toSet(file1)));
+            one(source2).getFiles();
+            will(returnValue(toSet(file2)));
         }});
 
         ((CompositeFileTree) fileTree).getSourceCollections();
@@ -180,16 +180,16 @@ public class CompositeFileCollectionTest {
         final File dir1 = new File("dir1");
         final File dir2 = new File("dir1");
         final File dir3 = new File("dir1");
-        final FileCollectionInternal source3 = context.mock(FileCollectionInternal.class);
+        final MinimalFileSet source3 = context.mock(MinimalFileSet.class);
 
         FileTree fileTree = collection.getAsFileTree();
         assertThat(fileTree, instanceOf(CompositeFileTree.class));
 
         context.checking(new Expectations() {{
-            one(source1).iterator();
-            will(returnIterator(dir1));
-            one(source2).iterator();
-            will(returnIterator(dir2));
+            one(source1).getFiles();
+            will(returnValue(toSet(dir1)));
+            one(source2).getFiles();
+            will(returnValue(toSet(dir2)));
         }});
 
         ((CompositeFileTree) fileTree).getSourceCollections();
@@ -197,12 +197,12 @@ public class CompositeFileCollectionTest {
         collection.sourceCollections.add(source3);
 
         context.checking(new Expectations() {{
-            one(source1).iterator();
-            will(returnIterator(dir1));
-            one(source2).iterator();
-            will(returnIterator(dir2));
-            one(source3).iterator();
-            will(returnIterator(dir3));
+            one(source1).getFiles();
+            will(returnValue(toSet(dir1)));
+            one(source2).getFiles();
+            will(returnValue(toSet(dir2)));
+            one(source3).getFiles();
+            will(returnValue(toSet(dir3)));
         }});
 
         ((CompositeFileTree) fileTree).getSourceCollections();
@@ -210,8 +210,8 @@ public class CompositeFileCollectionTest {
 
     @Test
     public void filterDelegatesToEachSet() {
-        final FileCollectionInternal filtered1 = context.mock(FileCollectionInternal.class);
-        final FileCollectionInternal filtered2 = context.mock(FileCollectionInternal.class);
+        final FileCollection filtered1 = context.mock(FileCollection.class);
+        final FileCollection filtered2 = context.mock(FileCollection.class);
         final Spec spec = context.mock(Spec.class);
 
         FileCollection filtered = collection.filter(spec);
@@ -233,7 +233,7 @@ public class CompositeFileCollectionTest {
         final Task task1 = context.mock(Task.class, "task1");
         final Task task2 = context.mock(Task.class, "task2");
         final Task task3 = context.mock(Task.class, "task3");
-        final FileCollectionInternal source3 = context.mock(FileCollectionInternal.class, "source3");
+        final FileCollection source3 = context.mock(FileCollection.class, "source3");
 
         context.checking(new Expectations(){{
             TaskDependency dependency1 = context.mock(TaskDependency.class, "dep1");
@@ -297,10 +297,10 @@ public class CompositeFileCollectionTest {
     }
 
     private class TestCompositeFileCollection extends CompositeFileCollection {
-        private List<FileCollection> sourceCollections;
+        private List<Object> sourceCollections;
 
         public TestCompositeFileCollection(FileCollection... sourceCollections) {
-            this.sourceCollections = new ArrayList<FileCollection>(Arrays.asList(sourceCollections));
+            this.sourceCollections = new ArrayList<Object>(Arrays.asList(sourceCollections));
         }
 
         @Override

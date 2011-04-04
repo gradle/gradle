@@ -22,8 +22,8 @@ import org.gradle.api.tasks.TaskDependency
 class FileCollectionAdapterTest extends Specification {
 
     def delegatesToTargetCollectionToBuildSetOfFiles() {
-        MinimalFileCollection collection = Mock()
-        FileCollectionAdapter adapter = new FileCollectionAdapter(collection)
+        MinimalFileSet fileSet = Mock()
+        FileCollectionAdapter adapter = new FileCollectionAdapter(fileSet)
         def expectedFiles = [new File('a'), new File('b')] as Set
 
         when:
@@ -31,37 +31,37 @@ class FileCollectionAdapterTest extends Specification {
 
         then:
         files == expectedFiles
-        1 * collection.getFiles() >> expectedFiles
+        1 * fileSet.getFiles() >> expectedFiles
         0 * _._
     }
 
     def resolveAddsTargetCollectionToContext() {
-        MinimalFileCollection collection = Mock()
-        FileCollectionAdapter adapter = new FileCollectionAdapter(collection)
+        MinimalFileSet fileSet = Mock()
+        FileCollectionAdapter adapter = new FileCollectionAdapter(fileSet)
         FileCollectionResolveContext context = Mock()
 
         when:
         adapter.resolve(context)
 
         then:
-        1 * context.add(collection)
+        1 * context.add(fileSet)
         0 * _._
     }
 
     def getBuildDependenciesDelegatesToTargetCollectionWhenItImplementsBuildable() {
-        TestFileCollection collection = Mock()
+        TestFileSet fileSet = Mock()
         TaskDependency expectedDependency = Mock()
-        FileCollectionAdapter adapter = new FileCollectionAdapter(collection)
+        FileCollectionAdapter adapter = new FileCollectionAdapter(fileSet)
 
         when:
         def dependencies = adapter.buildDependencies
 
         then:
         dependencies == expectedDependency
-        1 * collection.buildDependencies >> expectedDependency
+        1 * fileSet.buildDependencies >> expectedDependency
     }
 }
 
-interface TestFileCollection extends MinimalFileCollection, Buildable {
+interface TestFileSet extends MinimalFileSet, Buildable {
 
 }

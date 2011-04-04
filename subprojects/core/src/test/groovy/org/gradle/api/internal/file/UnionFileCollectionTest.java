@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.file.collections.FileCollectionInternal;
+import org.gradle.api.file.FileCollection;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -31,8 +31,8 @@ import static org.junit.Assert.assertThat;
 @RunWith(JMock.class)
 public class UnionFileCollectionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final FileCollectionInternal source1 = context.mock(FileCollectionInternal.class, "source1");
-    private final FileCollectionInternal source2 = context.mock(FileCollectionInternal.class, "source2");
+    private final FileCollection source1 = context.mock(FileCollection.class, "source1");
+    private final FileCollection source2 = context.mock(FileCollection.class, "source2");
 
     @Test
     public void containsUnionOfAllSourceCollections() {
