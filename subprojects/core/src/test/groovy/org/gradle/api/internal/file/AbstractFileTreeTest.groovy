@@ -22,6 +22,7 @@ import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory
 
 public class AbstractFileTreeTest extends Specification {
     def isEmptyWhenVisitsNoFiles() {
@@ -57,6 +58,9 @@ public class AbstractFileTreeTest extends Specification {
         PatternSet patterns = new PatternSet()
         assert file1.relativePath.pathString == 'a.txt'
         assert file1.relativePath.segments == ['a.txt'] as String[]
+        PatternSet.GLOBAL_EXCLUDES.each {
+            assert !PatternMatcherFactory.getPatternMatcher(false, true, it).isSatisfiedBy(file1.relativePath)
+        }
         assert patterns.asSpec.isSatisfiedBy(file1)
         assert patterns.asSpec.isSatisfiedBy(file2)
         patterns.include '*.txt'
