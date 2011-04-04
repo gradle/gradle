@@ -97,7 +97,4 @@ idea {
         assert iml.component.orderEntry.any { it.@type.text() == 'jdk' && it.@jdkName.text() == '1.6' }
         assert iml.someInterestingConfiguration.text() == 'hey!'
     }
-
-    //TODO: test with inheritOutputDirs=true
-    //TODO: test with defaults, for example without specyfing javaVersion
 }
