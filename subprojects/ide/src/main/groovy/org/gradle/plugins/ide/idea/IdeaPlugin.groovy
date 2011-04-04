@@ -59,7 +59,7 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaWorkspace(Project project) {
         if (isRoot(project)) {
-            def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: IdeaWorkspace) {
+            def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: GenerateIdeaWorkspace) {
                 outputFile = new File(project.projectDir, project.name + ".iws")
             }
             addWorker(task)

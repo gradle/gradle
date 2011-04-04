@@ -23,7 +23,7 @@ import org.gradle.plugins.ide.idea.model.Workspace
  *
  * @author Hans Dockter
  */
-public class IdeaWorkspace extends XmlGeneratorTask<Workspace> {
+public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
 
     @Override protected Workspace create() {
         return new Workspace(xmlTransformer)

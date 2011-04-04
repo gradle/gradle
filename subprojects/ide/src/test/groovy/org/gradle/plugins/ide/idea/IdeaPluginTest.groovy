@@ -53,7 +53,7 @@ class IdeaPluginTest extends Specification {
         applyPluginToProjects()
 
         then:
-        project.ideaWorkspace instanceof IdeaWorkspace
+        project.ideaWorkspace instanceof GenerateIdeaWorkspace
         assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaWorkspace)
 
         childProject.tasks.findByName('ideaWorkspace') == null

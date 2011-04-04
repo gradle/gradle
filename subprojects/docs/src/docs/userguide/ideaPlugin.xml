@@ -145,7 +145,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.ide.idea.IdeaWorkspace"/></td>
+                <td><apilink class="org.gradle.plugins.ide.idea.GenerateIdeaWorkspace"/></td>
                 <td>Generates the <literal>.iws</literal> file. This task is only added to the root project.</td>
             </tr>
         </table>
@@ -475,7 +475,7 @@
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.idea.IdeaWorkspace"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.GenerateIdeaWorkspace"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Workspace"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Workspace"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
