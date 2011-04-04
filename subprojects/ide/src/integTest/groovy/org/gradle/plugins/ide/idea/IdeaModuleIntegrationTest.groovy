@@ -21,7 +21,7 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
 
-class IdeaNewModelTest extends AbstractIdeIntegrationTest {
+class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 

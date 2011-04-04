@@ -23,20 +23,13 @@ import org.gradle.util.ConfigureUtil
  */
 class IdeaModel {
     IdeaModule module
+    IdeaProject project
 
     void module(Closure closure) {
         ConfigureUtil.configure(closure, getModule())
     }
 
-
-//    idea {
-//        module {
-//            name = 'blah'
-//            srcDirs = [] as Set
-//        }
-//        project {
-//            ...
-//        }
-//    }
-
+    void project(Closure closure) {
+        ConfigureUtil.configure(closure, getProject())
+    }
 }

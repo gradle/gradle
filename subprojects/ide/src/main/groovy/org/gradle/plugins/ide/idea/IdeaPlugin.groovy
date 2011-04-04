@@ -22,6 +22,7 @@ import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.plugins.ide.idea.model.IdeaModule
+import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 
@@ -70,6 +71,7 @@ class IdeaPlugin extends IdePlugin {
             module = services.get(ClassGenerator).newInstance(IdeaModule)
             module.project = project
             module.xmlTransformer = xmlTransformer
+
             model.conventionMapping.module = { module }
 
             module.conventionMapping.sourceDirs = { [] as LinkedHashSet }
@@ -94,11 +96,19 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaProject(Project project) {
         if (isRoot(project)) {
-            def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: IdeaProject) {
-                outputFile = new File(project.projectDir, project.name + ".ipr")
-                subprojects = project.rootProject.allprojects
-                javaVersion = JavaVersion.VERSION_1_6.toString()
-                wildcards = ['!?*.java', '!?*.groovy']
+            def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
+                ideaProject = services.get(ClassGenerator).newInstance(IdeaProject)
+                ideaProject.xmlTransformer = xmlTransformer
+
+                model.conventionMapping.project = { ideaProject }
+
+                ideaProject.conventionMapping.outputFile = { new File(project.projectDir, project.name + ".ipr") }
+                ideaProject.conventionMapping.javaVersion = { JavaVersion.VERSION_1_6.toString() }
+                ideaProject.conventionMapping.wildcards = { ['!?*.java', '!?*.groovy'] as Set }
+                ideaProject.conventionMapping.subprojects = { project.rootProject.allprojects }
+                ideaProject.conventionMapping.pathFactory = {
+                    new PathFactory().addPathVariable('PROJECT_DIR', outputFile.parentFile)
+                }
             }
             addWorker(task)
         }

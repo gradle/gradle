@@ -125,7 +125,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.ide.idea.IdeaProject"/></td>
+                <td><apilink class="org.gradle.plugins.ide.idea.GenerateIdeaProject"/></td>
                 <td>Generates the <literal>.ipr</literal> file. This task is only added to the root project.</td>
             </tr>
             <tr>
@@ -463,7 +463,7 @@
                     </tr>
                 </thead>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.idea.IdeaProject"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.idea.GenerateIdeaProject"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Project"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Project"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>

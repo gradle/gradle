@@ -19,9 +19,10 @@ class PathFactory {
     private final List<Map> variables = []
     private final Map<String, File> varsByName = [:]
 
-    void addPathVariable(String name, File dir) {
+    PathFactory addPathVariable(String name, File dir) {
         variables << [name: "\$${name}\$", prefix: dir.absolutePath + File.separator, dir: dir]
         varsByName[name] = dir
+        return this
     }
 
     /**

@@ -94,11 +94,6 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  */
 class IdeaModule {
 
-    org.gradle.api.Project project
-    XmlTransformer xmlTransformer
-    Module xmlModule
-    PathFactory pathFactory
-
    /**
      * Idea module name; controls the name of the *.iml file
      */
@@ -208,6 +203,11 @@ class IdeaModule {
     }
 
     //TODO SF: most likely what's above should be a part of an interface and what's below should not be exposed. For now, below methods are protected
+
+    org.gradle.api.Project project
+    XmlTransformer xmlTransformer
+    Module xmlModule
+    PathFactory pathFactory
 
     protected File getOutputFile() {
         new File((File) getGenerateTo(), getName() + ".iml")

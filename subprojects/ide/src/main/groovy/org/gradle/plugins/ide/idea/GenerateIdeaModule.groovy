@@ -73,6 +73,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     public void configureDomainObjectNow() {
+        //TODO SF: it's possible to simplify this class and rip the hierarchies
         if (getInputFile().exists()) {
             domainObject = generator.read(getInputFile());
         } else {
