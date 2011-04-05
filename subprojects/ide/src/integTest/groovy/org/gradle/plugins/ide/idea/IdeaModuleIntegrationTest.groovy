@@ -72,9 +72,11 @@ idea {
         javaVersion = '1.6'
         variables = [CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile]
 
-        withXml {
-            def node = it.asNode()
-            node.appendNode('someInterestingConfiguration', 'hey!')
+        iml {
+            withXml {
+                def node = it.asNode()
+                node.appendNode('someInterestingConfiguration', 'hey!')
+            }
         }
     }
 }

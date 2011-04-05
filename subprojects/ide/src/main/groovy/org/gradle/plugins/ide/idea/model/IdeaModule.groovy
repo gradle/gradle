@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.XmlTransformer
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.util.ConfigureUtil
 
@@ -84,13 +83,6 @@ import org.gradle.util.ConfigureUtil
  *     //pathVariables
  *     //TODO SF: think about moving the pathVariables to the upper level
  *
- *     //if you want to mess with the resulting xml in whatever way you fancy
- *     withXml {
- *       def node = it.asNode()
- *       node.appendNode('iLoveGradle', 'true')
- *       node.appendNode('butAlso', 'I find increasing pleasure tinkering with output *.iml contents. Yeah!!!')
- *     }
- *
  *     iml {
  *       //beforeMerged and whenMerged closures are the highest voodoo
  *       //and probably should be used only to solve tricky edge cases
@@ -110,15 +102,14 @@ import org.gradle.util.ConfigureUtil
  *         //but you don't want to do it here...
  *         //because you can do it much easier in idea.module configuration!
  *       }
- *     }
  *
- *     //TODO SF:
- *     //iml {
- *     //  generateTo
- *     //  withXml
- *     //  beforeMerged
- *     //  whenMerged
- *     //}
+ *       //if you want to mess with the resulting xml in whatever way you fancy
+ *       withXml {
+ *         def node = it.asNode()
+ *         node.appendNode('iLoveGradle', 'true')
+ *         node.appendNode('butAlso', 'I find increasing pleasure tinkering with output *.iml contents. Yeah!!!')
+ *       }
+ *     }
  *   }
  * }
  *
@@ -261,23 +252,9 @@ class IdeaModule {
         ConfigureUtil.configure(closure, getIml())
     }
 
-    /**
-     * Adds a closure to be called when the XML document has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML before
-     * it is written to the output file.
-     * <p>
-     * For example see docs for {@link IdeaModule}
-     *
-     * @param closure The closure to execute when the XML has been created.
-     */
-    public void withXml(Closure closure) {
-        xmlTransformer.addAction(closure);
-    }
-
     //TODO SF: most likely what's above should be a part of an interface and what's below should not be exposed. For now, below methods are protected
 
     org.gradle.api.Project project
-    XmlTransformer xmlTransformer
     Module xmlModule
     PathFactory pathFactory
     IdeaModuleIml iml = new IdeaModuleIml()

@@ -72,7 +72,7 @@ class IdeaPlugin extends IdePlugin {
         def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) {
             module = services.get(ClassGenerator).newInstance(IdeaModule)
             module.project = project
-            module.xmlTransformer = xmlTransformer
+            module.iml.xmlTransformer = xmlTransformer
             //TODO SF: constructor
 
             model.module = module
