@@ -23,6 +23,8 @@ import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory
+import org.gradle.api.internal.AbstractClassPathProvider
+import org.apache.tools.ant.DirectoryScanner
 
 public class AbstractFileTreeTest extends Specification {
     def isEmptyWhenVisitsNoFiles() {
@@ -58,6 +60,7 @@ public class AbstractFileTreeTest extends Specification {
         PatternSet patterns = new PatternSet()
         assert file1.relativePath.pathString == 'a.txt'
         assert file1.relativePath.segments == ['a.txt'] as String[]
+        println "DirectoryScanner = ${AbstractClassPathProvider.getClasspathForClass(DirectoryScanner.class)}"
         PatternSet.GLOBAL_EXCLUDES.each {
             assert !PatternMatcherFactory.getPatternMatcher(false, true, it).isSatisfiedBy(file1.relativePath)
         }
