@@ -54,7 +54,6 @@ dependencies { provided "junit:junit:4.8.2" }
 idea {
     module {
         name = 'foo'
-        generateTo = file('customImlFolder')
         moduleDir = file('customModuleContentRoot')
 
         sourceDirs += file('additionalCustomSources')
@@ -73,6 +72,8 @@ idea {
         variables = [CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile]
 
         iml {
+            generateTo = file('customImlFolder')
+
             withXml {
                 def node = it.asNode()
                 node.appendNode('someInterestingConfiguration', 'hey!')

@@ -74,4 +74,11 @@ class IdeaModuleIml {
     public void withXml(Closure closure) {
         xmlTransformer.addAction(closure)
     }
+
+    /**
+     * Folder where the *.iml file will be generated to
+     * <p>
+     * For example see docs for {@link IdeaModule}
+     */
+    File generateTo
 }

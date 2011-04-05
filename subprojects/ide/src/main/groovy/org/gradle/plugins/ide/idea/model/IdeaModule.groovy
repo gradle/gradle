@@ -65,9 +65,6 @@ import org.gradle.util.ConfigureUtil
  *     //if you need to put provided dependencies on the classpath
  *     scopes.COMPILE.plus += configurations.provided
  *
- *     //if you like to keep *.iml in a secret folder
- *     generateTo = file('secret-modules-folder')
- *
  *     //if 'content root' (as IDEA calls it) of the module is different
  *     moduleDir = file('my-module-content-root')
  *     //TODO SF: contentRoot
@@ -84,8 +81,18 @@ import org.gradle.util.ConfigureUtil
  *     //TODO SF: think about moving the pathVariables to the upper level
  *
  *     iml {
+ *       //if you like to keep *.iml in a secret folder
+ *       generateTo = file('secret-modules-folder')
+ *
+ *       //if you want to mess with the resulting xml in whatever way you fancy
+ *       withXml {
+ *         def node = it.asNode()
+ *         node.appendNode('iLoveGradle', 'true')
+ *         node.appendNode('butAlso', 'I find increasing pleasure tinkering with output *.iml contents. Yeah!!!')
+ *       }
+ *
  *       //beforeMerged and whenMerged closures are the highest voodoo
- *       //and probably should be used only to solve tricky edge cases
+ *       //and probably should be used only to solve tricky edge cases:
  *
  *       //closure executed after *.iml content is loaded from existing file
  *       //but before gradle build information is merged
@@ -101,13 +108,6 @@ import org.gradle.util.ConfigureUtil
  *         module.javaVersion = '1.6'
  *         //but you don't want to do it here...
  *         //because you can do it much easier in idea.module configuration!
- *       }
- *
- *       //if you want to mess with the resulting xml in whatever way you fancy
- *       withXml {
- *         def node = it.asNode()
- *         node.appendNode('iLoveGradle', 'true')
- *         node.appendNode('butAlso', 'I find increasing pleasure tinkering with output *.iml contents. Yeah!!!')
  *       }
  *     }
  *   }
@@ -174,13 +174,6 @@ class IdeaModule {
      * For example see docs for {@link IdeaModule}
      */
     boolean downloadJavadoc = false
-
-    /**
-     * Folder where the *.iml file will be generated to
-     * <p>
-     * For example see docs for {@link IdeaModule}
-     */
-    File generateTo
 
     /**
      * The content root directory of the module.
@@ -257,15 +250,15 @@ class IdeaModule {
     org.gradle.api.Project project
     Module xmlModule
     PathFactory pathFactory
-    IdeaModuleIml iml = new IdeaModuleIml()
+    IdeaModuleIml iml
 
     protected File getOutputFile() {
-        new File((File) getGenerateTo(), getName() + ".iml")
+        new File((File) iml.getGenerateTo(), getName() + ".iml")
     }
 
     protected void setOutputFile(File newOutputFile) {
         name = newOutputFile.name.replaceFirst(/\.iml$/,"");
-        generateTo = newOutputFile.parentFile
+        iml.generateTo = newOutputFile.parentFile
     }
 
     protected Set<Path> getSourcePaths() {
