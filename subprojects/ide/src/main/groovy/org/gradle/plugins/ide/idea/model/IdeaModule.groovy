@@ -70,6 +70,7 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *
  *     //if 'content root' (as IDEA calls it) of the module is different
  *     moduleDir = file('my-module-content-root')
+ *     //TODO SF: contentRoot
  *
  *     //if you love browsing javadocs
  *     downloadJavadoc = true
@@ -79,12 +80,22 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
  *
  *     //if you want parts of paths in resulting *.iml to be replaced by variables (files)
  *     variables = [GRADLE_HOME: file('~/cool-software/gradle')]
+ *     //pathVariables
+ *     //TODO SF: think about moving the pathVariables to the upper level
  *
  *     //if you want to mess with the resulting xml in whatever way you fancy
  *     withXml {
  *       def node = it.asNode()
  *       node.appendNode('iLoveGradle', 'true')
  *     }
+ *
+ *     //TODO SF:
+ *     //iml {
+ *     //  generateTo
+ *     //  withXml
+ *     //  beforeMerged
+ *     //  whenMerged
+ *     //}
  *   }
  * }
  *

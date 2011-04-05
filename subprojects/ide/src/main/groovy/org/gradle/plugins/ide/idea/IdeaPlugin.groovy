@@ -53,6 +53,8 @@ class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project)
 
         project.afterEvaluate {
+            //TODO don't do stuff related to whenConfigured
+            //
             new IdeaConfigurer().configure(project)
         }
     }
@@ -72,7 +74,7 @@ class IdeaPlugin extends IdePlugin {
             module.project = project
             module.xmlTransformer = xmlTransformer
 
-            model.conventionMapping.module = { module }
+            model.module = module
 
             module.conventionMapping.sourceDirs = { [] as LinkedHashSet }
             module.conventionMapping.name = { project.name }
@@ -100,7 +102,7 @@ class IdeaPlugin extends IdePlugin {
                 ideaProject = services.get(ClassGenerator).newInstance(IdeaProject)
                 ideaProject.xmlTransformer = xmlTransformer
 
-                model.conventionMapping.project = { ideaProject }
+                model.project = ideaProject
 
                 ideaProject.conventionMapping.outputFile = { new File(project.projectDir, project.name + ".ipr") }
                 ideaProject.conventionMapping.javaVersion = { JavaVersion.VERSION_1_6.toString() }
