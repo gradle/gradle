@@ -123,11 +123,11 @@ apply plugin: "idea"
 idea {
     module {
         excludeDirs = [project.file('folderThatIsExcludedNow')] as Set
+        iml {
+            beforeMerged { it.excludeFolders.clear() }
+            whenMerged   { it.javaVersion = '1.33'   }
+        }
     }
-}
-ideaModule {
-    beforeConfigured { it.excludeFolders.clear() }
-    whenConfigured   { it.javaVersion = '1.33'   }
 }
 ''')
         //then

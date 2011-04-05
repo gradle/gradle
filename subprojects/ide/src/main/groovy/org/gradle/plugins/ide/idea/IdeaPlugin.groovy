@@ -73,6 +73,7 @@ class IdeaPlugin extends IdePlugin {
             module = services.get(ClassGenerator).newInstance(IdeaModule)
             module.project = project
             module.xmlTransformer = xmlTransformer
+            //TODO SF: constructor
 
             model.module = module
 

@@ -65,7 +65,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     @Override protected void configure(Module xmlModule) {
-        getModule().applyXmlModule(xmlModule)
+        getModule().mergeXmlModule(xmlModule)
     }
 
     /**
