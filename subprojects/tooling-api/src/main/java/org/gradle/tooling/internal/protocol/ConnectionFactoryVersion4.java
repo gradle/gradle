@@ -18,27 +18,17 @@ package org.gradle.tooling.internal.protocol;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface ConnectionVersion3 {
+public interface ConnectionFactoryVersion4 {
     /**
-     * Stops this connection, blocking until complete.
+     * Stops this factory, blocking until complete.
      */
     void stop();
 
     /**
-     * Returns a display name for this connection, which can be used in logging and error reporting.
-     *
-     * @return The display name.
-     */
-    String getDisplayName();
-
-    /**
-     * Fetches a snapshot of the model for the project. This method returns immediately.
-     *
-     * @param type The type of model to fetch.
-     * @param handler The handler to pass the model to.
-     * @param <T> The type of model to fetch.
-     * @throws UnsupportedOperationException When the given model type is not supported.
+     * Creates a connection with the given parameters. The caller is responsible for stopping the connection.
+     * @param parameters The connection parameters
+     * @return The connection.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    <T extends ProjectVersion3> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException;
+    ConnectionVersion4 create(ConnectionParametersVersion1 parameters) throws IllegalStateException;
 }

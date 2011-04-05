@@ -82,6 +82,6 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
 
         then:
         e.class == UnsupportedVersionException
-        e.message == "The specified Gradle distribution '${dist.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 3)"
+        e.message == "The specified Gradle distribution '${dist.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
     }
 }

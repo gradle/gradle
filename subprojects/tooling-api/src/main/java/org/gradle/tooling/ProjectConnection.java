@@ -36,7 +36,8 @@ public interface ProjectConnection {
      * @param <T> The model type.
      * @return The model.
      * @throws UnsupportedVersionException When the target Gradle version does not support the given model.
-     * @throws GradleConnectionException On some failure to communicate with Gradle.
+     * @throws BuildException On some failure executing the Gradle build, in order to build the model.
+     * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When this connection has been closed or is closing.
      */
     <T extends Project> T getModel(Class<T> viewType) throws GradleConnectionException;
@@ -52,7 +53,14 @@ public interface ProjectConnection {
     <T extends Project> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException;
 
     /**
-     * Closes this connection. Blocks until the close is complete. Once this method has returned, no more notifications will be delivered by any threads.
+     * Creates a launcher which can be used to execute a build.
+     *
+     * @return The launcher.
+     */
+    BuildLauncher newBuild();
+
+    /**
+     * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.
      */
     void close();
 }

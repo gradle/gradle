@@ -45,7 +45,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     }
 
     private getToolingApiResourcesDir() {
-        def resource = getClass().classLoader.getResource("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionFactoryVersion3")
+        def resource = getClass().classLoader.getResource("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4")
         assert resource
         assert resource.protocol == 'file'
         def dir = resource.path.replaceFirst(/META-INF.*/, '')
@@ -61,7 +61,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The specified <dist-display-name> is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 3)"
+        e.message == "The specified <dist-display-name> is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
         _ * distribution.toolingImplementationClasspath >> ([] as Set)
         _ * distribution.displayName >> '<dist-display-name>'
     }

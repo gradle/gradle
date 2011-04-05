@@ -16,19 +16,12 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * A wrapper around a build failure, to distinguish it from an infrastructure failure.
+ *
+ * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
  */
-public interface ConnectionFactoryVersion3 {
-    /**
-     * Stops this factory, blocking until complete.
-     */
-    void stop();
-
-    /**
-     * Creates a connection with the given parameters. The caller is responsible for stopping the connection.
-     * @param parameters The connection parameters
-     * @return The connection.
-     * @throws IllegalStateException When this connection has been stopped.
-     */
-    ConnectionVersion3 create(ConnectionParametersVersion1 parameters) throws IllegalStateException;
+public class BuildExceptionVersion1 extends RuntimeException {
+    public BuildExceptionVersion1(Throwable throwable) {
+        super(throwable);
+    }
 }

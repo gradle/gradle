@@ -17,6 +17,8 @@ package org.gradle.integtests.tooling
 
 import org.gradle.tooling.model.BuildableProject
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.Task
+import org.gradle.tooling.BuildException
 
 class ToolingApiBuildExecutionIntegrationTest extends ToolingApiSpecification {
     def "can build the set of tasks for a project"() {
@@ -39,6 +41,45 @@ task c
         taskA.project == project
         project.tasks.find { it.name == 'b' }
         project.tasks.find { it.name == 'c' }
+    }
+
+    def "can execute a build for a project"() {
+        dist.testFile('settings.gradle') << 'rootProject.name="test"'
+        dist.testFile('build.gradle') << '''
+apply plugin: 'java'
+'''
+
+        when:
+        withConnection { connection ->
+            return connection.newBuild().forTasks('jar').run()
+        }
+
+        then:
+        dist.testFile('build/libs/test.jar').assertIsFile()
+
+        when:
+        withConnection { connection ->
+            BuildableProject project = connection.getModel(BuildableProject.class)
+            Task clean = project.tasks.find { it.name == 'clean' }
+            return connection.newBuild().forTasks(clean).run()
+        }
+
+        then:
+        dist.testFile('build/libs/test.jar').assertDoesNotExist()
+    }
+
+    def "tooling api reports build failure"() {
+        dist.testFile('build.gradle') << 'broken'
+
+        when:
+        withConnection { connection ->
+            return connection.newBuild().forTasks('jar').run()
+        }
+
+        then:
+        BuildException e = thrown()
+        e.message == 'Could not execute build using Gradle connection.'
+        e.cause.message.contains('A problem occurred evaluating root project')
     }
 
     def "can build the set of tasks for an Eclipse project"() {

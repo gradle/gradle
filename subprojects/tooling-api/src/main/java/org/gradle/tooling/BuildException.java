@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling;
 
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4;
-
-public interface ToolingImplementationLoader {
-    ConnectionFactoryVersion4 create(Distribution distribution);
+/**
+ * Thrown when a Gradle build fails, or when a model cannot be built.
+ */
+public class BuildException extends GradleConnectionException {
+    public BuildException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
 }

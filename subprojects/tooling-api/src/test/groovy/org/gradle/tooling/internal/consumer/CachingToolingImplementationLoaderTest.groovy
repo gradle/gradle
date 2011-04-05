@@ -16,14 +16,14 @@
 package org.gradle.tooling.internal.consumer
 
 import spock.lang.Specification
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion3
+import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4
 
 class CachingToolingImplementationLoaderTest extends Specification {
     final ToolingImplementationLoader target = Mock()
     final CachingToolingImplementationLoader loader = new CachingToolingImplementationLoader(target)
 
     def delegatesToTargetLoaderToCreateImplementation() {
-        ConnectionFactoryVersion3 factoryImpl = Mock()
+        ConnectionFactoryVersion4 factoryImpl = Mock()
         final Distribution distribution = Mock()
 
         when:
@@ -37,7 +37,7 @@ class CachingToolingImplementationLoaderTest extends Specification {
     }
 
     def reusesImplementationWithSameClasspath() {
-        ConnectionFactoryVersion3 factoryImpl = Mock()
+        ConnectionFactoryVersion4 factoryImpl = Mock()
         final Distribution distribution = Mock()
 
         when:
@@ -53,8 +53,8 @@ class CachingToolingImplementationLoaderTest extends Specification {
     }
 
     def createsNewImplementationWhenClasspathNotSeenBefore() {
-        ConnectionFactoryVersion3 factoryImpl1 = Mock()
-        ConnectionFactoryVersion3 factoryImpl2 = Mock()
+        ConnectionFactoryVersion4 factoryImpl1 = Mock()
+        ConnectionFactoryVersion4 factoryImpl2 = Mock()
         Distribution distribution1 = Mock()
         Distribution distribution2 = Mock()
 

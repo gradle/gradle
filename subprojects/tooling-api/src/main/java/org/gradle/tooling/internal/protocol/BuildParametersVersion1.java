@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.protocol;
 
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4;
+import java.util.List;
 
-public interface ToolingImplementationLoader {
-    ConnectionFactoryVersion4 create(Distribution distribution);
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ */
+public interface BuildParametersVersion1 {
+    List<String> getArguments();
 }

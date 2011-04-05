@@ -57,7 +57,9 @@ public class ModelBuildingAdapter extends BuildAdapter {
 
     @Override
     public void buildFinished(BuildResult result) {
-        builder.buildAll((GradleInternal) result.getGradle());
+        if (result.getFailure() == null) {
+            builder.buildAll((GradleInternal) result.getGradle());
+        }
     }
 
     public DefaultEclipseProject getProject() {

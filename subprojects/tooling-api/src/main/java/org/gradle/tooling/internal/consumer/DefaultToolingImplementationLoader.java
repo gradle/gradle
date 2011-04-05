@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion3;
+import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4;
 import org.gradle.util.FilteringClassLoader;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
@@ -46,12 +46,12 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         this.classLoader = classLoader;
     }
 
-    public ConnectionFactoryVersion3 create(Distribution distribution) {
+    public ConnectionFactoryVersion4 create(Distribution distribution) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
         ClassLoader classLoader = createImplementationClassLoader(distribution);
         String implementationClassName = loadImplementationClassName(classLoader, distribution);
         try {
-            return (ConnectionFactoryVersion3) classLoader.loadClass(implementationClassName).newInstance();
+            return (ConnectionFactoryVersion4) classLoader.loadClass(implementationClassName).newInstance();
         } catch (Throwable t) {
             throw new GradleConnectionException(String.format("Could not create an instance of Tooling API implementation class '%s'.", implementationClassName), t);
         }
@@ -68,10 +68,10 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
     private String loadImplementationClassName(ClassLoader classLoader, Distribution distribution) {
         try {
-            String resourceName = "META-INF/services/" + ConnectionFactoryVersion3.class.getName();
+            String resourceName = "META-INF/services/" + ConnectionFactoryVersion4.class.getName();
             InputStream inputStream = classLoader.getResourceAsStream(resourceName);
             if (inputStream == null) {
-                Matcher m = Pattern.compile("\\w+Version(\\d+)").matcher(ConnectionFactoryVersion3.class.getSimpleName());
+                Matcher m = Pattern.compile("\\w+Version(\\d+)").matcher(ConnectionFactoryVersion4.class.getSimpleName());
                 m.matches();
                 String protocolVersion = m.group(1);
                 throw new UnsupportedVersionException(String.format("The specified %s is not supported by this tooling API version (%s, protocol version %s)", distribution.getDisplayName(), GradleVersion.current().getVersion(), protocolVersion));
