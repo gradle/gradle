@@ -97,4 +97,43 @@ idea {
         assert iml.component.orderEntry.any { it.@type.text() == 'jdk' && it.@jdkName.text() == '1.6' }
         assert iml.someInterestingConfiguration.text() == 'hey!'
     }
+
+    @Test
+    void allowsReconfiguringBeforeOrAfterMerging() {
+        //given
+        def existingIml = file('root.iml')
+        existingIml << '''<?xml version="1.0" encoding="UTF-8"?>
+<module relativePaths="true" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output/>
+    <orderEntry type="inheritedJdk"/>
+    <content url="file://$MODULE_DIR$/">
+      <excludeFolder url="file://$MODULE_DIR$/folderThatWasExcludedEarlier"/>
+    </content>
+    <orderEntry type="sourceFolder" forTests="false"/>
+  </component>
+  <component name="ModuleRootManager"/>
+</module>'''
+
+        //when
+        runTask(['idea'], '''
+apply plugin: "java"
+apply plugin: "idea"
+
+idea {
+    module {
+        excludeDirs = [project.file('folderThatIsExcludedNow')] as Set
+    }
+}
+ideaModule {
+    beforeConfigured { it.excludeFolders.clear() }
+    whenConfigured   { it.javaVersion = '1.33'   }
+}
+''')
+        //then
+        def iml = getFile([:], 'root.iml').text
+        assert iml.contains('folderThatIsExcludedNow')
+        assert !iml.contains('folderThatWasExcludedEarlier')
+        assert iml.contains('1.33')
+    }
 }
