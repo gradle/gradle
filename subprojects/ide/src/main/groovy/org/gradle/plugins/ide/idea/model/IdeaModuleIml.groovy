@@ -20,6 +20,10 @@ import org.gradle.api.internal.XmlTransformer
 import org.gradle.listener.ActionBroadcast
 
 /**
+ * Models the generation/parsing/merging capabilities of idea module
+ * <p>
+ * For example see docs for {@link IdeaModule}
+ * <p>
  * Author: Szczepan Faber, created at: 4/5/11
  */
 class IdeaModuleIml {

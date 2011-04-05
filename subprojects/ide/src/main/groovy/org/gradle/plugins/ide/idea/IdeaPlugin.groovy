@@ -24,6 +24,7 @@ import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.IdeaModuleIml
 import org.gradle.plugins.ide.idea.model.IdeaProject
+import org.gradle.plugins.ide.idea.model.IdeaProjectIpr
 import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 
@@ -98,8 +99,8 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaProject(Project project) {
         if (isRoot(project)) {
             def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
-                ideaProject = services.get(ClassGenerator).newInstance(IdeaProject)
-                ideaProject.xmlTransformer = xmlTransformer
+                def ipr = new IdeaProjectIpr(xmlTransformer: xmlTransformer)
+                ideaProject = services.get(ClassGenerator).newInstance(IdeaProject, [ipr: ipr])
 
                 model.project = ideaProject
 

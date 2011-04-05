@@ -44,9 +44,11 @@ idea {
 
         outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
 
-        withXml {
-            def node = it.asNode()
-            node.appendNode('someInterestingConfiguration', 'hey buddy!')
+        ipr {
+            withXml {
+                def node = it.asNode()
+                node.appendNode('someInterestingConfiguration', 'hey buddy!')
+            }
         }
     }
 }

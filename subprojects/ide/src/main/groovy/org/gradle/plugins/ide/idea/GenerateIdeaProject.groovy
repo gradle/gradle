@@ -32,7 +32,7 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     IdeaProject ideaProject;
 
     @Override protected void configure(Project xmlModule) {
-        getIdeaProject().applyXmlProject(xmlModule)
+        getIdeaProject().mergeXmlProject(xmlModule)
     }
 
     @Override Project create() {
