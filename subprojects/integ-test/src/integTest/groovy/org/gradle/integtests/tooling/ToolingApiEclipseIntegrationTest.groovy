@@ -172,6 +172,24 @@ dependencies { compile files { throw new RuntimeException() } }
         notThrown(Exception)
     }
 
+    def "can build the minimal Eclipse model for a java project with the idea plugin applied"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+apply plugin: 'idea'
+
+dependencies {
+    compile files { throw new RuntimeException('should not be resolving this') }
+}
+'''
+
+        when:
+        HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+
+        then:
+        minimalProject != null
+    }
+
     def "can build the eclipse project dependencies for a java project"() {
         def projectDir = dist.testDir
         projectDir.file('settings.gradle').text = '''

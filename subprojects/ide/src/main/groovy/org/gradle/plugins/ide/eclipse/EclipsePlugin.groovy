@@ -26,6 +26,7 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.eclipse.internal.EclipseDomainModelFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.eclipse.model.*
+import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -62,7 +63,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private def configureDependenciesOfConfigurationTasks(Project project) {
-        project.tasks.withType(DependsOnConfigurer) { task ->
+        project.tasks.withType(ConfigurationTarget) { task ->
             //making sure eclipse plugin configurer acts before generator tasks
             task.dependsOn(project.rootProject.eclipseConfigurer)
         }

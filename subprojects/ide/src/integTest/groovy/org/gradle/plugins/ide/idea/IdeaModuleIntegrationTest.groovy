@@ -85,7 +85,6 @@ idea {
 
         //then
         def iml = parseImlFile('customImlFolder/foo')
-        println getFile([:], 'customImlFolder/foo.iml').text
         ['additionalCustomSources', 'additionalCustomTestSources', 'src/main/java'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
         }

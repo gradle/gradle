@@ -20,13 +20,14 @@ import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.WtpFacet
 import org.gradle.plugins.ide.eclipse.model.internal.WtpFacetFactory
 import org.gradle.util.ConfigureUtil
+import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * Generates the org.eclipse.wst.common.project.facet.core settings file for Eclipse WTP.
  *
  * @author Hans Dockter
  */
-class EclipseWtpFacet extends XmlGeneratorTask<WtpFacet> implements DependsOnConfigurer {
+class EclipseWtpFacet extends XmlGeneratorTask<WtpFacet> implements ConfigurationTarget {
     /**
      * The facets to be added as elements.
      */

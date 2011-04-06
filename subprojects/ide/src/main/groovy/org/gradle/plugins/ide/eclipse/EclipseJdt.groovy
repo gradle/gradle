@@ -19,11 +19,12 @@ import org.gradle.api.JavaVersion
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.eclipse.model.Jdt
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
+import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * Generates the Eclipse JDT configuration file.
  */
-class EclipseJdt extends GeneratorTask<Jdt> implements DependsOnConfigurer {
+class EclipseJdt extends GeneratorTask<Jdt> implements ConfigurationTarget {
     /**
      * The source Java language level.
      */

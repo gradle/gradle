@@ -20,13 +20,14 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
+import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * Generates an Eclipse <code>.classpath</code> file.
  *
  * @author Hans Dockter
  */
-class EclipseClasspath extends XmlGeneratorTask<Classpath> implements DependsOnConfigurer {
+class EclipseClasspath extends XmlGeneratorTask<Classpath> implements ConfigurationTarget {
     /**
      * The source sets to be added to the classpath.
      */

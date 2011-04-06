@@ -22,7 +22,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.listener.ActionBroadcast;
-import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
 
 import java.io.File;
@@ -46,7 +45,7 @@ import java.io.File;
  *
  * @param <T> The domain object for the configuration file.
  */
-public class GeneratorTask<T> extends ConventionTask implements ConfigurationTarget {
+public class GeneratorTask<T> extends ConventionTask {
     private File inputFile;
     private File outputFile;
     protected final ActionBroadcast<T> beforeConfigured = new ActionBroadcast<T>();
@@ -61,10 +60,14 @@ public class GeneratorTask<T> extends ConventionTask implements ConfigurationTar
 
     @TaskAction
     void generate() {
+        configureDomainObject();
         generator.write(getDomainObject(), getOutputFile());
     }
 
     public void configureDomainObject() {
+        if (domainObject != null) {
+            return;
+        }
         T object;
         if (getInputFile().exists()) {
             object = generator.read(getInputFile());

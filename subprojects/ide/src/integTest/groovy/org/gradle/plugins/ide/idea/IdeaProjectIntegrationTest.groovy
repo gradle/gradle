@@ -56,7 +56,6 @@ idea {
 
         //then
         def ipr = getFile([:], 'someBetterName.ipr').text
-        println ipr
         assert ipr.contains('1.44')
         assert ipr.contains('!?*.ruby')
         assert !ipr.contains('someProjectThatWillBeExcluded')

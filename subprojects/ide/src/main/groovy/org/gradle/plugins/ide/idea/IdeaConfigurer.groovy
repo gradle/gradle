@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.idea
 import org.gradle.api.Project
 import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
 import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
-import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * @author Szczepan Faber, @date 03.03.11
@@ -30,9 +29,5 @@ class IdeaConfigurer {
         new ProjectDeduper().dedupe(ideaProjects, { project ->
             new DeduplicationTarget(project: project, moduleName: project.ideaModule.moduleName, moduleNameSetter: { project.ideaModule.moduleName = it } )
         })
-
-        ideaProjects.each { project ->
-            project.tasks.withType(ConfigurationTarget) { it.configureDomainObject() }
-        }
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.eclipse.model.Project
+import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * Generates an Eclipse <code>.project</code> file.
@@ -35,7 +36,7 @@ import org.gradle.plugins.ide.eclipse.model.Project
  * </pre>
  * @author Hans Dockter
  */
-class EclipseProject extends XmlGeneratorTask<Project> implements DependsOnConfigurer {
+class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationTarget {
     private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
 
     /**
