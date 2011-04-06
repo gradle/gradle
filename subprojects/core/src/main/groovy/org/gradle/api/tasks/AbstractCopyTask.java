@@ -94,6 +94,20 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    public boolean getIncludeEmptyDirs() {
+        return getMainSpec().getIncludeEmptyDirs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
+        getMainSpec().setIncludeEmptyDirs(includeEmptyDirs);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public AbstractCopyTask from(Object... sourcePaths) {
         getMainSpec().from(sourcePaths);
         return this;

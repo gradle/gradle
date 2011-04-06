@@ -247,6 +247,17 @@ public class CopySpecImplTest {
         assertTrue(child.patternSet.caseSensitive)
     }
 
+    @Test public void testChildUsesIncludeEmptyDirsFlagFromParentAsDefault() {
+        def child = spec.from('dir') {}
+        assert child.includeEmptyDirs
+
+        spec.includeEmptyDirs = false
+        assert !child.includeEmptyDirs
+
+        child.includeEmptyDirs = true
+        assert child.includeEmptyDirs
+    }
+
     @Test public void testNoArgFilter() {
         spec.filter(StripJavaComments)
         assertThat(spec.allCopyActions.size(), equalTo(1))

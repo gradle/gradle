@@ -182,6 +182,14 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         return mainContent.isCaseSensitive();
     }
 
+    public boolean getIncludeEmptyDirs() {
+        return mainContent.getIncludeEmptyDirs();
+    }
+
+    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
+        mainContent.setIncludeEmptyDirs(includeEmptyDirs);
+    }
+
     public CopySpec rename(Closure closure) {
         mainContent.rename(closure);
         return this;

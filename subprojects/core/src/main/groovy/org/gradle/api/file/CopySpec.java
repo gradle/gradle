@@ -82,6 +82,20 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     void setCaseSensitive(boolean caseSensitive);
 
     /**
+     * Tells if empty target directories will be included in the copy.
+     *
+     * @return <tt>true</tt> if empty target directories will be included in the copy, <tt>false</tt> otherwise
+     */
+    boolean getIncludeEmptyDirs();
+
+    /**
+     * Controls if empty target directories should be included in the copy.
+     *
+     * @param includeEmptyDirs <tt>true</tt> if empty target directories should be included in the copy, <tt>false</tt> otherwise
+     */
+    void setIncludeEmptyDirs(boolean includeEmptyDirs);
+
+    /**
      * Adds the given specs as a child of this spec.
      * @param sourceSpecs The specs to add
      * @return this

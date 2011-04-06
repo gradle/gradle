@@ -45,6 +45,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private Integer dirMode;
     private Integer fileMode;
     private Boolean caseSensitive;
+    private Boolean includeEmptyDirs;
 
     private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
         this.parentSpec = parentSpec;
@@ -190,7 +191,8 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     public boolean isCaseSensitive() {
         if (caseSensitive != null) {
             return caseSensitive;
-        } else if (parentSpec != null) {
+        }
+        if (parentSpec != null) {
             return parentSpec.isCaseSensitive();
         }
         return true;
@@ -198,6 +200,20 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
     public void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
+    }
+
+    public boolean getIncludeEmptyDirs() {
+        if (includeEmptyDirs != null) {
+            return includeEmptyDirs;
+        }
+        if (parentSpec != null) {
+            return parentSpec.getIncludeEmptyDirs();
+        }
+        return true;
+    }
+
+    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
+        this.includeEmptyDirs = includeEmptyDirs;
     }
 
     public CopySpec include(String... includes) {
