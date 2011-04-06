@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -38,7 +37,6 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class FileCopySpecVisitorTest {
     private File destDir;
-    private TestFile sourceDir;
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final FileCopySpecVisitor visitor = new FileCopySpecVisitor();
     @Rule
@@ -47,19 +45,17 @@ public class FileCopySpecVisitorTest {
     @Before
     public void setUp() throws IOException {
         destDir = tmpDir.getDir().file("dest");
-        sourceDir = tmpDir.getDir().file("src").createDir();
     }
 
     @Test
     public void plainCopy() {
         visitor.startVisit(action(destDir));
 
-        visitor.visitDir(file(new RelativePath(false)));
+        visitor.visitDir(file(new RelativePath(false), destDir));
 
         visitor.visitFile(file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")));
 
-        RelativePath subDirPath = new RelativePath(false, "subdir");
-        visitor.visitDir(file(subDirPath));
+        visitor.visitDir(file(new RelativePath(false, "subdir"), new File(destDir, "subdir")));
 
         visitor.visitFile(file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt")));
     }
@@ -83,18 +79,11 @@ public class FileCopySpecVisitorTest {
         return action;
     }
 
-    private FileVisitDetails file(final RelativePath relativePath) {
+    private FileVisitDetails file(final RelativePath relativePath, final File targetFile) {
         final FileVisitDetails details = context.mock(FileVisitDetails.class, relativePath.getPathString());
         context.checking(new Expectations(){{
             allowing(details).getRelativePath();
             will(returnValue(relativePath));
-        }});
-        return details;
-    }
-
-    private FileVisitDetails file(final RelativePath relativePath, final File targetFile) {
-        final FileVisitDetails details = file(relativePath);
-        context.checking(new Expectations(){{
             one(details).copyTo(targetFile);
         }});
         return details;

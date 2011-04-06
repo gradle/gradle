@@ -36,15 +36,23 @@ public class FileCopySpecVisitor extends EmptyCopySpecVisitor {
     }
 
     public void visitFile(FileVisitDetails source) {
-        File target = source.getRelativePath().getFile(baseDestDir);
-        copyFile(source, target);
+        visitFileOrDir(source);
+    }
+
+    public void visitDir(FileVisitDetails source) {
+        visitFileOrDir(source);
     }
 
     public boolean getDidWork() {
         return didWork;
     }
 
-    void copyFile(FileTreeElement srcFile, File destFile) {
+    private void visitFileOrDir(FileVisitDetails source) {
+        File target = source.getRelativePath().getFile(baseDestDir);
+        copyFile(source, target);
+    }
+
+    private void copyFile(FileTreeElement srcFile, File destFile) {
         boolean copied = srcFile.copyTo(destFile);
         if (copied) {
             didWork = true;

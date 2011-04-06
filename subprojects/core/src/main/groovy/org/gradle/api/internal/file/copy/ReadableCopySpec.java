@@ -36,4 +36,6 @@ public interface ReadableCopySpec {
     boolean hasSource();
 
     Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
+
+    boolean getIncludeEmptyDirs();
 }

@@ -21,16 +21,14 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate and empty directories and
- * adds in missing directories.
+ * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate directories and
+ * adds in missing directories. Removes empty directories if instructed to do so by copy spec.
  */
 public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
+    private ReadableCopySpec spec;
     private final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
     private final Map<RelativePath, FileVisitDetails> pendingDirs = new HashMap<RelativePath, FileVisitDetails>();
 
@@ -38,7 +36,18 @@ public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
         super(visitor);
     }
 
+    @Override
+    public void visitSpec(ReadableCopySpec spec) {
+        this.spec = spec;
+        getVisitor().visitSpec(spec);
+    }
+
     public void endVisit() {
+        if (spec.getIncludeEmptyDirs()) {
+            for (RelativePath path : new ArrayList<RelativePath>(pendingDirs.keySet())) {
+                maybeVisit(path);
+            }
+        }
         visitedDirs.clear();
         pendingDirs.clear();
         getVisitor().endVisit();
@@ -90,7 +99,7 @@ public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
         }
 
         public boolean isDirectory() {
-            throw new UnsupportedOperationException();
+            return !path.isFile();
         }
 
         public long getLastModified() {

@@ -32,17 +32,29 @@ public class NormalizingCopySpecVisitorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final CopySpecVisitor delegate = context.mock(CopySpecVisitor.class);
     private final NormalizingCopySpecVisitor visitor = new NormalizingCopySpecVisitor(delegate);
+    private final ReadableCopySpec spec = context.mock(ReadableCopySpec.class);
+
+    private void allowGetIncludeEmptyDirs() {
+        context.checking(new Expectations() {{
+            allowing(spec).getIncludeEmptyDirs();
+            will(returnValue(true));
+        }});
+    }
 
     @Test
     public void doesNotVisitADirectoryWhichHasBeenVisitedBefore() {
         final FileVisitDetails details = file("dir");
         final FileVisitDetails file = file("dir/file");
 
+        allowGetIncludeEmptyDirs();
+
         context.checking(new Expectations() {{
+            one(delegate).visitSpec(spec);
             one(delegate).visitDir(details);
             one(delegate).visitFile(file);
         }});
 
+        visitor.visitSpec(spec);
         visitor.visitDir(details);
         visitor.visitFile(file);
         visitor.visitDir(details);
@@ -53,6 +65,13 @@ public class NormalizingCopySpecVisitorTest {
         final FileVisitDetails dir = file("dir");
         final FileVisitDetails file = file("dir/file");
 
+        allowGetIncludeEmptyDirs();
+
+        context.checking(new Expectations() {{
+            one(delegate).visitSpec(spec);
+        }});
+
+        visitor.visitSpec(spec);
         visitor.visitDir(dir);
 
         context.checking(new Expectations() {{
@@ -69,6 +88,13 @@ public class NormalizingCopySpecVisitorTest {
         final FileVisitDetails subdir = file("dir/sub");
         final FileVisitDetails file = file("dir/sub/file");
 
+        allowGetIncludeEmptyDirs();
+
+        context.checking(new Expectations() {{
+            one(delegate).visitSpec(spec);
+        }});
+
+        visitor.visitSpec(spec);
         visitor.visitDir(dir);
         visitor.visitDir(subdir);
 
@@ -86,13 +112,17 @@ public class NormalizingCopySpecVisitorTest {
         final FileVisitDetails dir1 = file("a/b/c");
         final FileVisitDetails file1 = file("a/b/c/file");
 
+        allowGetIncludeEmptyDirs();
+
         context.checking(new Expectations() {{
+            one(delegate).visitSpec(spec);
             one(delegate).visitDir(with(hasPath("a")));
             one(delegate).visitDir(with(hasPath("a/b")));
             one(delegate).visitDir(dir1);
             one(delegate).visitFile(file1);
         }});
 
+        visitor.visitSpec(spec);
         visitor.visitDir(dir1);
         visitor.visitFile(file1);
 
@@ -100,11 +130,13 @@ public class NormalizingCopySpecVisitorTest {
         final FileVisitDetails file2 = file("a/b/d/e/file");
 
         context.checking(new Expectations() {{
+            one(delegate).visitSpec(spec);
             one(delegate).visitDir(with(hasPath("a/b/d")));
             one(delegate).visitDir(dir2);
             one(delegate).visitFile(file2);
         }});
 
+        visitor.visitSpec(spec);
         visitor.visitDir(dir2);
         visitor.visitFile(file2);
     }
@@ -113,18 +145,22 @@ public class NormalizingCopySpecVisitorTest {
     public void visitsFileAncestorsWhichHaveNotBeenVisited() {
         final FileVisitDetails details = file("a/b/c");
 
+        allowGetIncludeEmptyDirs();
+
         context.checking(new Expectations() {{
+            one(delegate).visitSpec(spec);
             one(delegate).visitDir(with(hasPath("a")));
             one(delegate).visitDir(with(hasPath("a/b")));
             one(delegate).visitFile(details);
         }});
 
+        visitor.visitSpec(spec);
         visitor.visitFile(details);
     }
 
     @Test
     public void visitSpecDelegatesToVisitor() {
-        final ReadableCopySpec spec = context.mock(ReadableCopySpec.class);
+        allowGetIncludeEmptyDirs();
 
         context.checking(new Expectations() {{
             one(delegate).visitSpec(spec);
@@ -133,9 +169,42 @@ public class NormalizingCopySpecVisitorTest {
         visitor.visitSpec(spec);
     }
 
+    @Test
+    public void visitsAnEmptyDirectoryIfCorrespondingOptionIsOn() {
+        final FileVisitDetails dir = file("dir");
+
+        context.checking(new Expectations() {{
+            one(spec).getIncludeEmptyDirs();
+            will(returnValue(true));
+            one(delegate).visitSpec(spec);
+            one(delegate).visitDir(dir);
+            one(delegate).endVisit();
+        }});
+
+        visitor.visitSpec(spec);
+        visitor.visitDir(dir);
+        visitor.endVisit();
+    }
+
+    @Test
+    public void doesNotVisitAnEmptyDirectoryIfCorrespondingOptionIsOff() {
+        FileVisitDetails dir = file("dir");
+
+        context.checking(new Expectations() {{
+            one(spec).getIncludeEmptyDirs();
+            will(returnValue(false));
+            one(delegate).visitSpec(spec);
+            one(delegate).endVisit();
+        }});
+
+        visitor.visitSpec(spec);
+        visitor.visitDir(dir);
+        visitor.endVisit();
+    }
+
     private FileVisitDetails file(final String path) {
         final FileVisitDetails details = context.mock(FileVisitDetails.class, path);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(details).getRelativePath();
             will(returnValue(RelativePath.parse(false, path)));
         }});

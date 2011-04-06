@@ -465,5 +465,9 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         public Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions() {
             return spec.getAllCopyActions();
         }
+
+        public boolean getIncludeEmptyDirs() {
+            return spec.getIncludeEmptyDirs();
+        }
     }
 }

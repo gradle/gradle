@@ -16,12 +16,12 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -317,5 +317,52 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 'subdir/one/one.a',
                 'subdir/two/two.a'
         )
+    }
+
+    // can't use TestResources here because Git doesn't support committing empty directories
+    @Test
+    void emptyDirsAreCopiedByDefault() {
+        file("src999", "emptyDir").createDir()
+        file("src999", "yet", "another", "veryEmptyDir").createDir()
+
+        // need to include a file in the copy, otherwise copy task says "no source files"
+        file("src999", "dummy").createFile()
+
+        def buildFile = testFile("build.gradle") <<
+                """
+                task copy(type: Copy) {
+                    from 'src999'
+                    into 'dest'
+                }
+                """
+        usingBuildFile(buildFile).withTasks("copy").run()
+
+        assert file("dest", "emptyDir").isDirectory()
+        assert file("dest", "emptyDir").list().size() == 0
+        assert file("dest", "yet", "another", "veryEmptyDir").isDirectory()
+        assert file("dest", "yet", "another", "veryEmptyDir").list().size() == 0
+    }
+
+    @Test
+    void emptyDirsAreNotCopiedIfCorrespondingOptionIsSetToFalse() {
+        file("src999", "emptyDir").createDir()
+        file("src999", "yet", "another", "veryEmptyDir").createDir()
+
+        // need to include a file in the copy, otherwise copy task says "no source files"
+        file("src999", "dummy").createFile()
+
+        def buildFile = testFile("build.gradle") <<
+                """
+                task copy(type: Copy) {
+                    from 'src999'
+                    into 'dest'
+
+                    includeEmptyDirs = false
+                }
+                """
+        usingBuildFile(buildFile).withTasks("copy").run()
+
+        assert !file("dest", "emptyDir").exists()
+        assert !file("dest", "yet", "another", "veryEmptyDir").exists()
     }
 }
