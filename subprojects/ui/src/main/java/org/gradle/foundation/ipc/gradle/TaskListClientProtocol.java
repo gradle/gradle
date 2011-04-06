@@ -71,8 +71,7 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
         }
 
         public synchronized void onOutput(CharSequence output) {
-            String text = output.toString();
-            allOutputText.append(text);
+            allOutputText.append(output);
         }
 
         /**

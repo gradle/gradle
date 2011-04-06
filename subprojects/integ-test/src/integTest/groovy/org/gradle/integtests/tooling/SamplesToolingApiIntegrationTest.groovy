@@ -45,6 +45,21 @@ class SamplesToolingApiIntegrationTest extends Specification {
         result.output.contains("gradle-wrapper-${distribution.version}.jar")
     }
 
+    def canUseToolingApiToRunABuild() {
+        Properties props = new Properties()
+        props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
+        props['gradleDistribution'] = distribution.gradleHomeDir.toString()
+        sample.dir.file('gradle.properties').withOutputStream {outstr ->
+            props.store(outstr, 'props')
+        }
+
+        when:
+        def result = run(sample.dir.file('build'), 'run')
+
+        then:
+        result.output.contains("Welcome to Gradle ${distribution.version}.")
+    }
+
     private ExecutionResult run(dir, task) {
         try {
             return executer.inDirectory(dir).withTasks(task).run()

@@ -1,0 +1,28 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+if (!hasProperty('toolingApiVersion')) {
+    toolingApiVersion = gradle.gradleVersion
+}
+if (!hasProperty('toolingApiRepo')) {
+    toolingApiRepo = 'http://repo.gradle.org/gradle/libs-releases-local'
+}
+
+repositories {
+    mavenRepo urls: toolingApiRepo
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.gradle:gradle-tooling-api:${toolingApiVersion}"
+    // Need an SLF4J implementation at runtime
+    runtime 'org.slf4j:slf4j-simple:1.6.1'
+}
+
+mainClassName = 'org.gradle.sample.Main'
+
+run {
+    if (project.hasProperty('gradleDistribution')) {
+        args = [gradleDistribution]
+    }
+}

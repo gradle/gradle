@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
-import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.logging.internal.StreamBackedStandardOutputListener;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.*;
@@ -78,9 +78,15 @@ public class DefaultConnection implements ConnectionVersion4 {
         public void build(BuildParametersVersion1 buildParameters, ResultHandlerVersion1<? super Void> handler) {
             try {
                 StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
-                new DefaultCommandLineConverter().convert(buildParameters.getArguments(), startParameter);
+                startParameter.setTaskNames(buildParameters.getTasks());
 
                 GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
+                if (buildParameters.getStandardOutput() != null) {
+                    gradleLauncher.addStandardOutputListener(new StreamBackedStandardOutputListener(buildParameters.getStandardOutput()));
+                }
+                if (buildParameters.getStandardError() != null) {
+                    gradleLauncher.addStandardErrorListener(new StreamBackedStandardOutputListener(buildParameters.getStandardError()));
+                }
                 runAndWrapFailure(gradleLauncher);
                 handler.onComplete(null);
             } catch (Throwable t) {

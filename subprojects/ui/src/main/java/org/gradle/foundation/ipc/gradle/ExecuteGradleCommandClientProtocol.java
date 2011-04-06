@@ -183,9 +183,8 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
          * @param output The text.
          */
         public synchronized void onOutput(CharSequence output) {
-            String text = output.toString();
-            this.allOutputText.append(text);
-            this.bufferedLiveOutput.append(text);
+            this.allOutputText.append(output);
+            this.bufferedLiveOutput.append(output);
         }
 
         /**

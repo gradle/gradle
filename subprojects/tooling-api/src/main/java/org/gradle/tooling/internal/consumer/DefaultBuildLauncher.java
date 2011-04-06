@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.model.Task;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +29,8 @@ import java.util.List;
 class DefaultBuildLauncher implements BuildLauncher {
     private final List<String> tasks = new ArrayList<String>();
     private final ConnectionVersion4 connection;
+    private OutputStream standardError;
+    private OutputStream standardOutput;
 
     public DefaultBuildLauncher(ConnectionVersion4 connection) {
         this.connection = connection;
@@ -52,6 +55,16 @@ class DefaultBuildLauncher implements BuildLauncher {
         return this;
     }
 
+    public BuildLauncher setStandardError(OutputStream outputStream) {
+        standardError = outputStream;
+        return this;
+    }
+
+    public BuildLauncher setStandardOutput(OutputStream outputStream) {
+        standardOutput = outputStream;
+        return this;
+    }
+
     public void run() {
         BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
         run(handler);
@@ -68,8 +81,16 @@ class DefaultBuildLauncher implements BuildLauncher {
     }
 
     private class DefaultBuildParameters implements BuildParametersVersion1 {
-        public List<String> getArguments() {
+        public List<String> getTasks() {
             return tasks;
+        }
+
+        public OutputStream getStandardError() {
+            return standardError;
+        }
+
+        public OutputStream getStandardOutput() {
+            return standardOutput;
         }
     }
 }

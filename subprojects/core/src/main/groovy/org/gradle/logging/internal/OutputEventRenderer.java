@@ -15,14 +15,12 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.specs.Spec;
 import org.gradle.listener.ListenerBroadcast;
 
 import java.io.FileDescriptor;
-import java.io.IOException;
 import java.io.PrintStream;
 
 /**
@@ -75,28 +73,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     }
 
     public OutputEventRenderer addStandardOutput(final Appendable out) {
-        addStandardOutputListener(new StandardOutputListener() {
-            public void onOutput(CharSequence output) {
-                try {
-                    out.append(output);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        });
+        addStandardOutputListener(new StreamBackedStandardOutputListener(out));
         return this;
     }
 
     public OutputEventRenderer addStandardError(final Appendable err) {
-        addStandardErrorListener(new StandardOutputListener() {
-            public void onOutput(CharSequence output) {
-                try {
-                    err.append(output);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        });
+        addStandardErrorListener(new StreamBackedStandardOutputListener(err));
         return this;
     }
 

@@ -36,13 +36,35 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         then:
         1 * protocolConnection.executeBuild(!null, !null) >> { args ->
             def params = args[0]
-            assert params.arguments == [':task1', ':task2']
+            assert params.tasks == [':task1', ':task2']
+            assert params.standardOutput == null
+            assert params.standardError == null
             def wrappedHandler = args[1]
             wrappedHandler.onComplete(null)
         }
         1 * handler.onComplete(null)
         0 * protocolConnection._
         0 * handler._
+    }
+
+    def canRedirectStandardOutputAndError() {
+        ResultHandler<Void> handler = Mock()
+        OutputStream stdout = Mock()
+        OutputStream stderr = Mock()
+
+        when:
+        launcher.standardOutput = stdout
+        launcher.standardError = stderr
+        launcher.run(handler)
+
+        then:
+        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
+            def params = args[0]
+            assert params.standardOutput == stdout
+            assert params.standardError == stderr
+            def wrappedHandler = args[1]
+            wrappedHandler.onComplete(null)
+        }
     }
 
     def notifiesHandlerOnFailure() {

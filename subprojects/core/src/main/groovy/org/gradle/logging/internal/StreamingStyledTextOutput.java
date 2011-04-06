@@ -15,7 +15,6 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.StandardOutputListener;
 
 import java.io.Closeable;
@@ -42,15 +41,7 @@ public class StreamingStyledTextOutput extends AbstractStyledTextOutput implemen
      * @param appendable The appendable.
      */
     public StreamingStyledTextOutput(final Appendable appendable) {
-        this(appendable, new StandardOutputListener() {
-            public void onOutput(CharSequence output) {
-                try {
-                    appendable.append(output);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        });
+        this(appendable, new StreamBackedStandardOutputListener(appendable));
     }
 
     private StreamingStyledTextOutput(Object target, StandardOutputListener listener) {

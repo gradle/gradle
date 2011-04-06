@@ -4,6 +4,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.ExternalDependency;
 import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.tooling.model.eclipse.EclipseSourceDirectory;
 
 import java.io.File;
 
@@ -20,6 +21,12 @@ public class Main {
         try {
             // Load the Eclipse model for the project
             EclipseProject project = connection.getModel(EclipseProject.class);
+            System.out.println("Project: " + project.getName());
+            System.out.println("Project directory: " + project.getProjectDirectory());
+            System.out.println("Source directories:");
+            for (EclipseSourceDirectory srcDir : project.getSourceDirectories()) {
+                System.out.println(srcDir.getPath());
+            }
             System.out.println("Project classpath:");
             for (ExternalDependency externalDependency : project.getClasspath()) {
                 System.out.println(externalDependency.getFile().getName());

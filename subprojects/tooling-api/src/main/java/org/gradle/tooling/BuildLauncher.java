@@ -17,6 +17,8 @@ package org.gradle.tooling;
 
 import org.gradle.tooling.model.Task;
 
+import java.io.OutputStream;
+
 /**
  * <p>A {@code BuildLauncher} allows you to configure and execute a Gradle build.
  *
@@ -60,6 +62,22 @@ public interface BuildLauncher {
      * @return this
      */
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
+
+    /**
+     * Sets the {@link OutputStream} which should receive standard output logging from this build. The default is to discard the output.
+     *
+     * @param outputStream The output stream.
+     * @return this
+     */
+    BuildLauncher setStandardOutput(OutputStream outputStream);
+
+    /**
+     * Sets the {@link OutputStream} which should receive standard error logging from this build. The default is to discard the output.
+     *
+     * @param outputStream The output stream.
+     * @return this
+     */
+    BuildLauncher setStandardError(OutputStream outputStream);
 
     /**
      * Execute the build, blocking until it is complete.
