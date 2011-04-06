@@ -21,10 +21,6 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
-import org.gradle.api.tasks.util.PatternSet
-import org.gradle.api.internal.file.pattern.PatternMatcherFactory
-import org.gradle.api.internal.AbstractClassPathProvider
-import org.apache.tools.ant.DirectoryScanner
 
 public class AbstractFileTreeTest extends Specification {
     def isEmptyWhenVisitsNoFiles() {
@@ -55,20 +51,6 @@ public class AbstractFileTreeTest extends Specification {
         given:
         _ * file1.relativePath >> new RelativePath(true, 'a.txt')
         _ * file2.relativePath >> new RelativePath(true, 'b.html')
-
-        // TODO - remove this
-        PatternSet patterns = new PatternSet()
-        assert file1.relativePath.pathString == 'a.txt'
-        assert file1.relativePath.segments == ['a.txt'] as String[]
-        println "DirectoryScanner = ${AbstractClassPathProvider.getClasspathForClass(DirectoryScanner.class)}"
-        PatternSet.GLOBAL_EXCLUDES.each {
-            assert !PatternMatcherFactory.getPatternMatcher(false, true, it).isSatisfiedBy(file1.relativePath)
-        }
-        assert patterns.asSpec.isSatisfiedBy(file1)
-        assert patterns.asSpec.isSatisfiedBy(file2)
-        patterns.include '*.txt'
-        assert patterns.asSpec.isSatisfiedBy(file1)
-        assert !patterns.asSpec.isSatisfiedBy(file2)
 
         when:
         def filtered = tree.matching { include '*.txt' }

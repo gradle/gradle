@@ -23,6 +23,7 @@ import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.junit.After
 
 /**
 * @author Hans Dockter
@@ -32,6 +33,10 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     PatternSet getPatternSet() {
         patternSet
+    }
+
+    @After public void resetExcludes() {
+        PatternSet.resetGlobalExcludes()
     }
 
     @Test public void testConstructionFromMap() {
@@ -54,7 +59,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertThat(new PatternSet(includes: ['i']), not(equalTo(new PatternSet(includes: ['other']))))
         assertThat(new PatternSet(excludes: ['e']), not(equalTo(new PatternSet(excludes: ['other']))))
     }
-    
+
     @Test public void canCopyFromAnotherPatternSet() {
         PatternSet other = new PatternSet()
         other.include 'a', 'b'
@@ -179,7 +184,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'Ab')))
         assertTrue(spec.isSatisfiedBy(element(true, 'aB')))
     }
-    
+
     @Test public void createsSpecForCaseInsensitivePatternSet() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'

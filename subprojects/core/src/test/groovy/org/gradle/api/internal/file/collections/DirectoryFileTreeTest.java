@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.api.internal.file.copy.CopySpecVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
@@ -243,14 +242,6 @@ public class DirectoryFileTreeTest {
         patterns.include("**/*.txt");
         patterns.exclude("subdir1/**");
         DirectoryFileTree fileTree = new DirectoryFileTree(rootDir, patterns);
-
-        // TODO - remove these assertions
-        assertTrue(rootTextFile.getAbsolutePath().startsWith(rootDir.getAbsolutePath() + File.separator));
-        assertTrue(rootTextFile.isFile());
-        assertTrue(new PatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "nested/some-file.txt"))));
-        assertTrue(fileTree.getPatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "nested/some-file.txt"))));
-        assertTrue(new PatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "a.txt"))));
-        assertTrue(fileTree.getPatternSet().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(rootTextFile, new RelativePath(true, "a.txt"))));
 
         assertTrue(fileTree.contains(rootTextFile));
         assertTrue(fileTree.contains(nestedTextFile));

@@ -51,14 +51,18 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
     def boolean caseSensitive = true
 
     static {
-        GLOBAL_EXCLUDES.addAll(DirectoryScanner.DEFAULTEXCLUDES as Collection)
+        resetGlobalExcludes()
     }
 
     static def setGlobalExcludes(Collection<String> excludes) {
         GLOBAL_EXCLUDES.clear()
         GLOBAL_EXCLUDES.addAll(excludes)
     }
-    
+
+    static def resetGlobalExcludes() {
+        GLOBAL_EXCLUDES.addAll(DirectoryScanner.DEFAULTEXCLUDES as Collection)
+    }
+
     def boolean equals(Object o) {
         if (o.is(this)) {
             return true
@@ -87,7 +91,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
     public PatternSet intersect() {
         return new IntersectionPatternSet(this)
     }
-    
+
     public Spec<FileTreeElement> getAsSpec() {
         Spec<FileTreeElement> includeSpec = Specs.satisfyAll()
 
@@ -139,7 +143,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public Set<Spec<FileTreeElement>> getExcludeSpecs() {
-       return excludeSpecs
+        return excludeSpecs
     }
 
     public PatternSet setExcludes(Iterable<String> excludes) {
@@ -164,6 +168,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
     /*
     This can't be called just include, because it has the same erasure as include(Iterable<String>)
      */
+
     public PatternFilterable includeSpecs(Iterable<Spec<FileTreeElement>> includes) {
         GUtil.addToCollection(this.includeSpecs, includes)
         this
