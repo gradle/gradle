@@ -29,15 +29,16 @@ class SamplesToolingApiIntegrationTest extends Specification {
     @Rule public final Sample sample = new Sample('toolingApi')
 
     def canUseToolingApiToDetermineProjectClasspath() {
+        def projectDir = sample.dir.file('model')
         Properties props = new Properties()
         props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
         props['gradleDistribution'] = distribution.gradleHomeDir.toString()
-        sample.dir.file('gradle.properties').withOutputStream {outstr ->
+        projectDir.file('gradle.properties').withOutputStream {outstr ->
             props.store(outstr, 'props')
         }
 
         when:
-        def result = run(sample.dir, 'run')
+        def result = run(projectDir, 'run')
 
         then:
         result.output.contains("gradle-tooling-api-${distribution.version}.jar")
@@ -46,15 +47,16 @@ class SamplesToolingApiIntegrationTest extends Specification {
     }
 
     def canUseToolingApiToRunABuild() {
+        def projectDir = sample.dir.file('build')
         Properties props = new Properties()
         props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
         props['gradleDistribution'] = distribution.gradleHomeDir.toString()
-        sample.dir.file('gradle.properties').withOutputStream {outstr ->
+        projectDir.file('gradle.properties').withOutputStream {outstr ->
             props.store(outstr, 'props')
         }
 
         when:
-        def result = run(sample.dir.file('build'), 'run')
+        def result = run(projectDir, 'run')
 
         then:
         result.output.contains("Welcome to Gradle ${distribution.version}.")
