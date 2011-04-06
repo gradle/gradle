@@ -37,7 +37,10 @@ import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -76,13 +79,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
             return ivySettings;
         }
         Clock clock = new Clock();
-        ChainResolver userResolverChain = createUserResolverChain(Collections.<DependencyResolver>emptyList(), internalRepository);
-        ClientModuleResolver clientModuleResolver = createClientModuleResolver(new HashMap<String, ModuleDescriptor>(), userResolverChain);
-        ChainResolver outerChain = createOuterChain(userResolverChain, clientModuleResolver);
 
         IvySettings ivySettings = createIvySettings(gradleUserHome);
-        initializeResolvers(ivySettings, getAllResolvers(Collections.<DependencyResolver>emptyList(), publishResolvers, internalRepository, userResolverChain, clientModuleResolver, outerChain));
-        ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
+        initializeResolvers(ivySettings, getAllResolvers(Collections.<DependencyResolver>emptyList(), publishResolvers));
         logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
         return ivySettings;
     }
@@ -105,12 +104,10 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private List<DependencyResolver> getAllResolvers(List<DependencyResolver> classpathResolvers,
-                                                     List<DependencyResolver> otherResolvers, DependencyResolver internalRepository, 
-                                                     ChainResolver userResolverChain, ClientModuleResolver clientModuleResolver,
-                                                     ChainResolver outerChain) {
+                                                     List<DependencyResolver> otherResolvers, DependencyResolver... resolvers) {
         List<DependencyResolver> allResolvers = new ArrayList<DependencyResolver>(otherResolvers);
         allResolvers.addAll(classpathResolvers);
-        allResolvers.addAll(WrapUtil.toList(internalRepository, outerChain, clientModuleResolver, userResolverChain));
+        allResolvers.addAll(WrapUtil.toList(resolvers));
         return allResolvers;
     }
 

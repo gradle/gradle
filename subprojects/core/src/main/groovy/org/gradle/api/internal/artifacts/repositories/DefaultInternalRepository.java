@@ -38,6 +38,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -61,6 +62,7 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         this.gradle = gradle;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         setName(ResolverContainer.INTERNAL_REPOSITORY_NAME);
+        setRepositoryCacheManager(new NoOpRepositoryCacheManager(getName()));
     }
 
     @Override

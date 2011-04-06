@@ -33,7 +33,7 @@ import java.text.ParseException;
 /**
  * A cache manager which does nothing. Only useful for local meta-data only repositories.
  */
-class NoOpRepositoryCacheManager implements RepositoryCacheManager {
+public class NoOpRepositoryCacheManager implements RepositoryCacheManager {
     private final String name;
 
     public NoOpRepositoryCacheManager(String name) {

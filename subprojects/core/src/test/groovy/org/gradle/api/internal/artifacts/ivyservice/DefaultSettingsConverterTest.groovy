@@ -91,24 +91,11 @@ class DefaultSettingsConverterTest {
     @Test public void testConvertForPublish() {
         IvySettings settings = converter.convertForPublish([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
                 TEST_BUILD_RESOLVER)
-        ChainResolver chainResolver = settings.getResolver(DefaultSettingsConverter.CHAIN_RESOLVER_NAME)
-        assertEquals(1, chainResolver.resolvers.size())
-        assert chainResolver.resolvers[0].name.is(TEST_BUILD_RESOLVER.name)
-        assertTrue chainResolver.returnFirst
 
-        ClientModuleResolver clientModuleResolver = settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_NAME)
-        ChainResolver clientModuleChain = settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME)
-        assertTrue clientModuleChain.returnFirst
-        assert clientModuleChain.resolvers[0].is(clientModuleResolver)
-        assert clientModuleChain.resolvers[1].is(chainResolver)
-        assert settings.defaultResolver.is(clientModuleChain)
-
-        [TEST_BUILD_RESOLVER.name, TEST_RESOLVER.name, TEST_RESOLVER_2.name, DefaultSettingsConverter.CHAIN_RESOLVER_NAME,
-                DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME].each {
+        [TEST_RESOLVER.name, TEST_RESOLVER_2.name].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
         }
-        assert settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_NAME)
 
         assert settings.getResolver(TEST_RESOLVER.name).is(TEST_RESOLVER)
         assert settings.getResolver(TEST_RESOLVER_2.name).is(TEST_RESOLVER_2)
