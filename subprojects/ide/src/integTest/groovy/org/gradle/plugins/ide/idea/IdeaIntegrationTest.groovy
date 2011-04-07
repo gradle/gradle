@@ -170,6 +170,60 @@ idea << {
 '''
     }
 
+    @Test
+    void respectsPerConfigurationExcludes() {
+        def repoDir = file("repo")
+        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
+        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenRepo urls: "${repoDir.toURI()}"
+}
+
+configurations {
+    compile.exclude module: 'myArtifact2'
+}
+
+dependencies {
+    compile "myGroup:myArtifact1:1.0"
+}
+        """
+
+        def module = parseImlFile("root")
+        def libs = module.component.orderEntry.library
+        assert libs.size() == 1
+    }
+
+    @Test
+    void respectsPerDependencyExcludes() {
+        def repoDir = file("repo")
+        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
+        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenRepo urls: "${repoDir.toURI()}"
+}
+
+dependencies {
+    compile("myGroup:myArtifact1:1.0") {
+        exclude module: "myArtifact2"
+    }
+}
+        """
+
+        def module = parseImlFile("root")
+        def libs = module.component.orderEntry.library
+        assert libs.size() == 1
+    }
+
     private void assertHasExpectedContents(String path) {
         TestFile file = testDir.file(path).assertIsFile()
         TestFile expectedFile = testDir.file("expectedFiles/${path}.xml").assertIsFile()
