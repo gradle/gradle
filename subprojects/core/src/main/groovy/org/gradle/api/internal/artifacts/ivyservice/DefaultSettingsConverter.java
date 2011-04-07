@@ -34,6 +34,7 @@ import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
+import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -149,10 +150,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
 
     private void setRepositoryCacheManager(IvySettings ivySettings) {
         if (repositoryCacheManager == null) {
-            repositoryCacheManager = ivySettings.getDefaultRepositoryCacheManager();
-        } else {
-            ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
+            repositoryCacheManager = new WharfCacheManager();
         }
+        ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
