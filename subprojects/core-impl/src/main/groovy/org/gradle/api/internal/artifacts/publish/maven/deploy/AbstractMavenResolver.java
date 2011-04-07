@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
@@ -41,6 +40,7 @@ import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
+import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.EmptyMavenSettingsSupplier;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.MavenSettingsSupplier;
 import org.gradle.api.logging.LogLevel;
@@ -213,7 +213,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     }
 
     public RepositoryCacheManager getRepositoryCacheManager() {
-        return new DefaultRepositoryCacheManager();
+        return new NoOpRepositoryCacheManager(getName());
     }
 
     public ArtifactPomContainer getArtifactPomContainer() {

@@ -33,16 +33,9 @@ import static org.junit.Assert.assertSame
  * @author Hans Dockter
  */
 class DefaultSettingsConverterTest {
-    static final IBiblioResolver TEST_RESOLVER = new IBiblioResolver()
-    static final IBiblioResolver TEST_RESOLVER_2 = new IBiblioResolver()
-    static {
-        TEST_RESOLVER.name = 'resolver'
-    }
-
-    static final IBiblioResolver TEST_BUILD_RESOLVER = new IBiblioResolver()
-    static {
-        TEST_BUILD_RESOLVER.name = 'buildResolver'
-    }
+    final IBiblioResolver testResolver = new IBiblioResolver()
+    final IBiblioResolver testResolver2 = new IBiblioResolver()
+    final IBiblioResolver testBuildResolver = new IBiblioResolver()
 
     DefaultSettingsConverter converter
 
@@ -53,6 +46,8 @@ class DefaultSettingsConverterTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp()  {
+        testResolver.name = 'resolver'
+        testBuildResolver.name = 'buildResolver'
         context.setImposteriser(ClassImposteriser.INSTANCE)
         converter = new DefaultSettingsConverter()
         clientModuleRegistry = [a: [:] as ModuleDescriptor]
@@ -60,13 +55,13 @@ class DefaultSettingsConverterTest {
     }
 
     @Test public void testConvertForResolve() {
-        IvySettings settings = converter.convertForResolve([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
-                TEST_BUILD_RESOLVER, clientModuleRegistry)
+        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], testGradleUserHome,
+                testBuildResolver, clientModuleRegistry)
         ChainResolver chainResolver = settings.getResolver(DefaultSettingsConverter.CHAIN_RESOLVER_NAME)
         assertEquals(3, chainResolver.resolvers.size())
-        assert chainResolver.resolvers[0].name.is(TEST_BUILD_RESOLVER.name)
-        assert chainResolver.resolvers[1].is(TEST_RESOLVER)
-        assert chainResolver.resolvers[2].is(TEST_RESOLVER_2)
+        assert chainResolver.resolvers[0].name.is(testBuildResolver.name)
+        assert chainResolver.resolvers[1].is(testResolver)
+        assert chainResolver.resolvers[2].is(testResolver2)
         assertTrue chainResolver.returnFirst
 
         ClientModuleResolver clientModuleResolver = settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_NAME)
@@ -76,7 +71,7 @@ class DefaultSettingsConverterTest {
         assert clientModuleChain.resolvers[1].is(chainResolver)
         assert settings.defaultResolver.is(clientModuleChain)
 
-        [TEST_BUILD_RESOLVER.name, TEST_RESOLVER.name, TEST_RESOLVER_2.name, DefaultSettingsConverter.CHAIN_RESOLVER_NAME,
+        [testBuildResolver.name, testResolver.name, testResolver2.name, DefaultSettingsConverter.CHAIN_RESOLVER_NAME,
                 DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
@@ -89,16 +84,16 @@ class DefaultSettingsConverterTest {
     }
 
     @Test public void testConvertForPublish() {
-        IvySettings settings = converter.convertForPublish([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
-                TEST_BUILD_RESOLVER)
+        IvySettings settings = converter.convertForPublish([testResolver, testResolver2], testGradleUserHome,
+                testBuildResolver)
 
-        [TEST_RESOLVER.name, TEST_RESOLVER_2.name].each {
+        [testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
         }
 
-        assert settings.getResolver(TEST_RESOLVER.name).is(TEST_RESOLVER)
-        assert settings.getResolver(TEST_RESOLVER_2.name).is(TEST_RESOLVER_2)
+        assert settings.getResolver(testResolver.name).is(testResolver)
+        assert settings.getResolver(testResolver2.name).is(testResolver2)
         assertEquals(new File(testGradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME),
                 settings.defaultCache)
         assertEquals(settings.defaultCacheArtifactPattern, ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN)
@@ -106,12 +101,12 @@ class DefaultSettingsConverterTest {
 
     @Test
     public void repositoryCacheManagerShouldBeSharedBetweenSettings() {
-        IvySettings settings1 = converter.convertForPublish([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
-                TEST_BUILD_RESOLVER)
-        IvySettings settings2 = converter.convertForPublish([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
-                TEST_BUILD_RESOLVER)
-        IvySettings settings3 = converter.convertForResolve([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
-                TEST_BUILD_RESOLVER, clientModuleRegistry)
+        IvySettings settings1 = converter.convertForPublish([testResolver, testResolver2], testGradleUserHome,
+                testBuildResolver)
+        IvySettings settings2 = converter.convertForPublish([testResolver, testResolver2], testGradleUserHome,
+                testBuildResolver)
+        IvySettings settings3 = converter.convertForResolve([testResolver, testResolver2], testGradleUserHome,
+                testBuildResolver, clientModuleRegistry)
         assertSame(settings1.getDefaultRepositoryCacheManager(), settings2.getDefaultRepositoryCacheManager())
         assertSame(settings1.getDefaultRepositoryCacheManager(), settings3.getDefaultRepositoryCacheManager())
 
@@ -120,9 +115,9 @@ class DefaultSettingsConverterTest {
     @Test public void testWithGivenSettings() {
         IvySettings ivySettings = [:] as IvySettings
         converter.ivySettings = ivySettings
-        assert ivySettings.is(converter.convertForResolve([TEST_RESOLVER], new File(''),
-                TEST_BUILD_RESOLVER, clientModuleRegistry))
-        assert ivySettings.is(converter.convertForPublish([TEST_RESOLVER], new File(''),
-                TEST_BUILD_RESOLVER))
+        assert ivySettings.is(converter.convertForResolve([testResolver], new File(''),
+                testBuildResolver, clientModuleRegistry))
+        assert ivySettings.is(converter.convertForPublish([testResolver], new File(''),
+                testBuildResolver))
     }
 }

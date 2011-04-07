@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
@@ -159,8 +158,12 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
             ivySettings.addResolver(dependencyResolver);
-            if (dependencyResolver.getRepositoryCacheManager() instanceof DefaultRepositoryCacheManager) {
-                ((DefaultRepositoryCacheManager) dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
+            RepositoryCacheManager cacheManager = dependencyResolver.getRepositoryCacheManager();
+            // Validate that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
+            if (cacheManager != ivySettings.getDefaultRepositoryCacheManager()
+                    && !(cacheManager instanceof NoOpRepositoryCacheManager)
+                    && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
+                throw new IllegalStateException(String.format("Unexpected cache manager %s for repository %s (%s)", cacheManager, dependencyResolver.getName(), dependencyResolver));
             }
             if (dependencyResolver instanceof RepositoryResolver) {
                 Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
