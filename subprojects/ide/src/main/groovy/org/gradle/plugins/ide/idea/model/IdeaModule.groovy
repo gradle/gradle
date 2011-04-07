@@ -21,10 +21,10 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.util.ConfigureUtil
 
 /**
- * Model for idea module.
+ * Model for an IDEA module.
  * <p>
  * Example of use with a blend of all possible properties.
- * Bear in mind that usually you don't have configure idea module directly because Gradle configures it for free!
+ * Bear in mind that usually you don't have configure this model directly because Gradle configures it for free!
  *
  * <pre autoTested=''>
  * apply plugin: 'java'

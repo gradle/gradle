@@ -38,7 +38,7 @@ import org.gradle.plugins.ide.idea.model.Module
  * }
  *
  * ideaModule {
- *   scopes.COMPILE.plus += configurations.provided
+ *   scopes.PROVIDED.plus += configurations.provided
  * }
  * </pre>
  *
