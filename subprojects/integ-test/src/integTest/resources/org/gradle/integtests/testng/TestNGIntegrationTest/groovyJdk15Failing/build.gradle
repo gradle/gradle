@@ -7,8 +7,7 @@ repositories {
 }
 
 dependencies {
-	groovy "org.codehaus.groovy:groovy-all:1.7.8"
-
+	groovy "org.codehaus.groovy:groovy-all:1.7.10"
     testCompile 'org.testng:testng:5.14.10'
 }
 

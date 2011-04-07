@@ -32,7 +32,7 @@ test {
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    groovy 'org.codehaus.groovy:groovy-all:1.7.8'
+    groovy 'org.codehaus.groovy:groovy-all:1.7.10'
 }
 <% } %>
 

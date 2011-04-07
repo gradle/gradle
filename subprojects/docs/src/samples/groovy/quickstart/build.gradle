@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    groovy group: 'org.codehaus.groovy', name: 'groovy', version: '1.7.8'
+    groovy group: 'org.codehaus.groovy', name: 'groovy', version: '1.7.10'
 // END SNIPPET groovy-dependency
     testCompile group: 'junit', name: 'junit', version: '4.8.2'
 // START SNIPPET groovy-dependency

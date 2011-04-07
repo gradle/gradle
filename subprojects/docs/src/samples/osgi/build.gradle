@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    groovy group: 'org.codehaus.groovy', name: 'groovy-all', version: '1.7.8'
+    groovy group: 'org.codehaus.groovy', name: 'groovy-all', version: '1.7.10'
     compile group: 'org.eclipse', name: 'osgi', version: '3.4.3.R34x_v20081215-1030'
 }
 
