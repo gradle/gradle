@@ -16,9 +16,11 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.TestFile;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -28,9 +30,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(JMock.class)
 public class SyncCopySpecVisitorTest {
@@ -68,13 +73,32 @@ public class SyncCopySpecVisitorTest {
     }
 
     @Test
-    public void deletesExtraDirectoriesFromDestinationDirectoryAtTheEndOfVisit() {
+    public void deletesExtraDirectoriesFromDestinationDirectoryAtTheEndOfVisit() throws Exception {
         TestFile destDir = tmpDir.createDir("dest");
         destDir.createFile("included.txt");
         destDir.createFile("extra/extra.txt");
 
         visitor.startVisit(action(destDir));
         visitor.visitFile(file("included.txt"));
+
+        // TODO - delete these
+        Field field = SyncCopySpecVisitor.class.getDeclaredField("visited");
+        field.setAccessible(true);
+        Set visited = (Set) field.get(visitor);
+        assert visited.contains(new RelativePath(true, "included.txt"));
+        assert !visited.contains(new RelativePath(true, "extra", "extra.txt"));
+        final Set actual = new HashSet();
+        new DirectoryFileTree(destDir).depthFirst().visit(new FileVisitor() {
+            public void visitDir(FileVisitDetails dirDetails) {
+            }
+
+            public void visitFile(FileVisitDetails fileDetails) {
+                actual.add(fileDetails.getRelativePath());
+            }
+        });
+        assert actual.contains(new RelativePath(true, "included.txt"));
+        assert actual.contains(new RelativePath(true, "extra", "extra.txt"));
+
         visitor.endVisit();
 
         destDir.assertHasDescendants("included.txt");
