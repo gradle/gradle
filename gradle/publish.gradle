@@ -50,9 +50,9 @@ uploadArchives {
     dependsOn generatePom
     uploadDescriptor = false
     doFirst {
-        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'repo.gradle.org', artifactoryUserName, artifactoryUserPassword)
+        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'gradle.artifactoryonline.com', artifactoryUserName, artifactoryUserPassword)
         repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
-            name = 'gradleReleases'
+            name = 'gradleLibs'
             addArtifactPattern("${version.libsUrl}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]" as String)
         }
     }

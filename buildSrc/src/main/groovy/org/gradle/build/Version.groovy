@@ -71,17 +71,17 @@ class Version {
 
     String getDistributionUrl() {
         if (release) {
-            'https://repo.gradle.org/gradle/distributions'
+            'https://gradle.artifactoryonline.com/gradle/distributions'
         } else {
-            'https://repo.gradle.org/gradle/distributions/gradle-snapshots'
+            'https://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots'
         }
     }
 
     String getLibsUrl() {
         if (release) {
-            'https://repo.gradle.org/gradle/libs-releases-local'
+            'https://gradle.artifactoryonline.com/gradle/libs-releases-local'
         } else {
-            'https://repo.gradle.org/gradle/libs-snapshots-local'
+            'https://gradle.artifactoryonline.com/gradle/libs-snapshots-local'
         }
     }
 }
