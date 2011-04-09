@@ -15,6 +15,6 @@
  */
 
 /**
- * A {link org.gradle.api.Plugin} for generating announcements from your build. 
+ * A {@link org.gradle.api.Plugin} for generating announcements from your build.
  */
 package org.gradle.api.plugins.announce;
