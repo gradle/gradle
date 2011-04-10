@@ -52,7 +52,7 @@
     </listitem>
     <listitem>
         <para>The binary sources. This is for reference only. If you want to build Gradle you need to download the source distribution
-            or checkout the sources from the source repository. See the <ulink url="website:build.html">Gradle web site</ulink> for details).
+            or checkout the sources from the source repository. See the <ulink url="website:build.html">Gradle web site</ulink> for details.
         </para>
     </listitem>
 </itemizedlist>

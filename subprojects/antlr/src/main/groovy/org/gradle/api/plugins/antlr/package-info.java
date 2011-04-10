@@ -15,6 +15,6 @@
  */
 
 /**
- * A {link org.gradle.api.Plugin} for generating parsers from Antlr grammars.
+ * A {@link org.gradle.api.Plugin} for generating parsers from Antlr grammars.
  */
 package org.gradle.api.plugins.antlr;

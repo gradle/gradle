@@ -15,6 +15,6 @@
  */
 
 /**
- * A {link org.gradle.api.Plugin} for generating Eclipse files. 
+ * A {@link org.gradle.api.Plugin} for generating Eclipse files.
  */
 package org.gradle.plugins.ide.eclipse;
