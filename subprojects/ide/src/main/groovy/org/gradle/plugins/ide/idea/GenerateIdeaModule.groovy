@@ -231,8 +231,6 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * If you really need to change the output file name it is much easier to do it via the <b>moduleName</b> property.
      * <p>
      * Please refer to documentation on <b>moduleName</b> property. In IntelliJ IDEA the module name is the same as the name of the *.iml file.
-     *
-     * @return
      */
     File getOutputFile() {
         return module.outputFile
@@ -262,8 +260,6 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * </pre>
      * <p>
      * <b>since</b> 1.0-milestone-2
-     * <p>
-     * @return
      */
     String getModuleName() {
         return module.name
