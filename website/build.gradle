@@ -76,6 +76,7 @@ task configureReleases << {
 
     version = gradleCoreProperties.version
     releases << new Release(version: version, status: 'Current Release')
+    releases << new Release(version: '1.0-milestone-1')
     releases << new Release(version: '0.9.2')
     releases << new Release(version: '0.9.1')
     releases << new Release(version: '0.9')
