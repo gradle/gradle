@@ -26,6 +26,18 @@ class JavadocConverterTest extends XmlSpecification {
     final GenerationListener listener = Mock()
     final JavadocConverter parser = new JavadocConverter(document, linkConverter)
 
+    def respectsLineIndentation() {
+        _ * classMetaData.rawCommentText >> '''
+ * x
+ *   indented
+'''
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook).contains('x\n  indented')
+    }
+
     def removesLeadingAsterixFromEachLine() {
         _ * classMetaData.rawCommentText >> ''' * line 1
  * line 2
