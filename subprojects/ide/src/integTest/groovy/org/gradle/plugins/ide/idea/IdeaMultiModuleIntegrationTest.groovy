@@ -227,4 +227,25 @@ project(':api') {
         //then
         assert getFile(project: 'master/api', 'api.iml').exists()
     }
+
+    @Test
+    void doesNotCreateDuplicateEntriesInIpr() {
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << "include 'api', 'iml'"
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+"""
+
+        //when
+        2.times { executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaProject").run() }
+
+        //then
+        String content = getFile(project: 'master', 'master.ipr').text
+        assert content.count('filepath="$PROJECT_DIR$/api/api.iml"') == 1
+    }
 }

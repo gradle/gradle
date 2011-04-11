@@ -39,10 +39,11 @@ class Project extends XmlPersistableConfigurationObject {
      */
     Jdk jdk
 
-    private final PathFactory pathFactory = new PathFactory()
+    private final PathFactory pathFactory
 
-    def Project(XmlTransformer xmlTransformer) {
+    def Project(XmlTransformer xmlTransformer, pathFactory) {
         super(xmlTransformer)
+        this.pathFactory = pathFactory
     }
 
     def configure(Set modulePaths, String javaVersion, Set wildcards) {

@@ -36,7 +36,7 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     }
 
     @Override Project create() {
-        def project = new Project(xmlTransformer)
+        def project = new Project(xmlTransformer, ideaProject.pathFactory)
         return project
     }
 
