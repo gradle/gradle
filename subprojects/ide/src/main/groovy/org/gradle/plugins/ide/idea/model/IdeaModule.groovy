@@ -63,7 +63,7 @@ import org.gradle.util.ConfigureUtil
  *     javaVersion = '1.6'
  *
  *     //if you need to put provided dependencies on the classpath
- *     scopes.COMPILE.plus += configurations.provided
+ *     scopes.PROVIDED.plus += configurations.provided
  *
  *     //if 'content root' (as IDEA calls it) of the module is different
  *     moduleDir = file('my-module-content-root')
@@ -154,7 +154,7 @@ class IdeaModule {
      *
      * idea {
      *   module {
-     *     scopes.COMPILE.plus += configurations.provided
+     *     scopes.PROVIDED.plus += configurations.provided
      *   }
      * }
      * </pre>

@@ -213,7 +213,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * }
      *
      * ideaModule {
-     *   scopes.COMPILE.plus += configurations.provided
+     *   scopes.PROVIDED.plus += configurations.provided
      * }
      * </pre>
      */
