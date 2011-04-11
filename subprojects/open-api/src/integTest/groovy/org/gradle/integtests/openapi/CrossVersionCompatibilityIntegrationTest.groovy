@@ -36,17 +36,18 @@ class CrossVersionCompatibilityIntegrationTest {
     private final BasicGradleDistribution gradle091 = dist.previousVersion('0.9.1')
     private final BasicGradleDistribution gradle092 = dist.previousVersion('0.9.2')
     private final BasicGradleDistribution gradle10Milestone1 = dist.previousVersion('1.0-milestone-1')
+    private final BasicGradleDistribution gradle10Milestone2 = dist.previousVersion('1.0-milestone-2')
 
     @Test
     public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
-        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1].each {
+        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2].each {
             checkCanBuildUsing(dist, it)
         }
     }
 
     @Test
     public void canUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
-        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1].each {
+        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2].each {
             checkCanBuildUsing(it, dist)
         }
     }
