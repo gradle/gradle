@@ -285,8 +285,6 @@ class IdeaModule {
     }
 
     protected void mergeXmlModule(Module xmlModule) {
-        xmlModule.pathFactory = pathFactory
-
         iml.beforeMerged.execute(xmlModule)
         xmlModule.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(),
                 getInheritOutputDirs(), getOutputPath(), getTestOutputPath(), getDependencies(), getJavaVersion())

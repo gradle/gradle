@@ -31,6 +31,26 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources()
 
     @Test
+    void mergesImlCorrectly() {
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+"""
+
+        //given
+        executer.usingBuildScript(buildFile).withTasks('idea').run()
+        def fileContent = getFile([:], 'master/master.iml').text
+
+        executer.usingBuildScript(buildFile).withTasks('idea').run()
+        def contentAfterMerge = getFile([:], 'master/master.iml').text
+
+        //then
+        assert fileContent == contentAfterMerge
+    }
+
+    @Test
     void canCreateAndDeleteMetaData() {
         executer.withTasks('idea').run()
 
