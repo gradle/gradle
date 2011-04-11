@@ -15,6 +15,10 @@
 */
 package org.gradle.integtests
 
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 import org.gradle.foundation.TestUtility
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol
 import org.gradle.gradleplugin.foundation.GradlePluginLord
@@ -26,10 +30,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
-import java.util.concurrent.locks.Condition
 
 /**
 This tests the that live output is gathered while executing a task.
@@ -65,10 +65,6 @@ that's likely to change over time. This version executes the command via GradleP
 
     @Test
     public void liveOutputObtainedViaGradlePlugin() {
-       System.out.println("project dir: " + javaprojectDir );
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('assemble').run();
-
         File multiProjectDirectory = sample.getDir();
         Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
 
@@ -95,9 +91,6 @@ that's likely to change over time. This version executes the command via GradleR
 */
     @Test
     public void liveOutputObtainedViaGradleRunner() {
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('assemble').run();
-
         File multiProjectDirectory = sample.getDir();
         Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
 

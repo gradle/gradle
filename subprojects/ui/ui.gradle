@@ -34,14 +34,6 @@ dependencies {
     integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
 
-task integTest(type: Test) {
-    doFirst {
-        systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-        systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-    }
-}
-
 test {
     jvmArgs '-Xms128m', '-Xmx256m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
 }

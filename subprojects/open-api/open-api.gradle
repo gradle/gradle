@@ -11,11 +11,3 @@ dependencies {
     integTestCompile project(path: ':core', configuration: 'integTestFixtures')
     integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
-
-//create a task for running the integration tests
-task integTest(type: Test) {
-    doFirst {
-        systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-    }
-}

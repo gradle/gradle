@@ -1,4 +1,5 @@
 apply plugin: 'java'
+rootProject.apply plugin: IntegTestPlugin
 
 configurations {
     integTestCompile {
@@ -28,18 +29,69 @@ eclipseClasspath {
     plusConfigurations.add(configurations.integTestRuntime)
 }
 
-integTestUserDir = rootProject.file('intTestHomeDir')
-
 integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
+rootProject.integTests << integTestTasks
 
 integTestTasks.all {
     dependsOn ':intTestImage'
     testClassesDir = sourceSets.integTest.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
+    jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
 
+    doFirst {
+        println "Using execution mode: ${systemProperties['org.gradle.integtest.executer']}"
+    }
     doFirst {
         testResultsDir = file("${project.testResultsDir}/$name")
         testReportDir = file("${project.testReportDir}/$name")
+        systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
+        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
+    }
+}
+
+['embedded', 'forking', 'daemon'].each {
+    def mode = it
+    def taskName = "${it}IntegTest"
+    tasks.addRule(taskName) { name ->
+        if (name != taskName) { return }
+        tasks.add(taskName, Test).configure {
+            systemProperties['org.gradle.integtest.executer'] = mode
+        }
+    }
+}
+
+task integTest(type: Test) {
+    doFirst {
+        systemProperties['org.gradle.integtest.executer'] = integTestMode
+    }
+}
+
+class IntegTestPlugin implements Plugin<Project> {
+    public void apply(Project project) {
+        project.convention.plugins.integTest = new IntegTestConvention(project)
+    }
+}
+
+class IntegTestConvention {
+    private final Project project
+    final List integTests = []
+
+    IntegTestConvention(Project project) {
+        this.project = project
+    }
+
+    String getIntegTestMode() {
+        if (project.isCIBuild() || OperatingSystem.current().isWindows()) {
+            return 'forking'
+        }
+        return 'embedded'
+    }
+    File getIntegTestUserDir() {
+        return project.file('intTestHomeDir')
+    }
+
+    File getIntegTestImageDir() {
+        return project.intTestImage.destinationDir
     }
 }
