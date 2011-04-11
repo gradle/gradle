@@ -66,8 +66,7 @@ import org.gradle.util.ConfigureUtil
  *     scopes.PROVIDED.plus += configurations.provided
  *
  *     //if 'content root' (as IDEA calls it) of the module is different
- *     moduleDir = file('my-module-content-root')
- *     //TODO SF: contentRoot
+ *     contentRoot = file('my-module-content-root')
  *
  *     //if you love browsing javadocs
  *     downloadJavadoc = true
@@ -180,7 +179,7 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    File moduleDir
+    File contentRoot
 
     /**
      * The directories containing the test sources.
@@ -301,7 +300,7 @@ class IdeaModule {
     }
 
     protected Path getContentPath() {
-        path(getModuleDir())
+        path(getContentRoot())
     }
 
     protected def path(File dir) {

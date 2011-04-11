@@ -68,11 +68,11 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * The content root directory of the module.
      */
     File getModuleDir() {
-        module.moduleDir
+        module.contentRoot
     }
 
-    void setModuleDir(File moduleDir) {
-        module.moduleDir = moduleDir
+    void setModuleDir(File contentRoot) {
+        module.contentRoot = contentRoot
     }
 
     /**

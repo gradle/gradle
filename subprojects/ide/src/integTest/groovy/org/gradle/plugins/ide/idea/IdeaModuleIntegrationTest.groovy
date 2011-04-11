@@ -54,7 +54,7 @@ dependencies { provided "junit:junit:4.8.2" }
 idea {
     module {
         name = 'foo'
-        moduleDir = file('customModuleContentRoot')
+        contentRoot = file('customModuleContentRoot')
 
         sourceDirs += file('additionalCustomSources')
         testSourceDirs += file('additionalCustomTestSources')

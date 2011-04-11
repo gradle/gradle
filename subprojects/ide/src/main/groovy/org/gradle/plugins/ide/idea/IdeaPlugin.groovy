@@ -77,7 +77,7 @@ class IdeaPlugin extends IdePlugin {
 
             module.conventionMapping.sourceDirs = { [] as LinkedHashSet }
             module.conventionMapping.name = { project.name }
-            module.conventionMapping.moduleDir = { project.projectDir }
+            module.conventionMapping.contentRoot = { project.projectDir }
             module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
             module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
 
