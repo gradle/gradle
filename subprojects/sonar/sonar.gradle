@@ -41,10 +41,5 @@ sourceSets {
 }
 
 ideaModule {
-    // TODO: remove everything but then-part after Gradle build has been updated to 1.0-milestone-2
-    if (scopes.PROVIDED) {
-        scopes.PROVIDED.plus += configurations.provided
-    } else {
-        scopes.COMPILE.plus += configurations.provided
-    }
+    scopes.PROVIDED.plus += configurations.provided
 }
