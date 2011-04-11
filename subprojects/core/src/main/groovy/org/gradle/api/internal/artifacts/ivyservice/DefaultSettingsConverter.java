@@ -39,7 +39,30 @@ import java.io.File;
 import java.util.*;
 
 /**
+ * This class will keep all Ivy settings need for the resolution and publishing.
+ * In Ivy Resolver are used for resolution and publication, so the DependencyResolver graph
+ * used here is valid for both.<br/>
+ * The graph is (resolverName, varName, class, comments):<br/><ol>
+ * <li>clientModuleChain, outerChain, ChainResolver, Default main one and unique resolver for resolution</li><ol>
+ *   <li>clientModule, clientModuleResolver, ClientModuleResolver,
+ *    It's a basic resolver with special handling of org.gradle.clientModule key which the key
+ *    of an internal map to ModuleDescriptor values.
+ *    It keeps a pointer to userResolverChain as the actual artifacts provider.</li>
+ *   <li>chain, userResolverChain, ChainResolver, does hardcoded activation of dynamic for SNAPSHOT<ol>
+ *     <li><b>null</b>, internalRepository, InternalRepository,
+ *      There are only 2 kinds: EmptyInternalRepository or DefaultInternalRepository that has Gradle+(Publish/Resolver)Converter</li>
+ *     <li>All the other resolvers defined for classpath</li>
+ *   </ol></li>
+ * </ol>
+ *
+ * TODO: Give a name to the InternalRepository resolver. There can be only 3 kind of them (Empty, Resolution, Publish).
+ * TODO: Only one InternalRepository resolver will ever be used since metaDataProvider is a single member in the DefaultIvyService???
+ * TODO: Can we have only one internal that will behave correctly (Empty, Resolution, Publish) depending on the resolution context.
+ * TODO: We manage a single ivySettings and keep the publisher and all other resolvers list up-to-date.
+ * TODO: The outerChain should be a dictator resolver in IvySettings.
+ *
  * @author Hans Dockter
+ * @author Fred Simon
  */
 public class DefaultSettingsConverter implements SettingsConverter {
     private static Logger logger = Logging.getLogger(DefaultSettingsConverter.class);
@@ -161,7 +184,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
                 AbstractResolver abstractResolver = (AbstractResolver) dependencyResolver;
                 RepositoryCacheManager cacheManager = abstractResolver.getRepositoryCacheManager();
                 // Can be only the Wharf, NoOp or Local Cache Manager
-                if (cacheManager != ivySettings.getDefaultRepositoryCacheManager()
+                if (!(cacheManager instanceof WharfCacheManager)
                         && !(cacheManager instanceof NoOpRepositoryCacheManager)
                         && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
                     throw new IllegalStateException("Cannot have a cache manager="+cacheManager);
