@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.lock.NoLockStrategy;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
@@ -150,7 +151,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
 
     private void setRepositoryCacheManager(IvySettings ivySettings) {
         if (repositoryCacheManager == null) {
-            repositoryCacheManager = new WharfCacheManager();
+            repositoryCacheManager = WharfCacheManager.newInstance(ivySettings);
+            // Locking is slowing down too much, and failing the UserGuideSamplesIntegrationTest.dependencyListReport test
+            ((WharfCacheManager)repositoryCacheManager).getMetadataHandler().setLockStrategy(new NoLockStrategy());
         }
         ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
     }
