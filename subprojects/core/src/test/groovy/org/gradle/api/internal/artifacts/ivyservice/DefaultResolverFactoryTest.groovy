@@ -26,6 +26,7 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
 
 /**
  * @author Hans Dockter
@@ -115,7 +116,7 @@ class DefaultResolverFactoryTest {
         }
 
         def repo = factory.createMavenLocalResolver('name')
-        assert repo instanceof GradleIBiblioResolver
+        assert repo instanceof IBiblioWharfResolver
         assert repo.root == repoDir.toURI().toString() + '/'
     }
 }

@@ -91,7 +91,8 @@ class DefaultSettingsConverterTest {
 
         [testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
-            assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
+            assert settings.getResolver(it).getRepositoryCacheManager() instanceof WharfCacheManager
+            assert settings.getResolver(it).getRepositoryCacheManager() == settings.defaultRepositoryCacheManager
         }
 
         assert settings.getResolver(testResolver.name).is(testResolver)
