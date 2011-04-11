@@ -59,6 +59,11 @@ class EclipseClasspath extends XmlGeneratorTask<Classpath> implements Configurat
     File defaultOutputDir
 
     /**
+     * The cache directory for all resolved library.
+     */
+    File cacheDir
+
+    /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.
      */
     boolean downloadSources = true
