@@ -55,6 +55,7 @@ class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project)
 
         project.afterEvaluate {
+            //TODO SF: is it possible to do deduplication on the fly?
             new IdeaConfigurer().configure(project)
         }
     }
