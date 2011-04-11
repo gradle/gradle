@@ -172,7 +172,7 @@ task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
-    doFirst {
+    gradle.taskGraph.whenReady {
         javadocUrl = remoteLocations.javadocUrl
         groovydocUrl = remoteLocations.groovydocUrl
         dsldocUrl = remoteLocations.dsldocUrl
@@ -273,7 +273,7 @@ task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideSty
     tags << 'standalone'
     sourceFile = new File(userguideSrcDir, 'installation.xml')
     destFile = new File(docbookSrc, 'installation.xml')
-    doFirst {
+    gradle.taskGraph.whenReady {
         javadocUrl = remoteLocations.javadocUrl
         groovydocUrl = remoteLocations.groovydocUrl
         dsldocUrl = remoteLocations.dsldocUrl
@@ -293,7 +293,7 @@ task websiteUserguideSrc(type: UserGuideTransformTask, dependsOn: [userguideStyl
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'website.xml')
     tags << 'website'
-    doFirst {
+    gradle.taskGraph.whenReady {
         javadocUrl = remoteLocations.javadocUrl
         groovydocUrl = remoteLocations.groovydocUrl
         dsldocUrl = remoteLocations.dsldocUrl
