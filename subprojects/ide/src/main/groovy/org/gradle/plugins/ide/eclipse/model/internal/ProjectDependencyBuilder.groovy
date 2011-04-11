@@ -26,7 +26,6 @@ class ProjectDependencyBuilder {
         if (gradleProject.hasProperty('eclipseProject') && gradleProject.eclipseProject) {
             name = gradleProject.eclipseProject.projectName
         } else {
-            //TODO SF: should we warn user? should we not add this dependency?
             name = gradleProject.name
         }
         new ProjectDependency('/' + name, true, null, [] as Set, gradleProject.path)
