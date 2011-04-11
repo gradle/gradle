@@ -60,7 +60,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     static def resetGlobalExcludes() {
-        GLOBAL_EXCLUDES.addAll(DirectoryScanner.DEFAULTEXCLUDES as Collection)
+        setGlobalExcludes(DirectoryScanner.DEFAULTEXCLUDES as Collection)
     }
 
     def boolean equals(Object o) {
