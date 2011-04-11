@@ -52,11 +52,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     IdeaModule module
 
     //TODO SF: IMPORTANT
-    //for the sake of backwards compatibility there are lots of hacks here.
-    // - overridden methods with no implementation
-    // - configureDomainObjectNow() method that is called after projects evaluated
-    // - delegating getters & setters
-    //Once we decide to break backwards compatibility below madness will be gone
+    //Once we decide to break backwards compatibility below hacky delegating getters/setters will be gone
     //and the implementation of this task will dwindle into few lines of code or disappear completely
 
     @Override protected Module create() {

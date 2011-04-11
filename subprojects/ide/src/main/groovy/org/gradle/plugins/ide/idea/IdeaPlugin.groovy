@@ -55,8 +55,6 @@ class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project)
 
         project.afterEvaluate {
-            //TODO don't do stuff related to whenConfigured
-            //
             new IdeaConfigurer().configure(project)
         }
     }
