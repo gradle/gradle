@@ -36,6 +36,7 @@ class SamplesToolingApiIntegrationTest extends Specification {
         projectDir.file('gradle.properties').withOutputStream {outstr ->
             props.store(outstr, 'props')
         }
+        projectDir.file('settings.gradle').text = '// to stop search upwards'
 
         when:
         def result = run(projectDir, 'run')
@@ -54,6 +55,7 @@ class SamplesToolingApiIntegrationTest extends Specification {
         projectDir.file('gradle.properties').withOutputStream {outstr ->
             props.store(outstr, 'props')
         }
+        projectDir.file('settings.gradle').text = '// to stop search upwards'
 
         when:
         def result = run(projectDir, 'run')
