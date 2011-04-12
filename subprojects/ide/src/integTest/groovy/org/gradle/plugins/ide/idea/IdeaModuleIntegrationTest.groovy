@@ -49,9 +49,6 @@ configurations {
   provided.extendsFrom(compile)
 }
 
-repositories { mavenCentral() }
-dependencies { provided "junit:junit:4.8.2" }
-
 idea {
     module {
         name = 'foo'
@@ -61,7 +58,7 @@ idea {
         testSourceDirs += file('additionalCustomTestSources')
         excludeDirs += file('excludeMePlease')
 
-        scopes.PROVIDED.plus += configurations.provided
+        scopes.PROVIDED.plus += configurations.compile
         downloadJavadoc = true
         downloadSources = false
 
