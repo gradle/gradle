@@ -21,8 +21,8 @@ repositories {
 }
 
 dependencies {
+    compile 'commons-lang:commons-lang:2.5'
     testCompile 'junit:junit:4.8.2'
-
 }
 test {
     jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
