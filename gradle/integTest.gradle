@@ -40,9 +40,6 @@ integTestTasks.all {
     jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
 
     doFirst {
-        println "Using execution mode: ${systemProperties['org.gradle.integtest.executer']}"
-    }
-    doFirst {
         testResultsDir = file("${project.testResultsDir}/$name")
         testReportDir = file("${project.testReportDir}/$name")
         systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
