@@ -85,7 +85,7 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.pathFactory = {
                 PathFactory factory = new PathFactory()
                 factory.addPathVariable('MODULE_DIR', outputFile.parentFile)
-                variables.each { key, value ->
+                module.variables.each { key, value ->
                     factory.addPathVariable(key, value)
                 }
                 factory
@@ -103,10 +103,10 @@ class IdeaPlugin extends IdePlugin {
 
                 model.project = ideaProject
 
-                ideaProject.conventionMapping.outputFile = { new File(project.projectDir, project.name + ".ipr") }
-                ideaProject.conventionMapping.javaVersion = { JavaVersion.VERSION_1_6.toString() }
-                ideaProject.conventionMapping.wildcards = { ['!?*.java', '!?*.groovy'] as Set }
-                ideaProject.conventionMapping.subprojects = { project.rootProject.allprojects }
+                ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
+                ideaProject.javaVersion = JavaVersion.VERSION_1_6.toString()
+                ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
+                ideaProject.subprojects = project.rootProject.allprojects
                 ideaProject.conventionMapping.pathFactory = {
                     new PathFactory().addPathVariable('PROJECT_DIR', outputFile.parentFile)
                 }
@@ -135,12 +135,12 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             def configurations = project.configurations
-            module.conventionMapping.scopes = {[
+            module.scopes = [
                     PROVIDED: [plus: [], minus: []],
                     COMPILE: [plus: [configurations.compile], minus: []],
                     RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
                     TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
-            ]}
+            ]
         }
     }
 
