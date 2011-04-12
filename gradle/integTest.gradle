@@ -92,6 +92,6 @@ class IntegTestConvention {
     }
 
     File getIntegTestImageDir() {
-        return project.tasks.findByName('intTestImage')?.destinationDir
+        return project.intTestImage.destinationDir
     }
 }
