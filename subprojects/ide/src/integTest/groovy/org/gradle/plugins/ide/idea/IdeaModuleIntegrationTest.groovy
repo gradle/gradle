@@ -49,6 +49,7 @@ configurations {
   provided.extendsFrom(compile)
 }
 
+repositories { mavenCentral() }
 dependencies { provided "junit:junit:4.8.2" }
 
 idea {
