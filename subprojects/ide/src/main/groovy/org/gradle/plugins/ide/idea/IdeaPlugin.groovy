@@ -27,7 +27,6 @@ import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.gradle.plugins.ide.idea.model.IdeaProjectIpr
 import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdePlugin
-import org.gradle.api.artifacts.ResolverContainer
 
 /**
  * @author Hans Dockter

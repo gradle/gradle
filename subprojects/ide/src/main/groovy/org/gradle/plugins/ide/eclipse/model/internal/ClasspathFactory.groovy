@@ -120,8 +120,9 @@ class ClasspathFactory {
     private String canonicalPath(File file, EclipseClasspath eclipseClasspath) {
         // When file in cache, use absolute path
         String absPath = file.absolutePath
-        if (absPath.startsWith(eclipseClasspath.cacheDir.absolutePath))
+        if (absPath.startsWith(eclipseClasspath.cacheDir.absolutePath)) {
             return absPath
+        }
         return file.canonicalPath
     }
 

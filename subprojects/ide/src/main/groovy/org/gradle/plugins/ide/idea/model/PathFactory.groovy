@@ -40,8 +40,9 @@ class PathFactory {
     private File canonicalFile(File file) {
         // When file in cache, use absolute path
         String absPath = file.absolutePath
-        if (cacheDir != null && absPath.startsWith(cacheDir.absolutePath))
+        if (cacheDir != null && absPath.startsWith(cacheDir.absolutePath)) {
             return file.absoluteFile
+        }
         return file.canonicalFile
     }
 

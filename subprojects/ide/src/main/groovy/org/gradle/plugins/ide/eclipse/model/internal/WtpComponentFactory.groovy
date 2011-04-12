@@ -100,8 +100,9 @@ class WtpComponentFactory {
     private String canonicalPath(File file, EclipseWtpComponent eclipseWtpComponent) {
         // When file in cache, use absolute path
         String absPath = file.absolutePath
-        if (absPath.startsWith(eclipseWtpComponent.cacheDir.absolutePath))
+        if (absPath.startsWith(eclipseWtpComponent.cacheDir.absolutePath)) {
             return absPath
+        }
         return file.canonicalPath
     }
 
