@@ -23,10 +23,12 @@ import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
+import org.gradle.api.plugins.EarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.GeneratorTaskConfigurer
 import org.gradle.plugins.eclipse.internal.EclipseDomainModelFactory
 import org.gradle.plugins.eclipse.model.*
+import org.gradle.plugins.eclipse.model.Facet.FacetType;
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -94,7 +96,9 @@ class EclipsePlugin extends IdePlugin {
             conventionMapping.comment = { project.description }
 
             project.plugins.withType(JavaBasePlugin) {
-                buildCommand "org.eclipse.jdt.core.javabuilder"
+                if (!project.plugins.hasPlugin(EarPlugin)) {
+                    buildCommand "org.eclipse.jdt.core.javabuilder"
+                }
                 natures "org.eclipse.jdt.core.javanature"
             }
 
@@ -108,7 +112,7 @@ class EclipsePlugin extends IdePlugin {
                 natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
             }
 
-            project.plugins.withType(WarPlugin) {
+            project.plugins.matching { it instanceof WarPlugin || it instanceof EarPlugin }.each {
                 buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
                 buildCommand 'org.eclipse.wst.validation.validationbuilder'
                 natures 'org.eclipse.wst.common.project.facet.core.nature'
@@ -173,17 +177,26 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseWtpComponent(Project project) {
-        project.plugins.withType(WarPlugin) {
+        project.plugins.matching { it instanceof WarPlugin || it instanceof EarPlugin }.each { plugin ->
             addEclipsePluginTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
                 description = 'Generates the Eclipse WTP component settings file.'
                 deployName = project.name
                 conventionMapping.sourceDirs = { getMainSourceDirs(project) }
-                plusConfigurations = [project.configurations.runtime]
-                minusConfigurations = [project.configurations.providedRuntime]
-                conventionMapping.contextPath = { project.war.baseName }
-                resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
                 inputFile = project.file('.settings/org.eclipse.wst.common.component')
                 outputFile = project.file('.settings/org.eclipse.wst.common.component')
+
+                if (plugin instanceof WarPlugin) {
+                    libConfigurations = [project.configurations.runtime]
+                    minusConfigurations = [project.configurations.providedRuntime]
+                    conventionMapping.contextPath = { project.war.baseName }
+                    resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
+                } else if (plugin instanceof EarPlugin) {
+                    rootConfigurations = [project.configurations.deploy]
+                    libConfigurations = [project.configurations.earlib]
+                    minusConfigurations = []
+                    classesDeployPath = "/"
+                    libDeployPath = "/lib"
+                }
             }
 
             eachDependedUponProject(project) { otherProject ->
@@ -205,24 +218,32 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseWtpFacet(Project project) {
-        project.plugins.withType(WarPlugin) {
+        project.plugins.matching { it instanceof WarPlugin || it instanceof EarPlugin }.each { plugin ->
             addEclipsePluginTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, EclipseWtpFacet) {
                 description = 'Generates the Eclipse WTP facet settings file.'
                 inputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                 outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-                conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
+                if (plugin instanceof WarPlugin) {
+                    conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
+                        new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
+                } else if (plugin instanceof EarPlugin) {
+                    conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.ear", null), new Facet(FacetType.installed, "jst.ear", "5.0")] }
+                }
             }
+        }
 
+        project.plugins.withType(WarPlugin) {
             eachDependedUponProject(project) { otherProject ->
                 addEclipsePluginTask(otherProject, ECLIPSE_WTP_FACET_TASK_NAME, EclipseWtpFacet) {
                     description = 'Generates the Eclipse WTP facet settings file.'
                     inputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-                    conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
+                    conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
+                        new Facet(FacetType.installed, "jst.utility", "1.0")] }
                     otherProject.plugins.withType(JavaPlugin) {
                         conventionMapping.facets = {
-                            [new Facet("jst.utility", "1.0"), new Facet("jst.java",
-                                    toJavaFacetVersion(otherProject.sourceCompatibility))]
+                            [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null), 
+                                new Facet(FacetType.installed, "jst.utility", "1.0"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(otherProject.sourceCompatibility))]
                         }
                     }
                 }

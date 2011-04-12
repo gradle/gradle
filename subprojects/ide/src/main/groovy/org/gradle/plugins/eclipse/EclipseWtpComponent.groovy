@@ -34,9 +34,14 @@ class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> implements Depe
     Set<File> sourceDirs
 
     /**
-     * The configurations whose files are to be transformed into dependent-module elements.
+     * The configurations whose files are to be placed into dependent-module elements with a deploy path of '/'.
      */
-    Set<Configuration> plusConfigurations
+    Set<Configuration> rootConfigurations = []
+
+    /**
+     * The configurations whose files are to be transformed into dependent-module elements with a deploy path of {@link #libDeployPath}.
+     */
+    Set<Configuration> libConfigurations
 
     /**
      * The configurations whose files are to be excluded from dependent-module elements.
@@ -67,6 +72,16 @@ class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> implements Depe
      * The context path for the web application
      */
     String contextPath
+
+    /**
+     * The deploy path for classes.
+     */
+    String classesDeployPath = "/WEB-INF/classes"
+
+    /**
+     * The deploy path for libraries.
+     */
+    String libDeployPath = "/WEB-INF/lib"
 
     private final WtpComponentFactory modelFactory = new WtpComponentFactory()
 

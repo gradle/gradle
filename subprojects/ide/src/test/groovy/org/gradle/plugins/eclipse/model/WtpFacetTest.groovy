@@ -17,6 +17,7 @@ package org.gradle.plugins.eclipse.model
 
 import org.custommonkey.xmlunit.XMLUnit
 import org.gradle.api.internal.XmlTransformer
+import org.gradle.plugins.eclipse.model.Facet.FacetType;
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -25,7 +26,7 @@ import spock.lang.Specification
  * @author Hans Dockter
  */
 public class WtpFacetTest extends Specification {
-    private static final List CUSTOM_FACETS = [new Facet('jst.web', '2.4'), new Facet('jst.java', '1.4')]
+    private static final List CUSTOM_FACETS = [new Facet(FacetType.fixed, 'jst.java', null), new Facet(FacetType.fixed, 'jst.web', null), new Facet(FacetType.installed, 'jst.web', '2.4'), new Facet(FacetType.installed, 'jst.java', '1.4')]
 
     private final WtpFacet facet = new WtpFacet(new XmlTransformer())
 
@@ -75,6 +76,6 @@ public class WtpFacetTest extends Specification {
     }
 
     private Facet createSomeFacet() {
-        new Facet('someName', '1.0.0')
+        new Facet(FacetType.installed, 'someName', '1.0.0')
     }
 }

@@ -20,6 +20,10 @@ package org.gradle.plugins.eclipse.model
  */
 
 class Facet {
+
+    enum FacetType { installed, fixed }
+
+    FacetType type
     String name
     String version
 
@@ -27,17 +31,27 @@ class Facet {
     }
 
     def Facet(Node node) {
-        this(node.@facet, node.@version)
+        this(FacetType.valueOf(node.name()), node.@facet, node.@version)
     }
 
-    def Facet(String name, String version) {
-        assert name != null && version != null
+    def Facet(FacetType type, String name, String version) {
+        assert type != null && name != null
+        if (type == FacetType.installed) {
+            assert version != null
+        } else {
+            assert version == null
+        }
+        this.type = type
         this.name = name
         this.version = version
     }
 
     void appendNode(Node node) {
-        node.appendNode("installed", [facet: name, version: version])
+        if (type == FacetType.installed) {
+            node.appendNode(type as String, [facet: name, version: version])
+        } else {
+            node.appendNode(type as String, [facet: name])
+        }
     }
 
     boolean equals(o) {
@@ -47,6 +61,7 @@ class Facet {
 
         Facet facet = (Facet) o;
 
+        if (type != facet.type) { return false }
         if (name != facet.name) { return false }
         if (version != facet.version) { return false }
 
@@ -56,13 +71,15 @@ class Facet {
     int hashCode() {
         int result;
 
-        result = name.hashCode();
-        result = 31 * result + version.hashCode();
+        result = type.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + ((version == null) ? 0 : version.hashCode());
         return result;
     }
 
     public String toString() {
         return "Facet{" +
+                "type='" + type + '\'' +
                 "name='" + name + '\'' +
                 ", version='" + version + '\'' +
                 '}';

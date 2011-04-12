@@ -30,7 +30,6 @@ class EclipseWtpFacet extends XmlGeneratorTask<WtpFacet> implements DependsOnCon
     /**
      * The facets to be added as elements.
      */
-    // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
     List<Facet> facets = []
 
     protected WtpFacetFactory modelFactory = new WtpFacetFactory()
