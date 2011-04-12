@@ -82,16 +82,23 @@ class IntegTestConvention {
     }
 
     String getIntegTestMode() {
+        if (!project.tasks.findByName('ciBuild')) {
+            return null
+        }
         if (project.isCIBuild() || OperatingSystem.current().isWindows()) {
             return 'forking'
         }
         return 'embedded'
     }
+
     File getIntegTestUserDir() {
         return project.file('intTestHomeDir')
     }
 
     File getIntegTestImageDir() {
+        if (!project.tasks.findByName('intTestImage')) {
+            return null
+        }
         return project.intTestImage.destinationDir
     }
 }
