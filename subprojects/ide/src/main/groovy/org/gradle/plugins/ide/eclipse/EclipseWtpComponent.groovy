@@ -69,6 +69,11 @@ class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> implements Conf
      */
     String contextPath
 
+    /**
+     * The cache directory for all resolved library.
+     */
+    File cacheDir
+
     private final WtpComponentFactory modelFactory = new WtpComponentFactory()
 
     EclipseWtpComponent() {

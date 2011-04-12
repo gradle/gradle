@@ -23,6 +23,7 @@ import org.gradle.plugins.ide.eclipse.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
+import org.gradle.api.artifacts.ResolverContainer
 
 /**
  * @author Hans Dockter
@@ -30,6 +31,8 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent
 class WtpComponentFactory {
     void configure(EclipseWtpComponent eclipseComponent, WtpComponent component) {
         def entries = getEntriesFromSourceDirs(eclipseComponent)
+        // TODO: Actually fetch the value from the Resolver service
+        eclipseComponent.cacheDir = new File(eclipseComponent.getProject().gradle.gradleUserHomeDir, ResolverContainer.DEFAULT_CACHE_DIR_NAME)
         entries.addAll(eclipseComponent.resources)
         entries.addAll(eclipseComponent.properties)
         entries.addAll(getEntriesFromConfigurations(eclipseComponent))
@@ -86,7 +89,7 @@ class WtpComponentFactory {
                         { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}))
 
         libFiles.collect { file ->
-            createWbDependentModuleEntry(file, eclipseComponent.variables)
+            createWbDependentModuleEntry(file, eclipseComponent)
         }
     }
 
@@ -94,13 +97,22 @@ class WtpComponentFactory {
         dependencies.collect { it.resolve() }.flatten()
     }
 
-    private WbDependentModule createWbDependentModuleEntry(File file, Map<String, File> variables) {
-        def usedVariableEntry = variables.find { name, value -> file.canonicalPath.startsWith(value.canonicalPath) }
+    private String canonicalPath(File file, EclipseWtpComponent eclipseWtpComponent) {
+        // When file in cache, use absolute path
+        String absPath = file.absolutePath
+        if (absPath.startsWith(eclipseWtpComponent.cacheDir.absolutePath))
+            return absPath
+        return file.canonicalPath
+    }
+
+    private WbDependentModule createWbDependentModuleEntry(File file, EclipseWtpComponent wtpComponent) {
+        def filePath = canonicalPath(file, wtpComponent)
+        def usedVariableEntry = wtpComponent.variables.find { name, value -> filePath.startsWith(canonicalPath(value, wtpComponent)) }
         def handleSnippet
         if (usedVariableEntry) {
-            handleSnippet = "var/$usedVariableEntry.key/${file.canonicalPath.substring(usedVariableEntry.value.canonicalPath.length())}"
+            handleSnippet = "var/$usedVariableEntry.key/${filePath.substring(canonicalPath(usedVariableEntry.value, wtpComponent).length())}"
         } else {
-            handleSnippet = "lib/${file.canonicalPath}"
+            handleSnippet = "lib/${filePath}"
         }
         handleSnippet = FilenameUtils.separatorsToUnix(handleSnippet)
         return new WbDependentModule('/WEB-INF/lib', "module:/classpath/$handleSnippet")
