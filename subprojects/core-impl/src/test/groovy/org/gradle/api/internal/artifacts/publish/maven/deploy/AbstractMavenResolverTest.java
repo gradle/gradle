@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.MavenSettingsSupplier;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.LoggingManagerInternal;

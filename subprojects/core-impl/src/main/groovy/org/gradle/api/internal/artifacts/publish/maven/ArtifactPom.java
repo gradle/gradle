@@ -13,17 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.dependencies;
+package org.gradle.api.internal.artifacts.publish.maven;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.maven.MavenPom;
 
-import java.util.List;
+import java.io.File;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public interface PomDependenciesConverter {
-    public List<?> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations);
+public interface ArtifactPom {
+    /**
+     * @return The main artifact, may be null.
+     */
+    PublishArtifact getArtifact();
+
+    MavenPom getPom();
+
+    void addArtifact(Artifact artifact, File src);
+
+    Set<PublishArtifact> getAttachedArtifacts();
+
+    PublishArtifact writePom(File pomFile);
 }

@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice
+package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.plugins.resolver.*
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
-import org.gradle.api.internal.Factory
-import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
 import org.gradle.api.artifacts.maven.MavenFactory
+import org.gradle.api.internal.Factory
+import org.gradle.api.internal.artifacts.ivyservice.GradleIBiblioResolver
+import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.apache.ivy.plugins.resolver.*
 
 /**
  * @author Hans Dockter

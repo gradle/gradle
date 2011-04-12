@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy;
+package org.gradle.api.internal.artifacts.publish.maven;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;

@@ -93,8 +93,7 @@ public class MavenPluginConvention {
      */
     public MavenPom pom(Closure configureClosure) {
         Factory<MavenPom> pomFactory = mavenFactory.createMavenPomFactory(project.getConfigurations(),
-                mavenFactory.createConf2ScopeMappingContainer(conf2ScopeMappings.getMappings()),
-                mavenFactory.createPomDependenciesConverter(mavenFactory.createExcludeRuleConverter()),
+                conf2ScopeMappings.getMappings(),
                 project.getFileResolver());
         MavenPom pom = pomFactory.create();
         pom.setGroupId(project.getGroup().toString());

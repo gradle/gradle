@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.dependencies;
+package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.maven.MavenPom;
-
-import java.io.PrintWriter;
-import java.util.Set;
+import org.gradle.api.internal.project.ServiceRegistry;
 
 /**
- * @author Hans Dockter
+ * Factory for various types related to dependency management.
+ *
+ * <p>The motivation for having this factory is to allow implementation
+ * types, and more importantly their dependencies, to be loaded from a
+ * different (coreImpl) class loader. This helps to prevent version conflicts,
+ * for example between Maven 2 and Maven 3 libraries.
  */
-public interface PomDependenciesWriter {
-    String DEPENDENCIES = "dependencies";
-
-    void convert(MavenPom pom, Set<Configuration> configurations, PrintWriter printWriter);
+public interface DependencyManagementServices extends ServiceRegistry {
 }

@@ -15,47 +15,20 @@
  */
 package org.gradle.api.artifacts.maven;
 
-import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomFactory;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.file.FileResolver;
 
 import java.util.Map;
 
 /**
  * Factory for various types related to Maven dependency management.
- * The motivation for having this factory is to allow implementation
- * types, and more importantly their dependencies, to be loaded from a
- * different (coreImpl) class loader. This helps to prevent version conflicts,
- * for example between Maven 2 and Maven 3 libraries.
  */
 public interface MavenFactory {
-    ArtifactPomFactory createArtifactPomFactory();
+    Factory<MavenPom> createMavenPomFactory(ConfigurationContainer configurationContainer, Map<Configuration, Conf2ScopeMapping> mappings, FileResolver fileResolver);
 
-    Factory<MavenPom> createMavenPomFactory(ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer conf2ScopeMappingContainer,
-                                            PomDependenciesConverter pomDependenciesConverter, FileResolver fileResolver);
-
-    PomDependenciesConverter createPomDependenciesConverter(ExcludeRuleConverter excludeRuleConverter);
-
-    ExcludeRuleConverter createExcludeRuleConverter();
-
-    ArtifactPomContainer createArtifactPomContainer(MavenPomMetaInfoProvider pomMetaInfoProvider, PomFilterContainer filterContainer,
-                                                    ArtifactPomFactory pomFactory);
-
-    GroovyMavenDeployer createGroovyMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager);
-
-    PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory);
-
-    MavenResolver createMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager);
-
-    LocalMavenCacheLocator createLocalMavenCacheLocator();
+    Factory<MavenPom> createMavenPomFactory(ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer conf2ScopeMappingContainer, FileResolver fileResolver);
 
     Conf2ScopeMappingContainer createConf2ScopeMappingContainer(Map<Configuration, Conf2ScopeMapping> mappings);
 }

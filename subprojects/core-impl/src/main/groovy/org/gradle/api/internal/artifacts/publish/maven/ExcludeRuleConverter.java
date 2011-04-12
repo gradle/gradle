@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy;
+package org.gradle.api.internal.artifacts.publish.maven;
 
-import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.ExcludeRule;
+
 
 /**
  * @author Hans Dockter
  */
-public interface ArtifactPomFactory {
-    ArtifactPom createArtifactPom(MavenPom pom);
+public interface ExcludeRuleConverter {
+    Object convert(ExcludeRule excludeRule);
 }
