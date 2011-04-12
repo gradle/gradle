@@ -27,6 +27,7 @@ import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.gradle.plugins.ide.idea.model.IdeaProjectIpr
 import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdePlugin
+import org.gradle.api.artifacts.ResolverContainer
 
 /**
  * @author Hans Dockter
@@ -84,8 +85,9 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
 
             module.conventionMapping.pathFactory = {
-                PathFactory factory = new PathFactory()
-                factory.addPathVariable('MODULE_DIR', outputFile.parentFile)
+                PathFactory factory = new PathFactory().
+                        setCacheDir(project.gradle).
+                        addPathVariable('MODULE_DIR', outputFile.parentFile)
                 variables.each { key, value ->
                     factory.addPathVariable(key, value)
                 }
@@ -109,7 +111,7 @@ class IdeaPlugin extends IdePlugin {
                 ideaProject.conventionMapping.wildcards = { ['!?*.java', '!?*.groovy'] as Set }
                 ideaProject.conventionMapping.subprojects = { project.rootProject.allprojects }
                 ideaProject.conventionMapping.pathFactory = {
-                    new PathFactory().addPathVariable('PROJECT_DIR', outputFile.parentFile)
+                    new PathFactory().setCacheDir(project.gradle).addPathVariable('PROJECT_DIR', outputFile.parentFile)
                 }
             }
             addWorker(task)

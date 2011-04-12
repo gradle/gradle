@@ -15,9 +15,15 @@
  */
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.invocation.Gradle
+import org.gradle.api.artifacts.ResolverContainer
+
 class PathFactory {
     private final List<Map> variables = []
     private final Map<String, File> varsByName = [:]
+
+    // TODO: Should the cache dir be enforced as a CACHE_DIR variable
+    private File cacheDir
 
     PathFactory addPathVariable(String name, File dir) {
         variables << [name: "\$${name}\$", prefix: dir.absolutePath + File.separator, dir: dir]
@@ -25,11 +31,25 @@ class PathFactory {
         return this
     }
 
+    PathFactory setCacheDir(Gradle gradle) {
+        // TODO: Actually fetch the value from the Resolver service
+        cacheDir = new File(gradle.gradleUserHomeDir, ResolverContainer.DEFAULT_CACHE_DIR_NAME)
+        return this
+    }
+
+    private File canonicalFile(File file) {
+        // When file in cache, use absolute path
+        String absPath = file.absolutePath
+        if (cacheDir != null && absPath.startsWith(cacheDir.absolutePath))
+            return file.absoluteFile
+        return file.canonicalFile
+    }
+
     /**
      * Creates a path for the given file.
      */
     Path path(File file) {
-        createFile(file.canonicalFile)
+        createFile(canonicalFile(file))
     }
 
     private Path createFile(File file) {
@@ -69,11 +89,11 @@ class PathFactory {
             expandedUrl = expandedUrl.replace(variable.name, variable.prefix)
         }
         if (expandedUrl.toLowerCase().startsWith('file://')) {
-            expandedUrl = toUrl('file', new File(expandedUrl.substring(7)).canonicalFile)
+            expandedUrl = toUrl('file', canonicalFile(new File(expandedUrl.substring(7))))
         } else if (expandedUrl.toLowerCase().startsWith('jar://')) {
             def parts = expandedUrl.substring(6).split('!')
             if (parts.length == 2) {
-                expandedUrl = toUrl('jar', new File(parts[0]).canonicalFile) + '!' + parts[1]
+                expandedUrl = toUrl('jar', canonicalFile(new File(parts[0]))) + '!' + parts[1]
             }
         }
         return new Path(url, expandedUrl)
