@@ -82,7 +82,7 @@ class IntegTestConvention {
     }
 
     String getIntegTestMode() {
-        if (!project.tasks.findByName('ciBuild')) {
+        if (!project.tasks.findByName('ciBuild') || !project.gradle.taskGraph.populated) {
             return null
         }
         if (project.isCIBuild() || OperatingSystem.current().isWindows()) {
