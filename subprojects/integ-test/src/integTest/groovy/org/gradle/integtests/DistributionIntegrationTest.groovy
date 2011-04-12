@@ -25,6 +25,7 @@ import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.util.Matchers
 
 class DistributionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -64,7 +65,7 @@ class DistributionIntegrationTest {
 
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()
-        contentsDir.file('docs/javadoc/index.html').assertContents(containsString("<title>Overview (Gradle API ${version})</title>"))
+        contentsDir.file('docs/javadoc/index.html').assertContents(Matchers.matchesRegexp(".*<TITLE>\\s*Gradle API ${version}\\s*</TITLE>.*"))
         contentsDir.file('docs/javadoc/org/gradle/api/Project.html').assertIsFile()
 
         // Groovydoc
