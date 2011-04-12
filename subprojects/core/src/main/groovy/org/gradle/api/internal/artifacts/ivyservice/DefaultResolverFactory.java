@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
 import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
+import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.io.File;
 import java.util.Map;
@@ -105,7 +106,7 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     private URLResolver createUrlResolver(String name, String root, String... jarRepoUrls) {
-        URLResolver urlResolver = new URLResolver();
+        URLResolver urlResolver = new UrlWharfResolver();
         urlResolver.setName(name + "_jars");
         urlResolver.setM2compatible(true);
         urlResolver.addArtifactPattern(root + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
