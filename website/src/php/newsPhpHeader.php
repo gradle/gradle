@@ -1,7 +1,7 @@
 <?php
 
 // Make sure SimplePie is included. You may need to change this to match the location of simplepie.inc.
-require_once('../php/simplepie.inc');
+require_once('php/simplepie.inc');
 
 // We'll process this feed with all of the default options.
 $feed = new SimplePie('http://wiki.gradle.org/createrssfeed.action?types=blogpost&sort=created&showContent=true&showDiff=true&spaces=GRADLE&labelString=&rssType=rss2&maxResults=20&timeSpan=400&publicFeed=true&title=Gradle+RSS+Feed');
