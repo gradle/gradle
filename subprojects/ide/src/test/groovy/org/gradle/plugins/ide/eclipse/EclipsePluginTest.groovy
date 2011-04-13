@@ -149,8 +149,8 @@ class EclipsePluginTest extends Specification {
     }
 
     private void checkEclipseProjectTask(List buildCommands, List natures) {
-        EclipseProject eclipseProjectTask = project.eclipseProject
-        assert eclipseProjectTask instanceof EclipseProject
+        GenerateEclipseProject eclipseProjectTask = project.eclipseProject
+        assert eclipseProjectTask instanceof GenerateEclipseProject
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseProjectTask)
         assert eclipseProjectTask.buildCommands == buildCommands
         assert eclipseProjectTask.natures == natures

@@ -80,7 +80,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseProject(Project project) {
-        addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, EclipseProject) {
+        addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
             projectName = project.name
             description = "Generates the Eclipse project file."
             inputFile = project.file('.project')

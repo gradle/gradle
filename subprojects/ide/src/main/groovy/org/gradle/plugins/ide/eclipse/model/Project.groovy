@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.plugins.ide.eclipse.EclipseProject
+import org.gradle.plugins.ide.eclipse.GenerateEclipseProject
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**
@@ -100,7 +100,7 @@ class Project extends XmlPersistableConfigurationObject {
         }
     }
 
-    def configure(EclipseProject eclipseProjectTask) {
+    def configure(GenerateEclipseProject eclipseProjectTask) {
         if (eclipseProjectTask.projectName) {
             this.name = eclipseProjectTask.projectName
         }

@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.eclipse.model;
 
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.plugins.ide.eclipse.EclipseProject
+import org.gradle.plugins.ide.eclipse.GenerateEclipseProject
 import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -50,7 +50,7 @@ public class ProjectTest extends Specification {
     }
 
     def configureMergesValues() {
-        EclipseProject task = HelperUtil.createTask(EclipseProject)
+        GenerateEclipseProject task = HelperUtil.createTask(GenerateEclipseProject)
         task.projectName = 'constructorName'
         task.comment = 'constructorComment'
         task.referencedProjects = ['constructorRefProject'] as LinkedHashSet
@@ -85,7 +85,7 @@ public class ProjectTest extends Specification {
     }
 
     def toXml_shouldContainCustomValues() {
-        EclipseProject task = HelperUtil.createTask(EclipseProject)
+        GenerateEclipseProject task = HelperUtil.createTask(GenerateEclipseProject)
         task.projectName = 'constructorName'
         task.comment = 'constructorComment'
         task.referencedProjects = ['constructorRefProject'] as LinkedHashSet

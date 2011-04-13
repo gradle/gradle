@@ -36,7 +36,7 @@ import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
  * </pre>
  * @author Hans Dockter
  */
-class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationTarget {
+class GenerateEclipseProject extends XmlGeneratorTask<Project> implements ConfigurationTarget {
     private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
 
     /**
@@ -84,7 +84,7 @@ class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationT
      */
     Set<Link> links = new LinkedHashSet<Link>()
 
-    EclipseProject() {
+    GenerateEclipseProject() {
         xmlTransformer.indentation = "\t"
     }
 
