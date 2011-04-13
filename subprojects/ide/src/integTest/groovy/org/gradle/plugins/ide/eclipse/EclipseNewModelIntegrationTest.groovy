@@ -34,6 +34,7 @@ apply plugin: 'eclipse'
 eclipse {
   project {
     name = 'someBetterName'
+    comment = 'a test project'
   }
 }
         """
@@ -43,6 +44,7 @@ eclipse {
 
         def dotProject = parseProjectFile()
         assert dotProject.name.text() == 'someBetterName'
+        assert dotProject.comment.text() == 'a test project'
 
     }
 }

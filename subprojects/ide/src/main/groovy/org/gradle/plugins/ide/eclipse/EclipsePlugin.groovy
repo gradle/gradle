@@ -25,9 +25,8 @@ import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.eclipse.internal.EclipseDomainModelFactory
 import org.gradle.plugins.ide.internal.IdePlugin
-import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
-import org.gradle.api.internal.ClassGenerator
+import org.gradle.plugins.ide.eclipse.model.*
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -90,11 +89,11 @@ class EclipsePlugin extends IdePlugin {
             model.project = projectModel
 
             projectModel.name = project.name
+            projectModel.conventionMapping.comment = { project.description }
 
             description = "Generates the Eclipse project file."
             inputFile = project.file('.project')
             outputFile = project.file('.project')
-            conventionMapping.comment = { project.description }
 
             project.plugins.withType(JavaBasePlugin) {
                 buildCommand "org.eclipse.jdt.core.javabuilder"

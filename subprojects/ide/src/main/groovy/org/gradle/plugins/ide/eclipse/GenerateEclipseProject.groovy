@@ -75,7 +75,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
     /**
      * A comment used for the eclipse project
      */
-    String comment
+    String getComment() {
+        projectModel.comment
+    }
+
+    void setComment(String comment) {
+        projectModel.comment = comment
+    }
 
     /**
      * The referenced projects of this Eclipse project.

@@ -29,6 +29,9 @@ package org.gradle.plugins.ide.eclipse.model
  *   project {
  *     //if you don't like the name Gradle has chosen
  *     name = 'someBetterName'
+ *
+ *     //if you want to specify the Eclipse project's comment
+ *     comment = 'Very interesting top secret project'
  *   }
  * }
  * </pre>
@@ -49,4 +52,11 @@ class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     String name
+
+    /**
+     * A comment used for the eclipse project. By default it will be configured to <b>project.description</b>
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     */
+    String comment
 }
