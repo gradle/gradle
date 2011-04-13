@@ -119,4 +119,9 @@ class DefaultResolverFactoryTest {
         assert repo instanceof GradleIBiblioResolver
         assert repo.root == repoDir.toURI().toString() + '/'
     }
+
+    @Test public void createIvyRepository() {
+        def repo = factory.createIvyRepository()
+        assert repo instanceof DefaultIvyArtifactRepository
+    }
 }

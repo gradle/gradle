@@ -31,6 +31,8 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
+    @Rule
+    public final HttpServer server = new HttpServer()
 
     @Before
     public void setup() {
@@ -207,7 +209,6 @@ project(':b') {
 
     @Test
     public void reportsFailedHttpDownload() {
-        HttpServer server = new HttpServer()
         server.addBroken('/')
         server.start()
 
@@ -226,8 +227,6 @@ task show << { println configurations.compile.files }
         def result = executer.withTasks("show").runWithFailure()
         result.assertHasDescription('Execution failed for task \':show\'.')
         result.assertHasCause('Could not resolve all dependencies for configuration \':compile\':')
-
-        server.stop()
     }
 
     MavenRepository repo() {

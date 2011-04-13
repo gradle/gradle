@@ -25,8 +25,12 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.junit.Rule
 
 public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
+    @Rule
+    public final HttpServer server = new HttpServer()
+
     @Test
     public void executesExternalScriptAgainstAProjectWithCorrectEnvironment() {
         createExternalJar()
@@ -132,7 +136,6 @@ class ListenerImpl extends BuildAdapter {
     public void canFetchScriptViaHttp() {
         TestFile script = testFile('external.gradle')
 
-        HttpServer server = new HttpServer()
         server.add('/external.gradle', script)
         server.start()
 
@@ -148,8 +151,6 @@ class ListenerImpl extends BuildAdapter {
 """
 
         inTestDirectory().run()
-
-        server.stop()
     }
 
     @Test

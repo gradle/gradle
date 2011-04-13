@@ -20,6 +20,7 @@ import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.GradleIBiblioResolver;
@@ -143,6 +144,10 @@ public class DefaultResolverFactory implements ResolverFactory {
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new BaseMavenInstaller(name, pomFilterContainer, createArtifactPomContainer(pomMetaInfoProvider,
                 pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create());
+    }
+
+    public IvyArtifactRepository createIvyRepository() {
+        return new DefaultIvyArtifactRepository();
     }
 
     private PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory) {

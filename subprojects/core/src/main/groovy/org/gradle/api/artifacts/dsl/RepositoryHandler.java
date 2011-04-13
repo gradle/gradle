@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
@@ -249,13 +250,26 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
     MavenResolver mavenInstaller(Map<String, ?> args);
 
     /**
-     * Behaves the same way as {@link #mavenInstaller(java.util.Map)}. Additionally a closure can be passed to
-     * further configure the added repository.
+     * Behaves the same way as {@link #mavenInstaller(java.util.Map)}. Additionally a closure can be passed to further configure the added repository.
      *
      * @param args The argument to create the repository
-     * @param configureClosure
      * @return The added repository
      */
     MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure);
 
+    /**
+     * Adds and configures an Ivy repository.
+     *
+     * @param closure The closure to use to configure the repository.
+     * @return The added repository.
+     */
+    IvyArtifactRepository ivy(Closure closure);
+
+    /**
+     * Adds and configures an Ivy repository.
+     *
+     * @param action The action to use to configure the repository.
+     * @return The added repository.
+     */
+    IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action);
 }

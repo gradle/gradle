@@ -19,13 +19,18 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.dsl.ArtifactRepository;
+import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.DefaultResolverContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.HashUtil;
 import org.gradle.util.WrapUtil;
@@ -171,5 +176,31 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
                 mavenInstaller);
         mavenInstaller.setName(getNameFromMap(args, defaultName));
         return mavenInstaller;
+    }
+
+    public IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action) {
+        IvyArtifactRepository repository = getResolverFactory().createIvyRepository();
+        addRepository(repository, action);
+        return repository;
+    }
+
+    public IvyArtifactRepository ivy(Closure closure) {
+        IvyArtifactRepository repository = getResolverFactory().createIvyRepository();
+        addRepository((ArtifactRepositoryInternal) repository, closure);
+        return repository;
+    }
+
+    private <T extends ArtifactRepository> void addRepository(T repository, Action<? super T> action) {
+        action.execute(repository);
+        addRepository((ArtifactRepositoryInternal) repository);
+    }
+
+    private void addRepository(ArtifactRepositoryInternal repository, Closure closure) {
+        ConfigureUtil.configure(closure, repository);
+        addRepository(repository);
+    }
+
+    private void addRepository(ArtifactRepositoryInternal repository) {
+        add(repository.createResolver());
     }
 }
