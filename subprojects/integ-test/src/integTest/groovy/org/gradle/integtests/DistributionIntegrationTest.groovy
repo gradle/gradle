@@ -23,9 +23,9 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.util.Matchers
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat
 
 class DistributionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
