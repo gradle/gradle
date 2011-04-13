@@ -19,6 +19,11 @@ package org.gradle.plugins.ide.idea.model
 import org.gradle.util.ConfigureUtil
 
 /**
+ * DSL-friendly model of the IDEA project information.
+ * First point of entry when it comes to customizing the idea generation
+ * <p>
+ * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}
+ * <p>
  * Author: Szczepan Faber, created at: 3/31/11
  */
 class IdeaModel {

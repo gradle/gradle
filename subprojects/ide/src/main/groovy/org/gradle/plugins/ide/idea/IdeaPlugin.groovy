@@ -46,7 +46,7 @@ class IdeaPlugin extends IdePlugin {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
 
-        model = project.services.get(ClassGenerator).newInstance(IdeaModel)
+        model = new IdeaModel()
         project.convention.plugins.idea = model
 
         configureIdeaWorkspace(project)
