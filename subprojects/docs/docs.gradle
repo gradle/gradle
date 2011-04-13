@@ -21,20 +21,14 @@ import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.ExtractDslMetaDataTask
 
 apply plugin: 'base'
+apply from: "${rootDir}/gradle/ssh.gradle"
 
 configurations {
-    ftpAntTask
     userGuideStyleSheets
     userGuideTask
 }
 
 dependencies {
-    ftpAntTask module("org.apache.ant:ant-commons-net:1.8.2") {
-        module("commons-net:commons-net:1.4.1") {
-            dependencies("oro:oro:2.0.8@jar")
-        }
-    }
-
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.9.1'
     userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
         dependency 'itext:itext:2.0.8@jar'
@@ -343,39 +337,20 @@ task docs {
     group = 'documentation'
 }
 
-task uploadDocs(dependsOn: docs) << {
-    ftp(action: 'mkdir', remotedir: remoteLocations.docsRemoteDir)
-    ftp(action: 'delete', remotedir: remoteLocations.docsRemoteDir) {
-        fileset() {
-            include(name: '**/*')
-        }
+task uploadDocs(dependsOn: docs, type: Scp) {
+    sourceDir = docsDir
+    host = 'gradle01.managed.contegix.com'
+    gradle.taskGraph.whenReady {
+        destinationDir = remoteLocations.docsUploadDir
     }
-    ftp(action: 'send', remotedir: remoteLocations.docsRemoteDir) {
-        fileset(dir: docsDir)
-    }
+    userName = project.hasProperty('websiteScpUserName') ? project.websiteScpUserName : null
+    password = project.hasProperty('websiteScpUserPassword') ? project.websiteScpUserPassword : null
 }
 gradle.taskGraph.whenReady { graph ->
     if (graph.hasTask(uploadDocs)) {
         // fail early
-        project.websiteFtpUserName
-        project.websiteFtpUserPassword
-    }
-}
-
-void ftp(Map args, Closure antFileset = {}) {
-    ant {
-        taskdef(name: 'ftp',
-                classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: configurations.ftpAntTask.asPath)
-        Map ftpArgs = args + [
-                server: 'ftp.gradle.org',
-                userid: websiteFtpUserName,
-                password: websiteFtpUserPassword
-        ]
-        delegate.ftp(ftpArgs) {
-            antFileset.delegate = delegate
-            antFileset()
-        }
+        project.websiteScpUserName
+        project.websiteScpUserPassword
     }
 }
 
@@ -386,6 +361,10 @@ class RemoteLocations {
 
     String getDistributionUploadUrl() {
         version.isRelease() ? 'https://dav.codehaus.org/dist/gradle' : 'https://dav.codehaus.org/snapshots.dist/gradle'
+    }
+
+    String getDocsUploadDir() {
+        '/var/www/domains/gradle.org/www/htdocs/releases/' + docsRemoteDir
     }
 
     String getDocsRemoteDir() {

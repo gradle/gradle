@@ -24,6 +24,7 @@ apply plugin: 'code-quality'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply from: '../gradle/codeQuality.gradle'
+apply from: '../gradle/ssh.gradle'
 
 remoteLocations = new RemoteLocations()
 
@@ -31,15 +32,9 @@ repositories {
     mavenCentral()
 }
 configurations {
-    ftpAntTask
     integTestCompile { extendsFrom groovy }
 }
 dependencies {
-    ftpAntTask module("org.apache.ant:ant-commons-net:1.8.2") {
-        module("commons-net:commons-net:1.4.1") {
-            dependencies("oro:oro:2.0.8@jar")
-        }
-    }
     groovy localGroovy()
     testCompile 'junit:junit:4.7'
     testCompile 'net.sourceforge.htmlunit:htmlunit:2.8'
@@ -119,6 +114,7 @@ task html(dependsOn: configureReleases) << {
             include 'css/**'
             include 'img/**'
             include 'other-resources/**'
+            include 'php/*.inc'
         }
         from(generatedDocs) {
             include 'base.css'
@@ -147,18 +143,14 @@ test {
     inputs.dir buildWebsiteDir
 }
 
-task uploadWebsite(dependsOn: html, type: Ftp) {
-    doFirst {
-        ftp(action: 'delete', remotedir: remoteLocations.ftpDir) {
-            fileset() {
-                include(name: '*.html')
-                include(name: '*.php')
-            }
-        }
-        ftp(action: 'send', remotedir: remoteLocations.ftpDir) {
-            fileset(dir: buildWebsiteDir)
-        }
+task uploadWebsite(dependsOn: html, type: Scp) {
+    sourceDir = buildWebsiteDir
+    host = 'gradle01.managed.contegix.com'
+    gradle.taskGraph.whenReady {
+        destinationDir = remoteLocations.scpDir
     }
+    userName = project.hasProperty('websiteScpUserName') ? project.websiteScpUserName : null
+    password = project.hasProperty('websiteScpUserPassword') ? project.websiteScpUserPassword : null
 }
 
 task testRemote(type: Test, dependsOn: uploadWebsite) {
@@ -177,48 +169,6 @@ task install(type: Copy) {
 task ciBuild(dependsOn: [clean, html, uploadWebsite, testRemote])
 
 task release(dependsOn: [releaseVersion, clean, html, uploadWebsite, testRemote])
-
-tasks.withType(Ftp) {
-    ftpAntClasspath = configurations.ftpAntTask
-    websiteFtpUserName = project.hasProperty('websiteFtpUserName') ? project.websiteFtpUserName : null
-    websiteFtpUserPassword = project.hasProperty('websiteFtpUserPassword') ? project.websiteFtpUserPassword : null
-}
-
-class Ftp extends DefaultTask {
-    final List ftpActions = []
-
-    def ftp(Map args, Closure cl = {}) {
-        ftpActions << [args: args, action: cl]
-    }
-
-    @InputFiles
-    FileCollection ftpAntClasspath
-
-    @Input
-    String websiteFtpUserName
-
-    @Input
-    String websiteFtpUserPassword
-
-    @TaskAction
-    def executeActions() {
-        ant.taskdef(name: 'ftp',
-                classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: ftpAntClasspath.asPath)
-        ftpActions.each { a ->
-            Map ftpArgs = a.args + [
-                    server: 'ftp.gradle.org',
-                    userid: websiteFtpUserName,
-                    password: websiteFtpUserPassword
-            ]
-            Closure cl = a.action
-            cl.delegate = ant
-            ant.ftp(ftpArgs) {
-                cl()
-            }
-        }
-    }
-}
 
 class Page {
     def File srcFile
@@ -331,7 +281,7 @@ class Release {
     }
 
     def String getDocsUrl() {
-        return "/${version}/docs"
+        return "/releases/${version}/docs"
     }
 
     def String getReleaseNotesUrl() {
@@ -375,7 +325,7 @@ class RemoteLocations {
         return release ? 'http://www.gradle.org/' : 'http://www.gradle.org/latest/'
     }
 
-    String getFtpDir() {
-        return release ? '.' : 'latest'
+    String getScpDir() {
+        return release ? '/var/www/domains/gradle.org/www/htdocs' : '/var/www/domains/gradle.org/www/htdocs/latest'
     }
 }
