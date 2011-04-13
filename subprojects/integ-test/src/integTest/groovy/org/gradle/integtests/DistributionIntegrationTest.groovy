@@ -65,7 +65,7 @@ class DistributionIntegrationTest {
 
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()
-        contentsDir.file('docs/javadoc/index.html').assertContents(Matchers.matchesRegexp(".*<TITLE>\\s*Gradle API ${version}\\s*</TITLE>.*"))
+        contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${version}"))
         contentsDir.file('docs/javadoc/org/gradle/api/Project.html').assertIsFile()
 
         // Groovydoc
