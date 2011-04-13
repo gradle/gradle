@@ -27,10 +27,10 @@ class ProjectDependencyBuilderTest extends Specification {
     static class ProjectStub {
         String name
         String path
-        EclipseProjectStub eclipseProject
+        GenerateEclipseProjectStub eclipseProject
     }
 
-    static class EclipseProjectStub {
+    static class GenerateEclipseProjectStub {
         String projectName
     }
 
@@ -47,7 +47,7 @@ class ProjectDependencyBuilderTest extends Specification {
 
     def "should create dependency using eclipse projectName"() {
         given:
-        def eclipseProject = new EclipseProjectStub(projectName: 'eclipse-project')
+        def eclipseProject = new GenerateEclipseProjectStub(projectName: 'eclipse-project')
         def project = new ProjectStub(eclipseProject: eclipseProject)
 
         when:
