@@ -30,7 +30,7 @@ class EclipseConfigurer extends ConventionTask {
     void configure() {
         def eclipseProjects = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(EclipsePlugin) }
         new ProjectDeduper().dedupe(eclipseProjects, { project ->
-            new DeduplicationTarget(project: project, moduleName: project.eclipseProject.projectName, moduleNameSetter: { project.eclipseProject.projectName = it })
+            new DeduplicationTarget(project: project, moduleName: project.eclipseProject.projectName, updateModuleName: { project.eclipseProject.projectName = it })
         })
 
         eclipseProjects.each { project ->

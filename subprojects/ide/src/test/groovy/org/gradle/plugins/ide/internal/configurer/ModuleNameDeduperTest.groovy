@@ -26,7 +26,7 @@ class ModuleNameDeduperTest extends Specification {
     public static class TargetStub extends DeduplicationTarget {
         String moduleName
         Collection<String> candidateNames
-        Closure moduleNameSetter = { moduleName = it }
+        Closure updateModuleName = { moduleName = it }
     }
 
     ModuleNameDeduper deduper = new ModuleNameDeduper()

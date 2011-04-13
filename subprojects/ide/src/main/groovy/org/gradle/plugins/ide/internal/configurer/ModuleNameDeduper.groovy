@@ -28,7 +28,7 @@ class ModuleNameDeduper {
             def name = target.candidateNames.find { !allNames.contains(it) }
             if (name) {
                 allNames << name
-                target.moduleNameSetter.call(name)
+                target.updateModuleName(name)
             }
         }
     }
