@@ -21,6 +21,8 @@ import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.eclipse.model.Project
 import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
+import org.gradle.plugins.ide.eclipse.model.EclipseProject
+import org.gradle.api.internal.ClassGenerator
 
 /**
  * Generates an Eclipse <code>.project</code> file.
@@ -40,6 +42,11 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
     private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
 
     /**
+     * model for eclipse project (.project) generation
+     */
+    EclipseProject projectModel = services.get(ClassGenerator).newInstance(EclipseProject)
+
+    /**
      * Configures eclipse project name. It is <b>optional</b> because the task should configure it correctly for you.
      * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b>
      * to make sure the moduleName is unique in the scope of a multi-module build.
@@ -57,7 +64,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
      * }
      * </pre>
      */
-    String projectName
+    String getProjectName() {
+        projectModel.name
+    }
+
+    void setProjectName(String projectName) {
+        projectModel.name = projectName
+    }
 
     /**
      * A comment used for the eclipse project
@@ -93,6 +106,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
     }
 
     @Override protected void configure(Project project) {
+        //TODO SF: should be: projectModel.mergeXmlModule(project)
         project.configure(this)
     }
 

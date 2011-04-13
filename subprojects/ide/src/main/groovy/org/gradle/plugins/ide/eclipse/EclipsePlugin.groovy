@@ -27,6 +27,7 @@ import org.gradle.plugins.ide.eclipse.internal.EclipseDomainModelFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
+import org.gradle.api.internal.ClassGenerator
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -42,6 +43,8 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
 
+    EclipseModel model = new EclipseModel()
+
     EclipseDomainModel getEclipseDomainModel() {
         new EclipseDomainModelFactory().create(project)
     }
@@ -53,6 +56,9 @@ class EclipsePlugin extends IdePlugin {
     @Override protected void onApply(Project project) {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
+
+        project.convention.plugins.eclipse = model
+
         configureEclipseConfigurer(project)
         configureEclipseProject(project)
         configureEclipseClasspath(project)
@@ -81,7 +87,10 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseProject(Project project) {
         addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
-            projectName = project.name
+            model.project = projectModel
+
+            projectModel.name = project.name
+
             description = "Generates the Eclipse project file."
             inputFile = project.file('.project')
             outputFile = project.file('.project')
