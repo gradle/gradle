@@ -43,6 +43,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.api.artifacts.ResolverContainer.INTERNAL_REPOSITORY_NAME;
+
 /**
  * @author Hans Dockter
  */
@@ -75,21 +77,42 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
     }
 
+    // TODO: Internal repository is never used here!
     public IvySettings convertForPublish(List<DependencyResolver> publishResolvers, File gradleUserHome, DependencyResolver internalRepository) {
         if (ivySettings != null) {
+            // Add all publisher to root since they are never used for resolution
+            for (DependencyResolver publishResolver : publishResolvers) {
+                DependencyResolver pubResolverInSettings = ivySettings.getResolver(publishResolver.getName());
+                if (pubResolverInSettings == null) {
+                    internalAddResolver(ivySettings, publishResolver);
+                } else if (pubResolverInSettings != publishResolver) {
+                    throw new IllegalStateException(String.format("Unexpected publisher resolver in ivy settings %s instead of %s", pubResolverInSettings, publishResolver));
+                }
+            }
             return ivySettings;
         }
         Clock clock = new Clock();
-
-        IvySettings ivySettings = createIvySettings(gradleUserHome);
+        ivySettings = createIvySettings(gradleUserHome);
         initializeResolvers(ivySettings, getAllResolvers(Collections.<DependencyResolver>emptyList(), publishResolvers));
         logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
         return ivySettings;
     }
 
     public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers,
-                               File gradleUserHome, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
-        if (ivySettings != null) {
+                                         File gradleUserHome, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
+        // If Ivy settings correctly initialized, check resolver list
+        if (ivySettings != null && ivySettings.getResolver(INTERNAL_REPOSITORY_NAME) != null) {
+            DependencyResolver internalRepositoryFromSettings = ivySettings.getResolver(INTERNAL_REPOSITORY_NAME);
+            if (internalRepositoryFromSettings != internalRepository) {
+                throw new IllegalStateException(String.format("Unexpected internal repository in ivy settings %s instead of %s", internalRepositoryFromSettings, internalRepository));
+            }
+            // Add all resolvers to main chain resolver
+            ChainResolver chainResolver = (ChainResolver) ivySettings.getResolver(CHAIN_RESOLVER_NAME);
+            chainResolver.getResolvers().clear();
+            for (DependencyResolver dependencyResolver : dependencyResolvers) {
+                internalAddResolver(ivySettings, dependencyResolver);
+                chainResolver.add(dependencyResolver);
+            }
             return ivySettings;
         }
         Clock clock = new Clock();
@@ -97,7 +120,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
         ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
         ChainResolver outerChain = createOuterChain(userResolverChain, clientModuleResolver);
 
-        IvySettings ivySettings = createIvySettings(gradleUserHome);
+        if (ivySettings == null) {
+            ivySettings = createIvySettings(gradleUserHome);
+        }
         initializeResolvers(ivySettings, getAllResolvers(dependencyResolvers, Collections.<DependencyResolver>emptyList(), internalRepository, userResolverChain, clientModuleResolver, outerChain));
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
         logger.debug("Timing: Ivy convert for resolve took {}", clock.getTime());
@@ -153,26 +178,30 @@ public class DefaultSettingsConverter implements SettingsConverter {
         if (repositoryCacheManager == null) {
             repositoryCacheManager = WharfCacheManager.newInstance(ivySettings);
             // Locking is slowing down too much, and failing the UserGuideSamplesIntegrationTest.dependencyListReport test
-            ((WharfCacheManager)repositoryCacheManager).getMetadataHandler().setLockStrategy(new NoLockStrategy());
+            ((WharfCacheManager) repositoryCacheManager).getMetadataHandler().setLockStrategy(new NoLockStrategy());
         }
         ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
-            ivySettings.addResolver(dependencyResolver);
-            RepositoryCacheManager cacheManager = dependencyResolver.getRepositoryCacheManager();
-            // Validate that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
-            if (cacheManager != ivySettings.getDefaultRepositoryCacheManager()
-                    && !(cacheManager instanceof NoOpRepositoryCacheManager)
-                    && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
-                throw new IllegalStateException(String.format("Unexpected cache manager %s for repository %s (%s)", cacheManager, dependencyResolver.getName(), dependencyResolver));
-            }
-            if (dependencyResolver instanceof RepositoryResolver) {
-                Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
-                if (!repository.hasTransferListener(transferListener)) {
-                    repository.addTransferListener(transferListener);
-                }
+            internalAddResolver(ivySettings, dependencyResolver);
+        }
+    }
+
+    private void internalAddResolver(IvySettings ivySettings, DependencyResolver dependencyResolver) {
+        ivySettings.addResolver(dependencyResolver);
+        RepositoryCacheManager cacheManager = dependencyResolver.getRepositoryCacheManager();
+        // Validate that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
+        if (cacheManager != ivySettings.getDefaultRepositoryCacheManager()
+                && !(cacheManager instanceof NoOpRepositoryCacheManager)
+                && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
+            throw new IllegalStateException(String.format("Unexpected cache manager %s for repository %s (%s)", cacheManager, dependencyResolver.getName(), dependencyResolver));
+        }
+        if (dependencyResolver instanceof RepositoryResolver) {
+            Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
+            if (!repository.hasTransferListener(transferListener)) {
+                repository.addTransferListener(transferListener);
             }
         }
     }
