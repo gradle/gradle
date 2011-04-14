@@ -35,6 +35,13 @@ package org.gradle.plugins.ide.eclipse.model
  *
  *     //if you want to add referenced projects (TODO SF: what is this?)
  *     referencedProjects = ['someProject'] as Set
+ *
+ *     //if you want to append some extra natures in a declarative fashion:
+ *     natures 'some.extra.eclipse.nature', 'some.another.interesting.nature'
+ *
+ *     //if you want to assign natures in a groovy fashion:
+ *     natures = ['some.extra.eclipse.nature', 'some.another.interesting.nature']
+ *
  *   }
  * }
  * </pre>
@@ -69,4 +76,23 @@ class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     Set<String> referencedProjects = new LinkedHashSet<String>()
+
+    /**
+     * The natures to be added to this Eclipse project.
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     */
+    List<String> natures = []
+
+    /**
+     * Appends natures entries to the eclipse project.
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     *
+     * @param natures the nature names
+     */
+    void natures(String... natures) {
+        assert natures != null
+        this.natures.addAll(natures as List)
+    }
 }

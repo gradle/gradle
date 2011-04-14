@@ -97,7 +97,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
     /**
      * The natures to be added to this Eclipse project.
      */
-    List<String> natures = []
+    List<String> getNatures() {
+        projectModel.natures
+    }
+
+    void setNatures(List<String> natures) {
+        projectModel.natures = natures
+    }
 
     /**
      * The build commands to be added to this Eclipse project.
@@ -127,8 +133,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
      * @param natures the nature names
      */
     void natures(String... natures) {
-        assert natures != null
-        this.natures.addAll(natures as List)
+        projectModel.natures(natures)
     }
 
     /**

@@ -36,6 +36,11 @@ eclipse {
     name = 'someBetterName'
     comment = 'a test project'
     referencedProjects = ['some referenced project'] as Set
+
+    natures = ['test.groovy.nature']
+    natures 'test.java.nature'
+
+
   }
 }
         """
@@ -49,6 +54,7 @@ eclipse {
         assert dotProject.comment.text() == 'a test project'
 
         assert content.contains('some referenced project')
-
+        assert content.contains('test.java.nature')
+        assert content.contains('test.groovy.nature')
     }
 }
