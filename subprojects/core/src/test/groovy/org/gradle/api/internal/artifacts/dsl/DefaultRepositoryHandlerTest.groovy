@@ -34,6 +34,7 @@ import org.junit.runner.RunWith
 import org.jmock.integration.junit4.JMock
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.hamcrest.Matchers
 
 /**
  * @author Hans Dockter
@@ -282,8 +283,8 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         context.checking {
             one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository))
-            one(repository).createResolver()
-            will(returnValue(resolver))
+            one(repository).createResolvers(withParam(Matchers.notNullValue()))
+            will { arg -> arg << resolver }
             one(resolverFactoryMock).createResolver(resolver)
             will(returnValue(resolver))
             allowing(resolver).getName()
@@ -310,8 +311,8 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository))
             one(action).execute(repository)
-            one(repository).createResolver()
-            will(returnValue(resolver))
+            one(repository).createResolvers(withParam(Matchers.notNullValue()))
+            will { arg -> arg << resolver }
             one(resolverFactoryMock).createResolver(resolver)
             will(returnValue(resolver))
             allowing(resolver).getName()

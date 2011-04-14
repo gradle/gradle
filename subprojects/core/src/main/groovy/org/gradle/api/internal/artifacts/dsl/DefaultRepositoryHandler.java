@@ -201,6 +201,10 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
     }
 
     private void addRepository(ArtifactRepositoryInternal repository) {
-        add(repository.createResolver());
+        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
+        repository.createResolvers(resolvers);
+        for (DependencyResolver resolver : resolvers) {
+            add(resolver);
+        }
     }
 }

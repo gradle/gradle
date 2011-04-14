@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures
 import java.security.Principal
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import org.apache.commons.lang.StringUtils
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
@@ -29,6 +28,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.mortbay.jetty.handler.*
 import org.mortbay.jetty.security.*
+import org.mortbay.jetty.HttpHeaders
+import org.mortbay.jetty.MimeTypes
 
 class HttpServer implements MethodRule {
     private Logger logger = LoggerFactory.getLogger(HttpServer.class)
@@ -64,23 +65,39 @@ class HttpServer implements MethodRule {
     }
 
     /**
-     * Adds a given file at the given URL.
+     * Adds a given file at the given URL. The source file can be either a file or a directory.
      */
-    def add(String path, File srcFile) {
-        assert path.startsWith('/')
-        ContextHandler context = new ContextHandler()
-        String contextPath = StringUtils.substringBeforeLast(path, '/')
-        context.contextPath = contextPath ?: '/'
-        context.resourceBase = srcFile.parentFile.path
-        context.addHandler(new ResourceHandler())
-        collection.addHandler(context)
+    def allowGet(String path, File srcFile) {
+        allow(path, true, fileHandler(path, srcFile))
+    }
+
+    private AbstractHandler fileHandler(String path, File srcFile) {
+        return new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                def file
+                if (request.pathInfo == path) {
+                    file = srcFile
+                } else {
+                    def relativePath = request.pathInfo.substring(path.length() + 1)
+                    file = new File(srcFile, relativePath)
+                }
+                if (!file.isFile()) {
+                    response.sendError(404, "'$target' does not exist")
+                    return
+                }
+                response.setDateHeader(HttpHeaders.LAST_MODIFIED, file.lastModified())
+                response.setContentLength((int)file.length())
+                response.setContentType(new MimeTypes().getMimeByExtension(file.name).toString())
+                response.outputStream.bytes = file.bytes
+            }
+        }
     }
 
     /**
      * Adds a broken resource at the given URL.
      */
     def addBroken(String path) {
-        addHandler(path, new AbstractHandler() {
+        allow(path, true, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 response.sendError(500, "broken")
             }
@@ -88,17 +105,18 @@ class HttpServer implements MethodRule {
     }
 
     /**
+     * Allow one GET request for the given URL. Reads the request content from the given file.
+     */
+    def expectGet(String path, File srcFile) {
+        expect(path, true, fileHandler(path, srcFile))
+    }
+
+    /**
      * Allow one PUT request for the given URL. Writes the request content to the given file.
      */
     def expectPut(String path, File destFile) {
-        boolean put
-        addHandler(path, new AbstractHandler() {
+        expect(path, false, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                if (put) {
-                    response.sendError(500, "this has already been put")
-                    return
-                }
-                put = true
                 destFile.bytes = request.inputStream.bytes
             }
         })
@@ -108,8 +126,6 @@ class HttpServer implements MethodRule {
      * Allow one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
      */
     def expectPut(String path, String username, String password, File destFile) {
-        boolean put
-
         def realm = new TestUserRealm()
         realm.username = username
         realm.password = password
@@ -126,30 +142,49 @@ class HttpServer implements MethodRule {
         securityHandler.authenticator = new BasicAuthenticator()
         collection.addHandler(securityHandler)
 
-        addHandler(path, new AbstractHandler() {
+        expect(path, false, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                if (put) {
-                    response.sendError(500, "this has already been put")
-                    return
-
-                }
                 if (request.remoteUser != username) {
                     response.sendError(500, 'unexpected username')
                     return
                 }
-                put = true
                 destFile.bytes = request.inputStream.bytes
             }
         })
     }
 
-    def addHandler(String path, Handler handler) {
+    def expect(String path, boolean recursive, Handler handler) {
+        boolean run
+        add(path, recursive, new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                if (run) {
+                    return
+                }
+                run = true
+                handler.handle(target, request, response, dispatch)
+                request.handled = true
+            }
+        })
+    }
+
+    def allow(String path, boolean recursive, Handler handler) {
+        add(path, recursive, new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                handler.handle(target, request, response, dispatch)
+                request.handled = true
+            }
+        })
+    }
+
+    def add(String path, boolean recursive, Handler handler) {
         assert path.startsWith('/')
+        assert path == '/' || !path.endsWith('/')
+        def prefix = path == '/' ? '/' : path + '/'
         collection.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                if (request.pathInfo == path && !request.handled) {
+                boolean match = request.pathInfo == path || (recursive && request.pathInfo.startsWith(prefix))
+                if (match && !request.handled) {
                     handler.handle(target, request, response, dispatch)
-                    request.handled = true
                 }
             }
         })

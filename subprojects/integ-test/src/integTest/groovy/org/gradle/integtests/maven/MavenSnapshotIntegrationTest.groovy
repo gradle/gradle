@@ -65,7 +65,7 @@ class MavenSnapshotIntegrationTest {
 
     @Test
     public void retrievesAndCacheSnapshotViaHttp() {
-        server.add('/repo', distribution.testFile('repo'))
+        server.allowGet('/repo', distribution.testFile('repo'))
         server.start()
         String repoUrl = "-PrepoUrl=http://localhost:${server.port}/repo"
 

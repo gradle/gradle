@@ -136,7 +136,7 @@ class ListenerImpl extends BuildAdapter {
     public void canFetchScriptViaHttp() {
         TestFile script = testFile('external.gradle')
 
-        server.add('/external.gradle', script)
+        server.expectGet('/external.gradle', script)
         server.start()
 
         script << """

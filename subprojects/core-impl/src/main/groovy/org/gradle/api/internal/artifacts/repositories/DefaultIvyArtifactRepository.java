@@ -16,38 +16,57 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.apache.ivy.plugins.resolver.URLResolver;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultIvyArtifactRepository implements IvyArtifactRepository, ArtifactRepositoryInternal {
     private String name;
     private String username;
-    private String realm;
     private String password;
     private final Set<String> artifactPatterns = new LinkedHashSet<String>();
 
-    public DependencyResolver createResolver() {
-        URLResolver resolver = new URLResolver();
-        resolver.setName(name);
+    public void createResolvers(Collection<DependencyResolver> resolvers) {
+        List<String> httpPatterns = new ArrayList<String>();
+        List<String> otherPatterns = new ArrayList<String>();
+
         for (String artifactPattern : artifactPatterns) {
-            resolver.addArtifactPattern(artifactPattern);
             try {
-                if (username != null) {
-                    URI uri = new URI(artifactPattern.replaceAll("\\[.*\\]", "token"));
-                    if (uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https")) {
-                        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials(realm, uri.getHost(), username, password);
-                    }
+                URI uri = new URI(artifactPattern.replaceAll("\\[.*\\]", "token"));
+                if (uri.getScheme() != null && (uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https"))) {
+                    httpPatterns.add(artifactPattern);
+                    continue;
                 }
             } catch (URISyntaxException e) {
                 // Ignore
             }
+            otherPatterns.add(artifactPattern);
         }
-        return resolver;
+
+        if (!otherPatterns.isEmpty()) {
+            URLResolver resolver = new URLResolver();
+            resolver.setName(name);
+            for (String artifactPattern : otherPatterns) {
+                resolver.addArtifactPattern(artifactPattern);
+                resolver.addIvyPattern(artifactPattern);
+            }
+            resolvers.add(resolver);
+        }
+
+        if (!httpPatterns.isEmpty()) {
+            RepositoryResolver resolver = new RepositoryResolver();
+            resolver.setRepository(new CommonsHttpClientBackedRepository(username, password));
+            resolver.setName(name);
+            for (String artifactPattern : httpPatterns) {
+                resolver.addArtifactPattern(artifactPattern);
+                resolver.addIvyPattern(artifactPattern);
+            }
+            resolvers.add(resolver);
+        }
     }
 
     public void artifactPattern(String pattern) {
@@ -68,14 +87,6 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
     }
 
     public String getUserName() {

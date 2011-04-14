@@ -111,7 +111,7 @@ uploadArchives {
         def result = executer.withTasks("uploadArchives").runWithFailure()
         result.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         result.assertHasCause('Could not publish configurations [configuration \':archives\'].')
-        result.assertThatCause(Matchers.containsString('failed with status code 404'))
+        result.assertThatCause(Matchers.containsString('Received status code 404 from server: Not Found'))
 
         server.stop()
 
