@@ -32,6 +32,9 @@ package org.gradle.plugins.ide.eclipse.model
  *
  *     //if you want to specify the Eclipse project's comment
  *     comment = 'Very interesting top secret project'
+ *
+ *     //if you want to add referenced projects (TODO SF: what is this?)
+ *     referencedProjects = ['someProject'] as Set
  *   }
  * }
  * </pre>
@@ -59,4 +62,11 @@ class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     String comment
+
+    /**
+     * The referenced projects of this Eclipse project.
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     */
+    Set<String> referencedProjects = new LinkedHashSet<String>()
 }

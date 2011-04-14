@@ -86,7 +86,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
     /**
      * The referenced projects of this Eclipse project.
      */
-    Set<String> referencedProjects = new LinkedHashSet<String>()
+    Set<String> getReferencedProjects() {
+        projectModel.referencedProjects
+    }
+
+    void setReferencedProjects(Set<String> referencedProjects) {
+        projectModel.referencedProjects = referencedProjects
+    }
 
     /**
      * The natures to be added to this Eclipse project.

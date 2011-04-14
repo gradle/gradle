@@ -35,16 +35,20 @@ eclipse {
   project {
     name = 'someBetterName'
     comment = 'a test project'
+    referencedProjects = ['some referenced project'] as Set
   }
 }
         """
 
         //then
-        println getFile([:], '.project').text
+        def content = getFile([:], '.project').text
+        println content
 
         def dotProject = parseProjectFile()
         assert dotProject.name.text() == 'someBetterName'
         assert dotProject.comment.text() == 'a test project'
+
+        assert content.contains('some referenced project')
 
     }
 }
