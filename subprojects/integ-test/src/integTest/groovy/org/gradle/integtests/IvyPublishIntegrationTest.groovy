@@ -55,7 +55,7 @@ uploadArchives {
 
         executer.withTasks("uploadArchives").run()
 
-        uploadedJar.assertIsFile()
+        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
         uploadedIvy.assertIsFile()
     }
 
@@ -88,7 +88,7 @@ uploadArchives {
 
         executer.withTasks("uploadArchives").run()
 
-        uploadedJar.assertIsFile()
+        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
         uploadedIvy.assertIsFile()
     }
 

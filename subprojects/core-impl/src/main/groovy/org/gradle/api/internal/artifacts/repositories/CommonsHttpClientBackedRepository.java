@@ -17,22 +17,23 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpMethodRetryHandler;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.commons.io.IOUtils;
-import org.apache.ivy.plugins.repository.AbstractRepository;
-import org.apache.ivy.plugins.repository.Resource;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.commons.io.output.CloseShieldOutputStream;
+import org.apache.ivy.plugins.repository.*;
+import org.apache.ivy.util.FileUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +46,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonsHttpClientBackedRepository.class);
     private final Map<String, HttpResource> resources = new HashMap<String, HttpResource>();
     private final HttpClient client = new HttpClient();
+    private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
 
     public CommonsHttpClientBackedRepository(String username, String password) {
         if (GUtil.isTrue(username)) {
@@ -53,14 +55,8 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         }
     }
 
-    public void get(String source, File destination) throws IOException {
-        HttpResource resource = resources.get(source);
-        resource.downloadTo(destination);
-    }
-
     public Resource getResource(final String source) throws IOException {
         LOGGER.debug("Attempting to get resource {}.", source);
-
         GetMethod method = new GetMethod(source);
         configureMethod(method);
         int result = client.executeMethod(method);
@@ -76,11 +72,46 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         return resource;
     }
 
+    public void get(String source, File destination) throws IOException {
+        HttpResource resource = resources.get(source);
+        fireTransferInitiated(resource, TransferEvent.REQUEST_GET);
+        try {
+            progress.setTotalLength(resource.getContentLength());
+            resource.downloadTo(destination);
+        } catch (IOException e) {
+            fireTransferError(e);
+            throw e;
+        } catch (Exception e) {
+            fireTransferError(e);
+            throw UncheckedException.asUncheckedException(e);
+        } finally {
+            progress.setTotalLength(null);
+        }
+    }
+
     @Override
-    protected void put(File source, String destination, boolean overwrite) throws IOException {
+    protected void put(final File source, String destination, boolean overwrite) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
+        assert source.isFile();
+        fireTransferInitiated(new BasicResource(destination, true, source.length(), source.lastModified(), false), TransferEvent.REQUEST_PUT);
+        try {
+            progress.setTotalLength(source.length());
+            doPut(source, destination);
+        } catch (IOException e) {
+            fireTransferError(e);
+            throw e;
+        } catch (Exception e) {
+            fireTransferError(e);
+            throw UncheckedException.asUncheckedException(e);
+        } finally {
+            progress.setTotalLength(null);
+        }
+    }
+
+    private void doPut(File source, String destination) throws IOException {
         PutMethod method = new PutMethod(destination);
         configureMethod(method);
+        method.setRequestEntity(new FileRequestEntity(source));
         int result = client.executeMethod(method);
         if (result != 200) {
             throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s", destination, result, method.getStatusText()));
@@ -89,13 +120,18 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
 
     private void configureMethod(HttpMethod method) {
         method.setRequestHeader("User-Agent", "Gradle/" + GradleVersion.current().getVersion());
+        method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, new HttpMethodRetryHandler() {
+            public boolean retryMethod(HttpMethod method, IOException exception, int executionCount) {
+                return false;
+            }
+        });
     }
 
     public List list(String parent) throws IOException {
         return Collections.EMPTY_LIST;
     }
 
-    private static class HttpResource implements Resource {
+    private class HttpResource implements Resource {
         private final String source;
         private final GetMethod method;
 
@@ -142,7 +178,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
             try {
                 InputStream input = openStream();
                 try {
-                    IOUtils.copyLarge(input, output);
+                    FileUtil.copy(input, output, progress);
                 } finally {
                     input.close();
                 }
@@ -185,6 +221,35 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
 
         public InputStream openStream() throws IOException {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private class FileRequestEntity implements RequestEntity {
+        private final File source;
+
+        public FileRequestEntity(File source) {
+            this.source = source;
+        }
+
+        public boolean isRepeatable() {
+            return false;
+        }
+
+        public void writeRequest(OutputStream out) throws IOException {
+            FileInputStream inputStream = new FileInputStream(source);
+            try {
+                FileUtil.copy(inputStream, new CloseShieldOutputStream(out), progress);
+            } finally {
+                inputStream.close();
+            }
+        }
+
+        public long getContentLength() {
+            return source.length();
+        }
+
+        public String getContentType() {
+            return "application/octet-stream";
         }
     }
 }
