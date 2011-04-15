@@ -142,8 +142,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
      * @param referencedProjects The name of the project references.
      */
     void referencedProjects(String... referencedProjects) {
-        assert referencedProjects != null
-        this.referencedProjects.addAll(referencedProjects as List)
+        projectModel.referencedProjects(referencedProjects)
     }
 
     /**

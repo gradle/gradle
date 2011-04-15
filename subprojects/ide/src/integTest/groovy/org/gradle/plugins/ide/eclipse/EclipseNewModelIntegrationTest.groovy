@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,9 @@ eclipse {
   project {
     name = 'someBetterName'
     comment = 'a test project'
+
     referencedProjects = ['some referenced project'] as Set
+    referencedProjects 'some cool project'
 
     natures = ['test.groovy.nature']
     natures 'test.java.nature'
@@ -54,6 +56,8 @@ eclipse {
         assert dotProject.comment.text() == 'a test project'
 
         assert content.contains('some referenced project')
+        assert content.contains('some cool project')
+
         assert content.contains('test.java.nature')
         assert content.contains('test.groovy.nature')
     }

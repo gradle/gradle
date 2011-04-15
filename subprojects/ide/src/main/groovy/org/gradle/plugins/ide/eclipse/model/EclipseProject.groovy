@@ -33,7 +33,11 @@ package org.gradle.plugins.ide.eclipse.model
  *     //if you want to specify the Eclipse project's comment
  *     comment = 'Very interesting top secret project'
  *
- *     //if you want to add referenced projects (TODO SF: what is this?)
+ *     //(TODO SF: what are referenced projects?)
+ *     //if you want to append some extra referenced projects in a declarative fashion:
+ *     referencedProjects 'someProject', 'someOtherProject'
+ *
+ *     //if you want to assign referenced projects
  *     referencedProjects = ['someProject'] as Set
  *
  *     //if you want to append some extra natures in a declarative fashion:
@@ -76,6 +80,16 @@ class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     Set<String> referencedProjects = new LinkedHashSet<String>()
+
+    /**
+     * Adds project references to the eclipse project.
+     *
+     * @param referencedProjects The name of the project references.
+     */
+    void referencedProjects(String... referencedProjects) {
+        assert referencedProjects != null
+        this.referencedProjects.addAll(referencedProjects as List)
+    }
 
     /**
      * The natures to be added to this Eclipse project.
