@@ -35,7 +35,6 @@ import org.gradle.api.InvalidUserDataException
  *     //if you want to specify the Eclipse project's comment
  *     comment = 'Very interesting top secret project'
  *
- *     //(TODO SF: what are referenced projects?)
  *     //if you want to append some extra referenced projects in a declarative fashion:
  *     referencedProjects 'someProject', 'someOtherProject'
  *     //if you want to assign referenced projects
@@ -53,7 +52,6 @@ import org.gradle.api.InvalidUserDataException
  *
  *     //if you want to create an extra link in the eclipse project,
  *     //by location uri:
- *     //TODO SF: check what are links and show good example here
  *     link name: 'someLinkByLocationUri', type: 'someLinkType', locationUri: 'file://someUri'
  *     //by location:
  *     link name: 'someLinkByLocation', type: 'someLinkType', location: '/some/location'
@@ -62,7 +60,7 @@ import org.gradle.api.InvalidUserDataException
  * </pre>
  *
  * //TODO SF:
- * // - what are referenced projects?
+ * // - what are links? Do we mean linkedResources?
  * // - inconsistent dsl - plural or singular for natures/buildCommand/referenceProjects
  * // - moving the inputFile/outputFile onto the model / ???
  *
@@ -165,9 +163,10 @@ class EclipseProject {
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
      */
     void link(Map<String, String> args) {
-        def illegalArgs = args.keySet() - ['name', 'type', 'location', 'locationUri']
+        def validKeys = ['name', 'type', 'location', 'locationUri']
+        def illegalArgs = args.keySet() - validKeys
         if (illegalArgs) {
-            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
+            throw new InvalidUserDataException("You provided illegal argument for a link: $illegalArgs. Valid link args are: $validKeys")
         }
         //TODO SF: move validation here, update tests.
         links << new Link(args.name, args.type, args.location, args.locationUri)
