@@ -24,6 +24,8 @@ class EclipseNewModelIntegrationTest extends AbstractEclipseIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 
+    String content
+
     @Test
     void allowsConfiguringEclipseProject() {
         //when
@@ -44,27 +46,31 @@ eclipse {
 
     buildCommand 'buildThisLovelyProject'
     buildCommand argumentFoo: 'a foo argument', 'buildWithTheArguments'
+
+    link name: 'linkToFolderFoo', type: 'aFolderFoo', location: '/test/folders/foo'
+    link name: 'linkToUriFoo', type: 'aFooUri', locationUri: 'http://test/uri/foo'
   }
 }
         """
 
         //then
-        def content = getFile([:], '.project').text
+        content = getFile([:], '.project').text
         println content
 
         def dotProject = parseProjectFile()
         assert dotProject.name.text() == 'someBetterName'
         assert dotProject.comment.text() == 'a test project'
 
-        assert content.contains('some referenced project')
-        assert content.contains('some cool project')
+        contains('some referenced project', 'some cool project')
+        contains('test.java.nature', 'test.groovy.nature')
+        contains('buildThisLovelyProject', 'argumentFoo', 'a foo argument', 'buildWithTheArguments')
 
-        assert content.contains('test.java.nature')
-        assert content.contains('test.groovy.nature')
+        //TODO SF: change assertions into xml ones
+        contains('linkToFolderFoo', 'aFolderFoo', '/test/folders/foo')
+        contains('linkToUriFoo', 'aFooUri', 'http://test/uri/foo')
+    }
 
-        assert content.contains('buildThisLovelyProject')
-        assert content.contains('argumentFoo')
-        assert content.contains('a foo argument')
-        assert content.contains('buildWithTheArguments')
+    protected def contains(String ... contents) {
+        contents.each { assert content.contains(it)}
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.api.InvalidUserDataException
+
 /**
  * DSL-friendly model of the eclipse project needed for .project generation
  * <p>
@@ -47,7 +49,14 @@ package org.gradle.plugins.ide.eclipse.model
  *     //if you want to append some extra build command:
  *     buildCommand 'buildThisLovelyProject'
  *     //if you want to append a build command with parameters:
-       buildCommand argumentOne: "I'm first", argumentTwo: "I'm second", 'buildItWithTheArguments'
+ *     buildCommand argumentOne: "I'm first", argumentTwo: "I'm second", 'buildItWithTheArguments'
+ *
+ *     //if you want to create an extra link in the eclipse project,
+ *     //by location uri:
+ *     //TODO SF: check what are links and show good example here
+ *     link name: 'someLinkByLocationUri', type: 'someLinkType', locationUri: 'file://someUri'
+ *     //by location:
+ *     link name: 'someLinkByLocation', type: 'someLinkType', location: '/some/location'
  *   }
  * }
  * </pre>
@@ -55,6 +64,7 @@ package org.gradle.plugins.ide.eclipse.model
  * //TODO SF:
  * // - what are referenced projects?
  * // - inconsistent dsl - plural or singular for natures/buildCommand/referenceProjects
+ * // - moving the inputFile/outputFile onto the model / ???
  *
  * Author: Szczepan Faber, created at: 4/13/11
  */
@@ -144,4 +154,22 @@ class EclipseProject {
         buildCommands << new BuildCommand(buildCommand)
     }
 
+    /**
+     * The links to be added to this Eclipse project.
+     */
+    Set<Link> links = new LinkedHashSet<Link>()
+
+    /**
+     * Adds a link to the eclipse project.
+     *
+     * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
+     */
+    void link(Map<String, String> args) {
+        def illegalArgs = args.keySet() - ['name', 'type', 'location', 'locationUri']
+        if (illegalArgs) {
+            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
+        }
+        //TODO SF: move validation here, update tests.
+        links << new Link(args.name, args.type, args.location, args.locationUri)
+    }
 }

@@ -30,7 +30,7 @@ class Link {
         assert name
         assert type
         assert location || locationUri
-        assert !location || !locationUri 
+        assert !location || !locationUri
         this.name = name;
         this.type = type;
         this.location = PathUtil.normalizePath(location);

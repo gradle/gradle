@@ -15,14 +15,13 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.eclipse.model.EclipseProject
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.eclipse.model.Project
 import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
-import org.gradle.plugins.ide.eclipse.model.EclipseProject
-import org.gradle.api.internal.ClassGenerator
 
 /**
  * Generates an Eclipse <code>.project</code> file.
@@ -39,7 +38,6 @@ import org.gradle.api.internal.ClassGenerator
  * @author Hans Dockter
  */
 class GenerateEclipseProject extends XmlGeneratorTask<Project> implements ConfigurationTarget {
-    private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
 
     /**
      * model for eclipse project (.project) generation
@@ -119,7 +117,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
     /**
      * The links to be added to this Eclipse project.
      */
-    Set<Link> links = new LinkedHashSet<Link>()
+    Set<Link> getLinks() {
+        projectModel.links
+    }
+
+    void setLinks(Set<Link> links) {
+        projectModel.links = links
+    }
 
     GenerateEclipseProject() {
         xmlTransformer.indentation = "\t"
@@ -178,10 +182,6 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
      */
     void link(Map<String, String> args) {
-        def illegalArgs = LINK_ARGUMENTS - args.keySet()
-        if (illegalArgs) {
-            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
-        }
-        links << new Link(args.name, args.type, args.location, args.locationUri)
+        projectModel.link(args)
     }
 }
