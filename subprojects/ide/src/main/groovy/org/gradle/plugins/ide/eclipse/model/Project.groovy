@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.plugins.ide.eclipse.GenerateEclipseProject
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**
@@ -100,19 +99,19 @@ class Project extends XmlPersistableConfigurationObject {
         }
     }
 
-    def configure(GenerateEclipseProject eclipseProjectTask) {
-        if (eclipseProjectTask.projectName) {
-            this.name = eclipseProjectTask.projectName
+    def configure(EclipseProject eclipseProject) {
+        if (eclipseProject.name) {
+            this.name = eclipseProject.name
         }
-        if (eclipseProjectTask.comment) {
-            this.comment = eclipseProjectTask.comment
+        if (eclipseProject.comment) {
+            this.comment = eclipseProject.comment
         }
-        this.referencedProjects.addAll(eclipseProjectTask.referencedProjects)
-        this.natures.addAll(eclipseProjectTask.natures)
+        this.referencedProjects.addAll(eclipseProject.referencedProjects)
+        this.natures.addAll(eclipseProject.natures)
         this.natures.unique()
-        this.buildCommands.addAll(eclipseProjectTask.buildCommands)
+        this.buildCommands.addAll(eclipseProject.buildCommands)
         this.buildCommands.unique()
-        this.links.addAll(eclipseProjectTask.links);
+        this.links.addAll(eclipseProject.links);
     }
 
     @Override protected void store(Node xml) {

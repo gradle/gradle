@@ -134,8 +134,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
     }
 
     @Override protected void configure(Project project) {
-        //TODO SF: should be: projectModel.mergeXmlModule(project)
-        project.configure(this)
+        projectModel.mergeXmlProject(project);
     }
 
     /**

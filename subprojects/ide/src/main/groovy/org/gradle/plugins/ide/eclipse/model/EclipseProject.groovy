@@ -171,4 +171,8 @@ class EclipseProject {
         //TODO SF: move validation here, update tests.
         links << new Link(args.name, args.type, args.location, args.locationUri)
     }
+
+    void mergeXmlProject(Project xmlProject) {
+        xmlProject.configure(this)
+    }
 }
