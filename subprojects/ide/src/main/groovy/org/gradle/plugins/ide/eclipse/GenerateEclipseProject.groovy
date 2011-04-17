@@ -108,7 +108,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
     /**
      * The build commands to be added to this Eclipse project.
      */
-    List<BuildCommand> buildCommands = []
+    List<BuildCommand> getBuildCommands() {
+        projectModel.buildCommands
+    }
+
+    void setBuildCommands(List<BuildCommand> buildCommands) {
+        projectModel.buildCommands = buildCommands
+    }
 
     /**
      * The links to be added to this Eclipse project.
@@ -153,8 +159,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
      * @see #buildCommand(String)
      */
     void buildCommand(Map args, String buildCommand) {
-        assert buildCommand != null
-        buildCommands << new BuildCommand(buildCommand, args)
+        projectModel.buildCommand(args, buildCommand)
     }
 
     /**
@@ -164,8 +169,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
      * @see #buildCommand(Map, String)
      */
     void buildCommand(String buildCommand) {
-        assert buildCommand != null
-        buildCommands << new BuildCommand(buildCommand)
+        projectModel.buildCommand(buildCommand)
     }
 
     /**

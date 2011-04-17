@@ -36,19 +36,25 @@ package org.gradle.plugins.ide.eclipse.model
  *     //(TODO SF: what are referenced projects?)
  *     //if you want to append some extra referenced projects in a declarative fashion:
  *     referencedProjects 'someProject', 'someOtherProject'
- *
  *     //if you want to assign referenced projects
  *     referencedProjects = ['someProject'] as Set
  *
  *     //if you want to append some extra natures in a declarative fashion:
  *     natures 'some.extra.eclipse.nature', 'some.another.interesting.nature'
- *
  *     //if you want to assign natures in a groovy fashion:
  *     natures = ['some.extra.eclipse.nature', 'some.another.interesting.nature']
  *
+ *     //if you want to append some extra build command:
+ *     buildCommand 'buildThisLovelyProject'
+ *     //if you want to append a build command with parameters:
+       buildCommand argumentOne: "I'm first", argumentTwo: "I'm second", 'buildItWithTheArguments'
  *   }
  * }
  * </pre>
+ *
+ * //TODO SF:
+ * // - what are referenced projects?
+ * // - inconsistent dsl - plural or singular for natures/buildCommand/referenceProjects
  *
  * Author: Szczepan Faber, created at: 4/13/11
  */
@@ -109,4 +115,33 @@ class EclipseProject {
         assert natures != null
         this.natures.addAll(natures as List)
     }
+
+    /**
+     * The build commands to be added to this Eclipse project.
+     */
+    List<BuildCommand> buildCommands = []
+
+    /**
+     * Adds a build command with arguments to the eclipse project.
+     *
+     * @param args A map with arguments, where the key is the name of the argument and the value the value.
+     * @param buildCommand The name of the build command.
+     * @see #buildCommand(String)
+     */
+    void buildCommand(Map args, String buildCommand) {
+        assert buildCommand != null
+        buildCommands << new BuildCommand(buildCommand, args)
+    }
+
+    /**
+     * Adds a build command to the eclipse project.
+     *
+     * @param buildCommand The name of the build command
+     * @see #buildCommand(Map, String)
+     */
+    void buildCommand(String buildCommand) {
+        assert buildCommand != null
+        buildCommands << new BuildCommand(buildCommand)
+    }
+
 }

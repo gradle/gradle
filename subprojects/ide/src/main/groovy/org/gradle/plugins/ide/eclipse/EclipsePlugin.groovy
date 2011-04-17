@@ -86,44 +86,45 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseProject(Project project) {
         addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
+            description = "Generates the Eclipse project file."
+
             model.project = projectModel
 
             projectModel.name = project.name
             projectModel.conventionMapping.comment = { project.description }
 
-            description = "Generates the Eclipse project file."
             inputFile = project.file('.project')
             outputFile = project.file('.project')
 
             project.plugins.withType(JavaBasePlugin) {
-                buildCommand "org.eclipse.jdt.core.javabuilder"
-                natures "org.eclipse.jdt.core.javanature"
+                projectModel.buildCommand "org.eclipse.jdt.core.javabuilder"
+                projectModel.natures "org.eclipse.jdt.core.javanature"
             }
 
             project.plugins.withType(GroovyBasePlugin) {
-                natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.eclipse.jdt.groovy.core.groovyNature")
+                projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.eclipse.jdt.groovy.core.groovyNature")
             }
 
             project.plugins.withType(ScalaBasePlugin) {
-                buildCommands.set(buildCommands.findIndexOf { it.name == "org.eclipse.jdt.core.javabuilder" },
+                projectModel.buildCommands.set(buildCommands.findIndexOf { it.name == "org.eclipse.jdt.core.javabuilder" },
                         new BuildCommand("ch.epfl.lamp.sdt.core.scalabuilder"))
-                natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
+                projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
             }
 
             project.plugins.withType(WarPlugin) {
-                buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                natures 'org.eclipse.wst.common.project.facet.core.nature'
-                natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                natures 'org.eclipse.jem.workbench.JavaEMFNature'
+                projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
 
                 eachDependedUponProject(project) { Project otherProject ->
                     configureTask(otherProject, ECLIPSE_PROJECT_TASK_NAME) {
-                        buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                        buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                        natures 'org.eclipse.wst.common.project.facet.core.nature'
-                        natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                        natures 'org.eclipse.jem.workbench.JavaEMFNature'
+                        projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                        projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                        projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                        projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                        projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
                     }
                 }
             }

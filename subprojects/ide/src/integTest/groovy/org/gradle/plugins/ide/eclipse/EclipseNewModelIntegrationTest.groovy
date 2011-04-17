@@ -42,7 +42,8 @@ eclipse {
     natures = ['test.groovy.nature']
     natures 'test.java.nature'
 
-
+    buildCommand 'buildThisLovelyProject'
+    buildCommand argumentFoo: 'a foo argument', 'buildWithTheArguments'
   }
 }
         """
@@ -60,5 +61,10 @@ eclipse {
 
         assert content.contains('test.java.nature')
         assert content.contains('test.groovy.nature')
+
+        assert content.contains('buildThisLovelyProject')
+        assert content.contains('argumentFoo')
+        assert content.contains('a foo argument')
+        assert content.contains('buildWithTheArguments')
     }
 }
