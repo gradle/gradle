@@ -201,8 +201,13 @@ public class GradleVersion implements Comparable<GradleVersion> {
         Stage(int stage, String number) {
             this.stage = stage;
             Matcher m = Pattern.compile("(\\d+)([a-z])?").matcher(number);
-            assert m.matches();
-            this.number = Integer.parseInt(m.group(1));
+            try {
+                m.matches();
+                this.number = Integer.parseInt(m.group(1));
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid stage small number: " + number, e);
+            }
+
             if (m.groupCount() == 2 && m.group(2) != null) {
                 this.patchNo = m.group(2).charAt(0);
             } else {

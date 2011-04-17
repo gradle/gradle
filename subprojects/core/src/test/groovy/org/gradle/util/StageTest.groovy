@@ -50,7 +50,7 @@ class StageTest extends Specification {
         new Stage(1, "9") < new Stage(2, "1")
         new Stage(2, "1") > new Stage(1, "9")
 
-        new Stage(1, "1")  < new Stage(1, "1a")
+        new Stage(1, "1") < new Stage(1, "1a")
         new Stage(1, "1a") > new Stage(1, "1")
 
         new Stage(1, "1a") < new Stage(1, "1b")
@@ -58,5 +58,14 @@ class StageTest extends Specification {
 
         new Stage(1, "1c") < new Stage(1, "2b")
         new Stage(1, "2b") > new Stage(1, "1c")
+    }
+
+    def "shows input when matching fails"() {
+        when:
+        new Stage(1, "x")
+
+        then:
+        def ex = thrown(Exception)
+        ex.message.contains("x")
     }
 }
