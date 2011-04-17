@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.eclipse.model.internal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.SourceSet
-import org.gradle.plugins.ide.eclipse.EclipseClasspath
+import org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
 import org.gradle.api.artifacts.*
 import org.gradle.plugins.ide.eclipse.model.*
 
@@ -26,7 +26,7 @@ import org.gradle.plugins.ide.eclipse.model.*
  * @author Hans Dockter
  */
 class ClasspathFactory {
-    void configure(EclipseClasspath eclipseClasspath, Classpath classpath) {
+    void configure(GenerateEclipseClasspath eclipseClasspath, Classpath classpath) {
         def entries = []
         entries.add(new Output(eclipseClasspath.project.relativePath(eclipseClasspath.defaultOutputDir)))
         entries.addAll(getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project))
@@ -67,11 +67,11 @@ class ClasspathFactory {
         }
     }
 
-    private List getEntriesFromConfigurations(EclipseClasspath eclipseClasspath) {
+    private List getEntriesFromConfigurations(GenerateEclipseClasspath eclipseClasspath) {
         getModules(eclipseClasspath) + getLibraries(eclipseClasspath)
     }
 
-    protected List getModules(EclipseClasspath eclipseClasspath) {
+    protected List getModules(GenerateEclipseClasspath eclipseClasspath) {
         return getDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations, { it instanceof org.gradle.api.artifacts.ProjectDependency }).collect { projectDependency ->
             projectDependency.dependencyProject
         }.collect { dependencyProject ->
@@ -79,7 +79,7 @@ class ClasspathFactory {
         }
     }
 
-    protected Set getLibraries(EclipseClasspath eclipseClasspath) {
+    protected Set getLibraries(GenerateEclipseClasspath eclipseClasspath) {
         Set declaredDependencies = getDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations,
                 { it instanceof ExternalDependency })
 

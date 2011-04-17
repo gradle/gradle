@@ -27,7 +27,7 @@ import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
  *
  * @author Hans Dockter
  */
-class EclipseClasspath extends XmlGeneratorTask<Classpath> implements ConfigurationTarget {
+class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements ConfigurationTarget {
     /**
      * The source sets to be added to the classpath.
      */
@@ -70,7 +70,7 @@ class EclipseClasspath extends XmlGeneratorTask<Classpath> implements Configurat
 
     protected ClasspathFactory modelFactory = new ClasspathFactory()
 
-    EclipseClasspath() {
+    GenerateEclipseClasspath() {
         xmlTransformer.indentation = "\t"
     }
 

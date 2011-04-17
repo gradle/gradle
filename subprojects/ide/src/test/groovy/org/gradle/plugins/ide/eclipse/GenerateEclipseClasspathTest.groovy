@@ -22,16 +22,16 @@ import org.gradle.api.tasks.AbstractSpockTaskTest
 /**
  * @author Hans Dockter
  */
-public class EclipseClasspathTest extends AbstractSpockTaskTest {
+public class GenerateEclipseClasspathTest extends AbstractSpockTaskTest {
 
-    private EclipseClasspath eclipseClasspath;
+    private GenerateEclipseClasspath eclipseClasspath;
 
     ConventionTask getTask() {
         return eclipseClasspath
     }
 
     def setup() {
-        eclipseClasspath = createTask(EclipseClasspath.class);
+        eclipseClasspath = createTask(GenerateEclipseClasspath.class);
     }
 
     def containers_shouldAdd() {

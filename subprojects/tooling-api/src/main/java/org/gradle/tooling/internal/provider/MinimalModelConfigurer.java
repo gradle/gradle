@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.plugins.ide.eclipse.EclipseClasspath;
+import org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -33,10 +33,10 @@ public class MinimalModelConfigurer extends EclipsePluginApplier {
         super.configure(gradle);
         gradle.getRootProject().allprojects(new Action<Project>() {
             public void execute(Project project) {
-                project.getTasks().withType(EclipseClasspath.class).all(new Action<EclipseClasspath>() {
-                    public void execute(EclipseClasspath eclipseClasspath) {
-                        eclipseClasspath.setPlusConfigurations(projectDependenciesOnly(eclipseClasspath.getPlusConfigurations()));
-                        eclipseClasspath.setMinusConfigurations(projectDependenciesOnly(eclipseClasspath.getMinusConfigurations()));
+                project.getTasks().withType(GenerateEclipseClasspath.class).all(new Action<GenerateEclipseClasspath>() {
+                    public void execute(GenerateEclipseClasspath generateEclipseClasspath) {
+                        generateEclipseClasspath.setPlusConfigurations(projectDependenciesOnly(generateEclipseClasspath.getPlusConfigurations()));
+                        generateEclipseClasspath.setMinusConfigurations(projectDependenciesOnly(generateEclipseClasspath.getMinusConfigurations()));
                     }
                 });
             }

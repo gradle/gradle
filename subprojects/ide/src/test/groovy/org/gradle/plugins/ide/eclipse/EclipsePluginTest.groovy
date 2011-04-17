@@ -162,8 +162,8 @@ class EclipsePluginTest extends Specification {
     }
 
     private void checkEclipseClasspath(def configurations) {
-        EclipseClasspath eclipseClasspath = project.eclipseClasspath
-        assert eclipseClasspath instanceof EclipseClasspath
+        GenerateEclipseClasspath eclipseClasspath = project.eclipseClasspath
+        assert eclipseClasspath instanceof GenerateEclipseClasspath
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseClasspath)
         assert eclipseClasspath.sourceSets == project.sourceSets
         assert eclipseClasspath.plusConfigurations == configurations

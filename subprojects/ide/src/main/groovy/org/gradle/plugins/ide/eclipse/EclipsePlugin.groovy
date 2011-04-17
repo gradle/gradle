@@ -133,7 +133,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseClasspath(Project project) {
         project.plugins.withType(JavaBasePlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, EclipseClasspath) {
+            addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) {
                 description = "Generates the Eclipse classpath file."
                 containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
                 sourceSets = project.sourceSets
