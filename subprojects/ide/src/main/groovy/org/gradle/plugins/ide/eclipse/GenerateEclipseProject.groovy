@@ -44,6 +44,18 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
      */
     EclipseProject projectModel = services.get(ClassGenerator).newInstance(EclipseProject)
 
+    GenerateEclipseProject() {
+        xmlTransformer.indentation = "\t"
+    }
+
+    @Override protected Project create() {
+        new Project(xmlTransformer)
+    }
+
+    @Override protected void configure(Project project) {
+        projectModel.mergeXmlProject(project);
+    }
+
     /**
      * Configures eclipse project name. It is <b>optional</b> because the task should configure it correctly for you.
      * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b>
@@ -123,18 +135,6 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> implements Config
 
     void setLinks(Set<Link> links) {
         projectModel.links = links
-    }
-
-    GenerateEclipseProject() {
-        xmlTransformer.indentation = "\t"
-    }
-
-    @Override protected Project create() {
-        new Project(xmlTransformer)
-    }
-
-    @Override protected void configure(Project project) {
-        projectModel.mergeXmlProject(project);
     }
 
     /**
