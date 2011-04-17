@@ -135,8 +135,12 @@ class EclipsePlugin extends IdePlugin {
         project.plugins.withType(JavaBasePlugin) {
             addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) {
                 description = "Generates the Eclipse classpath file."
+
+                model.classpath = classpath
+
+                classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property?
+
                 containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
-                sourceSets = project.sourceSets
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
                 conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }

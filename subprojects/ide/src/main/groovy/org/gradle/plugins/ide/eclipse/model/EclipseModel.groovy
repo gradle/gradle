@@ -28,8 +28,13 @@ import org.gradle.util.ConfigureUtil
 class EclipseModel {
 
     EclipseProject project
+    EclipseClasspath classpath
 
     void project(Closure closure) {
         ConfigureUtil.configure(closure, project)
+    }
+
+    void classpath(Closure closure) {
+        ConfigureUtil.configure(closure, classpath)
     }
 }

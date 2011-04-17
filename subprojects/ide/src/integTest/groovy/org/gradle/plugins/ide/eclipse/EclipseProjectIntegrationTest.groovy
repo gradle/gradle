@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 
-class EclipseNewModelIntegrationTest extends AbstractEclipseIntegrationTest {
+class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule
     public final TestResources testResources = new TestResources()
@@ -65,7 +65,6 @@ eclipse {
         contains('test.java.nature', 'test.groovy.nature')
         contains('buildThisLovelyProject', 'argumentFoo', 'a foo argument', 'buildWithTheArguments')
 
-        //TODO SF: change assertions into xml ones
         contains('linkToFolderFoo', 'aFolderFoo', '/test/folders/foo')
         contains('linkToUriFoo', 'aFooUri', 'http://test/uri/foo')
     }

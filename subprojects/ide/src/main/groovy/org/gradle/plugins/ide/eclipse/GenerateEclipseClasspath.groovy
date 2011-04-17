@@ -16,9 +16,11 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.Classpath
+import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
@@ -28,10 +30,22 @@ import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
  * @author Hans Dockter
  */
 class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements ConfigurationTarget {
+
+    EclipseClasspath classpath = services.get(ClassGenerator).newInstance(EclipseClasspath)
+
     /**
      * The source sets to be added to the classpath.
      */
-    Iterable<SourceSet> sourceSets
+    Iterable<SourceSet> getSourceSets() {
+        classpath.sourceSets
+    }
+
+    /**
+     * The source sets to be added to the classpath.
+     */
+    void setSourceSets(Iterable<SourceSet> sourceSets) {
+        classpath.sourceSets = sourceSets
+    }
 
     /**
      * The configurations which files are to be transformed into classpath entries.
