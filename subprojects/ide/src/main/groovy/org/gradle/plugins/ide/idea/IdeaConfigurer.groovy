@@ -27,7 +27,9 @@ class IdeaConfigurer {
     void configure(Project theProject) {
         def ideaProjects = theProject.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }
         new ProjectDeduper().dedupe(ideaProjects, { project ->
-            new DeduplicationTarget(project: project, moduleName: project.ideaModule.moduleName, updateModuleName: { project.ideaModule.moduleName = it } )
+            new DeduplicationTarget(project: project,
+                    moduleName: project.ideaModule.module.name,
+                    updateModuleName: { project.ideaModule.module.name = it } )
         })
     }
 }
