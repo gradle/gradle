@@ -27,10 +27,10 @@ import org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class MinimalModelConfigurer extends EclipsePluginApplier {
-    @Override
+public class MinimalModelConfigurer implements ModelBuildingAdapter.Configurer {
     public void configure(GradleInternal gradle) {
-        super.configure(gradle);
+        new EclipsePluginApplier().configure(gradle);
+
         gradle.getRootProject().allprojects(new Action<Project>() {
             public void execute(Project project) {
                 project.getTasks().withType(GenerateEclipseClasspath.class).all(new Action<GenerateEclipseClasspath>() {
