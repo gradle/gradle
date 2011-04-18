@@ -44,6 +44,9 @@ import org.gradle.api.tasks.SourceSet
  *
  *     //you can also remove configurations from the classpath:
  *     minusConfigurations += configurations.someBoringConfig
+ *
+ *     //if you want to append extra containers:
+ *     containers 'someFriendlyContainer', 'andYetAnotherContainer'
  *   }
  * }
  * </pre>
@@ -81,5 +84,20 @@ class EclipseClasspath {
     void pathVariables(Map<String, File> pathVariables) {
         assert pathVariables != null
         this.pathVariables.putAll pathVariables
+    }
+
+   /**
+     * Containers to be added to the classpath
+     */
+    Set<String> containers = new LinkedHashSet<String>()
+
+   /**
+     * Adds containers to the .classpath.
+     *
+     * @param containers the container names to be added to the .classpath.
+     */
+    void containers(String... containers) {
+        assert containers != null
+        this.containers.addAll(containers as List)
     }
 }

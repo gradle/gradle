@@ -49,9 +49,13 @@ dependencies {
 eclipse {
   classpath {
     sourceSets = []
+
     plusConfigurations += configurations.someConfig
     minusConfigurations += configurations.someOtherConfig
+
     pathVariables fooPathVariable: new File('.')
+
+    containers 'someFriendlyContainer', 'andYetAnotherContainer'
   }
 }
 """
@@ -60,11 +64,12 @@ eclipse {
         println content
 
         //then
-        assert content.contains('foo.txt')
-        assert content.contains('bar.txt')
+        contains('foo.txt')
+        contains('bar.txt')
         //assert !content.contains('baz.txt') //TODO SF - why it does not work?
 
-        assert content.contains('fooPathVariable')
+        contains('fooPathVariable')
+        contains('someFriendlyContainer', 'andYetAnotherContainer')
     }
 
     protected def contains(String ... contents) {

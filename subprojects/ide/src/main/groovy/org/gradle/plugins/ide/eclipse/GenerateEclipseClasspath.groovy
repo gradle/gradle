@@ -85,7 +85,13 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
     /**
      * Containers to be added to the classpath
      */
-    Set<String> containers = new LinkedHashSet<String>()
+    Set<String> getContainers() {
+        classpath.containers
+    }
+
+    void setContainers(Set<String> containers) {
+        classpath.containers = containers
+    }
 
     /**
      * The default output directory for eclipse generated files, eg classes.
@@ -122,8 +128,7 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
      * @param containers the container names to be added to the .classpath.
      */
     void containers(String... containers) {
-        assert containers != null
-        this.containers.addAll(containers as List)
+        classpath.containers(containers)
     }
 
     /**
