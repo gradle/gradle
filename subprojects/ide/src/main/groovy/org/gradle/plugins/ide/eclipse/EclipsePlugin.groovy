@@ -18,14 +18,13 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.plugins.ide.eclipse.internal.EclipseDomainModelFactory
 import org.gradle.plugins.ide.internal.IdePlugin
-import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 import org.gradle.plugins.ide.eclipse.model.*
 
 /**
@@ -44,10 +43,6 @@ class EclipsePlugin extends IdePlugin {
 
     EclipseModel model = new EclipseModel()
 
-    EclipseDomainModel getEclipseDomainModel() {
-        new EclipseDomainModelFactory().create(project)
-    }
-
     @Override protected String getLifecycleTaskName() {
         return 'eclipse'
     }
@@ -58,29 +53,14 @@ class EclipsePlugin extends IdePlugin {
 
         project.convention.plugins.eclipse = model
 
-        configureEclipseConfigurer(project)
         configureEclipseProject(project)
         configureEclipseClasspath(project)
         configureEclipseJdt(project)
         configureEclipseWtpComponent(project)
         configureEclipseWtpFacet(project)
-        configureDependenciesOfConfigurationTasks(project)
-    }
 
-    private def configureDependenciesOfConfigurationTasks(Project project) {
-        project.tasks.withType(ConfigurationTarget) { task ->
-            //making sure eclipse plugin configurer acts before generator tasks
-            task.dependsOn(project.rootProject.eclipseConfigurer)
-        }
-    }
-
-    def configureEclipseConfigurer(Project project) {
-        def root = project.rootProject
-        def task = root.tasks.findByName('eclipseConfigurer')
-        //making sure configurer is created once and added to the root project only
-        if (!task) {
-            task = root.task('eclipseConfigurer', description: 'Performs extra configuration on eclipse generator tasks', type: EclipseConfigurer)
-            addWorker(task)
+        project.afterEvaluate {
+            new EclipseConfigurer().configure(project)
         }
     }
 
@@ -88,7 +68,8 @@ class EclipsePlugin extends IdePlugin {
         addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
             description = "Generates the Eclipse project file."
 
-            model.project = projectModel
+            model.project = services.get(ClassGenerator).newInstance(EclipseProject)
+            projectModel = model.project
 
             projectModel.name = project.name
             projectModel.conventionMapping.comment = { project.description }
@@ -132,18 +113,19 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(Project project) {
+        model.classpath = project.services.get(ClassGenerator).newInstance(EclipseClasspath, [project: project])
+        model.classpath.conventionMapping.classesOutputDir = { new File(project.projectDir, 'bin') }
+
         project.plugins.withType(JavaBasePlugin) {
             addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) {
                 description = "Generates the Eclipse classpath file."
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
 
-                model.classpath = classpath
+                classpath = model.classpath
 
                 classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property?
                 classpath.containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
-
-                classpath.conventionMapping.classesOutputDir = { new File(project.projectDir, 'bin') }
 
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]

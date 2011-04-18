@@ -24,8 +24,6 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
-import static org.codehaus.groovy.runtime.InvokerHelper.asList;
-
 public class DefaultConnection implements ConnectionVersion4 {
     private final ConnectionParametersVersion1 parameters;
     private Worker worker;
@@ -100,7 +98,6 @@ public class DefaultConnection implements ConnectionVersion4 {
             }
             
             StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
-            startParameter.setTaskNames(asList(":eclipseConfigurer"));
 
             GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
 

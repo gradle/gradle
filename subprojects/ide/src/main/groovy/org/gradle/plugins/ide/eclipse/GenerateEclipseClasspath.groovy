@@ -16,25 +16,22 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
-import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * Generates an Eclipse <code>.classpath</code> file.
  *
  * @author Hans Dockter
  */
-class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements ConfigurationTarget {
+class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
 
-    EclipseClasspath classpath = services.get(ClassGenerator).newInstance(EclipseClasspath)
+    EclipseClasspath classpath
 
     GenerateEclipseClasspath() {
         xmlTransformer.indentation = "\t"
-        classpath.project = project
     }
 
     @Override protected Classpath create() {

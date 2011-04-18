@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.dependencies
 
 import org.gradle.api.Project
-import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.Container
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import spock.lang.Specification
@@ -34,13 +33,12 @@ class SourceDirectoriesFactoryTest extends Specification {
         def project = Mock(Project)
         def somePathDir = new File('/projects/somePath')
         project.file('somePath') >> { somePathDir }
-        def classpath = new Classpath()
-        classpath.entries = [
+        def entries = [
                 new SourceFolder('somePath', '', [] as Set, '', [], []),
                 new Container('foo', true, '', [] as Set) ]
 
         when:
-        def dirs = factory.create(project, classpath)
+        def dirs = factory.create(project, entries)
 
         then:
         dirs.size() == 1

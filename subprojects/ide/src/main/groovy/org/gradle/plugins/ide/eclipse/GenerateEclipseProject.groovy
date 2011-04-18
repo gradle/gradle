@@ -15,13 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.eclipse.model.EclipseProject
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.eclipse.model.Project
-import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * Generates an Eclipse <code>.project</code> file.
@@ -37,12 +35,12 @@ import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
  * </pre>
  * @author Hans Dockter
  */
-class GenerateEclipseProject extends XmlGeneratorTask<Project> implements ConfigurationTarget {
+class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     /**
      * model for eclipse project (.project) generation
      */
-    EclipseProject projectModel = services.get(ClassGenerator).newInstance(EclipseProject)
+    EclipseProject projectModel
 
     GenerateEclipseProject() {
         xmlTransformer.indentation = "\t"

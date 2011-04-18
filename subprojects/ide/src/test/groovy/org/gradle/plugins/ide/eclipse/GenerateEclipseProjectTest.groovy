@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.eclipse.model.EclipseProject
 
 /**
  * @author Hans Dockter
@@ -31,6 +32,7 @@ class GenerateEclipseProjectTest extends AbstractSpockTaskTest {
 
     def setup() {
         eclipseProject = createTask(GenerateEclipseProject.class);
+        eclipseProject.projectModel = new EclipseProject()
     }
 
     def natures_shouldAdd() {

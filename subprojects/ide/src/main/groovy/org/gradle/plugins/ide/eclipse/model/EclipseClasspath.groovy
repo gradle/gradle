@@ -144,11 +144,19 @@ class EclipseClasspath {
      */
     boolean downloadJavadoc = false
 
+    /**
+     * Calculates, resolves & returns dependency entries of this classpath
+     */
+    public List<ClasspathEntry> resolveDependencies() {
+        return new ClasspathFactory().createEntries(this)
+    }
+
     /******/
 
     org.gradle.api.Project project
 
     void mergeXmlClasspath(Classpath xmlClasspath) {
-        new ClasspathFactory().configure(this, xmlClasspath)
+        def entries = resolveDependencies()
+        xmlClasspath.configure(entries)
     }
 }

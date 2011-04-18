@@ -34,30 +34,6 @@ class EclipsePluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final EclipsePlugin eclipsePlugin = new EclipsePlugin()
 
-    def "adds configurer task to root project only"() {
-        given:
-        def child = HelperUtil.createChildProject(project, "child")
-
-        when:
-        eclipsePlugin.apply(child)
-        eclipsePlugin.apply(project)
-
-        then:
-        project.eclipseConfigurer instanceof EclipseConfigurer
-        child.tasks.findByName('eclipseConfigurer') == null
-    }
-
-    def "makes sure that generator tasks are configured before they act"() {
-        when:
-        project.apply(plugin: 'java-base')
-        eclipsePlugin.apply(project)
-
-        then:
-        [project.eclipseClasspath, project.eclipseJdt, project.eclipseProject].each {
-            assert it.dependsOn.contains(project.eclipseConfigurer)
-        }
-    }
-
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {
         when:
         eclipsePlugin.apply(project)
@@ -146,6 +122,15 @@ class EclipsePluginTest extends Specification {
 
         then:
         checkEclipseClasspath([project.configurations.testRuntime] as Set)
+    }
+
+    def "creates empty classpath model for non java projects"() {
+        when:
+        eclipsePlugin.apply(project)
+
+        then:
+        eclipsePlugin.model.classpath
+        eclipsePlugin.model.classpath.classesOutputDir
     }
 
     private void checkEclipseProjectTask(List buildCommands, List natures) {

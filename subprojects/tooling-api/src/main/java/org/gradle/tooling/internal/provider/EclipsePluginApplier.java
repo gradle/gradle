@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.plugins.ide.eclipse.EclipseConfigurer;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 
 import java.util.Set;
@@ -30,6 +31,8 @@ public class EclipsePluginApplier implements ModelBuildingAdapter.Configurer {
         Set<Project> allprojects = gradle.getRootProject().getAllprojects();
         for (Project p : allprojects) {
             p.getPlugins().apply(EclipsePlugin.class);
+            //TODO SF: this is temporary, until we figure out how to tackle this
+            new EclipseConfigurer().configure(p);
         }
     }
 }

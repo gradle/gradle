@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.dependencies;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
@@ -31,10 +30,9 @@ import java.util.Map;
  * @author Szczepan Faber, @date: 24.03.11
  */
 public class EclipseProjectDependenciesFactory {
-    public List<EclipseProjectDependencyVersion2> create(final Map<String, ? extends HierarchicalEclipseProjectVersion1> projectMapping, Classpath classpath) {
+    public List<EclipseProjectDependencyVersion2> create(final Map<String, ? extends HierarchicalEclipseProjectVersion1> projectMapping, List<ClasspathEntry> entries) {
         final LinkedList<EclipseProjectDependencyVersion2> dependencies = new LinkedList<EclipseProjectDependencyVersion2>();
 
-        List<ClasspathEntry> entries = classpath.getEntries();
         for (ClasspathEntry entry : entries) {
             if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;

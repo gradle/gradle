@@ -25,14 +25,14 @@ import org.gradle.plugins.ide.eclipse.model.*
  * @author Hans Dockter
  */
 class ClasspathFactory {
-    void configure(EclipseClasspath classpath, Classpath xmlClasspath) {
+
+    List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
         def entries = []
         entries.add(new Output(classpath.project.relativePath(classpath.classesOutputDir)))
         entries.addAll(getEntriesFromSourceSets(classpath.sourceSets, classpath.project))
         entries.addAll(getEntriesFromContainers(classpath.getContainers()))
         entries.addAll(getEntriesFromConfigurations(classpath))
-
-        xmlClasspath.configure(entries)
+        return entries
     }
 
     private List<SourceFolder> getEntriesFromSourceSets(Iterable<SourceSet> sourceSets, org.gradle.api.Project project) {

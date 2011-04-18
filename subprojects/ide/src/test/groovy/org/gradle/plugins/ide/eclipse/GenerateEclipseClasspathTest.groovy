@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse;
 
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
+import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 
 /**
  * @author Hans Dockter
@@ -32,6 +33,7 @@ public class GenerateEclipseClasspathTest extends AbstractSpockTaskTest {
 
     def setup() {
         eclipseClasspath = createTask(GenerateEclipseClasspath.class);
+        eclipseClasspath.classpath = new EclipseClasspath()
     }
 
     def containers_shouldAdd() {

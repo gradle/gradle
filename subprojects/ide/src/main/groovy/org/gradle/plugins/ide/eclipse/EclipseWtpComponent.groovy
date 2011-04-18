@@ -21,14 +21,13 @@ import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
-import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * Generates the org.eclipse.wst.common.component settings file for Eclipse WTP.
  *
  * @author Hans Dockter
  */
-class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> implements ConfigurationTarget {
+class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     /**
      * The source directories to be transformed into wb-resource elements.
      */

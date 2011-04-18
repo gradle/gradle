@@ -67,27 +67,6 @@ allprojects {
         assert grandChildOne != grandChildTwo : "Deduplication logic should make that project names are not the same."
     }
 
-    def "should honor eclipse configuration hooks"() {
-        def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
-
-eclipseProject {
-    projectName = 'impl'
-    whenConfigured {
-        it.name = 'fancy-impl'
-    }
-}
-'''
-
-        when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-
-        then:
-        eclipseProject.name == 'fancy-impl'
-    }
-
     def "should honor reconfigured source folders"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''
