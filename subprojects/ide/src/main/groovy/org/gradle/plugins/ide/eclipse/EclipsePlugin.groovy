@@ -25,8 +25,8 @@ import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.eclipse.internal.EclipseDomainModelFactory
 import org.gradle.plugins.ide.internal.IdePlugin
-import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
+import org.gradle.plugins.ide.eclipse.model.*
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -42,6 +42,8 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
 
+    EclipseModel model = new EclipseModel()
+
     EclipseDomainModel getEclipseDomainModel() {
         new EclipseDomainModelFactory().create(project)
     }
@@ -53,6 +55,9 @@ class EclipsePlugin extends IdePlugin {
     @Override protected void onApply(Project project) {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
+
+        project.convention.plugins.eclipse = model
+
         configureEclipseConfigurer(project)
         configureEclipseProject(project)
         configureEclipseClasspath(project)
@@ -80,42 +85,46 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseProject(Project project) {
-        addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, EclipseProject) {
-            projectName = project.name
+        addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
             description = "Generates the Eclipse project file."
+
+            model.project = projectModel
+
+            projectModel.name = project.name
+            projectModel.conventionMapping.comment = { project.description }
+
             inputFile = project.file('.project')
             outputFile = project.file('.project')
-            conventionMapping.comment = { project.description }
 
             project.plugins.withType(JavaBasePlugin) {
-                buildCommand "org.eclipse.jdt.core.javabuilder"
-                natures "org.eclipse.jdt.core.javanature"
+                projectModel.buildCommand "org.eclipse.jdt.core.javabuilder"
+                projectModel.natures "org.eclipse.jdt.core.javanature"
             }
 
             project.plugins.withType(GroovyBasePlugin) {
-                natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.eclipse.jdt.groovy.core.groovyNature")
+                projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.eclipse.jdt.groovy.core.groovyNature")
             }
 
             project.plugins.withType(ScalaBasePlugin) {
-                buildCommands.set(buildCommands.findIndexOf { it.name == "org.eclipse.jdt.core.javabuilder" },
+                projectModel.buildCommands.set(buildCommands.findIndexOf { it.name == "org.eclipse.jdt.core.javabuilder" },
                         new BuildCommand("ch.epfl.lamp.sdt.core.scalabuilder"))
-                natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
+                projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
             }
 
             project.plugins.withType(WarPlugin) {
-                buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                natures 'org.eclipse.wst.common.project.facet.core.nature'
-                natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                natures 'org.eclipse.jem.workbench.JavaEMFNature'
+                projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
 
                 eachDependedUponProject(project) { Project otherProject ->
                     configureTask(otherProject, ECLIPSE_PROJECT_TASK_NAME) {
-                        buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                        buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                        natures 'org.eclipse.wst.common.project.facet.core.nature'
-                        natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                        natures 'org.eclipse.jem.workbench.JavaEMFNature'
+                        projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                        projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                        projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                        projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                        projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
                     }
                 }
             }
@@ -124,10 +133,14 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseClasspath(Project project) {
         project.plugins.withType(JavaBasePlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, EclipseClasspath) {
+            addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) {
                 description = "Generates the Eclipse classpath file."
+
+                model.classpath = classpath
+
+                classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property?
+
                 containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
-                sourceSets = project.sourceSets
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
                 conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }

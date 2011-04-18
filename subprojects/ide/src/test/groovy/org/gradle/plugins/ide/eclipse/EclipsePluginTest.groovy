@@ -149,8 +149,8 @@ class EclipsePluginTest extends Specification {
     }
 
     private void checkEclipseProjectTask(List buildCommands, List natures) {
-        EclipseProject eclipseProjectTask = project.eclipseProject
-        assert eclipseProjectTask instanceof EclipseProject
+        GenerateEclipseProject eclipseProjectTask = project.eclipseProject
+        assert eclipseProjectTask instanceof GenerateEclipseProject
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseProjectTask)
         assert eclipseProjectTask.buildCommands == buildCommands
         assert eclipseProjectTask.natures == natures
@@ -162,8 +162,8 @@ class EclipsePluginTest extends Specification {
     }
 
     private void checkEclipseClasspath(def configurations) {
-        EclipseClasspath eclipseClasspath = project.eclipseClasspath
-        assert eclipseClasspath instanceof EclipseClasspath
+        GenerateEclipseClasspath eclipseClasspath = project.eclipseClasspath
+        assert eclipseClasspath instanceof GenerateEclipseClasspath
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseClasspath)
         assert eclipseClasspath.sourceSets == project.sourceSets
         assert eclipseClasspath.plusConfigurations == configurations

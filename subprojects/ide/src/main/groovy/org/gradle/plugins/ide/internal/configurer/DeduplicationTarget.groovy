@@ -25,7 +25,7 @@ import org.gradle.api.Project
 
      def String moduleName
      def Project project
-     def Closure moduleNameSetter
+     def Closure updateModuleName
 
      Collection<String> getCandidateNames() {
         def out = []

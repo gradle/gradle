@@ -15,9 +15,10 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.eclipse.model.EclipseProject
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.eclipse.model.Project
 import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
@@ -36,8 +37,24 @@ import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
  * </pre>
  * @author Hans Dockter
  */
-class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationTarget {
-    private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
+class GenerateEclipseProject extends XmlGeneratorTask<Project> implements ConfigurationTarget {
+
+    /**
+     * model for eclipse project (.project) generation
+     */
+    EclipseProject projectModel = services.get(ClassGenerator).newInstance(EclipseProject)
+
+    GenerateEclipseProject() {
+        xmlTransformer.indentation = "\t"
+    }
+
+    @Override protected Project create() {
+        new Project(xmlTransformer)
+    }
+
+    @Override protected void configure(Project project) {
+        projectModel.mergeXmlProject(project);
+    }
 
     /**
      * Configures eclipse project name. It is <b>optional</b> because the task should configure it correctly for you.
@@ -57,43 +74,67 @@ class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationT
      * }
      * </pre>
      */
-    String projectName
+    String getProjectName() {
+        projectModel.name
+    }
+
+    void setProjectName(String projectName) {
+        projectModel.name = projectName
+    }
 
     /**
      * A comment used for the eclipse project
      */
-    String comment
+    String getComment() {
+        projectModel.comment
+    }
+
+    void setComment(String comment) {
+        projectModel.comment = comment
+    }
 
     /**
      * The referenced projects of this Eclipse project.
      */
-    Set<String> referencedProjects = new LinkedHashSet<String>()
+    Set<String> getReferencedProjects() {
+        projectModel.referencedProjects
+    }
+
+    void setReferencedProjects(Set<String> referencedProjects) {
+        projectModel.referencedProjects = referencedProjects
+    }
 
     /**
      * The natures to be added to this Eclipse project.
      */
-    List<String> natures = []
+    List<String> getNatures() {
+        projectModel.natures
+    }
+
+    void setNatures(List<String> natures) {
+        projectModel.natures = natures
+    }
 
     /**
      * The build commands to be added to this Eclipse project.
      */
-    List<BuildCommand> buildCommands = []
+    List<BuildCommand> getBuildCommands() {
+        projectModel.buildCommands
+    }
+
+    void setBuildCommands(List<BuildCommand> buildCommands) {
+        projectModel.buildCommands = buildCommands
+    }
 
     /**
      * The links to be added to this Eclipse project.
      */
-    Set<Link> links = new LinkedHashSet<Link>()
-
-    EclipseProject() {
-        xmlTransformer.indentation = "\t"
+    Set<Link> getLinks() {
+        projectModel.links
     }
 
-    @Override protected Project create() {
-        new Project(xmlTransformer)
-    }
-
-    @Override protected void configure(Project project) {
-        project.configure(this)
+    void setLinks(Set<Link> links) {
+        projectModel.links = links
     }
 
     /**
@@ -101,8 +142,7 @@ class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationT
      * @param natures the nature names
      */
     void natures(String... natures) {
-        assert natures != null
-        this.natures.addAll(natures as List)
+        projectModel.natures(natures)
     }
 
     /**
@@ -111,8 +151,7 @@ class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationT
      * @param referencedProjects The name of the project references.
      */
     void referencedProjects(String... referencedProjects) {
-        assert referencedProjects != null
-        this.referencedProjects.addAll(referencedProjects as List)
+        projectModel.referencedProjects(referencedProjects)
     }
 
     /**
@@ -123,8 +162,7 @@ class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationT
      * @see #buildCommand(String)
      */
     void buildCommand(Map args, String buildCommand) {
-        assert buildCommand != null
-        buildCommands << new BuildCommand(buildCommand, args)
+        projectModel.buildCommand(args, buildCommand)
     }
 
     /**
@@ -134,8 +172,7 @@ class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationT
      * @see #buildCommand(Map, String)
      */
     void buildCommand(String buildCommand) {
-        assert buildCommand != null
-        buildCommands << new BuildCommand(buildCommand)
+        projectModel.buildCommand(buildCommand)
     }
 
     /**
@@ -144,10 +181,6 @@ class EclipseProject extends XmlGeneratorTask<Project> implements ConfigurationT
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
      */
     void link(Map<String, String> args) {
-        def illegalArgs = LINK_ARGUMENTS - args.keySet()
-        if (illegalArgs) {
-            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
-        }
-        links << new Link(args.name, args.type, args.location, args.locationUri)
+        projectModel.link(args)
     }
 }

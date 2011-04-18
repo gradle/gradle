@@ -22,15 +22,15 @@ import org.gradle.plugins.ide.eclipse.model.BuildCommand
 /**
  * @author Hans Dockter
  */
-class EclipseProjectTest extends AbstractSpockTaskTest {
-    EclipseProject eclipseProject
+class GenerateEclipseProjectTest extends AbstractSpockTaskTest {
+    GenerateEclipseProject eclipseProject
 
     ConventionTask getTask() {
         return eclipseProject
     }
 
     def setup() {
-        eclipseProject = createTask(EclipseProject.class);
+        eclipseProject = createTask(GenerateEclipseProject.class);
     }
 
     def natures_shouldAdd() {

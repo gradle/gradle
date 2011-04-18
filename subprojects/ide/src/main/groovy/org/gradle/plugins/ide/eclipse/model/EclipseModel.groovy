@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.plugins.ide.idea.model
+package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.util.ConfigureUtil
 
 /**
- * DSL-friendly model of the IDEA project information.
- * First point of entry when it comes to customizing the idea generation
+ * DSL-friendly model of the Eclipse project information.
+ * First point of entry when it comes to customizing the eclipse generation
  * <p>
- * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}
+ * See the examples in docs for {@link EclipseProject}
  * <p>
- * Author: Szczepan Faber, created at: 3/31/11
+ * Author: Szczepan Faber, created at: 4/13/11
  */
-class IdeaModel {
-    IdeaModule module
-    IdeaProject project
+class EclipseModel {
 
-    void module(Closure closure) {
-        ConfigureUtil.configure(closure, getModule())
-    }
+    EclipseProject project
+    EclipseClasspath classpath
 
     void project(Closure closure) {
-        ConfigureUtil.configure(closure, getProject())
+        ConfigureUtil.configure(closure, project)
+    }
+
+    void classpath(Closure closure) {
+        ConfigureUtil.configure(closure, classpath)
     }
 }
