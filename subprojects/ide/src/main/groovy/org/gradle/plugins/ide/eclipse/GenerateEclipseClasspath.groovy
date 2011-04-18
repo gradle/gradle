@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,12 +50,24 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
     /**
      * The configurations which files are to be transformed into classpath entries.
      */
-    Set<Configuration> plusConfigurations = new LinkedHashSet<Configuration>()
+    Set<Configuration> getPlusConfigurations() {
+        classpath.plusConfigurations
+    }
+
+    void setPlusConfigurations(Set<Configuration> plusConfigurations) {
+        classpath.plusConfigurations = plusConfigurations
+    }
 
     /**
      * The configurations which files are to be excluded from the classpath entries.
      */
-    Set<Configuration> minusConfigurations = new LinkedHashSet<Configuration>()
+    Set<Configuration> getMinusConfigurations() {
+        classpath.minusConfigurations
+    }
+
+    void setMinusConfigurations(Set<Configuration> minusConfigurations) {
+        classpath.minusConfigurations = minusConfigurations
+    }
 
     /**
      * The variables to be used for replacing absolute paths in classpath entries.

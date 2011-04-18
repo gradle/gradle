@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.artifacts.Configuration
 
 /**
  * DSL-friendly model of the eclipse classpath needed for .classpath generation
@@ -27,13 +28,22 @@ import org.gradle.api.tasks.SourceSet
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  *
+ * configurations {
+ *   provided
+ *   someBoringConfig
+ * }
+ *
  * eclipse {
  *   classpath {
  *     //you can configure the sourceSets however Gradle simply uses current sourceSets
  *     //so it's probably best not to change it.
  *     //sourceSets =
  *
+ *     //you can tweak the classpath of the eclipse project by adding extra configurations:
+ *     plusConfigurations += configurations.provided
  *
+ *     //you can also remove configurations from the classpath:
+ *     minusConfigurations += configurations.someBoringConfig
  *   }
  * }
  * </pre>
@@ -46,5 +56,15 @@ class EclipseClasspath {
      * The source sets to be added to the classpath.
      */
     Iterable<SourceSet> sourceSets
+
+    /**
+     * The configurations which files are to be transformed into classpath entries.
+     */
+    Set<Configuration> plusConfigurations = new LinkedHashSet<Configuration>()
+
+    /**
+     * The configurations which files are to be excluded from the classpath entries.
+     */
+    Set<Configuration> minusConfigurations = new LinkedHashSet<Configuration>()
 
 }

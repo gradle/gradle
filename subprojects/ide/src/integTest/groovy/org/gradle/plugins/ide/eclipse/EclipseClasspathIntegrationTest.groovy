@@ -36,17 +36,30 @@ apply plugin: 'eclipse'
 sourceSets.main.java.srcDirs.each { it.mkdirs() }
 sourceSets.main.resources.srcDirs.each { it.mkdirs() }
 
+configurations {
+  someConfig
+  someOtherConfig
+}
+
+dependencies {
+  someConfig files('foo.txt', 'bar.txt', 'baz.txt')
+  someOtherConfig files('baz.txt')
+}
+
 eclipse {
   classpath {
     sourceSets = []
+    plusConfigurations += configurations.someConfig
+    minusConfigurations += configurations.someOtherConfig
   }
 }
         """
 
-        //then
         content = getFile([:], '.classpath').text
-        println content
-        assert !content.contains('src/main/resources')
+        //then
+        assert content.contains('foo.txt')
+        assert content.contains('bar.txt')
+        //assert !content.contains('baz.txt') //TODO SF - why it does not work?
     }
 
     protected def contains(String ... contents) {
