@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
+import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
@@ -36,16 +37,21 @@ import java.util.List;
 public class ModelBuilder extends AbstractModelBuilder {
 
     private final boolean includeTasks;
+    private boolean projectDependenciesOnly;
 
-    public ModelBuilder(boolean includeTasks) {
+    public ModelBuilder(boolean includeTasks, boolean projectDependenciesOnly) {
         this.includeTasks = includeTasks;
+        this.projectDependenciesOnly = projectDependenciesOnly;
     }
 
     @Override
     protected DefaultEclipseProject build(Project project) {
         EclipseModel eclipseModel = project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
+        EclipseClasspath classpath = eclipseModel.getClasspath();
 
-        List<ClasspathEntry> entries = eclipseModel.getClasspath().resolveDependencies();
+        classpath.setProjectDependenciesOnly(projectDependenciesOnly);
+        List<ClasspathEntry> entries = classpath.resolveDependencies();
+
         List<ExternalDependencyVersion1> dependencies = new ExternalDependenciesFactory().create(project, entries);
         List<EclipseProjectDependencyVersion2> projectDependencies = new EclipseProjectDependenciesFactory().create(getProjectMapping(), entries);
         List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, entries);
