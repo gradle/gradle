@@ -29,27 +29,28 @@ import org.gradle.util.ConfigureUtil
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
- * project {
+ * idea {
+ *   project {
+ *     //if you want to set specific java version for the idea project
+ *     javaVersion = '1.5'
  *
- *   //if you want to set specific java version for the idea project
- *   javaVersion = '1.5'
+ *     //you can update the source wildcards
+ *     wildcards += '!?*.ruby'
  *
- *   //you can update the source wildcards
- *   wildcards += '!?*.ruby'
+ *     //you can update the project list that will make the modules list in the *.ipr
+ *     //subprojects -= project(':someProjectThatWillBeExcluded')
  *
- *   //you can update the project list that will make the modules list in the *.ipr
- *   //subprojects -= project(':someProjectThatWillBeExcluded')
+ *     //you can change the output file
+ *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
  *
- *   //you can change the output file
- *   outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
+ *     //you can apply advanced logic to the xml generation/merging
+ *     ipr {
  *
- *   //you can apply advanced logic to the xml generation/merging
- *   ipr {
- *
- *     //you can tinker with the output *.ipr file before it's written to file
- *     withXml {
- *       def node = it.asNode()
- *       node.appendNode('iLove', 'tinkering with the output *.ipr file!')
+ *       //you can tinker with the output *.ipr file before it's written to file
+ *       withXml {
+ *         def node = it.asNode()
+ *         node.appendNode('iLove', 'tinkering with the output *.ipr file!')
+ *       }
  *     }
  *   }
  * }
