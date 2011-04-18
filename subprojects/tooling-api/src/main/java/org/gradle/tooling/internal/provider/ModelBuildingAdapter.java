@@ -49,9 +49,7 @@ public class ModelBuildingAdapter extends BuildAdapter {
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
-        if (configurer != null) {
-            configurer.configure((GradleInternal) gradle);
-        }
+        configurer.configure((GradleInternal) gradle);
         builder.buildAll((GradleInternal) gradle);
     }
 
