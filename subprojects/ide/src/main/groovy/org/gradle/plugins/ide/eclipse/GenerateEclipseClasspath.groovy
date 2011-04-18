@@ -33,6 +33,20 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
 
     EclipseClasspath classpath = services.get(ClassGenerator).newInstance(EclipseClasspath)
 
+    protected ClasspathFactory modelFactory = new ClasspathFactory()
+
+    GenerateEclipseClasspath() {
+        xmlTransformer.indentation = "\t"
+    }
+
+    @Override protected Classpath create() {
+        return new Classpath(xmlTransformer)
+    }
+
+    @Override protected void configure(Classpath object) {
+        modelFactory.configure(this, object)
+    }
+
     /**
      * The source sets to be added to the classpath.
      */
@@ -124,20 +138,6 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
 
     void setDownloadJavadoc(boolean downloadJavadoc) {
         classpath.downloadJavadoc = downloadJavadoc
-    }
-
-    protected ClasspathFactory modelFactory = new ClasspathFactory()
-
-    GenerateEclipseClasspath() {
-        xmlTransformer.indentation = "\t"
-    }
-
-    @Override protected Classpath create() {
-        return new Classpath(xmlTransformer)
-    }
-
-    @Override protected void configure(Classpath object) {
-        modelFactory.configure(this, object)
     }
 
     /**
