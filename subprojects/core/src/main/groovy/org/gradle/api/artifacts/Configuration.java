@@ -169,7 +169,7 @@ public interface Configuration extends FileCollection {
     Set<File> files(Dependency... dependencies);
 
     /**
-     * Resolves this configuration lazyly. The resolve happens when the elements of the returned FileCollection get accessed the first time.
+     * Resolves this configuration lazily. The resolve happens when the elements of the returned FileCollection get accessed the first time.
      * This locates and downloads the files which make up this configuration. Only the resulting set of files belonging to the subset
      * of dependencies specified by the dependencySpec is contained in the FileCollection.
      *
@@ -188,7 +188,7 @@ public interface Configuration extends FileCollection {
     FileCollection fileCollection(Closure dependencySpecClosure);
 
     /**
-     * Resolves this configuration lazyly. The resolve happens when the elements of the returned FileCollection get accessed the first time.
+     * Resolves this configuration lazily. The resolve happens when the elements of the returned FileCollection get accessed the first time.
      * This locates and downloads the files which make up this configuration. Only the resulting set of files belonging to specified
      * dependencies is contained in the FileCollection.
      *
@@ -225,10 +225,10 @@ public interface Configuration extends FileCollection {
     /**
      * Returns a TaskDependency object containing dependencies on all tasks with the specified name from project
      * dependencies related to this configuration or one of its super configurations.  These other projects may be
-     * projects this configuration depends on or projects with a similarly named configuation that depend on this one
+     * projects this configuration depends on or projects with a similarly named configuration that depend on this one
      * based on the useDependOn argument.
      *
-     * @param useDependedOn if true, add tasks from project dependencies in this conifguration, otherwise use projects
+     * @param useDependedOn if true, add tasks from project dependencies in this configuration, otherwise use projects
      *                      from configurations with the same name that depend on this one.
      * @param taskName name of task to depend on
      * @return the populated TaskDependency object
