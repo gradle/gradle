@@ -126,11 +126,15 @@ class EclipseProject {
 
     /**
      * The build commands to be added to this Eclipse project.
+     * <p>
+     * For example see docs for {@link EclipseProject}
      */
     List<BuildCommand> buildCommands = []
 
     /**
      * Adds a build command with arguments to the eclipse project.
+     * <p>
+     * For example see docs for {@link EclipseProject}
      *
      * @param args A map with arguments, where the key is the name of the argument and the value the value.
      * @param buildCommand The name of the build command.
@@ -143,6 +147,8 @@ class EclipseProject {
 
     /**
      * Adds a build command to the eclipse project.
+     * <p>
+     * For example see docs for {@link EclipseProject}
      *
      * @param buildCommand The name of the build command
      * @see #buildCommand(Map, String)
@@ -154,11 +160,15 @@ class EclipseProject {
 
     /**
      * The links to be added to this Eclipse project.
+     * <p>
+     * For example see docs for {@link EclipseProject}
      */
     Set<Link> links = new LinkedHashSet<Link>()
 
     /**
      * Adds a link to the eclipse project.
+     * <p>
+     * For example see docs for {@link EclipseProject}
      *
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
      */
@@ -171,6 +181,8 @@ class EclipseProject {
         //TODO SF: move validation here, update tests.
         links << new Link(args.name, args.type, args.location, args.locationUri)
     }
+
+    /*****/
 
     void mergeXmlProject(Project xmlProject) {
         xmlProject.configure(this)
