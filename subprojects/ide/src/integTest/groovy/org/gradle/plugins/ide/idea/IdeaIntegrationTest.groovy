@@ -36,7 +36,6 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         buildFile << """
 apply plugin: 'java'
 apply plugin: 'idea'
-
 """
 
         //given
