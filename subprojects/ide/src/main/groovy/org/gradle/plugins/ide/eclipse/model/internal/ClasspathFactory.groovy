@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse.model.internal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.SourceSet
-import org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
 import org.gradle.api.artifacts.*
 import org.gradle.plugins.ide.eclipse.model.*
 
@@ -26,14 +25,14 @@ import org.gradle.plugins.ide.eclipse.model.*
  * @author Hans Dockter
  */
 class ClasspathFactory {
-    void configure(GenerateEclipseClasspath eclipseClasspath, Classpath classpath) {
+    void configure(EclipseClasspath classpath, Classpath xmlClasspath) {
         def entries = []
-        entries.add(new Output(eclipseClasspath.project.relativePath(eclipseClasspath.defaultOutputDir)))
-        entries.addAll(getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project))
-        entries.addAll(getEntriesFromContainers(eclipseClasspath.getContainers()))
-        entries.addAll(getEntriesFromConfigurations(eclipseClasspath))
+        entries.add(new Output(classpath.project.relativePath(classpath.classesOutputDir)))
+        entries.addAll(getEntriesFromSourceSets(classpath.sourceSets, classpath.project))
+        entries.addAll(getEntriesFromContainers(classpath.getContainers()))
+        entries.addAll(getEntriesFromConfigurations(classpath))
 
-        classpath.configure(entries)
+        xmlClasspath.configure(entries)
     }
 
     private List<SourceFolder> getEntriesFromSourceSets(Iterable<SourceSet> sourceSets, org.gradle.api.Project project) {
@@ -67,56 +66,54 @@ class ClasspathFactory {
         }
     }
 
-    private List getEntriesFromConfigurations(GenerateEclipseClasspath eclipseClasspath) {
-        getModules(eclipseClasspath) + getLibraries(eclipseClasspath)
+    private List getEntriesFromConfigurations(EclipseClasspath cp) {
+        getModules(cp) + getLibraries(cp)
     }
 
-    protected List getModules(GenerateEclipseClasspath eclipseClasspath) {
-        return getDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations, { it instanceof org.gradle.api.artifacts.ProjectDependency }).collect { projectDependency ->
-            projectDependency.dependencyProject
-        }.collect { dependencyProject ->
-            new ProjectDependencyBuilder().build(dependencyProject)
-        }
+    protected List getModules(EclipseClasspath c) {
+        return getDependencies(c.plusConfigurations, c.minusConfigurations, { it instanceof org.gradle.api.artifacts.ProjectDependency })
+                .collect { projectDependency -> projectDependency.dependencyProject}
+                .collect { dependencyProject -> new ProjectDependencyBuilder().build(dependencyProject)}
     }
 
-    protected Set getLibraries(GenerateEclipseClasspath eclipseClasspath) {
-        Set declaredDependencies = getDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations,
+    protected Set getLibraries(EclipseClasspath c) {
+        Set declaredDependencies = getDependencies(c.plusConfigurations, c.minusConfigurations,
                 { it instanceof ExternalDependency })
 
-        ResolvedConfiguration resolvedConfiguration = eclipseClasspath.project.configurations.
+        ResolvedConfiguration resolvedConfiguration = c.project.configurations.
                 detachedConfiguration((declaredDependencies as Dependency[])).resolvedConfiguration
         def allResolvedDependencies = getAllDeps(resolvedConfiguration.firstLevelModuleDependencies)
 
         Set sourceDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
             addSourceArtifact(dependency)
         }
-        Map sourceFiles = eclipseClasspath.downloadSources ? getFiles(eclipseClasspath.project, sourceDependencies, "sources") : [:]
+        Map sourceFiles = c.downloadSources ? getFiles(c.project, sourceDependencies, "sources") : [:]
 
         Set javadocDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
             addJavadocArtifact(dependency)
         }
-        Map javadocFiles = eclipseClasspath.downloadJavadoc ? getFiles(eclipseClasspath.project, javadocDependencies, "javadoc") : [:]
+        Map javadocFiles = c.downloadJavadoc ? getFiles(c.project, javadocDependencies, "javadoc") : [:]
 
         List moduleLibraries = resolvedConfiguration.getFiles(Specs.SATISFIES_ALL).collect { File binaryFile ->
             File sourceFile = sourceFiles[binaryFile.name]
             File javadocFile = javadocFiles[binaryFile.name]
-            createLibraryEntry(binaryFile, sourceFile, javadocFile, eclipseClasspath.variables)
+            createLibraryEntry(binaryFile, sourceFile, javadocFile, c.pathVariables)
         }
-        moduleLibraries.addAll(getSelfResolvingFiles(getDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations,
-                { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}), eclipseClasspath.variables))
+        moduleLibraries.addAll(getSelfResolvingFiles(getDependencies(c.plusConfigurations, c.minusConfigurations,
+                { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}), c.pathVariables))
         moduleLibraries
     }
 
-    private getSelfResolvingFiles(Collection dependencies, Map<String, File> variables) {
+    private getSelfResolvingFiles(Collection dependencies, Map<String, File> pathVariables) {
         dependencies.collect { SelfResolvingDependency dependency ->
             dependency.resolve().collect { File file ->
-                createLibraryEntry(file, null, null, variables)
+                createLibraryEntry(file, null, null, pathVariables)
             }
         }.flatten()
     }
 
-    AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map<String, File> variables) {
-        def usedVariableEntry = variables.find { String name, File value -> binary.canonicalPath.startsWith(value.canonicalPath) }
+    AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map<String, File> pathVariables) {
+        def usedVariableEntry = pathVariables.find { String name, File value -> binary.canonicalPath.startsWith(value.canonicalPath) }
         if (usedVariableEntry) {
             String name = usedVariableEntry.key
             String value = usedVariableEntry.value.canonicalPath

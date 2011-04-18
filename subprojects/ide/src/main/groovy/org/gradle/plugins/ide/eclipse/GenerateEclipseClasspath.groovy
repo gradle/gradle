@@ -21,7 +21,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
-import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
@@ -33,18 +32,17 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
 
     EclipseClasspath classpath = services.get(ClassGenerator).newInstance(EclipseClasspath)
 
-    protected ClasspathFactory modelFactory = new ClasspathFactory()
-
     GenerateEclipseClasspath() {
         xmlTransformer.indentation = "\t"
+        classpath.project = project
     }
 
     @Override protected Classpath create() {
         return new Classpath(xmlTransformer)
     }
 
-    @Override protected void configure(Classpath object) {
-        modelFactory.configure(this, object)
+    @Override protected void configure(Classpath xmlClasspath) {
+        classpath.mergeXmlClasspath(xmlClasspath)
     }
 
     /**

@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
+import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 
 /**
  * DSL-friendly model of the eclipse classpath needed for .classpath generation
@@ -64,27 +65,37 @@ class EclipseClasspath {
 
     /**
      * The source sets to be added to the classpath.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      */
     Iterable<SourceSet> sourceSets
 
     /**
      * The configurations which files are to be transformed into classpath entries.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      */
     Set<Configuration> plusConfigurations = new LinkedHashSet<Configuration>()
 
     /**
      * The configurations which files are to be excluded from the classpath entries.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      */
     Set<Configuration> minusConfigurations = new LinkedHashSet<Configuration>()
 
     /**
      * The path variables to be used for replacing absolute paths in classpath entries.
      * A map with String->File pairs.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      */
     Map<String, File> pathVariables = [:]
 
     /**
      * Adds path variables to be used for replacing absolute paths in classpath entries.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      *
      * @param pathVariables A map with String->File pairs.
      */
@@ -95,11 +106,15 @@ class EclipseClasspath {
 
    /**
      * Containers to be added to the classpath
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      */
     Set<String> containers = new LinkedHashSet<String>()
 
    /**
      * Adds containers to the .classpath.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      *
      * @param containers the container names to be added to the .classpath.
      */
@@ -110,16 +125,30 @@ class EclipseClasspath {
 
     /**
      * The default output directory for eclipse generated files, eg classes.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      */
     File classesOutputDir
 
     /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      */
     boolean downloadSources = true
 
     /**
      * Whether to download and add javadocs associated with the dependency jars. Defaults to false.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
      */
     boolean downloadJavadoc = false
+
+    /******/
+
+    org.gradle.api.Project project
+
+    void mergeXmlClasspath(Classpath xmlClasspath) {
+        new ClasspathFactory().configure(this, xmlClasspath)
+    }
 }
