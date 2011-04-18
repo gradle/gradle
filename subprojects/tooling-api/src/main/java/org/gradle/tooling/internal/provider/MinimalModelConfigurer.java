@@ -22,7 +22,10 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath;
+import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
+import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -33,12 +36,10 @@ public class MinimalModelConfigurer implements ModelBuildingAdapter.Configurer {
 
         gradle.getRootProject().allprojects(new Action<Project>() {
             public void execute(Project project) {
-                project.getTasks().withType(GenerateEclipseClasspath.class).all(new Action<GenerateEclipseClasspath>() {
-                    public void execute(GenerateEclipseClasspath generateEclipseClasspath) {
-                        generateEclipseClasspath.setPlusConfigurations(projectDependenciesOnly(generateEclipseClasspath.getPlusConfigurations()));
-                        generateEclipseClasspath.setMinusConfigurations(projectDependenciesOnly(generateEclipseClasspath.getMinusConfigurations()));
-                    }
-                });
+                EclipseModel model = project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
+                EclipseClasspath classpath = model.getClasspath();
+                classpath.setPlusConfigurations(projectDependenciesOnly(classpath.getPlusConfigurations()));
+                classpath.setMinusConfigurations(projectDependenciesOnly(classpath.getMinusConfigurations()));
             }
         });
     }
