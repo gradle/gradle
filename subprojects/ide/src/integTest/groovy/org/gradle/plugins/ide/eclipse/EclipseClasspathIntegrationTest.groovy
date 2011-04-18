@@ -51,15 +51,20 @@ eclipse {
     sourceSets = []
     plusConfigurations += configurations.someConfig
     minusConfigurations += configurations.someOtherConfig
+    pathVariables fooPathVariable: new File('.')
   }
 }
-        """
+"""
 
         content = getFile([:], '.classpath').text
+        println content
+
         //then
         assert content.contains('foo.txt')
         assert content.contains('bar.txt')
         //assert !content.contains('baz.txt') //TODO SF - why it does not work?
+
+        assert content.contains('fooPathVariable')
     }
 
     protected def contains(String ... contents) {

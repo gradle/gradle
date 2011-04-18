@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.tasks.SourceSet
 
 /**
  * DSL-friendly model of the eclipse classpath needed for .classpath generation
@@ -67,4 +67,19 @@ class EclipseClasspath {
      */
     Set<Configuration> minusConfigurations = new LinkedHashSet<Configuration>()
 
+    /**
+     * The path variables to be used for replacing absolute paths in classpath entries.
+     * A map with String->File pairs.
+     */
+    Map<String, File> pathVariables = [:]
+
+    /**
+     * Adds path variables to be used for replacing absolute paths in classpath entries.
+     *
+     * @param pathVariables A map with String->File pairs.
+     */
+    void pathVariables(Map<String, File> pathVariables) {
+        assert pathVariables != null
+        this.pathVariables.putAll pathVariables
+    }
 }

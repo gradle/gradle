@@ -70,9 +70,17 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
     }
 
     /**
-     * The variables to be used for replacing absolute paths in classpath entries.
+     * Adds path variables to be used for replacing absolute paths in classpath entries.
+     *
+     * @param pathVariables A map with String->File pairs.
      */
-    Map<String, File> variables = [:]
+    Map<String, File> getVariables() {
+        classpath.pathVariables
+    }
+
+    void setVariables(Map<String, File> variables) {
+        classpath.pathVariables = variables
+    }
 
     /**
      * Containers to be added to the classpath
@@ -124,7 +132,6 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
      * @param variables A map where the keys are the variable names and the values are the variable values.
      */
     void variables(Map<String, File> variables) {
-        assert variables != null
-        this.variables.putAll variables
+        classpath.pathVariables(variables)
     }
 }
