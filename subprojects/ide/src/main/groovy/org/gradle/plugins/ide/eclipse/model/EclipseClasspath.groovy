@@ -50,6 +50,10 @@ import org.gradle.api.tasks.SourceSet
  *
  *     //customizing the classes output directory:
  *     classesOutputDir = file('build-eclipse')
+ *
+ *     //default settings for dependencies sources/javadoc download:
+ *     downloadSources = true
+ *     downloadJavadoc = false
  *   }
  * }
  * </pre>
@@ -108,4 +112,14 @@ class EclipseClasspath {
      * The default output directory for eclipse generated files, eg classes.
      */
     File classesOutputDir
+
+    /**
+     * Whether to download and add sources associated with the dependency jars. Defaults to true.
+     */
+    boolean downloadSources = true
+
+    /**
+     * Whether to download and add javadocs associated with the dependency jars. Defaults to false.
+     */
+    boolean downloadJavadoc = false
 }

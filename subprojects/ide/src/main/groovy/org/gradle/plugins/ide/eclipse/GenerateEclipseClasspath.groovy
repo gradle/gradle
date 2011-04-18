@@ -107,12 +107,24 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
     /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.
      */
-    boolean downloadSources = true
+    boolean getDownloadSources() {
+        classpath.downloadSources
+    }
+
+    void setDownloadSources(boolean downloadSources) {
+        classpath.downloadSources = downloadSources
+    }
 
     /**
      * Whether to download and add javadocs associated with the dependency jars. Defaults to false.
      */
-    boolean downloadJavadoc = false
+    boolean getDownloadJavadoc() {
+        classpath.downloadJavadoc
+    }
+
+    void setDownloadJavadoc(boolean downloadJavadoc) {
+        classpath.downloadJavadoc = downloadJavadoc
+    }
 
     protected ClasspathFactory modelFactory = new ClasspathFactory()
 
