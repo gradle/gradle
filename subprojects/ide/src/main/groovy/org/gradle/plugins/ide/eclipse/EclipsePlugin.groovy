@@ -143,7 +143,7 @@ class EclipsePlugin extends IdePlugin {
                 classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property?
                 classpath.containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
 
-                conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
+                classpath.conventionMapping.classesOutputDir = { new File(project.projectDir, 'bin') }
 
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]

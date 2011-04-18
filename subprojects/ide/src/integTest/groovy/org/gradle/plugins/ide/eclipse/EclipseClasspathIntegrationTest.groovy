@@ -56,6 +56,8 @@ eclipse {
     pathVariables fooPathVariable: new File('.')
 
     containers 'someFriendlyContainer', 'andYetAnotherContainer'
+
+    classesOutputDir = file('build-eclipse')
   }
 }
 """
@@ -70,6 +72,8 @@ eclipse {
 
         contains('fooPathVariable')
         contains('someFriendlyContainer', 'andYetAnotherContainer')
+
+        contains('build-eclipse')
     }
 
     protected def contains(String ... contents) {

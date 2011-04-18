@@ -96,7 +96,13 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> implements Co
     /**
      * The default output directory for eclipse generated files, eg classes.
      */
-    File defaultOutputDir
+    File getDefaultOutputDir() {
+        classpath.classesOutputDir
+    }
+
+    void setDefaultOutputDir(File defaultOutputDir) {
+        classpath.classesOutputDir = defaultOutputDir
+    }
 
     /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.

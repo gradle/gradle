@@ -47,6 +47,9 @@ import org.gradle.api.tasks.SourceSet
  *
  *     //if you want to append extra containers:
  *     containers 'someFriendlyContainer', 'andYetAnotherContainer'
+ *
+ *     //customizing the classes output directory:
+ *     classesOutputDir = file('build-eclipse')
  *   }
  * }
  * </pre>
@@ -100,4 +103,9 @@ class EclipseClasspath {
         assert containers != null
         this.containers.addAll(containers as List)
     }
+
+    /**
+     * The default output directory for eclipse generated files, eg classes.
+     */
+    File classesOutputDir
 }
