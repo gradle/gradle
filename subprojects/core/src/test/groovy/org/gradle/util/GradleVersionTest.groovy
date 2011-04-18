@@ -38,13 +38,16 @@ class GradleVersionTest extends Specification {
         def version = GradleVersion.version('1.0-milestone-2')
         def patch = GradleVersion.version('1.0-milestone-2a')
         def nextPatch = GradleVersion.version('1.0-milestone-2b')
+        def nextMilestone = GradleVersion.version('1.0-milestone-3')
 
         then:
         version < patch
         patch < nextPatch
+        nextPatch < nextMilestone
 
         patch > version
         nextPatch > patch
+        nextMilestone > nextPatch
     }
 
     def canConstructSnapshotVersion() {
