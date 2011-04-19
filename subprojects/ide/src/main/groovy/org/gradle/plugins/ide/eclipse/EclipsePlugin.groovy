@@ -181,10 +181,10 @@ class EclipsePlugin extends IdePlugin {
                 model.wtp = wtp
 
                 wtp.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
+                wtp.plusConfigurations = [project.configurations.runtime]
+                wtp.minusConfigurations = [project.configurations.providedRuntime]
 
                 deployName = project.name
-                plusConfigurations = [project.configurations.runtime]
-                minusConfigurations = [project.configurations.providedRuntime]
                 conventionMapping.contextPath = { project.war.baseName }
                 resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
             }

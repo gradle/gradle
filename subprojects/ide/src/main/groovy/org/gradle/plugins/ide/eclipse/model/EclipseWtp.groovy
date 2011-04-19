@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.api.artifacts.Configuration
+
 /**
  * Dsl-friendly model of the eclipse wtp information
  * <p>
@@ -27,10 +29,21 @@ package org.gradle.plugins.ide.eclipse.model
  * apply plugin: 'war'
  * apply plugin: 'eclipse'
  *
+ * configurations {
+ *   someInterestingConfiguration
+ *   anotherConfiguration
+ * }
+ *
  * eclipse {
  *   wtp {
  *     //if you want to alter the wb-resource elements. sourceDirs is a ConvenienceProperty.
  *     sourceDirs += file('someExtraFolder')
+ *
+ *     //you can alter the files are to be transformed into dependent-module elements:
+ *     plusConfigurations += configurations.someInterestingConfiguration
+ *
+ *     //or whose files are to be excluded from dependent-module elements:
+ *     minusConfigurations += configurations.anotherConfiguration
  *   }
  * }
  *
@@ -48,4 +61,18 @@ class EclipseWtp {
      * For examples see docs for {@link EclipseWtp}
      */
     Set<File> sourceDirs
+
+    /**
+     * The configurations whose files are to be transformed into dependent-module elements.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    Set<Configuration> plusConfigurations
+
+    /**
+     * The configurations whose files are to be excluded from dependent-module elements.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    Set<Configuration> minusConfigurations
 }

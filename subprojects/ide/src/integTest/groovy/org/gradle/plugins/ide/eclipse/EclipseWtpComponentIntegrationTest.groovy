@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,24 +36,82 @@ class EclipseWtpComponentIntegrationTest extends AbstractEclipseIntegrationTest 
         //given
         file('someExtraSourceDir').mkdirs()
 
+        def repoDir = file("repo")
+        publishArtifact(repoDir, "gradle", "foo")
+        publishArtifact(repoDir, "gradle", "bar")
+        publishArtifact(repoDir, "gradle", "baz")
+
+
         //when
         runEclipseTask """
 apply plugin: 'java'
 apply plugin: 'war'
 apply plugin: 'eclipse'
 
+configurations {
+  configOne
+  configTwo
+}
+
+repositories {
+  mavenRepo urls: "${repoDir.toURI()}"
+}
+
+dependencies {
+  configOne 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
+  configTwo 'gradle:baz:1.0'
+}
+
 eclipse {
   wtp {
     sourceDirs += file('someExtraSourceDir')
+    plusConfigurations += configurations.configOne
+    minusConfigurations += configurations.configTwo
+  }
+}
+        """
+
+        content = getFile([:], '.settings/org.eclipse.wst.common.component').text
+        println content //TODO SF after completing the refactoring, get rid of the printlns
+
+        //then
+        contains('someExtraSourceDir')
+
+        contains('foo-1.0.jar', 'bar-1.0.jar')
+        assert !content.contains('baz-1.0.jar')
+    }
+
+    @Ignore("TODO SF does not work at the moment")
+    @Test
+    void allowsFileDependencies() {
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'eclipse'
+
+configurations {
+  configOne
+  configTwo
+}
+
+dependencies {
+  configOne files('foo.txt', 'bar.txt', 'baz.txt')
+  configTwo files('baz.txt')
+}
+
+eclipse {
+  wtp {
+    plusConfigurations += configurations.configOne
+    minusConfigurations += configurations.configTwo
   }
 }
         """
 
         def component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        println component //TODO SF after completing the refactoring, get rid of the printlns
+        println component
 
         //then
-        assert component.contains('someExtraSourceDir')
     }
 
     protected def contains(String ... contents) {
