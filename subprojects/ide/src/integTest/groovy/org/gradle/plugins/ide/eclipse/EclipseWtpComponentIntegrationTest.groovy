@@ -75,6 +75,8 @@ eclipse {
     deployName = 'someBetterDeployName'
 
     resource sourcePath: './src/foo/bar', deployPath: './deploy/foo/bar'
+
+    property name: 'wbPropertyOne', value: 'New York!'
   }
 }
         """
@@ -93,6 +95,7 @@ eclipse {
 //        contains('fooVariable') TODO SF test later once there're more stuff resolved with pathFactory
 
         contains('./src/foo/bar', './deploy/foo/bar')
+        contains('wbPropertyOne', 'New York!')
     }
 
     @Ignore("TODO SF does not work at the moment")

@@ -52,8 +52,11 @@ import org.gradle.api.artifacts.Configuration
  *     //or whose files are to be excluded from dependent-module elements:
  *     minusConfigurations += configurations.anotherConfiguration
  *
- *     //you can add a wb-resource element; mandatory keys: 'sourcePath', 'deployPath':
- *     resource sourcePath: 'extra/resource' deployPath: 'deployment/resource'
+ *     //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
+ *     resource sourcePath: 'extra/resource', deployPath: 'deployment/resource'
+ *
+ *     //you can add a wb-property elements; mandatory keys: 'name', 'value':
+ *     property name: 'moodOfTheDay', value: ':-D'
  *   }
  * }
  *
@@ -112,6 +115,25 @@ class EclipseWtp {
     void resource(Map<String, String> args) {
         //TODO SF validation
         resources.add(new WbResource(args.deployPath, args.sourcePath))
+    }
+
+    /**
+     * Additional property elements.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    List<WbProperty> properties = []
+
+    /**
+     * Adds a property.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @param args A map that must contain a 'name' and 'value' key with corresponding values.
+     */
+    void property(Map<String, String> args) {
+        //TODO SF validation
+        properties.add(new WbProperty(args.name, args.value))
     }
 
     //********

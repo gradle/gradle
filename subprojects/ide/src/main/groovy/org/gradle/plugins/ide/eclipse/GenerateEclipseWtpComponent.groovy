@@ -102,7 +102,13 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     /**
      * Additional property elements.
      */
-    List<WbProperty> properties = []
+    List<WbProperty> getProperties() {
+        wtp.properties
+    }
+
+    void setProperties(List<WbProperty> properties) {
+        wtp.properties = properties
+    }
 
     /**
      * The context path for the web application
@@ -130,7 +136,7 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
      */
     void variables(Map<String, File> variables) {
         assert variables != null
-        this.wtp.pathVariables.putAll variables
+        wtp.pathVariables.putAll variables
     }
 
     /**
@@ -139,7 +145,7 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
      * @param args A map that must contain a name and value key with corresponding values.
      */
     void property(Map<String, String> args) {
-        properties.add(new WbProperty(args.name, args.value))
+        wtp.property(args)
     }
 
     /**
