@@ -26,8 +26,8 @@ import java.util.Set;
 /**
  * @author Szczepan Faber, @date: 25.03.11
  */
-public class EclipsePluginApplier implements ModelBuildingAdapter.Configurer {
-    public void configure(GradleInternal gradle) {
+public class EclipsePluginApplier {
+    public void apply(GradleInternal gradle) {
         Set<Project> allprojects = gradle.getRootProject().getAllprojects();
         for (Project p : allprojects) {
             p.getPlugins().apply(EclipsePlugin.class);

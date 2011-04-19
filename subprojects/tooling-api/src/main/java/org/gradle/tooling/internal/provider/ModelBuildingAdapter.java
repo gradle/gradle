@@ -25,31 +25,17 @@ import org.gradle.api.invocation.Gradle;
  */
 public class ModelBuildingAdapter extends BuildAdapter {
 
-    public static interface Builder {
-        void buildAll(GradleInternal gradle);
-        DefaultEclipseProject getProject();
-    }
+    EclipsePluginApplier applier;
+    ModelBuilder builder;
 
-    public static interface Configurer {
-        void configure(GradleInternal rootProject);
-    }
-
-    Builder builder;
-    Configurer configurer;
-
-    public ModelBuildingAdapter setConfigurer(Configurer configurer) {
-        this.configurer = configurer;
-        return this;
-    }
-
-    public ModelBuildingAdapter setBuilder(Builder builder) {
+    public ModelBuildingAdapter(EclipsePluginApplier applier, ModelBuilder builder) {
+        this.applier = applier;
         this.builder = builder;
-        return this;
     }
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
-        configurer.configure((GradleInternal) gradle);
+        applier.apply((GradleInternal) gradle);
         builder.buildAll((GradleInternal) gradle);
     }
 

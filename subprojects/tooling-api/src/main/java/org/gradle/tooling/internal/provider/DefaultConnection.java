@@ -101,14 +101,12 @@ public class DefaultConnection implements ConnectionVersion4 {
 
             GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
 
-            ModelBuildingAdapter adapter = new ModelBuildingAdapter();
-            gradleLauncher.addListener(adapter);
-
             boolean projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
             boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
 
-            adapter.setConfigurer(new EclipsePluginApplier());
-            adapter.setBuilder(new ModelBuilder(includeTasks, projectDependenciesOnly));
+            ModelBuildingAdapter adapter = new ModelBuildingAdapter(
+                    new EclipsePluginApplier(), new ModelBuilder(includeTasks, projectDependenciesOnly));
+            gradleLauncher.addListener(adapter);
 
             wrapAndRethrowFailure(gradleLauncher.getBuildAnalysis());
             return type.cast(adapter.getProject());

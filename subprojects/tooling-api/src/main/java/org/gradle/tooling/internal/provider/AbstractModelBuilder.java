@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractModelBuilder implements ModelBuildingAdapter.Builder {
+public abstract class AbstractModelBuilder {
     private DefaultEclipseProject currentProject;
     private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
     private GradleInternal gradle;
