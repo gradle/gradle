@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.eclipse
+package org.gradle.plugins.ide.eclipse.internal
 
 import org.gradle.api.Project
+import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
 import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
 
 /**
  * @author Szczepan Faber, @date 11.03.11
  */
-class EclipseConfigurer {
+class EclipseNameDeduper {
 
     void configure(Project aProject) {
         def eclipseProjects = aProject.rootProject.allprojects.findAll { it.plugins.hasPlugin(EclipsePlugin) }

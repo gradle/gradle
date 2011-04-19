@@ -20,13 +20,9 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.plugins.ide.idea.model.IdeaModel
-import org.gradle.plugins.ide.idea.model.IdeaModule
-import org.gradle.plugins.ide.idea.model.IdeaModuleIml
-import org.gradle.plugins.ide.idea.model.IdeaProject
-import org.gradle.plugins.ide.idea.model.IdeaProjectIpr
-import org.gradle.plugins.ide.idea.model.PathFactory
+import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.internal.IdePlugin
+import org.gradle.plugins.ide.idea.model.*
 
 /**
  * @author Hans Dockter
@@ -56,7 +52,7 @@ class IdeaPlugin extends IdePlugin {
 
         project.afterEvaluate {
             //TODO SF: is it possible to do deduplication on the fly? - same applies for eclipse
-            new IdeaConfigurer().configure(project)
+            new IdeaNameDeduper().configure(project)
         }
     }
 

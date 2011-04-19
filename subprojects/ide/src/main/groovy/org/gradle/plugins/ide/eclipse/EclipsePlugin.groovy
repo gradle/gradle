@@ -24,6 +24,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.eclipse.model.*
 
@@ -60,7 +61,7 @@ class EclipsePlugin extends IdePlugin {
         configureEclipseWtpFacet(project)
 
         project.afterEvaluate {
-            new EclipseConfigurer().configure(project)
+            new EclipseNameDeduper().configure(project)
         }
     }
 

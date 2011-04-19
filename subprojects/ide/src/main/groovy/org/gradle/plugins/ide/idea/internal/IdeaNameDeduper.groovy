@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.idea
+package org.gradle.plugins.ide.idea.internal
 
 import org.gradle.api.Project
+import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
 import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
 
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
-class IdeaConfigurer {
+class IdeaNameDeduper {
 
     void configure(Project theProject) {
         def ideaProjects = theProject.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }
