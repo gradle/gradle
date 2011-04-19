@@ -24,6 +24,10 @@ import org.gradle.api.specs.Spec;
  * @author Hans Dockter
  */
 public class DependencySpecs {
+    /**
+     * Deprecated. Use {@link Type} directly instead (it already implements Spec<Dependency>).
+     */
+    @Deprecated
     public static Spec<Dependency> type(Type type) {
         return new DependencyTypeSpec<Dependency>(type);
     }

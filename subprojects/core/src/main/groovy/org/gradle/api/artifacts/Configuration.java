@@ -374,9 +374,9 @@ public interface Configuration extends FileCollection {
 
     /**
      * Creates a copy of this configuration ignoring superconfigurations (see {@link #copy()} but filtering
-     * the dependencies using the dependencySpec.  The dependencySpec may be obtained from
-     * {@link org.gradle.api.artifacts.specs.DependencySpecs DependencySpecs.type()} like
-     * DependencySpecs.type(Type.EXTERNAL)
+     * the dependencies using the specified dependency spec. {@link org.gradle.api.artifacts.specs.Type}
+     * provides some predefined dependency specs.
+     *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
      */
@@ -384,9 +384,9 @@ public interface Configuration extends FileCollection {
 
     /**
      * Creates a copy of this configuration with dependencies from superconfigurations (see {@link #copyRecursive()})
-     *  but filtering the dependencies using the dependencySpec.  The dependencySpec may be obtained from
-     * {@link org.gradle.api.artifacts.specs.DependencySpecs DependencySpecs.type()} like
-     * DependencySpecs.type(Type.EXTERNAL)
+     * but filtering the dependencies using the dependencySpec. {@link org.gradle.api.artifacts.specs.Type}
+     * provides some predefined dependency specs.
+     *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
      */

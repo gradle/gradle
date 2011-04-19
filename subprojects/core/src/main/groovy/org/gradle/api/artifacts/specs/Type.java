@@ -19,21 +19,33 @@ package org.gradle.api.artifacts.specs;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.specs.Spec;
 
 /**
  * Dependency types.
  */
-public enum Type {
+public enum Type implements Spec<Dependency> {
     EXTERNAL {
-        public boolean isOf(Dependency dependency) {
+        public boolean isSatisfiedBy(Dependency dependency) {
             return dependency instanceof ExternalDependency;
+        }
+        public boolean isOf(Dependency dependency) {
+            return isSatisfiedBy(dependency);
         }
     },
     PROJECT {
-        public boolean isOf(Dependency dependency) {
+        public boolean isSatisfiedBy(Dependency dependency) {
             return dependency instanceof ProjectDependency;
+        }
+        public boolean isOf(Dependency dependency) {
+            return isSatisfiedBy(dependency);
         }
     };
 
+
+    /**
+     * Deprecated. Use isSatisfiedBy() instead.
+     */
+    @Deprecated
     public abstract boolean isOf(Dependency dependency);
 }
