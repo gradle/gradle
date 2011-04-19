@@ -184,4 +184,8 @@ class EclipseWtp {
     void mergeXmlComponent(WtpComponent xmlComponent) {
         new WtpComponentFactory().configure(this, xmlComponent)
     }
+
+    void mergeXmlFacet(WtpFacet xmlFacet) {
+        xmlFacet.configure(getFacets())
+    }
 }

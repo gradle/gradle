@@ -19,7 +19,6 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseWtp
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.WtpFacet
-import org.gradle.plugins.ide.eclipse.model.internal.WtpFacetFactory
 
 /**
  * Generates the org.eclipse.wst.common.project.facet.core settings file for Eclipse WTP.
@@ -30,6 +29,18 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
 
     EclipseWtp wtp
 
+    GenerateEclipseWtpFacet() {
+        xmlTransformer.indentation = "\t"
+    }
+
+    @Override protected WtpFacet create() {
+        new WtpFacet(xmlTransformer)
+    }
+
+    @Override protected void configure(WtpFacet xmlFacet) {
+        wtp.mergeXmlFacet(xmlFacet)
+    }
+
     /**
      * The facets to be added as elements.
      */
@@ -39,20 +50,6 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
 
     void setFacets(List<Facet> facets) {
         wtp.facets = facets
-    }
-
-    protected WtpFacetFactory modelFactory = new WtpFacetFactory()
-
-    GenerateEclipseWtpFacet() {
-        xmlTransformer.indentation = "\t"
-    }
-
-    @Override protected WtpFacet create() {
-        new WtpFacet(xmlTransformer)
-    }
-
-    @Override protected void configure(WtpFacet facet) {
-        modelFactory.configure(this, facet)
     }
 
     /**
