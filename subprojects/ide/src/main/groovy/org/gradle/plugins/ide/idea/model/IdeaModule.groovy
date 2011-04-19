@@ -244,7 +244,8 @@ class IdeaModule {
         ConfigureUtil.configure(closure, getIml())
     }
 
-    //TODO SF: most likely what's above should be a part of an interface and what's below should not be exposed. For now, below methods are protected
+    //TODO SF: most likely what's above should be a part of an interface and what's below should not be exposed.
+    //For now, below methods are protected - same applies to new model
 
     org.gradle.api.Project project
     Module xmlModule

@@ -55,7 +55,7 @@ class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project)
 
         project.afterEvaluate {
-            //TODO SF: is it possible to do deduplication on the fly?
+            //TODO SF: is it possible to do deduplication on the fly? - same applies for eclipse
             new IdeaConfigurer().configure(project)
         }
     }
@@ -80,6 +80,7 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.name = { project.name }
             module.conventionMapping.contentRoot = { project.projectDir }
             module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
+            //TODO SF document that those properties are 'convenience properties'
             module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
 
             module.conventionMapping.pathFactory = {
