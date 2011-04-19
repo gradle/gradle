@@ -183,8 +183,8 @@ class EclipsePlugin extends IdePlugin {
                 wtp.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
                 wtp.plusConfigurations = [project.configurations.runtime]
                 wtp.minusConfigurations = [project.configurations.providedRuntime]
+                wtp.deployName = project.name
 
-                deployName = project.name
                 conventionMapping.contextPath = { project.war.baseName }
                 resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
             }
@@ -203,7 +203,7 @@ class EclipsePlugin extends IdePlugin {
                         wtp = services.get(ClassGenerator).newInstance(EclipseWtp)
                         otherProject.plugins.withType(EclipsePlugin) { it.model.wtp = wtp }
 
-                        deployName = otherProject.name
+                        wtp.deployName = otherProject.name
                         conventionMapping.resources = {
                             getMainSourceDirs(otherProject).collect { new WbResource("/", otherProject.relativePath(it)) }
                         }

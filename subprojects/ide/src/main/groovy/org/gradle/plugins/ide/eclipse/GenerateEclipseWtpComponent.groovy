@@ -69,7 +69,13 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     /**
      * The deploy name to be used.
      */
-    String deployName
+    String getDeployName() {
+        wtp.deployName
+    }
+
+    void setDeployName(String deployName) {
+        wtp.deployName = deployName
+    }
 
     /**
      * The variables to be used for replacing absolute path in dependent-module elements.

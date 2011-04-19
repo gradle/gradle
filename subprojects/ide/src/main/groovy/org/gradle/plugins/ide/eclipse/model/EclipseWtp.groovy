@@ -36,7 +36,10 @@ import org.gradle.api.artifacts.Configuration
  *
  * eclipse {
  *   wtp {
- *     //if you want to alter the wb-resource elements. sourceDirs is a ConvenienceProperty.
+ *     //you can configure the deployName:
+ *     deployName = 'killerApp'
+ *
+ *     //you can alter the wb-resource elements. sourceDirs is a ConvenienceProperty.
  *     sourceDirs += file('someExtraFolder')
  *
  *     //you can alter the files are to be transformed into dependent-module elements:
@@ -75,4 +78,11 @@ class EclipseWtp {
      * For examples see docs for {@link EclipseWtp}
      */
     Set<Configuration> minusConfigurations
+
+    /**
+     * The deploy name to be used.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    String deployName
 }

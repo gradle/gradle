@@ -65,8 +65,11 @@ dependencies {
 eclipse {
   wtp {
     sourceDirs += file('someExtraSourceDir')
+
     plusConfigurations += configurations.configOne
     minusConfigurations += configurations.configTwo
+
+    deployName = 'someBetterDeployName'
   }
 }
         """
@@ -79,6 +82,8 @@ eclipse {
 
         contains('foo-1.0.jar', 'bar-1.0.jar')
         assert !content.contains('baz-1.0.jar')
+
+        contains('someBetterDeployName')
     }
 
     @Ignore("TODO SF does not work at the moment")
