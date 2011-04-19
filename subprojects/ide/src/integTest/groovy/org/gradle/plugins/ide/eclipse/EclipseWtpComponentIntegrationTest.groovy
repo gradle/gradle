@@ -73,6 +73,8 @@ eclipse {
     minusConfigurations += configurations.configTwo
 
     deployName = 'someBetterDeployName'
+
+    resource sourcePath: './src/foo/bar', deployPath: './deploy/foo/bar'
   }
 }
         """
@@ -89,6 +91,8 @@ eclipse {
         contains('someBetterDeployName')
 
 //        contains('fooVariable') TODO SF test later once there're more stuff resolved with pathFactory
+
+        contains('./src/foo/bar', './deploy/foo/bar')
     }
 
     @Ignore("TODO SF does not work at the moment")

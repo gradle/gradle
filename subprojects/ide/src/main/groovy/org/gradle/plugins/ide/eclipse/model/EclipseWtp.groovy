@@ -51,6 +51,9 @@ import org.gradle.api.artifacts.Configuration
  *
  *     //or whose files are to be excluded from dependent-module elements:
  *     minusConfigurations += configurations.anotherConfiguration
+ *
+ *     //you can add a wb-resource element; mandatory keys: 'sourcePath', 'deployPath':
+ *     resource sourcePath: 'extra/resource' deployPath: 'deployment/resource'
  *   }
  * }
  *
@@ -89,6 +92,27 @@ class EclipseWtp {
      * For examples see docs for {@link EclipseWtp}
      */
     String deployName
+
+    /**
+     * Additional wb-resource elements.
+     * <p>
+     * Warning, this property is a {@link org.gradle.api.dsl.ConvenienceProperty}
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    List<WbResource> resources = []
+
+    /**
+     * Adds a wb-resource.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
+     */
+    void resource(Map<String, String> args) {
+        //TODO SF validation
+        resources.add(new WbResource(args.deployPath, args.sourcePath))
+    }
 
     //********
 

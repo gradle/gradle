@@ -91,7 +91,13 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     /**
      * Additional wb-resource elements.
      */
-    List<WbResource> resources = []
+    List<WbResource> getResources() {
+        wtp.resources
+    }
+
+    void setResources(List<WbResource> resources) {
+        wtp.resources = resources
+    }
 
     /**
      * Additional property elements.
@@ -142,6 +148,6 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
     void resource(Map<String, String> args) {
-        resources.add(new WbResource(args.deployPath, args.sourcePath))
+        wtp.resource(args)
     }
 }
