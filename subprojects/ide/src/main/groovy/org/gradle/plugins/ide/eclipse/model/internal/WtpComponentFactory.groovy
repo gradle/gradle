@@ -19,7 +19,7 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.plugins.ide.eclipse.EclipseWtpComponent
+import org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
@@ -28,7 +28,7 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent
  * @author Hans Dockter
  */
 class WtpComponentFactory {
-    void configure(EclipseWtpComponent eclipseComponent, WtpComponent component) {
+    void configure(GenerateEclipseWtpComponent eclipseComponent, WtpComponent component) {
         def entries = getEntriesFromSourceDirs(eclipseComponent)
         entries.addAll(eclipseComponent.resources)
         entries.addAll(eclipseComponent.properties)
@@ -37,18 +37,18 @@ class WtpComponentFactory {
         component.configure(eclipseComponent.deployName, eclipseComponent.contextPath, entries)
     }
 
-    private List getEntriesFromSourceDirs(EclipseWtpComponent eclipseComponent) {
+    private List getEntriesFromSourceDirs(GenerateEclipseWtpComponent eclipseComponent) {
         eclipseComponent.sourceDirs.findAll { it.isDirectory() }.collect { dir ->
             new WbResource("/WEB-INF/classes", eclipseComponent.project.relativePath(dir))
         }
     }
 
-    private List getEntriesFromConfigurations(EclipseWtpComponent eclipseComponent) {
+    private List getEntriesFromConfigurations(GenerateEclipseWtpComponent eclipseComponent) {
         (getEntriesFromProjectDependencies(eclipseComponent) as List) + (getEntriesFromLibraries(eclipseComponent) as List)
     }
 
     // must include transitive project dependencies
-    private Set getEntriesFromProjectDependencies(EclipseWtpComponent eclipseComponent) {
+    private Set getEntriesFromProjectDependencies(GenerateEclipseWtpComponent eclipseComponent) {
         def dependencies = getDependencies(eclipseComponent.plusConfigurations, eclipseComponent.minusConfigurations,
                 { it instanceof org.gradle.api.artifacts.ProjectDependency })
 
@@ -77,7 +77,7 @@ class WtpComponentFactory {
     }
 
     // must NOT include transitive library dependencies
-    private Set getEntriesFromLibraries(EclipseWtpComponent eclipseComponent) {
+    private Set getEntriesFromLibraries(GenerateEclipseWtpComponent eclipseComponent) {
         Set declaredDependencies = getDependencies(eclipseComponent.plusConfigurations, eclipseComponent.minusConfigurations,
                 { it instanceof ExternalDependency})
 

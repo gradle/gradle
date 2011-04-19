@@ -170,7 +170,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseWtpComponent(Project project) {
         project.plugins.withType(WarPlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
+            addEclipsePluginTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
                 description = 'Generates the Eclipse WTP component settings file.'
                 deployName = project.name
                 conventionMapping.sourceDirs = { getMainSourceDirs(project) }
@@ -186,7 +186,7 @@ class EclipsePlugin extends IdePlugin {
                 // require Java plugin because we need source set 'main'
                 // (in the absence of 'main', it probably makes no sense to write the file)
                 otherProject.plugins.withType(JavaPlugin) {
-                    addEclipsePluginTask(otherProject, ECLIPSE_WTP_COMPONENT_TASK_NAME, EclipseWtpComponent) {
+                    addEclipsePluginTask(otherProject, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
                         description = 'Generates the Eclipse WTP component settings file.'
                         deployName = otherProject.name
                         conventionMapping.resources = {

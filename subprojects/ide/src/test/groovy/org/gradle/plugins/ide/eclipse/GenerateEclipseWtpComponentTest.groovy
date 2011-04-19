@@ -23,8 +23,8 @@ import org.gradle.plugins.ide.eclipse.model.WbResource
 /**
  * @author Hans Dockter
  */
-public class EclipseWtpComponentTest extends AbstractSpockTaskTest {
-    private eclipseComponent = createTask(EclipseWtpComponent)
+public class GenerateEclipseWtpComponentTest extends AbstractSpockTaskTest {
+    private eclipseComponent = createTask(GenerateEclipseWtpComponent)
 
     ConventionTask getTask() { eclipseComponent }
 

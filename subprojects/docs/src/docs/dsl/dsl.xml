@@ -170,7 +170,7 @@
                 <td>org.gradle.plugins.ide.eclipse.GenerateEclipseProject</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.ide.eclipse.EclipseWtpComponent</td>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.ide.eclipse.EclipseWtpFacet</td>

@@ -27,7 +27,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
  *
  * @author Hans Dockter
  */
-class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
+class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     /**
      * The source directories to be transformed into wb-resource elements.
      */
@@ -70,7 +70,7 @@ class EclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
     private final WtpComponentFactory modelFactory = new WtpComponentFactory()
 
-    EclipseWtpComponent() {
+    GenerateEclipseWtpComponent() {
         xmlTransformer.indentation = "\t"
     }
 

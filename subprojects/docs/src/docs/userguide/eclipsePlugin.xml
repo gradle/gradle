@@ -185,7 +185,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.ide.eclipse.EclipseWtpComponent"/></td>
+                <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent"/></td>
                 <td>Generates the <filename>.settings/org.eclipse.wst.common.component</filename> file.</td>
             </tr>
             <tr>
@@ -518,7 +518,7 @@
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.EclipseWtpComponent"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpComponent"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpComponent"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
