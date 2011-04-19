@@ -171,6 +171,56 @@ eclipse << {
 
     }
 
+    @Test
+    void respectsPerConfigurationExcludes() {
+        def repoDir = file("repo")
+        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
+        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenRepo urls: "${repoDir.toURI()}"
+}
+
+configurations {
+    compile.exclude module: 'myArtifact2'
+}
+
+dependencies {
+    compile "myGroup:myArtifact1:1.0"
+}
+        """
+
+        libEntriesInClasspathFileHaveFilenames(artifact1.name)
+    }
+
+    @Test
+    void respectsPerDependencyExcludes() {
+        def repoDir = file("repo")
+        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
+        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenRepo urls: "${repoDir.toURI()}"
+}
+
+dependencies {
+    compile("myGroup:myArtifact1:1.0") {
+        exclude module: "myArtifact2"
+    }
+}
+        """
+
+        libEntriesInClasspathFileHaveFilenames(artifact1.name)
+    }
+
     private void checkIsWrittenWithUtf8Encoding(File file) {
         def text = file.getText("UTF-8")
         assert text.contains('encoding="UTF-8"')

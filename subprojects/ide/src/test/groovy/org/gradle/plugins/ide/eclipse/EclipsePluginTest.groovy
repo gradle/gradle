@@ -77,14 +77,14 @@ class EclipsePluginTest extends Specification {
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.core.javanature'])
-        checkEclipseClasspath([] as Set)
+        checkEclipseClasspath([])
         checkEclipseJdt()
 
         when:
         project.apply(plugin: 'java')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime] as Set)
+        checkEclipseClasspath([project.configurations.testRuntime])
     }
 
     def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
@@ -105,7 +105,7 @@ class EclipsePluginTest extends Specification {
                         'org.eclipse.wst.common.project.facet.core.nature',
                         'org.eclipse.wst.common.modulecore.ModuleCoreNature',
                         'org.eclipse.jem.workbench.JavaEMFNature'])
-        checkEclipseClasspath([project.configurations.testRuntime] as Set)
+        checkEclipseClasspath([project.configurations.testRuntime])
         checkEclipseWtpComponent()
         checkEclipseWtpFacet()
     }
@@ -120,13 +120,13 @@ class EclipsePluginTest extends Specification {
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         checkEclipseProjectTask([new BuildCommand('ch.epfl.lamp.sdt.core.scalabuilder')],
                 ['ch.epfl.lamp.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
-        checkEclipseClasspath([] as Set)
+        checkEclipseClasspath([])
 
         when:
         project.apply(plugin: 'scala')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime] as Set)
+        checkEclipseClasspath([project.configurations.testRuntime])
     }
 
     def applyToGroovyProject_shouldHaveProjectAndClasspathTaskForGroovy() {
@@ -139,13 +139,13 @@ class EclipsePluginTest extends Specification {
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.groovy.core.groovyNature',
                 'org.eclipse.jdt.core.javanature'])
-        checkEclipseClasspath([] as Set)
+        checkEclipseClasspath([])
 
         when:
         project.apply(plugin: 'groovy')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime] as Set)
+        checkEclipseClasspath([project.configurations.testRuntime])
     }
 
     private void checkEclipseProjectTask(List buildCommands, List natures) {
@@ -167,7 +167,7 @@ class EclipsePluginTest extends Specification {
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseClasspath)
         assert eclipseClasspath.sourceSets == project.sourceSets
         assert eclipseClasspath.plusConfigurations == configurations
-        assert eclipseClasspath.minusConfigurations == [] as Set
+        assert eclipseClasspath.minusConfigurations == []
         assert eclipseClasspath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] as Set
         assert eclipseClasspath.outputFile == project.file('.classpath')
         assert eclipseClasspath.defaultOutputDir == new File(project.projectDir, 'bin')

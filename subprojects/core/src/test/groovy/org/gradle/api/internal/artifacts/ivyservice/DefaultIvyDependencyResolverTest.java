@@ -118,13 +118,22 @@ public class DefaultIvyDependencyResolverTest {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
 
-        Set<File> actualFiles = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getFiles(
+        ResolvedConfiguration resolvedConfig = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
+        Set<File> actualFiles = resolvedConfig.getFiles(
                 new Spec<Dependency>() {
                     public boolean isSatisfiedBy(Dependency element) {
                         return element == moduleDependencyDummy1 || element == selfResolvingDependencyDummy;
                     }
                 });
         assertThat(actualFiles, equalTo(toSet(new File("dep1"), new File("dep2"), new File("dep1parent"))));
+
+        Set<ResolvedDependency> actualDeps = resolvedConfig.getFirstLevelModuleDependencies(
+                new Spec<Dependency>() {
+                    public boolean isSatisfiedBy(Dependency element) {
+                        return element == moduleDependencyDummy1;
+                    }
+                });
+        assertThat(actualDeps, equalTo(toSet(resolvedDependency1, resolvedDependency2)));
     }
 
     @Test

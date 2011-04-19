@@ -309,7 +309,7 @@
                 </td>
                 <td>COMPILE(compile), RUNTIME(runtime - compile), TEST(testRuntime - runtime)</td>
                 <td>The keys of this map are the IDEA scopes. Each key points to another map that has two keys, plus and minus.
-                    The values of those keys are sets of <link linkend="sub:configurations">Configuration</link> objects. The files of the
+                    The values of those keys are collections of <link linkend="sub:configurations">Configuration</link> objects. The files of the
                     plus configurations are added minus the files from the minus configurations. </td>
                 </tr>
             <tr>

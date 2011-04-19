@@ -119,7 +119,7 @@ import org.gradle.util.ConfigureUtil
 class IdeaModule {
 
    /**
-     * Idea module name; controls the name of the *.iml file
+     * IDEA module name; controls the name of the *.iml file
      * <p>
      * For example see docs for {@link IdeaModule}
      */
@@ -133,8 +133,8 @@ class IdeaModule {
     Set<File> sourceDirs
 
     /**
-     * The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
-     * The values of those keys are sets of  {@link org.gradle.api.artifacts.Configuration}  objects. The files of the
+     * The keys of this map are the IDEA scopes. Each key points to another map that has two keys, plus and minus.
+     * The values of those keys are collections of {@link org.gradle.api.artifacts.Configuration} objects. The files of the
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
@@ -158,7 +158,7 @@ class IdeaModule {
      * }
      * </pre>
      */
-    Map<String, Map<String, Configuration>> scopes = [:]
+    Map<String, Map<String, Collection<Configuration>>> scopes = [:]
 
     /**
      * Whether to download and add sources associated with the dependency jars.
@@ -240,7 +240,7 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    public void iml(Closure closure) {
+    void iml(Closure closure) {
         ConfigureUtil.configure(closure, getIml())
     }
 
@@ -251,40 +251,40 @@ class IdeaModule {
     PathFactory pathFactory
     IdeaModuleIml iml
 
-    protected File getOutputFile() {
+    File getOutputFile() {
         new File((File) iml.getGenerateTo(), getName() + ".iml")
     }
 
-    protected void setOutputFile(File newOutputFile) {
+    void setOutputFile(File newOutputFile) {
         name = newOutputFile.name.replaceFirst(/\.iml$/,"");
         iml.generateTo = newOutputFile.parentFile
     }
 
-    protected Set<Path> getSourcePaths() {
+    Set<Path> getSourcePaths() {
         getSourceDirs().findAll { it.exists() }.collect { path(it) }
     }
 
-    protected Set getDependencies() {
+    Set<Dependency> getDependencies() {
         new IdeaDependenciesProvider().provide(this, getPathFactory());
     }
 
-    protected Set<Path> getTestSourcePaths() {
+    Set<Path> getTestSourcePaths() {
         getTestSourceDirs().findAll { it.exists() }.collect { getPathFactory().path(it) }
     }
 
-    protected Set<Path> getExcludePaths() {
+    Set<Path> getExcludePaths() {
         getExcludeDirs().collect { path(it) }
     }
 
-    protected Path getOutputPath() {
+    Path getOutputPath() {
         getOutputDir() ? path(getOutputDir()) : null
     }
 
-    protected Path getTestOutputPath() {
+    Path getTestOutputPath() {
         getTestOutputDir() ? path(getTestOutputDir()) : null
     }
 
-    protected void mergeXmlModule(Module xmlModule) {
+    void mergeXmlModule(Module xmlModule) {
         iml.beforeMerged.execute(xmlModule)
         xmlModule.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(),
                 getInheritOutputDirs(), getOutputPath(), getTestOutputPath(), getDependencies(), getJavaVersion())
@@ -293,15 +293,15 @@ class IdeaModule {
         this.xmlModule = xmlModule
     }
 
-    protected void generate() {
+    void generate() {
         xmlModule.store(getOutputFile())
     }
 
-    protected Path getContentPath() {
+    Path getContentPath() {
         path(getContentRoot())
     }
 
-    protected def path(File dir) {
+    Path path(File dir) {
         getPathFactory().path(dir)
     }
 }

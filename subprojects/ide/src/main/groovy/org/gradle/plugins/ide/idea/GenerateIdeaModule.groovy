@@ -190,8 +190,8 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
-     * The values of those keys are sets of  {@link org.gradle.api.artifacts.Configuration}  objects. The files of the
+     * The keys of this map are the IDEA scopes. Each key points to another map that has two keys, plus and minus.
+     * The values of those keys are collections of {@link org.gradle.api.artifacts.Configuration} objects. The files of the
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
@@ -213,11 +213,11 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * }
      * </pre>
      */
-    Map<String, Map<String, Configuration>> getScopes() {
+    Map<String, Map<String, Collection<Configuration>>> getScopes() {
         module.scopes
     }
 
-    Map<String, Map<String, Configuration>> setScopes(Map<String, Map<String, Configuration>> scopes) {
+    void setScopes(Map<String, Map<String, Collection<Configuration>>> scopes) {
         module.scopes = scopes
     }
 

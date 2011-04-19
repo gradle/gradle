@@ -24,6 +24,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.plugins.ide.eclipse.EclipseClasspath;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -43,7 +44,7 @@ public class MinimalModelConfigurer extends EclipsePluginApplier {
         });
     }
 
-    private Set<Configuration> projectDependenciesOnly(Set<Configuration> configurations) {
+    private Set<Configuration> projectDependenciesOnly(Collection<Configuration> configurations) {
         Set<Configuration> filtered = new LinkedHashSet<Configuration>();
         for (Configuration configuration : configurations) {
             filtered.add(configuration.copyRecursive(new Spec<Dependency>() {

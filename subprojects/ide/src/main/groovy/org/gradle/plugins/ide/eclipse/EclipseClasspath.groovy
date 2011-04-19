@@ -36,12 +36,12 @@ class EclipseClasspath extends XmlGeneratorTask<Classpath> implements Configurat
     /**
      * The configurations which files are to be transformed into classpath entries.
      */
-    Set<Configuration> plusConfigurations = new LinkedHashSet<Configuration>()
+    Collection<Configuration> plusConfigurations = []
 
     /**
      * The configurations which files are to be excluded from the classpath entries.
      */
-    Set<Configuration> minusConfigurations = new LinkedHashSet<Configuration>()
+    Collection<Configuration> minusConfigurations = []
 
     /**
      * The variables to be used for replacing absolute paths in classpath entries.

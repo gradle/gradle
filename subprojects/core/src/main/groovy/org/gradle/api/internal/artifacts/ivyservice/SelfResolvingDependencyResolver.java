@@ -66,6 +66,10 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 return resolvedConfiguration.getFirstLevelModuleDependencies();
             }
 
+            public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException {
+                return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
+            }
+
             public boolean hasError() {
                 return resolvedConfiguration.hasError();
             }

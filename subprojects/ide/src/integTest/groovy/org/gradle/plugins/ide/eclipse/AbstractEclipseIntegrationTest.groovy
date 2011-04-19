@@ -64,7 +64,6 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
     protected libEntriesInClasspathFileHaveFilenames(String... filenames) {
         def classpath = parseClasspathFile()
         def libs = findEntries(classpath, "lib")
-        assert libs.size() == filenames.size()
         assert libs*.@path*.text().collect { new File(it).name } as Set == filenames as Set
     }
 }
