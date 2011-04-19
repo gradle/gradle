@@ -67,7 +67,6 @@ package org.gradle.api.dsl;
  * Thanks to the 'lazy' evaluation of the convention properties
  * the user can reconfigure the sourceSets anywhere in the gradle script -
  * and still the test.testClassesDir will point to the right folder.
- * </pre>
  *
  * Author: Szczepan Faber, created at: 4/19/11
  */
