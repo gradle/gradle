@@ -72,7 +72,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0].tree.file == file
         result[1] instanceof FileTreeAdapter
         result[1].tree instanceof DirectoryFileTree
-        result[1].tree.root == dir
+        result[1].tree.dir == dir
         1 * fileSet.files >> ([file, dir, doesNotExist] as LinkedHashSet)
     }
 

@@ -132,8 +132,8 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaModuleForJava(Project project) {
         project.ideaModule {
-            module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
-            module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
+            module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
+            module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.srcDirs as LinkedHashSet }
             def configurations = project.configurations
             module.scopes = [
                     PROVIDED: [plus: [], minus: []],

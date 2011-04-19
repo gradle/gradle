@@ -20,7 +20,7 @@ import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
+class ToolingApiEclipseModelIntegrationTest extends ToolingApiSpecification {
 
     def "can build the eclipse model for a java project"() {
         def projectDir = dist.testDir

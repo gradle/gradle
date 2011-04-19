@@ -57,12 +57,8 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
-    public PatternSet getPatternSet() {
+    public PatternSet getPatterns() {
         return patternSet;
-    }
-
-    public void setPatternSet(PatternSet patternSet) {
-        this.patternSet = patternSet;
     }
 
     public DefaultConfigurableFileTree setDir(Object dir) {

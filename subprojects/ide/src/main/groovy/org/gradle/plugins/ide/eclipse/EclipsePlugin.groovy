@@ -278,6 +278,6 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private Set<File> getMainSourceDirs(Project project) {
-        project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet
+        project.sourceSets.main.allSource.srcDirs as LinkedHashSet
     }
 }

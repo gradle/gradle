@@ -20,6 +20,7 @@ import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.artifacts.*
 import org.gradle.plugins.ide.eclipse.model.*
+import org.gradle.api.file.DirectoryTree
 
 /**
  * @author Hans Dockter
@@ -40,20 +41,18 @@ class ClasspathFactory {
         def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.collect{it})
 
         sortedSourceSets.each { SourceSet sourceSet ->
-            def sourceDirSets = sourceSet.allSource.sourceTrees
-            def sourceDirs = sourceDirSets.collect { it.srcDirs }.flatten()
-            def sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceDirs)
+            def sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.allSource.srcDirTrees)
 
-            sortedSourceDirs.each { dir ->
+            sortedSourceDirs.each { tree ->
+                def dir = tree.dir
                 if (dir.isDirectory()) {
-                    def sourceDirSet = sourceDirSets.find { it.srcDirs.contains(dir) }
                     entries.add(new SourceFolder(
                             project.relativePath(dir),
                             null,
                             [] as Set,
                             null,
-                            sourceDirSet.includes as List,
-                            sourceDirSet.excludes as List))
+                            tree.patterns.includes as List,
+                            tree.patterns.excludes as List))
                 }
             }
         }
@@ -166,10 +165,10 @@ class ClasspathFactory {
         }
     }
 
-    private List<File> sortSourceDirsAsPerUsualConvention(Collection<File> sourceDirs) {
+    private List<DirectoryTree> sortSourceDirsAsPerUsualConvention(Collection<DirectoryTree> sourceDirs) {
         return sourceDirs.sort { sourceDir ->
-            if (sourceDir.path.endsWith("java")) { 0 }
-            else if (sourceDir.path.endsWith("resources")) { 2 }
+            if (sourceDir.dir.path.endsWith("java")) { 0 }
+            else if (sourceDir.dir.path.endsWith("resources")) { 2 }
             else { 1 }
         }
     }

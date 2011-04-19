@@ -94,6 +94,8 @@ void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
     try {
         XMLAssert.assertXMLEqual(diff, true)
     } catch (AssertionFailedError error) {
+        println "EXPECTED:\n${expectedXml}"
+        println "ACTUAL:\n${actualXml}"
         throw new ComparisonFailure("Unexpected content for generated file: ${error.message}", expectedXml, actualXml).initCause(error)
     }
 }

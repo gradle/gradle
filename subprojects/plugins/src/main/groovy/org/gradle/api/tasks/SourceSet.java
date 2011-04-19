@@ -17,7 +17,6 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 
 import java.io.File;
@@ -141,14 +140,14 @@ public interface SourceSet {
      *
      * @return the Java source. Never returns null.
      */
-    FileTree getAllJava();
+    SourceDirectorySet getAllJava();
 
     /**
      * All source files for this source set.
      *
      * @return the source. Never returns null.
      */
-    FileTree getAllSource();
+    SourceDirectorySet getAllSource();
 
     /**
      * Returns the name of the classes task for this source set.

@@ -45,8 +45,8 @@ public class ScalaBasePlugin implements Plugin<Project> {
         project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all {SourceSet sourceSet ->
             sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, project.fileResolver)
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
-            sourceSet.allJava.add(sourceSet.scala.matching(sourceSet.java.filter))
-            sourceSet.allSource.add(sourceSet.scala)
+            sourceSet.allJava.source(sourceSet.scala)
+            sourceSet.allSource.source(sourceSet.scala)
             sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
 
             String taskName = sourceSet.getCompileTaskName('scala')

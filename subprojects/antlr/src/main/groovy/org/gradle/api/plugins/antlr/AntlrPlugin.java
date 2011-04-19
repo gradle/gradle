@@ -66,7 +66,7 @@ public class AntlrPlugin implements Plugin<Project> {
                                 AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate);
                         final String srcDir = String.format("src/%s/antlr", sourceSet.getName());
                         antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
-                        sourceSet.getAllSource().add(antlrDirectoryDelegate.getAntlr());
+                        sourceSet.getAllSource().source(antlrDirectoryDelegate.getAntlr());
 
                         // 2) create an AntlrTask for this sourceSet following the gradle
                         //    naming conventions via call to sourceSet.getTaskName()
