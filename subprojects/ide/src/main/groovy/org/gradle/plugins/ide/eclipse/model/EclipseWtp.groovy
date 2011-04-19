@@ -29,7 +29,7 @@ package org.gradle.plugins.ide.eclipse.model
  *
  * eclipse {
  *   wtp {
- *     //if you want to alter the wb-resource elements
+ *     //if you want to alter the wb-resource elements. sourceDirs is a ConvenienceProperty.
  *     sourceDirs += file('someExtraFolder')
  *   }
  * }
@@ -42,7 +42,8 @@ class EclipseWtp {
 
     /**
      * The source directories to be transformed into wb-resource elements.
-     * //TODO SF: warn about convenience-type property here
+     * <p>
+     * Warning, this property is a {@link org.gradle.api.dsl.ConvenienceProperty}
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
