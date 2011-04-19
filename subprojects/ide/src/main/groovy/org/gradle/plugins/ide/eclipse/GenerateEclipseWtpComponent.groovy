@@ -21,7 +21,6 @@ import org.gradle.plugins.ide.eclipse.model.EclipseWtp
 import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
-import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
 
 /**
  * Generates the org.eclipse.wst.common.component settings file for Eclipse WTP.
@@ -40,8 +39,8 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
         new WtpComponent(xmlTransformer)
     }
 
-    @Override protected void configure(WtpComponent component) {
-        new WtpComponentFactory().configure(wtp, component)
+    @Override protected void configure(WtpComponent xmlComponent) {
+        wtp.mergeXmlComponent(xmlComponent)
     }
 
     /**

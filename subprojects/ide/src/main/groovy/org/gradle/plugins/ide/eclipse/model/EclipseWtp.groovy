@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
 
 /**
  * Dsl-friendly model of the eclipse wtp information
@@ -156,4 +157,8 @@ class EclipseWtp {
      * For examples see docs for {@link EclipseModel}
      */
     Map<String, File> pathVariables = [:]
+
+    void mergeXmlComponent(WtpComponent xmlComponent) {
+        new WtpComponentFactory().configure(this, xmlComponent)
+    }
 }
