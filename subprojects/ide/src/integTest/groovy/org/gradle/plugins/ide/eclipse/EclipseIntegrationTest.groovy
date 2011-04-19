@@ -227,4 +227,44 @@ dependencies {
         String expectedNonAsciiChars = "\u7777\u8888\u9999"
         assert text.contains(expectedNonAsciiChars)
     }
+
+    @Test
+    void addsLinkToTheOutputFile() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipseProject {
+    link name: 'one', type: '2', location: '/xyz'
+    link name: 'two', type: '3', locationUri: 'file://xyz'
+}
+'''
+
+        //println getProjectFile().text
+        def xml = parseProjectFile()
+        assert xml.links.link[0].name.text() == 'one'
+        assert xml.links.link[0].type.text() == '2'
+        assert xml.links.link[0].location.text() == '/xyz'
+
+        assert xml.links.link[1].name.text() == 'two'
+        assert xml.links.link[1].type.text() == '3'
+        assert xml.links.link[1].locationURI.text() == 'file://xyz'
+    }
+
+    @Test
+    void allowsConfiguringJavaVersionWithSimpleTypes() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipseJdt {
+    sourceCompatibility = '1.4'
+    targetCompatibility = 1.3
+}
+'''
+
+        def jdt = parseJdtFile()
+        assert jdt.contains('source=1.4')
+        assert jdt.contains('targetPlatform=1.3')
+    }
 }

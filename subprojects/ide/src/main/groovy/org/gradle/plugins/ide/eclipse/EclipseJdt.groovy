@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.JavaVersion
 import org.gradle.plugins.ide.api.GeneratorTask
+import org.gradle.plugins.ide.eclipse.model.EclipseProject
 import org.gradle.plugins.ide.eclipse.model.Jdt
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
 
@@ -24,15 +25,33 @@ import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurat
  * Generates the Eclipse JDT configuration file.
  */
 class EclipseJdt extends GeneratorTask<Jdt> {
+
+    /**
+     * Eclipse project model that contains information needed for this task
+     */
+    EclipseProject projectModel
+
     /**
      * The source Java language level.
      */
-    JavaVersion sourceCompatibility
+    JavaVersion getSourceCompatibility() {
+        projectModel.sourceCompatibility
+    }
+
+    void setSourceCompatibility(Object sourceCompatibility) {
+        projectModel.sourceCompatibility = sourceCompatibility
+    }
 
     /**
      * The target JVM to generate {@code .class} files for.
      */
-    JavaVersion targetCompatibility
+    JavaVersion getTargetCompatibility() {
+        projectModel.targetCompatibility
+    }
+
+    void setTargetCompatibility(Object targetCompatibility) {
+        projectModel.targetCompatibility = targetCompatibility
+    }
 
     EclipseJdt() {
         generator = new PersistableConfigurationObjectGenerator<Jdt>() {
@@ -41,8 +60,8 @@ class EclipseJdt extends GeneratorTask<Jdt> {
             }
 
             void configure(Jdt jdt) {
-                jdt.sourceCompatibility = getSourceCompatibility()
-                jdt.targetCompatibility = getTargetCompatibility()
+                jdt.sourceCompatibility = getProjectModel().sourceCompatibility
+                jdt.targetCompatibility = getProjectModel().targetCompatibility
             }
         }
     }

@@ -49,6 +49,9 @@ eclipse {
 
     link name: 'linkToFolderFoo', type: 'aFolderFoo', location: '/test/folders/foo'
     link name: 'linkToUriFoo', type: 'aFooUri', locationUri: 'http://test/uri/foo'
+
+    sourceCompatibility = 1.4
+    targetCompatibility = 1.3
   }
 }
         """
@@ -67,6 +70,10 @@ eclipse {
 
         contains('linkToFolderFoo', 'aFolderFoo', '/test/folders/foo')
         contains('linkToUriFoo', 'aFooUri', 'http://test/uri/foo')
+
+        def jdt = parseJdtFile()
+        assert jdt.contains('targetPlatform=1.3')
+        assert jdt.contains('source=1.4')
     }
 
     protected def contains(String ... contents) {

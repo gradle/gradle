@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.JavaVersion
 
 /**
  * DSL-friendly model of the eclipse project needed for .project generation
@@ -55,6 +56,10 @@ import org.gradle.api.InvalidUserDataException
  *     link name: 'someLinkByLocationUri', type: 'someLinkType', locationUri: 'file://someUri'
  *     //by location:
  *     link name: 'someLinkByLocation', type: 'someLinkType', location: '/some/location'
+ *
+ *     //if you want to alter the java versions (by default they are configured with gradle java plugin settings):
+ *     sourceCompatibility = 1.6
+ *     targetCompatibility = 1.5
  *   }
  * }
  * </pre>
@@ -180,6 +185,28 @@ class EclipseProject {
         }
         //TODO SF: move validation here, update tests (once we figure out what links are).
         links << new Link(args.name, args.type, args.location, args.locationUri)
+    }
+
+    /**
+     * The source Java language level.
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     */
+    JavaVersion sourceCompatibility
+
+    void setSourceCompatibility(Object sourceCompatibility) {
+        this.sourceCompatibility = JavaVersion.toVersion(sourceCompatibility)
+    }
+
+    /**
+     * The target JVM to generate {@code .class} files for.
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     */
+    JavaVersion targetCompatibility
+
+    void setTargetCompatibility(Object targetCompatibility) {
+        this.targetCompatibility = JavaVersion.toVersion(targetCompatibility)
     }
 
     /*****/

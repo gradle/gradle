@@ -57,6 +57,10 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
         parseFile(options, ".settings/org.eclipse.wst.common.project.facet.core.xml")
     }
 
+    protected String parseJdtFile() {
+        return getFile([:], '.settings/org.eclipse.jdt.core.prefs').text
+    }
+
     protected findEntries(classpath, kind) {
         classpath.classpathentry.findAll { it.@kind == kind }
     }

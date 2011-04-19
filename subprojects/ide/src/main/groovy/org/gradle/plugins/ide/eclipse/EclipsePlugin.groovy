@@ -66,16 +66,17 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseProject(Project project) {
         addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
+            //task properties:
             description = "Generates the Eclipse project file."
+            inputFile = project.file('.project')
+            outputFile = project.file('.project')
 
+            //model:
             model.project = services.get(ClassGenerator).newInstance(EclipseProject)
             projectModel = model.project
 
             projectModel.name = project.name
             projectModel.conventionMapping.comment = { project.description }
-
-            inputFile = project.file('.project')
-            outputFile = project.file('.project')
 
             project.plugins.withType(JavaBasePlugin) {
                 projectModel.buildCommand "org.eclipse.jdt.core.javabuilder"
@@ -118,10 +119,12 @@ class EclipsePlugin extends IdePlugin {
 
         project.plugins.withType(JavaBasePlugin) {
             addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) {
+                //task properties:
                 description = "Generates the Eclipse classpath file."
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
 
+                //model properties:
                 classpath = model.classpath
 
                 classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property?
@@ -152,11 +155,14 @@ class EclipsePlugin extends IdePlugin {
     private void configureEclipseJdt(Project project) {
         project.plugins.withType(JavaBasePlugin) {
             addEclipsePluginTask(project, this, ECLIPSE_JDT_TASK_NAME, EclipseJdt) {
+                //task properties:
                 description = "Generates the Eclipse JDT settings file."
                 outputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
                 inputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
-                conventionMapping.sourceCompatibility = { project.sourceCompatibility }
-                conventionMapping.targetCompatibility = { project.targetCompatibility }
+                //model properties:
+                projectModel = model.project
+                projectModel.conventionMapping.sourceCompatibility = { project.sourceCompatibility }
+                projectModel.conventionMapping.targetCompatibility = { project.targetCompatibility }
             }
         }
     }
