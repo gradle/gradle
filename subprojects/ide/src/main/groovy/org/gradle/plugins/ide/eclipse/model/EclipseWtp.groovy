@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
+import org.gradle.util.ConfigureUtil
 
 /**
  * Dsl-friendly model of the eclipse wtp information
@@ -61,6 +62,9 @@ import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
  *
  *     //you can add a wb-property elements; mandatory keys: 'name', 'value':
  *     property name: 'moodOfTheDay', value: ':-D'
+ *
+ *     //you can add some extra wtp facets; mandatory keys: 'name', 'version':
+ *     facet name: 'someCoolFacet', version: '1.3'
  *   }
  * }
  *
@@ -117,7 +121,7 @@ class EclipseWtp {
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
     void resource(Map<String, String> args) {
-        //TODO SF validation
+        //TODO SF validation - use configure by map? other places as well
         resources.add(new WbResource(args.deployPath, args.sourcePath))
     }
 
@@ -146,6 +150,25 @@ class EclipseWtp {
      * For examples see docs for {@link EclipseWtp}
      */
     String contextPath
+
+    /**
+     * The facets to be added as elements.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
+    List<Facet> facets = []
+
+    /**
+     * Adds a facet.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @param args A map that must contain a 'name' and 'version' key with corresponding values.
+     */
+    void facet(Map<String, ?> args) {
+        facets << ConfigureUtil.configureByMap(args, new Facet())
+    }
 
     //********
 

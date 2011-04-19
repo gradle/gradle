@@ -16,10 +16,10 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.plugins.ide.api.XmlGeneratorTask
+import org.gradle.plugins.ide.eclipse.model.EclipseWtp
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.WtpFacet
 import org.gradle.plugins.ide.eclipse.model.internal.WtpFacetFactory
-import org.gradle.util.ConfigureUtil
 
 /**
  * Generates the org.eclipse.wst.common.project.facet.core settings file for Eclipse WTP.
@@ -27,11 +27,19 @@ import org.gradle.util.ConfigureUtil
  * @author Hans Dockter
  */
 class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
+
+    EclipseWtp wtp
+
     /**
      * The facets to be added as elements.
      */
-    // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
-    List<Facet> facets = []
+    List<Facet> getFacets() {
+        wtp.facets
+    }
+
+    void setFacets(List<Facet> facets) {
+        wtp.facets = facets
+    }
 
     protected WtpFacetFactory modelFactory = new WtpFacetFactory()
 
@@ -50,9 +58,9 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
     /**
      * Adds a facet.
      *
-     * @param args A map that must contain a name and version key with corresponding values.
+     * @param args A map that must contain a 'name' and 'version' key with corresponding values.
      */
     void facet(Map<String, ?> args) {
-        facets << ConfigureUtil.configureByMap(args, new Facet())
+        wtp.facet(args)
     }
 }

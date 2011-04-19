@@ -29,7 +29,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 
-    String content
+    String component
 
     @Test
     void allowsConfiguringEclipseProject() {
@@ -79,18 +79,21 @@ eclipse {
     resource sourcePath: './src/foo/bar', deployPath: './deploy/foo/bar'
 
     property name: 'wbPropertyOne', value: 'New York!'
+
+    facet name: 'gradleFacet', version: '1.333'
   }
 }
         """
 
-        content = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        println content //TODO SF after completing the refactoring, get rid of the printlns
+        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
+        def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
+        println facet //TODO SF after completing the refactoring, get rid of the printlns
 
-        //then
+        //then component:
         contains('someExtraSourceDir')
 
         contains('foo-1.0.jar', 'bar-1.0.jar')
-        assert !content.contains('baz-1.0.jar')
+        assert !component.contains('baz-1.0.jar')
 
         contains('someBetterDeployName')
 
@@ -100,6 +103,9 @@ eclipse {
         contains('wbPropertyOne', 'New York!')
 
         contains('killerApp')
+
+        assert facet.contains('gradleFacet')
+        assert facet.contains('1.333')
     }
 
     @Ignore("TODO SF does not work at the moment")
@@ -136,6 +142,6 @@ eclipse {
     }
 
     protected def contains(String ... contents) {
-        contents.each { assert content.contains(it)}
+        contents.each { assert component.contains(it)}
     }
 }

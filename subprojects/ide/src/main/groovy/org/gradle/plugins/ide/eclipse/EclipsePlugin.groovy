@@ -215,17 +215,25 @@ class EclipsePlugin extends IdePlugin {
     private void configureEclipseWtpFacet(Project project) {
         project.plugins.withType(WarPlugin) {
             addEclipsePluginTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
+                //task properties:
                 description = 'Generates the Eclipse WTP facet settings file.'
                 inputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                 outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-                conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
+
+                //model properties:
+                wtp = model.wtp
+                wtp.conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
             }
 
             eachDependedUponProject(project) { otherProject ->
                 addEclipsePluginTask(otherProject, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
+                    //task properties:
                     description = 'Generates the Eclipse WTP facet settings file.'
                     inputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+
+                    //model properties:
+                    wtp = model.wtp
                     conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
                     otherProject.plugins.withType(JavaPlugin) {
                         conventionMapping.facets = {
