@@ -36,7 +36,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
     private final static String VERSION = "version";
     private final static String FILE_NAME = "/org/gradle/version.properties";
     public final static String URL = "http://www.gradle.org";
-    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+))?(-(\\d{14}[-+]\\d{4}))?");
+    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}[-+]\\d{4}))?");
 
     private final String version;
     private final String buildTime;
@@ -76,7 +76,8 @@ public class GradleVersion implements Comparable<GradleVersion> {
             } else if (matcher.group(4).equals("rc")) {
                 stageNumber = 3;
             }
-            stage = new Stage(stageNumber, Integer.parseInt(matcher.group(5)));
+            String stageString = matcher.group(5);
+            stage = new Stage(stageNumber, stageString);
         } else {
             stage = null;
         }
@@ -192,13 +193,26 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return sb.toString();
     }
 
-    private static final class Stage implements Comparable<Stage> {
+    static final class Stage implements Comparable<Stage> {
         final int stage;
         final int number;
+        final Character patchNo;
 
-        private Stage(int stage, int number) {
+        Stage(int stage, String number) {
             this.stage = stage;
-            this.number = number;
+            Matcher m = Pattern.compile("(\\d+)([a-z])?").matcher(number);
+            try {
+                m.matches();
+                this.number = Integer.parseInt(m.group(1));
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid stage small number: " + number, e);
+            }
+
+            if (m.groupCount() == 2 && m.group(2) != null) {
+                this.patchNo = m.group(2).charAt(0);
+            } else {
+                this.patchNo = '_';
+            }
         }
 
         public int compareTo(Stage other) {
@@ -212,6 +226,12 @@ public class GradleVersion implements Comparable<GradleVersion> {
                 return 1;
             }
             if (number < other.number) {
+                return -1;
+            }
+            if (patchNo > other.patchNo) {
+                return 1;
+            }
+            if (patchNo < other.patchNo) {
                 return -1;
             }
             return 0;

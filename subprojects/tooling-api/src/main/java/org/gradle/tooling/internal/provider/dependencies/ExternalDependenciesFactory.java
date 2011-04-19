@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.dependencies;
 
 import org.gradle.api.Project;
-import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.Library;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
@@ -30,8 +29,7 @@ import java.util.List;
  * @author Szczepan Faber, @date: 23.03.11
  */
 public class ExternalDependenciesFactory {
-    public List<ExternalDependencyVersion1> create(final Project project, Classpath classpath) {
-        List<ClasspathEntry> entries = classpath.getEntries();
+    public List<ExternalDependencyVersion1> create(final Project project, List<ClasspathEntry> entries) {
         List<ExternalDependencyVersion1> dependencies = new LinkedList<ExternalDependencyVersion1>();
         for (ClasspathEntry entry : entries) {
             if (entry instanceof Library) {

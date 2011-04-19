@@ -34,30 +34,6 @@ class EclipsePluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final EclipsePlugin eclipsePlugin = new EclipsePlugin()
 
-    def "adds configurer task to root project only"() {
-        given:
-        def child = HelperUtil.createChildProject(project, "child")
-
-        when:
-        eclipsePlugin.apply(child)
-        eclipsePlugin.apply(project)
-
-        then:
-        project.eclipseConfigurer instanceof EclipseConfigurer
-        child.tasks.findByName('eclipseConfigurer') == null
-    }
-
-    def "makes sure that generator tasks are configured before they act"() {
-        when:
-        project.apply(plugin: 'java-base')
-        eclipsePlugin.apply(project)
-
-        then:
-        [project.eclipseClasspath, project.eclipseJdt, project.eclipseProject].each {
-            assert it.dependsOn.contains(project.eclipseConfigurer)
-        }
-    }
-
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {
         when:
         eclipsePlugin.apply(project)
@@ -148,9 +124,18 @@ class EclipsePluginTest extends Specification {
         checkEclipseClasspath([project.configurations.testRuntime])
     }
 
+    def "creates empty classpath model for non java projects"() {
+        when:
+        eclipsePlugin.apply(project)
+
+        then:
+        eclipsePlugin.model.classpath
+        eclipsePlugin.model.classpath.classesOutputDir
+    }
+
     private void checkEclipseProjectTask(List buildCommands, List natures) {
-        EclipseProject eclipseProjectTask = project.eclipseProject
-        assert eclipseProjectTask instanceof EclipseProject
+        GenerateEclipseProject eclipseProjectTask = project.eclipseProject
+        assert eclipseProjectTask instanceof GenerateEclipseProject
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseProjectTask)
         assert eclipseProjectTask.buildCommands == buildCommands
         assert eclipseProjectTask.natures == natures
@@ -162,8 +147,8 @@ class EclipsePluginTest extends Specification {
     }
 
     private void checkEclipseClasspath(def configurations) {
-        EclipseClasspath eclipseClasspath = project.eclipseClasspath
-        assert eclipseClasspath instanceof EclipseClasspath
+        GenerateEclipseClasspath eclipseClasspath = project.eclipseClasspath
+        assert eclipseClasspath instanceof GenerateEclipseClasspath
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseClasspath)
         assert eclipseClasspath.sourceSets == project.sourceSets
         assert eclipseClasspath.plusConfigurations == configurations

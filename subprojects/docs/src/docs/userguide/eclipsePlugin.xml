@@ -155,7 +155,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.ide.eclipse.EclipseProject"/></td>
+                <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseProject"/></td>
                 <td>Generates the <filename>.project</filename> file.</td>
             </tr>
             <tr>
@@ -165,7 +165,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.ide.eclipse.EclipseClasspath"/></td>
+                <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath"/></td>
                 <td>Generates the <filename>.classpath</filename> file.</td>
             </tr>
             <tr>
@@ -500,13 +500,13 @@
                     </tr>
                 </thead>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.EclipseProject"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseProject"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Project"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Project"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.EclipseClasspath"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Classpath"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Classpath"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>

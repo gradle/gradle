@@ -18,15 +18,14 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.plugins.ide.eclipse.internal.EclipseDomainModelFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.eclipse.model.*
-import org.gradle.plugins.ide.internal.generator.generator.ConfigurationTarget
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -42,9 +41,7 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
 
-    EclipseDomainModel getEclipseDomainModel() {
-        new EclipseDomainModelFactory().create(project)
-    }
+    EclipseModel model = new EclipseModel()
 
     @Override protected String getLifecycleTaskName() {
         return 'eclipse'
@@ -53,69 +50,62 @@ class EclipsePlugin extends IdePlugin {
     @Override protected void onApply(Project project) {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
-        configureEclipseConfigurer(project)
+
+        project.convention.plugins.eclipse = model
+
         configureEclipseProject(project)
         configureEclipseClasspath(project)
         configureEclipseJdt(project)
         configureEclipseWtpComponent(project)
         configureEclipseWtpFacet(project)
-        configureDependenciesOfConfigurationTasks(project)
-    }
 
-    private def configureDependenciesOfConfigurationTasks(Project project) {
-        project.tasks.withType(ConfigurationTarget) { task ->
-            //making sure eclipse plugin configurer acts before generator tasks
-            task.dependsOn(project.rootProject.eclipseConfigurer)
-        }
-    }
-
-    def configureEclipseConfigurer(Project project) {
-        def root = project.rootProject
-        def task = root.tasks.findByName('eclipseConfigurer')
-        //making sure configurer is created once and added to the root project only
-        if (!task) {
-            task = root.task('eclipseConfigurer', description: 'Performs extra configuration on eclipse generator tasks', type: EclipseConfigurer)
-            addWorker(task)
+        project.afterEvaluate {
+            new EclipseConfigurer().configure(project)
         }
     }
 
     private void configureEclipseProject(Project project) {
-        addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, EclipseProject) {
-            projectName = project.name
+        addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
             description = "Generates the Eclipse project file."
+
+            model.project = services.get(ClassGenerator).newInstance(EclipseProject)
+            projectModel = model.project
+
+            projectModel.name = project.name
+            projectModel.conventionMapping.comment = { project.description }
+
             inputFile = project.file('.project')
             outputFile = project.file('.project')
-            conventionMapping.comment = { project.description }
 
             project.plugins.withType(JavaBasePlugin) {
-                buildCommand "org.eclipse.jdt.core.javabuilder"
-                natures "org.eclipse.jdt.core.javanature"
+                projectModel.buildCommand "org.eclipse.jdt.core.javabuilder"
+                projectModel.natures "org.eclipse.jdt.core.javanature"
             }
 
             project.plugins.withType(GroovyBasePlugin) {
-                natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.eclipse.jdt.groovy.core.groovyNature")
+                projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.eclipse.jdt.groovy.core.groovyNature")
             }
 
             project.plugins.withType(ScalaBasePlugin) {
-                buildCommands.set(buildCommands.findIndexOf { it.name == "org.eclipse.jdt.core.javabuilder" },
+                projectModel.buildCommands.set(buildCommands.findIndexOf { it.name == "org.eclipse.jdt.core.javabuilder" },
                         new BuildCommand("ch.epfl.lamp.sdt.core.scalabuilder"))
-                natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
+                projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
             }
 
             project.plugins.withType(WarPlugin) {
-                buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                natures 'org.eclipse.wst.common.project.facet.core.nature'
-                natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                natures 'org.eclipse.jem.workbench.JavaEMFNature'
+                projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
 
                 eachDependedUponProject(project) { Project otherProject ->
                     configureTask(otherProject, ECLIPSE_PROJECT_TASK_NAME) {
-                        buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                        buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                        natures 'org.eclipse.wst.common.project.facet.core.nature'
-                        natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                        natures 'org.eclipse.jem.workbench.JavaEMFNature'
+                        projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                        projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                        projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                        projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                        projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
                     }
                 }
             }
@@ -123,17 +113,22 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(Project project) {
+        model.classpath = project.services.get(ClassGenerator).newInstance(EclipseClasspath, [project: project])
+        model.classpath.conventionMapping.classesOutputDir = { new File(project.projectDir, 'bin') }
+
         project.plugins.withType(JavaBasePlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, EclipseClasspath) {
+            addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) {
                 description = "Generates the Eclipse classpath file."
-                containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
-                sourceSets = project.sourceSets
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
-                conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
+
+                classpath = model.classpath
+
+                classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property?
+                classpath.containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
 
                 project.plugins.withType(JavaPlugin) {
-                    plusConfigurations = [project.configurations.testRuntime]
+                    classpath.plusConfigurations = [project.configurations.testRuntime]
                 }
 
                 project.plugins.withType(WarPlugin) {

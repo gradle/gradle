@@ -61,6 +61,7 @@ import org.gradle.api.*
 import org.gradle.api.internal.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.internal.Factory
 
 /**
  * @author Hans Dockter

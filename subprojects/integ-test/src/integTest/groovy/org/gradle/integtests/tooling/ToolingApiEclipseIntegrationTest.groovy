@@ -172,6 +172,8 @@ dependencies { compile files { throw new RuntimeException() } }
         notThrown(Exception)
     }
 
+    //TODO SF: write a test that checks if minimal project has necessary project dependencies
+
     def "can build the minimal Eclipse model for a java project with the idea plugin applied"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''

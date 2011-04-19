@@ -19,59 +19,25 @@ import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomFactory;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import org.gradle.logging.LoggingManagerInternal;
 
 import java.util.Map;
 
 public class DefaultMavenFactory implements MavenFactory {
-    public ArtifactPomFactory createArtifactPomFactory() {
-        return new DefaultArtifactPomFactory();
+
+    public Factory<MavenPom> createMavenPomFactory(ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer conf2ScopeMappingContainer, FileResolver fileResolver) {
+        return new DefaultMavenPomFactory(configurationContainer, conf2ScopeMappingContainer, createPomDependenciesConverter(), fileResolver);
     }
 
-    public Factory<MavenPom> createMavenPomFactory(ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer mappingContainer,
-                                                   PomDependenciesConverter dependenciesConverter, FileResolver fileResolver) {
-        return new DefaultMavenPomFactory(configurationContainer, mappingContainer, dependenciesConverter, fileResolver);
+    public Factory<MavenPom> createMavenPomFactory(ConfigurationContainer configurationContainer, Map<Configuration, Conf2ScopeMapping> mappings, FileResolver fileResolver) {
+        return new DefaultMavenPomFactory(configurationContainer, createConf2ScopeMappingContainer(mappings), createPomDependenciesConverter(), fileResolver);
     }
 
-    public PomDependenciesConverter createPomDependenciesConverter(ExcludeRuleConverter excludeRuleConverter) {
-        return new DefaultPomDependenciesConverter(excludeRuleConverter);
-    }
-
-    public ExcludeRuleConverter createExcludeRuleConverter() {
-        return new DefaultExcludeRuleConverter();
-    }
-
-    public ArtifactPomContainer createArtifactPomContainer(MavenPomMetaInfoProvider pomMetaInfoProvider, PomFilterContainer filterContainer,
-                                                           ArtifactPomFactory pomFactory) {
-        return new DefaultArtifactPomContainer(pomMetaInfoProvider, filterContainer, pomFactory);
-    }
-
-    public GroovyMavenDeployer createGroovyMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
-        return new DefaultGroovyMavenDeployer(name, pomFilterContainer, artifactPomContainer, loggingManager);
-    }
-
-    public PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory) {
-        return new BasePomFilterContainer(mavenPomFactory);
-    }
-
-    public MavenResolver createMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
-        return new BaseMavenInstaller(name, pomFilterContainer, artifactPomContainer, loggingManager);
-    }
-
-    public LocalMavenCacheLocator createLocalMavenCacheLocator() {
-        return new DefaultLocalMavenCacheLocator();
+    private PomDependenciesConverter createPomDependenciesConverter() {
+        return new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter());
     }
 
     public Conf2ScopeMappingContainer createConf2ScopeMappingContainer(Map<Configuration, Conf2ScopeMapping> mappings) {

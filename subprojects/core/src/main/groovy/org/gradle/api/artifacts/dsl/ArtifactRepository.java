@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.dependencies;
-
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-
-import java.util.List;
-import java.util.Set;
+package org.gradle.api.artifacts.dsl;
 
 /**
- * @author Hans Dockter
+ * A repository for resolving and publishing artifacts.
  */
-public interface PomDependenciesConverter {
-    public List<?> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations);
+public interface ArtifactRepository {
+    /**
+     * Returns the name for this repository.
+     *
+     * @return The name.
+     */
+    String getName();
+
+    /**
+     * Sets the name for this repository.
+     *
+     * @param name The name. Must not be null.
+     */
+    void setName(String name);
 }

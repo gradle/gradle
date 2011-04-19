@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.maven.MavenPom;
+package org.gradle.integtests.samples
 
-import java.io.PrintWriter;
-import java.util.Set;
+import org.gradle.integtests.fixtures.internal.AbstractAutoTestedSamplesTest
+import org.junit.Test
 
 /**
- * @author Hans Dockter
+ * Author: Szczepan Faber, created at: 3/28/11
  */
-public interface PomDependenciesWriter {
-    String DEPENDENCIES = "dependencies";
+class CoreAutoTestedSamplesTest extends AbstractAutoTestedSamplesTest {
 
-    void convert(MavenPom pom, Set<Configuration> configurations, PrintWriter printWriter);
+    @Test
+    void runSamples() {
+        runSamplesFrom("subprojects/core/src/main/groovy/org/gradle/api/tasks")
+    }
 }

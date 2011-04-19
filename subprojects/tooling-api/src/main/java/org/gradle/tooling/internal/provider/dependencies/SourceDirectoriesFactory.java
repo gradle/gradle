@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.dependencies;
 
 import org.gradle.api.Project;
-import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
@@ -30,9 +29,8 @@ import java.util.List;
  * @author Szczepan Faber, @date: 20.03.11
  */
 public class SourceDirectoriesFactory {
-    public List<EclipseSourceDirectoryVersion1> create(Project project, Classpath classpath) {
+    public List<EclipseSourceDirectoryVersion1> create(Project project, List<ClasspathEntry> entries) {
         List<EclipseSourceDirectoryVersion1> sourceDirectories = new ArrayList<EclipseSourceDirectoryVersion1>();
-        List<ClasspathEntry> entries = classpath.getEntries();
         for (ClasspathEntry entry : entries) {
             if (entry instanceof SourceFolder) {
                 String path = ((SourceFolder) entry).getPath();

@@ -161,13 +161,13 @@
                 <td>org.gradle.api.tasks.diagnostics.DependencyReportTask</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.ide.eclipse.EclipseClasspath</td>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.ide.eclipse.EclipseJdt</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.ide.eclipse.EclipseProject</td>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseProject</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.ide.eclipse.EclipseWtpComponent</td>

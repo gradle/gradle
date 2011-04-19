@@ -24,8 +24,6 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
-import static org.codehaus.groovy.runtime.InvokerHelper.asList;
-
 public class DefaultConnection implements ConnectionVersion4 {
     private final ConnectionParametersVersion1 parameters;
     private Worker worker;
@@ -100,21 +98,17 @@ public class DefaultConnection implements ConnectionVersion4 {
             }
             
             StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
-            startParameter.setTaskNames(asList(":eclipseConfigurer"));
 
             GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
 
             ModelBuildingAdapter adapter = new ModelBuildingAdapter();
             gradleLauncher.addListener(adapter);
 
-            boolean fullModel = EclipseProjectVersion3.class.isAssignableFrom(type);
+            boolean projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
             boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
-            if (fullModel) {
-                adapter.setConfigurer(new EclipsePluginApplier());
-            } else {
-                adapter.setConfigurer(new MinimalModelConfigurer());
-            }
-            adapter.setBuilder(new ModelBuilder(includeTasks));
+
+            adapter.setConfigurer(new EclipsePluginApplier());
+            adapter.setBuilder(new ModelBuilder(includeTasks, projectDependenciesOnly));
 
             runAndWrapFailure(gradleLauncher);
             return type.cast(adapter.getProject());

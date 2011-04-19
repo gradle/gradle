@@ -56,8 +56,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     //and the implementation of this task will dwindle into few lines of code or disappear completely
 
     @Override protected Module create() {
-        Module xmlModule = new Module(xmlTransformer, module.pathFactory)
-        return xmlModule
+        new Module(xmlTransformer, module.pathFactory)
     }
 
     @Override protected void configure(Module xmlModule) {

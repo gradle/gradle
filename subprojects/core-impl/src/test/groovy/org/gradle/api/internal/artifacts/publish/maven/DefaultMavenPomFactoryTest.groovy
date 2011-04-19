@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.publish.maven;
 
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter
+
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 

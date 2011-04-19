@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy;
+package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.api.artifacts.maven.MavenPom;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.artifacts.dsl.ArtifactRepository;
 
-/**
- * @author Hans Dockter
- */
-public interface ArtifactPomFactory {
-    ArtifactPom createArtifactPom(MavenPom pom);
+import java.util.Collection;
+
+public interface ArtifactRepositoryInternal extends ArtifactRepository {
+    /**
+     * Creates the resolvers for this repository.
+     *
+     * @param resolvers The collection to add the resolvers for this repository.
+     */
+    void createResolvers(Collection<DependencyResolver> resolvers);
 }

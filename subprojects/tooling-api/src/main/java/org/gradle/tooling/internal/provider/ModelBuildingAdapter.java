@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 
@@ -50,16 +49,8 @@ public class ModelBuildingAdapter extends BuildAdapter {
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
-        if (configurer != null) {
-            configurer.configure((GradleInternal) gradle);
-        }
-    }
-
-    @Override
-    public void buildFinished(BuildResult result) {
-        if (result.getFailure() == null) {
-            builder.buildAll((GradleInternal) result.getGradle());
-        }
+        configurer.configure((GradleInternal) gradle);
+        builder.buildAll((GradleInternal) gradle);
     }
 
     public DefaultEclipseProject getProject() {

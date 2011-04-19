@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.dependencies
 
 import org.gradle.api.Project
-import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.Library
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import spock.lang.Specification
@@ -34,13 +33,12 @@ class ExternalDependenciesFactoryTest extends Specification {
         def project = Mock(Project)
         def somePathDir = new File('/projects/someLibrary')
         project.file('someLibrary') >> { somePathDir }
-        def classpath = new Classpath()
-        classpath.entries = [
+        def entries = [
                 new SourceFolder('foo', '', [] as Set, '', [], []),
                 new Library('someLibrary', true, '', [] as Set, '', '') ]
 
         when:
-        def deps = factory.create(project, classpath)
+        def deps = factory.create(project, entries)
 
         then:
         deps.size() == 1

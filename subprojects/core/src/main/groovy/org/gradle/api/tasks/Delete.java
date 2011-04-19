@@ -23,7 +23,12 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * <p>Deletes files or directories.</p>
+ * <p>Deletes files or directories. Example:</p>
+ * <pre autoTested=''>
+ * task makePretty(type: Delete) {
+ *   delete 'uglyFolder', 'uglyFile'
+ * }
+ * </pre>
  *
  * @author Hans Dockter
  */

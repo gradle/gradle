@@ -13,29 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy;
+package org.gradle.api.internal.artifacts.publish.maven;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.ExcludeRule;
 
-import java.io.File;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public interface ArtifactPom {
-    /**
-     * @return The main artifact, may be null.
-     */
-    PublishArtifact getArtifact();
-
-    MavenPom getPom();
-
-    void addArtifact(Artifact artifact, File src);
-
-    Set<PublishArtifact> getAttachedArtifacts();
-
-    PublishArtifact writePom(File pomFile);
+public interface ExcludeRuleConverter {
+    Object convert(ExcludeRule excludeRule);
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.dependencies
 
-import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
@@ -33,14 +32,13 @@ class EclipseProjectDependenciesFactoryTest extends Specification {
         given:
         def projectAInstance = Mock(EclipseProjectVersion3)
         def projectMapping = [':projectA' : projectAInstance]
-        def classpath = new Classpath()
-        classpath.entries = [
+        def entries = [
                 new SourceFolder('foo', '', [] as Set, '', [], []),
                 new ProjectDependency('/projectA', true, '', [] as Set, ':projectA'),
                 new ProjectDependency('/projectB', true, '', [] as Set, ':projectB') ]
 
         when:
-        def deps = factory.create(projectMapping, classpath)
+        def deps = factory.create(projectMapping, entries)
 
         then:
         deps.size() == 2

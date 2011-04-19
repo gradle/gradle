@@ -30,6 +30,7 @@ class MavenSnapshotIntegrationTest {
     @Rule public GradleDistribution distribution = new GradleDistribution()
     @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final TestResources testResources = new TestResources()
+    @Rule public final HttpServer server = new HttpServer()
 
     @Before
     public void setup() {
@@ -64,8 +65,7 @@ class MavenSnapshotIntegrationTest {
 
     @Test
     public void retrievesAndCacheSnapshotViaHttp() {
-        HttpServer server = new HttpServer()
-        server.add('/repo', distribution.testFile('repo'))
+        server.allowGet('/repo', distribution.testFile('repo'))
         server.start()
         String repoUrl = "-PrepoUrl=http://localhost:${server.port}/repo"
 
@@ -91,7 +91,5 @@ class MavenSnapshotIntegrationTest {
         // Retrieve again with zero timeout should use updated snapshot
         executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments("-PnoTimeout", repoUrl).run().assertTasksNotSkipped(':retrieve')
         jarFile.assertHasChangedSince(snapshot)
-        
-        server.stop()
     }
 }
