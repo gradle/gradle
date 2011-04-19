@@ -21,7 +21,7 @@ import org.gradle.util.ConfigureUtil
  * DSL-friendly model of the Eclipse project information.
  * First point of entry when it comes to customizing the eclipse generation
  * <p>
- * See the examples in docs for {@link EclipseProject}
+ * See the examples in docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
  * <p>
  * Author: Szczepan Faber, created at: 4/13/11
  */
@@ -29,6 +29,7 @@ class EclipseModel {
 
     EclipseProject project
     EclipseClasspath classpath
+    EclipseWtp wtp
 
     void project(Closure closure) {
         ConfigureUtil.configure(closure, project)
@@ -36,5 +37,9 @@ class EclipseModel {
 
     void classpath(Closure closure) {
         ConfigureUtil.configure(closure, classpath)
+    }
+
+    void wtp(Closure closure) {
+        ConfigureUtil.configure(closure, wtp)
     }
 }

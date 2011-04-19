@@ -171,15 +171,22 @@ class EclipsePlugin extends IdePlugin {
     private void configureEclipseWtpComponent(Project project) {
         project.plugins.withType(WarPlugin) {
             addEclipsePluginTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
+                //task properties:
                 description = 'Generates the Eclipse WTP component settings file.'
+                inputFile = project.file('.settings/org.eclipse.wst.common.component')
+                outputFile = project.file('.settings/org.eclipse.wst.common.component')
+
+                //model properties:
+                wtp = services.get(ClassGenerator).newInstance(EclipseWtp)
+                model.wtp = wtp
+
+                wtp.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
+
                 deployName = project.name
-                conventionMapping.sourceDirs = { getMainSourceDirs(project) }
                 plusConfigurations = [project.configurations.runtime]
                 minusConfigurations = [project.configurations.providedRuntime]
                 conventionMapping.contextPath = { project.war.baseName }
                 resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
-                inputFile = project.file('.settings/org.eclipse.wst.common.component')
-                outputFile = project.file('.settings/org.eclipse.wst.common.component')
             }
 
             eachDependedUponProject(project) { otherProject ->
@@ -187,13 +194,19 @@ class EclipsePlugin extends IdePlugin {
                 // (in the absence of 'main', it probably makes no sense to write the file)
                 otherProject.plugins.withType(JavaPlugin) {
                     addEclipsePluginTask(otherProject, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
+                        //task properties:
                         description = 'Generates the Eclipse WTP component settings file.'
+                        inputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
+                        outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
+
+                        //model properties:
+                        wtp = services.get(ClassGenerator).newInstance(EclipseWtp)
+                        otherProject.plugins.withType(EclipsePlugin) { it.model.wtp = wtp }
+
                         deployName = otherProject.name
                         conventionMapping.resources = {
                             getMainSourceDirs(otherProject).collect { new WbResource("/", otherProject.relativePath(it)) }
                         }
-                        inputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
-                        outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
                     }
                 }
             }
