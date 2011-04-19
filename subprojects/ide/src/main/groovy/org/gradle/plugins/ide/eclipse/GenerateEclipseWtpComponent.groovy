@@ -32,6 +32,18 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
     EclipseWtp wtp
 
+    GenerateEclipseWtpComponent() {
+        xmlTransformer.indentation = "\t"
+    }
+
+    @Override protected WtpComponent create() {
+        new WtpComponent(xmlTransformer)
+    }
+
+    @Override protected void configure(WtpComponent component) {
+        new WtpComponentFactory().configure(this, component)
+    }
+
     /**
      * The source directories to be transformed into wb-resource elements.
      */
@@ -119,20 +131,6 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
     void setContextPath(String contextPath) {
         wtp.contextPath = contextPath
-    }
-
-    private final WtpComponentFactory modelFactory = new WtpComponentFactory()
-
-    GenerateEclipseWtpComponent() {
-        xmlTransformer.indentation = "\t"
-    }
-
-    @Override protected WtpComponent create() {
-        new WtpComponent(xmlTransformer)
-    }
-
-    @Override protected void configure(WtpComponent component) {
-        modelFactory.configure(this, component)
     }
 
     /**
