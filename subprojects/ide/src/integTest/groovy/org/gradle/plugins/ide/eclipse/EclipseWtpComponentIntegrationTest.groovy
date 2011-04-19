@@ -63,6 +63,9 @@ dependencies {
 }
 
 eclipse {
+
+  pathVariables 'fooVariable' : file('.')
+
   wtp {
     sourceDirs += file('someExtraSourceDir')
 
@@ -84,6 +87,8 @@ eclipse {
         assert !content.contains('baz-1.0.jar')
 
         contains('someBetterDeployName')
+
+//        contains('fooVariable') TODO SF test later once there're more stuff resolved with pathFactory
     }
 
     @Ignore("TODO SF does not work at the moment")

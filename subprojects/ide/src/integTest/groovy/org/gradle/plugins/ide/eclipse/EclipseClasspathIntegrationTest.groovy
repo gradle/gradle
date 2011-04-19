@@ -50,13 +50,14 @@ dependencies {
 }
 
 eclipse {
+
+  pathVariables fooPathVariable: new File('.')
+
   classpath {
     sourceSets = []
 
     plusConfigurations += configurations.someConfig
     minusConfigurations += configurations.someOtherConfig
-
-    pathVariables fooPathVariable: new File('.')
 
     containers 'someFriendlyContainer', 'andYetAnotherContainer'
 

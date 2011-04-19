@@ -35,6 +35,11 @@ import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
  * }
  *
  * eclipse {
+ *
+ *   //if you want parts of paths in resulting file to be replaced by variables (files):
+ *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')
+ *
+ *
  *   classpath {
  *     //you can configure the sourceSets however Gradle simply uses current sourceSets
  *     //so it's probably best not to change it.
@@ -83,26 +88,6 @@ class EclipseClasspath {
      * For example see docs for {@link EclipseClasspath}
      */
     Collection<Configuration> minusConfigurations = []
-
-    /**
-     * The path variables to be used for replacing absolute paths in classpath entries.
-     * A map with String->File pairs.
-     * <p>
-     * For example see docs for {@link EclipseClasspath}
-     */
-    Map<String, File> pathVariables = [:]
-
-    /**
-     * Adds path variables to be used for replacing absolute paths in classpath entries.
-     * <p>
-     * For example see docs for {@link EclipseClasspath}
-     *
-     * @param pathVariables A map with String->File pairs.
-     */
-    void pathVariables(Map<String, File> pathVariables) {
-        assert pathVariables != null
-        this.pathVariables.putAll pathVariables
-    }
 
    /**
      * Containers to be added to the classpath
@@ -154,6 +139,13 @@ class EclipseClasspath {
     /******/
 
     org.gradle.api.Project project
+
+    /**
+     * The path variables to be used for replacing absolute paths in classpath entries.
+     * <p>
+     * For example see docs for {@link EclipseModel}
+     */
+    Map<String, File> pathVariables = [:]
 
     /**
      * Modifies the content of plusConfigurations and minusConfigurations by filtering dependencies

@@ -150,6 +150,7 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * @param variables A map where the keys are the variable names and the values are the variable values.
      */
     void variables(Map<String, File> variables) {
-        classpath.pathVariables(variables)
+        assert variables != null
+        classpath.pathVariables.putAll variables
     }
 }

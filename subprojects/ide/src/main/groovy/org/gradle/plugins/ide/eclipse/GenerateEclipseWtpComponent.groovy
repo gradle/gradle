@@ -80,7 +80,13 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     /**
      * The variables to be used for replacing absolute path in dependent-module elements.
      */
-    Map<String, File> variables = [:]
+    Map<String, File> getVariables() {
+        wtp.pathVariables
+    }
+
+    void setVariables(Map<String, File> variables) {
+        wtp.pathVariables = variables
+    }
 
     /**
      * Additional wb-resource elements.
@@ -118,7 +124,7 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
      */
     void variables(Map<String, File> variables) {
         assert variables != null
-        this.variables.putAll variables
+        this.wtp.pathVariables.putAll variables
     }
 
     /**

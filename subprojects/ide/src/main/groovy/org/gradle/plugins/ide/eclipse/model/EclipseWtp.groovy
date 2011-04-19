@@ -35,6 +35,10 @@ import org.gradle.api.artifacts.Configuration
  * }
  *
  * eclipse {
+ *
+ *   //if you want parts of paths in resulting file(s) to be replaced by variables (files):
+ *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')
+ *
  *   wtp {
  *     //you can configure the deployName:
  *     deployName = 'killerApp'
@@ -85,4 +89,13 @@ class EclipseWtp {
      * For examples see docs for {@link EclipseWtp}
      */
     String deployName
+
+    //********
+
+    /**
+     * The variables to be used for replacing absolute path in dependent-module elements.
+     * <p>
+     * For examples see docs for {@link EclipseModel}
+     */
+    Map<String, File> pathVariables = [:]
 }
