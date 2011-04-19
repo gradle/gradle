@@ -13,12 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+aetherVersion = "1.11"
+mavenVersion = "3.0.2"
+wagonVersion = "1.0-beta-7"
+
 dependencies {
     groovy libraries.groovy_depends
 
     compile project(':core')
     compile project(':plugins')
     compile libraries.slf4j_api
+
+    compile "org.sonatype.aether:aether-api:$aetherVersion"
+    compile "org.sonatype.aether:aether-util:$aetherVersion"
+    compile "org.sonatype.aether:aether-impl:$aetherVersion"
+    compile "org.sonatype.aether:aether-connector-file:$aetherVersion"
+    compile "org.sonatype.aether:aether-connector-asynchttpclient:$aetherVersion"
+    compile "org.apache.maven:maven-aether-provider:$mavenVersion"
+    compile "org.apache.maven.wagon:wagon-ssh:$wagonVersion"
+    compile "org.apache.maven:maven-settings-builder:$mavenVersion"
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
