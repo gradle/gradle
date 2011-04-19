@@ -24,7 +24,7 @@ import org.junit.Test
 /**
  * Author: Szczepan Faber, created at: 4/19/11
  */
-class EclipseWtpComponentIntegrationTest extends AbstractEclipseIntegrationTest {
+class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule
     public final TestResources testResources = new TestResources()
