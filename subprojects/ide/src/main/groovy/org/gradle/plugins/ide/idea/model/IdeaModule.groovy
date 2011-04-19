@@ -191,6 +191,8 @@ class IdeaModule {
     /**
      * The directories to be excluded.
      * <p>
+     * Warning - it is a {@link org.gradle.api.dsl.ConvenienceProperty}
+     * <p>
      * For example see docs for {@link IdeaModule}
      */
     Set<File> excludeDirs

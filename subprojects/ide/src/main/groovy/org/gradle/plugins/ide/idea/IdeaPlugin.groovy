@@ -76,7 +76,6 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.name = { project.name }
             module.conventionMapping.contentRoot = { project.projectDir }
             module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
-            //TODO SF document that those properties are 'convenience properties'
             module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
 
             module.conventionMapping.pathFactory = {
