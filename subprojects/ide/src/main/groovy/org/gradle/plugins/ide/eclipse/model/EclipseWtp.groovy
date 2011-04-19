@@ -121,7 +121,7 @@ class EclipseWtp {
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
     void resource(Map<String, String> args) {
-        //TODO SF validation - use configure by map? other places as well
+        //TODO SF validation
         resources.add(new WbResource(args.deployPath, args.sourcePath))
     }
 
