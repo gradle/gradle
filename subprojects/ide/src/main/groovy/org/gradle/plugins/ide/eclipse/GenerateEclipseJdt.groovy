@@ -24,7 +24,7 @@ import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurat
 /**
  * Generates the Eclipse JDT configuration file.
  */
-class EclipseJdt extends GeneratorTask<Jdt> {
+class GenerateEclipseJdt extends GeneratorTask<Jdt> {
 
     /**
      * Eclipse project model that contains information needed for this task
@@ -53,7 +53,7 @@ class EclipseJdt extends GeneratorTask<Jdt> {
         projectModel.targetCompatibility = targetCompatibility
     }
 
-    EclipseJdt() {
+    GenerateEclipseJdt() {
         generator = new PersistableConfigurationObjectGenerator<Jdt>() {
             Jdt create() {
                 return new Jdt()

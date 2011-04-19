@@ -159,7 +159,7 @@ class EclipsePluginTest extends Specification {
     }
 
     private void checkEclipseJdt() {
-        EclipseJdt eclipseJdt = project.eclipseJdt
+        GenerateEclipseJdt eclipseJdt = project.eclipseJdt
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseJdt)
         assert eclipseJdt.sourceCompatibility == project.sourceCompatibility
         assert eclipseJdt.targetCompatibility == project.targetCompatibility

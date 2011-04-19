@@ -164,7 +164,7 @@
                 <td>org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.ide.eclipse.EclipseJdt</td>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseJdt</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.ide.eclipse.GenerateEclipseProject</td>

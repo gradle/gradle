@@ -154,7 +154,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseJdt(Project project) {
         project.plugins.withType(JavaBasePlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_JDT_TASK_NAME, EclipseJdt) {
+            addEclipsePluginTask(project, this, ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt) {
                 //task properties:
                 description = "Generates the Eclipse JDT settings file."
                 outputFile = project.file('.settings/org.eclipse.jdt.core.prefs')

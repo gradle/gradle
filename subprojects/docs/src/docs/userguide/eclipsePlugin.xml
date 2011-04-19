@@ -175,7 +175,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.ide.eclipse.EclipseJdt"/></td>
+                <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseJdt"/></td>
                 <td>Generates the <filename>.settings/org.eclipse.jdt.core.prefs</filename> file.</td>
             </tr>
             <tr>
@@ -512,7 +512,7 @@
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.EclipseJdt"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseJdt"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Jdt"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Jdt"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
