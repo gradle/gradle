@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.antlr;
 
 import groovy.lang.Closure;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
@@ -47,10 +46,4 @@ public interface AntlrSourceVirtualDirectory {
      */
     public AntlrSourceVirtualDirectory antlr(Closure configureClosure);
 
-    /**
-     * All Antlr source for this source set.
-     *
-     * @return The Antlr source. Never returns null.
-     */
-    public FileTree getAllAntlr();
 }

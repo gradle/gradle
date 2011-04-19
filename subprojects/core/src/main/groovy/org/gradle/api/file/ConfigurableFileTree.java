@@ -26,7 +26,7 @@ import java.util.Set;
  *
  * <p>You can obtain a {@code ConfigurableFileTree} instance by calling {@link org.gradle.api.Project#fileTree(java.util.Map)}.</p>
  */
-public interface ConfigurableFileTree extends FileTree, PatternFilterable, Buildable {
+public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFilterable, Buildable {
     /**
      * Specifies base directory for this file tree using the given path. The path is evaluated as for {@link
      * org.gradle.api.Project#file(Object)}.

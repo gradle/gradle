@@ -42,6 +42,11 @@ public class SourceDirectoriesFactory {
 
     private EclipseSourceDirectoryVersion1 sourceDirectory(final Project project, final String path) {
         return new EclipseSourceDirectoryVersion1() {
+            @Override
+            public String toString() {
+                return String.format("source directory '%s'", path);
+            }
+
             public File getDirectory() {
                 return project.file(path);
             }

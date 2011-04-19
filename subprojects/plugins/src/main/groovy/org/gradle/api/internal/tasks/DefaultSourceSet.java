@@ -16,19 +16,17 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.UnionFileTree;
-import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -40,11 +38,11 @@ public class DefaultSourceSet implements SourceSet {
     private FileCollection compileClasspath;
     private FileCollection runtimeClasspath;
     private final SourceDirectorySet javaSource;
-    private final UnionFileTree allJavaSource;
+    private final SourceDirectorySet allJavaSource;
     private final SourceDirectorySet resources;
     private final DefaultConfigurableFileCollection classes;
     private final String displayName;
-    private final UnionFileTree allSource;
+    private final SourceDirectorySet allSource;
 
     public DefaultSourceSet(String name, FileResolver fileResolver, TaskResolver taskResolver) {
         this.name = name;
@@ -52,10 +50,13 @@ public class DefaultSourceSet implements SourceSet {
         displayName = GUtil.toWords(this.name);
 
         String javaSrcDisplayName = String.format("%s Java source", displayName);
+
         javaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, fileResolver);
         javaSource.getFilter().include("**/*.java");
 
-        allJavaSource = new UnionFileTree(javaSrcDisplayName, javaSource.matching(javaSource.getFilter()));
+        allJavaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, fileResolver);
+        allJavaSource.getFilter().include("**/*.java");
+        allJavaSource.source(javaSource);
 
         String resourcesDisplayName = String.format("%s resources", displayName);
         resources = new DefaultSourceDirectorySet(resourcesDisplayName, fileResolver);
@@ -66,7 +67,9 @@ public class DefaultSourceSet implements SourceSet {
         });
 
         String allSourceDisplayName = String.format("%s source", displayName);
-        allSource = new UnionFileTree(allSourceDisplayName, resources, javaSource);
+        allSource = new DefaultSourceDirectorySet(allSourceDisplayName, fileResolver);
+        allSource.source(resources);
+        allSource.source(javaSource);
 
         String classesDisplayName = String.format("%s classes", displayName);
         classes = new DefaultConfigurableFileCollection(classesDisplayName, fileResolver, taskResolver, new Callable() {
@@ -161,7 +164,7 @@ public class DefaultSourceSet implements SourceSet {
         return this;
     }
 
-    public FileTree getAllJava() {
+    public SourceDirectorySet getAllJava() {
         return allJavaSource;
     }
 
@@ -174,7 +177,7 @@ public class DefaultSourceSet implements SourceSet {
         return this;
     }
 
-    public FileTree getAllSource() {
+    public SourceDirectorySet getAllSource() {
         return allSource;
     }
 }

@@ -17,70 +17,129 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileTree
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.util.GFileUtils
-import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
-import org.jmock.integration.junit4.JMock
-import org.junit.Before
+import org.gradle.util.TestFile
 import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.gradle.api.tasks.AntBuilderAwareUtil.*
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*;
+import spock.lang.Specification
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
+import static org.hamcrest.Matchers.equalTo
 
-@RunWith (JMock)
-public class DefaultSourceDirectorySetTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+public class DefaultSourceDirectorySetTest extends Specification {
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
-    private final File testDir = tmpDir.dir
+    private final TestFile testDir = tmpDir.dir
     private FileResolver resolver
     private DefaultSourceDirectorySet set
 
-    @Before
-    public void setUp() {
+    public void setup() {
         resolver = {src -> src instanceof File ? src : new File(testDir, src as String)} as FileResolver
         set = new DefaultSourceDirectorySet('<display-name>', resolver)
     }
 
-    @Test
-    public void addsResolvedSourceDirectoryToSet() {
+    public void addsResolvedSourceDirectory() {
+        when:
         set.srcDir 'dir1'
 
-        assertThat(set.srcDirs, equalTo([new File(testDir, 'dir1')] as Set))
+        then:
+        set.srcDirs equalTo([new File(testDir, 'dir1')] as Set)
     }
 
-    @Test
-    public void addsResolvedSourceDirectoriesToSet() {
-        set.srcDir { -> ['dir1', 'dir2'] }
+    public void addsResolvedSourceDirectories() {
+        when:
+        set.srcDir {-> ['dir1', 'dir2'] }
 
-        assertThat(set.srcDirs, equalTo([new File(testDir, 'dir1'), new File(testDir, 'dir2')] as Set))
+        then:
+        set.srcDirs equalTo([new File(testDir, 'dir1'), new File(testDir, 'dir2')] as Set)
     }
 
-    @Test
-    public void canSetSourceDirectories() {
-        set.srcDir 'ignore me'
+    public void addsNestedDirectorySet() {
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver)
+        nested.srcDir 'dir1'
+
+        when:
+        set.source nested
+
+        then:
+        set.srcDirs equalTo([new File(testDir, 'dir1')] as Set)
+    }
+
+    public void settingSourceDirsReplacesExistingContent() {
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver)
+        nested.srcDir 'ignore me'
+        set.srcDir 'ignore me as well'
+        set.source nested
+
+        when:
         set.srcDirs = ['dir1', 'dir2']
 
-        assertThat(set.srcDirs, equalTo([new File(testDir, 'dir1'), new File(testDir, 'dir2')] as Set))
+        then:
+        set.srcDirs equalTo([new File(testDir, 'dir1'), new File(testDir, 'dir2')] as Set)
     }
 
-    @Test
-    public void addsFilesetForEachSourceDirectory() {
+    public void containsFilesFromEachSourceDirectory() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
         GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
         File srcDir2 = new File(testDir, 'dir2')
         GFileUtils.touch(new File(srcDir2, 'subdir2/file1.txt'))
 
+        when:
         set.srcDir 'dir1'
         set.srcDir 'dir2'
 
+        then:
         assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir/file2.txt', 'subdir2/file1.txt')
     }
 
-    @Test
+    public void convertsSourceDirectoriesToDirectoryTrees() {
+        when:
+        set.srcDir 'dir1'
+        set.srcDir 'dir2'
+        set.include 'includes'
+        set.exclude 'excludes'
+        def trees = set.srcDirTrees as List
+
+        then:
+        trees.size() == 2
+        trees[0].dir == testDir.file('dir1')
+        trees[0].patterns.includes as List == ['includes']
+        trees[0].patterns.excludes as List == ['excludes']
+        trees[1].dir == testDir.file('dir2')
+        trees[1].patterns.includes as List == ['includes']
+        trees[1].patterns.excludes as List == ['excludes']
+    }
+
+    public void convertsNestedDirectorySetsToDirectoryTrees() {
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver)
+        nested.srcDirs 'dir1', 'dir2'
+
+        when:
+        set.source nested
+        def trees = set.srcDirTrees as List
+
+        then:
+        trees.size() == 2
+        trees[0].dir == testDir.file('dir1')
+        trees[1].dir == testDir.file('dir2')
+    }
+
+    public void removesDuplicateDirectoryTrees() {
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver)
+        nested.srcDirs 'dir1', 'dir2'
+
+        when:
+        set.source nested
+        set.srcDir 'dir1'
+        def trees = set.srcDirTrees as List
+
+        then:
+        trees.size() == 2
+        trees[0].dir == testDir.file('dir1')
+        trees[1].dir == testDir.file('dir2')
+    }
+
     public void canUsePatternsToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
@@ -91,15 +150,16 @@ public class DefaultSourceDirectorySetTest {
         GFileUtils.touch(new File(srcDir2, 'subdir2/file2.txt'))
         GFileUtils.touch(new File(srcDir2, 'subdir2/ignored.txt'))
 
+        when:
         set.srcDir 'dir1'
         set.srcDir 'dir2'
         set.include '**/file*'
         set.exclude '**/file2*'
 
+        then:
         assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 
-    @Test
     public void canUseFilterPatternsToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
@@ -110,93 +170,92 @@ public class DefaultSourceDirectorySetTest {
         GFileUtils.touch(new File(srcDir2, 'subdir2/file2.txt'))
         GFileUtils.touch(new File(srcDir2, 'subdir2/ignored.txt'))
 
+        when:
         set.srcDir 'dir1'
         set.srcDir 'dir2'
         set.filter.include '**/file*'
         set.filter.exclude '**/file2*'
 
+        then:
         assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 
-    @Test
     public void ignoresSourceDirectoriesWhichDoNotExist() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
 
+        when:
         set.srcDir 'dir1'
         set.srcDir 'dir2'
 
+        then:
         assertSetContainsForAllTypes(set, 'subdir/file1.txt')
     }
 
-    @Test
     public void failsWhenSourceDirectoryIsNotADirectory() {
         File srcDir = new File(testDir, 'dir1')
         GFileUtils.touch(srcDir)
 
+        when:
         set.srcDir 'dir1'
-        try {
-            set.addToAntBuilder("node", "fileset")
-            fail()
-        } catch (InvalidUserDataException e) {
-            assertThat(e.message, equalTo("Source directory '$srcDir' is not a directory." as String))
-        }
+        set.addToAntBuilder("node", "fileset")
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "Source directory '$srcDir' is not a directory."
     }
 
-    @Test
     public void throwsStopExceptionWhenNoSourceDirectoriesExist() {
+        when:
         set.srcDir 'dir1'
         set.srcDir 'dir2'
+        set.stopExecutionIfEmpty()
 
-        try {
-            set.stopExecutionIfEmpty()
-            fail()
-        } catch (StopExecutionException e) {
-            assertThat(e.message, equalTo('<display-name> does not contain any files.'))
-        }
+        then:
+        StopExecutionException e = thrown()
+        e.message == '<display-name> does not contain any files.'
     }
 
-    @Test
     public void throwsStopExceptionWhenNoSourceDirectoryHasMatches() {
+        when:
         set.srcDir 'dir1'
         File srcDir = new File(testDir, 'dir1')
         srcDir.mkdirs()
+        set.stopExecutionIfEmpty()
 
-        try {
-            set.stopExecutionIfEmpty()
-            fail()
-        } catch (StopExecutionException e) {
-            assertThat(e.message, equalTo('<display-name> does not contain any files.'))
-        }
+        then:
+        StopExecutionException e = thrown()
+        e.message == '<display-name> does not contain any files.'
     }
 
-    @Test
     public void doesNotThrowStopExceptionWhenSomeSourceDirectoriesAreNotEmpty() {
+        when:
         set.srcDir 'dir1'
         GFileUtils.touch(new File(testDir, 'dir1/file1.txt'))
         set.srcDir 'dir2'
-
         set.stopExecutionIfEmpty()
+
+        then:
+        notThrown(Throwable)
     }
 
-    @Test
     public void canUseMatchingMethodToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
         GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
         GFileUtils.touch(new File(srcDir1, 'subdir2/file1.txt'))
 
+        when:
         set.srcDir 'dir1'
-
         FileTree filteredSet = set.matching {
             include '**/file1.txt'
             exclude 'subdir2/**'
         }
 
+        then:
         assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
     }
 
-    @Test
     public void canUsePatternsAndFilterPatternsAndMatchingMethodToFilterSourceFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
@@ -205,19 +264,19 @@ public class DefaultSourceDirectorySetTest {
         GFileUtils.touch(new File(srcDir1, 'subdir/ignored.txt'))
         GFileUtils.touch(new File(srcDir1, 'subdir2/file1.txt'))
 
+        when:
         set.srcDir 'dir1'
         set.include '**/*file?.*'
         set.filter.include '**/*.txt'
-
         FileTree filteredSet = set.matching {
             include 'subdir/**'
             exclude '**/file2.txt'
         }
 
+        then:
         assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
     }
 
-    @Test
     public void filteredSetIsLive() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
@@ -225,13 +284,17 @@ public class DefaultSourceDirectorySetTest {
         File srcDir2 = new File(testDir, 'dir2')
         GFileUtils.touch(new File(srcDir2, 'subdir2/file1.txt'))
 
+        when:
         set.srcDir 'dir1'
-
         FileTree filteredSet = set.matching { include '**/file1.txt' }
+
+        then:
         assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
 
+        when:
         set.srcDir 'dir2'
 
+        then:
         assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 }

@@ -78,8 +78,8 @@ class IdeaPluginTest extends Specification {
         project.ideaProject.javaVersion == project.sourceCompatibility.toString()
 
         GenerateIdeaModule ideaModuleTask = project.ideaModule
-        ideaModuleTask.sourceDirs == project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as Set
-        ideaModuleTask.testSourceDirs == project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as Set
+        ideaModuleTask.sourceDirs == project.sourceSets.main.allSource.srcDirs
+        ideaModuleTask.testSourceDirs == project.sourceSets.test.allSource.srcDirs
         def configurations = project.configurations
         ideaModuleTask.scopes == [
                 COMPILE: [plus: [configurations.compile], minus: []],

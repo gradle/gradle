@@ -85,7 +85,7 @@ public class DefaultConnection implements ConnectionVersion4 {
                 if (buildParameters.getStandardError() != null) {
                     gradleLauncher.addStandardErrorListener(new StreamBackedStandardOutputListener(buildParameters.getStandardError()));
                 }
-                runAndWrapFailure(gradleLauncher);
+                wrapAndRethrowFailure(gradleLauncher.run());
                 handler.onComplete(null);
             } catch (Throwable t) {
                 handler.onFailure(t);
@@ -110,12 +110,11 @@ public class DefaultConnection implements ConnectionVersion4 {
             adapter.setConfigurer(new EclipsePluginApplier());
             adapter.setBuilder(new ModelBuilder(includeTasks, projectDependenciesOnly));
 
-            runAndWrapFailure(gradleLauncher);
+            wrapAndRethrowFailure(gradleLauncher.getBuildAnalysis());
             return type.cast(adapter.getProject());
         }
 
-        private void runAndWrapFailure(GradleLauncher launcher) {
-            BuildResult result = launcher.run();
+        private void wrapAndRethrowFailure(BuildResult result) {
             if (result.getFailure() != null) {
                 throw new BuildExceptionVersion1(result.getFailure());
             }

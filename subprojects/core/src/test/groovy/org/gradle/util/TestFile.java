@@ -371,6 +371,10 @@ public class TestFile extends File implements TestFileContext {
         return this;
     }
 
+    public TestFile createDir(Object path) {
+        return new TestFile(this, path).createDir();
+    }
+
     public TestFile deleteDir() {
         DeleteAction delete = new DeleteActionImpl(new IdentityFileResolver());
         delete.delete(this);

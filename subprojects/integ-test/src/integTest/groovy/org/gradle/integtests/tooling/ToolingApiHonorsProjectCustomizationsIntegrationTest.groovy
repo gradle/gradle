@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling
 
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiHonorsProjectCustomizationsTest extends ToolingApiSpecification {
+class ToolingApiHonorsProjectCustomizationsIntegrationTest extends ToolingApiSpecification {
 
     def "should honour reconfigured project names"() {
         def projectDir = dist.testDir
@@ -67,29 +67,38 @@ allprojects {
         assert grandChildOne != grandChildTwo : "Deduplication logic should make that project names are not the same."
     }
 
-    def "should honor reconfigured source folders"() {
+    def "can have overlapping source and resource directories"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
 sourceSets {
-    main { java { srcDir 'src' }}
+    main {
+        java { srcDir 'src' }
+        resources { srcDir 'src' }
+    }
 
-    test { java { srcDir 'test' }}
+    test {
+        java { srcDir 'test' }
+        resources { srcDir 'testResources' }
+    }
 }
 '''
         //if we don't create the folders eclipse plugin will not build the classpath
         projectDir.create {
             src {}
             test {}
+            testResources {}
         }
 
         when:
         EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
+        eclipseProject.sourceDirectories.size() == 3
         eclipseProject.sourceDirectories[0].path == 'src'
-        eclipseProject.sourceDirectories[1].path == 'test'
+        eclipseProject.sourceDirectories[1].path == 'testResources'
+        eclipseProject.sourceDirectories[2].path == 'test'
     }
 }

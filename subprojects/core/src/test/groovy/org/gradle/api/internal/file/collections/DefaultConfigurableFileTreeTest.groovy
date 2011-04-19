@@ -92,7 +92,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             one(resolveContext).add(withParam(notNullValue()))
             will { fileTree ->
                 assertThat(fileTree, instanceOf(DirectoryFileTree))
-                assertThat(fileTree.root, equalTo(testDir))
+                assertThat(fileTree.dir, equalTo(testDir))
             }
         }
 

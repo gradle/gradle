@@ -15,15 +15,12 @@
  */
 package org.gradle.api.plugins.antlr.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.UnionFileTree;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory;
-import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
-import groovy.lang.Closure;
 
 /**
  * The implementation of the {@link org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory} contract.
@@ -32,15 +29,11 @@ import groovy.lang.Closure;
  */
 public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirectory {
     private final SourceDirectorySet antlr;
-    private final UnionFileTree allAntlr;
-    private final PatternFilterable antlrPatterns = new PatternSet();
 
     public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, FileResolver fileResolver) {
         final String displayName = String.format("%s Antlr source", parentDisplayName);
         antlr = new DefaultSourceDirectorySet(displayName, fileResolver);
         antlr.getFilter().include("**/*.g");
-        antlrPatterns.include("**/*.g");
-        allAntlr = new UnionFileTree(displayName, antlr.matching(antlrPatterns));
     }
 
     public SourceDirectorySet getAntlr() {
@@ -50,13 +43,5 @@ public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirect
     public AntlrSourceVirtualDirectory antlr(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getAntlr());
         return this;
-    }
-
-    public UnionFileTree getAllAntlr() {
-        return allAntlr;
-    }
-
-    public PatternFilterable getAntlrSourcePatterns() {
-        return antlrPatterns;
     }
 }

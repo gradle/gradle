@@ -65,6 +65,6 @@ class SonarPlugin implements Plugin<Project> {
     }
 
     private Set<File> getSourceDirs(SourceSet sourceSet) {
-        sourceSet.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet
+        sourceSet.allSource.srcDirs as LinkedHashSet
     }
 }
