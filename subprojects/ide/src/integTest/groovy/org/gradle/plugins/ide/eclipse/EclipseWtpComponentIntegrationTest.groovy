@@ -64,7 +64,7 @@ dependencies {
 
 eclipse {
 
-  pathVariables 'fooVariable' : file('.')
+  pathVariables 'userHomeVariable' : file(System.properties['user.home'])
 
   wtp {
     contextPath = 'killerApp'
@@ -94,7 +94,7 @@ eclipse {
 
         contains('someBetterDeployName')
 
-//        contains('fooVariable') TODO SF test later once there're more stuff resolved with pathFactory
+        contains('userHomeVariable')
 
         contains('./src/foo/bar', './deploy/foo/bar')
         contains('wbPropertyOne', 'New York!')
