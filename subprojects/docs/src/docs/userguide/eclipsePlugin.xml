@@ -196,7 +196,7 @@
                     <literal>-</literal>
                 </td>
                 <td>
-                    <apilink class="org.gradle.plugins.ide.eclipse.EclipseWtpFacet"/>
+                    <apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet"/>
                 </td>
                 <td>Generates the <filename>.settings/org.eclipse.wst.common.project.facet.core.xml</filename> file.</td>
             </tr>
@@ -524,7 +524,7 @@
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.EclipseWtpFacet"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpFacet"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpFacet"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>

@@ -26,7 +26,7 @@ import org.gradle.util.ConfigureUtil
  *
  * @author Hans Dockter
  */
-class EclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
+class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
     /**
      * The facets to be added as elements.
      */
@@ -35,7 +35,7 @@ class EclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
 
     protected WtpFacetFactory modelFactory = new WtpFacetFactory()
 
-    EclipseWtpFacet() {
+    GenerateEclipseWtpFacet() {
         xmlTransformer.indentation = "\t"
     }
 

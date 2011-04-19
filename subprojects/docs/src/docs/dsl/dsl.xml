@@ -173,7 +173,7 @@
                 <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.ide.eclipse.EclipseWtpFacet</td>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Exec</td>

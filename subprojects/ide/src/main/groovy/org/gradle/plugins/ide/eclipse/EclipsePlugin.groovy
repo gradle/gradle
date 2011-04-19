@@ -214,7 +214,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseWtpFacet(Project project) {
         project.plugins.withType(WarPlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, EclipseWtpFacet) {
+            addEclipsePluginTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
                 description = 'Generates the Eclipse WTP facet settings file.'
                 inputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                 outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
@@ -222,7 +222,7 @@ class EclipsePlugin extends IdePlugin {
             }
 
             eachDependedUponProject(project) { otherProject ->
-                addEclipsePluginTask(otherProject, ECLIPSE_WTP_FACET_TASK_NAME, EclipseWtpFacet) {
+                addEclipsePluginTask(otherProject, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
                     description = 'Generates the Eclipse WTP facet settings file.'
                     inputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')

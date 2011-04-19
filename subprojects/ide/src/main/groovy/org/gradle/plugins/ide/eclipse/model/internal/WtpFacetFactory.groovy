@@ -15,14 +15,14 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
-import org.gradle.plugins.ide.eclipse.EclipseWtpFacet
+import org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet
 import org.gradle.plugins.ide.eclipse.model.WtpFacet
 
 /**
  * @author Hans Dockter
  */
 class WtpFacetFactory {
-    void configure(EclipseWtpFacet eclipseFacet, WtpFacet facet) {
+    void configure(GenerateEclipseWtpFacet eclipseFacet, WtpFacet facet) {
         facet.configure(eclipseFacet.facets)
     }
 }

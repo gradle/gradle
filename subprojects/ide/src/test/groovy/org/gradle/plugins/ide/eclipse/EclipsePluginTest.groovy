@@ -167,8 +167,8 @@ class EclipsePluginTest extends Specification {
     }
 
     private void checkEclipseWtpFacet() {
-        EclipseWtpFacet eclipseWtpFacet = project.eclipseWtpFacet
-        assert eclipseWtpFacet instanceof EclipseWtpFacet
+        GenerateEclipseWtpFacet eclipseWtpFacet = project.eclipseWtpFacet
+        assert eclipseWtpFacet instanceof GenerateEclipseWtpFacet
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseWtpFacet)
         assert eclipseWtpFacet.inputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtpFacet.outputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
