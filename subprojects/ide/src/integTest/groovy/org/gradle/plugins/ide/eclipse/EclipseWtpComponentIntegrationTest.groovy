@@ -67,6 +67,8 @@ eclipse {
   pathVariables 'fooVariable' : file('.')
 
   wtp {
+    contextPath = 'killerApp'
+
     sourceDirs += file('someExtraSourceDir')
 
     plusConfigurations += configurations.configOne
@@ -96,6 +98,8 @@ eclipse {
 
         contains('./src/foo/bar', './deploy/foo/bar')
         contains('wbPropertyOne', 'New York!')
+
+        contains('killerApp')
     }
 
     @Ignore("TODO SF does not work at the moment")

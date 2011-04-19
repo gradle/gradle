@@ -40,6 +40,9 @@ import org.gradle.api.artifacts.Configuration
  *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')
  *
  *   wtp {
+ *     //you can configure the context path:
+ *     contextPath = 'someContextPath'
+ *
  *     //you can configure the deployName:
  *     deployName = 'killerApp'
  *
@@ -135,6 +138,13 @@ class EclipseWtp {
         //TODO SF validation
         properties.add(new WbProperty(args.name, args.value))
     }
+
+   /**
+     * The context path for the web application
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    String contextPath
 
     //********
 

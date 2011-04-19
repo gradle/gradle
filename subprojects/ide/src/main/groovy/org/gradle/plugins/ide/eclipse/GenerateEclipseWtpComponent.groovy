@@ -113,7 +113,13 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     /**
      * The context path for the web application
      */
-    String contextPath
+    String getContextPath() {
+        wtp.contextPath
+    }
+
+    void setContextPath(String contextPath) {
+        wtp.contextPath = contextPath
+    }
 
     private final WtpComponentFactory modelFactory = new WtpComponentFactory()
 
