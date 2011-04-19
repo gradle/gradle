@@ -233,8 +233,9 @@ class EclipsePlugin extends IdePlugin {
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                     //model properties:
-                    wtp = model.wtp
-                    conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
+                    otherProject.plugins.withType(EclipsePlugin) { wtp = it.model.wtp } //TODO SF: Adam - will that work? This stuff not really covered by integ tests...
+
+                    wtp.conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
                     otherProject.plugins.withType(JavaPlugin) {
                         conventionMapping.facets = {
                             [new Facet("jst.utility", "1.0"), new Facet("jst.java",
