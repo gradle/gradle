@@ -148,6 +148,8 @@ class EclipseWtp {
 
     //********
 
+    org.gradle.api.Project project
+
     /**
      * The variables to be used for replacing absolute path in dependent-module elements.
      * <p>

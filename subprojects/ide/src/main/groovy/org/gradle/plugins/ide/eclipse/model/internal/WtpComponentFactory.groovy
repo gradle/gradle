@@ -19,7 +19,7 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent
+import org.gradle.plugins.ide.eclipse.model.EclipseWtp
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
@@ -28,28 +28,28 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent
  * @author Hans Dockter
  */
 class WtpComponentFactory {
-    void configure(GenerateEclipseWtpComponent eclipseComponent, WtpComponent component) {
-        def entries = getEntriesFromSourceDirs(eclipseComponent)
-        entries.addAll(eclipseComponent.resources)
-        entries.addAll(eclipseComponent.properties)
-        entries.addAll(getEntriesFromConfigurations(eclipseComponent))
+    void configure(EclipseWtp wtp, WtpComponent component) {
+        def entries = getEntriesFromSourceDirs(wtp)
+        entries.addAll(wtp.resources)
+        entries.addAll(wtp.properties)
+        entries.addAll(getEntriesFromConfigurations(wtp))
 
-        component.configure(eclipseComponent.deployName, eclipseComponent.contextPath, entries)
+        component.configure(wtp.deployName, wtp.contextPath, entries)
     }
 
-    private List getEntriesFromSourceDirs(GenerateEclipseWtpComponent eclipseComponent) {
-        eclipseComponent.sourceDirs.findAll { it.isDirectory() }.collect { dir ->
-            new WbResource("/WEB-INF/classes", eclipseComponent.project.relativePath(dir))
+    private List getEntriesFromSourceDirs(EclipseWtp wtp) {
+        wtp.sourceDirs.findAll { it.isDirectory() }.collect { dir ->
+            new WbResource("/WEB-INF/classes", wtp.project.relativePath(dir))
         }
     }
 
-    private List getEntriesFromConfigurations(GenerateEclipseWtpComponent eclipseComponent) {
-        (getEntriesFromProjectDependencies(eclipseComponent) as List) + (getEntriesFromLibraries(eclipseComponent) as List)
+    private List getEntriesFromConfigurations(EclipseWtp wtp) {
+        (getEntriesFromProjectDependencies(wtp) as List) + (getEntriesFromLibraries(wtp) as List)
     }
 
     // must include transitive project dependencies
-    private Set getEntriesFromProjectDependencies(GenerateEclipseWtpComponent eclipseComponent) {
-        def dependencies = getDependencies(eclipseComponent.plusConfigurations, eclipseComponent.minusConfigurations,
+    private Set getEntriesFromProjectDependencies(EclipseWtp wtp) {
+        def dependencies = getDependencies(wtp.plusConfigurations, wtp.minusConfigurations,
                 { it instanceof org.gradle.api.artifacts.ProjectDependency })
 
         def projects = dependencies*.dependencyProject
@@ -77,16 +77,16 @@ class WtpComponentFactory {
     }
 
     // must NOT include transitive library dependencies
-    private Set getEntriesFromLibraries(GenerateEclipseWtpComponent eclipseComponent) {
-        Set declaredDependencies = getDependencies(eclipseComponent.plusConfigurations, eclipseComponent.minusConfigurations,
+    private Set getEntriesFromLibraries(EclipseWtp wtp) {
+        Set declaredDependencies = getDependencies(wtp.plusConfigurations, wtp.minusConfigurations,
                 { it instanceof ExternalDependency})
 
-        Set libFiles = eclipseComponent.project.configurations.detachedConfiguration((declaredDependencies as Dependency[])).files +
-                getSelfResolvingFiles(getDependencies(eclipseComponent.plusConfigurations, eclipseComponent.minusConfigurations,
+        Set libFiles = wtp.project.configurations.detachedConfiguration((declaredDependencies as Dependency[])).files +
+                getSelfResolvingFiles(getDependencies(wtp.plusConfigurations, wtp.minusConfigurations,
                         { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}))
 
         libFiles.collect { file ->
-            createWbDependentModuleEntry(file, eclipseComponent.variables)
+            createWbDependentModuleEntry(file, wtp.pathVariables)
         }
     }
 

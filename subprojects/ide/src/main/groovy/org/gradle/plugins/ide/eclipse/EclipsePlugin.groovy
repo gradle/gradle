@@ -177,7 +177,7 @@ class EclipsePlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.wst.common.component')
 
                 //model properties:
-                wtp = services.get(ClassGenerator).newInstance(EclipseWtp)
+                wtp = services.get(ClassGenerator).newInstance(EclipseWtp, [project: project])
                 model.wtp = wtp
 
                 wtp.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
@@ -199,7 +199,7 @@ class EclipsePlugin extends IdePlugin {
                         outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
 
                         //model properties:
-                        wtp = services.get(ClassGenerator).newInstance(EclipseWtp)
+                        wtp = services.get(ClassGenerator).newInstance(EclipseWtp, [project: otherProject])
                         otherProject.plugins.withType(EclipsePlugin) { it.model.wtp = wtp }
 
                         wtp.deployName = otherProject.name

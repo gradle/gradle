@@ -41,7 +41,7 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     }
 
     @Override protected void configure(WtpComponent component) {
-        new WtpComponentFactory().configure(this, component)
+        new WtpComponentFactory().configure(wtp, component)
     }
 
     /**
