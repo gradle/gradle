@@ -60,6 +60,15 @@ public interface ProjectConnection {
     BuildLauncher newBuild();
 
     /**
+     * Creates a builder which can be used to build the model of the given type.
+     *
+     * @param modelType The model type
+     * @param <T> The model type.
+     * @return The builder.
+     */
+    <T extends Project> ModelBuilder<T> model(Class<T> modelType);
+
+    /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.
      */
     void close();

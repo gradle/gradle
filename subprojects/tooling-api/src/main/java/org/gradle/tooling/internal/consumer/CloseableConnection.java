@@ -15,10 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
+import org.gradle.tooling.internal.protocol.*;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -44,9 +41,9 @@ class CloseableConnection implements ConnectionVersion4 {
         connection.executeBuild(buildParameters, handler);
     }
 
-    public <T extends ProjectVersion3> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException {
+    public <T extends ProjectVersion3> void getModel(Class<T> type, ModelFetchParametersVersion1 fetchParameters, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException {
         assertOpen();
-        connection.getModel(type, handler);
+        connection.getModel(type, fetchParameters, handler);
     }
 
     private void assertOpen() {

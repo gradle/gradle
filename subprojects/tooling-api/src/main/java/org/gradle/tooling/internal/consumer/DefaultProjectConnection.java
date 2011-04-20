@@ -51,33 +51,19 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public <T extends Project> T getModel(Class<T> viewType) {
-        BlockingResultHandler<T> handler = new BlockingResultHandler<T>(viewType);
-        getModel(viewType, handler);
-
-        return handler.getResult();
+        return model(viewType).get();
     }
 
     public <T extends Project> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
-        final ResultHandler<ProjectVersion3> adaptingHandler = new ResultHandler<ProjectVersion3>() {
-            public void onComplete(ProjectVersion3 result) {
-                handler.onComplete(adapter.adapt(viewType, result));
-
-            }
-
-            public void onFailure(GradleConnectionException failure) {
-                handler.onFailure(failure);
-            }
-        };
-        connection.getModel(mapToProtocol(viewType), new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler) {
-            @Override
-            protected String connectionFailureMessage(Throwable failure) {
-                return String.format("Could not fetch model of type '%s' from %s.", viewType.getSimpleName(), connection.getDisplayName());
-            }
-        });
+        model(viewType).get(handler);
     }
 
     public BuildLauncher newBuild() {
         return new DefaultBuildLauncher(connection);
+    }
+
+    public <T extends Project> ModelBuilder<T> model(Class<T> modelType) {
+        return new DefaultModelBuilder<T>(modelType, mapToProtocol(modelType), connection, adapter);
     }
 
     private Class<? extends ProjectVersion3> mapToProtocol(Class<? extends Project> viewType) {

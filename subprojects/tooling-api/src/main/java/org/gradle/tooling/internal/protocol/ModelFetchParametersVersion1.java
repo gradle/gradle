@@ -15,11 +15,8 @@
  */
 package org.gradle.tooling.internal.protocol;
 
-import java.util.List;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface BuildParametersVersion1 extends BuildOperationVersion1 {
-    List<String> getTasks();
+public interface ModelFetchParametersVersion1 extends BuildOperationVersion1 {
 }

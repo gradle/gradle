@@ -15,11 +15,23 @@
  */
 package org.gradle.tooling.internal.protocol;
 
-import java.util.List;
+import java.io.OutputStream;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface BuildParametersVersion1 extends BuildOperationVersion1 {
-    List<String> getTasks();
+public interface BuildOperationVersion1 {
+    /**
+     * Returns the output stream to write stdout logging to.
+     *
+     * @return The output stream. May be null.
+     */
+    OutputStream getStandardOutput();
+
+    /**
+     * Returns the output stream to write stderr logging to.
+     *
+     * @return The output stream. May be null.
+     */
+    OutputStream getStandardError();
 }

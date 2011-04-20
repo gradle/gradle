@@ -42,7 +42,7 @@ public interface ConnectionVersion4 {
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    <T extends ProjectVersion3> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException;
+    <T extends ProjectVersion3> void getModel(Class<T> type, ModelFetchParametersVersion1 fetchParameters, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException;
 
     /**
      * Starts the execution of a build. This method returns immediately, and the given result handler is notified when the build is complete.
