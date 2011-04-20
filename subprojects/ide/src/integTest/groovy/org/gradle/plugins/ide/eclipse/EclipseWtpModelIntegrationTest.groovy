@@ -141,6 +141,38 @@ eclipse {
         //then
     }
 
+    @Test
+    void createsTasksOnDependantUponProjectsEvenIfTheyDontHaveWarPlugin() {
+        //given
+        def settings = file('settings.gradle')
+        settings << "include 'impl', 'contrib'"
+
+        def build = file('build.gradle')
+        build << """
+project(':impl') {
+  apply plugin: 'java'
+  apply plugin: 'war'
+  apply plugin: 'eclipse'
+
+  dependencies { compile project(':contrib') }
+}
+
+project(':contrib') {
+  apply plugin: 'java'
+  apply plugin: 'eclipse'
+}
+"""
+        //when
+        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
+
+        //then
+        getComponentFile(project: 'impl')
+        getFacetFile(project: 'impl')
+
+        getComponentFile(project: 'contrib')
+        getFacetFile(project: 'contrib')
+    }
+
     protected def contains(String ... contents) {
         contents.each { assert component.contains(it)}
     }
