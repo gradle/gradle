@@ -60,7 +60,7 @@ class EclipsePlugin extends IdePlugin {
         configureEclipseWtpComponent(project)
         configureEclipseWtpFacet(project)
 
-        project.afterEvaluate {
+        project.gradle.projectsEvaluated {
             new EclipseNameDeduper().configure(project)
         }
     }
@@ -101,7 +101,7 @@ class EclipsePlugin extends IdePlugin {
                 projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
                 projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
 
-                afterEvaluationWithEachDependedUponEclipseProject(project) { Project otherProject ->
+                doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
                     configureTask(otherProject, ECLIPSE_PROJECT_TASK_NAME) {
                         projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
                         projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
@@ -136,7 +136,7 @@ class EclipsePlugin extends IdePlugin {
                 }
 
                 project.plugins.withType(WarPlugin) {
-                    afterEvaluationWithEachDependedUponEclipseProject(project) { Project otherProject ->
+                    doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
                         configureTask(otherProject, ECLIPSE_CP_TASK_NAME) {
                             whenConfigured { Classpath classpath ->
                                 for (entry in classpath.entries) {
@@ -188,7 +188,7 @@ class EclipsePlugin extends IdePlugin {
                 wtp.conventionMapping.contextPath = { project.war.baseName }
             }
 
-            afterEvaluationWithEachDependedUponEclipseProject(project) { Project otherProject ->
+            doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
                 def eclipsePlugin = otherProject.plugins.getPlugin(EclipsePlugin)
                 // require Java plugin because we need source set 'main'
                 // (in the absence of 'main', it probably makes no sense to write the file)
@@ -226,7 +226,7 @@ class EclipsePlugin extends IdePlugin {
                 wtp.conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
             }
 
-            afterEvaluationWithEachDependedUponEclipseProject(project) { Project otherProject ->
+            doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
                 def eclipsePlugin = otherProject.plugins.getPlugin(EclipsePlugin)
                 maybeAddTask(otherProject, eclipsePlugin, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
                     //task properties:
@@ -250,20 +250,20 @@ class EclipsePlugin extends IdePlugin {
     }
 
     // TODO: might have to search all class paths of all source sets for project dependendencies, not just runtime configuration
-    private void afterEvaluationWithEachDependedUponEclipseProject(Project project, Closure action) {
+    private void doLaterWithEachDependedUponEclipseProject(Project project, Closure action) {
         project.gradle.projectsEvaluated {
-            doEachDependedUponProject(project, action)
+            eachDependedUponEclipseProject(project, action)
         }
     }
 
-    private void doEachDependedUponProject(Project project, Closure action) {
+    private void eachDependedUponEclipseProject(Project project, Closure action) {
         def runtimeConfig = project.configurations.findByName("runtime")
         if (runtimeConfig) {
             def projectDeps = runtimeConfig.getAllDependencies(ProjectDependency)
             def dependedUponProjects = projectDeps*.dependencyProject
             for (dependedUponProject in dependedUponProjects) {
                 dependedUponProject.plugins.withType(EclipsePlugin) { action(dependedUponProject) }
-                doEachDependedUponProject(dependedUponProject, action)
+                eachDependedUponEclipseProject(dependedUponProject, action)
             }
         }
     }

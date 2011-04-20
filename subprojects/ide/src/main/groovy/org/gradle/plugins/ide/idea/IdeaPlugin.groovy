@@ -50,7 +50,7 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaModule(project)
         configureForJavaPlugin(project)
 
-        project.afterEvaluate {
+        project.gradle.projectsEvaluated {
             //TODO SF: is it possible to do deduplication on the fly? - same applies for eclipse
             new IdeaNameDeduper().configure(project)
         }
