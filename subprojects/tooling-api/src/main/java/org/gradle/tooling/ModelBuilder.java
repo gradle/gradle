@@ -37,6 +37,8 @@ import java.io.OutputStream;
  * </ul>
  *
  * <p>Instances of {@code ModelBuilder} are not thread-safe.
+ *
+ * @param <T> The type of model to build
  */
 public interface ModelBuilder<T extends Project> {
     /**
