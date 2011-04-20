@@ -18,5 +18,6 @@ package org.gradle.tooling.internal.protocol;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface ModelFetchParametersVersion1 extends BuildOperationVersion1 {
+public interface ModelFetchParametersVersion1 {
+    Class<? extends ProjectVersion3> getType();
 }

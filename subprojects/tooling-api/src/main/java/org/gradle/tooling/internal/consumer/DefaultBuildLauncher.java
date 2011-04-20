@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -26,11 +27,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class DefaultBuildLauncher implements BuildLauncher {
+class DefaultBuildLauncher extends AbstractLongRunningOperation implements BuildLauncher {
     private final List<String> tasks = new ArrayList<String>();
     private final ConnectionVersion4 connection;
-    private OutputStream standardError;
-    private OutputStream standardOutput;
 
     public DefaultBuildLauncher(ConnectionVersion4 connection) {
         this.connection = connection;
@@ -55,13 +54,21 @@ class DefaultBuildLauncher implements BuildLauncher {
         return this;
     }
 
-    public BuildLauncher setStandardError(OutputStream outputStream) {
-        standardError = outputStream;
+    @Override
+    public DefaultBuildLauncher setStandardError(OutputStream outputStream) {
+        super.setStandardError(outputStream);
         return this;
     }
 
-    public BuildLauncher setStandardOutput(OutputStream outputStream) {
-        standardOutput = outputStream;
+    @Override
+    public DefaultBuildLauncher setStandardOutput(OutputStream outputStream) {
+        super.setStandardOutput(outputStream);
+        return this;
+    }
+
+    @Override
+    public DefaultBuildLauncher addProgressListener(ProgressListener listener) {
+        super.addProgressListener(listener);
         return this;
     }
 
@@ -72,7 +79,7 @@ class DefaultBuildLauncher implements BuildLauncher {
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        connection.executeBuild(new DefaultBuildParameters(), new ResultHandlerAdapter<Void>(handler){
+        connection.executeBuild(new DefaultBuildParameters(), operationParameters(), new ResultHandlerAdapter<Void>(handler){
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 return String.format("Could not execute build using %s.", connection.getDisplayName());
@@ -83,14 +90,6 @@ class DefaultBuildLauncher implements BuildLauncher {
     private class DefaultBuildParameters implements BuildParametersVersion1 {
         public List<String> getTasks() {
             return tasks;
-        }
-
-        public OutputStream getStandardError() {
-            return standardError;
-        }
-
-        public OutputStream getStandardOutput() {
-            return standardOutput;
         }
     }
 }

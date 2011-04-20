@@ -19,6 +19,7 @@ import org.gradle.tooling.model.BuildableProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.ProgressListener
 
 class ToolingApiBuildExecutionIntegrationTest extends ToolingApiSpecification {
     def "can build the set of tasks for a project"() {
@@ -47,25 +48,16 @@ task c
         dist.testFile('settings.gradle') << 'rootProject.name="test"'
         dist.testFile('build.gradle') << '''
 apply plugin: 'java'
-System.out.println 'this is stdout'
-System.err.println 'this is stderr'
 '''
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
-
         when:
         withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks('jar')
-            build.setStandardOutput(stdout)
-            build.setStandardError(stderr)
             build.run()
         }
 
         then:
         dist.testFile('build/libs/test.jar').assertIsFile()
-        stdout.toString().contains('this is stdout')
-        stderr.toString().contains('this is stderr')
 
         when:
         withConnection { connection ->
@@ -78,6 +70,30 @@ System.err.println 'this is stderr'
 
         then:
         dist.testFile('build/libs/test.jar').assertDoesNotExist()
+    }
+
+    def "receives progress and logging while the build is executing"() {
+        dist.testFile('build.gradle') << '''
+System.out.println 'this is stdout'
+System.err.println 'this is stderr'
+'''
+        def stdout = new ByteArrayOutputStream()
+        def stderr = new ByteArrayOutputStream()
+        def progressMessages = []
+
+        when:
+        withConnection { connection ->
+            def build = connection.newBuild()
+            build.standardOutput = stdout
+            build.standardError = stderr
+            build.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
+            build.run()
+        }
+
+        then:
+        stdout.toString().contains('this is stdout')
+        stderr.toString().contains('this is stderr')
+        !progressMessages.empty
     }
 
     def "tooling api reports build failure"() {

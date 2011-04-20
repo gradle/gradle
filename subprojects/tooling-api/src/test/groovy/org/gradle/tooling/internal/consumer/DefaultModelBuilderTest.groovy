@@ -38,11 +38,14 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.getModel(ProjectVersion3.class, !null, !null) >> {args ->
-            adaptedHandler = args[2]
+        1 * protocolConnection.getModel(!null, !null, !null) >> {args ->
+            def fetchParams = args[0]
+            assert fetchParams.type == ProjectVersion3
             def params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
+            assert params.progressListener != null
+            adaptedHandler = args[2]
         }
 
         when:
@@ -64,7 +67,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.getModel(ProjectVersion3.class, !null, !null) >> {args -> adaptedHandler = args[2]}
+        1 * protocolConnection.getModel(!null, !null, !null) >> {args -> adaptedHandler = args[2]}
 
         when:
         adaptedHandler.onFailure(failure)
@@ -91,7 +94,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
 
         then:
         action.waitsFor(supplyResult)
-        1 * protocolConnection.getModel(ProjectVersion3.class, !null, !null) >> { args ->
+        1 * protocolConnection.getModel(!null, !null, !null) >> { args ->
             def handler = args[2]
             supplyResult.activate {
                 handler.onComplete(result)
@@ -117,7 +120,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
 
         then:
         action.waitsFor(supplyResult)
-        1 * protocolConnection.getModel(ProjectVersion3.class, !null, !null) >> { args ->
+        1 * protocolConnection.getModel(!null, !null, !null) >> { args ->
             def handler = args[2]
             supplyResult.activate {
                 handler.onFailure(failure)

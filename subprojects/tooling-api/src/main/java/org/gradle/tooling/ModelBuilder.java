@@ -58,6 +58,14 @@ public interface ModelBuilder<T extends Project> {
     ModelBuilder<T> setStandardError(OutputStream outputStream);
 
     /**
+     * Adds a progress listener which will receive progress events as the model is being built.
+     *
+     * @param listener The listener
+     * @return this
+     */
+    ModelBuilder<T> addProgressListener(ProgressListener listener);
+
+    /**
      * Fetch the model, blocking until it is available.
      *
      * @return The model.

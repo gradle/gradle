@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
+import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.ModelFetchParametersVersion1;
@@ -25,13 +26,11 @@ import org.gradle.tooling.model.Project;
 
 import java.io.OutputStream;
 
-public class DefaultModelBuilder<T extends Project> implements ModelBuilder<T> {
+public class DefaultModelBuilder<T extends Project> extends AbstractLongRunningOperation implements ModelBuilder<T> {
     private final Class<T> modelType;
     private final Class<? extends ProjectVersion3> protocolType;
     private final ConnectionVersion4 connection;
     private final ProtocolToModelAdapter adapter;
-    private OutputStream stdout;
-    private OutputStream stderr;
 
     public DefaultModelBuilder(Class<T> modelType, Class<? extends ProjectVersion3> protocolType, ConnectionVersion4 connection, ProtocolToModelAdapter adapter) {
         this.modelType = modelType;
@@ -47,17 +46,8 @@ public class DefaultModelBuilder<T extends Project> implements ModelBuilder<T> {
     }
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
-        final ResultHandler<ProjectVersion3> adaptingHandler = new ResultHandler<ProjectVersion3>() {
-            public void onComplete(ProjectVersion3 result) {
-                handler.onComplete(adapter.adapt(modelType, result));
-
-            }
-
-            public void onFailure(GradleConnectionException failure) {
-                handler.onFailure(failure);
-            }
-        };
-        connection.getModel(protocolType, new ModelFetchParameters(), new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler) {
+        ResultHandler<ProjectVersion3> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
+        connection.getModel(fetchParameters(), operationParameters(), new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 return String.format("Could not fetch model of type '%s' from %s.", modelType.getSimpleName(), connection.getDisplayName());
@@ -65,23 +55,48 @@ public class DefaultModelBuilder<T extends Project> implements ModelBuilder<T> {
         });
     }
 
-    public ModelBuilder<T> setStandardOutput(OutputStream outputStream) {
-        stdout = outputStream;
+    private ModelFetchParametersVersion1 fetchParameters() {
+        return new FetchParameters();
+    }
+
+    @Override
+    public DefaultModelBuilder<T> setStandardOutput(OutputStream outputStream) {
+        super.setStandardOutput(outputStream);
         return this;
     }
 
-    public ModelBuilder<T> setStandardError(OutputStream outputStream) {
-        stderr = outputStream;
+    @Override
+    public DefaultModelBuilder<T> setStandardError(OutputStream outputStream) {
+        super.setStandardError(outputStream);
         return this;
     }
 
-    private class ModelFetchParameters implements ModelFetchParametersVersion1 {
-        public OutputStream getStandardOutput() {
-            return stdout;
+    @Override
+    public DefaultModelBuilder<T> addProgressListener(ProgressListener listener) {
+        super.addProgressListener(listener);
+        return this;
+    }
+
+    private class ProtocolToModelAdaptingHandler implements ResultHandler<ProjectVersion3> {
+        private final ResultHandler<? super T> handler;
+
+        public ProtocolToModelAdaptingHandler(ResultHandler<? super T> handler) {
+            this.handler = handler;
         }
 
-        public OutputStream getStandardError() {
-            return stderr;
+        public void onComplete(ProjectVersion3 result) {
+            handler.onComplete(adapter.adapt(modelType, result));
+
+        }
+
+        public void onFailure(GradleConnectionException failure) {
+            handler.onFailure(failure);
+        }
+    }
+
+    private class FetchParameters implements ModelFetchParametersVersion1 {
+        public Class<? extends ProjectVersion3> getType() {
+            return protocolType;
         }
     }
 }

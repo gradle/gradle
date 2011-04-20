@@ -18,7 +18,11 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
-import org.gradle.logging.internal.StreamBackedStandardOutputListener;
+import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.internal.*;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.*;
@@ -26,12 +30,13 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
 public class DefaultConnection implements ConnectionVersion4 {
     private final ConnectionParametersVersion1 parameters;
+    private final ServiceRegistry loggingServices = new LoggingServiceRegistry(false);
     private Worker worker;
     private Actor actor;
 
     public DefaultConnection(ConnectionParametersVersion1 parameters, ActorFactory actorFactory) {
         this.parameters = parameters;
-        actor = actorFactory.createActor(new WorkerImpl());
+        actor = actorFactory.createActor(new WorkerImpl(loggingServices));
         worker = actor.getProxy(Worker.class);
     }
 
@@ -50,48 +55,58 @@ public class DefaultConnection implements ConnectionVersion4 {
         }
     }
 
-    public <T extends ProjectVersion3> void getModel(Class<T> type, ModelFetchParametersVersion1 fetchParameters, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException {
-        worker.buildModel(type, fetchParameters, handler);
+    public void executeBuild(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
+        worker.build(buildParameters, operationParameters, handler);
     }
 
-    public void executeBuild(BuildParametersVersion1 buildParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
-        worker.build(buildParameters, handler);
+    public void getModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException {
+        worker.buildModel(fetchParameters, operationParameters, handler);
     }
 
     private interface Worker {
-        <T extends ProjectVersion3> void buildModel(Class<T> type, ModelFetchParametersVersion1 fetchParameters, ResultHandlerVersion1<? super T> handler);
+        void buildModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler);
 
-        void build(BuildParametersVersion1 buildParameters, ResultHandlerVersion1<? super Void> handler);
+        void build(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler);
     }
 
     private class WorkerImpl implements Worker {
-        public <T extends ProjectVersion3> void buildModel(Class<T> type, ModelFetchParametersVersion1 fetchParameters, ResultHandlerVersion1<? super T> handler) {
+        private final ServiceRegistry loggingServices;
+        private final GradleLauncherFactory gradleLauncherFactory;
+
+        public WorkerImpl(ServiceRegistry loggingServices) {
+            this.loggingServices = loggingServices;
+            gradleLauncherFactory = new DefaultGradleLauncherFactory(loggingServices);
+            GradleLauncher.injectCustomFactory(gradleLauncherFactory);
+        }
+
+        public void buildModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) {
             try {
-                handler.onComplete(buildModel(type, fetchParameters));
+                handler.onComplete(buildModel(fetchParameters, operationParameters));
             } catch (Throwable t) {
                 handler.onFailure(t);
             }
         }
 
-        public void build(BuildParametersVersion1 buildParameters, ResultHandlerVersion1<? super Void> handler) {
+        public void build(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) {
             try {
-                build(buildParameters);
+                build(buildParameters, operationParameters);
                 handler.onComplete(null);
             } catch (Throwable t) {
                 handler.onFailure(t);
             }
         }
 
-        private void build(BuildParametersVersion1 buildParameters) {
+        private void build(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters) {
             StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
             startParameter.setTaskNames(buildParameters.getTasks());
 
             GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-            configureLauncher(buildParameters, gradleLauncher);
+            configureLauncher(operationParameters, gradleLauncher);
             wrapAndRethrowFailure(gradleLauncher.run());
         }
 
-        private <T extends ProjectVersion3> T buildModel(Class<T> type, ModelFetchParametersVersion1 fetchParameters) throws UnsupportedOperationException {
+        private ProjectVersion3 buildModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters) throws UnsupportedOperationException {
+            Class<? extends ProjectVersion3> type = fetchParameters.getType();
             if (!type.isAssignableFrom(EclipseProjectVersion3.class)) {
                 throw new UnsupportedOperationException(String.format("Cannot build model of type '%s'.", type.getSimpleName()));
             }
@@ -99,7 +114,7 @@ public class DefaultConnection implements ConnectionVersion4 {
             StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
 
             GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-            configureLauncher(fetchParameters, gradleLauncher);
+            configureLauncher(operationParameters, gradleLauncher);
 
             boolean projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
             boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
@@ -112,13 +127,21 @@ public class DefaultConnection implements ConnectionVersion4 {
             return type.cast(adapter.getProject());
         }
 
-        private void configureLauncher(BuildOperationVersion1 buildParameters, GradleLauncher gradleLauncher) {
-            if (buildParameters.getStandardOutput() != null) {
-                gradleLauncher.addStandardOutputListener(new StreamBackedStandardOutputListener(buildParameters.getStandardOutput()));
+        private void configureLauncher(final LongRunningOperationParametersVersion1 operationParameters, GradleLauncher gradleLauncher) {
+            if (operationParameters.getStandardOutput() != null) {
+                gradleLauncher.addStandardOutputListener(new StreamBackedStandardOutputListener(operationParameters.getStandardOutput()));
             }
-            if (buildParameters.getStandardError() != null) {
-                gradleLauncher.addStandardErrorListener(new StreamBackedStandardOutputListener(buildParameters.getStandardError()));
+            if (operationParameters.getStandardError() != null) {
+                gradleLauncher.addStandardErrorListener(new StreamBackedStandardOutputListener(operationParameters.getStandardError()));
             }
+            loggingServices.get(LoggingOutputInternal.class).addOutputEventListener(new OutputEventListener() {
+                public void onOutput(OutputEvent event) {
+                    if (event instanceof ProgressStartEvent) {
+                        ProgressStartEvent startEvent = (ProgressStartEvent) event;
+                        operationParameters.getProgressListener().statusChanged(startEvent.getDescription());
+                    }
+                }
+            });
         }
 
         private void wrapAndRethrowFailure(BuildResult result) {

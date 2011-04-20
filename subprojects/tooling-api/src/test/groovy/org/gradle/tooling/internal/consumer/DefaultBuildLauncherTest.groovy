@@ -34,12 +34,14 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         launcher.forTasks(task1, task2).run(handler)
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def params = args[0]
-            assert params.tasks == [':task1', ':task2']
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def buildParams = args[0]
+            assert buildParams.tasks == [':task1', ':task2']
+            def params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
-            def wrappedHandler = args[1]
+            assert params.progressListener != null
+            def wrappedHandler = args[2]
             wrappedHandler.onComplete(null)
         }
         1 * handler.onComplete(null)
@@ -58,11 +60,11 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         launcher.run(handler)
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def params = args[0]
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def params = args[1]
             assert params.standardOutput == stdout
             assert params.standardError == stderr
-            def wrappedHandler = args[1]
+            def wrappedHandler = args[2]
             wrappedHandler.onComplete(null)
         }
     }
@@ -75,8 +77,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         launcher.run(handler)
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def wrappedHandler = args[1]
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def wrappedHandler = args[2]
             wrappedHandler.onFailure(failure)
         }
         1 * handler.onFailure(!null) >> { args ->
@@ -100,8 +102,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
 
         then:
         action.waitsFor(supplyResult)
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def handler = args[1]
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def handler = args[2]
             supplyResult.activate {
                 handler.onComplete(null)
             }
@@ -119,8 +121,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
 
         then:
         action.waitsFor(supplyResult)
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def handler = args[1]
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def handler = args[2]
             supplyResult.activate {
                 handler.onFailure(new RuntimeException())
             }

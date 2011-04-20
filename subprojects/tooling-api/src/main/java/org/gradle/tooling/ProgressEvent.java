@@ -13,25 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
-
-import java.io.OutputStream;
+package org.gradle.tooling;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Some information about a piece of work of a long running operation.
  */
-public interface BuildOperationVersion1 {
+public interface ProgressEvent {
     /**
-     * Returns the output stream to write stdout logging to.
+     * A description of the current piece of work.
      *
-     * @return The output stream. May be null.
+     * @return The description.
      */
-    OutputStream getStandardOutput();
-
-    /**
-     * Returns the output stream to write stderr logging to.
-     *
-     * @return The output stream. May be null.
-     */
-    OutputStream getStandardError();
+    String getDescription();
 }

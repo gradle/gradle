@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
-
-import java.util.List;
+package org.gradle.tooling;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * A listener which is notified as some long running operation makes progress.
  */
-public interface BuildParametersVersion1 {
-    List<String> getTasks();
+public interface ProgressListener {
+    /**
+     * Called when the progress status changes.
+     *
+     * @param event An event describing the status change.
+     */
+    void statusChanged(ProgressEvent event);
 }

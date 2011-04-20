@@ -54,10 +54,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
     private DefaultGradleLauncherFactory(GlobalServicesRegistry globalServices) {
         sharedServices = globalServices;
-
-        // Start logging system
-//        sharedServices.newInstance(LoggingManagerInternal.class).setLevel(LogLevel.LIFECYCLE).start();
-
         commandLineConverter = sharedServices.get(CommandLineConverter.class);
         tracker = new NestedBuildTracker();
 
