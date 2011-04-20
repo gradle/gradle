@@ -72,17 +72,31 @@ import org.gradle.util.ConfigureUtil
  *
  * </pre>
  *
- * Author: Szczepan Faber, created at: 4/19/11
+ * @author: Szczepan Faber, created at: 4/19/11
  */
 class EclipseWtp {
 
     EclipseWtpComponent component
     EclipseWtpFacet facet
 
+    /**
+     * Configures wtp component.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @param action
+     */
     void component(Closure action) {
         ConfigureUtil.configure(action, component)
     }
 
+    /**
+     * Configures wtp facet.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @param action
+     */
     void facet(Closure action) {
         ConfigureUtil.configure(action, facet)
     }

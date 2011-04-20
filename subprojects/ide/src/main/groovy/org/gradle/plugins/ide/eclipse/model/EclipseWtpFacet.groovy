@@ -19,7 +19,11 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.util.ConfigureUtil
 
 /**
- * Author: Szczepan Faber, created at: 4/20/11
+ * Models the information need for wtp component
+ * <p>
+ * For examples see docs for {@link EclipseWtp}
+ *
+ * @author: Szczepan Faber, created at: 4/20/11
  */
 class EclipseWtpFacet {
 

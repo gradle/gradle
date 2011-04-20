@@ -20,7 +20,11 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
 
 /**
- * Author: Szczepan Faber, created at: 4/20/11
+ * Models the information need for wtp component
+ * <p>
+ * For examples see docs for {@link EclipseWtp}
+ *
+ * @author: Szczepan Faber, created at: 4/20/11
  */
 class EclipseWtpComponent {
 
