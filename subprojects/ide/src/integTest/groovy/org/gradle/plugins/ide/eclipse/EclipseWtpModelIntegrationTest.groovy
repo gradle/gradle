@@ -108,7 +108,7 @@ eclipse {
         assert facet.contains('1.333')
     }
 
-    @Ignore("TODO SF does not work at the moment")
+    @Ignore("GRADLE-1487")
     @Test
     void allowsFileDependencies() {
         //when
