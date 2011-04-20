@@ -4,6 +4,6 @@ interface MavenPublication {
     String getGroupId()
     String getArtifactId()
     String getVersion()
-    String getClassifier()
-    Set<MavenArtifact> getArtifacts()
+    MavenArtifact getMainArtifact()
+    Collection<MavenArtifact> getSubArtifacts()
 }

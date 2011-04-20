@@ -26,4 +26,8 @@ public class SystemProperties {
     public static String getJavaIoTmpDir() {
         return System.getProperty("java.io.tmpdir");
     }
+
+    public static String getUserHome() {
+        return System.getProperty("user.home");
+    }
 }
