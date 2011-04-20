@@ -58,7 +58,6 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
      * The configurations whose files are to be transformed into dependent-module elements.
      */
     Set<Configuration> getPlusConfigurations() {
-        //TODO SF: check if we need to care about it for tooling api minimal model
         wtp.plusConfigurations
     }
 
