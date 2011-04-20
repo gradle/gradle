@@ -66,7 +66,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseProject(Project project) {
-        addEclipsePluginTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
+        maybeAddTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
             //task properties:
             description = "Generates the Eclipse project file."
             inputFile = project.file('.project')
@@ -101,7 +101,7 @@ class EclipsePlugin extends IdePlugin {
                 projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
                 projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
 
-                eachDependedUponProject(project) { Project otherProject ->
+                afterEvaluationWithEachDependedUponEclipseProject(project) { Project otherProject ->
                     configureTask(otherProject, ECLIPSE_PROJECT_TASK_NAME) {
                         projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
                         projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
@@ -119,7 +119,7 @@ class EclipsePlugin extends IdePlugin {
         model.classpath.conventionMapping.classesOutputDir = { new File(project.projectDir, 'bin') }
 
         project.plugins.withType(JavaBasePlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) {
+            maybeAddTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) {
                 //task properties:
                 description = "Generates the Eclipse classpath file."
                 inputFile = project.file('.classpath')
@@ -136,7 +136,7 @@ class EclipsePlugin extends IdePlugin {
                 }
 
                 project.plugins.withType(WarPlugin) {
-                    eachDependedUponProject(project) { Project otherProject ->
+                    afterEvaluationWithEachDependedUponEclipseProject(project) { Project otherProject ->
                         configureTask(otherProject, ECLIPSE_CP_TASK_NAME) {
                             whenConfigured { Classpath classpath ->
                                 for (entry in classpath.entries) {
@@ -155,7 +155,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseJdt(Project project) {
         project.plugins.withType(JavaBasePlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt) {
+            maybeAddTask(project, this, ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt) {
                 //task properties:
                 description = "Generates the Eclipse JDT settings file."
                 outputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
@@ -170,7 +170,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseWtpComponent(Project project) {
         project.plugins.withType(WarPlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
+            maybeAddTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
                 //task properties:
                 description = 'Generates the Eclipse WTP component settings file.'
                 inputFile = project.file('.settings/org.eclipse.wst.common.component')
@@ -188,11 +188,12 @@ class EclipsePlugin extends IdePlugin {
                 wtp.conventionMapping.contextPath = { project.war.baseName }
             }
 
-            eachDependedUponProject(project) { otherProject ->
+            afterEvaluationWithEachDependedUponEclipseProject(project) { Project otherProject ->
+                def eclipsePlugin = otherProject.plugins.getPlugin(EclipsePlugin)
                 // require Java plugin because we need source set 'main'
                 // (in the absence of 'main', it probably makes no sense to write the file)
                 otherProject.plugins.withType(JavaPlugin) {
-                    addEclipsePluginTask(otherProject, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
+                    maybeAddTask(otherProject, eclipsePlugin, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
                         //task properties:
                         description = 'Generates the Eclipse WTP component settings file.'
                         inputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
@@ -200,7 +201,7 @@ class EclipsePlugin extends IdePlugin {
 
                         //model properties:
                         wtp = services.get(ClassGenerator).newInstance(EclipseWtp, [project: otherProject])
-                        otherProject.plugins.withType(EclipsePlugin) { it.model.wtp = wtp }
+                        eclipsePlugin.model.wtp = wtp
 
                         wtp.deployName = otherProject.name
                         wtp.conventionMapping.resources = {
@@ -214,7 +215,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseWtpFacet(Project project) {
         project.plugins.withType(WarPlugin) {
-            addEclipsePluginTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
+            maybeAddTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
                 //task properties:
                 description = 'Generates the Eclipse WTP facet settings file.'
                 inputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
@@ -225,15 +226,16 @@ class EclipsePlugin extends IdePlugin {
                 wtp.conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
             }
 
-            eachDependedUponProject(project) { otherProject ->
-                addEclipsePluginTask(otherProject, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
+            afterEvaluationWithEachDependedUponEclipseProject(project) { Project otherProject ->
+                def eclipsePlugin = otherProject.plugins.getPlugin(EclipsePlugin)
+                maybeAddTask(otherProject, eclipsePlugin, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
                     //task properties:
                     description = 'Generates the Eclipse WTP facet settings file.'
                     inputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                     //model properties:
-                    otherProject.plugins.withType(EclipsePlugin) { wtp = it.model.wtp } //TODO SF: Adam - will that work? This stuff not really covered by integ tests...
+                    wtp = eclipsePlugin.model.wtp
 
                     wtp.conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
                     otherProject.plugins.withType(JavaPlugin) {
@@ -248,7 +250,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     // TODO: might have to search all class paths of all source sets for project dependendencies, not just runtime configuration
-    private void eachDependedUponProject(Project project, Closure action) {
+    private void afterEvaluationWithEachDependedUponEclipseProject(Project project, Closure action) {
         project.gradle.projectsEvaluated {
             doEachDependedUponProject(project, action)
         }
@@ -260,7 +262,7 @@ class EclipsePlugin extends IdePlugin {
             def projectDeps = runtimeConfig.getAllDependencies(ProjectDependency)
             def dependedUponProjects = projectDeps*.dependencyProject
             for (dependedUponProject in dependedUponProjects) {
-                action(dependedUponProject)
+                dependedUponProject.plugins.withType(EclipsePlugin) { action(dependedUponProject) }
                 doEachDependedUponProject(dependedUponProject, action)
             }
         }
@@ -276,21 +278,9 @@ class EclipsePlugin extends IdePlugin {
         }
     }
 
-    // note: we only add and configure the task if it doesn't exist yet
-    private void addEclipsePluginTask(Project project, EclipsePlugin plugin = null, String taskName, Class taskType, Closure action) {
-        if (plugin) {
-            doAddEclipsePluginTask(project, plugin, taskName, taskType, action)
-        } else {
-            project.plugins.withType(EclipsePlugin) { EclipsePlugin otherPlugin ->
-                doAddEclipsePluginTask(project, otherPlugin, taskName, taskType, action)
-            }
-        }
-    }
-
-    private void doAddEclipsePluginTask(Project project, EclipsePlugin plugin, String taskName, Class taskType, Closure action) {
+    private void maybeAddTask(Project project, EclipsePlugin plugin, String taskName, Class taskType, Closure action) {
         if (project.tasks.findByName(taskName)) { return }
-
-        def task = project.tasks.add(taskName, taskType) // TODO: whenTaskAdded hook will fire before task has been configured
+        def task = project.tasks.add(taskName, taskType)
         project.configure(task, action)
         plugin.addWorker(task)
     }
