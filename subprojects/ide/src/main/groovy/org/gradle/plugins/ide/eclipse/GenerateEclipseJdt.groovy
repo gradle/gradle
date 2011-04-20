@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.JavaVersion
 import org.gradle.plugins.ide.api.GeneratorTask
-import org.gradle.plugins.ide.eclipse.model.EclipseProject
+import org.gradle.plugins.ide.eclipse.model.EclipseJdt
 import org.gradle.plugins.ide.eclipse.model.Jdt
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
 
@@ -29,28 +29,28 @@ class GenerateEclipseJdt extends GeneratorTask<Jdt> {
     /**
      * Eclipse project model that contains information needed for this task
      */
-    EclipseProject projectModel
+    EclipseJdt jdt
 
     /**
      * The source Java language level.
      */
     JavaVersion getSourceCompatibility() {
-        projectModel.sourceCompatibility
+        jdt.sourceCompatibility
     }
 
     void setSourceCompatibility(Object sourceCompatibility) {
-        projectModel.sourceCompatibility = sourceCompatibility
+        jdt.sourceCompatibility = sourceCompatibility
     }
 
     /**
      * The target JVM to generate {@code .class} files for.
      */
     JavaVersion getTargetCompatibility() {
-        projectModel.targetCompatibility
+        jdt.targetCompatibility
     }
 
     void setTargetCompatibility(Object targetCompatibility) {
-        projectModel.targetCompatibility = targetCompatibility
+        jdt.targetCompatibility = targetCompatibility
     }
 
     GenerateEclipseJdt() {
@@ -60,8 +60,8 @@ class GenerateEclipseJdt extends GeneratorTask<Jdt> {
             }
 
             void configure(Jdt jdt) {
-                jdt.sourceCompatibility = getProjectModel().sourceCompatibility
-                jdt.targetCompatibility = getProjectModel().targetCompatibility
+                jdt.sourceCompatibility = getJdt().sourceCompatibility
+                jdt.targetCompatibility = getJdt().targetCompatibility
             }
         }
     }

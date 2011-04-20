@@ -161,9 +161,10 @@ class EclipsePlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
                 inputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
                 //model properties:
-                projectModel = model.project
-                projectModel.conventionMapping.sourceCompatibility = { project.sourceCompatibility }
-                projectModel.conventionMapping.targetCompatibility = { project.targetCompatibility }
+                model.jdt = services.get(ClassGenerator).newInstance(EclipseJdt)
+                jdt = model.jdt
+                jdt.conventionMapping.sourceCompatibility = { project.sourceCompatibility }
+                jdt.conventionMapping.targetCompatibility = { project.targetCompatibility }
             }
         }
     }

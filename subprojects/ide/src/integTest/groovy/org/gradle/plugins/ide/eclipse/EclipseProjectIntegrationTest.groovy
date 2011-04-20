@@ -52,7 +52,9 @@ eclipse {
 
     linkedResource name: 'linkToFolderFoo', type: 'aFolderFoo', location: '/test/folders/foo'
     linkedResource name: 'linkToUriFoo', type: 'aFooUri', locationUri: 'http://test/uri/foo'
+  }
 
+  jdt {
     sourceCompatibility = 1.4
     targetCompatibility = 1.3
   }

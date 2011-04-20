@@ -51,18 +51,52 @@ class EclipseModel {
 
     EclipseProject project
     EclipseClasspath classpath
+    EclipseJdt jdt
+
     EclipseWtp wtp = new EclipseWtp()
 
+    /**
+     * Configures eclipse project
+     * <p>
+     * For examples see docs for {@link EclipseProject}
+     *
+     * @param closure
+     */
     void project(Closure closure) {
         ConfigureUtil.configure(closure, project)
     }
 
+    /**
+     * Configures eclipse classpath information
+     * <p>
+     * For examples see docs for {@link EclipseClasspath}
+     *
+     * @param closure
+     */
     void classpath(Closure closure) {
         ConfigureUtil.configure(closure, classpath)
     }
 
+    /**
+     * Configures eclipse wtp information
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     *
+     * @param closure
+     */
     void wtp(Closure closure) {
         ConfigureUtil.configure(closure, wtp)
+    }
+
+    /**
+     * Configures eclipse java compatibility information (jdt)
+     * <p>
+     * For examples see docs for {@link EclipseProject}
+     *
+     * @param closure
+     */
+    void jdt(Closure closure) {
+        ConfigureUtil.configure(closure, jdt)
     }
 
     /**
