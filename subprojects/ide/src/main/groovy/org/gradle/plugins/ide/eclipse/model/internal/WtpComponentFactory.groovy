@@ -19,7 +19,7 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.plugins.ide.eclipse.model.EclipseWtp
+import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
@@ -28,7 +28,7 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent
  * @author Hans Dockter
  */
 class WtpComponentFactory {
-    void configure(EclipseWtp wtp, WtpComponent component) {
+    void configure(EclipseWtpComponent wtp, WtpComponent component) {
         def entries = getEntriesFromSourceDirs(wtp)
         entries.addAll(wtp.resources)
         entries.addAll(wtp.properties)
@@ -37,18 +37,18 @@ class WtpComponentFactory {
         component.configure(wtp.deployName, wtp.contextPath, entries)
     }
 
-    private List getEntriesFromSourceDirs(EclipseWtp wtp) {
+    private List getEntriesFromSourceDirs(EclipseWtpComponent wtp) {
         wtp.sourceDirs.findAll { it.isDirectory() }.collect { dir ->
             new WbResource("/WEB-INF/classes", wtp.project.relativePath(dir))
         }
     }
 
-    private List getEntriesFromConfigurations(EclipseWtp wtp) {
+    private List getEntriesFromConfigurations(EclipseWtpComponent wtp) {
         (getEntriesFromProjectDependencies(wtp) as List) + (getEntriesFromLibraries(wtp) as List)
     }
 
     // must include transitive project dependencies
-    private Set getEntriesFromProjectDependencies(EclipseWtp wtp) {
+    private Set getEntriesFromProjectDependencies(EclipseWtpComponent wtp) {
         def dependencies = getDependencies(wtp.plusConfigurations, wtp.minusConfigurations,
                 { it instanceof org.gradle.api.artifacts.ProjectDependency })
 
@@ -77,7 +77,7 @@ class WtpComponentFactory {
     }
 
     // must NOT include transitive library dependencies
-    private Set getEntriesFromLibraries(EclipseWtp wtp) {
+    private Set getEntriesFromLibraries(EclipseWtpComponent wtp) {
         Set declaredDependencies = getDependencies(wtp.plusConfigurations, wtp.minusConfigurations,
                 { it instanceof ExternalDependency})
 

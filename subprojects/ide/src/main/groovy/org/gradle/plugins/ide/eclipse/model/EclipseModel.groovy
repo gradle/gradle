@@ -51,7 +51,7 @@ class EclipseModel {
 
     EclipseProject project
     EclipseClasspath classpath
-    EclipseWtp wtp
+    EclipseWtp wtp = new EclipseWtp()
 
     void project(Closure closure) {
         ConfigureUtil.configure(closure, project)
@@ -75,8 +75,8 @@ class EclipseModel {
     void pathVariables(Map<String, File> pathVariables) {
         assert pathVariables != null
         classpath.pathVariables.putAll pathVariables
-        if (wtp) {
-            wtp.pathVariables.putAll pathVariables
+        if (wtp.component) {
+            wtp.component.pathVariables.putAll pathVariables
         }
     }
 }

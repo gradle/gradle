@@ -16,8 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model
 
-import org.gradle.api.artifacts.Configuration
-import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -42,29 +40,33 @@ import org.gradle.util.ConfigureUtil
  *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')
  *
  *   wtp {
- *     //you can configure the context path:
- *     contextPath = 'someContextPath'
+ *     component {
+ *       //you can configure the context path:
+ *       contextPath = 'someContextPath'
  *
- *     //you can configure the deployName:
- *     deployName = 'killerApp'
+ *       //you can configure the deployName:
+ *       deployName = 'killerApp'
  *
- *     //you can alter the wb-resource elements. sourceDirs is a ConvenienceProperty.
- *     sourceDirs += file('someExtraFolder')
+ *       //you can alter the wb-resource elements. sourceDirs is a ConvenienceProperty.
+ *       sourceDirs += file('someExtraFolder')
  *
- *     //you can alter the files are to be transformed into dependent-module elements:
- *     plusConfigurations += configurations.someInterestingConfiguration
+ *       //you can alter the files are to be transformed into dependent-module elements:
+ *       plusConfigurations += configurations.someInterestingConfiguration
  *
- *     //or whose files are to be excluded from dependent-module elements:
- *     minusConfigurations += configurations.anotherConfiguration
+ *       //or whose files are to be excluded from dependent-module elements:
+ *       minusConfigurations += configurations.anotherConfiguration
  *
- *     //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
- *     resource sourcePath: 'extra/resource', deployPath: 'deployment/resource'
+ *       //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
+ *       resource sourcePath: 'extra/resource', deployPath: 'deployment/resource'
  *
- *     //you can add a wb-property elements; mandatory keys: 'name', 'value':
- *     property name: 'moodOfTheDay', value: ':-D'
+ *       //you can add a wb-property elements; mandatory keys: 'name', 'value':
+ *       property name: 'moodOfTheDay', value: ':-D'
+ *     }
  *
- *     //you can add some extra wtp facets; mandatory keys: 'name', 'version':
- *     facet name: 'someCoolFacet', version: '1.3'
+ *     facet {
+ *       //you can add some extra wtp facets; mandatory keys: 'name', 'version':
+ *       facet name: 'someCoolFacet', version: '1.3'
+ *     }
  *   }
  * }
  *
@@ -74,118 +76,14 @@ import org.gradle.util.ConfigureUtil
  */
 class EclipseWtp {
 
-    /**
-     * The source directories to be transformed into wb-resource elements.
-     * <p>
-     * Warning, this property is a {@link org.gradle.api.dsl.ConvenienceProperty}
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     */
-    Set<File> sourceDirs
+    EclipseWtpComponent component
+    EclipseWtpFacet facet
 
-    /**
-     * The configurations whose files are to be transformed into dependent-module elements.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     */
-    Set<Configuration> plusConfigurations
-
-    /**
-     * The configurations whose files are to be excluded from dependent-module elements.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     */
-    Set<Configuration> minusConfigurations
-
-    /**
-     * The deploy name to be used.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     */
-    String deployName
-
-    /**
-     * Additional wb-resource elements.
-     * <p>
-     * Warning, this property is a {@link org.gradle.api.dsl.ConvenienceProperty}
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     */
-    List<WbResource> resources = []
-
-    /**
-     * Adds a wb-resource.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     *
-     * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
-     */
-    void resource(Map<String, String> args) {
-        //TODO SF validation
-        resources.add(new WbResource(args.deployPath, args.sourcePath))
+    void component(Closure action) {
+        ConfigureUtil.configure(action, component)
     }
 
-    /**
-     * Additional property elements.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     */
-    List<WbProperty> properties = []
-
-    /**
-     * Adds a property.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     *
-     * @param args A map that must contain a 'name' and 'value' key with corresponding values.
-     */
-    void property(Map<String, String> args) {
-        //TODO SF validation
-        properties.add(new WbProperty(args.name, args.value))
-    }
-
-   /**
-     * The context path for the web application
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     */
-    String contextPath
-
-    /**
-     * The facets to be added as elements.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     */
-    // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
-    List<Facet> facets = []
-
-    /**
-     * Adds a facet.
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
-     *
-     * @param args A map that must contain a 'name' and 'version' key with corresponding values.
-     */
-    void facet(Map<String, ?> args) {
-        facets << ConfigureUtil.configureByMap(args, new Facet())
-    }
-
-    //********
-
-    org.gradle.api.Project project
-
-    /**
-     * The variables to be used for replacing absolute path in dependent-module elements.
-     * <p>
-     * For examples see docs for {@link EclipseModel}
-     */
-    Map<String, File> pathVariables = [:]
-
-    void mergeXmlComponent(WtpComponent xmlComponent) {
-        new WtpComponentFactory().configure(this, xmlComponent)
-    }
-
-    void mergeXmlFacet(WtpFacet xmlFacet) {
-        xmlFacet.configure(getFacets())
+    void facet(Closure action) {
+        ConfigureUtil.configure(action, facet)
     }
 }

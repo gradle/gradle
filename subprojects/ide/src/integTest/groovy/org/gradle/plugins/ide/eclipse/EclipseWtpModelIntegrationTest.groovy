@@ -67,20 +67,23 @@ eclipse {
   pathVariables 'userHomeVariable' : file(System.properties['user.home'])
 
   wtp {
-    contextPath = 'killerApp'
+    component {
+      contextPath = 'killerApp'
 
-    sourceDirs += file('someExtraSourceDir')
+      sourceDirs += file('someExtraSourceDir')
 
-    plusConfigurations += configurations.configOne
-    minusConfigurations += configurations.configTwo
+      plusConfigurations += configurations.configOne
+      minusConfigurations += configurations.configTwo
 
-    deployName = 'someBetterDeployName'
+      deployName = 'someBetterDeployName'
 
-    resource sourcePath: './src/foo/bar', deployPath: './deploy/foo/bar'
+      resource sourcePath: './src/foo/bar', deployPath: './deploy/foo/bar'
 
-    property name: 'wbPropertyOne', value: 'New York!'
-
-    facet name: 'gradleFacet', version: '1.333'
+      property name: 'wbPropertyOne', value: 'New York!'
+    }
+    facet {
+      facet name: 'gradleFacet', version: '1.333'
+    }
   }
 }
         """

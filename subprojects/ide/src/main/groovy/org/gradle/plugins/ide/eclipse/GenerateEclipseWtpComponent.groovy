@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.api.XmlGeneratorTask
-import org.gradle.plugins.ide.eclipse.model.EclipseWtp
+import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
@@ -29,7 +29,7 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent
  */
 class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
-    EclipseWtp wtp
+    EclipseWtpComponent component
 
     GenerateEclipseWtpComponent() {
         xmlTransformer.indentation = "\t"
@@ -40,95 +40,95 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     }
 
     @Override protected void configure(WtpComponent xmlComponent) {
-        wtp.mergeXmlComponent(xmlComponent)
+        component.mergeXmlComponent(xmlComponent)
     }
 
     /**
      * The source directories to be transformed into wb-resource elements.
      */
     Set<File> getSourceDirs() {
-        wtp.sourceDirs
+        component.sourceDirs
     }
 
     void setSourceDirs(Set<File> sourceDirs) {
-        wtp.sourceDirs = sourceDirs
+        component.sourceDirs = sourceDirs
     }
 
     /**
      * The configurations whose files are to be transformed into dependent-module elements.
      */
     Set<Configuration> getPlusConfigurations() {
-        wtp.plusConfigurations
+        component.plusConfigurations
     }
 
     void setPlusConfigurations(Set<Configuration> plusConfigurations) {
-        wtp.plusConfigurations = plusConfigurations
+        component.plusConfigurations = plusConfigurations
     }
 
     /**
      * The configurations whose files are to be excluded from dependent-module elements.
      */
     Set<Configuration> getMinusConfigurations() {
-        wtp.minusConfigurations
+        component.minusConfigurations
     }
 
     void setMinusConfigurations(Set<Configuration> minusConfigurations) {
-        wtp.minusConfigurations = minusConfigurations
+        component.minusConfigurations = minusConfigurations
     }
 
     /**
      * The deploy name to be used.
      */
     String getDeployName() {
-        wtp.deployName
+        component.deployName
     }
 
     void setDeployName(String deployName) {
-        wtp.deployName = deployName
+        component.deployName = deployName
     }
 
     /**
      * The variables to be used for replacing absolute path in dependent-module elements.
      */
     Map<String, File> getVariables() {
-        wtp.pathVariables
+        component.pathVariables
     }
 
     void setVariables(Map<String, File> variables) {
-        wtp.pathVariables = variables
+        component.pathVariables = variables
     }
 
     /**
      * Additional wb-resource elements.
      */
     List<WbResource> getResources() {
-        wtp.resources
+        component.resources
     }
 
     void setResources(List<WbResource> resources) {
-        wtp.resources = resources
+        component.resources = resources
     }
 
     /**
      * Additional property elements.
      */
     List<WbProperty> getProperties() {
-        wtp.properties
+        component.properties
     }
 
     void setProperties(List<WbProperty> properties) {
-        wtp.properties = properties
+        component.properties = properties
     }
 
     /**
      * The context path for the web application
      */
     String getContextPath() {
-        wtp.contextPath
+        component.contextPath
     }
 
     void setContextPath(String contextPath) {
-        wtp.contextPath = contextPath
+        component.contextPath = contextPath
     }
 
     /**
@@ -138,7 +138,7 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
      */
     void variables(Map<String, File> variables) {
         assert variables != null
-        wtp.pathVariables.putAll variables
+        component.pathVariables.putAll variables
     }
 
     /**
@@ -147,7 +147,7 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
      * @param args A map that must contain a name and value key with corresponding values.
      */
     void property(Map<String, String> args) {
-        wtp.property(args)
+        component.property(args)
     }
 
     /**
@@ -156,6 +156,6 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
     void resource(Map<String, String> args) {
-        wtp.resource(args)
+        component.resource(args)
     }
 }

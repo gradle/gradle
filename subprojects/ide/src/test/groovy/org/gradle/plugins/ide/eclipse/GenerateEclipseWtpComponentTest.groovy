@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
-import org.gradle.plugins.ide.eclipse.model.EclipseWtp
+import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 
@@ -28,7 +28,7 @@ public class GenerateEclipseWtpComponentTest extends AbstractSpockTaskTest {
     private eclipseComponent = createTask(GenerateEclipseWtpComponent)
 
     def setup() {
-        eclipseComponent.wtp = new EclipseWtp()
+        eclipseComponent.component = new EclipseWtpComponent()
     }
 
     ConventionTask getTask() { eclipseComponent }

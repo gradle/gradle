@@ -177,15 +177,15 @@ class EclipsePlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.wst.common.component')
 
                 //model properties:
-                wtp = services.get(ClassGenerator).newInstance(EclipseWtp, [project: project])
-                model.wtp = wtp
+                model.wtp.component = services.get(ClassGenerator).newInstance(EclipseWtpComponent, [project: project])
+                component = model.wtp.component
 
-                wtp.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
-                wtp.plusConfigurations = [project.configurations.runtime]
-                wtp.minusConfigurations = [project.configurations.providedRuntime]
-                wtp.deployName = project.name
-                wtp.resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
-                wtp.conventionMapping.contextPath = { project.war.baseName }
+                component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
+                component.plusConfigurations = [project.configurations.runtime]
+                component.minusConfigurations = [project.configurations.providedRuntime]
+                component.deployName = project.name
+                component.resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
+                component.conventionMapping.contextPath = { project.war.baseName }
             }
 
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
@@ -200,11 +200,11 @@ class EclipsePlugin extends IdePlugin {
                         outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
 
                         //model properties:
-                        wtp = services.get(ClassGenerator).newInstance(EclipseWtp, [project: otherProject])
-                        eclipsePlugin.model.wtp = wtp
+                        eclipsePlugin.model.wtp.component = services.get(ClassGenerator).newInstance(EclipseWtpComponent, [project: otherProject])
+                        component = eclipsePlugin.model.wtp.component
 
-                        wtp.deployName = otherProject.name
-                        wtp.conventionMapping.resources = {
+                        component.deployName = otherProject.name
+                        component.conventionMapping.resources = {
                             getMainSourceDirs(otherProject).collect { new WbResource("/", otherProject.relativePath(it)) }
                         }
                     }
@@ -222,8 +222,9 @@ class EclipsePlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                 //model properties:
-                wtp = model.wtp
-                wtp.conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
+                model.wtp.facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet)
+                facet = model.wtp.facet
+                facet.conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
             }
 
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
@@ -235,11 +236,12 @@ class EclipsePlugin extends IdePlugin {
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                     //model properties:
-                    wtp = eclipsePlugin.model.wtp
+                    eclipsePlugin.model.wtp.facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet)
+                    facet = eclipsePlugin.model.wtp.facet
 
-                    wtp.conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
+                    facet.conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
                     otherProject.plugins.withType(JavaPlugin) {
-                        conventionMapping.facets = {
+                        facet.conventionMapping.facets = {
                             [new Facet("jst.utility", "1.0"), new Facet("jst.java",
                                     toJavaFacetVersion(otherProject.sourceCompatibility))]
                         }

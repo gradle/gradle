@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.plugins.ide.api.XmlGeneratorTask
-import org.gradle.plugins.ide.eclipse.model.EclipseWtp
+import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.WtpFacet
 
@@ -27,7 +27,7 @@ import org.gradle.plugins.ide.eclipse.model.WtpFacet
  */
 class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
 
-    EclipseWtp wtp
+    EclipseWtpFacet facet
 
     GenerateEclipseWtpFacet() {
         xmlTransformer.indentation = "\t"
@@ -38,18 +38,18 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
     }
 
     @Override protected void configure(WtpFacet xmlFacet) {
-        wtp.mergeXmlFacet(xmlFacet)
+        facet.mergeXmlFacet(xmlFacet)
     }
 
     /**
      * The facets to be added as elements.
      */
     List<Facet> getFacets() {
-        wtp.facets
+        facet.facets
     }
 
     void setFacets(List<Facet> facets) {
-        wtp.facets = facets
+        facet.facets = facets
     }
 
     /**
@@ -58,6 +58,6 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
      * @param args A map that must contain a 'name' and 'version' key with corresponding values.
      */
     void facet(Map<String, ?> args) {
-        wtp.facet(args)
+        facet.facet(args)
     }
 }
