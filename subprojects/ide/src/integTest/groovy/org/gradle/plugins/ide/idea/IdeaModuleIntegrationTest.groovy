@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Ignore
 
 class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -99,9 +98,8 @@ idea {
         assert iml.someInterestingConfiguration.text() == 'hey!'
     }
 
-    @Ignore("idea plugin does not seem to be supporting file dependencies... TODO SF?")
     @Test
-    void allowsTweakingClasspaths() {
+    void plusMinusConfigurationsAreCorrectlyApplied() {
         file('foo.jar', 'bar.jar')
         //when
         runTask 'idea', '''
@@ -109,15 +107,14 @@ apply plugin: "java"
 apply plugin: "idea"
 
 configurations {
-  foo
   bar
+  foo
+  foo.extendsFrom(bar)
 }
 
 dependencies {
-  bar file('bar.jar')
-
-  foo file('foo.jar')
-  foo.extendsFrom('bar')
+  bar files('bar.jar')
+  foo files('foo.jar')
 }
 
 idea {
@@ -128,7 +125,10 @@ idea {
 }
 '''
         def content = getFile([:], 'root.iml').text
-        println content
+
+        //then
+        assert content.contains('foo.jar')
+        assert !content.contains('bar.jar')
     }
 
     @Test
