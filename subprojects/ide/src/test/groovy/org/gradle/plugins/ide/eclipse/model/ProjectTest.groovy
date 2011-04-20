@@ -28,7 +28,7 @@ public class ProjectTest extends Specification {
     def static final CUSTOM_REFERENCED_PROJECTS = ['refProject'] as LinkedHashSet
     def static final CUSTOM_BUILD_COMMANDS = [new BuildCommand('org.eclipse.jdt.core.scalabuilder', [climate: 'cold'])]
     def static final CUSTOM_NATURES = ['org.eclipse.jdt.core.scalanature'] 
-    def static final CUSTOM_LINKS = [new Link('somename', 'sometype', 'somelocation', '')] as Set
+    def static final CUSTOM_LINKED_RESOURCES = [new Link('somename', 'sometype', 'somelocation', '')] as Set
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -44,7 +44,7 @@ public class ProjectTest extends Specification {
         project.referencedProjects == CUSTOM_REFERENCED_PROJECTS
         project.buildCommands == CUSTOM_BUILD_COMMANDS
         project.natures == CUSTOM_NATURES
-        project.links == CUSTOM_LINKS
+        project.linkedResources == CUSTOM_LINKED_RESOURCES
     }
 
     def configureMergesValues() {
@@ -54,7 +54,7 @@ public class ProjectTest extends Specification {
         eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet
         eclipseProject.buildCommands = [new BuildCommand('constructorbuilder')]
         eclipseProject.natures = ['constructorNature']
-        eclipseProject.links = [new Link('constructorName', 'constructorType', 'constructorLocation', '')] as Set
+        eclipseProject.linkedResources = [new Link('constructorName', 'constructorType', 'constructorLocation', '')] as Set
 
         when:
         project.load(customProjectReader)
@@ -66,7 +66,7 @@ public class ProjectTest extends Specification {
         project.referencedProjects == eclipseProject.referencedProjects + CUSTOM_REFERENCED_PROJECTS
         project.buildCommands == CUSTOM_BUILD_COMMANDS + eclipseProject.buildCommands
         project.natures == CUSTOM_NATURES + eclipseProject.natures
-        project.links == eclipseProject.links + CUSTOM_LINKS
+        project.linkedResources == eclipseProject.linkedResources + CUSTOM_LINKED_RESOURCES
     }
 
     def loadDefaults() {
@@ -79,7 +79,7 @@ public class ProjectTest extends Specification {
         project.referencedProjects == [] as Set
         project.buildCommands == []
         project.natures == []
-        project.links == [] as Set
+        project.linkedResources == [] as Set
     }
 
     def toXml_shouldContainCustomValues() {

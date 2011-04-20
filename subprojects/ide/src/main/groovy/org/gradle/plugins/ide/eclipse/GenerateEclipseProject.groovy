@@ -125,14 +125,14 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
     }
 
     /**
-     * The links to be added to this Eclipse project.
+     * The linked resources to be added to this Eclipse project.
      */
     Set<Link> getLinks() {
-        projectModel.links
+        projectModel.linkedResources
     }
 
     void setLinks(Set<Link> links) {
-        projectModel.links = links
+        projectModel.linkedResources = links
     }
 
     /**
@@ -179,6 +179,6 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
      */
     void link(Map<String, String> args) {
-        projectModel.link(args)
+        projectModel.linkedResource(args)
     }
 }

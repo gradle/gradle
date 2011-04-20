@@ -26,30 +26,30 @@ class EclipseProjectTest extends Specification {
 
     def eclipseProject = new EclipseProject()
 
-    def "allows adding links"() {
+    def "allows adding linked resources"() {
         when:
-        eclipseProject.link(name: 'foo', type: 'folder', location: '/stuff/foo')
-        eclipseProject.link(name: 'bar', type: 'uri', locationUri: 'file:///stuff/bar')
+        eclipseProject.linkedResource(name: 'foo', type: 'folder', location: '/stuff/foo')
+        eclipseProject.linkedResource(name: 'bar', type: 'uri', locationUri: 'file:///stuff/bar')
 
         then:
-        2 == eclipseProject.links.size()
+        2 == eclipseProject.linkedResources.size()
     }
 
     def "complains when invalid link created"() {
         when:
-        eclipseProject.link(name: 'foo', type: 'folder', wrongKey: '/stuff/foo')
+        eclipseProject.linkedResource(name: 'foo', type: 'folder', wrongKey: '/stuff/foo')
 
         then:
         thrown(InvalidUserDataException.class)
 
         when:
-        eclipseProject.link(name: 'foo', type: 'folder', location: '/stuff/foo', locationUri: 'file:///boooo')
+        eclipseProject.linkedResource(name: 'foo', type: 'folder', location: '/stuff/foo', locationUri: 'file:///boooo')
 
         then:
         thrown(AssertionError.class)
 
         when:
-        eclipseProject.link(name: 'foo', type: 'folder')
+        eclipseProject.linkedResource(name: 'foo', type: 'folder')
 
         then:
         thrown(AssertionError.class)

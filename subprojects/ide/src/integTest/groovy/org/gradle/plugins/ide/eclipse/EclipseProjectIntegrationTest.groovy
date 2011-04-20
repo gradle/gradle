@@ -50,8 +50,8 @@ eclipse {
     buildCommand 'buildThisLovelyProject'
     buildCommand argumentFoo: 'a foo argument', 'buildWithTheArguments'
 
-    link name: 'linkToFolderFoo', type: 'aFolderFoo', location: '/test/folders/foo'
-    link name: 'linkToUriFoo', type: 'aFooUri', locationUri: 'http://test/uri/foo'
+    linkedResource name: 'linkToFolderFoo', type: 'aFolderFoo', location: '/test/folders/foo'
+    linkedResource name: 'linkToUriFoo', type: 'aFooUri', locationUri: 'http://test/uri/foo'
 
     sourceCompatibility = 1.4
     targetCompatibility = 1.3

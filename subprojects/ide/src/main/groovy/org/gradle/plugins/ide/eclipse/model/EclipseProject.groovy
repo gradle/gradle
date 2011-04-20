@@ -53,9 +53,9 @@ import org.gradle.api.JavaVersion
  *
  *     //if you want to create an extra link in the eclipse project,
  *     //by location uri:
- *     link name: 'someLinkByLocationUri', type: 'someLinkType', locationUri: 'file://someUri'
+ *     linkedResource name: 'someLinkByLocationUri', type: 'someLinkType', locationUri: 'file://someUri'
  *     //by location:
- *     link name: 'someLinkByLocation', type: 'someLinkType', location: '/some/location'
+ *     linkedResource name: 'someLinkByLocation', type: 'someLinkType', location: '/some/location'
  *
  *     //if you want to alter the java versions (by default they are configured with gradle java plugin settings):
  *     sourceCompatibility = 1.6
@@ -159,27 +159,27 @@ class EclipseProject {
     }
 
     /**
-     * The links to be added to this Eclipse project.
+     * The linked resources to be added to this Eclipse project.
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    Set<Link> links = new LinkedHashSet<Link>()
+    Set<Link> linkedResources = new LinkedHashSet<Link>()
 
     /**
-     * Adds a link to the eclipse project.
+     * Adds a resource link (aka 'source link') to the eclipse project.
      * <p>
      * For example see docs for {@link EclipseProject}
      *
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
      */
-    void link(Map<String, String> args) {
+    void linkedResource(Map<String, String> args) {
         def validKeys = ['name', 'type', 'location', 'locationUri']
         def illegalArgs = args.keySet() - validKeys
         if (illegalArgs) {
             throw new InvalidUserDataException("You provided illegal argument for a link: $illegalArgs. Valid link args are: $validKeys")
         }
-        //TODO SF: move validation here, update tests (once we figure out what links are).
-        links << new Link(args.name, args.type, args.location, args.locationUri)
+        //TODO SF: move validation here, update tests
+        linkedResources << new Link(args.name, args.type, args.location, args.locationUri)
     }
 
     /**
