@@ -75,7 +75,6 @@ eclipse {
         //then
         contains('foo.txt')
         contains('bar.txt')
-        //assert !content.contains('baz.txt') //TODO SF - why it does not work?
 
         contains('fooPathVariable')
         contains('someFriendlyContainer', 'andYetAnotherContainer')
