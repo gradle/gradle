@@ -240,15 +240,15 @@ eclipseProject {
 }
 '''
 
-        //println getProjectFile().text
+        println getProjectFile().text
         def xml = parseProjectFile()
-        assert xml.links.link[0].name.text() == 'one'
-        assert xml.links.link[0].type.text() == '2'
-        assert xml.links.link[0].location.text() == '/xyz'
+        assert xml.linkedResources.link[0].name.text() == 'one'
+        assert xml.linkedResources.link[0].type.text() == '2'
+        assert xml.linkedResources.link[0].location.text() == '/xyz'
 
-        assert xml.links.link[1].name.text() == 'two'
-        assert xml.links.link[1].type.text() == '3'
-        assert xml.links.link[1].locationURI.text() == 'file://xyz'
+        assert xml.linkedResources.link[1].name.text() == 'two'
+        assert xml.linkedResources.link[1].type.text() == '3'
+        assert xml.linkedResources.link[1].locationURI.text() == 'file://xyz'
     }
 
     @Test

@@ -64,11 +64,6 @@ import org.gradle.api.JavaVersion
  * }
  * </pre>
  *
- * //TODO SF:
- * // - what are links? Do we mean linkedResources?
- * // - inconsistent dsl - plural or singular for natures/buildCommand/referenceProjects
- * // - moving the inputFile/outputFile onto the model / ???
- *
  * Author: Szczepan Faber, created at: 4/13/11
  */
 class EclipseProject {

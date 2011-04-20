@@ -94,7 +94,7 @@ class Project extends XmlPersistableConfigurationObject {
     }
 
     private def readLinks() {
-        return xml.links.link.each { link ->
+        return xml.linkedResources.link.each { link ->
             this.links.add(new Link(link.name?.text(), link.type?.text(), link.location?.text(), link.locationURI?.text()))
         }
     }
@@ -158,7 +158,7 @@ class Project extends XmlPersistableConfigurationObject {
     }
 
     private def addLinksToXml() {
-        def linksNode = xml.appendNode('links')
+        def linksNode = xml.appendNode('linkedResources')
         this.links.each { link ->
             def linkNode = linksNode.appendNode('link')
             linkNode.appendNode('name', link.name)

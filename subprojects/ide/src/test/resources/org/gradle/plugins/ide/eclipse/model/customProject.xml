@@ -19,11 +19,11 @@
     <natures>
         <nature>org.eclipse.jdt.core.scalanature</nature>
     </natures>
-    <links>
+    <linkedResources>
         <link>
             <name>somename</name>
             <type>sometype</type>
             <location>somelocation</location>
         </link>
-    </links>
+    </linkedResources>
 </projectDescription>
