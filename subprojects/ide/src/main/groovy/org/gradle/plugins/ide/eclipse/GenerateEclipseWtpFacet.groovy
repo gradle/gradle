@@ -15,10 +15,12 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.WtpFacet
+import org.gradle.plugins.ide.eclipse.model.XmlFileContentMerger
 
 /**
  * Generates the org.eclipse.wst.common.project.facet.core settings file for Eclipse WTP.
@@ -31,6 +33,7 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
 
     GenerateEclipseWtpFacet() {
         xmlTransformer.indentation = "\t"
+        facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet, [file: new XmlFileContentMerger(xmlTransformer)])
     }
 
     @Override protected WtpFacet create() {

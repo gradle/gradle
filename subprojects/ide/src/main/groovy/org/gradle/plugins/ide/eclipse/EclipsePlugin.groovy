@@ -73,8 +73,7 @@ class EclipsePlugin extends IdePlugin {
             outputFile = project.file('.project')
 
             //model:
-            model.project = services.get(ClassGenerator).newInstance(EclipseProject, [file: new XmlFileContentMerger(xmlTransformer)])
-            projectModel = model.project
+            model.project = projectModel
 
             projectModel.name = project.name
             projectModel.conventionMapping.comment = { project.description }
@@ -161,8 +160,7 @@ class EclipsePlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
                 inputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
                 //model properties:
-                model.jdt = services.get(ClassGenerator).newInstance(EclipseJdt)
-                jdt = model.jdt
+                model.jdt = jdt
                 jdt.conventionMapping.sourceCompatibility = { project.sourceCompatibility }
                 jdt.conventionMapping.targetCompatibility = { project.targetCompatibility }
             }
@@ -178,9 +176,7 @@ class EclipsePlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.wst.common.component')
 
                 //model properties:
-                model.wtp.component = services.get(ClassGenerator).newInstance(EclipseWtpComponent,
-                        [project: project, file: new XmlFileContentMerger(xmlTransformer)])
-                component = model.wtp.component
+                model.wtp.component = component
 
                 component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
                 component.plusConfigurations = [project.configurations.runtime]
@@ -202,9 +198,7 @@ class EclipsePlugin extends IdePlugin {
                         outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
 
                         //model properties:
-                        eclipsePlugin.model.wtp.component = services.get(ClassGenerator).newInstance(EclipseWtpComponent,
-                                [project: otherProject, file: new XmlFileContentMerger(xmlTransformer)])
-                        component = eclipsePlugin.model.wtp.component
+                        eclipsePlugin.model.wtp.component = component
 
                         component.deployName = otherProject.name
                         component.conventionMapping.resources = {
@@ -225,8 +219,7 @@ class EclipsePlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                 //model properties:
-                model.wtp.facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet, [file: new XmlFileContentMerger(xmlTransformer)])
-                facet = model.wtp.facet
+                model.wtp.facet = facet
                 facet.conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
             }
 
@@ -239,9 +232,7 @@ class EclipsePlugin extends IdePlugin {
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                     //model properties:
-                    //TODO SF: duplication must be refactored - creation of facet and component. Have it on the plugin?
-                    eclipsePlugin.model.wtp.facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet, [file: new XmlFileContentMerger(xmlTransformer)])
-                    facet = eclipsePlugin.model.wtp.facet
+                    eclipsePlugin.model.wtp.facet = facet
 
                     facet.conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
                     otherProject.plugins.withType(JavaPlugin) {

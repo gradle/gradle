@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt
 import org.gradle.plugins.ide.eclipse.model.Jdt
@@ -67,5 +68,6 @@ class GenerateEclipseJdt extends GeneratorTask<Jdt> {
                 jdtModel.file.whenMerged.execute(jdtContent)
             }
         }
+        jdt = services.get(ClassGenerator).newInstance(EclipseJdt)
     }
 }

@@ -15,11 +15,9 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.XmlGeneratorTask
-import org.gradle.plugins.ide.eclipse.model.BuildCommand
-import org.gradle.plugins.ide.eclipse.model.EclipseProject
-import org.gradle.plugins.ide.eclipse.model.Link
-import org.gradle.plugins.ide.eclipse.model.Project
+import org.gradle.plugins.ide.eclipse.model.*
 
 /**
  * Generates an Eclipse <code>.project</code> file.
@@ -44,6 +42,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     GenerateEclipseProject() {
         xmlTransformer.indentation = "\t"
+        projectModel = services.get(ClassGenerator).newInstance(EclipseProject, [file: new XmlFileContentMerger(xmlTransformer)])
     }
 
     @Override protected Project create() {
