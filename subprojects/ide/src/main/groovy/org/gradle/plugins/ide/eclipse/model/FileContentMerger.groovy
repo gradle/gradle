@@ -32,6 +32,10 @@ class FileContentMerger {
     ActionBroadcast beforeMerged = new ActionBroadcast()
     XmlTransformer xmlTransformer
 
+    FileContentMerger(XmlTransformer xmlTransformer) {
+        this.xmlTransformer = xmlTransformer
+    }
+
     /**
      * Adds a closure to be called after content is loaded from existing file
      * but before gradle build information is merged

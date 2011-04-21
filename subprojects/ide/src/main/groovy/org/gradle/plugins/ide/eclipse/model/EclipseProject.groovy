@@ -56,6 +56,31 @@ import org.gradle.util.ConfigureUtil
  *     linkedResource name: 'someLinkByLocationUri', type: 'someLinkType', locationUri: 'file://someUri'
  *     //by location:
  *     linkedResource name: 'someLinkByLocation', type: 'someLinkType', location: '/some/location'
+ *
+ *     file {
+ *       //if you want to mess with the resulting xml in whatever way you fancy
+ *       withXml {
+ *         def node = it.asNode()
+ *         node.appendNode('xml', 'is what I love')
+ *       }
+ *
+ *       //beforeMerged and whenMerged closures are the highest voodoo
+ *       //and probably should be used only to solve tricky edge cases.
+ *       //the type passed to the closures is {@link Project}
+ *
+ *       //closure executed after .project content is loaded from existing file
+ *       //but before gradle build information is merged
+ *       beforeMerged { project ->
+ *         //if you want skip merging natures... (a very abstract example)
+ *         project.natures.clear()
+ *       }
+ *
+ *       //closure executed after .project content is loaded from existing file
+ *       //and after gradle build information is merged
+ *       whenMerged { project ->
+ *         //you can tinker with the project here
+ *       }
+ *     }
  *   }
  *
  *   jdt {
@@ -198,7 +223,7 @@ class EclipseProject {
     }
 
     /*****/
-    FileContentMerger file = new FileContentMerger()
+    FileContentMerger file
 
     void mergeXmlProject(Project xmlProject) {
         file.beforeMerged.execute(xmlProject)

@@ -52,6 +52,10 @@ eclipse {
 
     linkedResource name: 'linkToFolderFoo', type: 'aFolderFoo', location: '/test/folders/foo'
     linkedResource name: 'linkToUriFoo', type: 'aFooUri', locationUri: 'http://test/uri/foo'
+
+    file {
+      withXml { it.asNode().appendNode('motto', 'Stay happy!') }
+    }
   }
 
   jdt {
@@ -75,6 +79,8 @@ eclipse {
 
         contains('linkToFolderFoo', 'aFolderFoo', '/test/folders/foo')
         contains('linkToUriFoo', 'aFooUri', 'http://test/uri/foo')
+
+        contains('<motto>Stay happy!</motto>')
 
         def jdt = parseJdtFile()
         assert jdt.contains('targetPlatform=1.3')
