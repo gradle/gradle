@@ -72,7 +72,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     public StartParameter createStartParameter(String... commandLineArgs) {
-        if (commandLineConverter != null) {
+        if (commandLineConverter == null) {
             commandLineConverter = sharedServices.get(CommandLineConverter.class);
         }
         return commandLineConverter.convert(Arrays.asList(commandLineArgs));
