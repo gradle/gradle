@@ -4,7 +4,6 @@ import org.apache.maven.repository.internal.MavenRepositorySystemSession
 import org.sonatype.aether.RepositorySystem
 import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory
-import org.sonatype.aether.impl.internal.DefaultServiceLocator
 import org.sonatype.aether.RepositorySystemSession
 import org.sonatype.aether.repository.LocalRepository
 import org.sonatype.aether.installation.InstallRequest
@@ -13,6 +12,8 @@ import org.sonatype.aether.util.artifact.DefaultArtifact
 import org.sonatype.aether.util.artifact.SubArtifact
 import org.sonatype.aether.deployment.DeployRequest
 import org.sonatype.aether.repository.RemoteRepository
+import org.sonatype.aether.connector.wagon.WagonRepositoryConnectorFactory
+import org.apache.maven.repository.internal.DefaultServiceLocator
 
 class DefaultMavenPublisher implements MavenPublisher {
     private final RepositorySystem repositorySystem
@@ -40,7 +41,6 @@ class DefaultMavenPublisher implements MavenPublisher {
         def locator = new DefaultServiceLocator()
         locator.addService(RepositoryConnectorFactory, FileRepositoryConnectorFactory)
         locator.addService(RepositoryConnectorFactory, WagonRepositoryConnectorFactory)
-        locator.setServices(WagonProvider, new ManualWagonProvider())
         locator.getService(RepositorySystem)
     }
 
@@ -66,6 +66,7 @@ class DefaultMavenPublisher implements MavenPublisher {
     private RemoteRepository convertRepository(MavenRepository repository) {
         def result = new RemoteRepository()
         result.url = repository.url
+        result.contentType = "default" // FileRepositoryConnectorFactory doesn’t accept any other content type
         result
     }
 }

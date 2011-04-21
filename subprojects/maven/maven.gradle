@@ -15,7 +15,7 @@
  */
 
 aetherVersion = "1.11"
-mavenVersion = "3.0.2"
+mavenVersion = "3.0.3"
 wagonVersion = "1.0-beta-7"
 
 configurations {
@@ -34,8 +34,8 @@ dependencies {
     compile "org.sonatype.aether:aether-impl:$aetherVersion"
     compile "org.sonatype.aether:aether-connector-file:$aetherVersion"
     compile "org.sonatype.aether:aether-connector-asynchttpclient:$aetherVersion"
-    compile "org.apache.maven:maven-aether-provider:$mavenVersion"
     compile "org.sonatype.aether:aether-connector-wagon:$aetherVersion"
+    compile "org.apache.maven:maven-aether-provider:$mavenVersion"
     compile "org.apache.maven.wagon:wagon-ssh:$wagonVersion"
     compile "org.apache.maven:maven-settings-builder:$mavenVersion"
 

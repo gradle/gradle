@@ -7,5 +7,6 @@ def artifact = new DefaultMavenArtifact(classifier: "", extension: "jar", file: 
 publication.mainArtifact = artifact
 
 publisher.install(publication)
+publisher.deploy(publication, repo)
 
 
