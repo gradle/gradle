@@ -1,7 +1,6 @@
 package org.gradle.api.publication.maven
 
 import org.apache.maven.repository.internal.MavenRepositorySystemSession
-import org.gradle.util.SystemProperties
 import org.sonatype.aether.RepositorySystem
 import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory
 import org.sonatype.aether.spi.connector.RepositoryConnectorFactory
@@ -39,13 +38,15 @@ class DefaultMavenPublisher implements MavenPublisher {
 
     private RepositorySystem createRepositorySystem() {
         def locator = new DefaultServiceLocator()
-        locator.addService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory)
+        locator.addService(RepositoryConnectorFactory, FileRepositoryConnectorFactory)
+        locator.addService(RepositoryConnectorFactory, WagonRepositoryConnectorFactory)
+        locator.setServices(WagonProvider, new ManualWagonProvider())
         locator.getService(RepositorySystem)
     }
 
     private RepositorySystemSession createRepositorySystemSession(RepositorySystem repositorySystem) {
         def session = new MavenRepositorySystemSession()
-        def localRepo = new LocalRepository(new File(SystemProperties.userHome, ".m2/repository"))
+        def localRepo = new LocalRepository(new File("/swd/tmp/m2repo"))
         session.localRepositoryManager = repositorySystem.newLocalRepositoryManager(localRepo)
         session
     }
