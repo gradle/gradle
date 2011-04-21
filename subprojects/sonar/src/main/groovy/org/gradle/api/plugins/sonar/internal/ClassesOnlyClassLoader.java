@@ -13,24 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.sonar.internal
+package org.gradle.api.plugins.sonar.internal;
+
+import java.net.URL;
+import java.util.Enumeration;
 
 /**
  * Class loader that cannot load any resources. Used as parent of Sonar
  * bootstrap class loader to work around http://jira.codehaus.org/browse/SONAR-2276
  */
-class ClassesOnlyClassLoader extends ClassLoader {
-    ClassesOnlyClassLoader(ClassLoader parent) {
-        super(parent)
+public class ClassesOnlyClassLoader extends ClassLoader {
+    public ClassesOnlyClassLoader(ClassLoader parent) {
+        super(parent);
     }
 
     @Override
-    URL getResource(String name) {
-        null
+    public URL getResource(String name) {
+        return null;
     }
 
     @Override
-    Enumeration<URL> getResources(String name) {
-        null
+    public Enumeration<URL> getResources(String name) {
+        return null;
     }
 }
