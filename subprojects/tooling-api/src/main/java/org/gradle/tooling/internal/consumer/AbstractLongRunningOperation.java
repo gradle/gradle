@@ -18,15 +18,21 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.tooling.ProgressEvent;
 import org.gradle.tooling.ProgressListener;
-import org.gradle.tooling.internal.protocol.LongRunningOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
+import java.io.File;
 import java.io.OutputStream;
 
 public class AbstractLongRunningOperation {
     private OutputStream stdout;
     private OutputStream stderr;
-    private final ListenerBroadcast<ProgressListener> progressListener = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
+    private final ConnectionParameters parameters;
+
+    public AbstractLongRunningOperation(ConnectionParameters parameters) {
+        this.parameters = parameters;
+    }
 
     public AbstractLongRunningOperation setStandardOutput(OutputStream outputStream) {
         stdout = outputStream;
@@ -39,15 +45,39 @@ public class AbstractLongRunningOperation {
     }
 
     public AbstractLongRunningOperation addProgressListener(ProgressListener listener) {
-        progressListener.add(listener);
+        progressListener.listeners.add(listener);
         return this;
     }
 
-    protected LongRunningOperationParametersVersion1 operationParameters() {
+    protected BuildOperationParametersVersion1 operationParameters() {
         return new OperationParameters();
     }
 
-    private class OperationParameters implements LongRunningOperationParametersVersion1 {
+    private static class ProgressListenerAdapter implements ProgressListenerVersion1 {
+        private final ListenerBroadcast<ProgressListener> listeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+
+        public void statusChanged(final String description) {
+            listeners.getSource().statusChanged(new ProgressEvent() {
+                public String getDescription() {
+                    return description;
+                }
+            });
+        }
+    }
+
+    private class OperationParameters implements BuildOperationParametersVersion1 {
+        public File getGradleUserHomeDir() {
+            return parameters.getGradleUserHomeDir();
+        }
+
+        public File getProjectDir() {
+            return parameters.getProjectDir();
+        }
+
+        public Boolean isSearchUpwards() {
+            return parameters.isSearchUpwards();
+        }
+
         public OutputStream getStandardOutput() {
             return stdout;
         }
@@ -57,16 +87,9 @@ public class AbstractLongRunningOperation {
         }
 
         public ProgressListenerVersion1 getProgressListener() {
-            return new ProgressListenerVersion1() {
-                public void statusChanged(final String description) {
-                    progressListener.getSource().statusChanged(new ProgressEvent() {
-                        public String getDescription() {
-                            return description;
-                        }
-                    });
-                }
-            };
+            return progressListener;
         }
+
     }
 
 }

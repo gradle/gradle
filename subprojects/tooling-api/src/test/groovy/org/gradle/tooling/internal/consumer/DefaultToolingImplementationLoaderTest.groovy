@@ -18,10 +18,11 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.internal.provider.DefaultConnectionFactory
+import org.gradle.tooling.internal.provider.DefaultConnection
 import org.gradle.util.GradleVersion
 import org.slf4j.Logger
 import spock.lang.Specification
+import java.util.regex.Pattern
 
 class DefaultToolingImplementationLoaderTest extends Specification {
     final Distribution distribution = Mock()
@@ -31,24 +32,34 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
         distribution.toolingImplementationClasspath >> ([
                 getToolingApiResourcesDir(),
-                AbstractClassPathProvider.getClasspathForClass(DefaultConnectionFactory.class),
+                AbstractClassPathProvider.getClasspathForClass(DefaultConnection.class),
                 AbstractClassPathProvider.getClasspathForClass(ActorFactory.class),
-                AbstractClassPathProvider.getClasspathForClass(Logger.class)
+                AbstractClassPathProvider.getClasspathForClass(Logger.class),
+                getVersionResourcesDir(),
+                AbstractClassPathProvider.getClasspathForClass(GradleVersion.class)
         ] as Set)
 
         when:
         def factory = loader.create(distribution)
 
         then:
-        factory.class != DefaultConnectionFactory.class
-        factory.class.name == DefaultConnectionFactory.class.name
+        factory.class != DefaultConnection.class
+        factory.class.name == DefaultConnection.class.name
     }
 
     private getToolingApiResourcesDir() {
-        def resource = getClass().classLoader.getResource("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4")
+        return getResourcesDir("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4")
+    }
+
+    private getVersionResourcesDir() {
+        return getResourcesDir("org/gradle/version.properties")
+    }
+
+    private getResourcesDir(String name) {
+        def resource = getClass().classLoader.getResource(name)
         assert resource
         assert resource.protocol == 'file'
-        def dir = resource.path.replaceFirst(/META-INF.*/, '')
+        def dir = resource.path.replaceFirst(Pattern.quote(name), '')
         return new File(dir)
     }
 

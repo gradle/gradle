@@ -16,10 +16,10 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 
 public class ConnectionToStartParametersConverter {
-    public StartParameter convert(ConnectionParametersVersion1 parameters) {
+    public StartParameter convert(BuildOperationParametersVersion1 parameters) {
         StartParameter startParameter = new StartParameter();
         startParameter.setProjectDir(parameters.getProjectDir());
         if (parameters.getGradleUserHomeDir() != null) {

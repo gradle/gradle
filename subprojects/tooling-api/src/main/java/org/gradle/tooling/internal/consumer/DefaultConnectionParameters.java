@@ -15,16 +15,14 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
-
 import java.io.File;
 
-public class DefaultConnectionParametersVersion1 implements ConnectionParametersVersion1 {
+public class DefaultConnectionParameters implements ConnectionParameters {
     private final File gradleUserHomeDir;
     private final File projectDir;
     private final Boolean searchUpwards;
 
-    public DefaultConnectionParametersVersion1(File projectDir, File gradleUserHomeDir, Boolean searchUpwards) {
+    public DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean searchUpwards) {
         this.projectDir = projectDir;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.searchUpwards = searchUpwards;

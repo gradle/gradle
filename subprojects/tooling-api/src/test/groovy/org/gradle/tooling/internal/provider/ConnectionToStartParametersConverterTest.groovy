@@ -15,11 +15,11 @@
  */
 package org.gradle.tooling.internal.provider
 
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import spock.lang.Specification
-import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1
 
 class ConnectionToStartParametersConverterTest extends Specification {
-    final ConnectionParametersVersion1 parameters = Mock()
+    final BuildOperationParametersVersion1 parameters = Mock()
     final ConnectionToStartParametersConverter converter = new ConnectionToStartParametersConverter()
 
     def setsCurrentDirectory() {

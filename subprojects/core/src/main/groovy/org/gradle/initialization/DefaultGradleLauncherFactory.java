@@ -54,7 +54,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
     private DefaultGradleLauncherFactory(GlobalServicesRegistry globalServices) {
         sharedServices = globalServices;
-        commandLineConverter = sharedServices.get(CommandLineConverter.class);
         tracker = new NestedBuildTracker();
 
         // Register default loggers 
@@ -73,6 +72,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     public StartParameter createStartParameter(String... commandLineArgs) {
+        if (commandLineConverter != null) {
+            commandLineConverter = sharedServices.get(CommandLineConverter.class);
+        }
         return commandLineConverter.convert(Arrays.asList(commandLineArgs));
     }
 

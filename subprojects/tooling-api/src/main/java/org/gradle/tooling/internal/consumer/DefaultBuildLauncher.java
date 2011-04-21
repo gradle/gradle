@@ -31,7 +31,8 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation implements Build
     private final List<String> tasks = new ArrayList<String>();
     private final ConnectionVersion4 connection;
 
-    public DefaultBuildLauncher(ConnectionVersion4 connection) {
+    public DefaultBuildLauncher(ConnectionVersion4 connection, ConnectionParameters parameters) {
+        super(parameters);
         this.connection = connection;
     }
 

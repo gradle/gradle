@@ -35,5 +35,10 @@ public interface LongRunningOperationParametersVersion1 {
      */
     OutputStream getStandardError();
 
+    /**
+     * Returns the listener to receive progress events.
+     *
+     * @return The listener. Must not be null.
+     */
     ProgressListenerVersion1 getProgressListener();
 }

@@ -24,49 +24,66 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.*;
 import org.gradle.messaging.actor.Actor;
-import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.messaging.actor.internal.DefaultActorFactory;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
+import org.gradle.util.GradleVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultConnection implements ConnectionVersion4 {
-    private final ConnectionParametersVersion1 parameters;
-    private final ServiceRegistry loggingServices = new LoggingServiceRegistry(false);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private Worker worker;
     private Actor actor;
+    private final DefaultExecutorFactory executorFactory;
+    private final DefaultActorFactory actorFactory;
 
-    public DefaultConnection(ConnectionParametersVersion1 parameters, ActorFactory actorFactory) {
-        this.parameters = parameters;
-        actor = actorFactory.createActor(new WorkerImpl(loggingServices));
-        worker = actor.getProxy(Worker.class);
+    public DefaultConnection() {
+        LOGGER.debug("Using tooling API provider version {}.", GradleVersion.current().getVersion());
+        executorFactory = new DefaultExecutorFactory();
+        actorFactory = new DefaultActorFactory(executorFactory);
     }
 
     public String getDisplayName() {
         return "Gradle connection";
     }
 
+    public String getVersion() {
+        return GradleVersion.current().getVersion();
+    }
+
     public void stop() {
-        if (actor != null) {
-            try {
+        try {
+            if (actor != null) {
                 actor.stop();
-            } finally {
-                actor = null;
-                worker = null;
             }
+        } finally {
+            actor = null;
+            worker = null;
         }
     }
 
-    public void executeBuild(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
-        worker.build(buildParameters, operationParameters, handler);
+    public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
+        worker().build(buildParameters, operationParameters, handler);
     }
 
-    public void getModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException {
-        worker.buildModel(fetchParameters, operationParameters, handler);
+    public void getModel(ModelFetchParametersVersion1 fetchParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException {
+        worker().buildModel(fetchParameters, operationParameters, handler);
+    }
+
+    private Worker worker() {
+        if (worker == null) {
+            actor = actorFactory.createActor(new WorkerImpl(new LoggingServiceRegistry(false)));
+            worker = actor.getProxy(Worker.class);
+        }
+        return worker;
     }
 
     private interface Worker {
-        void buildModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler);
+        void buildModel(ModelFetchParametersVersion1 fetchParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler);
 
-        void build(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler);
+        void build(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler);
     }
 
     private class WorkerImpl implements Worker {
@@ -79,7 +96,7 @@ public class DefaultConnection implements ConnectionVersion4 {
             GradleLauncher.injectCustomFactory(gradleLauncherFactory);
         }
 
-        public void buildModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) {
+        public void buildModel(ModelFetchParametersVersion1 fetchParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) {
             try {
                 handler.onComplete(buildModel(fetchParameters, operationParameters));
             } catch (Throwable t) {
@@ -87,7 +104,7 @@ public class DefaultConnection implements ConnectionVersion4 {
             }
         }
 
-        public void build(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) {
+        public void build(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) {
             try {
                 build(buildParameters, operationParameters);
                 handler.onComplete(null);
@@ -96,8 +113,8 @@ public class DefaultConnection implements ConnectionVersion4 {
             }
         }
 
-        private void build(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters) {
-            StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
+        private void build(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
+            StartParameter startParameter = new ConnectionToStartParametersConverter().convert(operationParameters);
             startParameter.setTaskNames(buildParameters.getTasks());
 
             GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
@@ -105,13 +122,13 @@ public class DefaultConnection implements ConnectionVersion4 {
             wrapAndRethrowFailure(gradleLauncher.run());
         }
 
-        private ProjectVersion3 buildModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters) throws UnsupportedOperationException {
+        private ProjectVersion3 buildModel(ModelFetchParametersVersion1 fetchParameters, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException {
             Class<? extends ProjectVersion3> type = fetchParameters.getType();
             if (!type.isAssignableFrom(EclipseProjectVersion3.class)) {
                 throw new UnsupportedOperationException(String.format("Cannot build model of type '%s'.", type.getSimpleName()));
             }
 
-            StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
+            StartParameter startParameter = new ConnectionToStartParametersConverter().convert(operationParameters);
 
             GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
             configureLauncher(operationParameters, gradleLauncher);

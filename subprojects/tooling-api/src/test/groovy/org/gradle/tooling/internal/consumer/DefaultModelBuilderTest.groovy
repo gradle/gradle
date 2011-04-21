@@ -26,7 +26,8 @@ import org.gradle.util.ConcurrentSpecification
 class DefaultModelBuilderTest extends ConcurrentSpecification {
     final ConnectionVersion4 protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
-    final DefaultModelBuilder<Project> builder = new DefaultModelBuilder<Project>(Project, ProjectVersion3, protocolConnection, adapter)
+    final ConnectionParameters parameters = Mock()
+    final DefaultModelBuilder<Project> builder = new DefaultModelBuilder<Project>(Project, ProjectVersion3, protocolConnection, adapter, parameters)
 
     def getModelDelegatesToProtocolConnectionToFetchModel() {
         ResultHandler<Project> handler = Mock()

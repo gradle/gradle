@@ -37,6 +37,9 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
         this.executorFactory = executorFactory;
     }
 
+    /**
+     * Stops all actors.
+     */
     public void stop() {
         synchronized (lock) {
             try {

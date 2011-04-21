@@ -32,7 +32,8 @@ public class DefaultModelBuilder<T extends Project> extends AbstractLongRunningO
     private final ConnectionVersion4 connection;
     private final ProtocolToModelAdapter adapter;
 
-    public DefaultModelBuilder(Class<T> modelType, Class<? extends ProjectVersion3> protocolType, ConnectionVersion4 connection, ProtocolToModelAdapter adapter) {
+    public DefaultModelBuilder(Class<T> modelType, Class<? extends ProjectVersion3> protocolType, ConnectionVersion4 connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+        super(parameters);
         this.modelType = modelType;
         this.protocolType = protocolType;
         this.connection = connection;

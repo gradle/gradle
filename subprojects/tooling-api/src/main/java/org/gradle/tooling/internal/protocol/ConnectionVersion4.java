@@ -16,6 +16,8 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
+ * Represents a connection to a particular Gradle implementation.
+ *
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface ConnectionVersion4 {
@@ -25,22 +27,28 @@ public interface ConnectionVersion4 {
     void stop();
 
     /**
-     * Returns a display name for this connection, which can be used in logging and error reporting. The implementation of this method should be fast and
-     * side-effect free.
+     * Returns the Gradle version this connection implements. The implementation of this method should be fast, and should continue to work after the connection has been stopped.
+     *
+     * @return The version.
+     */
+    String getVersion();
+
+    /**
+     * Returns a display name for this connection, which can be used in logging and error reporting. The implementation of this method should be fast and should continue to work after the connection
+     * has been stopped.
      *
      * @return The display name.
      */
     String getDisplayName();
 
     /**
-     * Starts fetching a snapshot of the model for the project. This method returns immediately, and the given result handler is notified when the model
-     * is available.
+     * Starts fetching a snapshot of the model for the project. This method returns immediately, and the given result handler is notified when the model is available.
      *
      * @param handler The handler to pass the model to.
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    void getModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException;
+    void getModel(ModelFetchParametersVersion1 fetchParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException;
 
     /**
      * Starts the execution of a build. This method returns immediately, and the given result handler is notified when the build is complete.
@@ -49,5 +57,5 @@ public interface ConnectionVersion4 {
      * @param handler The handler to notify of the build result.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    void executeBuild(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException;
+    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException;
 }

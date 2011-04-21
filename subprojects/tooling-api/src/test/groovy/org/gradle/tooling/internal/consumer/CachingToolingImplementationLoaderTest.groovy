@@ -15,29 +15,29 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import spock.lang.Specification
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4
 
 class CachingToolingImplementationLoaderTest extends Specification {
     final ToolingImplementationLoader target = Mock()
     final CachingToolingImplementationLoader loader = new CachingToolingImplementationLoader(target)
 
     def delegatesToTargetLoaderToCreateImplementation() {
-        ConnectionFactoryVersion4 factoryImpl = Mock()
+        ConnectionVersion4 connectionImpl = Mock()
         final Distribution distribution = Mock()
 
         when:
         def impl = loader.create(distribution)
 
         then:
-        impl == factoryImpl
-        1 * target.create(distribution) >> factoryImpl
+        impl == connectionImpl
+        1 * target.create(distribution) >> connectionImpl
         _ * distribution.toolingImplementationClasspath >> ([new File('a.jar')] as Set)
         0 * _._
     }
 
     def reusesImplementationWithSameClasspath() {
-        ConnectionFactoryVersion4 factoryImpl = Mock()
+        ConnectionVersion4 connectionImpl = Mock()
         final Distribution distribution = Mock()
 
         when:
@@ -45,16 +45,16 @@ class CachingToolingImplementationLoaderTest extends Specification {
         def impl2 = loader.create(distribution)
 
         then:
-        impl == factoryImpl
-        impl2 == factoryImpl
-        1 * target.create(distribution) >> factoryImpl
+        impl == connectionImpl
+        impl2 == connectionImpl
+        1 * target.create(distribution) >> connectionImpl
         _ * distribution.toolingImplementationClasspath >> ([new File('a.jar')] as Set)
         0 * _._
     }
 
     def createsNewImplementationWhenClasspathNotSeenBefore() {
-        ConnectionFactoryVersion4 factoryImpl1 = Mock()
-        ConnectionFactoryVersion4 factoryImpl2 = Mock()
+        ConnectionVersion4 connectionImpl1 = Mock()
+        ConnectionVersion4 connectionImpl2 = Mock()
         Distribution distribution1 = Mock()
         Distribution distribution2 = Mock()
 
@@ -63,10 +63,10 @@ class CachingToolingImplementationLoaderTest extends Specification {
         def impl2 = loader.create(distribution2)
 
         then:
-        impl == factoryImpl1
-        impl2 == factoryImpl2
-        1 * target.create(distribution1) >> factoryImpl1
-        1 * target.create(distribution2) >> factoryImpl2
+        impl == connectionImpl1
+        impl2 == connectionImpl2
+        1 * target.create(distribution1) >> connectionImpl1
+        1 * target.create(distribution2) >> connectionImpl2
         _ * distribution1.toolingImplementationClasspath >> ([new File('a.jar')] as Set)
         _ * distribution2.toolingImplementationClasspath >> ([new File('b.jar')] as Set)
         0 * _._

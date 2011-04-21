@@ -24,7 +24,8 @@ import org.gradle.util.ConcurrentSpecification
 class DefaultProjectConnectionTest extends ConcurrentSpecification {
     final ConnectionVersion4 protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
-    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, adapter)
+    final ConnectionParameters parameters = Mock()
+    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, adapter, parameters)
 
     def canCreateAModelBuilder() {
         expect:

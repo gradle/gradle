@@ -16,8 +16,6 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4;
-import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 /**
@@ -37,9 +35,8 @@ public class ConnectionFactory {
         this.toolingImplementationLoader = toolingImplementationLoader;
     }
 
-    public ProjectConnection create(Distribution distribution, ConnectionParametersVersion1 parameters) {
-        ConnectionFactoryVersion4 factory = toolingImplementationLoader.create(distribution);
-        final ConnectionVersion4 connection = factory.create(parameters);
-        return new DefaultProjectConnection(connection, adapter);
+    public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
+        ConnectionVersion4 connection = toolingImplementationLoader.create(distribution);
+        return new DefaultProjectConnection(connection, adapter, parameters);
     }
 }

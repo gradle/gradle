@@ -23,7 +23,8 @@ import org.gradle.tooling.GradleConnectionException
 
 class DefaultBuildLauncherTest extends ConcurrentSpecification {
     final ConnectionVersion4 protocolConnection = Mock()
-    final DefaultBuildLauncher launcher = new DefaultBuildLauncher(protocolConnection)
+    final ConnectionParameters parameters = Mock()
+    final DefaultBuildLauncher launcher = new DefaultBuildLauncher(protocolConnection, parameters)
 
     def buildDelegatesToProtocolConnection() {
         Task task1 = task(':task1')

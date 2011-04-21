@@ -78,7 +78,7 @@ public class DefaultGradleConnector extends GradleConnector {
         if (distribution == null) {
             distribution = distributionFactory.getCurrentDistribution();
         }
-        return connectionFactory.create(distribution, new DefaultConnectionParametersVersion1(projectDir, gradleUserHomeDir, searchUpwards));
+        return connectionFactory.create(distribution, new DefaultConnectionParameters(projectDir, gradleUserHomeDir, searchUpwards));
     }
 
 }

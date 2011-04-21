@@ -36,12 +36,17 @@ class CloseableConnection implements ConnectionVersion4 {
         return connection.getDisplayName();
     }
 
-    public void executeBuild(BuildParametersVersion1 buildParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
+    public String getVersion() {
+        assertOpen();
+        return connection.getVersion();
+    }
+
+    public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
         assertOpen();
         connection.executeBuild(buildParameters, operationParameters, handler);
     }
 
-    public void getModel(ModelFetchParametersVersion1 fetchParameters, LongRunningOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException {
+    public void getModel(ModelFetchParametersVersion1 fetchParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException {
         assertOpen();
         connection.getModel(fetchParameters, operationParameters, handler);
     }
