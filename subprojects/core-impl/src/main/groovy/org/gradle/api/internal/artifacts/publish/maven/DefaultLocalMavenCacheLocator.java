@@ -20,6 +20,7 @@ import org.apache.maven.settings.MavenSettingsBuilder;
 import org.apache.maven.settings.Settings;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.publish.maven.pombuilder.PlexusLoggerAdapter;
+import org.gradle.util.SystemProperties;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ public class DefaultLocalMavenCacheLocator implements LocalMavenCacheLocator {
 
     public File getLocalMavenCache() {
         MavenSettingsProvider mavenSettingsProvider = new MavenSettingsProvider();
-        File userHome = new File(System.getProperty("user.home"));
+        File userHome = new File(SystemProperties.getUserHome());
         File userSettings = mavenSettingsProvider.getUserSettingsFile();
 
         if (userSettings.exists()) {

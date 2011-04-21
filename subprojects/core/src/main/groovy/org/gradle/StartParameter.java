@@ -27,6 +27,7 @@ import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.*;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
+import org.gradle.util.SystemProperties;
 
 import java.io.File;
 import java.util.*;
@@ -48,7 +49,7 @@ public class StartParameter {
     /**
      * The default user home directory.
      */
-    public static final File DEFAULT_GRADLE_USER_HOME = new File(System.getProperty("user.home") + "/.gradle");
+    public static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getUserHome() + "/.gradle");
 
     /**
      * Specifies the detail to include in stacktraces.

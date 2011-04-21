@@ -16,6 +16,8 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.util.SystemProperties;
+
 import java.io.File;
 
 /**
@@ -24,7 +26,7 @@ import java.io.File;
 public class GradleWrapperMain {
     public static final String ALWAYS_UNPACK_ENV = "GRADLE_WRAPPER_ALWAYS_UNPACK";
     public static final String ALWAYS_DOWNLOAD_ENV = "GRADLE_WRAPPER_ALWAYS_DOWNLOAD";
-    public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
+    public static final String DEFAULT_GRADLE_USER_HOME = SystemProperties.getUserHome() + "/.gradle";
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     public static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
 

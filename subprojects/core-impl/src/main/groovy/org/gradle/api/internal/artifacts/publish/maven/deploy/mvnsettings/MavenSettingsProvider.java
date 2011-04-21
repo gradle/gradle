@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings;
 
+import org.gradle.util.SystemProperties;
+
 import java.io.File;
 
 /**
@@ -28,7 +30,7 @@ public class MavenSettingsProvider {
     }
 
     public File getUserMavenDir() {
-        File userHome = new File(System.getProperty("user.home"));
+        File userHome = new File(SystemProperties.getUserHome());
         return new File(userHome, ".m2");
     }
 
