@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.JavaVersion
+import org.gradle.util.ConfigureUtil
 
 /**
  * Models the java compatibility information
@@ -48,4 +49,20 @@ class EclipseJdt {
     void setTargetCompatibility(Object targetCompatibility) {
         this.targetCompatibility = JavaVersion.toVersion(targetCompatibility)
     }
+
+    /**
+     * Enables advanced configuration like affecting the way existing jdt file content
+     * is merged with gradle build information
+     * <p>
+     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link Jdt}
+     * <p>
+     *
+     * For example see docs for {@link EclipseProject}
+     */
+    void file(Closure closure) {
+        ConfigureUtil.configure(closure, file)
+    }
+
+    /*****/
+    FileContentMerger file = new FileContentMerger()
 }

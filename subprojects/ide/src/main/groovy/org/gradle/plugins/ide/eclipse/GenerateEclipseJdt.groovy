@@ -59,9 +59,12 @@ class GenerateEclipseJdt extends GeneratorTask<Jdt> {
                 return new Jdt()
             }
 
-            void configure(Jdt jdt) {
-                jdt.sourceCompatibility = getJdt().sourceCompatibility
-                jdt.targetCompatibility = getJdt().targetCompatibility
+            void configure(Jdt jdtContent) {
+                def jdtModel = getJdt()
+                jdtModel.file.beforeMerged.execute(jdtContent)
+                jdtContent.sourceCompatibility = jdtModel.sourceCompatibility
+                jdtContent.targetCompatibility = jdtModel.targetCompatibility
+                jdtModel.file.whenMerged.execute(jdtContent)
             }
         }
     }

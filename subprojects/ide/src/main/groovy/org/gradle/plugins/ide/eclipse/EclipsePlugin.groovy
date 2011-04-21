@@ -73,7 +73,7 @@ class EclipsePlugin extends IdePlugin {
             outputFile = project.file('.project')
 
             //model:
-            model.project = services.get(ClassGenerator).newInstance(EclipseProject, [file: new FileContentMerger(xmlTransformer)])
+            model.project = services.get(ClassGenerator).newInstance(EclipseProject, [file: new XmlFileContentMerger(xmlTransformer)])
             projectModel = model.project
 
             projectModel.name = project.name

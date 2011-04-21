@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model
 
-import org.gradle.api.internal.XmlTransformer
 import org.gradle.listener.ActionBroadcast
 
 /**
@@ -30,11 +29,6 @@ class FileContentMerger {
 
     ActionBroadcast whenMerged = new ActionBroadcast()
     ActionBroadcast beforeMerged = new ActionBroadcast()
-    XmlTransformer xmlTransformer
-
-    FileContentMerger(XmlTransformer xmlTransformer) {
-        this.xmlTransformer = xmlTransformer
-    }
 
     /**
      * Adds a closure to be called after content is loaded from existing file
@@ -74,18 +68,5 @@ class FileContentMerger {
      */
     public void whenMerged(Closure closure) {
         whenMerged.add(closure)
-    }
-
-    /**
-     * Adds a closure to be called when the file has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML before
-     * it is written to the output file.
-     * <p>
-     * For example see docs for {@link EclipseProject}
-     *
-     * @param closure The closure to execute when the XML has been created.
-     */
-    public void withXml(Closure closure) {
-        xmlTransformer.addAction(closure)
     }
 }

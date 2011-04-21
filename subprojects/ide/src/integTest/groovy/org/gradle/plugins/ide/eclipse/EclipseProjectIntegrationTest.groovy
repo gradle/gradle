@@ -126,14 +126,6 @@ eclipse {
       }
     }
   }
-
-  jdt {
-//    file {
-//      beforeMerged {}
-//      whenMerged {}
-//      withXml {}
-//    }
-  }
 }
         """
 
@@ -142,6 +134,49 @@ eclipse {
 
         assert content.contains('some.cool.nature')
         assert !content.contains('some.bad.nature')
+    }
+
+    @Test
+    void enablesBeforeAndWhenHooksForJdt() {
+        //given
+        def jdtFile = file('.settings/org.eclipse.jdt.core.prefs')
+        jdtFile << '''
+org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.3
+'''
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+hooks = []
+
+eclipse {
+
+  jdt {
+    file {
+      beforeMerged {
+        hooks << 'beforeMerged'
+      }
+      whenMerged {
+        hooks << 'whenMerged'
+        assert '1.1' != it.targetCompatibility.toString()
+        it.targetCompatibility = JavaVersion.toVersion('1.1')
+      }
+    }
+  }
+}
+
+eclipseJdt.doLast() {
+  assert hooks == ['beforeMerged', 'whenMerged']
+}
+        """
+
+        def jdt = parseJdtFile()
+        println jdt
+
+        //then
+        assert jdt.contains('targetPlatform=1.1')
     }
 
     protected def contains(String ... contents) {
