@@ -46,9 +46,26 @@ class EclipseWtpFacet {
         facets << ConfigureUtil.configureByMap(args, new Facet())
     }
 
-    /*****/
+    /**
+     * Enables advanced configuration like tinkering with the output xml
+     * or affecting the way existing wtp facet file content is merged with gradle build information
+     * <p>
+     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpFacet}
+     * <p>
+     *
+     * For example see docs for {@link EclipseWtp}
+     */
+    void file(Closure closure) {
+        ConfigureUtil.configure(closure, file)
+    }
+
+    //********
+
+    XmlFileContentMerger file
 
     void mergeXmlFacet(WtpFacet xmlFacet) {
+        file.beforeMerged.execute(xmlFacet)
         xmlFacet.configure(getFacets())
+        file.whenMerged.execute(xmlFacet)
     }
 }

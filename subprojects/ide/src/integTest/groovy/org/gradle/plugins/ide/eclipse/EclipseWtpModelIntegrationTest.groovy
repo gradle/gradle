@@ -111,7 +111,7 @@ eclipse {
     }
 
     @Test
-    void allowsConfiguringHooks() {
+    void allowsConfiguringHooksForComponent() {
         //given
         def componentFile = file('.settings/org.eclipse.wst.common.component')
         componentFile << '''<?xml version="1.0" encoding="UTF-8"?>
@@ -143,6 +143,7 @@ eclipse {
           hooks << 'whenMerged'
           it.deployName = 'betterDeployName'
         }
+        withXml { it.asNode().appendNode('be', 'cool') }
       }
     }
   }
@@ -154,13 +155,64 @@ eclipseWtpComponent.doLast() {
 
         """
 
+        //when
         component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-//        def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
 
-        println component
-
+        //then
         assert component.contains('betterDeployName')
         assert !component.contains('coolDeployName')
+        assert component.contains('<be>cool</be>')
+    }
+
+    @Test
+    void allowsConfiguringHooksForFacet() {
+        //given
+        def componentFile = file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+        componentFile << '''<?xml version="1.0" encoding="UTF-8"?>
+<faceted-project>
+	<fixed facet="jst.java"/>
+	<fixed facet="jst.web"/>
+	<installed facet="jst.web" version="2.4"/>
+	<installed facet="jst.java" version="5.0"/>
+	<installed facet="facet.one" version="1.0"/>
+</faceted-project>
+'''
+
+        //when
+        runEclipseTask """
+import org.gradle.plugins.ide.eclipse.model.Facet
+
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'eclipse'
+
+eclipse {
+  wtp {
+    facet {
+      file {
+        beforeMerged {
+          assert it.facets.contains(new Facet('facet.one', '1.0'))
+          it.facets.add(new Facet('facet.two', '2.0'))
+        }
+        whenMerged {
+          assert it.facets.contains(new Facet('facet.one', '1.0'))
+          assert it.facets.contains(new Facet('facet.two', '2.0'))
+          it.facets.add(new Facet('facet.three', '3.0'))
+        }
+        withXml { it.asNode().appendNode('be', 'cool') }
+      }
+    }
+  }
+}
+        """
+
+        def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
+
+        assert facet.contains('facet.one')
+        assert facet.contains('facet.two')
+        assert facet.contains('facet.three')
+
+        assert facet.contains('<be>cool</be>')
     }
 
     @Ignore("GRADLE-1487")

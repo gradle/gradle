@@ -225,7 +225,7 @@ class EclipsePlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                 //model properties:
-                model.wtp.facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet)
+                model.wtp.facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet, [file: new XmlFileContentMerger(xmlTransformer)])
                 facet = model.wtp.facet
                 facet.conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
             }
@@ -239,7 +239,8 @@ class EclipsePlugin extends IdePlugin {
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                     //model properties:
-                    eclipsePlugin.model.wtp.facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet)
+                    //TODO SF: duplication must be refactored - creation of facet and component. Have it on the plugin?
+                    eclipsePlugin.model.wtp.facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet, [file: new XmlFileContentMerger(xmlTransformer)])
                     facet = eclipsePlugin.model.wtp.facet
 
                     facet.conventionMapping.facets = { [new Facet("jst.utility", "1.0")] }
