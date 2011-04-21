@@ -60,9 +60,19 @@ class EclipsePlugin extends IdePlugin {
         configureEclipseWtpComponent(project)
         configureEclipseWtpFacet(project)
 
-        project.gradle.projectsEvaluated {
-            new EclipseNameDeduper().configure(project)
+        hookDeduplicationToTheRoot(project)
+    }
+
+    void hookDeduplicationToTheRoot(Project project) {
+        if (project.parent == null) {
+            project.gradle.projectsEvaluated {
+                makeSureProjectNamesAreUnique()
+            }
         }
+    }
+
+    public void makeSureProjectNamesAreUnique() {
+        new EclipseNameDeduper().configureRoot(project.rootProject);
     }
 
     private void configureEclipseProject(Project project) {

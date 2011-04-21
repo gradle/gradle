@@ -25,8 +25,8 @@ import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
  */
 class IdeaNameDeduper {
 
-    void configure(Project theProject) {
-        def ideaProjects = theProject.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }
+    void configureRoot(Project rootProject) {
+        def ideaProjects = rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }
         new ProjectDeduper().dedupe(ideaProjects, { project ->
             new DeduplicationTarget(project: project,
                     moduleName: project.ideaModule.module.name,

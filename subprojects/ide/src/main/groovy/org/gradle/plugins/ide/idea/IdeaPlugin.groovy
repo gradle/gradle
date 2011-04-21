@@ -50,9 +50,14 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaModule(project)
         configureForJavaPlugin(project)
 
-        project.gradle.projectsEvaluated {
-            //TODO SF: is it possible to do deduplication on the fly? - same applies for eclipse
-            new IdeaNameDeduper().configure(project)
+        hookDeduplicationToTheRoot(project)
+    }
+
+    void hookDeduplicationToTheRoot(Project project) {
+        if (isRoot(project)) {
+            project.gradle.projectsEvaluated {
+                new IdeaNameDeduper().configureRoot(project)
+            }
         }
     }
 
