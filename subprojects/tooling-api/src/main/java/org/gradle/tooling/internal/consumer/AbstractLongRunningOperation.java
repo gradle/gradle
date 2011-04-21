@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.listener.ListenerBroadcast;
-import org.gradle.tooling.ProgressEvent;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
@@ -45,24 +43,12 @@ public class AbstractLongRunningOperation {
     }
 
     public AbstractLongRunningOperation addProgressListener(ProgressListener listener) {
-        progressListener.listeners.add(listener);
+        progressListener.add(listener);
         return this;
     }
 
     protected BuildOperationParametersVersion1 operationParameters() {
         return new OperationParameters();
-    }
-
-    private static class ProgressListenerAdapter implements ProgressListenerVersion1 {
-        private final ListenerBroadcast<ProgressListener> listeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
-
-        public void statusChanged(final String description) {
-            listeners.getSource().statusChanged(new ProgressEvent() {
-                public String getDescription() {
-                    return description;
-                }
-            });
-        }
     }
 
     private class OperationParameters implements BuildOperationParametersVersion1 {

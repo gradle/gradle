@@ -33,10 +33,21 @@ public class ExternalDependenciesFactory {
         List<ExternalDependencyVersion1> dependencies = new LinkedList<ExternalDependencyVersion1>();
         for (ClasspathEntry entry : entries) {
             if (entry instanceof Library) {
-                final String path = ((Library) entry).getPath();
+                Library library = (Library) entry;
+                final String path = library.getPath();
+                final String sourcePath = library.getSourcePath();
+                final String javadocPath = library.getJavadocPath();
                 dependencies.add(new ExternalDependencyVersion1() {
                     public File getFile() {
                         return project.file(path);
+                    }
+
+                    public File getJavadoc() {
+                        return javadocPath == null ? null : project.file(javadocPath);
+                    }
+
+                    public File getSource() {
+                        return sourcePath == null ? null : project.file(sourcePath);
                     }
                 });
             }

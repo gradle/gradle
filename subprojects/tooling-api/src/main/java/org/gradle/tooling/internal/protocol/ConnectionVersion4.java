@@ -29,19 +29,10 @@ public interface ConnectionVersion4 {
     void stop();
 
     /**
-     * Returns the Gradle version this connection implements. The implementation of this method should be fast, and should continue to work after the connection has been stopped.
-     *
-     * @return The version.
+     * Returns the meta-data for this connection. The implementation of this method should be fast, and should continue to work after the connection has been stopped.
+     * @return The meta-data.
      */
-    String getVersion();
-
-    /**
-     * Returns a display name for this connection, which can be used in logging and error reporting. The implementation of this method should be fast and should continue to work after the connection
-     * has been stopped.
-     *
-     * @return The display name.
-     */
-    String getDisplayName();
+    ConnectionMetaDataVersion1 getMetaData();
 
     /**
      * Fetches a snapshot of the model for the project.

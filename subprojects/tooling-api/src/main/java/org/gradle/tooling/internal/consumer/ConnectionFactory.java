@@ -37,7 +37,7 @@ public class ConnectionFactory {
     }
 
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
-        AsyncConnection connection = new DefaultAsyncConnection(new LazyConnection(distribution, toolingImplementationLoader), executorFactory);
+        AsyncConnection connection = new DefaultAsyncConnection(new ProgressLoggingConnection(new LazyConnection(distribution, toolingImplementationLoader)), executorFactory);
         return new DefaultProjectConnection(connection, adapter, parameters);
     }
 }

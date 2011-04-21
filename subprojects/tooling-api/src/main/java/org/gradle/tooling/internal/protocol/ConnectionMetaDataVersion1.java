@@ -15,13 +15,14 @@
  */
 package org.gradle.tooling.internal.protocol;
 
-import java.io.File;
+public interface ConnectionMetaDataVersion1 {
+    /**
+     * Returns the Gradle version for the connection.
+     */
+    String getVersion();
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
-public interface ExternalDependencyVersion1 extends DependencyVersion1 {
-    File getFile();
-    File getSource();
-    File getJavadoc();
+    /**
+     * Returns a display name for the connection, which can be used in logging and error reporting.
+     */
+    String getDisplayName();
 }

@@ -101,4 +101,27 @@ sourceSets {
         eclipseProject.sourceDirectories[1].path == 'testResources'
         eclipseProject.sourceDirectories[2].path == 'test'
     }
+
+    def "can enable download of Javadoc for external dependencies"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+repositories { mavenCentral() }
+dependencies {
+    compile 'commons-lang:commons-lang:2.5'
+    runtime 'commons-io:commons-io:1.4'
+}
+eclipse { classpath { downloadJavadoc = true } }
+'''
+
+        when:
+        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        eclipseProject.classpath.size() == 2
+        eclipseProject.classpath.collect { it.file.name } as Set == ['commons-lang-2.5.jar', 'commons-io-1.4.jar' ] as Set
+        eclipseProject.classpath.collect { it.source?.name } as Set == ['commons-lang-2.5-sources.jar', 'commons-io-1.4-sources.jar'] as Set
+        eclipseProject.classpath.collect { it.javadoc?.name } as Set == ['commons-lang-2.5-javadoc.jar', 'commons-io-1.4-javadoc.jar'] as Set
+    }
 }

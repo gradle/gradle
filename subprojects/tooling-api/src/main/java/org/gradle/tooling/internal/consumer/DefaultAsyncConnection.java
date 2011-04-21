@@ -35,7 +35,7 @@ class DefaultAsyncConnection implements AsyncConnection {
     }
 
     public String getDisplayName() {
-        return connection.getDisplayName();
+        return connection.getMetaData().getDisplayName();
     }
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {

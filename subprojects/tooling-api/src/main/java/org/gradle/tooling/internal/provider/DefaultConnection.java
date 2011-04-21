@@ -20,7 +20,6 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.*;
 import org.gradle.tooling.internal.protocol.*;
@@ -32,21 +31,23 @@ import org.slf4j.LoggerFactory;
 public class DefaultConnection implements ConnectionVersion4 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final ServiceRegistry loggingServices;
-    private final GradleLauncherFactory gradleLauncherFactory;
 
     public DefaultConnection() {
         LOGGER.debug("Using tooling API provider version {}.", GradleVersion.current().getVersion());
         loggingServices = new LoggingServiceRegistry(false);
-        gradleLauncherFactory = new DefaultGradleLauncherFactory(loggingServices);
-        GradleLauncher.injectCustomFactory(gradleLauncherFactory);
+        GradleLauncher.injectCustomFactory(new DefaultGradleLauncherFactory(loggingServices));
     }
 
-    public String getDisplayName() {
-        return "Gradle connection";
-    }
+    public ConnectionMetaDataVersion1 getMetaData() {
+        return new ConnectionMetaDataVersion1() {
+            public String getVersion() {
+                return GradleVersion.current().getVersion();
+            }
 
-    public String getVersion() {
-        return GradleVersion.current().getVersion();
+            public String getDisplayName() {
+                return String.format("Gradle %s", getVersion());
+            }
+        };
     }
 
     public void stop() {
@@ -57,8 +58,11 @@ public class DefaultConnection implements ConnectionVersion4 {
         startParameter.setTaskNames(buildParameters.getTasks());
 
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-        configureLauncher(operationParameters, gradleLauncher);
-        wrapAndRethrowFailure(gradleLauncher.run());
+        run(operationParameters, gradleLauncher, new BuildAction() {
+            public BuildResult execute(GradleLauncher gradleLauncher) {
+                return gradleLauncher.run();
+            }
+        });
     }
 
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
@@ -69,7 +73,6 @@ public class DefaultConnection implements ConnectionVersion4 {
         StartParameter startParameter = new ConnectionToStartParametersConverter().convert(operationParameters);
 
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-        configureLauncher(operationParameters, gradleLauncher);
 
         boolean projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
         boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
@@ -78,30 +81,54 @@ public class DefaultConnection implements ConnectionVersion4 {
                 new EclipsePluginApplier(), new ModelBuilder(includeTasks, projectDependenciesOnly));
         gradleLauncher.addListener(adapter);
 
-        wrapAndRethrowFailure(gradleLauncher.getBuildAnalysis());
+        run(operationParameters, gradleLauncher, new BuildAction() {
+            public BuildResult execute(GradleLauncher gradleLauncher) {
+                return gradleLauncher.getBuildAnalysis();
+            }
+        });
+
         return type.cast(adapter.getProject());
     }
 
-    private void configureLauncher(final LongRunningOperationParametersVersion1 operationParameters, GradleLauncher gradleLauncher) {
+    private void run(LongRunningOperationParametersVersion1 operationParameters, GradleLauncher gradleLauncher, BuildAction action) {
         if (operationParameters.getStandardOutput() != null) {
             gradleLauncher.addStandardOutputListener(new StreamBackedStandardOutputListener(operationParameters.getStandardOutput()));
         }
         if (operationParameters.getStandardError() != null) {
             gradleLauncher.addStandardErrorListener(new StreamBackedStandardOutputListener(operationParameters.getStandardError()));
         }
-        loggingServices.get(LoggingOutputInternal.class).addOutputEventListener(new OutputEventListener() {
-            public void onOutput(OutputEvent event) {
-                if (event instanceof ProgressStartEvent) {
-                    ProgressStartEvent startEvent = (ProgressStartEvent) event;
-                    operationParameters.getProgressListener().statusChanged(startEvent.getDescription());
-                }
+        ProgressListenerVersion1 progressListener = operationParameters.getProgressListener();
+        LoggingOutputInternal loggingOutput = loggingServices.get(LoggingOutputInternal.class);
+        OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
+        loggingOutput.addOutputEventListener(listener);
+        try {
+            BuildResult result = action.execute(gradleLauncher);
+            if (result.getFailure() != null) {
+                throw new BuildExceptionVersion1(result.getFailure());
             }
-        });
+        } finally {
+            loggingOutput.removeOutputEventListener(listener);
+        }
     }
 
-    private void wrapAndRethrowFailure(BuildResult result) {
-        if (result.getFailure() != null) {
-            throw new BuildExceptionVersion1(result.getFailure());
+    private interface BuildAction {
+        BuildResult execute(GradleLauncher gradleLauncher);
+    }
+
+    private static class OutputEventListenerAdapter implements OutputEventListener {
+        private final ProgressListenerVersion1 progressListener;
+
+        public OutputEventListenerAdapter(ProgressListenerVersion1 progressListener) {
+            this.progressListener = progressListener;
+        }
+
+        public void onOutput(OutputEvent event) {
+            if (event instanceof ProgressStartEvent) {
+                ProgressStartEvent startEvent = (ProgressStartEvent) event;
+                progressListener.onOperationStart(startEvent.getDescription());
+            } else if (event instanceof ProgressCompleteEvent) {
+                progressListener.onOperationEnd();
+            }
         }
     }
 }

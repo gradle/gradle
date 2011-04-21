@@ -19,5 +19,7 @@ package org.gradle.tooling.internal.protocol;
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface ProgressListenerVersion1 {
-    void statusChanged(String description);
+    void onOperationStart(String description);
+
+    void onOperationEnd();
 }

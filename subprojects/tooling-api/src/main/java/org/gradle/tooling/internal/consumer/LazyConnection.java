@@ -15,10 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.util.UncheckedException;
 
 import java.util.HashSet;
@@ -66,12 +63,16 @@ public class LazyConnection implements ConnectionVersion4 {
         }
     }
 
-    public String getVersion() {
-        throw new UnsupportedOperationException();
-    }
+    public ConnectionMetaDataVersion1 getMetaData() {
+        return new ConnectionMetaDataVersion1() {
+            public String getVersion() {
+                throw new UnsupportedOperationException();
+            }
 
-    public String getDisplayName() {
-        return distribution.getDisplayName();
+            public String getDisplayName() {
+                return distribution.getDisplayName();
+            }
+        };
     }
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters) {
@@ -108,7 +109,7 @@ public class LazyConnection implements ConnectionVersion4 {
             }
             executing.add(Thread.currentThread());
             if (connection == null) {
-                // Hold the lock while creating the connection. Not generally good form
+                // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
                 connection = implementationLoader.create(distribution);
             }

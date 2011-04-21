@@ -154,8 +154,9 @@ dependencies {
 
         eclipseProject.classpath.size() == 2
         eclipseProject.classpath.every { it instanceof ExternalDependency }
-        eclipseProject.classpath.any { it.file.name == 'commons-io-1.4.jar'}
-        eclipseProject.classpath.any { it.file.name == 'commons-lang-2.5.jar'}
+        eclipseProject.classpath.collect { it.file.name } as Set == ['commons-lang-2.5.jar', 'commons-io-1.4.jar' ] as Set
+        eclipseProject.classpath.collect { it.source?.name } as Set == ['commons-lang-2.5-sources.jar', 'commons-io-1.4-sources.jar'] as Set
+        eclipseProject.classpath.collect { it.javadoc?.name } as Set == [null, null] as Set
     }
 
     def "minimal Eclipse model does not attempt to resolve external dependencies"() {
