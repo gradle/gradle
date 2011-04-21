@@ -98,7 +98,7 @@ eclipse {
 	<projects/>
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
-		<nature>some.bad.nature.one</nature>
+		<nature>some.nature.one</nature>
 	</natures>
 	<buildSpec>
 		<buildCommand>
@@ -117,12 +117,15 @@ apply plugin: 'eclipse'
 eclipse {
   project {
     file {
-      beforeMerged { it.natures << 'some.bad.nature.two' }
+      beforeMerged {
+        assert it.natures.contains('some.nature.one')
+        it.natures << 'some.nature.two'
+      }
       whenMerged {
-        assert it.natures.contains('some.bad.nature.one')
-        assert it.natures.contains('some.bad.nature.two')
+        assert it.natures.contains('some.nature.one')
+        assert it.natures.contains('some.nature.two')
 
-        it.natures = ['some.cool.nature']
+        it.natures << 'some.nature.three'
       }
     }
   }
@@ -132,8 +135,7 @@ eclipse {
         content = getFile([:], '.project').text
         //then
 
-        assert content.contains('some.cool.nature')
-        assert !content.contains('some.bad.nature')
+        contains('some.nature.one', 'some.nature.two', 'some.nature.three')
     }
 
     @Test
