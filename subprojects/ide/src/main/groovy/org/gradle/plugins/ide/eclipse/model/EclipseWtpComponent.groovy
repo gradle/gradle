@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
+import org.gradle.util.ConfigureUtil
 
 /**
  * Models the information need for wtp component
@@ -105,8 +106,22 @@ class EclipseWtpComponent {
      */
     String contextPath
 
+    /**
+     * Enables advanced configuration like tinkering with the output xml
+     * or affecting the way existing wtp component file content is merged with gradle build information
+     * <p>
+     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpComponent}
+     * <p>
+     *
+     * For example see docs for {@link EclipseWtp}
+     */
+    void file(Closure closure) {
+        ConfigureUtil.configure(closure, file)
+    }
+
     //********
 
+    XmlFileContentMerger file
     org.gradle.api.Project project
 
     /**
@@ -117,6 +132,8 @@ class EclipseWtpComponent {
     Map<String, File> pathVariables = [:]
 
     void mergeXmlComponent(WtpComponent xmlComponent) {
+        file.beforeMerged.execute(xmlComponent)
         new WtpComponentFactory().configure(this, xmlComponent)
+        file.whenMerged.execute(xmlComponent)
     }
 }

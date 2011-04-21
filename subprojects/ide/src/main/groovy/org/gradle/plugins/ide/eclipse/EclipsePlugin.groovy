@@ -178,7 +178,8 @@ class EclipsePlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.wst.common.component')
 
                 //model properties:
-                model.wtp.component = services.get(ClassGenerator).newInstance(EclipseWtpComponent, [project: project])
+                model.wtp.component = services.get(ClassGenerator).newInstance(EclipseWtpComponent,
+                        [project: project, file: new XmlFileContentMerger(xmlTransformer)])
                 component = model.wtp.component
 
                 component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
@@ -201,7 +202,8 @@ class EclipsePlugin extends IdePlugin {
                         outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
 
                         //model properties:
-                        eclipsePlugin.model.wtp.component = services.get(ClassGenerator).newInstance(EclipseWtpComponent, [project: otherProject])
+                        eclipsePlugin.model.wtp.component = services.get(ClassGenerator).newInstance(EclipseWtpComponent,
+                                [project: otherProject, file: new XmlFileContentMerger(xmlTransformer)])
                         component = eclipsePlugin.model.wtp.component
 
                         component.deployName = otherProject.name

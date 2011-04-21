@@ -32,7 +32,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
     String component
 
     @Test
-    void allowsConfiguringEclipseProject() {
+    void allowsConfiguringEclipseWtp() {
         //given
         file('someExtraSourceDir').mkdirs()
 
@@ -40,7 +40,6 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         publishArtifact(repoDir, "gradle", "foo")
         publishArtifact(repoDir, "gradle", "bar")
         publishArtifact(repoDir, "gradle", "baz")
-
 
         //when
         runEclipseTask """
@@ -109,6 +108,59 @@ eclipse {
 
         assert facet.contains('gradleFacet')
         assert facet.contains('1.333')
+    }
+
+    @Test
+    void allowsConfiguringHooks() {
+        //given
+        def componentFile = file('.settings/org.eclipse.wst.common.component')
+        componentFile << '''<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="2.0">
+	<wb-module deploy-name="coolDeployName">
+		<property name="context-root" value="root"/>
+		<wb-resource deploy-path="/" source-path="src/main/webapp"/>
+	</wb-module>
+</project-modules>
+'''
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'eclipse'
+
+def hooks = []
+
+eclipse {
+  wtp {
+    component {
+      file {
+        beforeMerged {
+          hooks << 'beforeMerged'
+          assert it.deployName == 'coolDeployName'
+        }
+        whenMerged {
+          hooks << 'whenMerged'
+          it.deployName = 'betterDeployName'
+        }
+      }
+    }
+  }
+}
+
+eclipseWtpComponent.doLast() {
+  assert hooks == ['beforeMerged', 'whenMerged']
+}
+
+        """
+
+        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
+//        def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
+
+        println component
+
+        assert component.contains('betterDeployName')
+        assert !component.contains('coolDeployName')
     }
 
     @Ignore("GRADLE-1487")

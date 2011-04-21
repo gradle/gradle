@@ -37,12 +37,11 @@ class FileContentMerger {
      * This is advanced api that gives access to internal implementation.
      * It might be useful if you want to alter the way gradle build information is merged into existing file content
      * <p>
-     * Object that is passed as parameter to the closure is of type:
+     * Object that is passed as parameter to the closure can be of type
+     * {@link Project}, {@link Jdt}, {@link WtpComponent}, {@link WtpFacet}
+     * depending what are you configuring
      * <p>
-     * {@link Project} for: project { file { }} closure
-     * {@link Jdt}     for: jdt { file { }} closure
-     * <p>
-     * For example see docs for {@link EclipseProject}
+     * For example see docs for {@link EclipseProject}, {@link EclipseWtp}
      *
      * @param closure The closure to execute.
      */
@@ -59,10 +58,11 @@ class FileContentMerger {
      * <p>
      * Object that is passed as parameter to the closure is of type:
      * <p>
-     * {@link Project} for: project { file { }} closure
-     * {@link Jdt}     for: jdt { file { }} closure
+     * Object that is passed as parameter to the closure can be of type
+     * {@link Project}, {@link Jdt}, {@link WtpComponent}, {@link WtpFacet}
+     * depending what are you configuring
      * <p>
-     * For example see docs for {@link EclipseProject}
+     * For example see docs for {@link EclipseProject}, {@link EclipseWtp}
      *
      * @param closure The closure to execute.
      */
