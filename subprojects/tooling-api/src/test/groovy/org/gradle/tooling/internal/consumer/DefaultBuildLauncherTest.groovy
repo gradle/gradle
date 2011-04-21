@@ -15,14 +15,13 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.model.Task
 import org.gradle.util.ConcurrentSpecification
-import org.gradle.tooling.GradleConnectionException
 
 class DefaultBuildLauncherTest extends ConcurrentSpecification {
-    final ConnectionVersion4 protocolConnection = Mock()
+    final AsyncConnection protocolConnection = Mock()
     final ConnectionParameters parameters = Mock()
     final DefaultBuildLauncher launcher = new DefaultBuildLauncher(protocolConnection, parameters)
 
@@ -105,7 +104,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         action.waitsFor(supplyResult)
         1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
             def handler = args[2]
-            supplyResult.activate {
+            supplyResult.finishLater {
                 handler.onComplete(null)
             }
         }
@@ -124,7 +123,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         action.waitsFor(supplyResult)
         1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
             def handler = args[2]
-            supplyResult.activate {
+            supplyResult.finishLater {
                 handler.onFailure(new RuntimeException())
             }
         }

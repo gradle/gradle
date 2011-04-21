@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.consumer;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
-public interface ModelFetchParametersVersion1 {
-    Class<? extends ProjectVersion3> getType();
+import org.gradle.tooling.internal.protocol.*;
+
+public interface AsyncConnection {
+    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException;
+
+    void getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException;
+
+    void stop();
+
+    String getDisplayName();
 }

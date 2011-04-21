@@ -16,13 +16,11 @@
 package org.gradle.tooling.internal.consumer
 
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.model.Project
-import org.gradle.tooling.model.Task
 import org.gradle.util.ConcurrentSpecification
 
 class DefaultProjectConnectionTest extends ConcurrentSpecification {
-    final ConnectionVersion4 protocolConnection = Mock()
+    final AsyncConnection protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
     final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, adapter, parameters)
@@ -52,38 +50,6 @@ class DefaultProjectConnectionTest extends ConcurrentSpecification {
 
         then:
         1 * protocolConnection.stop()
-    }
-
-    def getModelFailsWhenConnectionHasBeenStopped() {
-        when:
-        def builder = connection.model(Project.class)
-        connection.close()
-        builder.get()
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'This connection has been closed.'
-        1 * protocolConnection.stop()
-        0 * _._
-    }
-
-    def buildFailsWhenConnectionHasBeenStopped() {
-        when:
-        def build = connection.newBuild()
-        connection.close()
-        build.run()
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'This connection has been closed.'
-        1 * protocolConnection.stop()
-        0 * _._
-    }
-
-    def task(String path) {
-        Task task = Mock()
-        _ * task.path >> path
-        return task
     }
 }
 

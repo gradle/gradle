@@ -19,8 +19,6 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.ModelFetchParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.Project;
 
@@ -29,10 +27,10 @@ import java.io.OutputStream;
 public class DefaultModelBuilder<T extends Project> extends AbstractLongRunningOperation implements ModelBuilder<T> {
     private final Class<T> modelType;
     private final Class<? extends ProjectVersion3> protocolType;
-    private final ConnectionVersion4 connection;
+    private final AsyncConnection connection;
     private final ProtocolToModelAdapter adapter;
 
-    public DefaultModelBuilder(Class<T> modelType, Class<? extends ProjectVersion3> protocolType, ConnectionVersion4 connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+    public DefaultModelBuilder(Class<T> modelType, Class<? extends ProjectVersion3> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
         super(parameters);
         this.modelType = modelType;
         this.protocolType = protocolType;
@@ -48,16 +46,12 @@ public class DefaultModelBuilder<T extends Project> extends AbstractLongRunningO
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
         ResultHandler<ProjectVersion3> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
-        connection.getModel(fetchParameters(), operationParameters(), new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler) {
+        connection.getModel(protocolType, operationParameters(), new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
-                return String.format("Could not fetch model of type '%s' from %s.", modelType.getSimpleName(), connection.getDisplayName());
+                return String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
             }
         });
-    }
-
-    private ModelFetchParametersVersion1 fetchParameters() {
-        return new FetchParameters();
     }
 
     @Override
@@ -92,12 +86,6 @@ public class DefaultModelBuilder<T extends Project> extends AbstractLongRunningO
 
         public void onFailure(GradleConnectionException failure) {
             handler.onFailure(failure);
-        }
-    }
-
-    private class FetchParameters implements ModelFetchParametersVersion1 {
-        public Class<? extends ProjectVersion3> getType() {
-            return protocolType;
         }
     }
 }

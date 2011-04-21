@@ -55,7 +55,7 @@ System.err.println 'this is stderr'
 
         then:
         BuildException e = thrown()
-        e.message == 'Could not fetch model of type \'Project\' from Gradle connection.'
+        e.message == 'Could not fetch model of type \'Project\' using Gradle classpath distribution.'
         e.cause.message.contains('A problem occurred evaluating root project')
     }
 }

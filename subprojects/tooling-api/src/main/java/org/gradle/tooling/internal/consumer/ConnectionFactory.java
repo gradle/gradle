@@ -15,8 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 /**
  * This is the main internal entry point for the tooling API.
@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 public class ConnectionFactory {
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
     private final ToolingImplementationLoader toolingImplementationLoader;
+    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
 
     public ConnectionFactory() {
         this(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
@@ -36,7 +37,7 @@ public class ConnectionFactory {
     }
 
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
-        ConnectionVersion4 connection = toolingImplementationLoader.create(distribution);
+        AsyncConnection connection = new DefaultAsyncConnection(new LazyConnection(distribution, toolingImplementationLoader), executorFactory);
         return new DefaultProjectConnection(connection, adapter, parameters);
     }
 }

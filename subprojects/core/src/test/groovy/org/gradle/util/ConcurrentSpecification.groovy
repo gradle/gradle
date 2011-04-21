@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
+import org.gradle.messaging.concurrent.ExecutorFactory
+import org.gradle.messaging.concurrent.StoppableExecutor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
@@ -40,6 +42,24 @@ class ConcurrentSpecification extends Specification {
         finished()
     }
 
+    ExecutorFactory getExecutorFactory() {
+        return new ExecutorFactory() {
+            StoppableExecutor create(String displayName) {
+                return new StoppableExecutorStub(ConcurrentSpecification.this)
+            }
+        }
+    }
+
+    void startThread(Runnable cl) {
+        lock.lock()
+        try {
+            TestThread thread = new TestThread(this, lock, cl)
+            thread.start()
+        } finally {
+            lock.unlock()
+        }
+    }
+
     /**
      * Creates an action which will be used by a mock object to synchronise with the SUT.
      *
@@ -57,11 +77,11 @@ class ConcurrentSpecification extends Specification {
     }
 
     /**
-     * Starts a thread which executes the given closure. Blocks until all deferred actions are activated. Does not wait for the thread to complete.
+     * Starts a thread which executes the given action/closure. Blocks until all deferred actions are activated. Does not wait for the thread to complete.
      *
      * @return A handle to the test thread.
      */
-    TestParticipant start(Closure cl) {
+    TestParticipant start(Runnable cl) {
         lock.lock()
         try {
             TestThread thread = new TestThread(this, lock, cl)
@@ -258,7 +278,7 @@ interface LongRunningAction {
 }
 
 /**
- * An action which runs at some point in the future. A {@code DeferredAction} must be activated before it can run, by calling {@link DeferredAction#activate(Closure)}.
+ * An action which runs at some point in the future. A {@code DeferredAction} must be activated before it can run, by calling {@link DeferredAction#finishLater(Closure)}.
  */
 interface DeferredAction extends LongRunningAction {
     /**
@@ -272,7 +292,20 @@ interface DeferredAction extends LongRunningAction {
      * <li>{@link ConcurrentSpecification#finished}</li>
      * </ul>
      */
-    void activate(Closure action)
+    void finishLater(Closure action)
+
+    /**
+     * Registers that the target sync point has been reached, and this action is ready to execute. This method blocks until the action completes.
+     *
+     * This action is started once this method has been called, and one of the following have been executed:
+     *
+     * <ul>
+     * <li>{@link TestParticipant#waitsFor(LongRunningAction)}</li>
+     * <li>{@link TestParticipant#doesNotWaitFor(LongRunningAction)}</li>
+     * <li>{@link ConcurrentSpecification#finished}</li>
+     * </ul>
+     */
+    void finish()
 }
 
 interface TestParticipant extends LongRunningAction {
@@ -341,6 +374,17 @@ class DeferredActionImpl extends AbstractAction implements DeferredAction {
         }
     }
 
+    void running() {
+        lock.lock()
+        try {
+            if (complete) {
+                throw new IllegalStateException("Action has completed.")
+            }
+        } finally {
+            lock.unlock()
+        }
+    }
+
     @Override
     void completesBefore(Date timeout) {
         activated()
@@ -384,7 +428,7 @@ class DeferredActionImpl extends AbstractAction implements DeferredAction {
         }
     }
 
-    void activate(Closure action) {
+    void finishLater(Closure action) {
         lock.lock()
         try {
             if (activated) {
@@ -398,6 +442,11 @@ class DeferredActionImpl extends AbstractAction implements DeferredAction {
             lock.unlock()
         }
     }
+
+    void finish() {
+        finishLater {}
+        completed()
+    }
 }
 
 abstract class AbstractTestParticipant extends AbstractAction implements TestParticipant {
@@ -410,6 +459,7 @@ abstract class AbstractTestParticipant extends AbstractAction implements TestPar
     void doesNotWaitFor(LongRunningAction... targets) {
         targets*.activated()
         completed()
+        targets*.running()
     }
 
     void waitsFor(LongRunningAction... targets) {
@@ -473,5 +523,29 @@ class CompositeTestParticipant extends AbstractTestParticipant {
         } finally {
             lock.unlock()
         }
+    }
+}
+
+class StoppableExecutorStub implements StoppableExecutor {
+    final ConcurrentSpecification owner
+
+    StoppableExecutorStub(ConcurrentSpecification owner) {
+        this.owner = owner
+    }
+
+    void stop() {
+        throw new UnsupportedOperationException()
+    }
+
+    void stop(int timeoutValue, TimeUnit timeoutUnits) {
+        throw new UnsupportedOperationException()
+    }
+
+    void requestStop() {
+        throw new UnsupportedOperationException()
+    }
+
+    void execute(Runnable runnable) {
+        owner.startThread(runnable)
     }
 }

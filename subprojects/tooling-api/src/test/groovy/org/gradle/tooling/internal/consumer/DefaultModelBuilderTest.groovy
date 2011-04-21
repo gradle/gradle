@@ -17,14 +17,13 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.Project
 import org.gradle.util.ConcurrentSpecification
 
 class DefaultModelBuilderTest extends ConcurrentSpecification {
-    final ConnectionVersion4 protocolConnection = Mock()
+    final AsyncConnection protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
     final DefaultModelBuilder<Project> builder = new DefaultModelBuilder<Project>(Project, ProjectVersion3, protocolConnection, adapter, parameters)
@@ -39,9 +38,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.getModel(!null, !null, !null) >> {args ->
-            def fetchParams = args[0]
-            assert fetchParams.type == ProjectVersion3
+        1 * protocolConnection.getModel(ProjectVersion3, !null, !null) >> {args ->
             def params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
@@ -76,7 +73,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         then:
         1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
         _ * protocolConnection.displayName >> '[connection]'
-        wrappedFailure.message == 'Could not fetch model of type \'Project\' from [connection].'
+        wrappedFailure.message == 'Could not fetch model of type \'Project\' using [connection].'
         wrappedFailure.cause.is(failure)
         0 * _._
     }
@@ -97,7 +94,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         action.waitsFor(supplyResult)
         1 * protocolConnection.getModel(!null, !null, !null) >> { args ->
             def handler = args[2]
-            supplyResult.activate {
+            supplyResult.finishLater {
                 handler.onComplete(result)
             }
         }
@@ -123,7 +120,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         action.waitsFor(supplyResult)
         1 * protocolConnection.getModel(!null, !null, !null) >> { args ->
             def handler = args[2]
-            supplyResult.activate {
+            supplyResult.finishLater {
                 handler.onFailure(failure)
             }
         }

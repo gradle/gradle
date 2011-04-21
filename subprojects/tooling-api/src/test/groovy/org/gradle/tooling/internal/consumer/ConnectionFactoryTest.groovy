@@ -31,7 +31,8 @@ class ConnectionFactoryTest extends Specification {
 
         then:
         result instanceof DefaultProjectConnection
-        1 * implementationLoader.create(distribution) >> connectionImpl
+        result.connection instanceof DefaultAsyncConnection
+        result.connection.connection instanceof LazyConnection
         0 * _._
     }
 }

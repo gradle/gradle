@@ -16,9 +16,11 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * Represents a connection to a particular Gradle implementation.
+ * <p>Represents a connection to a particular Gradle implementation.
  *
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * <p>Implementations must be thread-safe.
+ *
+ * <p>DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.</p>
  */
 public interface ConnectionVersion4 {
     /**
@@ -42,20 +44,18 @@ public interface ConnectionVersion4 {
     String getDisplayName();
 
     /**
-     * Starts fetching a snapshot of the model for the project. This method returns immediately, and the given result handler is notified when the model is available.
+     * Fetches a snapshot of the model for the project.
      *
-     * @param handler The handler to pass the model to.
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    void getModel(ModelFetchParametersVersion1 fetchParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException;
+    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
 
     /**
-     * Starts the execution of a build. This method returns immediately, and the given result handler is notified when the build is complete.
+     * Executes a build.
      *
      * @param buildParameters The parameters for the build.
-     * @param handler The handler to notify of the build result.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException;
+    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws IllegalStateException;
 }

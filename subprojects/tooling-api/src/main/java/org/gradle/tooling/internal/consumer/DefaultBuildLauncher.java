@@ -19,7 +19,6 @@ import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.model.Task;
 
 import java.io.OutputStream;
@@ -29,9 +28,9 @@ import java.util.List;
 
 class DefaultBuildLauncher extends AbstractLongRunningOperation implements BuildLauncher {
     private final List<String> tasks = new ArrayList<String>();
-    private final ConnectionVersion4 connection;
+    private final AsyncConnection connection;
 
-    public DefaultBuildLauncher(ConnectionVersion4 connection, ConnectionParameters parameters) {
+    public DefaultBuildLauncher(AsyncConnection connection, ConnectionParameters parameters) {
         super(parameters);
         this.connection = connection;
     }

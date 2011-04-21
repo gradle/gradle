@@ -21,7 +21,8 @@ import java.util.concurrent.TimeUnit
 import spock.lang.Ignore
 
 class ConcurrentSpecificationTest extends ConcurrentSpecification {
-    def canCheckThatMethodCallWaitsUntilAsyncActionIsComplete() {
+    
+    def canCheckThatMethodCallWaitsUntilAsyncCallbackIsComplete() {
         SomeAsyncWorker worker = Mock()
         SomeSyncClass target = new SomeSyncClass(worker: worker)
 
@@ -35,7 +36,7 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
 
         then:
         action.waitsFor(notifyListener)
-        1 * worker.doLater(!null) >> { args -> notifyListener.activate { args[0].call('result') } }
+        1 * worker.doLater(!null) >> { args -> notifyListener.finishLater { args[0].call('result') } }
 
         when:
         finished()
@@ -44,7 +45,7 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
         result == 'result'
     }
 
-    def canCheckThatMethodCallDoesNotWaitUntilAsyncActionIsComplete() {
+    def canCheckThatMethodCallDoesNotWaitUntilAsyncCallbackIsComplete() {
         SomeAsyncWorker worker = Mock()
         Closure handler = Mock()
         SomeSyncClass target = new SomeSyncClass(worker: worker)
@@ -58,7 +59,7 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
 
         then:
         action.doesNotWaitFor(notifyListener)
-        1 * worker.doLater(!null) >> { args -> notifyListener.activate { args[0].call('result') } }
+        1 * worker.doLater(!null) >> { args -> notifyListener.finishLater { args[0].call('result') } }
 
         when:
         finished()
@@ -87,9 +88,9 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
         2 * worker.doLater(!null) >> { args ->
             if (!listener) {
                 listener = args[0];
-                notifyListener.activate { args[0].call('result1') }
+                notifyListener.finishLater { args[0].call('result1') }
             } else {
-                notifyListenerAgain.activate { args[0].call('result2') }
+                notifyListenerAgain.finishLater { args[0].call('result2') }
             }
         }
 

@@ -17,7 +17,6 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
 import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.HierarchicalProjectVersion1;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
@@ -32,14 +31,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 class DefaultProjectConnection implements ProjectConnection {
-    private final ConnectionVersion4 connection;
+    private final AsyncConnection connection;
     private final Map<Class<? extends Project>, Class<? extends ProjectVersion3>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion3>>();
     private ProtocolToModelAdapter adapter;
     private final ConnectionParameters parameters;
 
-    public DefaultProjectConnection(ConnectionVersion4 connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+    public DefaultProjectConnection(AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+        this.connection = connection;
         this.parameters = parameters;
-        this.connection = new CloseableConnection(connection);
         this.adapter = adapter;
         modelTypeMap.put(Project.class, ProjectVersion3.class);
         modelTypeMap.put(BuildableProject.class, BuildableProjectVersion1.class);
