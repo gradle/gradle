@@ -78,7 +78,7 @@ import org.gradle.util.ConfigureUtil
  *       //closure executed after .project content is loaded from existing file
  *       //and after gradle build information is merged
  *       whenMerged { project ->
- *         //you can tinker with the project here
+ *         //you can tinker with the {@link Project} here
  *       }
  *     }
  *   }
@@ -96,7 +96,7 @@ import org.gradle.util.ConfigureUtil
  *       //closure executed after jdt file content is loaded from existing file
  *       //and after gradle build information is merged
  *       whenMerged { jdt
- *         //you can tinker with the jdt here
+ *         //you can tinker with the {@link Jdt} here
  *       }
  *     }
  *   }
