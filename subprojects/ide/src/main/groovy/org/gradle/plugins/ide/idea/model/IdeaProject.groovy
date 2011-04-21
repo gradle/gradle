@@ -101,12 +101,10 @@ class IdeaProject {
 
     //******
 
-    Project xmlProject
     PathFactory pathFactory
     IdeaProjectIpr ipr
 
     void mergeXmlProject(Project xmlProject) {
-        this.xmlProject = xmlProject
         def modulePaths = getSubprojects().inject(new LinkedHashSet()) { result, subproject ->
             if (subproject.plugins.hasPlugin(IdeaPlugin)) {
                 File imlFile = subproject.ideaModule.outputFile

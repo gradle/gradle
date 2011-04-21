@@ -250,7 +250,6 @@ class IdeaModule {
     //For now, below methods are protected - same applies to new model
 
     org.gradle.api.Project project
-    Module xmlModule
     PathFactory pathFactory
     IdeaModuleIml iml
 
@@ -292,12 +291,6 @@ class IdeaModule {
         xmlModule.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(),
                 getInheritOutputDirs(), getOutputPath(), getTestOutputPath(), getDependencies(), getJavaVersion())
         iml.whenMerged.execute(xmlModule)
-
-        this.xmlModule = xmlModule
-    }
-
-    void generate() {
-        xmlModule.store(getOutputFile())
     }
 
     Path getContentPath() {
