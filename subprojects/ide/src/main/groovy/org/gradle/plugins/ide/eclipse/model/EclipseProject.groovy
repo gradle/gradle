@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.util.ConfigureUtil
 
 /**
  * DSL-friendly model of the eclipse project needed for .project generation
@@ -183,9 +184,25 @@ class EclipseProject {
         linkedResources << new Link(args.name, args.type, args.location, args.locationUri)
     }
 
+    /**
+     * Enables advanced configuration like tinkering with the output xml
+     * or affecting the way existing .project content is merged with gradle build information
+     * <p>
+     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link Project}
+     * <p>
+     *
+     * For example see docs for {@link EclipseProject}
+     */
+    void file(Closure closure) {
+        ConfigureUtil.configure(closure, file)
+    }
+
     /*****/
+    FileContentMerger file = new FileContentMerger()
 
     void mergeXmlProject(Project xmlProject) {
+        file.beforeMerged.execute(xmlProject)
         xmlProject.configure(this)
+        file.whenMerged.execute(xmlProject)
     }
 }

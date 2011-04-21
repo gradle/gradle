@@ -81,6 +81,63 @@ eclipse {
         assert jdt.contains('source=1.4')
     }
 
+    @Test
+    void enablesBeforeAndWhenHooksForProject() {
+        //given
+        def project = file('.project')
+        project << '''<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>root</name>
+	<comment/>
+	<projects/>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+		<nature>some.bad.nature.one</nature>
+	</natures>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments/>
+		</buildCommand>
+	</buildSpec>
+	<linkedResources/>
+</projectDescription>'''
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    file {
+      beforeMerged { it.natures << 'some.bad.nature.two' }
+      whenMerged {
+        assert it.natures.contains('some.bad.nature.one')
+        assert it.natures.contains('some.bad.nature.two')
+
+        it.natures = ['some.cool.nature']
+      }
+    }
+  }
+
+  jdt {
+//    file {
+//      beforeMerged {}
+//      whenMerged {}
+//      withXml {}
+//    }
+  }
+}
+        """
+
+        content = getFile([:], '.project').text
+        //then
+
+        assert content.contains('some.cool.nature')
+        assert !content.contains('some.bad.nature')
+    }
+
     protected def contains(String ... contents) {
         contents.each { assert content.contains(it)}
     }
