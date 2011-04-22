@@ -17,15 +17,19 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.tasks.wrapper.Wrapper;
+import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
 import org.gradle.wrapper.Download;
+import org.gradle.wrapper.IDownload;
 import org.gradle.wrapper.Install;
 import org.gradle.wrapper.PathAssembler;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.LinkedHashSet;
@@ -34,9 +38,11 @@ import java.util.Set;
 public class DistributionFactory {
     public static final String USE_CLASSPATH_AS_DISTRIBUTION = "org.gradle.useClasspathAsDistribution";
     private final File userHomeDir;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public DistributionFactory(File userHomeDir) {
+    public DistributionFactory(File userHomeDir, ProgressLoggerFactory progressLoggerFactory) {
         this.userHomeDir = userHomeDir;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public Distribution getCurrentDistribution() {
@@ -69,14 +75,53 @@ public class DistributionFactory {
     }
 
     public Distribution getDistribution(URI gradleDistribution) {
-        File installDir;
-        try {
-            Install install = new Install(false, false, new Download(), new PathAssembler(userHomeDir));
-            installDir = install.createDist(gradleDistribution, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME);
-        } catch (Exception e) {
-            throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", gradleDistribution), e);
+        return new ZippedDistribution(gradleDistribution);
+    }
+
+    private class ZippedDistribution implements Distribution {
+        private final URI gradleDistribution;
+        private InstalledDistribution installedDistribution;
+
+        private ZippedDistribution(URI gradleDistribution) {
+            this.gradleDistribution = gradleDistribution;
         }
-        return new InstalledDistribution(installDir, String.format("Gradle distribution '%s'", gradleDistribution), String.format("Gradle distribution '%s'", gradleDistribution));
+
+        public String getDisplayName() {
+            return String.format("Gradle distribution '%s'", gradleDistribution);
+        }
+
+        public Set<File> getToolingImplementationClasspath() {
+            if (installedDistribution == null) {
+                File installDir;
+                try {
+                    Install install = new Install(false, false, new ProgressReportingDownload(progressLoggerFactory), new PathAssembler(userHomeDir));
+                    installDir = install.createDist(gradleDistribution, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME);
+                } catch (FileNotFoundException e) {
+                    throw new IllegalArgumentException(String.format("The specified %s does not exist.", getDisplayName()), e);
+                } catch (Exception e) {
+                    throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", gradleDistribution), e);
+                }
+                installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
+            }
+            return installedDistribution.getToolingImplementationClasspath();
+        }
+    }
+
+    private static class ProgressReportingDownload implements IDownload {
+        private final ProgressLoggerFactory progressLoggerFactory;
+
+        private ProgressReportingDownload(ProgressLoggerFactory progressLoggerFactory) {
+            this.progressLoggerFactory = progressLoggerFactory;
+        }
+
+        public void download(URI address, File destination) throws Exception {
+            ProgressLogger progressLogger = progressLoggerFactory.start(DistributionFactory.class.getName(), String.format("Downloading %s", address));
+            try {
+                new Download().download(address, destination);
+            } finally {
+                progressLogger.completed();
+            }
+        }
     }
 
     private static class InstalledDistribution implements Distribution {

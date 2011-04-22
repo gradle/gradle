@@ -19,11 +19,19 @@ import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.logging.ProgressLogger
 
 class DistributionFactoryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
-    final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'))
+    final ProgressLoggerFactory progressLoggerFactory = Mock()
+    final ProgressLogger progressLogger = Mock()
+    final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'), progressLoggerFactory)
 
+    def setup() {
+        _ * progressLoggerFactory.start(!null, !null) >> progressLogger
+    }
+    
     def createsADisplayNameForAnInstallation() {
         expect:
         factory.getDistribution(tmpDir.dir).displayName == "Gradle installation '${tmpDir.dir}'"
@@ -40,9 +48,9 @@ class DistributionFactoryTest extends Specification {
 
     def failsWhenInstallationDirectoryDoesNotExist() {
         TestFile distDir = tmpDir.file('unknown')
+        def dist = factory.getDistribution(distDir)
 
         when:
-        def dist = factory.getDistribution(distDir)
         dist.toolingImplementationClasspath
 
         then:
@@ -52,9 +60,9 @@ class DistributionFactoryTest extends Specification {
 
     def failsWhenInstallationDirectoryIsAFile() {
         TestFile distDir = tmpDir.createFile('dist')
+        def dist = factory.getDistribution(distDir)
 
         when:
-        def dist = factory.getDistribution(distDir)
         dist.toolingImplementationClasspath
 
         then:
@@ -64,9 +72,9 @@ class DistributionFactoryTest extends Specification {
 
     def failsWhenInstallationDirectoryDoesNotContainALibDirectory() {
         TestFile distDir = tmpDir.createDir('dist')
+        def dist = factory.getDistribution(distDir)
 
         when:
-        def dist = factory.getDistribution(distDir)
         dist.toolingImplementationClasspath
 
         then:
@@ -88,17 +96,46 @@ class DistributionFactoryTest extends Specification {
                 file("b.jar")
             }
         }
+        def dist = factory.getDistribution(zipFile.toURI())
 
         expect:
-        def dist = factory.getDistribution(zipFile.toURI())
         dist.toolingImplementationClasspath.collect { it.name } as Set == ['a.jar', 'b.jar'] as Set
+    }
+
+    def reportsZipDownload() {
+        def zipFile = createZip {
+            lib {
+                file("a.jar")
+            }
+        }
+        def dist = factory.getDistribution(zipFile.toURI())
+
+        when:
+        dist.toolingImplementationClasspath
+
+        then:
+        1 * progressLoggerFactory.start(DistributionFactory.class.name, "Downloading ${zipFile.toURI()}") >> progressLogger
+        1 * progressLogger.completed()
+        0 * _._
+    }
+
+    def failsWhenDistributionZipDoesNotExist() {
+        URI zipFile = new URI("http://gradle.org/does-not-exist/gradle-1.0.zip")
+        def dist = factory.getDistribution(zipFile)
+
+        when:
+        dist.toolingImplementationClasspath
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "The specified Gradle distribution '${zipFile}' does not exist."
     }
 
     def failsWhenDistributionZipDoesNotContainALibDirectory() {
         TestFile zipFile = createZip { file("other") }
+        def dist = factory.getDistribution(zipFile.toURI())
 
         when:
-        def dist = factory.getDistribution(zipFile.toURI())
         dist.toolingImplementationClasspath
 
         then:

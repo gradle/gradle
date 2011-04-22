@@ -15,6 +15,13 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.listener.ListenerManager;
+import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.internal.ProgressCompleteEvent;
+import org.gradle.logging.internal.ProgressEvent;
+import org.gradle.logging.internal.ProgressListener;
+import org.gradle.logging.internal.ProgressStartEvent;
 import org.gradle.tooling.internal.protocol.*;
 
 /**
@@ -22,9 +29,13 @@ import org.gradle.tooling.internal.protocol.*;
  */
 public class ProgressLoggingConnection implements ConnectionVersion4 {
     private final ConnectionVersion4 connection;
+    private final ProgressLoggerFactory progressLoggerFactory;
+    private final ListenerManager listenerManager;
 
-    public ProgressLoggingConnection(ConnectionVersion4 connection) {
+    public ProgressLoggingConnection(ConnectionVersion4 connection, ProgressLoggerFactory progressLoggerFactory, ListenerManager listenerManager) {
         this.connection = connection;
+        this.progressLoggerFactory = progressLoggerFactory;
+        this.listenerManager = listenerManager;
     }
 
     public void stop() {
@@ -35,23 +46,58 @@ public class ProgressLoggingConnection implements ConnectionVersion4 {
         return connection.getMetaData();
     }
 
-    public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        ProgressListenerVersion1 listener = operationParameters.getProgressListener();
-        listener.onOperationStart("Running build");
+    public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters) {
+        run("Running build", operationParameters, new BuildAction<Void>() {
+            public Void run(ConnectionVersion4 connection) {
+                connection.executeBuild(buildParameters, operationParameters);
+                return null;
+            }
+        });
+    }
+
+    public ProjectVersion3 getModel(final Class<? extends ProjectVersion3> type, final BuildOperationParametersVersion1 operationParameters) {
+        return run("Loading projects", operationParameters, new BuildAction<ProjectVersion3>() {
+            public ProjectVersion3 run(ConnectionVersion4 connection) {
+                return connection.getModel(type, operationParameters);
+            }
+        });
+    }
+
+    private <T> T run(String description, BuildOperationParametersVersion1 parameters, BuildAction<T> action) {
+        ProgressListenerAdapter listener = new ProgressListenerAdapter(parameters.getProgressListener());
+        listenerManager.addListener(listener);
         try {
-            connection.executeBuild(buildParameters, operationParameters);
+            ProgressLogger progressLogger = progressLoggerFactory.start(ProgressLoggingConnection.class.getName(), description);
+            try {
+                return action.run(connection);
+            } finally {
+                progressLogger.completed();
+            }
         } finally {
-            listener.onOperationEnd();
+            listenerManager.removeListener(listener);
         }
     }
 
-    public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        ProgressListenerVersion1 listener = operationParameters.getProgressListener();
-        listener.onOperationStart("Loading projects");
-        try {
-            return connection.getModel(type, operationParameters);
-        } finally {
-            listener.onOperationEnd();
+    private interface BuildAction<T> {
+        T run(ConnectionVersion4 connection);
+    }
+
+    private static class ProgressListenerAdapter implements ProgressListener {
+        private final ProgressListenerVersion1 progressListener;
+
+        public ProgressListenerAdapter(ProgressListenerVersion1 progressListener) {
+            this.progressListener = progressListener;
+        }
+
+        public void started(ProgressStartEvent event) {
+            progressListener.onOperationStart(event.getDescription());
+        }
+
+        public void progress(ProgressEvent event) {
+        }
+
+        public void completed(ProgressCompleteEvent event) {
+            progressListener.onOperationEnd();
         }
     }
 }

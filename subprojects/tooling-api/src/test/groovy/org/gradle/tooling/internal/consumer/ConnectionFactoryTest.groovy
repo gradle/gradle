@@ -17,13 +17,17 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import spock.lang.Specification
+import org.gradle.listener.ListenerManager
+import org.gradle.logging.ProgressLoggerFactory
 
 class ConnectionFactoryTest extends Specification {
     final ToolingImplementationLoader implementationLoader = Mock()
+    final ListenerManager listenerManager = Mock()
+    final ProgressLoggerFactory progressLoggerFactory = Mock()
     final Distribution distribution = Mock()
     final ConnectionVersion4 connectionImpl = Mock()
     final ConnectionParameters parameters = Mock()
-    final ConnectionFactory factory = new ConnectionFactory(implementationLoader)
+    final ConnectionFactory factory = new ConnectionFactory(implementationLoader, listenerManager, progressLoggerFactory)
 
     def usesImplementationLoaderToLoadConnectionFactory() {
         when:
