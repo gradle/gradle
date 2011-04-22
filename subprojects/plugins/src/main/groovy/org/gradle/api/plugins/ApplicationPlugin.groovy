@@ -30,13 +30,12 @@ import org.gradle.api.GradleException
  * @author Rene Groeschke
  */
 class ApplicationPlugin implements Plugin<Project> {
-
     static final String APPLICATION_PLUGIN_NAME = "application"
     static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME
 
     static final String TASK_RUN_NAME = "run"
     static final String TASK_START_SCRIPTS_NAME = "startScripts"
-    static final String TASK_INSTALL_NAME = "install"
+    static final String TASK_INSTALL_NAME = "installApp"
     static final String TASK_DIST_ZIP_NAME = "distZip"
 
     void apply(final Project project) {
