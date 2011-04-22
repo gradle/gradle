@@ -60,7 +60,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canCustomiseTheApplicationName() {
+    def canCustomizeTheApplicationName() {
         distribution.testFile('settings.gradle') << 'rootProject.name = "application"'
         distribution.testFile('build.gradle') << '''
 apply plugin: 'application'

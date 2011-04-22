@@ -31,19 +31,19 @@ import org.gradle.api.GradleException
  *
  * @author Rene Groeschke
  */
-public class ApplicationPlugin implements Plugin<Project> {
+class ApplicationPlugin implements Plugin<Project> {
 
-    public static final String APPLICATION_PLUGIN_NAME = "application"
-    public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME
+    static final String APPLICATION_PLUGIN_NAME = "application"
+    static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME
 
-    public static final String TASK_RUN_NAME = "run"
-    public static final String TASK_START_SCRIPTS_NAME = "startScripts"
-    public static final String TASK_INSTALL_NAME = "install"
-    public static final String TASK_DIST_ZIP_NAME = "distZip"
+    static final String TASK_RUN_NAME = "run"
+    static final String TASK_START_SCRIPTS_NAME = "startScripts"
+    static final String TASK_INSTALL_NAME = "install"
+    static final String TASK_DIST_ZIP_NAME = "distZip"
 
-    public void apply(final Project project) {
-        project.plugins.apply(JavaPlugin.class)
-        ApplicationPluginConvention applicationPluginConvention = new ApplicationPluginConvention(project)
+    void apply(final Project project) {
+        project.plugins.apply(JavaPlugin)
+        def applicationPluginConvention = new ApplicationPluginConvention(project)
         project.convention.plugins.put("application", applicationPluginConvention)
         applicationPluginConvention.applicationName = project.name
         configureRunTask(project)
@@ -55,8 +55,8 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private def CopySpec createDistSpec(Project project, ApplicationPluginConvention applicationPluginConvention) {
-        Jar jar = project.tasks.withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME)
-        CreateStartScripts startScripts = project.tasks.withType(CreateStartScripts.class).getByName(TASK_START_SCRIPTS_NAME)
+        def jar = project.tasks.withType(Jar).getByName(JavaPlugin.JAR_TASK_NAME)
+        def startScripts = project.tasks.withType(CreateStartScripts).getByName(TASK_START_SCRIPTS_NAME)
 
         project.copySpec {
             into("lib") {
@@ -71,18 +71,18 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void configureRunTask(Project project) {
-        JavaExec run = project.tasks.add(TASK_RUN_NAME, JavaExec.class)
+        def run = project.tasks.add(TASK_RUN_NAME, JavaExec)
         run.description = "Runs this project as a JVM application"
         run.group = APPLICATION_GROUP
-        run.classpath = project.convention.getPlugin(JavaPluginConvention.class).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).runtimeClasspath
+        run.classpath = project.convention.getPlugin(JavaPluginConvention).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).runtimeClasspath
     }
 
-    /** @Todo: refactor this task configuration to extend aÊcopy task and use replace tokens    */
+    /** @Todo: refactor this task configuration to extend aï¿½copy task and use replace tokens    */
     private void configureCreateScriptsTask(Project project, ApplicationPluginConvention applicationPluginConvention) {
-        CreateStartScripts startScripts = project.tasks.add(TASK_START_SCRIPTS_NAME, CreateStartScripts.class)
+        def startScripts = project.tasks.add(TASK_START_SCRIPTS_NAME, CreateStartScripts)
         startScripts.description = "Creates OS specific scripts to run the project as a JVM application."
 
-        Jar jar = project.tasks.withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME)
+        def jar = project.tasks.withType(Jar).getByName(JavaPlugin.JAR_TASK_NAME)
         startScripts.classpath = jar.outputs.files + project.configurations.runtime
 
         startScripts.conventionMapping.mainClassName = { applicationPluginConvention.mainClassName }
@@ -91,7 +91,7 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void configureInstallTask(Project project, ApplicationPluginConvention pluginConvention, CopySpec distSpec) {
-        Sync installTask = project.tasks.add(TASK_INSTALL_NAME, Sync.class)
+        def installTask = project.tasks.add(TASK_INSTALL_NAME, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
         installTask.with(distSpec)
@@ -107,14 +107,14 @@ public class ApplicationPlugin implements Plugin<Project> {
             }
         }
         installTask.doLast {
-            project.getAnt().chmod(file: "${destinationDir.absolutePath}/bin/${pluginConvention.applicationName}", perm: 'ugo+x')
+            project.ant.chmod(file: "${destinationDir.absolutePath}/bin/${pluginConvention.applicationName}", perm: 'ugo+x')
         }
     }
 
     private void configureDistZipTask(Project project, ApplicationPluginConvention applicationPluginConvention, CopySpec distSpec) {
-        Zip distZipTask = project.tasks.add(TASK_DIST_ZIP_NAME, Zip.class)
-        distZipTask.description = "Bundles the project as a JVM application with libs and OS specific scripts.";
-        distZipTask.group = APPLICATION_GROUP;
+        def distZipTask = project.tasks.add(TASK_DIST_ZIP_NAME, Zip)
+        distZipTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
+        distZipTask.group = APPLICATION_GROUP
         distZipTask.conventionMapping.baseName = { applicationPluginConvention.applicationName }
         def prefix = { applicationPluginConvention.applicationPrefix }
         distZipTask.into(prefix) {

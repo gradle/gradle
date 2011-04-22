@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.application;
-
+package org.gradle.api.tasks.application
 
 import groovy.text.SimpleTemplateEngine
 import org.gradle.api.file.FileCollection
@@ -26,7 +25,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GUtil
 
 /**
- * <p>A {@link org.gradle.api.Task} for creating OS dependent startScripts.</p>
+ * <p>A {@link org.gradle.api.Task} for creating OS dependent start scripts.</p>
  *
  * @author Rene Groeschke
  */
@@ -57,7 +56,7 @@ class CreateStartScripts extends ConventionTask {
      * The classpath for the application.
      */
     @InputFiles
-    FileCollection classpath;
+    FileCollection classpath
 
     /**
      * Returns the name of the application's OPTS environment variable.
@@ -85,25 +84,25 @@ class CreateStartScripts extends ConventionTask {
     }
 
     @OutputFile
-    public File getBatScript() {
+    File getBatScript() {
         return new File(getOutputDir(), "${getApplicationName()}.bat")
     }
 
     @OutputFile
-    public File getBashScript() {
+    File getBashScript() {
         return new File(getOutputDir(), getApplicationName())
     }
 
     @TaskAction
-    public void generate() {
-        getOutputDir().mkdirs();
+    void generate() {
+        getOutputDir().mkdirs()
 
         //ref all files in classpath
         def unixLibPath = "\$APP_HOME/lib/"
-        StringBuffer unixClasspath = new StringBuffer();
+        def unixClasspath = new StringBuffer()
 
         def windowsLibPath = "%APP_HOME%\\lib\\"
-        StringBuffer windowsClasspath = new StringBuffer();
+        def windowsClasspath = new StringBuffer()
 
         classpath.each {
             unixClasspath << "$unixLibPath${it.name}:"
@@ -123,36 +122,35 @@ class CreateStartScripts extends ConventionTask {
                 classpath: windowsClasspath])
     }
 
-    void generateWindowsStartScript(def binding) {
-        def engine = new SimpleTemplateEngine();
-        String windowsTemplate = CreateStartScripts.getResourceAsStream('windowsStartScript.txt').text
-        String windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
+    private void generateWindowsStartScript(binding) {
+        def engine = new SimpleTemplateEngine()
+        def windowsTemplate = CreateStartScripts.getResourceAsStream('windowsStartScript.txt').text
+        def windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
 
         def windowsScript = getBatScript()
-        windowsScript.withWriter {writer ->
-            writer.write(transformIntoWindowsNewLines(windowsOutput))
+        windowsScript.withWriter { writer ->
+            writer.write(transformIntoWindowsNewLines(windowsOutput as String))
         }
     }
 
-    void generateLinuxStartScript(def binding) {
-        def engine = new SimpleTemplateEngine();
-        String unixTemplate = CreateStartScripts.getResourceAsStream('unixStartScript.txt').text
+    private void generateLinuxStartScript(binding) {
+        def engine = new SimpleTemplateEngine()
+        def unixTemplate = CreateStartScripts.getResourceAsStream('unixStartScript.txt').text
         def linuxOutput = engine.createTemplate(unixTemplate).make(binding)
 
-        def unixScript = getBashScript();
-        unixScript.withWriter {writer ->
+        def unixScript = getBashScript()
+        unixScript.withWriter { writer ->
             writer.write(linuxOutput)
         }
     }
 
-    static String transformIntoWindowsNewLines(String s) {
-        StringWriter writer = new StringWriter()
-        s.toCharArray().each {c ->
-            if (c == '\n') {
-                writer.write('\r')
-                writer.write('\n')
-            } else if (c != '\r') {
-                writer.write(c)
+    private static String transformIntoWindowsNewLines(String str) {
+        def writer = new StringWriter()
+        for (ch in str) {
+            if (ch == '\n') {
+                writer << '\r\n'
+            } else if (ch != '\r') {
+                writer << ch
             }
         }
         writer.toString()
