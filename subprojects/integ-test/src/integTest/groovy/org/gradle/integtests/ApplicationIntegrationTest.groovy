@@ -19,10 +19,11 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleExecuter
 import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.hamcrest.Matchers
-import org.gradle.util.TestFile
+
+import static org.hamcrest.Matchers.*
 
 class ApplicationIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -60,7 +61,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canCustomizeTheApplicationName() {
+    def "can customize application name"() {
         distribution.testFile('settings.gradle') << 'rootProject.name = "application"'
         distribution.testFile('build.gradle') << '''
 apply plugin: 'application'
@@ -92,6 +93,20 @@ class Main {
         checkApplicationImage(distDir.file('mega-app'))
     }
 
+    def "install complains if install directory exists and doesn't look like previous install"() {
+        distribution.testFile('build.gradle') << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+install.destinationDir = buildDir
+'''
+
+        when:
+        def result = executer.withTasks('install').runWithFailure()
+
+        then:
+        result.assertThatCause(startsWith("The specified installation directory '${distribution.testFile('build')}' is neither empty nor does it contain an installation"))
+    }
+
     private void checkApplicationImage(TestFile installDir) {
         installDir.file('bin/mega-app').assertIsFile()
         installDir.file('bin/mega-app.bat').assertIsFile()
@@ -105,19 +120,5 @@ class Main {
 
         def result = builder.run()
         result.assertNormalExitValue()
-    }
-
-    def installComplainsWhenInstallDirectoryExistsAndDoesNotLookLikeAPreviousInstall() {
-        distribution.testFile('build.gradle') << '''
-apply plugin: 'application'
-mainClassName = 'org.gradle.test.Main'
-install.destinationDir = buildDir
-'''
-
-        when:
-        def result = executer.withTasks('install').runWithFailure()
-
-        then:
-        result.assertThatCause(Matchers.startsWith("The specified installation directory '${distribution.testFile('build')}' does not appear to contain an installation"))
     }
 }
