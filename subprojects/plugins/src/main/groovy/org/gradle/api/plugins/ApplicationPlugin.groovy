@@ -19,10 +19,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.GradleException
 
@@ -44,8 +42,8 @@ class ApplicationPlugin implements Plugin<Project> {
     void apply(final Project project) {
         project.plugins.apply(JavaPlugin)
         def applicationPluginConvention = new ApplicationPluginConvention(project)
-        project.convention.plugins.put("application", applicationPluginConvention)
         applicationPluginConvention.applicationName = project.name
+        project.convention.plugins.application = applicationPluginConvention
         configureRunTask(project)
         configureCreateScriptsTask(project, applicationPluginConvention)
 
@@ -54,9 +52,9 @@ class ApplicationPlugin implements Plugin<Project> {
         configureDistZipTask(project, applicationPluginConvention, distSpec)
     }
 
-    private def CopySpec createDistSpec(Project project, ApplicationPluginConvention applicationPluginConvention) {
-        def jar = project.tasks.withType(Jar).getByName(JavaPlugin.JAR_TASK_NAME)
-        def startScripts = project.tasks.withType(CreateStartScripts).getByName(TASK_START_SCRIPTS_NAME)
+    private CopySpec createDistSpec(Project project, ApplicationPluginConvention applicationPluginConvention) {
+        def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]
+        def startScripts = project.tasks[TASK_START_SCRIPTS_NAME]
 
         project.copySpec {
             into("lib") {
@@ -74,20 +72,17 @@ class ApplicationPlugin implements Plugin<Project> {
         def run = project.tasks.add(TASK_RUN_NAME, JavaExec)
         run.description = "Runs this project as a JVM application"
         run.group = APPLICATION_GROUP
-        run.classpath = project.convention.getPlugin(JavaPluginConvention).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).runtimeClasspath
+        run.classpath = project.sourceSets.main.runtimeClasspath
     }
 
-    /** @Todo: refactor this task configuration to extend a�copy task and use replace tokens    */
+    /** @Todo: refactor this task configuration to extend a copy task and use replace tokens */
     private void configureCreateScriptsTask(Project project, ApplicationPluginConvention applicationPluginConvention) {
         def startScripts = project.tasks.add(TASK_START_SCRIPTS_NAME, CreateStartScripts)
         startScripts.description = "Creates OS specific scripts to run the project as a JVM application."
-
-        def jar = project.tasks.withType(Jar).getByName(JavaPlugin.JAR_TASK_NAME)
-        startScripts.classpath = jar.outputs.files + project.configurations.runtime
-
+        startScripts.classpath = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
         startScripts.conventionMapping.mainClassName = { applicationPluginConvention.mainClassName }
         startScripts.conventionMapping.applicationName = { applicationPluginConvention.applicationName }
-        startScripts.conventionMapping.outputDir = {new File(project.buildDir, 'scripts')}
+        startScripts.conventionMapping.outputDir = { new File(project.buildDir, 'scripts') }
     }
 
     private void configureInstallTask(Project project, ApplicationPluginConvention pluginConvention, CopySpec distSpec) {
