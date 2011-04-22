@@ -93,15 +93,15 @@ class Main {
         checkApplicationImage(distDir.file('mega-app'))
     }
 
-    def "install complains if install directory exists and doesn't look like previous install"() {
+    def "installApp complains if install directory exists and doesn't look like previous install"() {
         distribution.testFile('build.gradle') << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
-install.destinationDir = buildDir
+installApp.destinationDir = buildDir
 '''
 
         when:
-        def result = executer.withTasks('install').runWithFailure()
+        def result = executer.withTasks('installApp').runWithFailure()
 
         then:
         result.assertThatCause(startsWith("The specified installation directory '${distribution.testFile('build')}' is neither empty nor does it contain an installation"))

@@ -16,7 +16,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.tasks.JavaExec
 
  /**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
@@ -30,27 +29,14 @@ class ApplicationPluginConvention {
     String applicationName
 
     /**
-     * The full qualified name of the main class.
+     * The fully qualified name of the application's main class.
      */
     String mainClassName
 
-    private String installDir
-
     private final Project project
 
-    ApplicationPluginConvention(final Project project) {
+    ApplicationPluginConvention(Project project) {
         this.project = project
-    }
-
-    /**
-     * Sets the full qualified name of the main class of an application.
-     */
-    public void setMainClassName(String mainClassName) {
-        this.mainClassName = mainClassName
-        def runTask = project.getTasks().withType(JavaExec).find {task ->
-            task.name == ApplicationPlugin.TASK_RUN_NAME
-        };
-        runTask.main = mainClassName
     }
 
     String getApplicationPrefix() {
