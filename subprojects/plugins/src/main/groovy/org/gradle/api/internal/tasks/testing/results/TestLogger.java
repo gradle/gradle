@@ -71,7 +71,9 @@ public class TestLogger implements TestListener {
 
     public void beforeSuite(TestDescriptor suite) {
         if (suite.getParent() == null) {
-            progressLogger = factory.start(TestLogger.class.getName());
+            progressLogger = factory.newOperation(TestLogger.class);
+            progressLogger.setDescription("Run tests");
+            progressLogger.started();
         }
     }
 

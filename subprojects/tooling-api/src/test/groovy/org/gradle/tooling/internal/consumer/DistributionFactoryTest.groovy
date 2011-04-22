@@ -29,7 +29,7 @@ class DistributionFactoryTest extends Specification {
     final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'), progressLoggerFactory)
 
     def setup() {
-        _ * progressLoggerFactory.start(!null, !null) >> progressLogger
+        _ * progressLoggerFactory.newOperation(!null) >> progressLogger
     }
     
     def createsADisplayNameForAnInstallation() {
@@ -114,7 +114,9 @@ class DistributionFactoryTest extends Specification {
         dist.toolingImplementationClasspath
 
         then:
-        1 * progressLoggerFactory.start(DistributionFactory.class.name, "Downloading ${zipFile.toURI()}") >> progressLogger
+        1 * progressLoggerFactory.newOperation(DistributionFactory.class) >> progressLogger
+        1 * progressLogger.setDescription("Download ${zipFile.toURI()}")
+        1 * progressLogger.started()
         1 * progressLogger.completed()
         0 * _._
     }

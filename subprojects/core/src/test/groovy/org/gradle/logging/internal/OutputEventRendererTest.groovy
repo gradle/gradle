@@ -167,7 +167,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersProgressEvents() {
         when:
-        renderer.onOutput(start('description'))
+        renderer.onOutput(start(loggingHeader: 'description'))
         renderer.onOutput(complete('status'))
 
         then:
@@ -190,7 +190,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.addConsole(console, true, true)
 
         when:
-        renderer.onOutput(start('description'))
+        renderer.onOutput(start(loggingHeader: 'description'))
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
@@ -203,7 +203,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.addConsole(console, true, false)
 
         when:
-        renderer.onOutput(start('description'))
+        renderer.onOutput(start(loggingHeader: 'description'))
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))

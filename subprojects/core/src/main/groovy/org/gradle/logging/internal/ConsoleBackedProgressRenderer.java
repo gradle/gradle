@@ -15,12 +15,14 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.util.GUtil;
+
 import java.util.LinkedList;
 
 public class ConsoleBackedProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
     private final Console console;
-    private final LinkedList<String> operations = new LinkedList<String>();
+    private final LinkedList<Operation> operations = new LinkedList<Operation>();
     private Label statusBar;
 
     public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console) {
@@ -30,14 +32,15 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
 
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
-            operations.addLast("");
+            ProgressStartEvent startEvent = (ProgressStartEvent) event;
+            operations.addLast(new Operation(startEvent.getShortDescription(), startEvent.getStatus()));
+            updateText();
         } else if (event instanceof ProgressCompleteEvent) {
             operations.removeLast();
             updateText();
         } else if (event instanceof ProgressEvent) {
             ProgressEvent progressEvent = (ProgressEvent) event;
-            operations.removeLast();
-            operations.addLast(progressEvent.getStatus());
+            operations.getLast().status = progressEvent.getStatus();
             updateText();
         }
         listener.onOutput(event);
@@ -45,19 +48,41 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
 
     private void updateText() {
         StringBuilder builder = new StringBuilder();
-        for (String operation : operations) {
-            if (operation.length() == 0) {
+        for (Operation operation : operations) {
+            String message = operation.getMessage();
+            if (message == null) {
                 continue;
             }
             if (builder.length() > 0) {
                 builder.append(' ');
             }
             builder.append("> ");
-            builder.append(operation);
+            builder.append(message);
         }
         if (statusBar == null) {
             statusBar = console.getStatusBar();
         }
         statusBar.setText(builder.toString());
     }
+
+    private static class Operation {
+        private final String shortDescription;
+        private String status;
+
+        private Operation(String shortDescription, String status) {
+            this.shortDescription = shortDescription;
+            this.status = status;
+        }
+
+        String getMessage() {
+            if (GUtil.isTrue(status)) {
+                return status;
+            }
+            if (GUtil.isTrue(shortDescription)) {
+                return shortDescription;
+            }
+            return null;
+        }
+    }
+
 }

@@ -37,11 +37,51 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         0 * statusBar._
     }
 
-    def statusBarTracksOperationProgress() {
+    def statusBarTracksMostRecentOperationStatus() {
         when:
-        renderer.onOutput(start('description'))
+        renderer.onOutput(start(status: 'status'))
 
         then:
+        1 * statusBar.setText('> status')
+        0 * statusBar._
+
+        when:
+        renderer.onOutput(progress('progress'))
+
+        then:
+        1 * statusBar.setText('> progress')
+        0 * statusBar._
+
+        when:
+        renderer.onOutput(complete('complete'))
+
+        then:
+        1 * statusBar.setText('')
+        0 * statusBar._
+    }
+
+    def statusBarTracksOperationProgressForOperationWithNoStatus() {
+        when:
+        renderer.onOutput(start(status: ''))
+
+        then:
+        1 * statusBar.setText('')
+        0 * statusBar._
+
+        when:
+        renderer.onOutput(complete('complete'))
+
+        then:
+        1 * statusBar.setText('')
+        0 * statusBar._
+    }
+
+    def statusBarTracksOperationProgressForOperationWithNoInitialStatus() {
+        when:
+        renderer.onOutput(start(status: ''))
+
+        then:
+        1 * statusBar.setText('')
         0 * statusBar._
 
         when:
@@ -61,9 +101,10 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
     def statusBarTracksNestedOperationProgress() {
         when:
-        renderer.onOutput(start('description'))
+        renderer.onOutput(start(status: 'status'))
 
         then:
+        1 * statusBar.setText('> status')
         0 * statusBar._
 
         when:
@@ -74,9 +115,10 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         0 * statusBar._
 
         when:
-        renderer.onOutput(start('description2'))
+        renderer.onOutput(start(status: 'status2'))
 
         then:
+        1 * statusBar.setText('> progress > status2')
         0 * statusBar._
 
         when:
@@ -101,12 +143,13 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         0 * statusBar._
     }
 
-    def statusBarTracksNestedOperationProgressForOperationsWithNoStatus() {
+    def statusBarTracksNestedOperationProgressForOperationsWithNoInitialStatus() {
         when:
-        renderer.onOutput(start('description'))
-        renderer.onOutput(start('description2'))
+        renderer.onOutput(start(status: ''))
+        renderer.onOutput(start(status: ''))
 
         then:
+        2 * statusBar.setText('')
         0 * statusBar._
 
         when:
@@ -121,6 +164,36 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         then:
         1 * statusBar.setText('')
+        0 * statusBar._
+
+        when:
+        renderer.onOutput(complete('complete'))
+
+        then:
+        1 * statusBar.setText('')
+        0 * statusBar._
+    }
+
+    def usesShortDescriptionWhenOperationHasNoStatus() {
+        when:
+        renderer.onOutput(start(shortDescription: 'short'))
+
+        then:
+        1 * statusBar.setText('> short')
+        0 * statusBar._
+
+        when:
+        renderer.onOutput(progress('progress'))
+
+        then:
+        1 * statusBar.setText('> progress')
+        0 * statusBar._
+
+        when:
+        renderer.onOutput(progress(''))
+
+        then:
+        1 * statusBar.setText('> short')
         0 * statusBar._
 
         when:

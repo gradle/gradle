@@ -47,7 +47,7 @@ public class ProgressLoggingConnection implements ConnectionVersion4 {
     }
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters) {
-        run("Running build", operationParameters, new BuildAction<Void>() {
+        run("Execute build", operationParameters, new BuildAction<Void>() {
             public Void run(ConnectionVersion4 connection) {
                 connection.executeBuild(buildParameters, operationParameters);
                 return null;
@@ -56,7 +56,7 @@ public class ProgressLoggingConnection implements ConnectionVersion4 {
     }
 
     public ProjectVersion3 getModel(final Class<? extends ProjectVersion3> type, final BuildOperationParametersVersion1 operationParameters) {
-        return run("Loading projects", operationParameters, new BuildAction<ProjectVersion3>() {
+        return run("Load projects", operationParameters, new BuildAction<ProjectVersion3>() {
             public ProjectVersion3 run(ConnectionVersion4 connection) {
                 return connection.getModel(type, operationParameters);
             }
@@ -67,7 +67,9 @@ public class ProgressLoggingConnection implements ConnectionVersion4 {
         ProgressListenerAdapter listener = new ProgressListenerAdapter(parameters.getProgressListener());
         listenerManager.addListener(listener);
         try {
-            ProgressLogger progressLogger = progressLoggerFactory.start(ProgressLoggingConnection.class.getName(), description);
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProgressLoggingConnection.class);
+            progressLogger.setDescription(description);
+            progressLogger.started();
             try {
                 return action.run(connection);
             } finally {

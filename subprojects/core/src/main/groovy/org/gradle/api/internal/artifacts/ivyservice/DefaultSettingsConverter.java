@@ -192,8 +192,11 @@ public class DefaultSettingsConverter implements SettingsConverter {
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
                 total = 0;
-                DefaultSettingsConverter.logger.lifecycle(String.format("%s %s", StringUtils.capitalize(getRequestType(evt)), evt.getResource().getName()));
-                logger = progressLoggerFactory.start(DefaultSettingsConverter.class.getName());
+                logger = progressLoggerFactory.newOperation(DefaultSettingsConverter.class);
+                String description = String.format("%s %s", StringUtils.capitalize(getRequestType(evt)), evt.getResource().getName());
+                logger.setDescription(description);
+                logger.setLoggingHeader(description);
+                logger.started();
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
                 total += evt.getLength();

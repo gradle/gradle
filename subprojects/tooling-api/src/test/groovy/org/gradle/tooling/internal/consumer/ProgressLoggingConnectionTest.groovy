@@ -40,7 +40,9 @@ class ProgressLoggingConnectionTest extends Specification {
 
         then:
         1 * listenerManager.addListener(!null)
-        1 * progressLoggerFactory.start(ProgressLoggingConnection.class.name, 'Loading projects') >> progressLogger
+        1 * progressLoggerFactory.newOperation(ProgressLoggingConnection.class) >> progressLogger
+        1 * progressLogger.setDescription('Load projects')
+        1 * progressLogger.started()
         1 * target.getModel(ProjectVersion3, params)
         1 * progressLogger.completed()
         1 * listenerManager.removeListener(!null)
@@ -56,7 +58,9 @@ class ProgressLoggingConnectionTest extends Specification {
 
         then:
         1 * listenerManager.addListener(!null)
-        1 * progressLoggerFactory.start(ProgressLoggingConnection.class.name, 'Running build') >> progressLogger
+        1 * progressLoggerFactory.newOperation(ProgressLoggingConnection.class) >> progressLogger
+        1 * progressLogger.setDescription('Execute build')
+        1 * progressLogger.started()
         1 * target.executeBuild(buildParams, params)
         1 * progressLogger.completed()
         1 * listenerManager.removeListener(!null)

@@ -115,7 +115,9 @@ public class DistributionFactory {
         }
 
         public void download(URI address, File destination) throws Exception {
-            ProgressLogger progressLogger = progressLoggerFactory.start(DistributionFactory.class.getName(), String.format("Downloading %s", address));
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionFactory.class);
+            progressLogger.setDescription(String.format("Download %s", address));
+            progressLogger.started();
             try {
                 new Download().download(address, destination);
             } finally {
