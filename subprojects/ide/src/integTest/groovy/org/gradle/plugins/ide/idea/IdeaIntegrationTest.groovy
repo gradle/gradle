@@ -223,6 +223,27 @@ dependencies {
         assert libs.size() == 1
     }
 
+    @Test
+    void allowsCustomOutputFolders() {
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+ideaModule {
+    inheritOutputDirs = false
+    outputDir = file('foo-out')
+    testOutputDir = file('foo-out-test')
+}
+"""
+
+        //then
+        def iml = getFile([:], 'root.iml').text
+        println iml
+        assert iml.contains('inherit-compiler-output="false"')
+        assert iml.contains('foo-out')
+        assert iml.contains('foo-out-test')
+    }
+
     private void assertHasExpectedContents(String path) {
         TestFile file = testDir.file(path).assertIsFile()
         TestFile expectedFile = testDir.file("expectedFiles/${path}.xml").assertIsFile()

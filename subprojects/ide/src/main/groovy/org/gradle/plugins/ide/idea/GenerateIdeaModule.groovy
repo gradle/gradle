@@ -116,7 +116,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     void setInheritOutputDirs(Boolean inheritOutputDirs) {
-        module.inheritOutputDirs
+        module.inheritOutputDirs = inheritOutputDirs
     }
 
     /**
@@ -127,7 +127,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     void setOutputDir(File outputDir) {
-        module.outputDir
+        module.outputDir = outputDir
     }
 
     /**
@@ -138,7 +138,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     void setTestOutputDir(File testOutputDir) {
-        module.testOutputDir
+        module.testOutputDir = testOutputDir
     }
 
     /**
