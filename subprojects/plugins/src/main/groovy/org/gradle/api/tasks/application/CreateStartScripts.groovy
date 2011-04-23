@@ -23,6 +23,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GUtil
+import org.gradle.util.TextUtil
 
 /**
  * <p>A {@link org.gradle.api.Task} for creating OS dependent start scripts.</p>
@@ -37,13 +38,13 @@ class CreateStartScripts extends ConventionTask {
     File outputDir
 
     /**
-     * The application's main class
+     * The application's main class.
      */
     @Input
     String mainClassName
 
     /**
-     * The application's name
+     * The application's name.
      */
     @Input
     String applicationName
@@ -53,7 +54,7 @@ class CreateStartScripts extends ConventionTask {
     String exitEnvironmentVar
 
     /**
-     * The classpath for the application.
+     * The class path for the application.
      */
     @InputFiles
     FileCollection classpath
@@ -84,13 +85,13 @@ class CreateStartScripts extends ConventionTask {
     }
 
     @OutputFile
-    File getBatScript() {
-        return new File(getOutputDir(), "${getApplicationName()}.bat")
+    File getUnixScript() {
+        return new File(getOutputDir(), getApplicationName())
     }
 
     @OutputFile
-    File getBashScript() {
-        return new File(getOutputDir(), getApplicationName())
+    File getWindowsScript() {
+        return new File(getOutputDir(), "${getApplicationName()}.bat")
     }
 
     @TaskAction
@@ -99,60 +100,42 @@ class CreateStartScripts extends ConventionTask {
 
         //ref all files in classpath
         def unixLibPath = "\$APP_HOME/lib/"
-        def unixClasspath = new StringBuffer()
+        def unixClassPath = new StringBuffer()
 
         def windowsLibPath = "%APP_HOME%\\lib\\"
-        def windowsClasspath = new StringBuffer()
+        def windowsClassPath = new StringBuffer()
 
         classpath.each {
-            unixClasspath << "$unixLibPath${it.name}:"
-            windowsClasspath << "$windowsLibPath${it.name};"
+            unixClassPath << "$unixLibPath${it.name}:"
+            windowsClassPath << "$windowsLibPath${it.name};"
         }
 
-        generateLinuxStartScript([
+        generateUnixScript(
                 applicationName: getApplicationName(),
                 optsEnvironmentVar: getOptsEnvironmentVar(),
                 mainClassName: getMainClassName(),
-                classpath: unixClasspath])
-        generateWindowsStartScript([
+                classpath: unixClassPath)
+        generateWindowsScript(
                 applicationName: getApplicationName(),
                 optsEnvironmentVar: getOptsEnvironmentVar(),
                 exitEnvironmentVar: getExitEnvironmentVar(),
                 mainClassName: getMainClassName(),
-                classpath: windowsClasspath])
+                classpath: windowsClassPath)
     }
 
-    private void generateWindowsStartScript(binding) {
+    private void generateUnixScript(Map binding) {
+        generateScript('unixStartScript.txt', binding, TextUtil.unixLineSeparator, getUnixScript())
+    }
+
+    private void generateWindowsScript(Map binding) {
+        generateScript('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator, getWindowsScript())
+    }
+
+    private void generateScript(String templateName, Map binding, String lineSeparator, File outputFile) {
         def engine = new SimpleTemplateEngine()
-        def windowsTemplate = CreateStartScripts.getResourceAsStream('windowsStartScript.txt').text
-        def windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
-
-        def windowsScript = getBatScript()
-        windowsScript.withWriter { writer ->
-            writer.write(transformIntoWindowsNewLines(windowsOutput as String))
-        }
-    }
-
-    private void generateLinuxStartScript(binding) {
-        def engine = new SimpleTemplateEngine()
-        def unixTemplate = CreateStartScripts.getResourceAsStream('unixStartScript.txt').text
-        def linuxOutput = engine.createTemplate(unixTemplate).make(binding)
-
-        def unixScript = getBashScript()
-        unixScript.withWriter { writer ->
-            writer.write(linuxOutput)
-        }
-    }
-
-    private static String transformIntoWindowsNewLines(String str) {
-        def writer = new StringWriter()
-        for (ch in str) {
-            if (ch == '\n') {
-                writer << '\r\n'
-            } else if (ch != '\r') {
-                writer << ch
-            }
-        }
-        writer.toString()
+        def templateText = CreateStartScripts.getResourceAsStream(templateName).text
+        def output = engine.createTemplate(templateText).make(binding)
+        def nativeOutput = TextUtil.convertLineSeparators(output as String, lineSeparator)
+        outputFile.write(nativeOutput)
     }
 }

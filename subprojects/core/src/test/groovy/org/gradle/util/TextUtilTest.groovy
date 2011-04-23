@@ -19,11 +19,11 @@ package org.gradle.util
 import spock.lang.Specification
 
 class TextUtilTest extends Specification {
-    private static String sep = SystemProperties.lineSeparator
+    private static String sep = "separator"
 
-    def "toNativeLineSeparators() converts all line separators to native ones"() {
+    def convertLineSeparators() {
         expect:
-        TextUtil.toNativeLineSeparators(original) == converted
+        TextUtil.convertLineSeparators(original, sep) == converted
 
         where:
         original                          | converted

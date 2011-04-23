@@ -53,7 +53,7 @@ class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void addPluginConvention() {
-        pluginConvention = new ApplicationPluginConvention(project)
+        pluginConvention = new ApplicationPluginConvention()
         pluginConvention.applicationName = project.name
         project.convention.plugins.application = pluginConvention
     }
@@ -66,7 +66,7 @@ class ApplicationPlugin implements Plugin<Project> {
         run.conventionMapping.main = { pluginConvention.mainClassName }
     }
 
-    /** @Todo: refactor this task configuration to extend a copy task and use replace tokens */
+    // @Todo: refactor this task configuration to extend a copy task and use replace tokens
     private void addCreateScriptsTask() {
         def startScripts = project.tasks.add(TASK_START_SCRIPTS_NAME, CreateStartScripts)
         startScripts.description = "Creates OS specific scripts to run the project as a JVM application."
@@ -102,8 +102,8 @@ class ApplicationPlugin implements Plugin<Project> {
         distZipTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
         distZipTask.group = APPLICATION_GROUP
         distZipTask.conventionMapping.baseName = { pluginConvention.applicationName }
-        def prefix = { pluginConvention.applicationPrefix }
-        distZipTask.into(prefix) {
+        def baseDir = { distZipTask.archiveName - ".zip" }
+        distZipTask.into(baseDir) {
             with(createDistSpec())
         }
     }

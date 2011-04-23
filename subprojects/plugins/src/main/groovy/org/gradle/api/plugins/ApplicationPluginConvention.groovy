@@ -15,8 +15,6 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
-
  /**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
  *
@@ -32,14 +30,4 @@ class ApplicationPluginConvention {
      * The fully qualified name of the application's main class.
      */
     String mainClassName
-
-    private final Project project
-
-    ApplicationPluginConvention(Project project) {
-        this.project = project
-    }
-
-    String getApplicationPrefix() {
-        "${applicationName}${project.version == Project.DEFAULT_VERSION ? '' : '-' + project.version }"
-    }
 }
