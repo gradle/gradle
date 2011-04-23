@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Project
 import org.gradle.util.GradleVersion
@@ -26,8 +25,7 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
-        GradleConnector connector = GradleConnector.newConnector()
-        Project model = withConnection(connector) { connection -> connection.getModel(Project.class) }
+        Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
 
         then:
         model != null
@@ -38,9 +36,8 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
-        GradleConnector connector = GradleConnector.newConnector()
-        connector.useInstallation(dist.gradleHomeDir)
-        Project model = withConnection(connector) { connection -> connection.getModel(Project.class) }
+        toolingApi.withConnector { connector -> connector.useInstallation(dist.gradleHomeDir) }
+        Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
 
         then:
         model != null
@@ -51,9 +48,8 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
-        GradleConnector connector = GradleConnector.newConnector()
-        connector.useDistribution(dist.binDistribution.toURI())
-        Project model = withConnection(connector) { connection -> connection.getModel(Project.class) }
+        toolingApi.withConnector { connector -> connector.useDistribution(dist.binDistribution.toURI()) }
+        Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
 
         then:
         model != null
@@ -64,9 +60,8 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
-        GradleConnector connector = GradleConnector.newConnector()
-        connector.useGradleVersion(GradleVersion.current().version)
-        Project model = withConnection(connector) { connection -> connection.getModel(Project.class) }
+        toolingApi.withConnector { connector -> connector.useGradleVersion(GradleVersion.current().version) }
+        Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
 
         then:
         model != null
@@ -76,9 +71,8 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         def dist = dist.previousVersion('0.9.2').binDistribution
 
         when:
-        GradleConnector connector = GradleConnector.newConnector()
-        connector.useDistribution(dist.toURI())
-        def e = maybeFailWithConnection(connector) { connection -> connection.getModel(Project.class) }
+        toolingApi.withConnector { connector -> connector.useDistribution(dist.toURI()) }
+        def e = toolingApi.maybeFailWithConnection { connection -> connection.getModel(Project.class) }
 
         then:
         e.class == UnsupportedVersionException

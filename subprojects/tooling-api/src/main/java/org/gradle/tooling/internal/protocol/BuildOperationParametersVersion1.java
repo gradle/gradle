@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.protocol;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
@@ -32,4 +33,19 @@ public interface BuildOperationParametersVersion1 extends LongRunningOperationPa
      * Returns the Gradle user home directory, or null to use default.
      */
     File getGradleUserHomeDir();
+
+    /**
+     * Specifies whether to run the build in this process, or null to use default.
+     */
+    Boolean isEmbedded();
+
+    /**
+     * Specifies the maximum idle time for any daemon process launched by the provider, or null to use the default.
+     */
+    Integer getDaemonMaxIdleTimeValue();
+
+    /**
+     * Specifies the units for the maximum idle time.
+     */
+    TimeUnit getDaemonMaxIdleTimeUnits();
 }

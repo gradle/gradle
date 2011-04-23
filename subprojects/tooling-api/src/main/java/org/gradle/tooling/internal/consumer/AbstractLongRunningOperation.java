@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
 
 public class AbstractLongRunningOperation {
     private OutputStream stdout;
@@ -64,6 +65,18 @@ public class AbstractLongRunningOperation {
             return parameters.isSearchUpwards();
         }
 
+        public Boolean isEmbedded() {
+            return parameters.isEmbedded();
+        }
+
+        public TimeUnit getDaemonMaxIdleTimeUnits() {
+            return parameters.getDaemonMaxIdleTimeUnits();
+        }
+
+        public Integer getDaemonMaxIdleTimeValue() {
+            return parameters.getDaemonMaxIdleTimeValue();
+        }
+
         public OutputStream getStandardOutput() {
             return stdout;
         }
@@ -75,7 +88,6 @@ public class AbstractLongRunningOperation {
         public ProgressListenerVersion1 getProgressListener() {
             return progressListener;
         }
-
     }
 
 }

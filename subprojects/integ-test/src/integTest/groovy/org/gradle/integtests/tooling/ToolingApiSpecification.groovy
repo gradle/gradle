@@ -16,11 +16,6 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.internal.IntegrationTestHint
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.internal.consumer.DistributionFactory
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,47 +23,13 @@ import spock.lang.Specification
 class ToolingApiSpecification extends Specification {
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule public final GradleDistribution dist = new GradleDistribution()
-
-    def setup() {
-        System.properties[DistributionFactory.USE_CLASSPATH_AS_DISTRIBUTION] = 'true'
-    }
+    @Rule public final ToolingApi toolingApi = new ToolingApi()
 
     def withConnection(Closure cl) {
-        GradleConnector connector = GradleConnector.newConnector()
-        withConnection(connector, cl)
+        toolingApi.withConnection(cl)
     }
 
-    def withConnection(GradleConnector connector, Closure cl) {
-        configureConnector(connector)
-        try {
-            withConnectionRaw(connector, cl)
-        } catch (UnsupportedVersionException e) {
-            throw new IntegrationTestHint(e);
-        }
-    }
-
-    private def configureConnector(GradleConnector connector) {
-        connector.useGradleUserHomeDir(dist.userHomeDir)
-        connector.forProjectDirectory(dist.testDir)
-        connector.searchUpwards(false)
-    }
-
-    def maybeFailWithConnection(GradleConnector connector, Closure cl) {
-        configureConnector(connector)
-        try {
-            withConnectionRaw(connector, cl)
-        } catch (Throwable e) {
-            return e
-        }
-        return null
-    }
-
-    def withConnectionRaw(GradleConnector connector, Closure cl) {
-        ProjectConnection connection = connector.connect()
-        try {
-            return cl.call(connection)
-        } finally {
-            connection.close()
-        }
+    def maybeFailWithConnection(Closure cl) {
+        toolingApi.maybeFailWithConnection(cl)
     }
 }

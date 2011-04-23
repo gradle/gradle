@@ -36,7 +36,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DistributionFactory {
-    public static final String USE_CLASSPATH_AS_DISTRIBUTION = "org.gradle.useClasspathAsDistribution";
     private final File userHomeDir;
     private final ProgressLoggerFactory progressLoggerFactory;
 
@@ -46,10 +45,6 @@ public class DistributionFactory {
     }
 
     public Distribution getCurrentDistribution() {
-        if ("true".equalsIgnoreCase(System.getProperty(USE_CLASSPATH_AS_DISTRIBUTION))) {
-            return new ClasspathDistribution();
-        }
-
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
 
@@ -76,6 +71,10 @@ public class DistributionFactory {
 
     public Distribution getDistribution(URI gradleDistribution) {
         return new ZippedDistribution(gradleDistribution);
+    }
+
+    public Distribution getClasspathDistribution() {
+        return new ClasspathDistribution();
     }
 
     private class ZippedDistribution implements Distribution {

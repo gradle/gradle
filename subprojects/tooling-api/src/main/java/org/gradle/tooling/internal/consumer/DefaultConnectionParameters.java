@@ -16,16 +16,23 @@
 package org.gradle.tooling.internal.consumer;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultConnectionParameters implements ConnectionParameters {
     private final File gradleUserHomeDir;
     private final File projectDir;
     private final Boolean searchUpwards;
+    private final Boolean embedded;
+    private final Integer daemonMaxIdleTimeValue;
+    private final TimeUnit daemonMaxIdleTimeUnits;
 
-    public DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean searchUpwards) {
+    public DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean searchUpwards, Boolean embedded, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         this.projectDir = projectDir;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.searchUpwards = searchUpwards;
+        this.embedded = embedded;
+        this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
+        this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
     }
 
     public File getGradleUserHomeDir() {
@@ -38,5 +45,17 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
     public Boolean isSearchUpwards() {
         return searchUpwards;
+    }
+
+    public Boolean isEmbedded() {
+        return embedded;
+    }
+
+    public Integer getDaemonMaxIdleTimeValue() {
+        return daemonMaxIdleTimeValue;
+    }
+
+    public TimeUnit getDaemonMaxIdleTimeUnits() {
+        return daemonMaxIdleTimeUnits;
     }
 }

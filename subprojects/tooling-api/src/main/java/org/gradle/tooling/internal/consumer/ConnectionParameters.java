@@ -16,10 +16,8 @@
 package org.gradle.tooling.internal.consumer;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
 public interface ConnectionParameters {
     File getProjectDir();
 
@@ -32,4 +30,10 @@ public interface ConnectionParameters {
      * Returns the Gradle user home directory, or null to use default.
      */
     File getGradleUserHomeDir();
+
+    Boolean isEmbedded();
+
+    Integer getDaemonMaxIdleTimeValue();
+
+    TimeUnit getDaemonMaxIdleTimeUnits();
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
@@ -313,9 +312,11 @@ project(':c') {
         child2.children.size() == 0
 
         when:
-        GradleConnector connector = GradleConnector.newConnector()
-        connector.forProjectDirectory(projectDir.file('child1'))
-        EclipseProject child = withConnectionRaw(connector) { connection -> connection.getModel(EclipseProject.class) }
+        toolingApi.withConnector { connector ->
+            connector.searchUpwards(true)
+            connector.forProjectDirectory(projectDir.file('child1'))
+        }
+        EclipseProject child = toolingApi.withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
         child.name == 'child1'
