@@ -38,8 +38,4 @@ public class ModelBuildingAdapter extends BuildAdapter {
         applier.apply((GradleInternal) gradle);
         builder.buildAll((GradleInternal) gradle);
     }
-
-    public DefaultEclipseProject getProject() {
-        return builder.getProject();
-    }
 }

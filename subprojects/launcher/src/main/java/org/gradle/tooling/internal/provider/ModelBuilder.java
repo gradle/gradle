@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
@@ -29,23 +30,51 @@ import org.gradle.tooling.internal.provider.dependencies.ExternalDependenciesFac
 import org.gradle.tooling.internal.provider.dependencies.SourceDirectoriesFactory;
 import org.gradle.util.GUtil;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
 * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
 */
-public class ModelBuilder extends AbstractModelBuilder {
-
+public class ModelBuilder {
     private final boolean includeTasks;
     private boolean projectDependenciesOnly;
+    private DefaultEclipseProject currentProject;
+    private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
+    private GradleInternal gradle;
 
     public ModelBuilder(boolean includeTasks, boolean projectDependenciesOnly) {
         this.includeTasks = includeTasks;
         this.projectDependenciesOnly = projectDependenciesOnly;
     }
 
-    @Override
-    protected DefaultEclipseProject build(Project project) {
+    public void buildAll(GradleInternal gradle) {
+        this.gradle = gradle;
+        build(gradle.getRootProject());
+    }
+
+    public DefaultEclipseProject getProject() {
+        return currentProject;
+    }
+
+    private List<DefaultEclipseProject> buildChildren(Project project) {
+        List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
+        for (Project child : project.getChildProjects().values()) {
+            children.add(build(child));
+        }
+        return children;
+    }
+
+    private void addProject(Project project, DefaultEclipseProject eclipseProject) {
+        if (project == gradle.getDefaultProject()) {
+            currentProject = eclipseProject;
+        }
+        projectMapping.put(project.getPath(), eclipseProject);
+    }
+
+    private DefaultEclipseProject build(Project project) {
         EclipseModel eclipseModel = project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
         EclipseClasspath classpath = eclipseModel.getClasspath();
 
@@ -53,7 +82,7 @@ public class ModelBuilder extends AbstractModelBuilder {
         List<ClasspathEntry> entries = classpath.resolveDependencies();
 
         List<ExternalDependencyVersion1> dependencies = new ExternalDependenciesFactory().create(project, entries);
-        List<EclipseProjectDependencyVersion2> projectDependencies = new EclipseProjectDependenciesFactory().create(getProjectMapping(), entries);
+        List<EclipseProjectDependencyVersion2> projectDependencies = new EclipseProjectDependenciesFactory().create(projectMapping, entries);
         List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, entries);
 
         List<DefaultEclipseProject> children = buildChildren(project);

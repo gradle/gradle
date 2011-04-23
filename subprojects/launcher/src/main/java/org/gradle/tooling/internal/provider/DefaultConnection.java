@@ -20,10 +20,10 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.*;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,44 +53,20 @@ public class DefaultConnection implements ConnectionVersion4 {
     public void stop() {
     }
 
-    public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        StartParameter startParameter = new ConnectionToStartParametersConverter().convert(operationParameters);
-        startParameter.setTaskNames(buildParameters.getTasks());
-
-        GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-        run(operationParameters, gradleLauncher, new BuildAction() {
-            public BuildResult execute(GradleLauncher gradleLauncher) {
-                return gradleLauncher.run();
-            }
-        });
+    public void executeBuild(final BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
+        run(operationParameters, new ExecuteBuildAction(buildParameters));
     }
 
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        if (!type.isAssignableFrom(EclipseProjectVersion3.class)) {
-            throw new UnsupportedOperationException(String.format("Cannot build model of type '%s'.", type.getSimpleName()));
-        }
-
-        StartParameter startParameter = new ConnectionToStartParametersConverter().convert(operationParameters);
-
-        GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-
-        boolean projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
-        boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
-
-        ModelBuildingAdapter adapter = new ModelBuildingAdapter(
-                new EclipsePluginApplier(), new ModelBuilder(includeTasks, projectDependenciesOnly));
-        gradleLauncher.addListener(adapter);
-
-        run(operationParameters, gradleLauncher, new BuildAction() {
-            public BuildResult execute(GradleLauncher gradleLauncher) {
-                return gradleLauncher.getBuildAnalysis();
-            }
-        });
-
-        return type.cast(adapter.getProject());
+        BuildModelAction action = new BuildModelAction(type);
+        run(operationParameters, action);
+        return type.cast(action.getProject());
     }
 
-    private void run(LongRunningOperationParametersVersion1 operationParameters, GradleLauncher gradleLauncher, BuildAction action) {
+    private void run(BuildOperationParametersVersion1 operationParameters, GradleLauncherAction action) {
+        StartParameter startParameter = new ConnectionToStartParametersConverter().convert(operationParameters);
+        GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
+
         if (operationParameters.getStandardOutput() != null) {
             gradleLauncher.addStandardOutputListener(new StreamBackedStandardOutputListener(operationParameters.getStandardOutput()));
         }
@@ -102,17 +78,13 @@ public class DefaultConnection implements ConnectionVersion4 {
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
         loggingOutput.addOutputEventListener(listener);
         try {
-            BuildResult result = action.execute(gradleLauncher);
+            BuildResult result = action.run(gradleLauncher);
             if (result.getFailure() != null) {
                 throw new BuildExceptionVersion1(result.getFailure());
             }
         } finally {
             loggingOutput.removeOutputEventListener(listener);
         }
-    }
-
-    private interface BuildAction {
-        BuildResult execute(GradleLauncher gradleLauncher);
     }
 
     private static class OutputEventListenerAdapter implements OutputEventListener {
@@ -129,6 +101,19 @@ public class DefaultConnection implements ConnectionVersion4 {
             } else if (event instanceof ProgressCompleteEvent) {
                 progressListener.onOperationEnd();
             }
+        }
+    }
+
+    private static class ExecuteBuildAction implements GradleLauncherAction {
+        private final BuildParametersVersion1 buildParameters;
+
+        public ExecuteBuildAction(BuildParametersVersion1 buildParameters) {
+            this.buildParameters = buildParameters;
+        }
+
+        public BuildResult run(GradleLauncher gradleLauncher) {
+            gradleLauncher.getStartParameter().setTaskNames(buildParameters.getTasks());
+            return gradleLauncher.run();
         }
     }
 }
