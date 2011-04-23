@@ -16,31 +16,27 @@
 package org.gradle.launcher;
 
 import org.gradle.api.Action;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.ParsedCommandLine;
-import org.gradle.launcher.protocol.Build;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DaemonBuildAction extends DaemonClientAction implements Action<ExecutionListener> {
-    private static final Logger LOGGER = Logging.getLogger(DaemonBuildAction.class);
-    private final DaemonConnector connector;
+public class DaemonBuildAction implements Action<ExecutionListener> {
+    private final DaemonClient client;
     private final ParsedCommandLine args;
     private final File currentDir;
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
     private final Map<String, String> systemProperties;
 
-    public DaemonBuildAction(OutputEventListener outputEventListener, DaemonConnector connector, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties) {
-        super(outputEventListener);
-        this.connector = connector;
+    public DaemonBuildAction(DaemonClient client, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties) {
+        this.client = client;
         this.args = args;
         this.currentDir = currentDir;
         this.clientMetaData = clientMetaData;
@@ -50,9 +46,30 @@ public class DaemonBuildAction extends DaemonClientAction implements Action<Exec
     }
 
     public void execute(ExecutionListener executionListener) {
-        LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
-        LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
-        Connection<Object> connection = connector.connect();
-        run(new Build(currentDir, args, startTime, clientMetaData, systemProperties), connection, executionListener);
+        client.execute(new ExecuteBuildAction(currentDir, args), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties));
+    }
+
+    private static class DefaultBuildActionParameters implements BuildActionParameters, Serializable {
+        private final BuildClientMetaData clientMetaData;
+        private final long startTime;
+        private final Map<String, String> systemProperties;
+
+        private DefaultBuildActionParameters(BuildClientMetaData clientMetaData, long startTime, Map<String, String> systemProperties) {
+            this.clientMetaData = clientMetaData;
+            this.startTime = startTime;
+            this.systemProperties = systemProperties;
+        }
+
+        public BuildRequestMetaData getBuildRequestMetaData() {
+            return new DefaultBuildRequestMetaData(clientMetaData, startTime);
+        }
+
+        public BuildClientMetaData getClientMetaData() {
+            return clientMetaData;
+        }
+
+        public Map<String, String> getSystemProperties() {
+            return systemProperties;
+        }
     }
 }

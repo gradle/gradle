@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.protocol;
 
-import org.gradle.api.Action;
+public class Result extends CommandComplete {
+    private final Object result;
 
-public class StopDaemonAction implements Action<ExecutionListener> {
-    private final DaemonClient client;
-
-    public StopDaemonAction(DaemonClient client) {
-        this.client = client;
+    public Result(Object result) {
+        super(null);
+        this.result = result;
     }
 
-    public void execute(ExecutionListener executionListener) {
-        client.stop();
+    public Object getResult() {
+        return result;
     }
 }

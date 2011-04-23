@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.api.Action;
+import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.BuildRequestMetaData;
 
-public class StopDaemonAction implements Action<ExecutionListener> {
-    private final DaemonClient client;
+import java.io.Serializable;
+import java.util.Map;
 
-    public StopDaemonAction(DaemonClient client) {
-        this.client = client;
-    }
+public interface BuildActionParameters extends Serializable {
+    BuildRequestMetaData getBuildRequestMetaData();
 
-    public void execute(ExecutionListener executionListener) {
-        client.stop();
-    }
+    BuildClientMetaData getClientMetaData();
+
+    Map<String, String> getSystemProperties();
 }

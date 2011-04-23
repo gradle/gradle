@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,15 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.api.Action;
+import org.gradle.initialization.GradleLauncherAction;
 
-public class StopDaemonAction implements Action<ExecutionListener> {
-    private final DaemonClient client;
-
-    public StopDaemonAction(DaemonClient client) {
-        this.client = client;
-    }
-
-    public void execute(ExecutionListener executionListener) {
-        client.stop();
-    }
+public interface GradleLauncherActionExecuter<P> {
+    /**
+     * Executes the given action, and returns the result. The given action may also implement {@link InitializationAware <T>}.
+     *
+     * @param action The action
+     * @param <T> The result type
+     * @return The result.
+     */
+    <T> T execute(GradleLauncherAction<T> action, P actionParameters);
 }

@@ -109,19 +109,20 @@ public class CommandLineActionFactory {
         DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
         GradleLauncherMetaData clientMetaData = new GradleLauncherMetaData();
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
+        DaemonClient client = new DaemonClient(connector, clientMetaData, loggingServices.get(OutputEventListener.class));
 
         if (commandLine.hasOption(FOREGROUND)) {
             return new ActionAdapter(new DaemonMain(loggingServices, connector));
         }
         if (commandLine.hasOption(STOP)) {
-            return new StopDaemonAction(connector, loggingServices.get(OutputEventListener.class), clientMetaData);
+            return new StopDaemonAction(client);
         }
 
         boolean useDaemon = System.getProperty("org.gradle.daemon", "false").equals("true");
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         if (useDaemon) {
-            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), connector, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime, System.getProperties());
+            return new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime, System.getProperties());
         }
 
         return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData, startTime));

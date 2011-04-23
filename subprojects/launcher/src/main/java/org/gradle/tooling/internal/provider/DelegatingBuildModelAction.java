@@ -23,7 +23,7 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.util.UncheckedException;
 
-public class DelegatingBuildModelAction implements GradleLauncherAction<ProjectVersion3> {
+class DelegatingBuildModelAction implements GradleLauncherAction<ProjectVersion3> {
     private GradleLauncherAction<ProjectVersion3> action;
     private final Class<? extends ProjectVersion3> type;
 
@@ -36,13 +36,17 @@ public class DelegatingBuildModelAction implements GradleLauncherAction<ProjectV
     }
 
     public BuildResult run(GradleLauncher launcher) {
-        DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) launcher;
+        loadAction((DefaultGradleLauncher) launcher);
+        return action.run(launcher);
+    }
+
+    private void loadAction(DefaultGradleLauncher launcher) {
+        DefaultGradleLauncher gradleLauncher = launcher;
         ClassLoaderFactory classLoaderFactory = gradleLauncher.getGradle().getServices().get(ClassLoaderFactory.class);
         try {
             action = (GradleLauncherAction<ProjectVersion3>) classLoaderFactory.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class).newInstance(type);
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         }
-        return action.run(launcher);
     }
 }

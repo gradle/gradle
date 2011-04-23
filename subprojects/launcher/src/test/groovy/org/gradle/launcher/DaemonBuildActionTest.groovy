@@ -15,43 +15,34 @@
  */
 package org.gradle.launcher
 
-import org.gradle.initialization.ParsedCommandLine
-import org.gradle.launcher.protocol.Build
-import org.gradle.launcher.protocol.CommandComplete
-import org.gradle.logging.internal.OutputEventListener
-import org.gradle.messaging.remote.internal.Connection
-import spock.lang.Specification
 import org.gradle.initialization.BuildClientMetaData
+import org.gradle.initialization.ParsedCommandLine
+import spock.lang.Specification
 
 class DaemonBuildActionTest extends Specification {
-    final DaemonConnector connector = Mock()
-    final OutputEventListener listener = Mock()
+    final DaemonClient client = Mock()
     final ExecutionListener completer = Mock()
     final ParsedCommandLine commandLine = Mock()
     final BuildClientMetaData clientMetaData = Mock()
     final File currentDir = new File('current-dir')
     final long startTime = 90
     final Map<String, String> systemProperties = [key: 'value']
-    final DaemonBuildAction action = new DaemonBuildAction(listener, connector, commandLine, currentDir, clientMetaData, startTime, systemProperties)
+    final DaemonBuildAction action = new DaemonBuildAction(client, commandLine, currentDir, clientMetaData, startTime, systemProperties)
 
     def runsBuildUsingDaemon() {
-        Connection<Object> connection = Mock()
-
         when:
         action.execute(completer)
 
         then:
-        1 * connector.connect() >> connection
-        1 * connection.dispatch({!null}) >> { args ->
-            Build build = args[0]
-            assert build.currentDir == currentDir
-            assert build.args == commandLine
+        1 * client.execute({!null}, {!null}) >> { args ->
+            ExecuteBuildAction action = args[0]
+            assert action.currentDir == currentDir
+            assert action.args == commandLine
+            BuildActionParameters build = args[1]
             assert build.clientMetaData == clientMetaData
             assert build.startTime == startTime
             assert build.systemProperties == systemProperties
         }
-        1 * connection.receive() >> new CommandComplete(null)
-        1 * connection.stop()
         0 * _._
     }
 }

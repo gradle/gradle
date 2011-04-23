@@ -56,7 +56,7 @@ public class DaemonConnector {
      *
      * @return The connection, or null if not running.
      */
-    Connection<Object> maybeConnect() {
+    public Connection<Object> maybeConnect() {
         URI uri = loadDaemonAddress();
         if (uri == null) {
             return null;
@@ -98,7 +98,7 @@ public class DaemonConnector {
      *
      * @return The connection. Never returns null.
      */
-    Connection<Object> connect() {
+    public Connection<Object> connect() {
         Connection<Object> connection = maybeConnect();
         if (connection != null) {
             return connection;
