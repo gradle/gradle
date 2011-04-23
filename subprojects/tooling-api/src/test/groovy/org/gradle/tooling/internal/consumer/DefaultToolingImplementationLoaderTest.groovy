@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.internal.provider.DefaultConnection
 import org.gradle.util.GradleVersion
 import org.slf4j.Logger
 import spock.lang.Specification
@@ -32,7 +31,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
         distribution.toolingImplementationClasspath >> ([
                 getToolingApiResourcesDir(),
-                AbstractClassPathProvider.getClasspathForClass(DefaultConnection.class),
+                AbstractClassPathProvider.getClasspathForClass(TestConnection.class),
                 AbstractClassPathProvider.getClasspathForClass(ActorFactory.class),
                 AbstractClassPathProvider.getClasspathForClass(Logger.class),
                 getVersionResourcesDir(),
@@ -43,8 +42,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def factory = loader.create(distribution)
 
         then:
-        factory.class != DefaultConnection.class
-        factory.class.name == DefaultConnection.class.name
+        factory.class != TestConnection.class
+        factory.class.name == TestConnection.class.name
     }
 
     private getToolingApiResourcesDir() {

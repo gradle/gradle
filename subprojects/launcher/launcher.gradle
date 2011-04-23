@@ -5,6 +5,8 @@ dependencies {
 
     compile project(':core')
     compile project(':ui')
+    compile project(':toolingApi')
+    compile project(':ide')
 
     compile libraries.slf4j_api
 
