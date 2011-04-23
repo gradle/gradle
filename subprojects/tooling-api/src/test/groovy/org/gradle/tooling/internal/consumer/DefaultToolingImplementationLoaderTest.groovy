@@ -22,8 +22,11 @@ import org.gradle.util.GradleVersion
 import org.slf4j.Logger
 import spock.lang.Specification
 import java.util.regex.Pattern
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 
 class DefaultToolingImplementationLoaderTest extends Specification {
+    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
     final Distribution distribution = Mock()
 
     def usesMetaInfServiceToDetermineFactoryImplementation() {
@@ -47,7 +50,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     }
 
     private getToolingApiResourcesDir() {
-        return getResourcesDir("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4")
+        tmpDir.file("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4") << TestConnection.name
+        return tmpDir.dir;
     }
 
     private getVersionResourcesDir() {
