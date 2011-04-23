@@ -20,6 +20,7 @@ import spock.lang.Specification
 
 class TextUtilTest extends Specification {
     private static String sep = "separator"
+    private static String platformSep = TextUtil.platformLineSeparator
 
     def convertLineSeparators() {
         expect:
@@ -28,5 +29,14 @@ class TextUtilTest extends Specification {
         where:
         original                          | converted
         "one\rtwo\nthree\r\nfour\n\rfive" | "one${sep}two${sep}three${sep}four${sep}${sep}five"
+    }
+
+    def toPlatformLineSeparators() {
+        expect:
+        TextUtil.toPlatformLineSeparators(original) == converted
+
+        where:
+        original | converted
+        "one\rtwo\nthree\r\nfour\n\rfive" | "one${platformSep}two${platformSep}three${platformSep}four${platformSep}${platformSep}five"
     }
 }
