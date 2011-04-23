@@ -15,15 +15,14 @@
  */
 package org.gradle.tooling.internal.provider
 
-import spock.lang.Specification
 import org.gradle.api.Project
-import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.Task
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
+import org.gradle.api.tasks.TaskContainer
+import spock.lang.Specification
 
 class TasksFactoryTest extends Specification {
     final Project project = Mock()
-    final EclipseProjectVersion3 eclipseProject = Mock()
+    final org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3 eclipseProject = Mock()
     final TaskContainer tasks = Mock()
     final TasksFactory factory = new TasksFactory()
 
