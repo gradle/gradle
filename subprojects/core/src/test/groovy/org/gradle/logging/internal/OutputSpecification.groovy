@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat
 
 class OutputSpecification extends Specification {
     protected String toNative(String value) {
-        return TextUtil.toNativeLineSeparators(value)
+        return TextUtil.toPlatformLineSeparators(value)
     }
 
     /**

@@ -187,9 +187,9 @@ public class XmlTransformer implements Transformer<String> {
                 } else if (element != null) {
                     printNode(element, writer);
                 } else if (builder != null) {
-                    writer.append(TextUtil.toNativeLineSeparators(stripXmlDeclaration(builder)));
+                    writer.append(TextUtil.toPlatformLineSeparators(stripXmlDeclaration(builder)));
                 } else {
-                    writer.append(TextUtil.toNativeLineSeparators(stripXmlDeclaration(stringValue)));
+                    writer.append(TextUtil.toPlatformLineSeparators(stripXmlDeclaration(stringValue)));
                 }
             } catch (IOException e) {
                 throw UncheckedException.asUncheckedException(e);

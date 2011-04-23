@@ -198,7 +198,7 @@ class XmlTransformerTest extends Specification {
     }
 
     private void looksLike(String expected, String actual) {
-        assert actual == TextUtil.toNativeLineSeparators(addXmlDeclaration(expected))
+        assert actual == TextUtil.toPlatformLineSeparators(addXmlDeclaration(expected))
     }
 
     private String addXmlDeclaration(String value) {
