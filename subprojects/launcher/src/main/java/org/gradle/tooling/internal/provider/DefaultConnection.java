@@ -58,9 +58,9 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        BuildModelAction action = new BuildModelAction(type);
+        GradleLauncherAction<ProjectVersion3> action = new DelegatingBuildModelAction(type);
         run(operationParameters, action);
-        return type.cast(action.getProject());
+        return type.cast(action.getResult());
     }
 
     private void run(BuildOperationParametersVersion1 operationParameters, GradleLauncherAction action) {
@@ -104,11 +104,15 @@ public class DefaultConnection implements ConnectionVersion4 {
         }
     }
 
-    private static class ExecuteBuildAction implements GradleLauncherAction {
+    private static class ExecuteBuildAction implements GradleLauncherAction<Void> {
         private final BuildParametersVersion1 buildParameters;
 
         public ExecuteBuildAction(BuildParametersVersion1 buildParameters) {
             this.buildParameters = buildParameters;
+        }
+
+        public Void getResult() {
+            return null;
         }
 
         public BuildResult run(GradleLauncher gradleLauncher) {

@@ -65,6 +65,10 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.loggingManager = loggingManager;
     }
 
+    public GradleInternal getGradle() {
+        return gradle;
+    }
+
     /**
      * <p>Executes the build for this GradleLauncher instance and returns the result. Note that when the build fails,
      * the exception is available using {@link org.gradle.BuildResult#getFailure()}.</p>

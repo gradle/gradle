@@ -18,6 +18,8 @@ package org.gradle.initialization;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 
-public interface GradleLauncherAction {
+public interface GradleLauncherAction<T> {
+    T getResult();
+
     BuildResult run(GradleLauncher launcher);
 }

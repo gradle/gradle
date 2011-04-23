@@ -22,7 +22,7 @@ import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
-public class BuildModelAction implements GradleLauncherAction {
+public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
     private final ModelBuilder builder;
 
     public BuildModelAction(Class<? extends ProjectVersion3> type) {
@@ -42,7 +42,7 @@ public class BuildModelAction implements GradleLauncherAction {
         return launcher.getBuildAnalysis();
     }
 
-    public ProjectVersion3 getProject() {
+    public ProjectVersion3 getResult() {
         return builder.getProject();
     }
 }
