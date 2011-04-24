@@ -80,12 +80,12 @@ public class DefaultConnection implements ConnectionVersion4 {
 
     private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
         GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
-        if (Boolean.FALSE.equals(operationParameters.isEmbedded())) {
+        if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
+            executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
+        } else {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
             DaemonClient client = new DaemonClient(new DaemonConnector(gradleUserHomeDir), new GradleLauncherMetaData(), loggingServices.get(OutputEventListener.class));
             executer = new DaemonGradleLauncherActionExecuter(client);
-        } else {
-            executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
         }
         return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingServices.getFactory(LoggingManagerInternal.class));
     }

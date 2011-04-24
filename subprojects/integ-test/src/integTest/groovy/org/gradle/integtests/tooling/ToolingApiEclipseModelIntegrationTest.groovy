@@ -160,16 +160,25 @@ dependencies {
 
     def "minimal Eclipse model does not attempt to resolve external dependencies"() {
         def projectDir = dist.testDir
+        projectDir.file('settings.gradle').text = 'include "child"'
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
-dependencies { compile files { throw new RuntimeException() } }
+dependencies {
+    compile project(':child')
+    compile files { throw new RuntimeException() }
+}
+project(':child') {
+    apply plugin: 'java'
+    dependencies { compile files { throw new RuntimeException() } }
+}
 '''
 
         when:
-        withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject project = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
 
         then:
-        notThrown(Exception)
+        project.projectDependencies.size() == 1
+        project.projectDependencies[0].path == 'child'
     }
 
     //TODO SF: write a test that checks if minimal project has necessary project dependencies
