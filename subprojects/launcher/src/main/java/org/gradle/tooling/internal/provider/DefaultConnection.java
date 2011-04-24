@@ -17,12 +17,16 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.GradleLauncher;
 import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.launcher.DaemonClient;
+import org.gradle.launcher.DaemonConnector;
 import org.gradle.launcher.GradleLauncherActionExecuter;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.internal.LoggingOutputInternal;
+import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -35,7 +39,7 @@ public class DefaultConnection implements ConnectionVersion4 {
 
     public DefaultConnection() {
         LOGGER.debug("Using tooling API provider version {}.", GradleVersion.current().getVersion());
-        loggingServices = new LoggingServiceRegistry(false);
+        loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         gradleLauncherFactory = new DefaultGradleLauncherFactory(loggingServices);
         GradleLauncher.injectCustomFactory(gradleLauncherFactory);
     }
@@ -70,6 +74,13 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
-        return new LocalGradleLauncherActionExecuter(gradleLauncherFactory, loggingServices.get(LoggingOutputInternal.class));
+        GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
+        if (Boolean.FALSE.equals(operationParameters.isEmbedded())) {
+            DaemonClient client = new DaemonClient(new DaemonConnector(operationParameters.getGradleUserHomeDir()), new GradleLauncherMetaData(), loggingServices.get(OutputEventListener.class));
+            executer = new DaemonGradleLauncherActionExecuter(client);
+        } else {
+            executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
+        }
+        return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingServices.getFactory(LoggingManagerInternal.class));
     }
 }

@@ -22,10 +22,14 @@ import org.gradle.logging.internal.DefaultStyledTextOutputFactory
 import spock.lang.Specification
 import org.gradle.initialization.CommandLineConverter
 import org.gradle.logging.internal.LoggingCommandLineConverter
+import org.junit.Rule
+import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.api.internal.project.ServiceRegistry
 
 class LoggingServiceRegistryTest extends Specification {
-    private final LoggingServiceRegistry registry = new LoggingServiceRegistry()
-    
+    @Rule RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    final ServiceRegistry registry = new LoggingServiceRegistry()
+
     def providesALoggingManagerFactory() {
         expect:
         def factory = registry.getFactory(LoggingManagerInternal.class)
@@ -48,5 +52,33 @@ class LoggingServiceRegistryTest extends Specification {
         expect:
         def converter = registry.get(CommandLineConverter.class)
         converter instanceof LoggingCommandLineConverter
+    }
+
+    def doesNotMessWithSystemOutAndErrUntilStarted() {
+        when:
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+
+        then:
+        System.out == outputs.stdOutPrintStream
+        System.err == outputs.stdErrPrintStream
+
+        when:
+        loggingManager.start()
+
+        then:
+        System.out != outputs.stdOutPrintStream
+        System.err != outputs.stdErrPrintStream
+    }
+    
+    def canDisableSystemOutAndErrCapture() {
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.disableStandardOutputCapture()
+
+        when:
+        loggingManager.start()
+
+        then:
+        System.out == outputs.stdOutPrintStream
+        System.err == outputs.stdErrPrintStream
     }
 }

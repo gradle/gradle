@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,35 @@
 package org.gradle.launcher;
 
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.ParsedCommandLine;
+import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.util.GUtil;
 
-import java.io.File;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DaemonBuildAction implements Runnable {
-    private final DaemonClient client;
-    private final ParsedCommandLine args;
-    private final File currentDir;
+public class DefaultBuildActionParameters implements BuildActionParameters, Serializable {
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
     private final Map<String, String> systemProperties;
 
-    public DaemonBuildAction(DaemonClient client, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties) {
-        this.client = client;
-        this.args = args;
-        this.currentDir = currentDir;
+    public DefaultBuildActionParameters(BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties) {
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
     }
 
-    public void run() {
-        client.execute(new ExecuteBuildAction(currentDir, args), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties));
+    public BuildRequestMetaData getBuildRequestMetaData() {
+        return new DefaultBuildRequestMetaData(clientMetaData, startTime);
+    }
+
+    public BuildClientMetaData getClientMetaData() {
+        return clientMetaData;
+    }
+
+    public Map<String, String> getSystemProperties() {
+        return systemProperties;
     }
 }

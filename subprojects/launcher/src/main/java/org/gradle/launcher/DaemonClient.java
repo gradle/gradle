@@ -42,7 +42,7 @@ import org.gradle.messaging.remote.internal.Connection;
  * </ol>
  */
 public class DaemonClient implements GradleLauncherActionExecuter<BuildActionParameters> {
-    private static final Logger LOGGER = Logging.getLogger(StopDaemonAction.class);
+    private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private final DaemonConnector connector;
     private final BuildClientMetaData clientMetaData;
     private final OutputEventListener outputEventListener;
@@ -70,6 +70,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
      * Executes the given action in the daemon. The action and parameters must be serializable.
      *
      * @param action The action
+     * @throws ReportedException On failure, when the failure has already been logged/reported.
      */
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
         LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");

@@ -48,4 +48,6 @@ public interface BuildOperationParametersVersion1 extends LongRunningOperationPa
      * Specifies the units for the maximum idle time.
      */
     TimeUnit getDaemonMaxIdleTimeUnits();
+
+    long getStartTime();
 }

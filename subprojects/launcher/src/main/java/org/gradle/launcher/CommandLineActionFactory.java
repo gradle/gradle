@@ -98,7 +98,7 @@ public class CommandLineActionFactory {
     }
 
     ServiceRegistry createLoggingServices() {
-        return new LoggingServiceRegistry();
+        return LoggingServiceRegistry.newCommandLineProcessLogging();
     }
 
     private Action<ExecutionListener> createAction(CommandLineParser parser, final ParsedCommandLine commandLine, CommandLineConverter<StartParameter> startParameterConverter, final ServiceRegistry loggingServices) {

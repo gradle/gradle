@@ -20,7 +20,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-class ToolingApiSpecification extends Specification {
+abstract class ToolingApiSpecification extends Specification {
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final ToolingApi toolingApi = new ToolingApi()

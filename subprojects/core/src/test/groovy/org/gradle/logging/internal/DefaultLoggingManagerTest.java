@@ -287,25 +287,43 @@ public class DefaultLoggingManagerTest {
     }
 
     @Test
-    public void addsListenersOnStartAndRemovesOnStop() {
+    public void addsStdOutputListenerOnStartAndRemovesOnStop() {
         final StandardOutputListener stdoutListener = context.mock(StandardOutputListener.class);
-        final StandardOutputListener stderrListener = context.mock(StandardOutputListener.class);
 
         loggingManager.addStandardOutputListener(stdoutListener);
-        loggingManager.addStandardErrorListener(stderrListener);
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
             one(loggingOutput).addStandardOutputListener(stdoutListener);
-            one(loggingOutput).addStandardErrorListener(stderrListener);
         }});
 
         loggingManager.start();
 
         context.checking(new Expectations() {{
             one(loggingOutput).removeStandardOutputListener(stdoutListener);
+        }});
+
+        loggingManager.stop();
+    }
+
+    @Test
+    public void addsStdErrorListenerOnStartAndRemovesOnStop() {
+        final StandardOutputListener stderrListener = context.mock(StandardOutputListener.class);
+
+        loggingManager.addStandardErrorListener(stderrListener);
+
+        context.checking(new Expectations() {{
+            ignoring(loggingSystem);
+            ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
+            one(loggingOutput).addStandardErrorListener(stderrListener);
+        }});
+
+        loggingManager.start();
+
+        context.checking(new Expectations() {{
             one(loggingOutput).removeStandardErrorListener(stderrListener);
         }});
 
@@ -313,9 +331,30 @@ public class DefaultLoggingManagerTest {
     }
 
     @Test
-    public void addsListenersWhileStarted() {
+    public void addsOutputEventListenerOnStartAndRemovesOnStop() {
+        final OutputEventListener listener = context.mock(OutputEventListener.class);
+
+        loggingManager.addOutputEventListener(listener);
+
+        context.checking(new Expectations() {{
+            ignoring(loggingSystem);
+            ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
+            one(loggingOutput).addOutputEventListener(listener);
+        }});
+
+        loggingManager.start();
+
+        context.checking(new Expectations() {{
+            one(loggingOutput).removeOutputEventListener(listener);
+        }});
+
+        loggingManager.stop();
+    }
+
+    @Test
+    public void addsStdOutputListenerWhileStarted() {
         final StandardOutputListener stdoutListener = context.mock(StandardOutputListener.class);
-        final StandardOutputListener stderrListener = context.mock(StandardOutputListener.class);
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
@@ -327,37 +366,136 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             one(loggingOutput).addStandardOutputListener(stdoutListener);
-            one(loggingOutput).addStandardErrorListener(stderrListener);
         }});
 
         loggingManager.addStandardOutputListener(stdoutListener);
-        loggingManager.addStandardErrorListener(stderrListener);
+
+        context.checking(new Expectations() {{
+            one(loggingOutput).removeStandardOutputListener(stdoutListener);
+        }});
+
+        loggingManager.stop();
     }
 
     @Test
-    public void removesListenersWhileStarted() {
-        final StandardOutputListener stdoutListener = context.mock(StandardOutputListener.class);
+    public void addsStdErrorListenerWhileStarted() {
         final StandardOutputListener stderrListener = context.mock(StandardOutputListener.class);
 
-        loggingManager.addStandardOutputListener(stdoutListener);
+        context.checking(new Expectations() {{
+            ignoring(loggingSystem);
+            ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
+        }});
+
+        loggingManager.start();
+
+        context.checking(new Expectations() {{
+            one(loggingOutput).addStandardErrorListener(stderrListener);
+        }});
+
         loggingManager.addStandardErrorListener(stderrListener);
+
+        context.checking(new Expectations() {{
+            one(loggingOutput).removeStandardErrorListener(stderrListener);
+        }});
+
+        loggingManager.stop();
+    }
+
+    @Test
+    public void addsOutputEventListenerWhileStarted() {
+        final OutputEventListener listener = context.mock(OutputEventListener.class);
+
+        context.checking(new Expectations() {{
+            ignoring(loggingSystem);
+            ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
+        }});
+
+        loggingManager.start();
+
+        context.checking(new Expectations() {{
+            one(loggingOutput).addOutputEventListener(listener);
+        }});
+
+        loggingManager.addOutputEventListener(listener);
+
+        context.checking(new Expectations() {{
+            one(loggingOutput).removeOutputEventListener(listener);
+        }});
+
+        loggingManager.stop();
+    }
+
+    @Test
+    public void removesStdOutputListenerWhileStarted() {
+        final StandardOutputListener stdoutListener = context.mock(StandardOutputListener.class);
+
+        loggingManager.addStandardOutputListener(stdoutListener);
 
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
             one(loggingOutput).addStandardOutputListener(stdoutListener);
-            one(loggingOutput).addStandardErrorListener(stderrListener);
         }});
 
         loggingManager.start();
 
         context.checking(new Expectations() {{
             one(loggingOutput).removeStandardOutputListener(stdoutListener);
-            one(loggingOutput).removeStandardErrorListener(stderrListener);
         }});
 
         loggingManager.removeStandardOutputListener(stdoutListener);
+
+        loggingManager.stop();
+    }
+
+    @Test
+    public void removesStdErrorListenerWhileStarted() {
+        final StandardOutputListener stderrListener = context.mock(StandardOutputListener.class);
+
+        loggingManager.addStandardErrorListener(stderrListener);
+
+        context.checking(new Expectations() {{
+            ignoring(loggingSystem);
+            ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
+            one(loggingOutput).addStandardErrorListener(stderrListener);
+        }});
+
+        loggingManager.start();
+
+        context.checking(new Expectations() {{
+            one(loggingOutput).removeStandardErrorListener(stderrListener);
+        }});
+
         loggingManager.removeStandardErrorListener(stderrListener);
+
+        loggingManager.stop();
+    }
+
+    @Test
+    public void removesOutputEventListenerWhileStarted() {
+        final OutputEventListener listener = context.mock(OutputEventListener.class);
+
+        loggingManager.addOutputEventListener(listener);
+
+        context.checking(new Expectations() {{
+            ignoring(loggingSystem);
+            ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
+            one(loggingOutput).addOutputEventListener(listener);
+        }});
+
+        loggingManager.start();
+
+        context.checking(new Expectations() {{
+            one(loggingOutput).removeOutputEventListener(listener);
+        }});
+
+        loggingManager.removeOutputEventListener(listener);
+
+        loggingManager.stop();
     }
 }

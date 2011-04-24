@@ -57,7 +57,7 @@ public class DaemonMain implements Runnable {
     public static void main(String[] args) throws IOException {
         StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
         DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
-        LoggingServiceRegistry loggingServices = new LoggingServiceRegistry();
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newCommandLineProcessLogging();
         addLogFileWriters(startParameter, loggingServices);
         new DaemonMain(loggingServices, connector).run();
     }

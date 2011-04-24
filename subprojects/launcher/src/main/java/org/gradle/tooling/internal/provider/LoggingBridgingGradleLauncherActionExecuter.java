@@ -15,58 +15,48 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
-import org.gradle.StartParameter;
+import org.gradle.api.internal.Factory;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.GradleLauncherActionExecuter;
-import org.gradle.launcher.InitializationAware;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.*;
-import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 /**
- * A {@link GradleLauncherActionExecuter} which executes an action locally.
+ * A {@link org.gradle.launcher.GradleLauncherActionExecuter} which routes Gradle logging to those listeners specified in the {@link BuildOperationParametersVersion1} provided with a tooling api build
+ * request.
  */
-public class LocalGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildOperationParametersVersion1> {
-    private final GradleLauncherFactory gradleLauncherFactory;
-    private final LoggingOutputInternal loggingOutput;
+public class LoggingBridgingGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildOperationParametersVersion1> {
+    private final Factory<LoggingManagerInternal> loggingManagerFactory;
+    private final GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
 
-    public LocalGradleLauncherActionExecuter(GradleLauncherFactory gradleLauncherFactory, LoggingOutputInternal loggingOutput) {
-        this.gradleLauncherFactory = gradleLauncherFactory;
-        this.loggingOutput = loggingOutput;
+    public LoggingBridgingGradleLauncherActionExecuter(GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer, Factory<LoggingManagerInternal> loggingManagerFactory) {
+        this.executer = executer;
+        this.loggingManagerFactory = loggingManagerFactory;
     }
 
     public <T> T execute(GradleLauncherAction<T> action, BuildOperationParametersVersion1 actionParameters) {
-        StartParameter startParameter = new ConnectionToStartParametersConverter().convert(actionParameters);
-        if (action instanceof InitializationAware) {
-            InitializationAware initializationAware = (InitializationAware) action;
-            initializationAware.configureStartParameter(startParameter);
+        LoggingManagerInternal loggingManager = loggingManagerFactory.create();
+        if (!Boolean.TRUE.equals(actionParameters.isEmbedded())) {
+            loggingManager.disableStandardOutputCapture();
         }
-
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter);
-
         if (actionParameters.getStandardOutput() != null) {
-            gradleLauncher.addStandardOutputListener(new StreamBackedStandardOutputListener(actionParameters.getStandardOutput()));
+            loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(actionParameters.getStandardOutput()));
         }
         if (actionParameters.getStandardError() != null) {
-            gradleLauncher.addStandardErrorListener(new StreamBackedStandardOutputListener(actionParameters.getStandardError()));
+            loggingManager.addStandardErrorListener(new StreamBackedStandardOutputListener(actionParameters.getStandardError()));
         }
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
-        loggingOutput.addOutputEventListener(listener);
-        try {
-            BuildResult result = action.run(gradleLauncher);
-            if (result.getFailure() != null) {
-                throw new BuildExceptionVersion1(result.getFailure());
-            }
-        } finally {
-            loggingOutput.removeOutputEventListener(listener);
-        }
+        loggingManager.addOutputEventListener(listener);
 
-        return action.getResult();
+        loggingManager.start();
+        try {
+            return executer.execute(action, actionParameters);
+        } finally {
+            loggingManager.stop();
+        }
     }
 
     private static class OutputEventListenerAdapter implements OutputEventListener {

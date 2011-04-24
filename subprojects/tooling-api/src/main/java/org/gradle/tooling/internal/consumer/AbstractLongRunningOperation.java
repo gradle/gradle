@@ -53,6 +53,12 @@ public class AbstractLongRunningOperation {
     }
 
     private class OperationParameters implements BuildOperationParametersVersion1 {
+        long startTime = System.currentTimeMillis();
+
+        public long getStartTime() {
+            return startTime;
+        }
+
         public File getGradleUserHomeDir() {
             return parameters.getGradleUserHomeDir();
         }

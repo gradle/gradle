@@ -93,7 +93,9 @@ System.err.println 'this is stderr'
         then:
         stdout.toString().contains('this is stdout')
         stderr.toString().contains('this is stderr')
-        !progressMessages.empty
+        progressMessages.size() >= 2
+        progressMessages.pop() == ''
+        progressMessages.every { it }
     }
 
     def "tooling api reports build failure"() {

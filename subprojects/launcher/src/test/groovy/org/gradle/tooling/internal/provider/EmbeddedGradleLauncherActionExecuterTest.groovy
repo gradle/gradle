@@ -20,18 +20,16 @@ import org.gradle.GradleLauncher
 import org.gradle.initialization.GradleLauncherAction
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.launcher.InitializationAware
-import org.gradle.logging.internal.LoggingOutputInternal
+import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import spock.lang.Specification
-import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 
-class LocalGradleLauncherActionExecuterTest extends Specification {
+class EmbeddedGradleLauncherActionExecuterTest extends Specification {
     final BuildOperationParametersVersion1 parameters = Mock()
-    final LoggingOutputInternal loggingOutput = Mock()
     final GradleLauncherFactory gradleLauncherFactory = Mock()
     final GradleLauncher gradleLauncher = Mock()
     final BuildResult buildResult = Mock()
-    final LocalGradleLauncherActionExecuter executer = new LocalGradleLauncherActionExecuter(gradleLauncherFactory, loggingOutput)
+    final EmbeddedGradleLauncherActionExecuter executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory)
 
     def executesActionAndReturnsResult() {
         GradleLauncherAction<String> action = Mock()

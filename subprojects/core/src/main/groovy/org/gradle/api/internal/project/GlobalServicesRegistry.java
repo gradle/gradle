@@ -37,7 +37,7 @@ import org.gradle.logging.LoggingServiceRegistry;
  */
 public class GlobalServicesRegistry extends DefaultServiceRegistry {
     public GlobalServicesRegistry() {
-        this(new LoggingServiceRegistry());
+        this(LoggingServiceRegistry.newCommandLineProcessLogging());
     }
 
     public GlobalServicesRegistry(ServiceRegistry loggingServices) {
