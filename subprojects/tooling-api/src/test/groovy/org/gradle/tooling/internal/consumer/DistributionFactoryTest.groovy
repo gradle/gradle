@@ -15,12 +15,14 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.logging.ProgressLogger
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.logging.ProgressLogger
+import org.gradle.util.DistributionLocator
+import org.gradle.util.GradleVersion
 
 class DistributionFactoryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -31,7 +33,22 @@ class DistributionFactoryTest extends Specification {
     def setup() {
         _ * progressLoggerFactory.newOperation(!null) >> progressLogger
     }
-    
+
+    def usesTheWrapperPropertiesToDetermineTheDefaultDistribution() {
+        def zipFile = createZip { }
+        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
+
+        expect:
+        factory.getDefaultDistribution(tmpDir.dir).displayName == "Gradle distribution '${zipFile.toURI()}'"
+    }
+
+    def usesTheCurrentVersionAsTheDefaultDistributionWhenNoWrapperPropertiesFilePresent() {
+        def uri = new DistributionLocator().getDistributionFor(GradleVersion.current())
+
+        expect:
+        factory.getDefaultDistribution(tmpDir.dir).displayName == "Gradle distribution '${uri}'"
+    }
+
     def createsADisplayNameForAnInstallation() {
         expect:
         factory.getDistribution(tmpDir.dir).displayName == "Gradle installation '${tmpDir.dir}'"

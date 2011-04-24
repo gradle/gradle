@@ -24,6 +24,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ExecutionFailure
 
 /**
  * @author Hans Dockter
@@ -32,6 +33,16 @@ class WrapperProjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final Sample sample = new Sample('wrapper-project')
+
+    @Test
+    public void hasNonZeroExitCodeOnBuildFailure() {
+        File wrapperSampleDir = sample.dir
+
+        executer.inDirectory(wrapperSampleDir).withTasks('wrapper').run()
+
+        ExecutionFailure failure = executer.usingExecutable('gradlew').inDirectory(wrapperSampleDir).withTasks('unknown').runWithFailure()
+        failure.assertHasDescription("Task 'unknown' not found in root project 'wrapper-project'.")
+    }
 
     @Test
     public void wrapperSample() {
