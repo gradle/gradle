@@ -19,9 +19,9 @@ package org.gradle.tooling.internal.provider.dependencies;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
+import org.gradle.tooling.internal.DefaultEclipseSourceDirectory;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,20 +40,7 @@ public class SourceDirectoriesFactory {
         return sourceDirectories;
     }
 
-    private EclipseSourceDirectoryVersion1 sourceDirectory(final Project project, final String path) {
-        return new EclipseSourceDirectoryVersion1() {
-            @Override
-            public String toString() {
-                return String.format("source directory '%s'", path);
-            }
-
-            public File getDirectory() {
-                return project.file(path);
-            }
-
-            public String getPath() {
-                return path;
-            }
-        };
+    private EclipseSourceDirectoryVersion1 sourceDirectory(Project project, String path) {
+        return new DefaultEclipseSourceDirectory(path, project.file(path));
     }
 }

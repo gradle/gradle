@@ -36,7 +36,7 @@ public class EmbeddedGradleLauncherActionExecuter implements GradleLauncherActio
     }
 
     public <T> T execute(GradleLauncherAction<T> action, BuildOperationParametersVersion1 actionParameters) {
-        StartParameter startParameter = new ConnectionToStartParametersConverter().convert(actionParameters);
+        StartParameter startParameter = new StartParameter();
         if (action instanceof InitializationAware) {
             InitializationAware initializationAware = (InitializationAware) action;
             initializationAware.configureStartParameter(startParameter);

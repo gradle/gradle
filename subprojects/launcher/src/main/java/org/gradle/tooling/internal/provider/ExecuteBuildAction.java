@@ -20,13 +20,15 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.InitializationAware;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 
-class ExecuteBuildAction implements GradleLauncherAction<Void>, InitializationAware {
-    private final BuildParametersVersion1 buildParameters;
+import java.io.Serializable;
+import java.util.List;
 
-    public ExecuteBuildAction(BuildParametersVersion1 buildParameters) {
-        this.buildParameters = buildParameters;
+class ExecuteBuildAction implements GradleLauncherAction<Void>, InitializationAware, Serializable {
+    private final List<String> tasks;
+
+    public ExecuteBuildAction(List<String> tasks) {
+        this.tasks = tasks;
     }
 
     public Void getResult() {
@@ -34,7 +36,7 @@ class ExecuteBuildAction implements GradleLauncherAction<Void>, InitializationAw
     }
 
     public void configureStartParameter(StartParameter startParameter) {
-        startParameter.setTaskNames(buildParameters.getTasks());
+        startParameter.setTaskNames(tasks);
     }
 
     public BuildResult run(GradleLauncher gradleLauncher) {

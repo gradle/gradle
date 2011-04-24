@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.GradleLauncher;
+import org.gradle.StartParameter;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
@@ -28,9 +29,12 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public class DefaultConnection implements ConnectionVersion4 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
@@ -60,23 +64,25 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        run(operationParameters, new ExecuteBuildAction(buildParameters));
+        run(new ExecuteBuildAction(buildParameters.getTasks()), operationParameters);
     }
 
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
         GradleLauncherAction<ProjectVersion3> action = new DelegatingBuildModelAction(type);
-        return run(operationParameters, action);
+        return run(action, operationParameters);
     }
 
-    private <T> T run(BuildOperationParametersVersion1 operationParameters, GradleLauncherAction<T> action) {
+    private <T> T run(GradleLauncherAction<T> action, BuildOperationParametersVersion1 operationParameters) {
         GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = createExecuter(operationParameters);
-        return executer.execute(action, operationParameters);
+        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters.getGradleUserHomeDir(), operationParameters.getProjectDir(), operationParameters.isSearchUpwards(), action);
+        return executer.execute(configuringAction, operationParameters);
     }
 
     private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
         GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
         if (Boolean.FALSE.equals(operationParameters.isEmbedded())) {
-            DaemonClient client = new DaemonClient(new DaemonConnector(operationParameters.getGradleUserHomeDir()), new GradleLauncherMetaData(), loggingServices.get(OutputEventListener.class));
+            File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
+            DaemonClient client = new DaemonClient(new DaemonConnector(gradleUserHomeDir), new GradleLauncherMetaData(), loggingServices.get(OutputEventListener.class));
             executer = new DaemonGradleLauncherActionExecuter(client);
         } else {
             executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);

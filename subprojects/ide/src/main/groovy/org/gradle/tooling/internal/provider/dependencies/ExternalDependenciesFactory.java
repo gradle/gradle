@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.dependencies;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.Library;
+import org.gradle.tooling.internal.DefaultExternalDependency;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 
 import java.io.File;
@@ -34,24 +35,13 @@ public class ExternalDependenciesFactory {
         for (ClasspathEntry entry : entries) {
             if (entry instanceof Library) {
                 Library library = (Library) entry;
-                final String path = library.getPath();
-                final String sourcePath = library.getSourcePath();
-                final String javadocPath = library.getJavadocPath();
-                dependencies.add(new ExternalDependencyVersion1() {
-                    public File getFile() {
-                        return project.file(path);
-                    }
-
-                    public File getJavadoc() {
-                        return javadocPath == null ? null : project.file(javadocPath);
-                    }
-
-                    public File getSource() {
-                        return sourcePath == null ? null : project.file(sourcePath);
-                    }
-                });
+                final File file = project.file(library.getPath());
+                final File source = library.getSourcePath() == null ? null : project.file(library.getSourcePath());
+                final File javadoc = library.getJavadocPath() == null ? null : project.file(library.getJavadocPath());
+                dependencies.add(new DefaultExternalDependency(file, javadoc, source));
             }
         }
         return dependencies;
     }
+
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal;
 
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
@@ -23,33 +23,32 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-class DefaultEclipseProject implements EclipseProjectVersion3 {
+public class DefaultEclipseProject implements EclipseProjectVersion3, Serializable {
     private final String name;
     private final String path;
     private EclipseProjectVersion3 parent;
-    private final List<ExternalDependencyVersion1> classpath;
+    private List<ExternalDependencyVersion1> classpath;
     private final List<EclipseProjectVersion3> children;
-    private final List<EclipseSourceDirectoryVersion1> sourceDirectories;
-    private final List<EclipseProjectDependencyVersion2> projectDependencies;
+    private List<EclipseSourceDirectoryVersion1> sourceDirectories;
+    private List<EclipseProjectDependencyVersion2> projectDependencies;
     private final String description;
     private final File projectDirectory;
     private Iterable<? extends EclipseTaskVersion1> tasks;
 
-    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children,
-                                 Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath,
-                                 Iterable<? extends EclipseProjectDependencyVersion2> projectDependencies) {
+    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children) {
         this.name = name;
         this.path = path;
         this.description = description;
         this.projectDirectory = projectDirectory;
         this.tasks = Collections.emptyList();
         this.children = GUtil.addLists(children);
-        this.classpath = GUtil.addLists(classpath);
-        this.sourceDirectories = GUtil.addLists(sourceDirectories);
-        this.projectDependencies = GUtil.addLists(projectDependencies);
+        this.classpath = Collections.emptyList();
+        this.sourceDirectories = Collections.emptyList();
+        this.projectDependencies = Collections.emptyList();
     }
 
     @Override
@@ -89,12 +88,23 @@ class DefaultEclipseProject implements EclipseProjectVersion3 {
         return sourceDirectories;
     }
 
+    public void setSourceDirectories(List<EclipseSourceDirectoryVersion1> sourceDirectories) {
+        this.sourceDirectories = sourceDirectories;
+    }
+
     public Iterable<? extends EclipseProjectDependencyVersion2> getProjectDependencies() {
         return projectDependencies;
     }
 
+    public void setProjectDependencies(List<EclipseProjectDependencyVersion2> projectDependencies) {
+        this.projectDependencies = projectDependencies;
+    }
+
     public List<ExternalDependencyVersion1> getClasspath() {
         return classpath;
+    }
+    public void setClasspath(List<ExternalDependencyVersion1> classpath) {
+        this.classpath = classpath;
     }
 
     public Iterable<? extends EclipseTaskVersion1> getTasks() {

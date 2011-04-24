@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.dependencies;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
+import org.gradle.tooling.internal.DefaultEclipseProjectDependency;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 
@@ -37,15 +38,7 @@ public class EclipseProjectDependenciesFactory {
             if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                dependencies.add(new EclipseProjectDependencyVersion2() {
-                    public HierarchicalEclipseProjectVersion1 getTargetProject() {
-                        return projectMapping.get(projectDependency.getGradlePath());
-                    }
-
-                    public String getPath() {
-                        return path;
-                    }
-                });
+                dependencies.add(new DefaultEclipseProjectDependency(path, projectMapping.get(projectDependency.getGradlePath())));
             }
         }
         return dependencies;

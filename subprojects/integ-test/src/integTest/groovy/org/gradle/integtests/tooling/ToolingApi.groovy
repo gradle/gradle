@@ -25,8 +25,13 @@ import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
 import java.util.concurrent.TimeUnit
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.slf4j.LoggerFactory
+import org.slf4j.Logger
+import org.gradle.integtests.fixtures.DaemonGradleExecuter
 
 class ToolingApi implements MethodRule {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
     File projectDir
     private GradleDistribution dist
     private final List<Closure> connectorConfigurers = []
@@ -74,12 +79,20 @@ class ToolingApi implements MethodRule {
 
     private def connector() {
         GradleConnector connector = GradleConnector.newConnector()
-        connector.useGradleUserHomeDir(dist.userHomeDir)
-        connector.forProjectDirectory(getProjectDir())
+        connector.useGradleUserHomeDir(new File(dist.userHomeDir.absolutePath))
+        connector.forProjectDirectory(new File(getProjectDir().absolutePath))
         connector.searchUpwards(false)
-        connector.useClasspathDistribution()
-        connector.embedded(true)
-        connector.daemonMaxIdleTime(5, TimeUnit.MINUTES)
+        if (GradleDistributionExecuter.executer == GradleDistributionExecuter.Executer.embedded) {
+            LOGGER.info("Using embedded tooling API provider");
+            connector.useClasspathDistribution()
+            connector.embedded(true)
+        } else {
+            LOGGER.info("Using daemon tooling API provider");
+            connector.useInstallation(new File(dist.gradleHomeDir.absolutePath))
+            connector.embedded(false)
+            connector.daemonMaxIdleTime(5, TimeUnit.MINUTES)
+            DaemonGradleExecuter.registerDaemon(dist.userHomeDir)
+        }
         connectorConfigurers.each {
             it.call(connector)
         }

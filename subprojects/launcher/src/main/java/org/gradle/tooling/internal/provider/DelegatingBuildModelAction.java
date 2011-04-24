@@ -23,8 +23,10 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.util.UncheckedException;
 
-class DelegatingBuildModelAction implements GradleLauncherAction<ProjectVersion3> {
-    private GradleLauncherAction<ProjectVersion3> action;
+import java.io.Serializable;
+
+class DelegatingBuildModelAction implements GradleLauncherAction<ProjectVersion3>, Serializable {
+    private transient GradleLauncherAction<ProjectVersion3> action;
     private final Class<? extends ProjectVersion3> type;
 
     public DelegatingBuildModelAction(Class<? extends ProjectVersion3> type) {

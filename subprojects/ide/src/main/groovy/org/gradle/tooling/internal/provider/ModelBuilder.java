@@ -22,6 +22,7 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.gradle.tooling.internal.DefaultEclipseProject;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
@@ -52,19 +53,12 @@ public class ModelBuilder {
 
     public void buildAll(GradleInternal gradle) {
         this.gradle = gradle;
-        build(gradle.getRootProject());
+        buildHierarchy(gradle.getRootProject());
+        populate(gradle.getRootProject());
     }
 
     public DefaultEclipseProject getProject() {
         return currentProject;
-    }
-
-    private List<DefaultEclipseProject> buildChildren(Project project) {
-        List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
-        for (Project child : project.getChildProjects().values()) {
-            children.add(build(child));
-        }
-        return children;
     }
 
     private void addProject(Project project, DefaultEclipseProject eclipseProject) {
@@ -74,7 +68,7 @@ public class ModelBuilder {
         projectMapping.put(project.getPath(), eclipseProject);
     }
 
-    private DefaultEclipseProject build(Project project) {
+    private void populate(Project project) {
         EclipseModel eclipseModel = project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
         EclipseClasspath classpath = eclipseModel.getClasspath();
 
@@ -85,15 +79,30 @@ public class ModelBuilder {
         List<EclipseProjectDependencyVersion2> projectDependencies = new EclipseProjectDependenciesFactory().create(projectMapping, entries);
         List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, entries);
 
-        List<DefaultEclipseProject> children = buildChildren(project);
-
-        org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
-        String name = internalProject.getName();
-        String description = GUtil.elvis(internalProject.getComment(), null);
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
+        DefaultEclipseProject eclipseProject = projectMapping.get(project.getPath());
+        eclipseProject.setClasspath(dependencies);
+        eclipseProject.setProjectDependencies(projectDependencies);
+        eclipseProject.setSourceDirectories(sourceDirectories);
         if (includeTasks) {
             eclipseProject.setTasks(new TasksFactory().create(project, eclipseProject));
         }
+
+        for (Project childProject : project.getChildProjects().values()) {
+            populate(childProject);
+        }
+    }
+
+    private DefaultEclipseProject buildHierarchy(Project project) {
+        List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
+        for (Project child : project.getChildProjects().values()) {
+            children.add(buildHierarchy(child));
+        }
+
+        EclipseModel eclipseModel = project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
+        org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
+        String name = internalProject.getName();
+        String description = GUtil.elvis(internalProject.getComment(), null);
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children);
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
         }
