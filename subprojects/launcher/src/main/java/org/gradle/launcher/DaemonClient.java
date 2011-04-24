@@ -23,7 +23,6 @@ import org.gradle.launcher.protocol.*;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.util.UncheckedException;
 
 /**
  * The client piece of the build daemon.
@@ -88,7 +87,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 if (object instanceof CommandComplete) {
                     CommandComplete commandComplete = (CommandComplete) object;
                     if (commandComplete.getFailure() != null) {
-                        throw UncheckedException.asUncheckedException(commandComplete.getFailure());
+                        throw commandComplete.getFailure();
                     }
                     return commandComplete;
                 }

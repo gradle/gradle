@@ -18,13 +18,13 @@ package org.gradle.launcher.protocol;
 import java.io.Serializable;
 
 public class CommandComplete implements Serializable {
-    private final Throwable failure;
+    private final RuntimeException failure;
 
-    public CommandComplete(Throwable failure) {
+    public CommandComplete(RuntimeException failure) {
         this.failure = failure;
     }
 
-    public Throwable getFailure() {
+    public RuntimeException getFailure() {
         return failure;
     }
 }

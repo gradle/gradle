@@ -132,8 +132,9 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof ActionAdapter
-        action.action.action instanceof ShowGuiAction
+        action.action instanceof ExceptionReportingAction
+        action.action.action instanceof ActionAdapter
+        action.action.action.action instanceof ShowGuiAction
     }
 
     def executesBuild() {
@@ -142,7 +143,8 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof RunBuildAction
+        action.action instanceof ExceptionReportingAction
+        action.action.action instanceof RunBuildAction
     }
 
     def executesBuildUsingDaemon() {
@@ -151,7 +153,9 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof DaemonBuildAction
+        action.action instanceof ExceptionReportingAction
+        action.action.action instanceof ActionAdapter
+        action.action.action.action instanceof DaemonBuildAction
     }
 
     def executesBuildUsingDaemonWhenSystemPropertyIsSetToTrue() {
@@ -161,7 +165,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof RunBuildAction
+        action.action.action instanceof RunBuildAction
 
         when:
         System.properties['org.gradle.daemon'] = 'true'
@@ -169,7 +173,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof DaemonBuildAction
+        action.action.action.action instanceof DaemonBuildAction
     }
 
     def doesNotUseDaemonWhenNoDaemonOptionPresent() {
@@ -178,7 +182,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof RunBuildAction
+        action.action.action instanceof RunBuildAction
     }
 
     def daemonOptionTakesPrecedenceOverSystemProperty() {
@@ -188,7 +192,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof DaemonBuildAction
+        action.action.action.action instanceof DaemonBuildAction
 
         when:
         System.properties['org.gradle.daemon'] = 'true'
@@ -196,7 +200,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof RunBuildAction
+        action.action.action instanceof RunBuildAction
     }
     
     def stopsDaemon() {
@@ -205,7 +209,9 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof StopDaemonAction
+        action.action instanceof ExceptionReportingAction
+        action.action.action instanceof ActionAdapter
+        action.action.action.action instanceof StopDaemonAction
     }
 
     def runsDaemonInForeground() {
@@ -214,7 +220,8 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof WithLoggingAction
-        action.action instanceof ActionAdapter
-        action.action.action instanceof DaemonMain
+        action.action instanceof ExceptionReportingAction
+        action.action.action instanceof ActionAdapter
+        action.action.action.action instanceof DaemonMain
     }
 }

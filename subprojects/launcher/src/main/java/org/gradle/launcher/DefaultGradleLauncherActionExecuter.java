@@ -28,12 +28,10 @@ import org.gradle.logging.StyledTextOutputFactory;
 public class DefaultGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildActionParameters> {
     private final ServiceRegistry loggingServices;
     private final GradleLauncherFactory gradleLauncherFactory;
-    private final ExecutionListener executionListener;
 
-    public DefaultGradleLauncherActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry loggingServices, ExecutionListener executionListener) {
+    public DefaultGradleLauncherActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry loggingServices) {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.loggingServices = loggingServices;
-        this.executionListener = executionListener;
     }
 
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
@@ -51,14 +49,15 @@ public class DefaultGradleLauncherActionExecuter implements GradleLauncherAction
             BuildResult buildResult = action.run(gradleLauncher);
             Throwable failure = buildResult.getFailure();
             if (failure != null) {
-                executionListener.onFailure(failure);
+                throw new ReportedException(failure);
             }
             return action.getResult();
+        } catch (ReportedException e) {
+            throw e;
         } catch (Throwable throwable) {
             BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter(), parameters.getClientMetaData());
             exceptionReporter.reportException(throwable);
-            executionListener.onFailure(throwable);
-            return null;
+            throw new ReportedException(throwable);
         } finally {
             loggingManager.stop();
         }

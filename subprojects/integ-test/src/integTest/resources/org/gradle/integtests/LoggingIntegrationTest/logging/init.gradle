@@ -25,7 +25,7 @@ class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluat
     }
 
     public void afterEvaluate(Project project, ProjectState state) {
-        logger.info('LOGGER: evaluated project')
+        logger.info("LOGGER: evaluated project $project.path")
     }
 
     public void beforeExecute(Task task) {
@@ -33,14 +33,14 @@ class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluat
     }
 
     public void afterExecute(Task task, TaskState state) {
-        logger.info('LOGGER: executed task')
+        logger.info("LOGGER: executed task $task.path")
     }
 
     public void beforeActions(Task task) {
-        logger.info('LOGGER: task starting work')
+        logger.info("LOGGER: task $task.path starting work")
     }
 
     public void afterActions(Task task) {
-        logger.info('LOGGER: task completed work')
+        logger.info("LOGGER: task $task.path completed work")
     }
 }

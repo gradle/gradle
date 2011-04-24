@@ -47,8 +47,8 @@ class LoggingIntegrationTest {
                 'settings quiet out',
                 'init QUIET out',
                 'init callback quiet out',
-                'buildSrc quiet',
-                'nestedBuild/buildSrc quiet',
+                'main buildSrc quiet',
+                'nestedBuild buildSrc quiet',
                 'nestedBuild quiet',
                 'nestedBuild task quiet',
                 'external QUIET message')
@@ -81,7 +81,6 @@ class LoggingIntegrationTest {
                 'LOGGER: executing :project1:logLifecycle',
                 'LOGGER: executing :project1:nestedBuildLog',
                 'LOGGER: executing :project1:log',
-                ':buildSrc:classes',
                 ':nestedBuild:log'
         )
         info(
@@ -103,12 +102,14 @@ class LoggingIntegrationTest {
                 'init INFO err',
                 'init info log',
                 'LOGGER: build finished',
-                'LOGGER: evaluated project',
-                'LOGGER: executed task',
-                'LOGGER: task starting work',
-                'LOGGER: task completed work',
-                'buildSrc info',
-                'nestedBuild/buildSrc info',
+                'LOGGER: evaluated project :',
+                'LOGGER: evaluated project :project1',
+                'LOGGER: evaluated project :project2',
+                'LOGGER: executed task :project1:log',
+                'LOGGER: task :project1:log starting work',
+                'LOGGER: task :project1:log completed work',
+                'main buildSrc info',
+                'nestedBuild buildSrc info',
                 'nestedBuild info',
                 'external INFO message'
         )
@@ -152,6 +153,10 @@ class LoggingIntegrationTest {
         }
     }}
 
+    private final LogOutput brokenBuild = new LogOutput() {{
+        error('FAILURE: Could not determine which tasks to execute.')
+    }}
+
     @Test
     public void quietLogging() {
         checkOutput(this.&run, logOutput.quiet)
@@ -170,6 +175,11 @@ class LoggingIntegrationTest {
     @Test
     public void debugLogging() {
         checkOutput(this.&run, logOutput.debug)
+    }
+
+    @Test
+    public void lifecycleLoggingForBrokenBuild() {
+        checkOutput(this.&runBroken, brokenBuild.lifecycle)
     }
 
     @Test @UsesSample('userguide/tutorial/logging')
@@ -218,11 +228,17 @@ class LoggingIntegrationTest {
         return executer.inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
     }
 
+    def runBroken(LogLevel level) {
+        TestFile loggingDir = dist.testDir
+
+        return executer.inDirectory(loggingDir).withTasks('broken').runWithFailure()
+    }
+
     def runMultiThreaded(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/multiThreaded')
         return executer.withArguments(level.args).withTasks('log').run()
     }
-    
+
     def runSample(LogLevel level) {
         return executer.inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
     }
@@ -259,12 +275,15 @@ class LogLevel {
 
     def checkOuts(boolean shouldContain, String result, List outs, Closure partialLine) {
         outs.each {String expectedOut ->
-            boolean found = result.readLines().find {partialLine.call(expectedOut, it)}
-            if (!found && shouldContain) {
+            def found = result.readLines().findAll {partialLine.call(expectedOut, it)}
+            if (found.empty && shouldContain) {
                 throw new AssertionFailedError("Could not find expected line '$expectedOut' in output:\n$result")
             }
-            if (found && !shouldContain) {
+            if (!found.empty && !shouldContain) {
                 throw new AssertionFailedError("Found unexpected line '$expectedOut' in output:\n$result")
+            }
+            if (found.size() > 1) {
+                throw new AssertionFailedError("Found line '$expectedOut' multiple times in output:\n$result")
             }
         }
     }

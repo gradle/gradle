@@ -21,7 +21,6 @@ import spock.lang.Specification
 
 class DaemonBuildActionTest extends Specification {
     final DaemonClient client = Mock()
-    final ExecutionListener completer = Mock()
     final ParsedCommandLine commandLine = Mock()
     final BuildClientMetaData clientMetaData = Mock()
     final File currentDir = new File('current-dir')
@@ -31,7 +30,7 @@ class DaemonBuildActionTest extends Specification {
 
     def runsBuildUsingDaemon() {
         when:
-        action.execute(completer)
+        action.run()
 
         then:
         1 * client.execute({!null}, {!null}) >> { args ->

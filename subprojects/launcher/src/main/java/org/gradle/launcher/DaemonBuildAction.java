@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.api.Action;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
@@ -27,7 +26,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DaemonBuildAction implements Action<ExecutionListener> {
+public class DaemonBuildAction implements Runnable {
     private final DaemonClient client;
     private final ParsedCommandLine args;
     private final File currentDir;
@@ -45,7 +44,7 @@ public class DaemonBuildAction implements Action<ExecutionListener> {
         GUtil.addToMap(this.systemProperties, systemProperties);
     }
 
-    public void execute(ExecutionListener executionListener) {
+    public void run() {
         client.execute(new ExecuteBuildAction(currentDir, args), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties));
     }
 

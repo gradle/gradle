@@ -22,14 +22,16 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.internal.IntegrationTestHint
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.integtests.fixtures.UsesSample
 
 class SamplesToolingApiIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('toolingApi')
+    @Rule public final Sample sample = new Sample()
 
+    @UsesSample('toolingApi/model')
     def canUseToolingApiToDetermineProjectClasspath() {
-        def projectDir = sample.dir.file('model')
+        def projectDir = sample.dir
         Properties props = new Properties()
         props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
         props['gradleDistribution'] = distribution.gradleHomeDir.toString()
@@ -47,8 +49,9 @@ class SamplesToolingApiIntegrationTest extends Specification {
         result.output.contains("gradle-wrapper-${distribution.version}.jar")
     }
 
+    @UsesSample('toolingApi/build')
     def canUseToolingApiToRunABuild() {
-        def projectDir = sample.dir.file('build')
+        def projectDir = sample.dir
         Properties props = new Properties()
         props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
         props['gradleDistribution'] = distribution.gradleHomeDir.toString()

@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher;
 
+import org.gradle.BuildExceptionReporter;
 import org.gradle.CommandLineArgumentException;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -25,6 +26,7 @@ import org.gradle.initialization.*;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.util.GradleVersion;
 
@@ -82,7 +84,13 @@ public class CommandLineActionFactory {
             action = new CommandLineParseFailureAction(parser, e);
         }
 
-        return new WithLoggingAction(loggingConfiguration, loggingServices, action);
+        return new WithLoggingAction(loggingConfiguration, loggingServices,
+                new ExceptionReportingAction(action,
+                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter(), clientMetaData())));
+    }
+
+    private static GradleLauncherMetaData clientMetaData() {
+        return new GradleLauncherMetaData();
     }
 
     CommandLineConverter<StartParameter> createStartParameterConverter() {
@@ -107,7 +115,7 @@ public class CommandLineActionFactory {
         StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
         DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
-        GradleLauncherMetaData clientMetaData = new GradleLauncherMetaData();
+        GradleLauncherMetaData clientMetaData = clientMetaData();
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
         DaemonClient client = new DaemonClient(connector, clientMetaData, loggingServices.get(OutputEventListener.class));
 
@@ -115,14 +123,15 @@ public class CommandLineActionFactory {
             return new ActionAdapter(new DaemonMain(loggingServices, connector));
         }
         if (commandLine.hasOption(STOP)) {
-            return new StopDaemonAction(client);
+            return new ActionAdapter(new StopDaemonAction(client));
         }
 
         boolean useDaemon = System.getProperty("org.gradle.daemon", "false").equals("true");
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         if (useDaemon) {
-            return new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime, System.getProperties());
+            return new ActionAdapter(
+                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime, System.getProperties()));
         }
 
         return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData, startTime));
@@ -131,7 +140,7 @@ public class CommandLineActionFactory {
     private static void showUsage(PrintStream out, CommandLineParser parser) {
         out.println();
         out.print("USAGE: ");
-        new GradleLauncherMetaData().describeCommand(out, "[option...]", "[task...]");
+        clientMetaData().describeCommand(out, "[option...]", "[task...]");
         out.println();
         out.println();
         parser.printUsage(out);

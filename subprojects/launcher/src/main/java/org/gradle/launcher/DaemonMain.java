@@ -33,6 +33,7 @@ import org.gradle.logging.internal.StreamBackedStandardOutputListener;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.UncheckedException;
 
 import java.io.*;
 import java.util.Arrays;
@@ -77,8 +78,8 @@ public class DaemonMain implements Runnable {
     }
 
     private void doRun(final Connection<Object> connection, Stoppable serverControl) {
-        ExecutionListenerImpl executionListener = new ExecutionListenerImpl();
         CommandComplete result = null;
+        Throwable failure = null;
         try {
             LoggingOutputInternal loggingOutput = loggingServices.get(LoggingOutputInternal.class);
             OutputEventListener listener = new OutputEventListener() {
@@ -90,64 +91,59 @@ public class DaemonMain implements Runnable {
             // Perform as much as possible of the interaction while the logging is routed to the client
             loggingOutput.addOutputEventListener(listener);
             try {
-                result = doRunWithLogging(connection, serverControl, executionListener);
+                result = doRunWithLogging(connection, serverControl);
             } finally {
                 loggingOutput.removeOutputEventListener(listener);
             }
+        } catch (ReportedException e) {
+            failure = e;
         } catch (Throwable throwable) {
             LOGGER.error("Could not execute build.", throwable);
-            executionListener.onFailure(throwable);
+            failure = throwable;
         }
-        if (executionListener.failure != null) {
-            result = new CommandComplete(executionListener.failure);
+        if (failure != null) {
+            result = new CommandComplete(UncheckedException.asUncheckedException(failure));
         }
+        assert result != null;
         connection.dispatch(result);
     }
 
-    private CommandComplete doRunWithLogging(Connection<Object> connection, Stoppable serverControl, ExecutionListener executionListener) {
+    private CommandComplete doRunWithLogging(Connection<Object> connection, Stoppable serverControl) {
         Command command = (Command) connection.receive();
         try {
-            return doRunWithExceptionHandling(command, serverControl, executionListener);
+            return doRunWithExceptionHandling(command, serverControl);
+        } catch (ReportedException e) {
+            throw e;
         } catch (Throwable throwable) {
             BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter(), command.getClientMetaData());
             exceptionReporter.reportException(throwable);
-            executionListener.onFailure(throwable);
-            return null;
+            throw new ReportedException(throwable);
         }
     }
 
-    private CommandComplete doRunWithExceptionHandling(Command command, Stoppable serverControl, ExecutionListener executionListener) {
+    private CommandComplete doRunWithExceptionHandling(Command command, Stoppable serverControl) {
         LOGGER.info("Executing {}", command);
         if (command instanceof Stop) {
             LOGGER.lifecycle("Stopping");
             serverControl.stop();
-            return null;
+            return new CommandComplete(null);
         }
 
-        assert command instanceof Build;
-        return build((Build) command, executionListener);
+        return build((Build) command);
     }
 
-    private Result build(Build build, ExecutionListener executionListener) {
+    private Result build(Build build) {
         Properties originalSystemProperties = new Properties();
         originalSystemProperties.putAll(System.getProperties());
         Properties clientSystemProperties = new Properties();
         clientSystemProperties.putAll(build.getParameters().getSystemProperties());
         System.setProperties(clientSystemProperties);
         try {
-            DefaultGradleLauncherActionExecuter executer = new DefaultGradleLauncherActionExecuter(launcherFactory, loggingServices, executionListener);
+            DefaultGradleLauncherActionExecuter executer = new DefaultGradleLauncherActionExecuter(launcherFactory, loggingServices);
             Object result = executer.execute(build.getAction(), build.getParameters());
             return new Result(result);
         } finally {
             System.setProperties(originalSystemProperties);
-        }
-    }
-
-    private static class ExecutionListenerImpl implements ExecutionListener {
-        public Throwable failure;
-
-        public void onFailure(Throwable failure) {
-            this.failure = failure;
         }
     }
 }

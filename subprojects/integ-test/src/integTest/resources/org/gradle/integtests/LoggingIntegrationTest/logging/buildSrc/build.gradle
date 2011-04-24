@@ -1,5 +1,5 @@
-println 'buildSrc quiet'
-logger.info 'buildSrc info'
+println 'main buildSrc quiet'
+logger.info 'main buildSrc info'
 
 task classes << {}
 

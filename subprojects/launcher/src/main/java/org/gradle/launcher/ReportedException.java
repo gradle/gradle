@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher
+package org.gradle.launcher;
 
-import spock.lang.Specification
-
-class StopDaemonActionTest extends Specification {
-    final DaemonClient client = Mock()
-    final StopDaemonAction action = new StopDaemonAction(client)
-
-    def executesStopCommand() {
-        when:
-        action.run()
-
-        then:
-        1 * client.stop()
-        0 * _._
+/**
+ * Wraps an exception which has already been logged, and should not be logged again.
+ */
+public class ReportedException extends RuntimeException {
+    public ReportedException(Throwable throwable) {
+        super(throwable);
     }
 }

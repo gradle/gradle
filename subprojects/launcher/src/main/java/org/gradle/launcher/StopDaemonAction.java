@@ -15,16 +15,14 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.api.Action;
-
-public class StopDaemonAction implements Action<ExecutionListener> {
+public class StopDaemonAction implements Runnable {
     private final DaemonClient client;
 
     public StopDaemonAction(DaemonClient client) {
         this.client = client;
     }
 
-    public void execute(ExecutionListener executionListener) {
+    public void run() {
         client.stop();
     }
 }
