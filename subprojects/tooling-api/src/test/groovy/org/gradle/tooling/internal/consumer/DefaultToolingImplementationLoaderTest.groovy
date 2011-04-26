@@ -55,7 +55,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     }
 
     private getVersionResourcesDir() {
-        return getResourcesDir("org/gradle/version.properties")
+        return getResourcesDir("org/gradle/releases.xml")
     }
 
     private getResourcesDir(String name) {

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import java.text.DateFormat
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+import org.gradle.build.GenerateReleasesXml
 
 apply plugin: 'groovy'
 apply from: "$rootDir/gradle/integTest.gradle"
@@ -73,25 +73,25 @@ dependencies {
     integTestFixtures sourceSets.integTest.classes
 }
 
-task versionProperties(type: WriteVersionProperties) {
-    propertiesFile = new File(sourceSets.main.classesDir, GradleVersion.FILE_NAME)
+task releasesResource(type: GenerateReleasesXml) {
+    destFile = new File(sourceSets.main.classesDir, "org/gradle/releases.xml")
 }
 
-classes.dependsOn(versionProperties)
+classes.dependsOn releasesResource
 
-task ideVersionProperties(type: WriteVersionProperties) {
-    propertiesFile = new File(ideDir, "resources/test/$GradleVersion.FILE_NAME")
+task ideReleasesResource(type: GenerateReleasesXml) {
+    destFile = new File(ideDir, "resources/test/org/gradle/releases.xml")
 }
 
-ide.dependsOn ideVersionProperties
+ide.dependsOn ideReleasesResource
 
 ideaModule {
-    dependsOn ideVersionProperties
+    dependsOn ideReleasesResource
     scopes.COMPILE.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
 }
 
 eclipseClasspath {
-    dependsOn ideVersionProperties
+    dependsOn ideReleasesResource
     plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
 }
 
@@ -99,29 +99,4 @@ eclipseClasspath {
 
 test {
     jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
-}
-
-class WriteVersionProperties extends DefaultTask {
-    @Input
-    String getVersion() { return project.version.toString() }
-
-    @Input
-    Date getBuildTime() { return project.version.buildTime }
-
-    @OutputFile
-    File propertiesFile
-
-    @TaskAction
-    def void generate() {
-        logger.info('Write version properties to: {}', propertiesFile)
-        Properties versionProperties = new Properties()
-        versionProperties.putAll([
-                (GradleVersion.VERSION): version,
-                (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime)
-        ])
-        propertiesFile.withOutputStream {
-            versionProperties.store(it, '')
-        }
-
-    }
 }

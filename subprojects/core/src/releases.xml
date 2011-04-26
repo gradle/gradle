@@ -1,0 +1,14 @@
+<releases>
+    <next version="1.0-milestone-3"/>
+    <current version="${version}" build-time="${buildTime}"/>
+    <release version="1.0-milestone-2"/>
+    <release version="1.0-milestone-1"/>
+    <release version="0.9.2"/>
+    <release version="0.9.1"/>
+    <release version="0.9"/>
+    <release version="0.9-rc3"/>
+    <release version="0.9-rc2"/>
+    <release version="0.9-rc3"/>
+    <release version="0.8"/>
+    <release version="0.7"/>
+</releases>

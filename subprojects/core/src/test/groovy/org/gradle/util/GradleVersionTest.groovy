@@ -27,6 +27,12 @@ import spock.lang.Specification
 class GradleVersionTest extends Specification {
     final GradleVersion version = GradleVersion.current()
 
+    def currentVersionHasNonNullVersionAndBuildTime() {
+        expect:
+        version.version
+        version.buildTime
+    }
+
     def equalsAndHashCode() {
         expect:
         Matchers.strictlyEquals(GradleVersion.version('0.9'), GradleVersion.version('0.9'))

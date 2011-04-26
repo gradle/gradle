@@ -17,6 +17,7 @@ import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import groovy.text.TemplateEngine
 import java.util.regex.Matcher
+import com.sun.org.apache.xerces.internal.parsers.XMLParser
 
 // we only need a test source set
 apply plugin: 'groovy'
@@ -67,14 +68,12 @@ task userguideContent << {
 
 releases = []
 task configureReleases << {
-    gradleCoreProperties = GUtil.loadProperties(new File(generatedDocs, 'version.properties'))
-
-    version = gradleCoreProperties.version
-    releases << new Release(version: version, status: 'Current Release')
-    releases << new Release(version: '1.0-milestone-1')
-    releases << new Release(version: '0.9.2')
-    releases << new Release(version: '0.9.1')
-    releases << new Release(version: '0.9')
+    def releaseXml = new XmlParser().parse(new File(generatedDocs, "releases.xml"))
+    def current = releaseXml.current[0]
+    releases << new Release(version: current.'@version', status: 'Current Release')
+    releaseXml.release.each {
+        releases << new Release(version: it.'@version')
+    }
 }
 
 task html(dependsOn: configureReleases) << {

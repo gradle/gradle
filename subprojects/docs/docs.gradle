@@ -19,6 +19,7 @@ import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.ExtractDslMetaDataTask
+import org.gradle.build.GenerateReleasesXml
 
 apply plugin: 'base'
 apply from: "${rootDir}/gradle/ssh.gradle"
@@ -309,20 +310,12 @@ task websiteUserguide(type: Docbook2Xhtml, dependsOn: websiteUserguideSrc) {
     }
 }
 
-task websiteProperties {
-    def propertiesFile = new File(websiteDocs, 'version.properties')
-    inputs.property 'version', { version.toString() }
-    outputs.files propertiesFile
-    doLast {
-        def properties = new Properties()
-        properties.version = version.toString()
-        propertiesFile.parentFile.mkdirs()
-        propertiesFile.withOutputStream { outputStream -> properties.store(outputStream, 'documentation version properties') }
-    }
+task websiteReleasesXml(type: GenerateReleasesXml) {
+    destFile = new File(websiteDocs, 'releases.xml')
 }
 
 task websiteDocs {
-    dependsOn websiteUserguide, websiteProperties
+    dependsOn websiteUserguide, websiteReleasesXml
 }
 
 task userguide {

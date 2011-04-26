@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
  * following properties can be set:
  *
  * Uploading distributions to Gradle's release and snapshot repository at codehaus: artifactoryUserName, artifactoryUserPassword
- * Uploading the userguide and the javadoc to Gradle's website: websiteFtpUserName, websiteFtpUserPassword
+ * Uploading the userguide and the javadoc to Gradle's website: websiteScpUserName, websiteScpUserPassword
  * Using the build to create a new distribution and install it on the local machine: gradle_installPath
  */
 

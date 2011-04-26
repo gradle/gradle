@@ -24,7 +24,7 @@ class Version {
     Boolean release = null
 
     def Version(project) {
-        this.versionNumber = project.nextVersion
+        this.versionNumber = getNextVersion(project)
         File timestampFile = new File(project.buildDir, 'timestamp.txt')
         if (timestampFile.isFile()) {
             boolean uptodate = true
@@ -52,6 +52,15 @@ class Version {
                 release = false
             }
         }
+    }
+
+    private def getNextVersion(project) {
+        def srcFile = project.project(':core').file('src/releases.xml')
+        assert srcFile.exists()
+        def releases = new XmlParser().parse(srcFile)
+        def next = releases.next
+        assert next && next[0].'@version'
+        return next[0].'@version'
     }
 
     String toString() {
