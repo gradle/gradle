@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.junit.Test
+import spock.lang.Issue
 
 // TODO: run prepareWebProject() only once per class for performance reasons (not as simply as it seems)
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
@@ -78,6 +79,29 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 		assert getDeployName(projectModules) == "web"
 		assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
 		assert getDependencyTypes(projectModules) == ["uses"] * 5 as Set
+    }
+
+    @Test
+    @Issue("GRADLE-1415")
+    void canUseSelfResolvingFiles() {
+        def buildFile = """
+apply plugin: "war"
+apply plugin: "eclipse"
+
+dependencies {
+    compile fileTree(dir: "libs", includes: ["*.jar"])
+}
+        """
+
+        def libsDir = file("libs")
+        libsDir.mkdir()
+        libsDir.createFile("foo.jar")
+
+        // when
+        runEclipseTask(buildFile)
+
+        // then
+        libEntriesInClasspathFileHaveFilenames("foo.jar")
     }
 
     private prepareWebProject() {
