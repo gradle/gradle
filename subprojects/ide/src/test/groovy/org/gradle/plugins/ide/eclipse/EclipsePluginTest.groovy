@@ -94,8 +94,8 @@ class EclipsePluginTest extends Specification {
         then:
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
-        checkEclipseProjectTask([new BuildCommand('ch.epfl.lamp.sdt.core.scalabuilder')],
-                ['ch.epfl.lamp.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
+        checkEclipseProjectTask([new BuildCommand('org.scala-ide.sdt.core.scalabuilder')],
+                ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([])
 
         when:

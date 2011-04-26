@@ -103,8 +103,8 @@ class EclipsePlugin extends IdePlugin {
 
             project.plugins.withType(ScalaBasePlugin) {
                 projectModel.buildCommands.set(buildCommands.findIndexOf { it.name == "org.eclipse.jdt.core.javabuilder" },
-                        new BuildCommand("ch.epfl.lamp.sdt.core.scalabuilder"))
-                projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
+                        new BuildCommand("org.scala-ide.sdt.core.scalabuilder"))
+                projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.scala-ide.sdt.core.scalanature")
             }
 
             project.plugins.withType(WarPlugin) {
