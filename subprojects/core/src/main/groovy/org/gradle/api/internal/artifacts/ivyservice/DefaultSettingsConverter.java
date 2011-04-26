@@ -38,10 +38,7 @@ import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.gradle.api.artifacts.ResolverContainer.INTERNAL_REPOSITORY_NAME;
 
@@ -108,7 +105,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
             }
             // Add all resolvers to main chain resolver
             ChainResolver chainResolver = (ChainResolver) ivySettings.getResolver(CHAIN_RESOLVER_NAME);
-            chainResolver.getResolvers().clear();
+            List resolvers = chainResolver.getResolvers();
+            Collection ivySettingsResolvers = ivySettings.getResolvers();
+            Set<DependencyResolver> depSet = new HashSet<DependencyResolver>(resolvers);
+            resolvers.clear();
+            for (DependencyResolver dependencyResolver : depSet) {
+                ivySettingsResolvers.remove(dependencyResolver);
+            }
             for (DependencyResolver dependencyResolver : dependencyResolvers) {
                 internalAddResolver(ivySettings, dependencyResolver);
                 chainResolver.add(dependencyResolver);
