@@ -91,7 +91,7 @@ class WtpComponentFactory {
     }
 
     private LinkedHashSet getSelfResolvingFiles(LinkedHashSet<SelfResolvingDependency> dependencies) {
-        dependencies.collect { it.resolve() }.flatten()
+        dependencies.collect { it.resolve() }.flatten() as LinkedHashSet
     }
 
     private WbDependentModule createWbDependentModuleEntry(File file, Map<String, File> variables) {
