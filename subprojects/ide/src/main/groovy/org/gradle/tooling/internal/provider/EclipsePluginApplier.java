@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
-import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper;
 
 import java.util.Set;
 
@@ -28,11 +28,12 @@ import java.util.Set;
  */
 public class EclipsePluginApplier {
     public void apply(GradleInternal gradle) {
-        Set<Project> allprojects = gradle.getRootProject().getAllprojects();
+        ProjectInternal root = gradle.getRootProject();
+        Set<Project> allprojects = root.getAllprojects();
         for (Project p : allprojects) {
             p.getPlugins().apply(EclipsePlugin.class);
-            //TODO SF: this is temporary, until we figure out how to tackle this
-            new EclipseNameDeduper().configure(p);
         }
+        //TODO SF: this is temporary, until we figure out how to tackle this
+        root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
     }
 }
