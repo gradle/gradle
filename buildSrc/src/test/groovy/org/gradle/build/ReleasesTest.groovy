@@ -19,11 +19,14 @@ import spock.lang.Specification
 import java.text.SimpleDateFormat
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.api.Project
+import java.text.DateFormat
 
 class ReleasesTest extends Specification {
     Releases releases
     Project project
     File releasesXml
+    final DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssZ")
+    final Date buildTime = new Date()
 
     def setup() {
         project = ProjectBuilder.builder().build()
@@ -53,17 +56,17 @@ class ReleasesTest extends Specification {
     <release version="ignore-me" build-time="ignore-me"/>
 </releases>
 '''
-        project.version = [versionNumber: '1.0-milestone-2', buildTime: new SimpleDateFormat("yyyyMMddHHmmssZ").parse('20110120123425+1100')]
+        project.version = [versionNumber: '1.0-milestone-2', buildTime: buildTime]
 
         when:
         releases.generateTo(destFile)
 
         then:
-        destFile.text == '''<releases>
-  <current version="1.0-milestone-2" build-time="20110120123425+1100"/>
+        destFile.text == """<releases>
+  <current version="1.0-milestone-2" build-time="${dateFormat.format(buildTime)}"/>
   <release version="ignore-me" build-time="ignore-me"/>
 </releases>
-'''
+"""
     }
 
     def calculatesNextVersion() {
@@ -84,19 +87,19 @@ class ReleasesTest extends Specification {
     <release version="previous" build-time="20101220123412-0200"/>
 </releases>
 '''
-        project.version = [buildTime: new SimpleDateFormat("yyyyMMddHHmmssZ").parse('20110124123456+1100')]
+        project.version = [buildTime: buildTime]
 
         when:
         releases.incrementNextVersion()
 
         then:
-        releasesXml.text == '''<releases>
+        releasesXml.text == """<releases>
     <next version="1.0-milestone-3"/>
-    <current version="${version}" build-time="${build=time}"/>
-    <release version="1.0-milestone-2" build-time="20110124123456+1100"/>
+    <current version="\${version}" build-time="\${build=time}"/>
+    <release version="1.0-milestone-2" build-time="${dateFormat.format(buildTime)}"/>
     <release version="previous" build-time="20101220123412-0200"/>
 </releases>
-'''
+"""
     }
 
 }
