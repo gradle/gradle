@@ -70,7 +70,7 @@ releases = []
 task configureReleases << {
     def releaseXml = new XmlParser().parse(new File(generatedDocs, "releases.xml"))
     def current = releaseXml.current[0]
-    releases << new Release(version: current.'@version', status: 'Current Release')
+    releases << new CurrentRelease(version: current.'@version')
     releaseXml.release.each {
         releases << new Release(version: it.'@version')
     }
@@ -142,15 +142,27 @@ test {
     inputs.dir buildWebsiteDir
 }
 
-task uploadWebsite(dependsOn: html, type: Scp) {
+task uploadHtml(dependsOn: html, type: Scp) {
     sourceDir = buildWebsiteDir
-    host = 'gradle01.managed.contegix.com'
     gradle.taskGraph.whenReady {
         destinationDir = remoteLocations.scpDir
     }
+    host = 'gradle01.managed.contegix.com'
     userName = project.hasProperty('websiteScpUserName') ? project.websiteScpUserName : null
     password = project.hasProperty('websiteScpUserPassword') ? project.websiteScpUserPassword : null
 }
+
+task linkCurrent(type: SshExec, dependsOn: configureReleases) {
+    configureReleases.doLast {
+        linkCurrent.commandLine('rm', '-f', "${remoteLocations.scpDir}/current" as String)
+        linkCurrent.commandLine('ln', '-s', "${remoteLocations.webRootDir}/${releases[0].remoteDir}" as String, "${remoteLocations.scpDir}/current" as String)
+    }
+    host = 'gradle01.managed.contegix.com'
+    userName = project.hasProperty('websiteScpUserName') ? project.websiteScpUserName : null
+    password = project.hasProperty('websiteScpUserPassword') ? project.websiteScpUserPassword : null
+}
+
+task uploadWebsite(dependsOn: [uploadHtml, linkCurrent])
 
 task testRemote(type: Test, dependsOn: uploadWebsite) {
     doFirst {
@@ -241,21 +253,23 @@ class PhpIncludes {
 
 class Release {
     def String title
-    def String status
     def String version
 
-    def String getMajorVersion() {
+    def BigDecimal getMajorVersion() {
         Matcher matcher = version =~ /(\d+\.\d+).*/
         matcher.matches()
-        return matcher.group(1)
+        return matcher.group(1) as BigDecimal
     }
 
     def String getReleaseNoteVersion() {
+        if (version.startsWith("0.9-rc")) {
+            return "0.9"
+        }
         return version
     }
 
     def String getDisplayName() {
-        return status ? "Gradle $version ($status)" : "Gradle $version"
+        return "Gradle $version"
     }
 
     def String getAllDistributionUrl() {
@@ -271,8 +285,7 @@ class Release {
     }
 
     def String getDistributionBase() {
-        def version = majorVersion as BigDecimal
-        if (version >= 0.9) {
+        if (majorVersion >= 0.9 && !version.startsWith('0.9-rc')) {
             return "http://repo.gradle.org/gradle/distributions/"
         } else {
             return "http://dist.codehaus.org/gradle/"
@@ -280,7 +293,11 @@ class Release {
     }
 
     def String getDocsUrl() {
-        return "/releases/${version}/docs"
+        return "/${remoteDir}/docs"
+    }
+
+    def String getRemoteDir() {
+        return "releases/${version}"
     }
 
     def String getReleaseNotesUrl() {
@@ -300,8 +317,7 @@ class Release {
     }
 
     def boolean getHasDsldoc() {
-        def version = majorVersion as BigDecimal
-        return version >= 0.9
+        return majorVersion >= 0.9 && !version.startsWith('0.9-rc')
     }
 
     def String getDsldocUrl() {
@@ -317,6 +333,16 @@ class Release {
     }
 }
 
+class CurrentRelease extends Release {
+    def String getDisplayName() {
+        return "Gradle $version (current release)"
+    }
+
+    def String getDocsUrl() {
+        return "current/docs"
+    }
+}
+
 class RemoteLocations {
     boolean release
 
@@ -324,7 +350,11 @@ class RemoteLocations {
         return release ? 'http://www.gradle.org/' : 'http://www.gradle.org/latest/'
     }
 
+    String getWebRootDir() {
+        return '/var/www/domains/gradle.org/www/htdocs'
+    }
+
     String getScpDir() {
-        return release ? '/var/www/domains/gradle.org/www/htdocs' : '/var/www/domains/gradle.org/www/htdocs/latest'
+        return release ? webRootDir : "$webRootDir/latest"
     }
 }

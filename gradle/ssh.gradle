@@ -1,5 +1,6 @@
 
 project.Scp = Scp.class
+project.SshExec = SshExec.class
 
 configurations {
     sshAntTask
@@ -9,20 +10,13 @@ dependencies {
     sshAntTask "org.apache.ant:ant-jsch:1.8.2"
 }
 
-tasks.withType(Scp) {
+tasks.withType(SshTask) {
     sshAntClasspath = configurations.sshAntTask
 }
 
-class Scp extends DefaultTask {
+abstract class SshTask extends DefaultTask {
     @InputFiles
     FileCollection sshAntClasspath
-
-    def from(Object path) {
-        source << path
-    }
-
-    @InputDirectory
-    File sourceDir
 
     @Input
     String host
@@ -32,9 +26,6 @@ class Scp extends DefaultTask {
 
     @Input
     String password
-
-    @Input
-    String destinationDir
 
     @TaskAction
     def executeActions() {
@@ -46,9 +37,44 @@ class Scp extends DefaultTask {
                 classname: 'org.apache.tools.ant.taskdefs.optional.ssh.SSHExec',
                 classpath: sshAntClasspath.asPath,
                 loaderref: 'ssh')
+        doActions()
+    }
+
+    abstract void doActions()
+}
+
+class Scp extends SshTask {
+
+    def from(Object path) {
+        source << path
+    }
+
+    @InputDirectory
+    File sourceDir
+
+    @Input
+    String destinationDir
+
+    void doActions() {
         ant.sshexec(host: host, username: userName, password: password, command: "mkdir -p ${destinationDir}")
         ant.scp(remotetodir: "${userName}@${host}:${destinationDir}", password: password) {
             fileset(dir: sourceDir)
+        }
+    }
+}
+
+class SshExec extends SshTask {
+    @Input
+    List<String[]> commandLines = []
+
+    void commandLine(String... commandLine) {
+        commandLines << commandLine
+    }
+
+    @Override
+    void doActions() {
+        commandLines.each { commandLine ->
+            ant.sshexec(host: host, username: userName, password: password, command: commandLine.join(' '))
         }
     }
 }
