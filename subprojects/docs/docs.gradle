@@ -357,11 +357,11 @@ class RemoteLocations {
     }
 
     String getDocsUploadDir() {
-        '/var/www/domains/gradle.org/www/htdocs/releases/' + docsRemoteDir
+        '/var/www/domains/gradle.org/www/htdocs/' + docsRemoteDir
     }
 
     String getDocsRemoteDir() {
-        (version.isRelease() ? version.toString() : 'latest') + '/docs'
+        'releases/' + (version.isRelease() ? version.toString() : 'latest') + '/docs'
     }
 
     String getJavadocUrl() {
