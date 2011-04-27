@@ -16,15 +16,14 @@
 package org.gradle.build
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.Input
-import java.text.SimpleDateFormat
+import org.gradle.api.tasks.TaskAction
 
 class GenerateReleasesXml extends DefaultTask {
     @Input
-    String getVersion() { return project.version.toString() }
+    String getVersion() { return project.version.versionNumber }
 
     @Input
     Date getBuildTime() { return project.version.buildTime }
@@ -33,17 +32,11 @@ class GenerateReleasesXml extends DefaultTask {
     File destFile
 
     @InputFile
-    File srcFile = project.project(':core').file('src/releases.xml')
+    File getSrcFile() { return project.releases.releasesFile }
 
     @TaskAction
     def void generate() {
         logger.info('Write release xml to: {}', destFile)
-
-        def releases = new XmlParser().parse(srcFile)
-        releases.next.each { releases.remove(it) }
-        releases.current[0].'@version' = version
-        releases.current[0].'@build-time' = new SimpleDateFormat('yyyyMMddHHmmssZ').format(buildTime)
-        destFile.withPrintWriter { writer -> new XmlNodePrinter(writer).print(releases) }
+        project.releases.generateTo(destFile)
     }
-
 }

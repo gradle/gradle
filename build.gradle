@@ -18,6 +18,7 @@ import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.Version
 import org.gradle.build.Install
 import org.gradle.build.Git
+import org.gradle.build.Releases
 import java.util.jar.Attributes
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
  * Using the build to create a new distribution and install it on the local machine: gradle_installPath
  */
 
+releases = new Releases(project(':core').file('src/releases.xml'), project)
 version = new Version(project)
 
 defaultTasks 'assemble'
@@ -573,6 +575,9 @@ task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
     dependsOn releaseVersion, tag, releaseArtifacts, testedDists, uploadArchives, uploadDists, ':docs:uploadDocs'
+    doLast {
+        releases.incrementNextVersion()
+    }
 }
 
 task wrapper(type: Wrapper) {
