@@ -21,7 +21,7 @@ import org.gradle.api.plugins.JavaPlugin
 import spock.lang.Specification
 
 class SonarPluginTest extends Specification {
-    def "only adds sonar task if Java plugin is present"() {
+    def "only adds Sonar task if Java plugin is present"() {
         def project = HelperUtil.createRootProject()
 
         when:
@@ -37,7 +37,7 @@ class SonarPluginTest extends Specification {
         project.tasks.findByName("sonar")
     }
 
-    def "provides default configuration for sonar task"() {
+    def "provides default configuration for Sonar task"() {
         def project = HelperUtil.createRootProject()
         project.plugins.apply(JavaPlugin)
         project.sourceSets.main.java.srcDir("src/main/other")
