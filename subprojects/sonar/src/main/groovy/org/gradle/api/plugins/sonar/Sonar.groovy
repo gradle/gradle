@@ -220,7 +220,7 @@ class Sonar extends ConventionTask {
      * @param value the value of the project property
      */
     void projectProperty(String name, String value) {
-        globalProperties.put(name, value)
+        projectProperties.put(name, value)
     }
 
     /**
