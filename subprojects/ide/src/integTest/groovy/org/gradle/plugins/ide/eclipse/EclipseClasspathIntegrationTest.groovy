@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 /**
  * Author: Szczepan Faber
@@ -70,7 +71,6 @@ eclipse {
 """
 
         content = getFile([:], '.classpath').text
-        println content
 
         //then
         contains('foo.txt')
@@ -80,6 +80,44 @@ eclipse {
         contains('someFriendlyContainer', 'andYetAnotherContainer')
 
         contains('build-eclipse')
+    }
+
+    @Issue("GRADLE-1502")
+    @Test
+    void createsLinkedResourcesForClasspathFoldersNotBeneathProjectDir() {
+        file('someGroovySrc').mkdirs()
+
+        def settingsFile = file('settings.gradle')
+        settingsFile << "include 'api'"
+
+        def buildFile = file('build.gradle')
+        buildFile << """
+allprojects {
+  apply plugin: 'java'
+  apply plugin: 'eclipse'
+  apply plugin: 'groovy'
+}
+
+project(':api') {
+    sourceSets {
+        main {
+            groovy.srcDirs = ['../someGroovySrc']
+        }
+    }
+}
+"""
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks('eclipse').run()
+
+        //then
+        def classpath = getClasspathFile(project: 'api').text
+
+        assert !classpath.contains('path="../someGroovySrc"') : "external src folders are not supported by eclipse"
+        assert classpath.contains('path="someGroovySrc"') : "external folder should be mapped to linked resource"
+
+        def project = parseProjectFile(project: 'api')
+
+        assert project.linkedResources.link.location.text().contains('someGroovySrc') : 'should contain linked resource for folder that is not beneath the project dir'
     }
 
     protected def contains(String ... contents) {

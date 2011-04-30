@@ -39,7 +39,6 @@ import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
  *   //if you want parts of paths in resulting file to be replaced by variables (files):
  *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')
  *
- *
  *   classpath {
  *     //you can configure the sourceSets however Gradle simply uses current sourceSets
  *     //so it's probably best not to change it.
@@ -60,6 +59,8 @@ import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
  *     //default settings for dependencies sources/javadoc download:
  *     downloadSources = true
  *     downloadJavadoc = false
+ *
+ *     //TODO SF1 document the hooks!
  *   }
  * }
  * </pre>

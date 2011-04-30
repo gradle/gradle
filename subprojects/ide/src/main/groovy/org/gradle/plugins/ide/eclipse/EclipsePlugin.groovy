@@ -85,6 +85,9 @@ class EclipsePlugin extends IdePlugin {
             //model:
             model.project = projectModel
 
+            projectModel.sourceSets = project.hasProperty('sourceSets')?  project.sourceSets : [] as Iterable
+            projectModel.provideRelativePath = { project.relativePath(it) }
+
             projectModel.name = project.name
             projectModel.conventionMapping.comment = { project.description }
 
@@ -137,7 +140,7 @@ class EclipsePlugin extends IdePlugin {
                 //model properties:
                 classpath = model.classpath
 
-                classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property?
+                classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property? - same applies to eclipseProject.sourceSets
                 classpath.containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
 
                 project.plugins.withType(JavaPlugin) {

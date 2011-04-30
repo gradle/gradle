@@ -58,4 +58,31 @@ class SourceFolderTest extends Specification {
         return new SourceFolder('src', 'mynative', [new AccessRule('nonaccessible', 'secret**')] as Set,
             'bin2', ['**/Test1*' ,'**/Test2*'], ['**/Test3*' ,'**/Test4*'])
     }
+
+    def "honors dir in equality"() {
+        given:
+        def one = createSourceFolder()
+        def two = createSourceFolder()
+        one == two
+        two == one
+
+        when:
+        two.dir = new File('.')
+
+        then:
+        one != two
+        two != one
+    }
+
+    def "trims path"() {
+        given:
+        def one = createSourceFolder()
+        one.dir = new File('/some/path/to/foo')
+
+        when:
+        one.trimPath()
+
+        then:
+        one.path == 'foo'
+    }
 }
