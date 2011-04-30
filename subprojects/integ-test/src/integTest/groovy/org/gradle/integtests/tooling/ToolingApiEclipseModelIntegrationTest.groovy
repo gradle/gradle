@@ -166,10 +166,14 @@ apply plugin: 'java'
 dependencies {
     compile project(':child')
     compile files { throw new RuntimeException() }
+    compile 'this.lib.surely.does.not.exist:indeed:1.0'
 }
 project(':child') {
     apply plugin: 'java'
-    dependencies { compile files { throw new RuntimeException() } }
+    dependencies {
+        compile files { throw new RuntimeException() }
+        compile 'this.lib.surely.does.not.exist:indeed:2.0'
+    }
 }
 '''
 
