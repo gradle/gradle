@@ -43,7 +43,11 @@ class ClasspathFactory {
     }
 
     private List getEntriesFromConfigurations(EclipseClasspath classpath) {
-        getModules(classpath) + getLibraries(classpath)
+        if (classpath.projectDependenciesOnly) {
+            getModules(classpath)
+        } else {
+            getModules(classpath) + getLibraries(classpath)
+        }
     }
 
     protected List getModules(EclipseClasspath classpath) {

@@ -148,18 +148,7 @@ class EclipseClasspath {
      */
     Map<String, File> pathVariables = [:]
 
-    /**
-     * Modifies the content of plusConfigurations and minusConfigurations by filtering dependencies
-     *
-     * @param projectDependenciesOnly true - only project dependencies, false - no filter
-     */
-    public void setProjectDependenciesOnly(boolean projectDependenciesOnly) {
-        if (projectDependenciesOnly) {
-            onlyProject = { it instanceof org.gradle.api.artifacts.ProjectDependency }
-            plusConfigurations = plusConfigurations.collect { it.copyRecursive { dependency -> onlyProject(dependency) }}
-            minusConfigurations = minusConfigurations.collect { it.copyRecursive { dependency -> onlyProject(dependency) }}
-        }
-    }
+    boolean projectDependenciesOnly = false
 
     void mergeXmlClasspath(Classpath xmlClasspath) {
         def entries = resolveDependencies()
