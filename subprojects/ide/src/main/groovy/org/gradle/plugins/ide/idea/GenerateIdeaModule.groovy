@@ -181,11 +181,11 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
      */
     Map<String, File> getVariables() {
-        module.variables
+        module.pathVariables
     }
 
     void setVariables(Map<String, File> variables) {
-        module.variables = variables
+        module.pathVariables = variables
     }
 
     /**

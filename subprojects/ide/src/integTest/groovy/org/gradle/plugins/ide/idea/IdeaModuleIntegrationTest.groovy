@@ -67,7 +67,7 @@ idea {
         testOutputDir = file('muchBetterTestOutputDir')
 
         javaVersion = '1.6'
-        variables = [CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile]
+        pathVariables = [CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile]
 
         iml {
             generateTo = file('customImlFolder')

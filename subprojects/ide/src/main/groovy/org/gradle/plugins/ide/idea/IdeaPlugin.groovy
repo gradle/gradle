@@ -86,7 +86,7 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.pathFactory = {
                 PathFactory factory = new PathFactory()
                 factory.addPathVariable('MODULE_DIR', outputFile.parentFile)
-                module.variables.each { key, value ->
+                module.pathVariables.each { key, value ->
                     factory.addPathVariable(key, value)
                 }
                 factory

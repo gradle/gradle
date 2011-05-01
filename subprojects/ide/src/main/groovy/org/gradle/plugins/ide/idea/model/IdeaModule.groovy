@@ -76,9 +76,7 @@ import org.gradle.api.dsl.ConventionProperty
  *     downloadSources = false
  *
  *     //if you want parts of paths in resulting *.iml to be replaced by variables (files)
- *     variables = [GRADLE_HOME: file('~/cool-software/gradle')]
- *     //pathVariables
- *     //TODO SF: think about moving the pathVariables to the upper level
+ *     pathVariables = [GRADLE_HOME: file('~/cool-software/gradle')]
  *
  *     iml {
  *       //if you like to keep *.iml in a secret folder
@@ -241,7 +239,7 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    Map<String, File> variables = [:]
+    Map<String, File> pathVariables = [:]
 
     /**
      * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (inherited)
