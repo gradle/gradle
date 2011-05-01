@@ -86,33 +86,15 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
  *
  *       //closure executed after .project content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { org.gradle.plugins.ide.eclipse.model.Project project ->
+ *       beforeMerged { project ->
  *         //if you want skip merging natures... (a very abstract example)
  *         project.natures.clear()
  *       }
  *
  *       //closure executed after .project content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { org.gradle.plugins.ide.eclipse.model.Project project ->
+ *       whenMerged { project ->
  *         //you can tinker with the {@link Project} here
- *       }
- *     }
- *   }
- *
- *   jdt {
- *     //if you want to alter the java versions (by default they are configured with gradle java plugin settings):
- *     sourceCompatibility = 1.6
- *     targetCompatibility = 1.5
- *
- *     file {
- *       //whenMerged closure is the highest voodoo
- *       //and probably should be used only to solve tricky edge cases.
- *       //the type passed to the closure is {@link Jdt}
- *
- *       //closure executed after jdt file content is loaded from existing file
- *       //and after gradle build information is merged
- *       whenMerged { jdt
- *         //you can tinker with the {@link Jdt} here
  *       }
  *     }
  *   }

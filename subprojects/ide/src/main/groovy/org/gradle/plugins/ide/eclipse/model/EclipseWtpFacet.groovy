@@ -21,6 +21,8 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Enables fine-tuning wtp facet details of the Eclipse plugin
+ * <p>
+ * Advanced configuration closures beforeMerged and whenMerged receive {@link WtpFacet} object as parameter.
  *
  * <pre autoTested=''>
  * apply plugin: 'java'

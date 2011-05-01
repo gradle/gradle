@@ -29,11 +29,6 @@ import org.gradle.util.ConfigureUtil
  * apply plugin: 'war'
  * apply plugin: 'eclipse'
  *
- * configurations {
- *   someInterestingConfiguration
- *   anotherConfiguration
- * }
- *
  * eclipse {
  *
  *   //if you want parts of paths in resulting file(s) to be replaced by variables (files):
@@ -41,50 +36,7 @@ import org.gradle.util.ConfigureUtil
  *
  *   wtp {
  *     component {
- *       //you can configure the context path:
- *       contextPath = 'someContextPath'
- *
- *       //you can configure the deployName:
- *       deployName = 'killerApp'
- *
- *       //you can alter the wb-resource elements. sourceDirs is a ConventionProperty.
- *       sourceDirs += file('someExtraFolder')
- *
- *       //you can alter the files are to be transformed into dependent-module elements:
- *       plusConfigurations += configurations.someInterestingConfiguration
- *
- *       //or whose files are to be excluded from dependent-module elements:
- *       minusConfigurations += configurations.anotherConfiguration
- *
- *       //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
- *       resource sourcePath: 'extra/resource', deployPath: 'deployment/resource'
- *
- *       //you can add a wb-property elements; mandatory keys: 'name', 'value':
- *       property name: 'moodOfTheDay', value: ':-D'
- *
- *       file {
- *         //if you want to mess with the resulting xml in whatever way you fancy
- *         withXml {
- *           def node = it.asNode()
- *           node.appendNode('xml', 'is what I love')
- *         }
- *
- *         //beforeMerged and whenMerged closures are the highest voodoo
- *         //and probably should be used only to solve tricky edge cases.
- *         //the type passed to the closures is {@link WtpComponent}
- *
- *         //closure executed after wtp component file content is loaded from existing file
- *         //but before gradle build information is merged
- *         beforeMerged { wtpComponent ->
- *           //tinker with {@link WtpComponent} here
- *         }
- *
- *         //closure executed after wtp component file content is loaded from existing file
- *         //and after gradle build information is merged
- *         whenMerged { wtpComponent ->
- *           //you can tinker with the {@link WtpComponent} here
- *         }
- *       }
+ *       //for examples see docs for {@link EclipseWtpComponent}
  *     }
  *
  *     facet {
@@ -105,7 +57,7 @@ class EclipseWtp {
     /**
      * Configures wtp component.
      * <p>
-     * For examples see docs for {@link EclipseWtp}
+     * For examples see docs for {@link EclipseWtpComponent}
      *
      * @param action
      */
@@ -116,7 +68,7 @@ class EclipseWtp {
     /**
      * Configures wtp facet.
      * <p>
-     * For examples see docs for {@link EclipseWtp}
+     * For examples see docs for {@link EclipseWtpFacet}
      *
      * @param action
      */
