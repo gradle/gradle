@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures.internal
 
 /**
- * Author: Szczepan Faber, created at: 4/2/11
+ * @author Szczepan Faber, created at: 4/2/11
  */
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest{
 

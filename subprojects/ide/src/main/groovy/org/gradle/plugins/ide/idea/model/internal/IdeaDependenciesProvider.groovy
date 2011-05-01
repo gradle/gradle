@@ -34,7 +34,7 @@ import org.gradle.plugins.ide.idea.model.PathFactory
  * All code was refactored from the GenerateIdeaModule class.
  * TODO SF: This class should be refactored so that we can reuse it in Eclipse plugin also.
  *
- * Author: Szczepan Faber, created at: 4/1/11
+ * @author Szczepan Faber, created at: 4/1/11
  */
 class IdeaDependenciesProvider {
 

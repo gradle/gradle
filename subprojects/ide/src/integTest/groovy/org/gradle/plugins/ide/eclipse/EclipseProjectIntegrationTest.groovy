@@ -20,7 +20,7 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Author: Szczepan Faber
+ * @author Szczepan Faber
  */
 class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationTest {
 

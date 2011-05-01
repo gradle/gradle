@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 /**
- * Author: Szczepan Faber, created at: 4/17/11
+ * @author Szczepan Faber, created at: 4/17/11
  */
 class EclipseProjectTest extends Specification {
 

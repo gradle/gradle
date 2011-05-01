@@ -21,7 +21,7 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import java.io.File;
 
 /**
- * Author: Szczepan Faber, created at: 3/29/11
+ * @author Szczepan Faber, created at: 3/29/11
  */
 public class MaybeUserMavenSettingsSupplier implements MavenSettingsSupplier {
 

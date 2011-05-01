@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.internal.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
 /**
- * Author: Szczepan Faber, created at: 3/28/11
+ * @author Szczepan Faber, created at: 3/28/11
  */
 class PluginsAutoTestedSamplesTest extends AbstractAutoTestedSamplesTest {
 

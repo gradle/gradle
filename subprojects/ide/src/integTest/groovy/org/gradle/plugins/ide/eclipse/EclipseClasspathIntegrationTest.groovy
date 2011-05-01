@@ -21,7 +21,7 @@ import org.junit.Test
 import spock.lang.Issue
 
 /**
- * Author: Szczepan Faber
+ * @author Szczepan Faber
  */
 class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
 

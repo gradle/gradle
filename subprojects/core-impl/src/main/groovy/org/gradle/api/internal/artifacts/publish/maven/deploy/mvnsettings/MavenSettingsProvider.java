@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings;
 import java.io.File;
 
 /**
-* Author: Szczepan Faber, created at: 3/30/11
+* @author Szczepan Faber, created at: 3/30/11
 */
 public class MavenSettingsProvider {
     public File getUserSettingsFile() {

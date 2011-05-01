@@ -22,7 +22,7 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Author: Szczepan Faber, created at: 4/19/11
+ * @author Szczepan Faber, created at: 4/19/11
  */
 class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 

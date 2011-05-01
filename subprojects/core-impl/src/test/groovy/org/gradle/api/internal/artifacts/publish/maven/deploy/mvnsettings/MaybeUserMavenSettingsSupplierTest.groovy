@@ -20,7 +20,7 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport
 import spock.lang.Specification
 
 /**
- * Author: Szczepan Faber, created at: 3/29/11
+ * @author Szczepan Faber, created at: 3/29/11
  */
 class MaybeUserMavenSettingsSupplierTest extends Specification {
 

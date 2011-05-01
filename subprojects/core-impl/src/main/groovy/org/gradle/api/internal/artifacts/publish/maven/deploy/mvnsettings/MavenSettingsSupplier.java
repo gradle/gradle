@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 
 /**
- * Author: Szczepan Faber, created at: 3/29/11
+ * @author Szczepan Faber, created at: 3/29/11
  */
 public interface MavenSettingsSupplier {
     void done();

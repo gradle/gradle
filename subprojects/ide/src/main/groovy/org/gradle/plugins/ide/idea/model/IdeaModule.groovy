@@ -115,7 +115,7 @@ import org.gradle.api.dsl.ConventionProperty
  *
  * </pre>
  *
- * Author: Szczepan Faber, created at: 3/31/11
+ * @author Szczepan Faber, created at: 3/31/11
  */
 class IdeaModule {
 

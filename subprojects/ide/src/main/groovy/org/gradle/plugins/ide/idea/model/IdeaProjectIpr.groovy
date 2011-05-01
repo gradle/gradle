@@ -23,7 +23,7 @@ import org.gradle.api.internal.XmlTransformer
  * <p>
  * For example see docs for {@link IdeaProject}
  * <p>
- * Author: Szczepan Faber, created at: 4/5/11
+ * @author Szczepan Faber, created at: 4/5/11
  */
 class IdeaProjectIpr {
     XmlTransformer xmlTransformer

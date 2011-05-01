@@ -24,7 +24,7 @@ import org.gradle.util.ConfigureUtil
  * <p>
  * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}
  * <p>
- * Author: Szczepan Faber, created at: 3/31/11
+ * @author Szczepan Faber, created at: 3/31/11
  */
 class IdeaModel {
     IdeaModule module
