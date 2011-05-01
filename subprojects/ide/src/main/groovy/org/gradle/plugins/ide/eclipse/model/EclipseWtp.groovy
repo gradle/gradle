@@ -88,31 +88,7 @@ import org.gradle.util.ConfigureUtil
  *     }
  *
  *     facet {
- *       //you can add some extra wtp facets; mandatory keys: 'name', 'version':
- *       facet name: 'someCoolFacet', version: '1.3'
- *
- *       file {
- *         //if you want to mess with the resulting xml in whatever way you fancy
- *         withXml {
- *           def node = it.asNode()
- *           node.appendNode('xml', 'is what I love')
- *         }
- *
- *         //beforeMerged and whenMerged closures are the highest voodoo for the tricky edge cases.
- *         //the type passed to the closures is {@link WtpFacet}
- *
- *         //closure executed after wtp facet file content is loaded from existing file
- *         //but before gradle build information is merged
- *         beforeMerged { wtpFacet ->
- *           //tinker with {@link WtpFacet} here
- *         }
- *
- *         //closure executed after wtp facet file content is loaded from existing file
- *         //and after gradle build information is merged
- *         whenMerged { wtpFacet ->
- *           //you can tinker with the {@link WtpFacet} here
- *         }
- *       }
+ *       //for examples see docs for {@link EclipseWtpFacet}
  *     }
  *   }
  * }

@@ -21,8 +21,45 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Enables fine-tuning wtp facet details of the Eclipse plugin
- * <p>
- * For examples see docs for {@link EclipseWtp}
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'war'
+ * apply plugin: 'eclipse'
+ *
+ * eclipse {
+ *   wtp {
+ *     facet {
+ *       //you can add some extra wtp facets; mandatory keys: 'name', 'version':
+ *       facet name: 'someCoolFacet', version: '1.3'
+ *
+ *       file {
+ *         //if you want to mess with the resulting xml in whatever way you fancy
+ *         withXml {
+ *           def node = it.asNode()
+ *           node.appendNode('xml', 'is what I love')
+ *         }
+ *
+ *         //beforeMerged and whenMerged closures are the highest voodoo for the tricky edge cases.
+ *         //the type passed to the closures is {@link WtpFacet}
+ *
+ *         //closure executed after wtp facet file content is loaded from existing file
+ *         //but before gradle build information is merged
+ *         beforeMerged { wtpFacet ->
+ *           //tinker with {@link WtpFacet} here
+ *         }
+ *
+ *         //closure executed after wtp facet file content is loaded from existing file
+ *         //and after gradle build information is merged
+ *         whenMerged { wtpFacet ->
+ *           //you can tinker with the {@link WtpFacet} here
+ *         }
+ *       }
+ *     }
+ *   }
+ * }
+ *
+ * </pre>
  *
  * @author: Szczepan Faber, created at: 4/20/11
  */
@@ -31,7 +68,7 @@ class EclipseWtpFacet {
     /**
      * The facets to be added as elements.
      * <p>
-     * For examples see docs for {@link EclipseWtp}
+     * For examples see docs for {@link EclipseWtpFacet}
      */
     // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
     List<Facet> facets = []
@@ -39,7 +76,7 @@ class EclipseWtpFacet {
     /**
      * Adds a facet.
      * <p>
-     * For examples see docs for {@link EclipseWtp}
+     * For examples see docs for {@link EclipseWtpFacet}
      *
      * @param args A map that must contain a 'name' and 'version' key with corresponding values.
      */
@@ -54,7 +91,7 @@ class EclipseWtpFacet {
      * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpFacet}
      * <p>
      *
-     * For example see docs for {@link EclipseWtp}
+     * For example see docs for {@link EclipseWtpFacet}
      */
     void file(Closure closure) {
         ConfigureUtil.configure(closure, file)
