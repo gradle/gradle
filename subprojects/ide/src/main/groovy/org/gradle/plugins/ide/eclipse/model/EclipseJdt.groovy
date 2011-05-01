@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.util.ConfigureUtil
 
 /**
- * Models the java compatibility information
+ * Enables fine-tuning jdt details of the Eclipse plugin
  * <p>
  * For example see docs for {@link EclipseProject}
  *

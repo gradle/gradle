@@ -20,7 +20,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
 
 /**
- * DSL-friendly model of the eclipse project needed for .project generation
+ * Enables fine-tuning project details (.project file) of the Eclipse plugin
  * <p>
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have configure eclipse project directly because Gradle configures it for free!

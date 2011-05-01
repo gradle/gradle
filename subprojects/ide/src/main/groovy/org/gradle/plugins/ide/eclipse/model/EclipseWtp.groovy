@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.util.ConfigureUtil
 
 /**
- * Dsl-friendly model of the eclipse wtp information
+ * Enables fine-tuning wtp/wst details of the Eclipse plugin
  * <p>
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have configure them directly because Gradle configures it for free!
@@ -47,7 +47,7 @@ import org.gradle.util.ConfigureUtil
  *       //you can configure the deployName:
  *       deployName = 'killerApp'
  *
- *       //you can alter the wb-resource elements. sourceDirs is a ConvenienceProperty.
+ *       //you can alter the wb-resource elements. sourceDirs is a ConventionProperty.
  *       sourceDirs += file('someExtraFolder')
  *
  *       //you can alter the files are to be transformed into dependent-module elements:

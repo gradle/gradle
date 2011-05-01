@@ -21,7 +21,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 import org.gradle.util.ConfigureUtil
 
 /**
- * DSL-friendly model of the eclipse classpath needed for .classpath generation
+ * Enables fine-tuning classpath details (.classpath file) of the Eclipse plugin
  * <p>
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have configure eclipse classpath directly because Gradle configures it for free!

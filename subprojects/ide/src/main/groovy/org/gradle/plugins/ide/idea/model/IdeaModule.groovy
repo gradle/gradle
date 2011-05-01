@@ -19,9 +19,10 @@ package org.gradle.plugins.ide.idea.model
 import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.dsl.ConventionProperty
 
 /**
- * Model for an IDEA module.
+ * Enables fine-tuning module details (*.iml file) of the Idea plugin
  * <p>
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have configure this model directly because Gradle configures it for free!
@@ -206,9 +207,7 @@ class IdeaModule {
     Set<File> testSourceDirs
 
     /**
-     * The directories to be excluded.
-     * <p>
-     * Warning - it is a {@link org.gradle.api.dsl.ConvenienceProperty}
+     * {@link ConventionProperty} for the directories to be excluded.
      * <p>
      * For example see docs for {@link IdeaModule}
      */

@@ -68,6 +68,6 @@ package org.gradle.api.dsl;
  * the user can reconfigure the sourceSets anywhere in the gradle script -
  * and still the test.testClassesDir will point to the right folder.
  *
- * Author: Szczepan Faber, created at: 4/19/11
+ * @author Szczepan Faber, created at: 4/19/11
  */
-public class ConvenienceProperty {}
+public class ConventionProperty {}

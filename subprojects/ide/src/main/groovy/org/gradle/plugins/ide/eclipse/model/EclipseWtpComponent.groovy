@@ -19,9 +19,10 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.dsl.ConventionProperty
 
 /**
- * Models the information need for wtp component
+ * Enables fine-tuning wtp component details of the Eclipse plugin
  * <p>
  * For examples see docs for {@link EclipseWtp}
  *
@@ -30,9 +31,7 @@ import org.gradle.util.ConfigureUtil
 class EclipseWtpComponent {
 
     /**
-     * The source directories to be transformed into wb-resource elements.
-     * <p>
-     * Warning, this property is a {@link org.gradle.api.dsl.ConvenienceProperty}
+     * {@link ConventionProperty} for the source directories to be transformed into wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
@@ -60,9 +59,7 @@ class EclipseWtpComponent {
     String deployName
 
     /**
-     * Additional wb-resource elements.
-     * <p>
-     * Warning, this property is a {@link org.gradle.api.dsl.ConvenienceProperty}
+     * {@link ConventionProperty} for additional wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */

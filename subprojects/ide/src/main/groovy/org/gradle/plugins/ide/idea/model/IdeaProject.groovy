@@ -20,7 +20,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.util.ConfigureUtil
 
 /**
- * Model for idea project.
+ * Enables fine-tuning project details (*.ipr file) of the Idea plugin
  * <p>
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have configure idea module directly because Gradle configures it for free!
