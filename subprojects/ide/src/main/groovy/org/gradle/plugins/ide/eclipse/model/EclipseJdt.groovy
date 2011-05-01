@@ -40,7 +40,7 @@ import org.gradle.plugins.ide.internal.FileContentMerger
  *
  *       //closure executed after jdt file content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { org.gradle.plugins.ide.eclipse.model.Jdt jdt
+ *       whenMerged { jdt
  *         //you can tinker with the {@link Jdt} here
  *       }
  *     }

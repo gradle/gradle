@@ -70,13 +70,13 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
  *
  *       //closure executed after *.ipr content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { org.gradle.plugins.ide.idea.model.Project project ->
+ *       beforeMerged { project ->
  *         //you can tinker with {@link Project}
  *       }
  *
  *       //closure executed after *.ipr content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { org.gradle.plugins.ide.idea.model.Project project ->
+ *       whenMerged { project ->
 *         //you can tinker with {@link Project}
  *       }
  *     }

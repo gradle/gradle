@@ -108,14 +108,14 @@ import org.gradle.api.dsl.ConventionProperty
  *
  *       //closure executed after *.iml content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { org.gradle.plugins.ide.idea.model.Module module ->
+ *       beforeMerged { module ->
  *         //if you want skip merging exclude dirs
  *         module.excludeFolders.clear()
  *       }
  *
  *       //closure executed after *.iml content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { org.gradle.plugins.ide.idea.model.Module module ->
+ *       whenMerged { module ->
  *         //you can tinker with {@link Module}
  *       }
  *     }
