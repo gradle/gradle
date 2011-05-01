@@ -58,6 +58,24 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
  *     linkedResource name: 'someLinkByLocationUri', type: 'someLinkType', locationUri: 'file://someUri'
  *     //by location:
  *     linkedResource name: 'someLinkByLocation', type: 'someLinkType', location: '/some/location'
+ *   }
+ * }
+ * </pre>
+ *
+ * For tackling edge cases users can perform advanced configuration on resulting xml file.
+ * It is also possible to affect the way eclipse plugin merges the existing configuration
+ * via beforeMerged and whenMerged closures.
+ * <p>
+ * beforeMerged and whenMerged closures receive {@link Project} object
+ * <p>
+ * Examples of advanced configuration:
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'eclipse'
+ *
+ * eclipse {
+ *   project {
  *
  *     file {
  *       //if you want to mess with the resulting xml in whatever way you fancy
@@ -66,20 +84,16 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
  *         node.appendNode('xml', 'is what I love')
  *       }
  *
- *       //beforeMerged and whenMerged closures are the highest voodoo
- *       //and probably should be used only to solve tricky edge cases.
- *       //the type passed to the closures is {@link Project}
- *
  *       //closure executed after .project content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { project ->
+ *       beforeMerged { org.gradle.plugins.ide.eclipse.model.Project project ->
  *         //if you want skip merging natures... (a very abstract example)
  *         project.natures.clear()
  *       }
  *
  *       //closure executed after .project content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { project ->
+ *       whenMerged { org.gradle.plugins.ide.eclipse.model.Project project ->
  *         //you can tinker with the {@link Project} here
  *       }
  *     }

@@ -22,8 +22,31 @@ import org.gradle.plugins.ide.internal.FileContentMerger
 
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
- * <p>
- * For example see docs for {@link EclipseProject}
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'eclipse'
+ *
+ * eclipse {
+ *   jdt {
+ *     //if you want to alter the java versions (by default they are configured with gradle java plugin settings):
+ *     sourceCompatibility = 1.6
+ *     targetCompatibility = 1.5
+ *
+ *     file {
+ *       //whenMerged closure is the highest voodoo
+ *       //and probably should be used only to solve tricky edge cases.
+ *       //the type passed to the closure is {@link Jdt}
+ *
+ *       //closure executed after jdt file content is loaded from existing file
+ *       //and after gradle build information is merged
+ *       whenMerged { org.gradle.plugins.ide.eclipse.model.Jdt jdt
+ *         //you can tinker with the {@link Jdt} here
+ *       }
+ *     }
+ *   }
+ * }
+ * </pre>
  *
  * @author: Szczepan Faber, created at: 4/20/11
  */
@@ -32,7 +55,7 @@ class EclipseJdt {
     /**
      * The source Java language level.
      * <p>
-     * For example see docs for {@link EclipseProject}
+     * For example see docs for {@link EclipseJdt}
      */
     JavaVersion sourceCompatibility
 
@@ -43,7 +66,7 @@ class EclipseJdt {
     /**
      * The target JVM to generate {@code .class} files for.
      * <p>
-     * For example see docs for {@link EclipseProject}
+     * For example see docs for {@link EclipseJdt}
      */
     JavaVersion targetCompatibility
 
@@ -58,7 +81,7 @@ class EclipseJdt {
      * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link Jdt}
      * <p>
      *
-     * For example see docs for {@link EclipseProject}
+     * For example see docs for {@link EclipseJdt}
      */
     void file(Closure closure) {
         ConfigureUtil.configure(closure, file)
