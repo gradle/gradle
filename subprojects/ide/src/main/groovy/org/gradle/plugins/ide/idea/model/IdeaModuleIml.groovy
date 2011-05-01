@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.listener.ActionBroadcast
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
