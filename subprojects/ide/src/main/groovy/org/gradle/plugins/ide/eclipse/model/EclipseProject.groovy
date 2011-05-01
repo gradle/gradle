@@ -117,6 +117,15 @@ class EclipseProject {
      * <p>
      * The logic that makes sure project names are uniqe is available <b>since</b> 1.0-milestone-2
      * <p>
+     * If your project has problems with unique names it is recommended to always run gradle eclipse from the root, e.g. for all subprojects, including generation of .classpath.
+     * If you run the generation of the eclipse project only for a single subproject then you may have different results
+     * because the unique names are calculated based on eclipse projects that are involved in the specific build run.
+     * <p>
+     * If you update the project names then make sure you run gradle eclipse from the root, e.g. for all subprojects.
+     * The reason is that there may be subprojects that depend on the subproject with amended eclipse project name.
+     * So you want them to be generated as well because the project dependencies in .classpath need to refer to the amended project name.
+     * Basically, for non-trivial projects it is recommended to always run gradle eclipse from the root.
+     * <p>
      * For example see docs for {@link EclipseProject}
      */
     String name

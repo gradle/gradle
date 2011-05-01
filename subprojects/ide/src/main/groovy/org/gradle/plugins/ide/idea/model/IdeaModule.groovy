@@ -119,7 +119,24 @@ import org.gradle.util.ConfigureUtil
 class IdeaModule {
 
    /**
-     * IDEA module name; controls the name of the *.iml file
+     * Configures module name, that is the name of the *.iml file.
+     * <p>
+     * It's <b>optional</b> because the task should configure it correctly for you.
+     * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b>
+     * to make sure the module name is unique in the scope of a multi-module build.
+     * The 'uniqeness' of a module name is required for correct import
+     * into IntelliJ IDEA and the task will make sure the name is unique.
+     * <p>
+     * <b>since</b> 1.0-milestone-2
+     * <p>
+     * If your project has problems with unique names it is recommended to always run gradle idea from the root, e.g. for all subprojects.
+     * If you run the generation of the idea module only for a single subproject then you may have different results
+     * because the unique names are calculated based on idea modules that are involved in the specific build run.
+     * <p>
+     * If you update the module names then make sure you run gradle idea from the root, e.g. for all subprojects, including generation of idea project.
+     * The reason is that there may be subprojects that depend on the subproject with amended module name.
+     * So you want them to be generated as well because the module dependencies need to refer to the amended project name.
+     * Basically, for non-trivial projects it is recommended to always run gradle idea from the root.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
