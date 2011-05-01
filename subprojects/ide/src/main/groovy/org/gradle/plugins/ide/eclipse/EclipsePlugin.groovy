@@ -139,6 +139,7 @@ class EclipsePlugin extends IdePlugin {
 
                 //model properties:
                 classpath = model.classpath
+                classpath.file = new XmlFileContentMerger(xmlTransformer)
 
                 classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property? - same applies to eclipseProject.sourceSets
                 classpath.containers 'org.eclipse.jdt.launching.JRE_CONTAINER'

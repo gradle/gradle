@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
+import org.gradle.util.ConfigureUtil
 
 /**
  * DSL-friendly model of the eclipse classpath needed for .classpath generation
@@ -60,7 +61,29 @@ import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
  *     downloadSources = true
  *     downloadJavadoc = false
  *
- *     //TODO SF1 document the hooks!
+ *     file {
+ *       //if you want to mess with the resulting xml in whatever way you fancy
+ *       withXml {
+ *         def node = it.asNode()
+ *         node.appendNode('xml', 'is what I love')
+ *       }
+ *
+ *       //beforeMerged and whenMerged closures are the highest voodoo
+ *       //and probably should be used only to solve tricky edge cases.
+ *       //the type passed to the closures is {@link Classpath}
+ *
+ *       //closure executed after .classpath content is loaded from existing file
+ *       //but before gradle build information is merged
+ *       beforeMerged { classpath ->
+ *         //you can tinker with the {@link Classpath} here
+ *       }
+ *
+ *       //closure executed after .classpath content is loaded from existing file
+ *       //and after gradle build information is merged
+ *       whenMerged { classpath ->
+ *         //you can tinker with the {@link Classpath} here
+ *       }
+ *     }
  *   }
  * }
  * </pre>
@@ -137,21 +160,32 @@ class EclipseClasspath {
         return new ClasspathFactory().createEntries(this)
     }
 
+    /**
+     * Enables advanced configuration like tinkering with the output xml
+     * or affecting the way existing .classpath content is merged with gradle build information
+     * <p>
+     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link Classpath}
+     * <p>
+     *
+     * For example see docs for {@link EclipseProject}
+     */
+    void file(Closure closure) {
+        ConfigureUtil.configure(closure, file)
+    }
+
     /******/
 
     org.gradle.api.Project project
+    XmlFileContentMerger file
 
-    /**
-     * The path variables to be used for replacing absolute paths in classpath entries.
-     * <p>
-     * For example see docs for {@link EclipseModel}
-     */
     Map<String, File> pathVariables = [:]
 
     boolean projectDependenciesOnly = false
 
     void mergeXmlClasspath(Classpath xmlClasspath) {
+        file.beforeMerged.execute(xmlClasspath)
         def entries = resolveDependencies()
         xmlClasspath.configure(entries)
+        file.whenMerged.execute(xmlClasspath)
     }
 }

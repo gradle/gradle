@@ -66,6 +66,10 @@ eclipse {
 
     downloadSources = false
     downloadJavadoc = true
+
+    file {
+      withXml { it.asNode().appendNode('message', 'be cool') }
+    }
   }
 }
 """
@@ -80,6 +84,54 @@ eclipse {
         contains('someFriendlyContainer', 'andYetAnotherContainer')
 
         contains('build-eclipse')
+        contains('<message>be cool')
+    }
+
+    @Test
+    void allowsConfiguringHooks() {
+        //given
+        def classpath = getClasspathFile([:])
+        classpath << '''<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
+	<classpathentry kind="lib" path="/some/path/someDependency.jar" exported="true"/>
+</classpath>
+'''
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+def hooks = []
+
+dependencies {
+  compile files('newDependency.jar')
+}
+
+eclipse {
+  classpath {
+    file {
+      beforeMerged {
+        hooks << 'beforeMerged'
+        assert it.entries.any { it.path.contains('someDependency.jar') }
+        assert !it.entries.any { it.path.contains('newDependency.jar') }
+      }
+      whenMerged {
+        hooks << 'whenMerged'
+        assert it.entries.any { it.path.contains('newDependency.jar') }
+      }
+    }
+  }
+}
+
+eclipseClasspath.doLast() {
+  assert hooks == ['beforeMerged', 'whenMerged']
+}
+"""
+
+        //then no exception is thrown
     }
 
     @Issue("GRADLE-1502")
