@@ -61,17 +61,30 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
  *     //default settings for dependencies sources/javadoc download:
  *     downloadSources = true
  *     downloadJavadoc = false
+ *   }
+ * }
+ * </pre>
  *
+ * For tackling edge cases users can perform advanced configuration on resulting xml file.
+ * It is also possible to affect the way eclipse plugin merges the existing configuration
+ * via beforeMerged and whenMerged closures.
+ * <p>
+ * beforeMerged and whenMerged closures receive {@link Classpath} object
+ * <p>
+ * Examples of advanced configuration:
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'eclipse'
+ *
+ * eclipse {
+ *   classpath {
  *     file {
  *       //if you want to mess with the resulting xml in whatever way you fancy
  *       withXml {
  *         def node = it.asNode()
  *         node.appendNode('xml', 'is what I love')
  *       }
- *
- *       //beforeMerged and whenMerged closures are the highest voodoo
- *       //and probably should be used only to solve tricky edge cases.
- *       //the type passed to the closures is {@link Classpath}
  *
  *       //closure executed after .classpath content is loaded from existing file
  *       //but before gradle build information is merged
