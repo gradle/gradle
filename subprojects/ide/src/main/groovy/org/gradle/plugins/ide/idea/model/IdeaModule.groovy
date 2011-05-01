@@ -75,9 +75,26 @@ import org.gradle.api.dsl.ConventionProperty
  *     //and hate reading sources :)
  *     downloadSources = false
  *
- *     //if you want parts of paths in resulting *.iml to be replaced by variables (files)
+ *     //if you want parts of paths in resulting *.iml to be replaced by variables (Files)
  *     pathVariables = [GRADLE_HOME: file('~/cool-software/gradle')]
+ *   }
+ * }
+ * </pre>
  *
+ * For tackling edge cases users can perform advanced configuration on resulting xml file.
+ * It is also possible to affect the way idea plugin merges the existing configuration
+ * via beforeMerged and whenMerged closures.
+ * <p>
+ * beforeMerged and whenMerged closures receive {@link Module} object
+ * <p>
+ * Examples of advanced configuration:
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'idea'
+ *
+ * idea {
+ *   module {
  *     iml {
  *       //if you like to keep *.iml in a secret folder
  *       generateTo = file('secret-modules-folder')
@@ -89,9 +106,6 @@ import org.gradle.api.dsl.ConventionProperty
  *         node.appendNode('butAlso', 'I find increasing pleasure tinkering with output *.iml contents. Yeah!!!')
  *       }
  *
- *       //beforeMerged and whenMerged closures are the highest voodoo
- *       //and probably should be used only to solve tricky edge cases:
- *
  *       //closure executed after *.iml content is loaded from existing file
  *       //but before gradle build information is merged
  *       beforeMerged { module ->
@@ -102,10 +116,7 @@ import org.gradle.api.dsl.ConventionProperty
  *       //closure executed after *.iml content is loaded from existing file
  *       //and after gradle build information is merged
  *       whenMerged { module ->
- *         //If you really want to update the javaVersion
- *         module.javaVersion = '1.6'
- *         //but you don't want to do it here...
- *         //because you can do it much easier in idea.module configuration!
+ *         //you can tinker with {@link Module}
  *       }
  *     }
  *   }
