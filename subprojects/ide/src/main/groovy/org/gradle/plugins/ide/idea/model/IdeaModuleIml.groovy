@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.listener.ActionBroadcast
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Models the generation/parsing/merging capabilities of idea module
@@ -26,60 +27,13 @@ import org.gradle.listener.ActionBroadcast
  *
  * @author: Szczepan Faber, created at: 4/5/11
  */
-class IdeaModuleIml {
+class IdeaModuleIml extends XmlFileContentMerger {
 
-    ActionBroadcast whenMerged = new ActionBroadcast()
-    ActionBroadcast beforeMerged = new ActionBroadcast()
-    XmlTransformer xmlTransformer
-
-    /**
-     * Adds a closure to be called after *.iml content is loaded from existing file
-     * but before gradle build information is merged
-     * <p>
-     * This is advanced api that gives access to internal implementation of idea plugin.
-     * It might be useful if you want to alter the way gradle build information is merged into existing *.iml content
-     * <p>
-     * The {@link Module} object is passed as a parameter to the closure
-     * <p>
-     * For example see docs for {@link IdeaModule}
-     *
-     * @param closure The closure to execute.
-     */
-    public void beforeMerged(Closure closure) {
-        beforeMerged.add(closure)
+    IdeaModuleIml(XmlTransformer xmlTransformer, File generateTo) {
+        super(xmlTransformer)
+        this.generateTo = generateTo
     }
-
-    /**
-     * Adds a closure to be called after *.iml content is loaded from existing file
-     * and after gradle build information is merged
-     * <p>
-     * This is advanced api that gives access to internal implementation of idea plugin.
-     * Use it only to tackle some tricky edge cases.
-     * <p>
-     * The {@link Module} object is passed as a parameter to the closure
-     * <p>
-     * For example see docs for {@link IdeaModule}
-     *
-     * @param closure The closure to execute.
-     */
-    public void whenMerged(Closure closure) {
-        whenMerged.add(closure)
-    }
-
-    /**
-     * Adds a closure to be called when the *.iml file has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML before
-     * it is written to the output file.
-     * <p>
-     * For example see docs for {@link IdeaModule}
-     *
-     * @param closure The closure to execute when the XML has been created.
-     */
-    public void withXml(Closure closure) {
-        xmlTransformer.addAction(closure)
-    }
-
-    /**
+/**
      * Folder where the *.iml file will be generated to
      * <p>
      * For example see docs for {@link IdeaModule}
