@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin

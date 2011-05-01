@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 import org.gradle.util.ConfigureUtil
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Enables fine-tuning classpath details (.classpath file) of the Eclipse plugin

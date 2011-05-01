@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.util.ConfigureUtil
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Enables fine-tuning wtp facet details of the Eclipse plugin

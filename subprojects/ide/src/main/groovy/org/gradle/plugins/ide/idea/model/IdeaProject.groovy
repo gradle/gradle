@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea.model
 
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.util.ConfigureUtil
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Enables fine-tuning project details (*.ipr file) of the Idea plugin
@@ -42,14 +43,41 @@ import org.gradle.util.ConfigureUtil
  *
  *     //you can change the output file
  *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
+ *   }
+ * }
+ * </pre>
  *
- *     //you can apply advanced logic to the xml generation/merging
+ * For tackling edge cases users can perform advanced configuration on resulting xml file.
+ * It is also possible to affect the way idea plugin merges the existing configuration
+ * via beforeMerged and whenMerged closures.
+ * <p>
+ * beforeMerged and whenMerged closures receive {@link Project} object
+ * <p>
+ * Examples of advanced configuration:
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'idea'
+ *
+ * idea {
+ *   project {
  *     ipr {
- *
- *       //you can tinker with the output *.ipr file before it's written to file
+ *       //you can tinker with the output *.ipr file before it's written out
  *       withXml {
  *         def node = it.asNode()
  *         node.appendNode('iLove', 'tinkering with the output *.ipr file!')
+ *       }
+ *
+ *       //closure executed after *.ipr content is loaded from existing file
+ *       //but before gradle build information is merged
+ *       beforeMerged { org.gradle.plugins.ide.idea.model.Project project ->
+ *         //you can tinker with {@link Project}
+ *       }
+ *
+ *       //closure executed after *.ipr content is loaded from existing file
+ *       //and after gradle build information is merged
+ *       whenMerged { org.gradle.plugins.ide.idea.model.Project project ->
+*         //you can tinker with {@link Project}
  *       }
  *     }
  *   }
@@ -102,9 +130,10 @@ class IdeaProject {
     //******
 
     PathFactory pathFactory
-    IdeaProjectIpr ipr
+    XmlFileContentMerger ipr
 
     void mergeXmlProject(Project xmlProject) {
+        ipr.beforeMerged.execute(xmlProject)
         def modulePaths = getSubprojects().inject(new LinkedHashSet()) { result, subproject ->
             if (subproject.plugins.hasPlugin(IdeaPlugin)) {
                 File imlFile = subproject.ideaModule.outputFile
@@ -113,5 +142,6 @@ class IdeaProject {
             result
         }
         xmlProject.configure(modulePaths, getJavaVersion(), getWildcards())
+        ipr.whenMerged.execute(xmlProject)
     }
 }

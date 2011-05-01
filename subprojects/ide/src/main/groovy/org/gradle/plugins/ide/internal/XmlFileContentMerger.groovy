@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.eclipse.model
+package org.gradle.plugins.ide.internal
 
 import org.gradle.api.internal.XmlTransformer
 
 /**
  * Models the generation/parsing/merging capabilities. Adds xml-related hooks.
  * <p>
- * For example see docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
+ * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject} or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
  *
  * @author: Szczepan Faber, created at: 4/21/11
  */
@@ -38,7 +38,7 @@ class XmlFileContentMerger extends FileContentMerger {
      * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML before
      * it is written to the output file.
      * <p>
-     * For example see docs for {@link EclipseProject}
+     * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject} or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param closure The closure to execute when the XML has been created.
      */

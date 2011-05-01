@@ -20,7 +20,7 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.WtpFacet
-import org.gradle.plugins.ide.eclipse.model.XmlFileContentMerger
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Generates the org.eclipse.wst.common.project.facet.core settings file for Eclipse WTP.

@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.JavaVersion
 import org.gradle.util.ConfigureUtil
+import org.gradle.plugins.ide.internal.FileContentMerger
 
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin

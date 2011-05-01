@@ -23,6 +23,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.idea.model.*
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * @author Hans Dockter
@@ -99,7 +100,7 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaProject(Project project) {
         if (isRoot(project)) {
             def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
-                def ipr = new IdeaProjectIpr(xmlTransformer: xmlTransformer)
+                def ipr = new XmlFileContentMerger(xmlTransformer)
                 ideaProject = services.get(ClassGenerator).newInstance(IdeaProject, [ipr: ipr])
 
                 model.project = ideaProject

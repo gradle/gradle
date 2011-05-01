@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.eclipse.model
+package org.gradle.plugins.ide.internal
 
 import org.gradle.listener.ActionBroadcast
 
 /**
  * Models the generation/parsing/merging capabilities.
  * <p>
- * For example see docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
+ * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject} or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
  *
  * @author: Szczepan Faber, created at: 4/21/11
  */
@@ -37,11 +37,7 @@ class FileContentMerger {
      * This is advanced api that gives access to internal implementation.
      * It might be useful if you want to alter the way gradle build information is merged into existing file content
      * <p>
-     * Object that is passed as parameter to the closure can be of type
-     * {@link Project}, {@link Jdt}, {@link WtpComponent}, {@link WtpFacet}
-     * depending what are you configuring
-     * <p>
-     * For example see docs for {@link EclipseProject}, {@link EclipseWtp}
+     * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject} or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param closure The closure to execute.
      */
@@ -56,13 +52,7 @@ class FileContentMerger {
      * This is advanced api that gives access to internal implementation of idea plugin.
      * Use it only to tackle some tricky edge cases.
      * <p>
-     * Object that is passed as parameter to the closure is of type:
-     * <p>
-     * Object that is passed as parameter to the closure can be of type
-     * {@link Project}, {@link Jdt}, {@link WtpComponent}, {@link WtpFacet}
-     * depending what are you configuring
-     * <p>
-     * For example see docs for {@link EclipseProject}, {@link EclipseWtp}
+     * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject} or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param closure The closure to execute.
      */

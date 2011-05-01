@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.*
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Generates the org.eclipse.wst.common.component settings file for Eclipse WTP.

@@ -27,6 +27,7 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.eclipse.model.*
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * <p>A plugin which generates Eclipse files.</p>

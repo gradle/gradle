@@ -61,4 +61,59 @@ idea {
         assert !ipr.contains('someProjectThatWillBeExcluded')
         assert ipr.contains('hey buddy!')
     }
+
+    @Test
+    void configuresHooks() {
+        def ipr = file('root.ipr')
+        ipr.text = '''<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <option name="DEFAULT_COMPILER" value="Javac"/>
+    <annotationProcessing enabled="false" useClasspath="true"/>
+    <wildcardResourcePatterns>
+      <entry name="!?*.groovy"/>
+      <entry name="!?*.java"/>
+      <entry name="!?*.fooBar"/>
+    </wildcardResourcePatterns>
+  </component>
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/root.iml" filepath="$PROJECT_DIR$/root.iml"/>
+    </modules>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-type="JavaSDK" assert-jdk-15="true" project-jdk-name="1.5">
+    <output url="file://$PROJECT_DIR$/out"/>
+  </component>
+</project>
+'''
+
+        //when
+        runTask 'idea', '''
+apply plugin: "java"
+apply plugin: "idea"
+
+def hooks = []
+
+idea {
+    project {
+        ipr {
+            beforeMerged {
+                assert it.wildcards.contains('!?*.fooBar')
+                it.wildcards << '!?*.fooBarTwo'
+                hooks << 'before'
+            }
+            whenMerged {
+                assert it.wildcards.contains('!?*.fooBarTwo')
+                hooks << 'when'
+            }
+        }
+    }
+}
+
+ideaProject.doLast {
+    assert hooks == ['before', 'when']
+}
+'''
+        //then no exception thrown
+    }
 }

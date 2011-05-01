@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.dsl.ConventionProperty
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
