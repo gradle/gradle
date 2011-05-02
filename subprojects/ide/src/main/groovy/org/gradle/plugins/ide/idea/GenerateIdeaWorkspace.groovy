@@ -19,7 +19,20 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.Workspace
 
 /**
- * Generates an IDEA workspace file.
+ * Generates an IDEA workspace file *only* for root project.
+ * There's little you can configure about workspace generation at the moment.
+ * <p>
+ * Example:
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'idea'
+ *
+ * ideaWorkspace {
+ *   doLast {
+ *     //...
+ *   }
+ * }
+ * </pre>
  *
  * @author Hans Dockter
  */

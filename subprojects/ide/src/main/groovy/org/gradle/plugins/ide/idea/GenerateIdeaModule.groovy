@@ -21,7 +21,8 @@ import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.Module
 
 /**
- * Generates an IDEA module file.
+ * Generates an IDEA module file. If you want to fine tune the idea configuration
+ * please refer to more interesting examples in {@link IdeaModule}.
  * <p>
  * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
  * <pre autoTested=''>
@@ -39,6 +40,9 @@ import org.gradle.plugins.ide.idea.model.Module
  *
  * ideaModule {
  *   scopes.PROVIDED.plus += configurations.provided
+ *   doLast {
+ *     //in case you need to do something after the generation...
+ *   }
  * }
  * </pre>
  *

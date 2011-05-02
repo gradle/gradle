@@ -21,8 +21,7 @@ import org.gradle.util.ConfigureUtil
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin
  * <p>
- * Example of use with a blend of all possible properties.
- * Bear in mind that usually you don't have configure them directly because Gradle configures it for free!
+ * More interesting examples you will find in docs for {@link EclipseWtpComponent} and {@link EclipseWtpFacet}
  *
  * <pre autoTested=''>
  * apply plugin: 'java'

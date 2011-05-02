@@ -21,17 +21,21 @@ import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
- * Generates an Eclipse <code>.project</code> file.
+ * Generates an Eclipse <code>.project</code> file. If you want to fine tune the eclipse configuration
+ * please refer to more interesting examples in {@link EclipseProject}.
  * <p>
- * Example how to configure eclipse project generation:
+ * Example:
  * <pre autoTested=''>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  *
  * eclipseProject {
- *   //...
+ *   doLast {
+ *     //...
+ *   }
  * }
  * </pre>
+ *
  * @author Hans Dockter
  */
 class GenerateEclipseProject extends XmlGeneratorTask<Project> {
