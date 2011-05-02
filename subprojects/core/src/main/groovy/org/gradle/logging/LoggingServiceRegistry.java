@@ -72,7 +72,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected TimeProvider createTimeProvider() {
         return new TrueTimeProvider();
     }
-    
+
     protected StdOutLoggingSystem createStdOutLoggingSystem() {
         return new StdOutLoggingSystem(stdoutListener, get(TimeProvider.class));
     }
@@ -88,7 +88,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected ProgressLoggerFactory createProgressLoggerFactory() {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(TimeProvider.class));
     }
-    
+
     protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
         Slf4jLoggingConfigurer slf4jConfigurer = new Slf4jLoggingConfigurer(renderer);
@@ -107,7 +107,8 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected OutputEventRenderer createOutputEventRenderer() {
         Spec<FileDescriptor> terminalDetector;
         if (detectConsole) {
-            terminalDetector = new TerminalDetector(StartParameter.DEFAULT_GRADLE_USER_HOME);
+            StartParameter startParameter = new StartParameter();
+            terminalDetector = new TerminalDetector(startParameter.getGradleUserHomeDir());
         } else {
             terminalDetector = Specs.satisfyNone();
         }
