@@ -32,13 +32,14 @@ class CrossVersionCompatibilityIntegrationTest {
     private final BasicGradleDistribution gradle092 = dist.previousVersion('0.9.2')
     private final BasicGradleDistribution gradle10Milestone1 = dist.previousVersion('1.0-milestone-1')
     private final BasicGradleDistribution gradle10Milestone2 = dist.previousVersion('1.0-milestone-2')
+    private final BasicGradleDistribution gradle10Milestone3 = dist.previousVersion('1.0-milestone-3')
 
     @Test
     public void canBuildJavaProject() {
         dist.testFile('buildSrc/src/main/groovy').assertIsDir()
 
         // Upgrade and downgrade from previous version to current version and back again
-        eachVersion([gradle08, gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2]) { version ->
+        eachVersion([gradle08, gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3]) { version ->
             version.executer().inDirectory(dist.testDir).withTasks('build').run()
             dist.executer().inDirectory(dist.testDir).withTasks('build').run()
             version.executer().inDirectory(dist.testDir).withTasks('build').run()
@@ -47,19 +48,24 @@ class CrossVersionCompatibilityIntegrationTest {
 
     @Test
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
-        eachVersion([gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2]) { version ->
+        eachVersion([gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3]) { version ->
+            if (version == gradle091 && dist.version.matches('.*-\\d{4}')) {
+                println "skipping $version as it does not work with current version ${dist.version}"
+                return false
+            }
             checkWrapperWorksWith(version, dist)
         }
     }
 
     @Test
     public void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
-        eachVersion([gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2]) { version ->
+        eachVersion([gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3]) { version ->
             checkWrapperWorksWith(dist, version)
         }
     }
 
     def checkWrapperWorksWith(BasicGradleDistribution wrapperGenVersion, BasicGradleDistribution executionVersion) {
+        println "use wrapper from $wrapperGenVersion to build using $executionVersion"
         wrapperGenVersion.executer().withTasks('wrapper').withArguments("-PdistZip=$executionVersion.binDistribution.absolutePath", "-PdistVersion=$executionVersion.version").run()
         def result = wrapperGenVersion.executer().usingExecutable('gradlew').withTasks('hello').run()
         assert result.output.contains("hello from $executionVersion.version")
@@ -68,11 +74,11 @@ class CrossVersionCompatibilityIntegrationTest {
     def eachVersion(Iterable<BasicGradleDistribution> versions, Closure cl) {
         versions.each { version ->
             if (!version.worksWith(Jvm.current())) {
-                System.out.println("skipping $version as it does not work with ${Jvm.current()}.")
+                println "skipping $version as it does not work with ${Jvm.current()}."
                 return
             }
             try {
-                System.out.println("building using $version");
+                println "building using $version"
                 cl.call(version)
             } catch (Throwable t) {
                 throw new RuntimeException("Could not build test project using $version.", t)

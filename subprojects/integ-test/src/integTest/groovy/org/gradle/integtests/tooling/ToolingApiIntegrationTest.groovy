@@ -21,7 +21,7 @@ import org.gradle.tooling.model.Project
 import org.gradle.util.GradleVersion
 
 class ToolingApiIntegrationTest extends ToolingApiSpecification {
-    final BasicGradleDistribution otherVersion = dist.previousVersion('1.0-milestone-3-20110424172210+1000')
+    final BasicGradleDistribution otherVersion = dist.previousVersion('1.0-milestone-3')
 
     def "tooling api uses to the current version of gradle when none has been specified"() {
         def projectDir = dist.testDir
