@@ -22,7 +22,22 @@ import org.gradle.api.file.SourceDirectorySet;
 import java.io.File;
 
 /**
- * <p>A {@code SourceSet} represents a logical group of Java source and resources.</p>
+ * A {@code SourceSet} represents a logical group of Java source and resources.
+ * <p>
+ * See the example below how {@link SourceSet} 'main' is accessed and how the {@link SourceDirectorySet} 'java'
+ * is configured to exclude some package from compilation.
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ *
+ * sourceSets {
+ *   main {
+ *     java {
+ *       exclude 'some/unwanted/package/**'
+ *     }
+ *   }
+ * }
+ * </pre>
  */
 public interface SourceSet {
     /**

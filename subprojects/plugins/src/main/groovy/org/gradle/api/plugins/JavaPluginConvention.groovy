@@ -23,7 +23,9 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.SourceSet
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.file.SourceDirectorySet
 
 /**
  * Is mixed in into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
@@ -82,6 +84,21 @@ class JavaPluginConvention {
      *
      * <p>The given closure is executed to configure the {@link SourceSetContainer}. The {@link SourceSetContainer}
      * is passed to the closure as its delegate.
+     * <p>
+     * See the example below how {@link SourceSet} 'main' is accessed and how the {@link SourceDirectorySet} 'java'
+     * is configured to exclude some package from compilation.
+     *
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * sourceSets {
+     *   main {
+     *     java {
+     *       exclude 'some/unwanted/package/**'
+     *     }
+     *   }
+     * }
+     * </pre>
      *
      * @param closure The closure to execute.
      */
