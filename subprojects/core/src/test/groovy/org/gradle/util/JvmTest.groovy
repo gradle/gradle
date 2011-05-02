@@ -88,7 +88,6 @@ class JvmTest extends Specification {
     }
 
     def usesSystemPropertyToDetermineIfAppleJvm() {
-
         when:
         System.properties['java.vm.vendor'] = 'Apple Inc.'
         def jvm = Jvm.current()
