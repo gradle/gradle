@@ -50,7 +50,11 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
     }
 
     public Plugin findPlugin(String id) {
-        return findPlugin(getTypeForId(id));
+        try {
+            return findPlugin(getTypeForId(id));
+        } catch (UnknownPluginException e) {
+            return null;
+        }
     }
 
     public <T extends Plugin> T findPlugin(Class<T> type) {
