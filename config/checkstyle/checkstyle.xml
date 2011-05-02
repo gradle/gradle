@@ -64,9 +64,9 @@
         <module name="MultipleVariableDeclarations"/>
         <module name="NoClone"/>
         <module name="NoFinalizer"/>
-        <module name="RedundantThrows">
-            <property name="allowUnchecked" value="true"/>
-        </module>
+        <!--<module name="RedundantThrows">-->
+            <!--<property name="allowUnchecked" value="true"/>-->
+        <!--</module>-->
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
         <module name="StringLiteralEquality"/>
