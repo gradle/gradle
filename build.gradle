@@ -83,7 +83,15 @@ libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.25@jar",
         "org.mortbay.jetty:jetty-util:6.1.25@jar",
         "org.mortbay.jetty:servlet-api:2.5-20081211@jar"]
 
+boolean hasCIBuildInfo() {
+    return System.getenv('buildInfoConfig.propertiesFile') != null ||
+            System.getProperty('buildInfoConfig.propertiesFile') != null
+}
+
 allprojects {
+    if (!hasCIBuildInfo()) {
+        apply plugin: 'artifactory'
+    }
     group = 'org.gradle'
 
     plugins.withType(JavaPlugin).whenPluginAdded {
@@ -93,14 +101,52 @@ allprojects {
 
     repositories {
         mavenRepo(urls: 'http://repo.gradle.org/gradle/libs')
-        add(new org.apache.ivy.plugins.resolver.URLResolver()) {
-            name = 'wharfRepo'
-            addIvyPattern('http://repo.jfrog.org/artifactory/wharf/[organisation]/[module]/ivy-[revision].xml')
-            addArtifactPattern('http://repo.jfrog.org/artifactory/wharf/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
-        }
     }
 
     version = this.version
+    if (releaseBuild) {
+        status = 'release'
+    } else {
+        status = 'integration'
+    }
+}
+
+artifactory {
+    contextUrl = 'http://repo.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'gradle-ivy-local'
+            ivy {
+                mavenCompatible = false
+                ivyLayout = '[organisation]/[module]/ivy-[revision].xml'
+                artifactLayout = '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+            }
+        }
+        publishPom = true
+        publishIvy = true
+    }
+    projectPublish {
+        publishConfigs('archives', 'publishRuntime')
+        if (it.project.tasks.findByName('generatePom') != null) {
+            mavenDescriptor = it.project.generatePom.pomFile
+        } else {
+            mavenDescriptor = 'does-not-exists.pom'
+        }
+        properties = ['build.status': "$it.project.status".toString()]
+    }
+    resolve {
+        // Resolution should use release only in release mode
+        if (releaseBuild) {
+            addMatrixParams(['build.status': 'release'])
+        }
+        repository {
+            repoKey = 'wharf'
+            ivy {
+                   ivyLayout = '[organisation]/[module]/ivy-[revision].xml'
+                   artifactLayout = '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+            }
+        }
+    }
 }
 
 configure(groovyProjects()) {
@@ -517,19 +563,11 @@ uploadDists {
     uploadDescriptor = true
 }
 
-subprojects {
-    if (tasks.findByName('buildInfo')) {
-        buildInfo {
-            artifactName = "gradle-${project.name}"
-        }
-    }
-}
-
-if (tasks.findByName('buildInfo')) {
-    buildInfo {
-        dependsOn build
-        configuration = configurations.dists
-    }
+artifactoryProjectPublish {
+    dependsOn build
+    configuration = configurations.dists
+    mavenDescriptor = 'does-not-exists.xml'
+    ivyDescriptor = 'does-not-exists.xml'
 }
 
 task developerBuild {

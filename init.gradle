@@ -1,0 +1,16 @@
+String pluginVersion='2.0.x-20110503.203605-64'
+def artifactoryPluginUrl = "http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/org/jfrog/buildinfo/build-info-extractor-gradle/2.0.x-SNAPSHOT/build-info-extractor-gradle-$pluginVersion-uber.jar"
+
+def file = new File(gradle.gradleUserHomeDir, "plugins/artifactory-$pluginVersion-uber.jar")
+if (!file.exists()) {
+    file.parentFile.mkdirs()
+    println "Downloading the latest Artifactory plugin to '$file.absolutePath'..."
+    file << artifactoryPluginUrl.toURL().openStream()
+    println "Artifactory plugin succesfully downloaded."
+}
+
+gradle.projectsLoaded {
+    rootProject.allprojects {
+        buildscript.dependencies.classpath files(file)
+    }
+}
