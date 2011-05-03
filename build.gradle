@@ -104,7 +104,7 @@ allprojects {
     }
 
     version = this.version
-    if (releaseBuild) {
+    if (releaseBuild == 'true') {
         status = 'release'
     } else {
         status = 'integration'
@@ -136,7 +136,7 @@ artifactory {
     }
     resolve {
         // Resolution should use release only in release mode
-        if (releaseBuild) {
+        if (releaseBuild == 'true') {
             addMatrixParams(['build.status': 'release'])
         }
         repository {
