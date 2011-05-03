@@ -137,6 +137,8 @@ fi
 
 GRADLE_APP_BASE_NAME=`basename "$0"`
 
+GRADLE_OPTS="-Xmx500m -XX:MaxPermSize=512m $GRADLE_OPTS"
+
 "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
         -Dorg.gradle.appname="$GRADLE_APP_BASE_NAME" \
