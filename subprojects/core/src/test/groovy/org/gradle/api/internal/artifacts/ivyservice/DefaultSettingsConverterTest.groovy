@@ -71,12 +71,14 @@ class DefaultSettingsConverterTest {
         assert clientModuleChain.resolvers[1].is(chainResolver)
         assert settings.defaultResolver.is(clientModuleChain)
 
-        [testBuildResolver.name, testResolver.name, testResolver2.name, DefaultSettingsConverter.CHAIN_RESOLVER_NAME,
-                DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME].each {
+        [testBuildResolver.name, testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
         }
-        assert settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_NAME)
+        [DefaultSettingsConverter.CLIENT_MODULE_NAME, DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME, DefaultSettingsConverter.CHAIN_RESOLVER_NAME].each {
+            assert settings.getResolver(it)
+            assert settings.getResolver(it).getRepositoryCacheManager() instanceof NoOpRepositoryCacheManager
+        }
 
         assertEquals(new File(testGradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME),
                 settings.defaultCache)

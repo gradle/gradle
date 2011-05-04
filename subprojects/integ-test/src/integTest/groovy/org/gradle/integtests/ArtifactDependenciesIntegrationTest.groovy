@@ -73,6 +73,40 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
+        testFile('settings.gradle') << 'include "a", "b"'
+        testFile('build.gradle') << """
+project(':a') {
+    repositories {
+        mavenRepo urls: '${repo().rootDir.toURI()}'
+    }
+    configurations {
+        compile
+    }
+    dependencies {
+        compile 'org.gradle.test:external1:1.0'
+    }
+}
+project(':b') {
+    configurations {
+        compile
+    }
+    dependencies {
+        compile 'org.gradle.test:external1:1.0'
+    }
+}
+subprojects {
+    task listDeps << { configurations.compile.each { } }
+}
+"""
+        repo().module('org.gradle.test', 'external1', '1.0').publishArtifact()
+
+        inTestDirectory().withTasks('a:listDeps').run()
+        def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
+        result.assertThatCause(containsString('unresolved dependency: org.gradle.test#external1;1.0: not found'))
+    }
+
+    @Test
     public void reportsUnknownDependencyError() {
         File buildFile = testFile("projectWithUnknownDependency.gradle");
         ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();

@@ -36,10 +36,7 @@ import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -80,7 +77,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         Clock clock = new Clock();
 
         IvySettings ivySettings = createIvySettings(gradleUserHome);
-        initializeResolvers(ivySettings, getAllResolvers(Collections.<DependencyResolver>emptyList(), publishResolvers));
+        initializeResolvers(ivySettings, publishResolvers);
         logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
         return ivySettings;
     }
@@ -91,9 +88,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
             return ivySettings;
         }
         Clock clock = new Clock();
-        ChainResolver userResolverChain = createUserResolverChain(dependencyResolvers, internalRepository);
-        ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
-        ChainResolver outerChain = createOuterChain(userResolverChain, clientModuleResolver);
+        DependencyResolver userResolverChain = createUserResolverChain(dependencyResolvers, internalRepository);
+        DependencyResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
+        DependencyResolver outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
 
         IvySettings ivySettings = createIvySettings(gradleUserHome);
         initializeResolvers(ivySettings, getAllResolvers(dependencyResolvers, Collections.<DependencyResolver>emptyList(), internalRepository, userResolverChain, clientModuleResolver, outerChain));
@@ -110,20 +107,22 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return allResolvers;
     }
 
-    private ChainResolver createOuterChain(ChainResolver userResolverChain, ClientModuleResolver clientModuleResolver) {
+    private DependencyResolver createOuterChain(Collection<DependencyResolver> resolvers) {
         ChainResolver clientModuleChain = new ChainResolver();
         clientModuleChain.setName(CLIENT_MODULE_CHAIN_NAME);
         clientModuleChain.setReturnFirst(true);
-        clientModuleChain.add(clientModuleResolver);
-        clientModuleChain.add(userResolverChain);
+        clientModuleChain.setRepositoryCacheManager(new NoOpRepositoryCacheManager(clientModuleChain.getName()));
+        for (DependencyResolver resolver : resolvers) {
+            clientModuleChain.add(resolver);
+        }
         return clientModuleChain;
     }
 
-    private ClientModuleResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, ChainResolver userResolverChain) {
+    private DependencyResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, DependencyResolver userResolverChain) {
         return new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
     }
 
-    private ChainResolver createUserResolverChain(List<DependencyResolver> classpathResolvers, DependencyResolver internalRepository) {
+    private DependencyResolver createUserResolverChain(List<DependencyResolver> classpathResolvers, DependencyResolver internalRepository) {
         ChainResolver chainResolver = new ChainResolver();
         chainResolver.setName(CHAIN_RESOLVER_NAME);
         chainResolver.add(internalRepository);
@@ -131,6 +130,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         chainResolver.setChangingPattern(".*-SNAPSHOT");
         chainResolver.setChangingMatcher(PatternMatcher.REGEXP);
         chainResolver.setReturnFirst(true);
+        chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));
         for (DependencyResolver classpathResolver : classpathResolvers) {
             chainResolver.add(classpathResolver);
         }
