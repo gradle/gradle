@@ -238,7 +238,6 @@ ideaModule {
 
         //then
         def iml = getFile([:], 'root.iml').text
-        println iml
         assert iml.contains('inherit-compiler-output="false"')
         assert iml.contains('foo-out')
         assert iml.contains('foo-out-test')

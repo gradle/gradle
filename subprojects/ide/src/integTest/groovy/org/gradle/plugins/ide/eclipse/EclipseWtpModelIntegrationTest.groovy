@@ -89,7 +89,6 @@ eclipse {
 
         component = getFile([:], '.settings/org.eclipse.wst.common.component').text
         def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
-        println facet //TODO SF after completing the refactoring, get rid of the printlns
 
         //then component:
         contains('someExtraSourceDir')
@@ -243,9 +242,7 @@ eclipse {
         """
 
         def component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        println component
-
-        //then
+        //then build assertions - at the moment the test blows up
     }
 
     @Test
