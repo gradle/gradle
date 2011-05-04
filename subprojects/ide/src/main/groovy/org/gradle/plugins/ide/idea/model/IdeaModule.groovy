@@ -261,6 +261,8 @@ class IdeaModule {
      */
     String javaVersion = Module.INHERITED
 
+    List<ClasspathDir> classpathDirs = []
+
     /**
      * Enables advanced configuration like tinkering with the output xml
      * or affecting the way existing *.iml content is merged with gradle build information

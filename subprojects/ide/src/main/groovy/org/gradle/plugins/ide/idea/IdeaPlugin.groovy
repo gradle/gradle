@@ -143,6 +143,10 @@ class IdeaPlugin extends IdePlugin {
                     RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
                     TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
             ]
+            module.conventionMapping.classpathDirs = {
+                [new ClasspathDir(scope: 'COMPILE', dir: project.sourceSets.main.resourcesDir),
+                 new ClasspathDir(scope: 'TEST', dir: project.sourceSets.test.resourcesDir)]
+            }
         }
     }
 
