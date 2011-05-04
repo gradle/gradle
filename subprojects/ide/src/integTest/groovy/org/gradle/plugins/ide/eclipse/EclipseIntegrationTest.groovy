@@ -266,4 +266,30 @@ eclipseJdt {
         assert jdt.contains('source=1.4')
         assert jdt.contains('targetPlatform=1.3')
     }
+
+    @Test
+    void "puts well ordered resources on IDEs classpath to solve the generated resources problem"() {
+        file('src/main/resources/prod.resource').createFile()
+        file('src/test/resources/test.resource').createFile()
+        def java = file('src/main/java/Main.java')
+        java << "class Main {}"
+        def test = file('src/test/java/TestFoo.java')
+        test << "class TestFoo {}"
+
+        def build = '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+'''
+        runTask(['build', 'eclipse'], build)
+
+        def cp = parseClasspathFile()
+
+        assert 'bin'                  == cp.classpathentry[0].@path.text()
+        assert 'src/main/java'        == cp.classpathentry[1].@path.text()
+        assert 'src/main/resources'   == cp.classpathentry[2].@path.text()
+        assert 'src/test/java'        == cp.classpathentry[3].@path.text()
+        assert 'src/test/resources'   == cp.classpathentry[4].@path.text()
+        assert 'build/resources/main' == cp.classpathentry[5].@path.text()
+        assert 'build/resources/test' == cp.classpathentry[6].@path.text()
+    }
 }

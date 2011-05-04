@@ -38,6 +38,14 @@ class SourceFoldersCreator {
 
         entries.addAll(regulars)
         entries.addAll(trimmedExternals)
+
+        //adds resourceDirs as source folders to tackle the generated resources problem
+        classpath.sourceSets.each {
+            if (it.resourcesDir.isDirectory()) {
+                def path = provideRelativePath(it.resourcesDir)
+                entries.add(new SourceFolder(path, null, [] as Set, null, [], [] ))
+            }
+        }
     }
 
     /**
