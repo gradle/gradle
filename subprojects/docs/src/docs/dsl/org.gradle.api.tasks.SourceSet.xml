@@ -1,3 +1,4 @@
+
 <section>
     <section>
         <title>Properties</title>
@@ -27,6 +28,10 @@
             <tr>
                 <td>classesDir</td>
                 <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceSet.name}</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>resourcesDir</td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/resources/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>compileClasspath</td>

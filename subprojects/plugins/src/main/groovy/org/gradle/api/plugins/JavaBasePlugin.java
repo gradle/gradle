@@ -77,6 +77,12 @@ public class JavaBasePlugin implements Plugin<Project> {
                         return new File(project.getBuildDir(), classesDirName);
                     }
                 });
+                conventionMapping.map("resourcesDir", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        String classesDirName = String.format("resources/%s", sourceSet.getName());
+                        return new File(project.getBuildDir(), classesDirName);
+                    }
+                });
                 sourceSet.getJava().srcDir(String.format("src/%s/java", sourceSet.getName()));
                 sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
 
@@ -90,7 +96,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 });
                 conventionMapping.map("destinationDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return sourceSet.getClassesDir();
+                        return sourceSet.getResourcesDir();
                     }
                 });
 

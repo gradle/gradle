@@ -35,6 +35,7 @@ public class DefaultSourceSet implements SourceSet {
     private final String name;
     private final FileResolver fileResolver;
     private File classesDir;
+    private File resourcesDir;
     private FileCollection compileClasspath;
     private FileCollection runtimeClasspath;
     private final SourceDirectorySet javaSource;
@@ -72,10 +73,15 @@ public class DefaultSourceSet implements SourceSet {
         allSource.source(javaSource);
 
         String classesDisplayName = String.format("%s classes", displayName);
-        classes = new DefaultConfigurableFileCollection(classesDisplayName, fileResolver, taskResolver, new Callable() {
-            public Object call() throws Exception {
-                return getClassesDir();
-            }
+        classes = new DefaultConfigurableFileCollection(classesDisplayName, fileResolver, taskResolver
+            , new Callable() {
+                public Object call() throws Exception {
+                    return getClassesDir();
+                }
+            }, new Callable() {
+                public Object call() throws Exception {
+                    return getResourcesDir();
+                }
         });
     }
 
@@ -179,5 +185,13 @@ public class DefaultSourceSet implements SourceSet {
 
     public SourceDirectorySet getAllSource() {
         return allSource;
+    }
+
+    public File getResourcesDir() {
+        return resourcesDir;
+    }
+
+    public void setResourcesDir(Object resourcesDir) {
+        this.resourcesDir = fileResolver.resolve(resourcesDir);
     }
 }
