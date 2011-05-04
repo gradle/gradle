@@ -16,6 +16,7 @@
 package org.gradle.api.initialization;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -99,4 +100,27 @@ public interface ProjectDescriptor {
      * @return The path. Never returns null.
      */
     String getPath();
+    
+    /**
+     * Gets all additional properties from the {@code ProjectDescriptor}
+     *
+     * @return A Map of properties.
+     */
+    Map<String,Object> getProperties();
+    
+    /**
+     * Gets an additional property from the {@code ProjectDescriptor}
+     *
+     * @param key The property key.
+     * @return The property value - or null if not found.
+     */
+    Object getProperty(String key);
+    
+    /**
+     * Sets an additional property to be added to a {@link org.gradle.api.Project}
+     *
+     * @param key The property key.
+     * @param value The property value.
+     */
+    void setProperty(String key, Object value);
 }
