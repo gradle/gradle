@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.util;
 
-import org.gradle.util.MultiParentClassLoader;
+import java.net.URL;
 
 public interface ClassLoaderFactory {
     /**
-     * Returns the root class loader shared by all builds.
+     * Creates a ClassLoader implementation which has only the classes from the specified URLs visible and the Java API visible.
+     * @param urls The URLs
+     * @return The ClassLoader
      */
-    ClassLoader getRootClassLoader();
-
-    /**
-     * Returns the class loader for the coreImpl project.
-     */
-    ClassLoader getCoreImplClassLoader();
-
-    /**
-     * Creates the script class loader for a build.
-     */
-    MultiParentClassLoader createScriptClassLoader();
+    ClassLoader createIsolatedClassLoader(Iterable<URL> urls);
 }

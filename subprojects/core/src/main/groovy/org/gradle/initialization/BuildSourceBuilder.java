@@ -43,14 +43,14 @@ public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
 
     private final GradleLauncherFactory gradleLauncherFactory;
-    private final ClassLoaderFactory classLoaderFactory;
+    private final ClassLoaderRegistry classLoaderRegistry;
     private final CacheRepository cacheRepository;
 
     private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
-    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderFactory classLoaderFactory, CacheRepository cacheRepository) {
+    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderRegistry classLoaderRegistry, CacheRepository cacheRepository) {
         this.gradleLauncherFactory = gradleLauncherFactory;
-        this.classLoaderFactory = classLoaderFactory;
+        this.classLoaderRegistry = classLoaderRegistry;
         this.cacheRepository = cacheRepository;
     }
 
@@ -65,7 +65,7 @@ public class BuildSourceBuilder {
                 throw new UncheckedIOException(e);
             }
         }
-        return new URLClassLoader(urls, classLoaderFactory.getRootClassLoader());
+        return new URLClassLoader(urls, classLoaderRegistry.getRootClassLoader());
     }
 
     public Set<File> createBuildSourceClasspath(StartParameter startParameter) {

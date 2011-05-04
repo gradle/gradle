@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
-import org.gradle.initialization.ClassLoaderFactory;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
@@ -44,9 +44,9 @@ class DelegatingBuildModelAction implements GradleLauncherAction<ProjectVersion3
 
     private void loadAction(DefaultGradleLauncher launcher) {
         DefaultGradleLauncher gradleLauncher = launcher;
-        ClassLoaderFactory classLoaderFactory = gradleLauncher.getGradle().getServices().get(ClassLoaderFactory.class);
+        ClassLoaderRegistry classLoaderRegistry = gradleLauncher.getGradle().getServices().get(ClassLoaderRegistry.class);
         try {
-            action = (GradleLauncherAction<ProjectVersion3>) classLoaderFactory.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class).newInstance(type);
+            action = (GradleLauncherAction<ProjectVersion3>) classLoaderRegistry.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class).newInstance(type);
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         }

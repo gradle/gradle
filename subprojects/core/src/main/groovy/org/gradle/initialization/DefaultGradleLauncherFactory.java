@@ -132,7 +132,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
-                                serviceRegistry.get(ClassLoaderFactory.class),
+                                serviceRegistry.get(ClassLoaderRegistry.class),
                                 serviceRegistry.get(CacheRepository.class))),
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(

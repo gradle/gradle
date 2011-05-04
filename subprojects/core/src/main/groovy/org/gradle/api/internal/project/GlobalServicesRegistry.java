@@ -24,13 +24,14 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
-import org.gradle.initialization.ClassLoaderFactory;
-import org.gradle.initialization.CommandLineConverter;
-import org.gradle.initialization.DefaultClassLoaderFactory;
-import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.initialization.*;
+import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.util.ClassLoaderFactory;
+import org.gradle.util.DefaultClassLoaderFactory;
 
 /**
  * Contains the services shared by all builds in a given process.
@@ -56,8 +57,8 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         return new AutoCloseCacheFactory(new DefaultCacheFactory());
     }
 
-    protected ClassLoaderFactory createClassLoaderFactory() {
-        return new DefaultClassLoaderFactory(get(ClassPathRegistry.class));
+    protected ClassLoaderRegistry createClassLoaderRegistry() {
+        return new DefaultClassLoaderRegistry(get(ClassPathRegistry.class));
     }
 
     protected ListenerManager createListenerManager() {
@@ -69,7 +70,10 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     }
     
     protected IsolatedAntBuilder createIsolatedAntBuilder() {
-        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
+        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
     }
-    
+
+    protected ClassLoaderFactory createClassLoaderFactory() {
+        return new DefaultClassLoaderFactory();
+    }
 }

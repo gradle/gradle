@@ -23,11 +23,13 @@ import org.gradle.api.internal.ClassPathRegistry
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     private final Map<List<File>, Map<String, Object>> classloaders
     private final ClassPathRegistry classPathRegistry
+    private final ClassLoaderFactory classLoaderFactory
     private final Iterable<File> groovyClasspath
     private final Iterable<File> libClasspath
 
-    def DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry) {
+    def DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classPathRegistry = classPathRegistry
+        this.classLoaderFactory = classLoaderFactory
         classloaders = [:]
         groovyClasspath = classPathRegistry.getClassPathFiles("LOCAL_GROOVY")
         libClasspath = []
@@ -35,6 +37,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 
     private DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> groovyClasspath, Iterable<File> libClasspath) {
         this.classPathRegistry = copy.classPathRegistry
+        this.classLoaderFactory = copy.classLoaderFactory
         this.classloaders = copy.classloaders
         this.groovyClasspath = groovyClasspath
         this.libClasspath = libClasspath
@@ -69,14 +72,14 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             }
 
             Closure converter = {File file -> file.toURI().toURL() }
-            URL[] classpathUrls = fullClasspath.collect(converter)
+            List<URL> classpathUrls = fullClasspath.collect(converter)
             // Need gradle core to pick up ant logging adapter
             URL[] gradleCoreUrls = classPathRegistry.getClassPathUrls("GRADLE_CORE")
 
             FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().classLoader)
             loggingLoader.allowPackage('org.slf4j')
 
-            antLoader = new URLClassLoader(classpathUrls, ClassLoader.systemClassLoader.parent)
+            antLoader = classLoaderFactory.createIsolatedClassLoader(classpathUrls)
             gradleLoader = new URLClassLoader(gradleCoreUrls, new MultiParentClassLoader(antLoader, loggingLoader))
 
             classloaders[normalisedClasspath] = [antLoader: antLoader, gradleLoader: gradleLoader]

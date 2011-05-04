@@ -23,8 +23,8 @@ import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
-import org.gradle.initialization.ClassLoaderFactory;
-import org.gradle.initialization.DefaultClassLoaderFactory;
+import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
@@ -34,6 +34,8 @@ import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.ProgressListener;
+import org.gradle.util.ClassLoaderFactory;
+import org.gradle.util.DefaultClassLoaderFactory;
 import org.gradle.util.TrueTimeProvider;
 
 public class GlobalTestServices extends DefaultServiceRegistry {
@@ -45,8 +47,8 @@ public class GlobalTestServices extends DefaultServiceRegistry {
         return new DefaultClassPathRegistry();
     }
 
-    protected ClassLoaderFactory createClassLoaderFactory() {
-        return new DefaultClassLoaderFactory(get(ClassPathRegistry.class));
+    protected ClassLoaderRegistry createClassLoaderRegistry() {
+        return new DefaultClassLoaderRegistry(get(ClassPathRegistry.class));
     }
 
     protected CacheFactory createCacheFactory() {
@@ -70,7 +72,11 @@ public class GlobalTestServices extends DefaultServiceRegistry {
     }
 
     protected IsolatedAntBuilder createIsolatedAntBuilder() {
-        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
+        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
+    }
+
+    protected ClassLoaderFactory createClassLoaderFactory() {
+        return new DefaultClassLoaderFactory();
     }
 
 }

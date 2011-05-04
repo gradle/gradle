@@ -73,7 +73,7 @@ public class TopLevelBuildServiceRegistryTest {
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
     private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
-    private final ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
+    private final ClassLoaderRegistry classLoaderRegistry = context.mock(ClassLoaderRegistry.class);
     private final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
     private final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory.class);
 
@@ -85,8 +85,8 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(cacheFactory));
             allowing(parent).get(ClassPathRegistry.class);
             will(returnValue(classPathRegistry));
-            allowing(parent).get(ClassLoaderFactory.class);
-            will(returnValue(classLoaderFactory));
+            allowing(parent).get(ClassLoaderRegistry.class);
+            will(returnValue(classLoaderRegistry));
             allowing(parent).getFactory(LoggingManagerInternal.class);
             will(returnValue(loggingManagerFactory));
             allowing(parent).get(ProgressLoggerFactory.class);
@@ -234,14 +234,14 @@ public class TopLevelBuildServiceRegistryTest {
 
     private void expectScriptClassLoaderCreated() {
         context.checking(new Expectations() {{
-            one(classLoaderFactory).createScriptClassLoader();
+            one(classLoaderRegistry).createScriptClassLoader();
             will(returnValue(new MultiParentClassLoader()));
         }});
     }
 
     private void allowGetRootClassLoader() {
         context.checking(new Expectations() {{
-            allowing(classLoaderFactory).getRootClassLoader();
+            allowing(classLoaderRegistry).getRootClassLoader();
             will(returnValue(new ClassLoader() {
             }));
         }});
@@ -249,7 +249,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     private void allowGetCoreImplClassLoader() {
         context.checking(new Expectations() {{
-            allowing(classLoaderFactory).getCoreImplClassLoader();
+            allowing(classLoaderRegistry).getCoreImplClassLoader();
             will(returnValue(new ClassLoader() {
             }));
         }});

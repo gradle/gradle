@@ -30,10 +30,11 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.logging.LoggingTestHelper
+import org.gradle.util.DefaultClassLoaderFactory
 
 class DefaultIsolatedAntBuilderTest {
     private final ClassPathRegistry registry = new DefaultClassPathRegistry()
-    private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry)
+    private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
     private final TestAppender appender = new TestAppender()
     private final LoggingTestHelper helper = new LoggingTestHelper(appender)
     private Collection classpath

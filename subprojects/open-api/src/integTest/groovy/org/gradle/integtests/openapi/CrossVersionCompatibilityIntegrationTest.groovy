@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.openapi
 
-import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
@@ -25,6 +24,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.util.ClasspathUtil
+import org.gradle.util.DefaultClassLoaderFactory
 
 class CrossVersionCompatibilityIntegrationTest {
     private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
@@ -63,11 +64,11 @@ class CrossVersionCompatibilityIntegrationTest {
                 System.out.println("skipping $openApiVersion as it does not work with ${Jvm.current()}.")
                 return
             }
-            def testClasses = AbstractClassPathProvider.getClasspathForClass(CrossVersionBuilder.class)
-            def junitJar = AbstractClassPathProvider.getClasspathForClass(Assert.class)
+            def testClasses = ClasspathUtil.getClasspathForClass(CrossVersionBuilder.class)
+            def junitJar = ClasspathUtil.getClasspathForClass(Assert.class)
             def classpath = [testClasses, junitJar] + openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
             logger.info('Using Open API classpath {}', classpath)
-            def classloader = new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
+            def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI().toURL() })
             def builder = classloader.loadClass(CrossVersionBuilder.class.name).newInstance()
             builder.targetGradleHomeDir = buildVersion.gradleHomeDir
             builder.currentDir = dist.testDir

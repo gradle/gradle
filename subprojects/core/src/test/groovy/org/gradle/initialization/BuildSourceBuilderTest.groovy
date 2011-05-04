@@ -67,7 +67,7 @@ class BuildSourceBuilderTest {
     EmbeddableJavaProject projectMetaInfo = context.mock(EmbeddableJavaProject.class)
 
     @Before public void setUp() {
-        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, context.mock(ClassLoaderFactory.class), cacheRepository)
+        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, context.mock(ClassLoaderRegistry.class), cacheRepository)
         expectedStartParameter = new StartParameter(currentDir: testBuildSrcDir)
         testDependencies = ['dep1' as File, 'dep2' as File]
         Convention convention = context.mock(Convention)

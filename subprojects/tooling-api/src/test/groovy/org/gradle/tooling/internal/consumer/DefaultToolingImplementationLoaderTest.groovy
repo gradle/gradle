@@ -15,15 +15,14 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleVersion
-import org.slf4j.Logger
-import spock.lang.Specification
-import java.util.regex.Pattern
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
+import org.slf4j.Logger
+import spock.lang.Specification
 
 class DefaultToolingImplementationLoaderTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -34,11 +33,11 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
         distribution.toolingImplementationClasspath >> ([
                 getToolingApiResourcesDir(),
-                AbstractClassPathProvider.getClasspathForClass(TestConnection.class),
-                AbstractClassPathProvider.getClasspathForClass(ActorFactory.class),
-                AbstractClassPathProvider.getClasspathForClass(Logger.class),
+                ClasspathUtil.getClasspathForClass(TestConnection.class),
+                ClasspathUtil.getClasspathForClass(ActorFactory.class),
+                ClasspathUtil.getClasspathForClass(Logger.class),
                 getVersionResourcesDir(),
-                AbstractClassPathProvider.getClasspathForClass(GradleVersion.class)
+                ClasspathUtil.getClasspathForClass(GradleVersion.class)
         ] as Set)
 
         when:
@@ -55,15 +54,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     }
 
     private getVersionResourcesDir() {
-        return getResourcesDir("org/gradle/releases.xml")
-    }
-
-    private getResourcesDir(String name) {
-        def resource = getClass().classLoader.getResource(name)
-        assert resource
-        assert resource.protocol == 'file'
-        def dir = resource.path.replaceFirst(Pattern.quote(name), '')
-        return new File(dir)
+        return ClasspathUtil.getClasspathForResource(getClass().classLoader, "org/gradle/releases.xml")
     }
 
     def failsWhenNoImplementationDeclared() {

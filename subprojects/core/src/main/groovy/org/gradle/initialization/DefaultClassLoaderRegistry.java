@@ -28,11 +28,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
 
-public class DefaultClassLoaderFactory implements ClassLoaderFactory {
+public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final URLClassLoader rootClassLoader;
     private final URLClassLoader coreImplClassLoader;
 
-    public DefaultClassLoaderFactory(ClassPathRegistry classPathRegistry) {
+    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry) {
         // Add in tools.jar to the Ant classloader
         ClassLoader antClassloader = Project.class.getClassLoader();
         File toolsJar = Jvm.current().getToolsJar();

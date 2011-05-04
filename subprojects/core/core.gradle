@@ -62,6 +62,7 @@ dependencies {
 
     // tried with scope 'runtime' but this gives a cyclic task dependency
     testRuntime project(":coreImpl")
+    testRuntime 'xerces:xercesImpl:2.9.1'
 
     testCompile libraries.xmlunit
 

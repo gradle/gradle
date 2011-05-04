@@ -288,7 +288,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected MultiParentClassLoader createRootClassLoader() {
-        return get(ClassLoaderFactory.class).createScriptClassLoader();
+        return get(ClassLoaderRegistry.class).createScriptClassLoader();
     }
     
     protected InitScriptHandler createInitScriptHandler() {
@@ -327,7 +327,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
     
     protected MessagingServer createMessagingServer() {
-        return new TcpMessagingServer(get(ClassLoaderFactory.class).getRootClassLoader());
+        return new TcpMessagingServer(get(ClassLoaderRegistry.class).getRootClassLoader());
     }
 
     protected BuildConfigurer createBuildConfigurer() {
@@ -342,7 +342,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected DependencyManagementServices createDependencyManagementServices() {
-        ClassLoader coreImplClassLoader = get(ClassLoaderFactory.class).getCoreImplClassLoader();
+        ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
         try {
             Class<?> implClass = coreImplClassLoader.loadClass("org.gradle.api.internal.artifacts.DefaultDependencyManagementServices");
             return (DependencyManagementServices) implClass.getConstructor(ServiceRegistry.class).newInstance(this);
