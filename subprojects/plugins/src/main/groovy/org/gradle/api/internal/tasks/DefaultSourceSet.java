@@ -31,6 +31,8 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.concurrent.Callable;
 
+import static java.util.Arrays.asList;
+
 public class DefaultSourceSet implements SourceSet {
     private final String name;
     private final FileResolver fileResolver;
@@ -76,13 +78,10 @@ public class DefaultSourceSet implements SourceSet {
         classes = new DefaultConfigurableFileCollection(classesDisplayName, fileResolver, taskResolver
             , new Callable() {
                 public Object call() throws Exception {
-                    return getClassesDir();
+                    return asList(getClassesDir(), getResourcesDir());
                 }
-            }, new Callable() {
-                public Object call() throws Exception {
-                    return getResourcesDir();
-                }
-        });
+            }
+        );
     }
 
     public String getName() {
