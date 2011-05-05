@@ -123,27 +123,20 @@ public class DaemonConnector {
     }
 
     private void startDaemon() {
-        try {
-            List<String> daemonArgs = new ArrayList<String>();
-            daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
-            daemonArgs.add("-Xmx1024m");
-            daemonArgs.add("-XX:MaxPermSize=256m");
-            daemonArgs.add("-cp");
-            daemonArgs.add(GUtil.join(new DefaultClassPathRegistry().getClassPathFiles("GRADLE_RUNTIME"),
-                    File.pathSeparator));
-            daemonArgs.add(GradleDaemon.class.getName());
-            daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.GRADLE_USER_HOME));
-            daemonArgs.add(userHomeDir.getAbsolutePath());
-            ProcessBuilder builder = new ProcessBuilder(daemonArgs);
-            builder.directory(userHomeDir);
-            userHomeDir.mkdirs();
-            Process process = builder.start();
-            process.getOutputStream().close();
-            process.getErrorStream().close();
-            process.getInputStream().close();
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
+        List<String> daemonArgs = new ArrayList<String>();
+        daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
+        daemonArgs.add("-Xmx1024m");
+        daemonArgs.add("-XX:MaxPermSize=256m");
+        daemonArgs.add("-cp");
+        daemonArgs.add(GUtil.join(new DefaultClassPathRegistry().getClassPathFiles("GRADLE_RUNTIME"),
+                File.pathSeparator));
+        daemonArgs.add(GradleDaemon.class.getName());
+        daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.GRADLE_USER_HOME));
+        daemonArgs.add(userHomeDir.getAbsolutePath());
+        DaemonStartAction daemon = new DaemonStartAction();
+        daemon.args(daemonArgs);
+        daemon.workingDir(userHomeDir);
+        daemon.start();
     }
 
     /**

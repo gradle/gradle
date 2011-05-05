@@ -49,8 +49,8 @@ class CrossVersionCompatibilityIntegrationTest {
     @Test
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
         eachVersion([gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3]) { version ->
-            if (version == gradle091 && dist.version.matches('.*-\\d{4}')) {
-                println "skipping $version as it does not work with current version ${dist.version}"
+            if (!version.wrapperCanExecute(dist.version)) {
+                println "skipping $version as its wrapper cannot execute current version ${dist.version}"
                 return false
             }
             checkWrapperWorksWith(version, dist)

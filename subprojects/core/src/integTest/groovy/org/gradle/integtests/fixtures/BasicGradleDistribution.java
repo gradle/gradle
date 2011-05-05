@@ -43,4 +43,14 @@ public interface BasicGradleDistribution {
      * Returns true if this distribution supports the given JVM.
      */
     boolean worksWith(Jvm jvm);
+
+    /**
+     * Returns true if the daemon is supported by this distribution.
+     */
+    boolean daemonSupported();
+
+    /**
+     * Returns true if the wrapper can execute a build using the given version.
+     */
+    boolean wrapperCanExecute(String version);
 }

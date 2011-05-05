@@ -91,7 +91,7 @@ public class CommandLineIntegrationTest {
     }
 
     @Test
-    public void failsWhenJavaHomeDoetNotPointToAJavaInstallation() {
+    public void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
         def failure = executer.withEnvironmentVars('JAVA_HOME': dist.testDir)
                 .withTasks('checkJavaHome')
                 .runWithFailure()

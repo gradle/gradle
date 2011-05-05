@@ -59,7 +59,18 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     }
 
     public boolean worksWith(Jvm jvm) {
+        // Works with anything >= Java 5
         return jvm.isJava5Compatible();
+    }
+
+    public boolean daemonSupported() {
+        // More or less
+        return true;
+    }
+
+    public boolean wrapperCanExecute(String version) {
+        // Current wrapper works with anything > 0.8
+        return GradleVersion.version(version).compareTo(GradleVersion.version("0.8")) > 0;
     }
 
     public void requireOwnUserHomeDir() {

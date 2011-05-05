@@ -90,7 +90,7 @@ class ToolingApi implements MethodRule {
             LOGGER.info("Using daemon tooling API provider");
             connector.useInstallation(new File(dist.gradleHomeDir.absolutePath))
             connector.embedded(false)
-            connector.daemonMaxIdleTime(5, TimeUnit.MINUTES)
+            connector.daemonMaxIdleTime(300, TimeUnit.SECONDS)
             DaemonGradleExecuter.registerDaemon(dist.userHomeDir)
         }
         connectorConfigurers.each {

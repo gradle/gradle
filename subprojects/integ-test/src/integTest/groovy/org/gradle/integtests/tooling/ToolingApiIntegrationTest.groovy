@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Project
 import org.gradle.util.GradleVersion
+import org.gradle.tooling.GradleConnector
 
 class ToolingApiIntegrationTest extends ToolingApiSpecification {
     final BasicGradleDistribution otherVersion = dist.previousVersion('1.0-milestone-3')
@@ -43,6 +44,9 @@ task check << { assert gradle.gradleVersion == '${GradleVersion.current().versio
         dist.executer().withTasks('wrapper').run()
 
         when:
+        toolingApi.withConnector { connector ->
+            maybeDisableDaemon(otherVersion, connector)
+        }
         toolingApi.withConnection { connection -> connection.newBuild().forTasks('check').run() }
 
         then:
@@ -54,7 +58,10 @@ task check << { assert gradle.gradleVersion == '${GradleVersion.current().versio
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
 
         when:
-        toolingApi.withConnector { connector -> connector.useInstallation(otherVersion.gradleHomeDir) }
+        toolingApi.withConnector { connector ->
+            connector.useInstallation(otherVersion.gradleHomeDir)
+            maybeDisableDaemon(otherVersion, connector)
+        }
         Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
 
         then:
@@ -66,7 +73,10 @@ task check << { assert gradle.gradleVersion == '${GradleVersion.current().versio
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
 
         when:
-        toolingApi.withConnector { connector -> connector.useDistribution(otherVersion.binDistribution.toURI()) }
+        toolingApi.withConnector { connector ->
+            connector.useDistribution(otherVersion.binDistribution.toURI())
+            maybeDisableDaemon(otherVersion, connector)
+        }
         Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
 
         then:
@@ -78,7 +88,10 @@ task check << { assert gradle.gradleVersion == '${GradleVersion.current().versio
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
 
         when:
-        toolingApi.withConnector { connector -> connector.useGradleVersion(otherVersion.version) }
+        toolingApi.withConnector {
+            connector -> connector.useGradleVersion(otherVersion.version)
+            maybeDisableDaemon(otherVersion, connector)
+        }
         Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
 
         then:
@@ -95,5 +108,9 @@ task check << { assert gradle.gradleVersion == '${GradleVersion.current().versio
         then:
         e.class == UnsupportedVersionException
         e.message == "The specified Gradle distribution '${dist.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
+    }
+
+    private def maybeDisableDaemon(BasicGradleDistribution otherVersion, GradleConnector connector) {
+        if (!otherVersion.daemonSupported()) { connector.embedded(true) }
     }
 }

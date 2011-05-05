@@ -19,6 +19,7 @@ import org.gradle.util.Jvm
 import org.gradle.util.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.DistributionLocator
+import org.gradle.util.OperatingSystem
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
     private final GradleDistribution dist
@@ -38,7 +39,29 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     boolean worksWith(Jvm jvm) {
+        // 0.9-rc-1 was broken for Java 5
         return version == GradleVersion.version('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
+    }
+
+    boolean daemonSupported() {
+        if (OperatingSystem.current().isWindows()) {
+            // On windows, daemon is ok for anything > 1.0-milestone-3
+            return version > GradleVersion.version('1.0-milestone-3')
+        } else {
+            // Daemon is ok for anything >= 0.9
+            return version >= GradleVersion.version('0.9')
+        }
+    }
+
+    boolean wrapperCanExecute(String version) {
+        if (version == '0.8') {
+            return false
+        }
+        if (version == '0.9.1') {
+            // 0.9.1 couldn't handle anything with a timestamp whose timezone was behind GMT
+            return version.matches('.*+\\d{4}')
+        }
+        return true
     }
 
     protected ExecutionResult doRun() {

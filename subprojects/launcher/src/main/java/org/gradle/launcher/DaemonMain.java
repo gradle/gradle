@@ -29,7 +29,6 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.LoggingOutputInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.StreamBackedStandardOutputListener;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.util.GradleVersion;
@@ -57,16 +56,25 @@ public class DaemonMain implements Runnable {
     public static void main(String[] args) throws IOException {
         StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
         DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newCommandLineProcessLogging();
-        addLogFileWriters(startParameter, loggingServices);
+        redirectOutputsAndInput(startParameter);
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
         new DaemonMain(loggingServices, connector).run();
     }
 
-    private static void addLogFileWriters(StartParameter startParameter, LoggingServiceRegistry loggingServices) throws IOException {
-        File stderrOut = new File(startParameter.getGradleUserHomeDir(), String.format("daemon/%s/daemon.err.log", GradleVersion.current().getVersion()));
-        stderrOut.getParentFile().mkdirs();
-        final Writer writer = new BufferedWriter(new FileWriter(stderrOut));
-        loggingServices.get(LoggingOutputInternal.class).addStandardErrorListener(new StreamBackedStandardOutputListener(writer));
+    private static void redirectOutputsAndInput(StartParameter startParameter) throws IOException {
+        PrintStream originalOut = System.out;
+        PrintStream originalErr = System.err;
+//        InputStream originalIn = System.in;
+        File logOutputFile = new File(startParameter.getGradleUserHomeDir(), String.format("daemon/%s/daemon.out.log", GradleVersion.current().getVersion()));
+        logOutputFile.getParentFile().mkdirs();
+        PrintStream printStream = new PrintStream(new FileOutputStream(logOutputFile), true);
+        System.setOut(printStream);
+        System.setErr(printStream);
+        System.setIn(new ByteArrayInputStream(new byte[0]));
+        originalOut.close();
+        originalErr.close();
+        // TODO - make this work on windows
+//        originalIn.close();
     }
 
     public void run() {
