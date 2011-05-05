@@ -11,3 +11,7 @@ dependencies {
     integTestCompile project(path: ':core', configuration: 'integTestFixtures')
     integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
+
+integTestTasks.all {
+    jvmArgs '-XX:MaxPermSize=256m'
+}
