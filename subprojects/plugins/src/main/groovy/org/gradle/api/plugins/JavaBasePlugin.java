@@ -69,26 +69,28 @@ public class JavaBasePlugin implements Plugin<Project> {
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
             public void execute(final SourceSet sourceSet) {
                 final Project project = pluginConvention.getProject();
-                ConventionMapping conventionMapping = ((IConventionAware) sourceSet).getConventionMapping();
 
-                conventionMapping.map("classesDir", new ConventionValue() {
+                ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getClasses()).getConventionMapping();
+
+                outputConventionMapping.map("classesDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         String classesDirName = String.format("classes/%s", sourceSet.getName());
                         return new File(project.getBuildDir(), classesDirName);
                     }
                 });
-                conventionMapping.map("resourcesDir", new ConventionValue() {
+                outputConventionMapping.map("resourcesDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         String classesDirName = String.format("resources/%s", sourceSet.getName());
                         return new File(project.getBuildDir(), classesDirName);
                     }
                 });
+
                 sourceSet.getJava().srcDir(String.format("src/%s/java", sourceSet.getName()));
                 sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
 
                 Copy processResources = project.getTasks().add(sourceSet.getProcessResourcesTaskName(), ProcessResources.class);
                 processResources.setDescription(String.format("Processes the %s.", sourceSet.getResources()));
-                conventionMapping = processResources.getConventionMapping();
+                ConventionMapping conventionMapping = processResources.getConventionMapping();
                 conventionMapping.map("defaultSource", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return sourceSet.getResources();
@@ -96,7 +98,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 });
                 conventionMapping.map("destinationDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return sourceSet.getResourcesDir();
+                        return sourceSet.getClasses().getResourcesDir();
                     }
                 });
 

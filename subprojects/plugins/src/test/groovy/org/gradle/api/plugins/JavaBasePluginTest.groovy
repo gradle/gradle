@@ -68,7 +68,7 @@ class JavaBasePluginTest extends Specification {
         processResources.description == 'Processes the custom resources.'
         processResources instanceof Copy
         Matchers.dependsOn().matches(processResources)
-        processResources.destinationDir == project.sourceSets.custom.resourcesDir
+        processResources.destinationDir == project.sourceSets.custom.classes.resourcesDir
         processResources.defaultSource == project.sourceSets.custom.resources
 
         def compileJava = project.tasks['compileCustomJava']

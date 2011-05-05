@@ -35,6 +35,9 @@ public class DefaultSourceSetContainer extends AutoCreateDomainObjectContainer<S
 
     @Override
     protected SourceSet create(String name) {
-        return generator.newInstance(DefaultSourceSet.class, name, fileResolver, taskResolver);
+        DefaultSourceSet sourceSet = generator.newInstance(DefaultSourceSet.class, name, fileResolver, taskResolver);
+        sourceSet.setClasses(generator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), fileResolver, taskResolver));
+
+        return sourceSet;
     }
 }

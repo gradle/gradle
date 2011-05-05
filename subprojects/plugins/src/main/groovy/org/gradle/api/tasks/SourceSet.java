@@ -100,26 +100,11 @@ public interface SourceSet {
     void setClassesDir(File classesDir);
 
     /**
-     * Returns the output directory for resources
-     *
-     * @return The dir resources are copied to.
-     */
-    //TODO SF: this is a bad name, e.g. inconsistent with resources / resourcesDir VS classes / classesDir
-    File getResourcesDir();
-
-    /**
-     * Sets the output directory for resources
-     *
-     * @param resourcesDir the classes dir. Should not be null.
-     */
-    void setResourcesDir(Object resourcesDir);
-
-    /**
      * Returns all assembled outputs of this SourceSet including resources and compiled classes, etc.
      *
      * @return The classes dir, as a {@link FileCollection}.
      */
-    FileCollection getClasses();
+    SourceSetOutput getClasses();
 
     /**
      * Registers a set of tasks which are responsible for compiling this source set into the classes directory. The

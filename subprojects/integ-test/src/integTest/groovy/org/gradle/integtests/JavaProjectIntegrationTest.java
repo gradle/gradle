@@ -112,23 +112,6 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void resourcesAreIncludedInClassesCollection() throws IOException {
-        //given
-        TestFile buildFile = testFile("build.gradle");
-
-        buildFile.write("apply plugin: 'java' \n"
-                + "processResources.doLast { \n"
-                + "  assert sourceSets.main.classes.files.size() == 2 : 'the classes should contain both resources + compiled classes' \n"
-                + "  assert sourceSets.test.classes.files.size() == 2 : 'the classes should contain both resources + compiled classes' \n"
-                + "}");
-
-        //when
-        usingBuildFile(buildFile).withTasks("build").run();
-
-        //then no exceptions are thrown
-    }
-
-    @Test
     public void generatesArtifactsWhenVersionIsEmpty() {
         testFile("settings.gradle").write("rootProject.name = 'empty'");
         TestFile buildFile = testFile("build.gradle");

@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.SafeClosable;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -50,7 +51,7 @@ public class ExecOutputHandleRunner implements Runnable {
                 outputStream.write(buffer, 0, nread);
                 outputStream.flush();
             }
-            new CompositeStoppable(inputStream, outputStream).stop();
+            new CompositeStoppable(inputStream, new SafeClosable(outputStream)).stop();
         } catch (Throwable t) {
             LOGGER.error(String.format("Could not %s.", displayName), t);
         }
