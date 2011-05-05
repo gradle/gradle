@@ -243,29 +243,6 @@ ideaModule {
         assert iml.contains('foo-out-test')
     }
 
-
-    @Test
-    void "puts well ordered resources on IDEs classpath to solve the generated resources problem"() {
-        file('src/main/resources/prod.resource').createFile()
-        file('src/test/resources/test.resource').createFile()
-        def java = file('src/main/java/Main.java')
-        java << "class Main {}"
-        def test = file('src/test/java/TestFoo.java')
-        test << "class TestFoo {}"
-
-        def build = '''
-apply plugin: 'java'
-apply plugin: 'idea'
-'''
-        runTask(['build', 'idea'], build)
-
-        def iml = parseImlFile(print: true, 'root')
-
-        assert 'sourceFolder' == iml.component.orderEntry[1].@type.text()
-        assert iml.component.orderEntry[2].library.CLASSES.root.@url.text().contains('build/resources/main')
-        assert iml.component.orderEntry[3].library.CLASSES.root.@url.text().contains('build/resources/test')
-    }
-
     private void assertHasExpectedContents(String path) {
         TestFile file = testDir.file(path).assertIsFile()
         TestFile expectedFile = testDir.file("expectedFiles/${path}.xml").assertIsFile()

@@ -29,7 +29,6 @@ import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
 import org.gradle.plugins.ide.idea.model.Path
 import org.gradle.plugins.ide.idea.model.PathFactory
-import org.gradle.plugins.ide.idea.model.ClasspathDir
 
 /**
  * All code was refactored from the GenerateIdeaModule class.
@@ -53,19 +52,11 @@ class IdeaDependenciesProvider {
         this.downloadJavadoc = ideaModule.downloadJavadoc
         this.pathFactory = pathFactory
 
-        def dependencies = scopes.keySet().inject([] as LinkedHashSet) { result, scope ->
+        scopes.keySet().inject([] as LinkedHashSet) { result, scope ->
             result.addAll(getModuleLibraries(scope))
             result.addAll(getModules(scope))
             result
         }
-
-        ideaModule.classpathDirs.each { ClasspathDir c ->
-            if (c.dir.isDirectory()) {
-                dependencies.add(new ModuleLibrary([pathFactory.path(c.dir)] as Set, [] as Set, [] as Set, [] as Set, c.scope))
-            }
-        }
-
-        dependencies
     }
 
     protected Set getModules(String scope) {
