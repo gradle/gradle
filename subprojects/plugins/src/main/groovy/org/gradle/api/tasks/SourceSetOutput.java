@@ -21,28 +21,28 @@ import org.gradle.api.file.FileCollection;
 import java.io.File;
 
 /**
- * Provides output information of the source set
+ * A collection of all output directories (compiled classes, processed resources, etc.) - notice that {@link SourceSetOutput} extends {@link FileCollection}.
+ * <p>
+ * Provides output information of the source set. Allows configuring the default output dirs and specify additional output dirs.
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
  *
  * sourceSets {
  *   main {
- *     classes {
- *       //if you truly want to override the defaults:
- *       resourcesDir = 'out/res'
- *       classesDir   = 'out/bin'
- *     }
+ *     //if you truly want to override the defaults:
+ *     output.resourcesDir = 'out/res'
+ *     output.classesDir   = 'out/bin'
  *   }
  * }
  * </pre>
- *
- * @author: Szczepan Faber, created at: 5/4/11
  */
 public interface SourceSetOutput extends FileCollection {
 
     /**
      * Returns the directory to assemble the compiled classes into.
+     * <p>
+     * See example at {@link SourceSetOutput}
      *
      * @return The classes dir. Never returns null.
      */
@@ -50,6 +50,8 @@ public interface SourceSetOutput extends FileCollection {
 
     /**
      * Sets the directory to assemble the compiled classes into.
+     * <p>
+     * See example at {@link SourceSetOutput}
      *
      * @param classesDir the classes dir. Should not be null.
      */
@@ -57,6 +59,8 @@ public interface SourceSetOutput extends FileCollection {
 
     /**
      * Returns the output directory for resources
+     * <p>
+     * See example at {@link SourceSetOutput}
      *
      * @return The dir resources are copied to.
      */
@@ -64,6 +68,8 @@ public interface SourceSetOutput extends FileCollection {
 
     /**
      * Sets the output directory for resources
+     * <p>
+     * See example at {@link SourceSetOutput}
      *
      * @param resourcesDir the classes dir. Should not be null.
      */

@@ -994,7 +994,7 @@
                     <literal>destinationDir</literal>
                 </td>
                 <td><classname>File</classname>. Can set using anything described in <xref linkend="sec:locating_files"/>.</td>
-                <td><literal><replaceable>sourceSet</replaceable>.resourcesDir</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>output.resourcesDir</literal></td>
             </tr>
         </table>
     </section>

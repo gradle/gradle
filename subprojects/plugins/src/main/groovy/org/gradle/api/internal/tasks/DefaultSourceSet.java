@@ -122,6 +122,10 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSetOutput getClasses() {
+        return getOutput();
+    }
+
+    public SourceSetOutput getOutput() {
         return output;
     }
 
