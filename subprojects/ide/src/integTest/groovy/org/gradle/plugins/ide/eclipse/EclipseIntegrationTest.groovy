@@ -240,7 +240,6 @@ eclipseProject {
 }
 '''
 
-        println getProjectFile().text
         def xml = parseProjectFile()
         assert xml.linkedResources.link[0].name.text() == 'one'
         assert xml.linkedResources.link[0].type.text() == '2'

@@ -130,7 +130,6 @@ project(':services:utilities') {
 
         //when
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
-//        println(getTestDir())
 
         //then
         assertIprContainsCorrectModules()

@@ -83,7 +83,32 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("src/main/resources/org/gradle/resource.file").write("test resource");
 
         usingBuildFile(buildFile).withTasks("build").run();
-        testFile("build/classes/main/org/gradle/resource.file").assertExists();
+        testFile("build/resources/main/org/gradle/resource.file").assertExists();
+    }
+
+    @Test
+    public void separatesOutputResourcesFromCompiledClasses() throws IOException {
+        //given
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.write("apply plugin: 'java'");
+
+        testFile("src/main/resources/prod.resource").write("");
+        testFile("src/main/java/Main.java").write("class Main {}");
+        testFile("src/test/resources/test.resource").write("test resource");
+        testFile("src/test/java/TestFoo.java").write("class TestFoo {}");
+
+        //when
+        usingBuildFile(buildFile).withTasks("build").run();
+
+        //then
+        testFile("build/resources/main/prod.resource").assertExists();
+        testFile("build/classes/main/prod.resource").assertDoesNotExist();
+
+        testFile("build/resources/test/test.resource").assertExists();
+        testFile("build/classes/test/test.resource").assertDoesNotExist();
+
+        testFile("build/classes/main/Main.class").assertExists();
+        testFile("build/classes/test/TestFoo.class").assertExists();
     }
 
     @Test

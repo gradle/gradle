@@ -67,7 +67,6 @@ eclipse {
 
         //then
         content = getFile([:], '.project').text
-        println content
 
         def dotProject = parseProjectFile()
         assert dotProject.name.text() == 'someBetterName'
@@ -175,7 +174,6 @@ eclipseJdt.doLast() {
         """
 
         def jdt = parseJdtFile()
-        println jdt
 
         //then
         assert jdt.contains('targetPlatform=1.1')

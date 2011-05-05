@@ -19,15 +19,16 @@ package org.gradle.integtests.fixtures.internal
 /**
  * @author Szczepan Faber, created at: 4/2/11
  */
-class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest{
+class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
      void runSamplesFrom(String dir) {
         def util = new AutoTestedSamplesUtil()
         util.findSamples(dir) { file, sample ->
             println "Found sample in $file"
-            def testFile = testFile('build.gradle')
-            testFile.text = sample
-            usingBuildFile(testFile).withTasks('tasks').withArguments("-s").run()
+            def buildFile = testFile('build.gradle')
+            buildFile.text = sample
+
+            usingBuildFile(buildFile).withQuietLogging().withTasks('help').withArguments("-s").run()
         }
     }
 }

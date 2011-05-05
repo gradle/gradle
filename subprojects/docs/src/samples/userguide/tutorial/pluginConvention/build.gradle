@@ -1,7 +1,9 @@
 apply plugin: 'java'
 
 task show << {
-    sourceSets.main.classesDir = new File(buildDir, 'output')
-    println relativePath(processResources.destinationDir)
+    sourceSets.main.output.classesDir = new File(buildDir, 'output/classes')
+    sourceSets.main.output.resourcesDir = new File(buildDir, 'output/resources')
+
     println relativePath(compileJava.destinationDir)
+    println relativePath(processResources.destinationDir)
 }

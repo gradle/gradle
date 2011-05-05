@@ -31,13 +31,13 @@ class IncrementalJavaProjectBuildIntegrationTest {
         distribution.testFile('src/main/resources/org/gradle/resource.txt').createFile()
 
         executer.withTasks('classes').run()
-        distribution.testFile('build/classes/main').assertHasDescendants('org/gradle/resource.txt')
+        distribution.testFile('build/resources/main').assertHasDescendants('org/gradle/resource.txt')
 
         distribution.testFile('src/main/resources/org/gradle/resource.txt').assertIsFile().delete()
         distribution.testFile('src/main/resources/org/gradle/resource2.txt').createFile()
 
         executer.withTasks('classes').run()
-        distribution.testFile('build/classes/main').assertHasDescendants('org/gradle/resource2.txt')
+        distribution.testFile('build/resources/main').assertHasDescendants('org/gradle/resource2.txt')
     }
 
     @Test

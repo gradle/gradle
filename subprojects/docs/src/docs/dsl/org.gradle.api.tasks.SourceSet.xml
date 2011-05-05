@@ -1,3 +1,4 @@
+
 <section>
     <section>
         <title>Properties</title>
@@ -22,7 +23,11 @@
             </tr>
             <tr>
                 <td>classes</td>
-                <td><literal>[classesDir]</literal></td>
+                <td>See <apilink class="org.gradle.api.tasks.SourceSetOutput"/></td>
+            </tr>
+            <tr>
+                <td>output</td>
+                <td>See <apilink class="org.gradle.api.tasks.SourceSetOutput"/></td>
             </tr>
             <tr>
                 <td>classesDir</td>

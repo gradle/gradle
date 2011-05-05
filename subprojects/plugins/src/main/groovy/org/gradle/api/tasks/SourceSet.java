@@ -100,11 +100,26 @@ public interface SourceSet {
     void setClassesDir(File classesDir);
 
     /**
-     * Returns the compiled classes directory for this source set.
+     * DEPRECATED: Please use #output property.
+     * We needed to deprecate this method because its name was confusing as actually conveys all output dirs, not only classes.
+     * <p>
+     * Returns {@link SourceSetOutput} that extends {@link FileCollection} which means that it provides all output directories (compiled classes, processed resources, etc.)
+     * <p>
+     * Provides a way to configure the default output dirs and specify additional output dirs - see {@link SourceSetOutput}
      *
-     * @return The classes dir, as a {@link FileCollection}.
+     * @return The output dirs, as a {@link SourceSetOutput}.
      */
-    FileCollection getClasses();
+    @Deprecated
+    SourceSetOutput getClasses();
+
+   /**
+     * Returns {@link SourceSetOutput} that extends {@link FileCollection} which means that it provides all output directories (compiled classes, processed resources, etc.)
+     * <p>
+     * Provides a way to configure the default output dirs and specify additional output dirs - see {@link SourceSetOutput}
+     *
+     * @return The output dirs, as a {@link SourceSetOutput}.
+     */
+    SourceSetOutput getOutput();
 
     /**
      * Registers a set of tasks which are responsible for compiling this source set into the classes directory. The

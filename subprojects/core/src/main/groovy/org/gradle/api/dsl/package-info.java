@@ -15,6 +15,6 @@
  */
 
 /**
- * See docs for {@link PropertyKinds}
+ * dsl related classes.
  */
 package org.gradle.api.dsl;
