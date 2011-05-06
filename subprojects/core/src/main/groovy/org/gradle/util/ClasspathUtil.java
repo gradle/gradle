@@ -81,7 +81,7 @@ public class ClasspathUtil {
                 assert path.endsWith("/" + name);
                 return new File(path.substring(0, path.length() - (name.length() + 1)));
             } else if (location.getScheme().equals("jar")) {
-                String schemeSpecificPart = location.getSchemeSpecificPart();
+                String schemeSpecificPart = location.getRawSchemeSpecificPart();
                 int pos = schemeSpecificPart.indexOf("!");
                 if (pos > 0) {
                     assert schemeSpecificPart.substring(pos + 1).equals("/" + name);
