@@ -7,6 +7,8 @@ dependencies {
     compile project(':ui')
     compile project(':toolingApi')
 
+    compile 'net.java.dev.jna:jna:3.2.2'
+
     compile libraries.slf4j_api
 
     testCompile project(path: ':core', configuration: 'testFixtures')
