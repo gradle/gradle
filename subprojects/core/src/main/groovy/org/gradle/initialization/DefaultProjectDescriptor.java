@@ -22,7 +22,9 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,6 +38,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private IProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     private String buildFileName = Project.DEFAULT_BUILD_FILE;
+    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir,
                                     IProjectDescriptorRegistry projectDescriptorRegistry) {
@@ -122,7 +125,19 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     public void setProjectDescriptorRegistry(IProjectDescriptorRegistry projectDescriptorRegistry) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
+    
+    public Map<String, Object> getProperties() {
+        return additionalProperties;
+    }
 
+    public Object getProperty(String key) {
+        return additionalProperties.get(key);
+    }
+
+    public void setProperty(String key, Object value) {
+        additionalProperties.put(key, value);
+    }
+    
     public boolean equals(Object o) {
         if (this == o) {
             return true;

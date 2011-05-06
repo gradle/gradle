@@ -74,7 +74,8 @@ public class BuildLoader {
         ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle);
         gradle.setRootProject(rootProject);
 
-        addPropertiesToProject(externalProjectProperties, rootProject);
+        addExternalPropertiesToProject(externalProjectProperties, rootProject);
+        addAdditionalPropertiesToProject(rootProjectDescriptor.getProperties(), rootProject);
         addProjects(rootProject, rootProjectDescriptor, gradle, externalProjectProperties);
     }
 
@@ -82,12 +83,23 @@ public class BuildLoader {
                              Map<String, String> externalProjectProperties) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
             ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle);
-            addPropertiesToProject(externalProjectProperties, childProject);
+            addExternalPropertiesToProject(externalProjectProperties, childProject);
+            addAdditionalPropertiesToProject(childProjectDescriptor.getProperties(), childProject);
             addProjects(childProject, childProjectDescriptor, gradle, externalProjectProperties);
         }
     }
+    
+    private void addAdditionalPropertiesToProject(Map<String, Object> additionalProperties, ProjectInternal project) {
+        for (String key : additionalProperties.keySet()) {
+            if (!project.hasProperty(key)) {
+                project.setProperty(key, additionalProperties.get(key));
+            } else {
+                LOGGER.warn("You cannot override standard project properties from a buildscript. {} has been ignored.", key);
+            }
+        }
+    }
 
-    private void addPropertiesToProject(Map<String, String> externalProperties, ProjectInternal project) {
+    private void addExternalPropertiesToProject(Map<String, String> externalProperties, ProjectInternal project) {
         Properties projectProperties = new Properties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);

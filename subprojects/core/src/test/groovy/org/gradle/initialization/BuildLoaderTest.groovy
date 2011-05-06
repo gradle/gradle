@@ -131,6 +131,18 @@ class BuildLoaderTest {
         assertThat(rootProject.project('child').prop, equalTo('childValue'))
     }
 
+    @Test public void setsProjectAdditionalProperties() {
+        rootDescriptor.setProperty('key1','value1')
+        childDescriptor.setProperty('key2','value2')
+
+        expectProjectsCreated()
+
+        buildLoader.load(rootDescriptor, build, [:])
+
+        assertThat(rootProject.key1, equalTo('value1'))
+        assertThat(rootProject.project('child').key2, equalTo('value2'))
+    }
+
     @Test public void selectsDefaultProject() {
         expectProjectsCreatedNoDefaultProject()
 
