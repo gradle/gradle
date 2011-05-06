@@ -152,6 +152,7 @@ class EclipseClasspath {
      * For example see docs for {@link EclipseClasspath}
      */
     File classesOutputDir
+    //TODO SF: should be called 'defaultOutputFolder' as eclipse calls it?
 
     /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.
@@ -191,10 +192,11 @@ class EclipseClasspath {
 
     org.gradle.api.Project project
     XmlFileContentMerger file
-
     Map<String, File> pathVariables = [:]
-
     boolean projectDependenciesOnly = false
+
+    //folder paths internal to the project (e.g. beneath the project folder)
+    List<String> internalClassFolders
 
     void mergeXmlClasspath(Classpath xmlClasspath) {
         file.beforeMerged.execute(xmlClasspath)

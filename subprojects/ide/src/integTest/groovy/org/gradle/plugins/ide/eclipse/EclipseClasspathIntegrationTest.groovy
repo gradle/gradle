@@ -172,6 +172,27 @@ project(':api') {
         assert project.linkedResources.link.location.text().contains('someGroovySrc') : 'should contain linked resource for folder that is not beneath the project dir'
     }
 
+
+    @Issue("GRADLE-1402")
+    @Test
+    void "should put sourceSet's output dir on classpath"() {
+        testFile('build/generated/main/prod.resource').createFile()
+        testFile('build/generated/test/test.resource').createFile()
+
+        //when
+        runEclipseTask '''
+apply plugin: "java"
+apply plugin: "eclipse"
+
+sourceSets.main.output.dirs (generated: "$buildDir/generated/main")
+sourceSets.test.output.dirs (testGenerated: "$buildDir/generated/test")
+'''
+        //then
+        def out = parseClasspathFile(print: true)
+        def libPaths = out.classpathentry.findAll { it.@kind.text() == 'lib' }.collect { it.@path.text() }
+        assert libPaths == ['build/generated/main', 'build/generated/test']
+    }
+
     protected def contains(String ... contents) {
         contents.each { assert content.contains(it)}
     }

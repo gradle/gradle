@@ -133,6 +133,24 @@ class EclipsePluginTest extends Specification {
         eclipsePlugin.model.classpath.classesOutputDir
     }
 
+    def "configures internal class folders"() {
+        when:
+        eclipsePlugin.apply(project)
+        project.apply(plugin: 'java')
+
+        project.sourceSets.main.output.dirs (generated: 'generated-folder' )
+        project.sourceSets.main.output.dirs (ws:        'ws-generated' )
+
+        project.sourceSets.test.output.dirs (generated: 'generated-test' )
+        project.sourceSets.test.output.dirs (resources: 'test-resources' )
+
+        project.sourceSets.test.output.dirs (unwanted: '../some/unwanted/external/dir' )
+
+        then:
+        def folders = project.eclipseClasspath.classpath.internalClassFolders
+        folders == ['generated-folder', 'ws-generated', 'generated-test', 'test-resources']
+    }
+
     private void checkEclipseProjectTask(List buildCommands, List natures) {
         GenerateEclipseProject eclipseProjectTask = project.eclipseProject
         assert eclipseProjectTask instanceof GenerateEclipseProject

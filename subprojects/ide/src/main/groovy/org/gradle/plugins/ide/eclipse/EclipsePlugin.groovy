@@ -147,6 +147,10 @@ class EclipsePlugin extends IdePlugin {
 
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]
+                    classpath.conventionMapping.internalClassFolders = {
+                        def dirs = project.sourceSets.main.output.dirs.values() + project.sourceSets.test.output.dirs.values()
+                        dirs.collect { project.relativePath(it)} .findAll { !it.contains('..') }
+                    }
                 }
 
                 project.plugins.withType(WarPlugin) {

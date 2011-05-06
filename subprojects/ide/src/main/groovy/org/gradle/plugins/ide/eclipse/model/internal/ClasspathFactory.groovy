@@ -26,13 +26,14 @@ import org.gradle.plugins.ide.eclipse.model.*
 class ClasspathFactory {
 
     private final sourceFoldersCreator = new SourceFoldersCreator()
+    private final classFoldersCreator = new ClassFoldersCreator()
 
     List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
         def entries = []
         entries.add(new Output(classpath.project.relativePath(classpath.classesOutputDir)))
         sourceFoldersCreator.populateForClasspath(entries, classpath)
         entries.addAll(getEntriesFromContainers(classpath.getContainers()))
-        entries.addAll(getEntriesFromConfigurations(classpath))
+        entries.addAll(getDependencies(classpath))
         return entries
     }
 
@@ -42,11 +43,11 @@ class ClasspathFactory {
         }
     }
 
-    private List getEntriesFromConfigurations(EclipseClasspath classpath) {
+    private List getDependencies(EclipseClasspath classpath) {
         if (classpath.projectDependenciesOnly) {
             getModules(classpath)
         } else {
-            getModules(classpath) + getLibraries(classpath)
+            getModules(classpath) + getLibraries(classpath) + classFoldersCreator.create(classpath)
         }
     }
 

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -170,6 +171,7 @@ idea {
         assert iml.contains('1.33')
     }
 
+    @Issue("GRADLE-1504")
     @Test
     void "should put sourceSet's output dir on classpath"() {
         testFile('build/generated/main/foo.resource').createFile()
