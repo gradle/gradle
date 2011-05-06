@@ -15,3 +15,10 @@ dependencies {
     testCompile libraries.junit
     testCompile project(path: ':core', configuration: 'testFixtures')
 }
+
+idea {
+    module {
+        downloadSources = false
+        downloadJavadoc = false
+    }
+}
