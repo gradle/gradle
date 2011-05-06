@@ -108,6 +108,27 @@ class IdeaPluginTest extends Specification {
         childProject.cleanIdea instanceof Task
     }
 
+     def "adds single entry libraries from source sets"() {
+        when:
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        project.sourceSets.main.output.dirs (generated: 'generated-folder' )
+        project.sourceSets.main.output.dirs (ws: 'ws-generated' )
+
+        project.sourceSets.test.output.dirs (generated: 'generated-test' )
+        project.sourceSets.test.output.dirs (resources: 'test-resources' )
+
+        then:
+        def runtime = project.ideaModule.module.singleEntryLibraries.RUNTIME
+        runtime.any { it.name.contains('generated-folder') }
+        runtime.any { it.name.contains('ws-generated') }
+
+        def test = project.ideaModule.module.singleEntryLibraries.TEST
+        test.any { it.name.contains('generated-test') }
+        test.any { it.name.contains('test-resources') }
+     }
+
     private void assertThatIdeaModuleIsProperlyConfigured(Project project) {
         GenerateIdeaModule ideaModuleTask = project.ideaModule
         assert ideaModuleTask instanceof GenerateIdeaModule

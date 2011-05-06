@@ -169,4 +169,27 @@ idea {
         assert !iml.contains('folderThatWasExcludedEarlier')
         assert iml.contains('1.33')
     }
+
+    @Test
+    void "should put sourceSet's output dir on classpath"() {
+        testFile('build/generated/main/foo.resource').createFile()
+        testFile('build/ws/test/service.xml').createFile()
+
+        //when
+        runTask 'idea', '''
+apply plugin: "java"
+apply plugin: "idea"
+
+sourceSets.main.output.dirs (generated: "$buildDir/generated/main")
+sourceSets.test.output.dirs (test: "$buildDir/ws/test")
+'''
+        def iml = parseFile(print: true, 'root.iml')
+
+        //then
+        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
+
+        def classesDirs = iml.component.orderEntry.library.CLASSES.root.@url.collect { it.text() }
+        assert classesDirs.any { it.contains ('generated/main') }
+        assert classesDirs.any { it.contains ('ws/test') }
+    }
 }

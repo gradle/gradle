@@ -143,6 +143,10 @@ class IdeaPlugin extends IdePlugin {
                     RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
                     TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
             ]
+            module.conventionMapping.singleEntryLibraries = { [
+                    RUNTIME: project.sourceSets.main.output.dirs.values(),
+                    TEST: project.sourceSets.test.output.dirs.values()
+            ] }
         }
     }
 

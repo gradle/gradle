@@ -52,11 +52,22 @@ class IdeaDependenciesProvider {
         this.downloadJavadoc = ideaModule.downloadJavadoc
         this.pathFactory = pathFactory
 
-        scopes.keySet().inject([] as LinkedHashSet) { result, scope ->
+        Set result = new LinkedHashSet()
+        ideaModule.singleEntryLibraries.each { scope, files ->
+            files.each {
+                if (it && it.isDirectory()) {
+                    result << new ModuleLibrary([getPath(it)] as Set, [] as Set, [] as Set, [] as Set, scope)
+                }
+            }
+        }
+
+        scopes.keySet().each { scope ->
             result.addAll(getModuleLibraries(scope))
             result.addAll(getModules(scope))
             result
         }
+
+        return result
     }
 
     protected Set getModules(String scope) {

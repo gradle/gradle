@@ -277,6 +277,7 @@ class IdeaModule {
     org.gradle.api.Project project
     PathFactory pathFactory
     IdeaModuleIml iml
+    Map<String, Collection<File>> singleEntryLibraries
 
     File getOutputFile() {
         new File((File) iml.getGenerateTo(), getName() + ".iml")
