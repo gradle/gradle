@@ -106,7 +106,7 @@ public interface ProjectDescriptor {
      *
      * @return A Map of properties.
      */
-    Map<String,Object> getProperties();
+    Map<String, Object> getProperties();
     
     /**
      * Gets an additional property from the {@code ProjectDescriptor}

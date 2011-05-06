@@ -38,7 +38,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private IProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     private String buildFileName = Project.DEFAULT_BUILD_FILE;
-    private Map<String,Object> additionalProperties = new HashMap<String,Object>();
+    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir,
                                     IProjectDescriptorRegistry projectDescriptorRegistry) {
@@ -126,17 +126,17 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
     
-	public Map<String, Object> getProperties() {
-		return additionalProperties;
-	}
+    public Map<String, Object> getProperties() {
+        return additionalProperties;
+    }
 
-	public Object getProperty(String key) {
-		return additionalProperties.get(key);
-	}
+    public Object getProperty(String key) {
+        return additionalProperties.get(key);
+    }
 
-	public void setProperty(String key, Object value) {
-		additionalProperties.put(key, value);
-	}
+    public void setProperty(String key, Object value) {
+        additionalProperties.put(key, value);
+    }
     
     public boolean equals(Object o) {
         if (this == o) {
