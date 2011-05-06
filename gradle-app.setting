@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<root> 
+  <setting name="task-tab"> 
+    <setting name="show-description" value="true"/> 
+  </setting>  
+  <setting name="favorites-tab"/>  
+  <setting name="command_line-tab"/>  
+  <setting name="setup-tab"> 
+    <setting name="setup"> 
+      <setting name="custom-gradle-executor"/>  
+      <setting name="current-directory" value="/home/ISIS/findlc/Desktop/Dropbox/Projects/Java/gradle"/>  
+      <setting name="log-level" value="DEBUG"/>  
+      <setting name="stack-trace-level" value="ALWAYS"/> 
+    </setting> 
+  </setting>  
+  <setting name="Application_window-id"> 
+    <setting name="window_x" value="0"/>  
+    <setting name="window_y" value="18"/>  
+    <setting name="window_width" value="1216"/>  
+    <setting name="window_height" value="800"/>  
+    <setting name="extended-state" value="0"/> 
+  </setting>  
+  <setting name="main_panel"> 
+    <setting name="current-tab" value="Task Tree"/> 
+  </setting>  
+  <setting name="SinglePaneUIInstance_splitter-id"> 
+    <setting name="divider_location" value="416"/> 
+  </setting> 
+</root>
