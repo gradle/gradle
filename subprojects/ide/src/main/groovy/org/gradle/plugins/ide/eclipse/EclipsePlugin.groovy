@@ -86,7 +86,6 @@ class EclipsePlugin extends IdePlugin {
             //model:
             model.project = projectModel
 
-            projectModel.sourceSets = project.hasProperty('sourceSets')?  project.sourceSets : [] as Iterable
             projectModel.provideRelativePath = { project.relativePath(it) }
 
             projectModel.name = project.name
@@ -95,6 +94,7 @@ class EclipsePlugin extends IdePlugin {
             project.plugins.withType(JavaBasePlugin) {
                 projectModel.buildCommand "org.eclipse.jdt.core.javabuilder"
                 projectModel.natures "org.eclipse.jdt.core.javanature"
+                projectModel.sourceSets = project.sourceSets
             }
 
             project.plugins.withType(GroovyBasePlugin) {
@@ -142,12 +142,13 @@ class EclipsePlugin extends IdePlugin {
                 classpath = model.classpath
                 classpath.file = new XmlFileContentMerger(xmlTransformer)
 
-                classpath.sourceSets = project.sourceSets //TODO SF - should be a convenience property? - same applies to eclipseProject.sourceSets
+                classpath.sourceSets = project.sourceSets
+
                 classpath.containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
 
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]
-                    classpath.conventionMapping.internalClassFolders = {
+                    classpath.conventionMapping.classFolders = {
                         def dirs = project.sourceSets.main.output.dirs.values() + project.sourceSets.test.output.dirs.values()
                         dirs.collect { project.relativePath(it)} .findAll { !it.contains('..') }
                     }

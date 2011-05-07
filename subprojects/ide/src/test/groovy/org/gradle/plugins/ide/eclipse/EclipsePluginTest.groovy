@@ -147,7 +147,7 @@ class EclipsePluginTest extends Specification {
         project.sourceSets.test.output.dirs (unwanted: '../some/unwanted/external/dir' )
 
         then:
-        def folders = project.eclipseClasspath.classpath.internalClassFolders
+        def folders = project.eclipseClasspath.classpath.classFolders
         folders == ['generated-folder', 'ws-generated', 'generated-test', 'test-resources']
     }
 

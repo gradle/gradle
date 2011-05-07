@@ -195,8 +195,8 @@ class EclipseClasspath {
     Map<String, File> pathVariables = [:]
     boolean projectDependenciesOnly = false
 
-    //folder paths internal to the project (e.g. beneath the project folder)
-    List<String> internalClassFolders
+    //only folder paths internal to the project (e.g. beneath the project folder) are supported
+    List<String> classFolders
 
     void mergeXmlClasspath(Classpath xmlClasspath) {
         file.beforeMerged.execute(xmlClasspath)

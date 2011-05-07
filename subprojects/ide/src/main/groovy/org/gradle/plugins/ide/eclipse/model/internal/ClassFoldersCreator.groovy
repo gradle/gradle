@@ -29,7 +29,7 @@ class ClassFoldersCreator {
     List<Library> create(EclipseClasspath classpath) {
         List<Library> out = new LinkedList<Library>()
 
-        classpath.internalClassFolders.each { folderPath ->
+        classpath.classFolders.each { folderPath ->
             out << new Library(folderPath, true, null, [] as Set, null, null)
         }
 
