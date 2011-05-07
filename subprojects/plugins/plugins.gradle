@@ -41,31 +41,26 @@ dependencies {
     testFixtures sourceSets.test.classes
 }
 
+sourceSets.main.output.dirs(generated: "$buildDir/generated-resources/main")
+
 task reportResources << {
     copy {
         from(configurations.reports)
-        into "${sourceSets.main.classesDir}/org/gradle/api/internal/tasks/testing/junit/report"
+        into "${sourceSets.main.output.dirs.generated}/org/gradle/api/internal/tasks/testing/junit/report"
     }
 }
 
 classes.dependsOn reportResources
+ideaModule.dependsOn reportResources
+eclipseClasspath.dependsOn reportResources
 
+//TODO SF - what is 'ide' task and why do we need it?
 task ideResources(type: Copy) {
     from(configurations.reports)
     into "${ideDir}/resources/test/org/gradle/api/internal/tasks/testing/junit/report"
 }
 
 ide.dependsOn ideResources
-
-ideaModule {
-    dependsOn ideResources
-    scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
-}
-
-eclipseClasspath {
-    dependsOn ideResources
-    plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
-}
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'

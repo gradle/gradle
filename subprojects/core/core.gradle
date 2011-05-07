@@ -74,27 +74,22 @@ dependencies {
     integTestFixtures sourceSets.integTest.classes
 }
 
+sourceSets.main.output.dirs(generated: "$buildDir/generated-resources/main")
+
 task releasesResource(type: GenerateReleasesXml) {
-    destFile = new File(sourceSets.main.classesDir, "org/gradle/releases.xml")
+    destFile = new File(sourceSets.main.output.dirs.generated, "org/gradle/releases.xml")
 }
 
 classes.dependsOn releasesResource
+ideaModule.dependsOn releasesResource
+eclipseClasspath.dependsOn releasesResource
 
+//TODO SF - what is 'ide' task and why do we need it?
 task ideReleasesResource(type: GenerateReleasesXml) {
     destFile = new File(ideDir, "resources/test/org/gradle/releases.xml")
 }
 
 ide.dependsOn ideReleasesResource
-
-ideaModule {
-    dependsOn ideReleasesResource
-    scopes.COMPILE.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
-}
-
-eclipseClasspath {
-    dependsOn ideReleasesResource
-    plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
-}
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
