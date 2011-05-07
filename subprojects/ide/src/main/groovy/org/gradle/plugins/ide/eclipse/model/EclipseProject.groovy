@@ -241,16 +241,8 @@ class EclipseProject {
         ConfigureUtil.configure(closure, file)
     }
 
-    /**
-     * External folders will be added to the .project as linkedResources
-     * <p>
-     * For example see docs for {@link EclipseProject}
-     */
-    Iterable<SourceSet> sourceSets = [] as Iterable
-
     /*****/
     XmlFileContentMerger file
-    Closure provideRelativePath
 
     void mergeXmlProject(Project xmlProject) {
         file.beforeMerged.execute(xmlProject)

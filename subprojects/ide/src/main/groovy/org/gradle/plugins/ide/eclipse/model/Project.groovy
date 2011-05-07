@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.plugins.ide.eclipse.model.internal.LinkedResourcesCreator
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**
@@ -130,7 +129,7 @@ class Project extends XmlPersistableConfigurationObject {
         this.natures.unique()
         this.buildCommands.addAll(eclipseProject.buildCommands)
         this.buildCommands.unique()
-        new LinkedResourcesCreator().populate(this.linkedResources, eclipseProject)
+        this.linkedResources.addAll(eclipseProject.linkedResources);
     }
 
     @Override protected void store(Node xml) {

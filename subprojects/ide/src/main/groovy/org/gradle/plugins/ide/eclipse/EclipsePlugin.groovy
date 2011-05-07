@@ -28,6 +28,7 @@ import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -86,15 +87,15 @@ class EclipsePlugin extends IdePlugin {
             //model:
             model.project = projectModel
 
-            projectModel.provideRelativePath = { project.relativePath(it) }
-
             projectModel.name = project.name
             projectModel.conventionMapping.comment = { project.description }
 
             project.plugins.withType(JavaBasePlugin) {
                 projectModel.buildCommand "org.eclipse.jdt.core.javabuilder"
                 projectModel.natures "org.eclipse.jdt.core.javanature"
-                projectModel.sourceSets = project.sourceSets
+                projectModel.conventionMapping.linkedResources = {
+                    new LinkedResourcesCreator().links(project)
+                }
             }
 
             project.plugins.withType(GroovyBasePlugin) {

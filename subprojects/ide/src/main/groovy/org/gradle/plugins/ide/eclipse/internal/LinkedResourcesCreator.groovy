@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.eclipse.model.internal
+package org.gradle.plugins.ide.eclipse.internal
 
-import org.gradle.plugins.ide.eclipse.model.EclipseProject
 import org.gradle.plugins.ide.eclipse.model.Link
+import org.gradle.plugins.ide.eclipse.model.internal.SourceFoldersCreator
+import org.gradle.api.Project
 
 /**
  * @author: Szczepan Faber, created at: 4/22/11
  */
 class LinkedResourcesCreator {
-    void populate(Set<Link> links, EclipseProject eclipseProject) {
-        links.addAll(eclipseProject.linkedResources);
 
-        def folders = new SourceFoldersCreator().getExternalSourceFolders(eclipseProject.sourceSets, eclipseProject.provideRelativePath)
-        links.addAll(folders.collect {
+    Set<Link> links(Project project) {
+        def folders = new SourceFoldersCreator().getExternalSourceFolders(project.sourceSets, {project.relativePath(it)} )
+        folders.collect {
             new Link(it.name, '2', it.absolutePath, null)
-        })
+        } as Set
     }
 }
