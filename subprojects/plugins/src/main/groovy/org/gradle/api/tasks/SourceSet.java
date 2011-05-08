@@ -101,7 +101,7 @@ public interface SourceSet {
 
     /**
      * DEPRECATED: Please use #output property.
-     * We needed to deprecate this method because its name was confusing as actually conveys all output dirs, not only classes.
+     * We needed to deprecate this method because its name was confusing as actually means all output dirs, not only classes dir.
      * <p>
      * Returns {@link SourceSetOutput} that extends {@link FileCollection} which means that it provides all output directories (compiled classes, processed resources, etc.)
      * <p>
@@ -113,9 +113,8 @@ public interface SourceSet {
     SourceSetOutput getClasses();
 
    /**
-     * Returns {@link SourceSetOutput} that extends {@link FileCollection} which means that it provides all output directories (compiled classes, processed resources, etc.)
-     * <p>
-     * Provides a way to configure the default output dirs and specify additional output dirs - see {@link SourceSetOutput}
+     * {@link SourceSetOutput} is a {@link FileCollection} of all output directories (compiled classes, processed resources, etc.)
+     *  and it provides means configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
      *
      * @return The output dirs, as a {@link SourceSetOutput}.
      */

@@ -94,7 +94,6 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         this.outputDirectories.from(dirs.values().toArray());
     }
 
-    //TODO SF document that a copy is returned so it cannot be modified
     public Map<String, File> getDirs() {
         Map<String, File> out = new LinkedHashMap<String, File>();
         for(String name : this.dirs.keySet()) {
