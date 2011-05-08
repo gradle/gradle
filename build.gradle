@@ -581,7 +581,7 @@ task release {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.0-milestone-2'
+    gradleVersion = '1.0-milestone-4-20110508123756+0200'
 }
 
 def groovyProjects() {
