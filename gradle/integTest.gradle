@@ -12,8 +12,8 @@ configurations {
 
 sourceSets {
     integTest {
-        compileClasspath = sourceSets.main.classes + sourceSets.test.classes + configurations.integTestCompile
-        runtimeClasspath = classes + compileClasspath + configurations.integTestRuntime
+        compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.integTestCompile
+        runtimeClasspath = output + compileClasspath + configurations.integTestRuntime
     }
 }
 
@@ -34,7 +34,7 @@ rootProject.integTests << integTestTasks
 
 integTestTasks.all {
     dependsOn ':intTestImage'
-    testClassesDir = sourceSets.integTest.classesDir
+    testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
     jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'

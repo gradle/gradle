@@ -29,8 +29,9 @@ sourceSets.main.output.dirs(generated: "$buildDir/generated-resources/main")
 
 task wrapperJar(type: Jar) {
     dependsOn compileJava, processResources
-    from sourceSets.main.classesDir
+    from sourceSets.main.output.classesDir
     include 'org/gradle/wrapper/**'
+
     archiveName = 'gradle-wrapper.jar'
     destinationDir = sourceSets.main.output.dirs.generated
     manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.GradleWrapperMain')

@@ -9,5 +9,5 @@ dependencies {
 }
 
 buildDirName = 'target'
-sourceSets.main.classesDir = new File(buildDir, 'main-classes')
-sourceSets.test.classesDir = new File(buildDir, 'test-classes')
+sourceSets.main.output.classesDir = new File(buildDir, 'main-classes')
+sourceSets.test.output.classesDir = new File(buildDir, 'test-classes')

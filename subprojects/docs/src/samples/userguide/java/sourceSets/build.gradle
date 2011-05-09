@@ -2,14 +2,14 @@ apply plugin: 'java'
 
 // START SNIPPET access-source-set
 // Various ways to access the main source set
-println sourceSets.main.classesDir
-println sourceSets['main'].classesDir
+println sourceSets.main.output.classesDir
+println sourceSets['main'].output.classesDir
 sourceSets {
-    println main.classesDir
+    println main.output.classesDir
 }
 sourceSets {
     main {
-        println classesDir
+        println output.classesDir
     }
 }
 
@@ -37,15 +37,15 @@ configurations {
 
 sourceSets {
     intTest {
-        compileClasspath = sourceSets.main.classes + configurations.intTestCompile
-        runtimeClasspath = classes + sourceSets.main.classes + configurations.intTestRuntime
+        compileClasspath = sourceSets.main.output + configurations.intTestCompile
+        runtimeClasspath = output + sourceSets.main.output + configurations.intTestRuntime
     }
 }
 // END SNIPPET classpath-using-configurations
 
 // START SNIPPET jar
 task intTestJar(type: Jar) {
-    from sourceSets.intTest.classes
+    from sourceSets.intTest.output
 }
 // END SNIPPET jar
 
@@ -57,7 +57,7 @@ task intTestJavadoc(type: Javadoc) {
 
 // START SNIPPET test
 task intTest(type: Test) {
-    testClassesDir = sourceSets.intTest.classesDir
+    testClassesDir = sourceSets.intTest.output.classesDir
     classpath = sourceSets.intTest.runtimeClasspath
 }
 // END SNIPPET test

@@ -22,13 +22,13 @@ sourceSets {
     integrationTest {
         java.srcDir file('src/integration-test/java')
         resources.srcDir file('src/integration-test/resources')
-        compileClasspath = sourceSets.main.classes + sourceSets.test.classes + configurations.integrationTestCompile
-        runtimeClasspath = classes + compileClasspath + configurations.integrationTestRuntime
+        compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.integrationTestCompile
+        runtimeClasspath = output + compileClasspath + configurations.integrationTestRuntime
     }
 }
 
 task integrationTest(type: Test, dependsOn: jar) {
-    testClassesDir = sourceSets.integrationTest.classesDir
+    testClassesDir = sourceSets.integrationTest.output.classesDir
     classpath = sourceSets.integrationTest.runtimeClasspath
     systemProperties['jar.path'] = jar.archivePath
 }

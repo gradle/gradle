@@ -86,17 +86,25 @@ public interface SourceSet {
     void setRuntimeClasspath(FileCollection classpath);
 
     /**
+     * DEPRECATED: Please use #output.classesDir instead.
+     * We needed to deprecate it to keep the DSL consistent.
+     * <p>
      * Returns the directory to assemble the compiled classes into.
      *
      * @return The classes dir. Never returns null.
      */
+    @Deprecated
     File getClassesDir();
 
     /**
+     * DEPRECATED: Please use #output.resourcesDir instead.
+     * We needed to deprecate it to keep the DSL consistent.
+     * <p>
      * Sets the directory to assemble the compiled classes into.
      *
      * @param classesDir the classes dir. Should not be null.
      */
+    @Deprecated
     void setClassesDir(File classesDir);
 
     /**

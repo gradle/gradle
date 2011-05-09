@@ -228,7 +228,7 @@ task javadoc(type: Javadoc) {
     group = 'documentation'
     source groovyProjects().collect {project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(groovyProjects().collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.classes] })
+    classpath = files(groovyProjects().collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
     include 'org/gradle/api/**'
     include 'org/gradle/*'
     include 'org/gradle/external/javadoc/**'

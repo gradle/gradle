@@ -31,7 +31,7 @@ compileJava.options.compilerArgs = ['-Xlint:unchecked']
 
 task spiJar(type: Jar) {
     appendix = 'spi'
-    from sourceSets.main.classes
+    from sourceSets.main.output
     include 'org/gradle/api/'
 }
 

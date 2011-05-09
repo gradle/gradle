@@ -114,10 +114,12 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public File getClassesDir() {
+        DeprecationLogger.nagUser("sourceSet.classesDir", "sourceSet.output.classesDir");
         return output.getClassesDir();
     }
 
     public void setClassesDir(File classesDir) {
+        DeprecationLogger.nagUser("sourceSet.classesDir", "sourceSet.output.classesDir");
         this.output.setClassesDir(classesDir);
     }
 
