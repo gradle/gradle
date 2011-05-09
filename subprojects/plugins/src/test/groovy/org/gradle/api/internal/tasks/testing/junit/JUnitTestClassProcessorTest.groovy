@@ -736,12 +736,6 @@ public class AJunit3TestClass extends TestCase {
     }
 }
 
-public class AJunit3TestThatRenamesItself extends TestCase {
-    public void testOk() {
-        setName('another test')
-    }
-}
-
 public class ABrokenJunit3TestClass extends TestCase {
     static RuntimeException failure = new RuntimeException()
 
