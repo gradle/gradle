@@ -43,6 +43,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>dirs</td>
+            </tr>
+            <tr>
+                <td>getDirs</td>
+            </tr>
         </table>
     </section>
 </section>
