@@ -39,8 +39,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, TaskResolver taskResolver) {
         this.fileResolver = fileResolver;
-        //TODO SF: rename classes to ouput later
-        String displayName = String.format("%s classes", sourceSetDisplayName);
+        String displayName = String.format("%s output", sourceSetDisplayName);
         outputDirectories = new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver, new Callable() {
             public Object call() throws Exception {
                 return getClassesDir();
@@ -66,7 +65,6 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         if (classesDir == null) {
             return null;
         }
-        //TODO SF: resolving later lacks fail-fast validation - shall we leave it as is? shall we add validation?
         return fileResolver.resolve(classesDir);
     }
 

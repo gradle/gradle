@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -40,7 +41,6 @@ public class DefaultSourceSet implements SourceSet {
     private final String displayName;
     private final SourceDirectorySet allSource;
 
-    //TODO SF: needs a getter in the interface
     private DefaultSourceSetOutput output;
 
     public DefaultSourceSet(String name, FileResolver fileResolver, TaskResolver taskResolver) {
@@ -122,6 +122,7 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSetOutput getClasses() {
+        DeprecationLogger.nagUser("sourceSet.classes", "sourceSet.output");
         return getOutput();
     }
 
