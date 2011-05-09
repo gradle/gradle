@@ -24,7 +24,8 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
 /**
  * Generates the org.eclipse.wst.common.component settings file for Eclipse WTP.
  * If you want to fine tune the eclipse configuration
- * please refer to more interesting examples in {@link EclipseWtpComponent}.
+ * <p>
+ * Please refer to more interesting examples in {@link EclipseWtpComponent}.
  * <p>
  * Example:
  * <pre autoTested=''>

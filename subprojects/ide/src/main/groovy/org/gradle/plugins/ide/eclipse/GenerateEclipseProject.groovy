@@ -22,7 +22,8 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Generates an Eclipse <code>.project</code> file. If you want to fine tune the eclipse configuration
- * please refer to more interesting examples in {@link EclipseProject}.
+ * <p>
+ * Please refer to more interesting examples in {@link EclipseProject}.
  * <p>
  * Example:
  * <pre autoTested=''>

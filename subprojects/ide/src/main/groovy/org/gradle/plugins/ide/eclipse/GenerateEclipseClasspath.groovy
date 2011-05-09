@@ -23,7 +23,8 @@ import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 
 /**
  * Generates an Eclipse <code>.classpath</code> file. If you want to fine tune the eclipse configuration
- * please refer to more interesting examples in {@link EclipseClasspath}.
+ * <p>
+ * Please refer to more interesting examples in {@link EclipseClasspath}.
  * <p>
  * Example:
  * <pre autoTested=''>

@@ -24,7 +24,8 @@ import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurat
 
 /**
  * Generates the Eclipse JDT configuration file. If you want to fine tune the eclipse configuration
- * please refer to more interesting examples in {@link EclipseJdt}.
+ * <p>
+ * Please refer to more interesting examples in {@link EclipseJdt}.
  * <p>
  * Example:
  * <pre autoTested=''>
