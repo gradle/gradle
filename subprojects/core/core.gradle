@@ -70,7 +70,7 @@ dependencies {
 
     integTestCompile libraries.jetty_depends
 
-    testFixtures sourceSets.test.output, sourceSets.main.output
+    testFixtures sourceSets.test.output, sourceSets.main.output, project(':coreImpl')
     integTestFixtures sourceSets.integTest.output
 }
 
