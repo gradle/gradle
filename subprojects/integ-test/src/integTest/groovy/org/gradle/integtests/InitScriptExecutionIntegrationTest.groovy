@@ -42,7 +42,6 @@ assert gradle != null
 assert initscript.classLoader == getClass().classLoader.parent
 assert initscript.classLoader == Thread.currentThread().contextClassLoader
 assert scriptClassLoader == initscript.classLoader.parent
-assert Gradle.class.classLoader == scriptClassLoader.parent.parent.parent
 Gradle.class.classLoader.loadClass('${implClassName}')
 try {
     initscript.classLoader.loadClass('${implClassName}')

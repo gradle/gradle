@@ -43,7 +43,6 @@ assert settings != null
 assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
 assert gradle.scriptClassLoader.parent == buildscript.classLoader.parent.parent
-assert Gradle.class.classLoader == buildscript.classLoader.parent.parent.parent.parent
 Gradle.class.classLoader.loadClass('${implClassName}')
 try {
     buildscript.classLoader.loadClass('${implClassName}')

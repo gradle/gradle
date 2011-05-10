@@ -32,19 +32,24 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry) {
         // Add in tools.jar to the Ant classloader
-        ClassLoader antClassloader = Project.class.getClassLoader();
+        ClassLoader antClassLoader = Project.class.getClassLoader();
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
-            ClasspathUtil.addUrl((URLClassLoader) antClassloader, GFileUtils.toURLs(Collections.singleton(toolsJar)));
+            ClasspathUtil.addUrl((URLClassLoader) antClassLoader, GFileUtils.toURLs(Collections.singleton(toolsJar)));
         }
 
-        // Add in libs for plugins
-        ClassLoader runtimeClassloader = getClass().getClassLoader();
-        URL[] pluginsClassPath = classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
-        pluginsClassLoader = new URLClassLoader(pluginsClassPath, runtimeClassloader);
+        ClassLoader runtimeClassLoader = getClass().getClassLoader();
 
+        // Core impl
         URL[] coreImplClassPath = classPathRegistry.getClassPathUrls("GRADLE_CORE_IMPL");
-        coreImplClassLoader = new URLClassLoader(coreImplClassPath, pluginsClassLoader);
+        coreImplClassLoader = new URLClassLoader(coreImplClassPath, runtimeClassLoader);
+        FilteringClassLoader coreImplExports = new FilteringClassLoader(coreImplClassLoader);
+        coreImplExports.allowPackage("org.gradle");
+
+        // Add in libs for plugins
+        URL[] pluginsClassPath = classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
+        MultiParentClassLoader pluginsImports = new MultiParentClassLoader(runtimeClassLoader, coreImplExports);
+        pluginsClassLoader = new URLClassLoader(pluginsClassPath, pluginsImports);
 
         rootClassLoader = new FilteringClassLoader(pluginsClassLoader);
         rootClassLoader.allowPackage("org.gradle");
