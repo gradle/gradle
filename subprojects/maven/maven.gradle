@@ -38,6 +38,9 @@ dependencies {
     compile "org.apache.maven:maven-aether-provider:$mavenVersion"
     compile "org.apache.maven.wagon:wagon-ssh:$wagonVersion"
     compile "org.apache.maven:maven-settings-builder:$mavenVersion"
+    compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
+    compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
+    compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
