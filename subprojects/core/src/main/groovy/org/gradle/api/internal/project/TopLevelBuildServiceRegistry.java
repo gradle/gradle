@@ -323,7 +323,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
     
     protected MessagingServer createMessagingServer() {
-        return new TcpMessagingServer(get(ClassLoaderRegistry.class).getRootClassLoader());
+        return new TcpMessagingServer(get(ClassLoaderRegistry.class).getPluginsClassLoader());
     }
 
     protected BuildConfigurer createBuildConfigurer() {

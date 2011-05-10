@@ -29,6 +29,11 @@ public interface ClassLoaderRegistry {
     ClassLoader getCoreImplClassLoader();
 
     /**
+     * Returns the class loader for the plugins.
+     */
+    ClassLoader getPluginsClassLoader();
+
+    /**
      * Creates the script class loader for a build.
      */
     MultiParentClassLoader createScriptClassLoader();

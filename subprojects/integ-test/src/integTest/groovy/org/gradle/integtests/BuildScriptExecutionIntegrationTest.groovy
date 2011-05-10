@@ -28,17 +28,26 @@ class BuildScriptExecutionIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void executesBuildScriptWithCorrectEnvironment() {
+        def implClassName = 'com.google.common.collect.Multimap'
         TestFile buildScript = testFile('build.gradle')
         buildScript << """
-            println 'quiet message'
-            captureStandardOutput(LogLevel.ERROR)
-            println 'error message'
-            assert project != null
-            assert "${buildScript.absolutePath.replace("\\", "\\\\")}" == buildscript.sourceFile as String
-            assert "${buildScript.toURI()}" == buildscript.sourceURI as String
-            assert buildscript.classLoader == getClass().classLoader.parent
-            assert buildscript.classLoader == Thread.currentThread().contextClassLoader
-            assert gradle.scriptClassLoader == buildscript.classLoader.parent
+println 'quiet message'
+logging.captureStandardOutput(LogLevel.ERROR)
+println 'error message'
+assert project != null
+assert "${buildScript.absolutePath.replace("\\", "\\\\")}" == buildscript.sourceFile as String
+assert "${buildScript.toURI()}" == buildscript.sourceURI as String
+assert buildscript.classLoader == getClass().classLoader.parent
+assert buildscript.classLoader == Thread.currentThread().contextClassLoader
+assert gradle.scriptClassLoader == buildscript.classLoader.parent
+assert Gradle.class.classLoader == buildscript.classLoader.parent.parent.parent.parent
+Gradle.class.classLoader.loadClass('${implClassName}')
+try {
+    buildscript.classLoader.loadClass('${implClassName}')
+    assert false: 'should fail'
+} catch (ClassNotFoundException e) {
+    // expected
+}
 
             task doStuff
 """

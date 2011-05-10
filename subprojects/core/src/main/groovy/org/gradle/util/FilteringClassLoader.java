@@ -156,7 +156,7 @@ public class FilteringClassLoader extends ClassLoader {
     }
 
     /**
-     * Marks a package and all its sub-packages as visible.
+     * Marks a package and all its sub-packages as visible. Also makes resources in those packages visible.
      *
      * @param packageName The package name
      */
@@ -173,5 +173,14 @@ public class FilteringClassLoader extends ClassLoader {
      */
     public void allowClass(Class<?> aClass) {
         classNames.add(aClass.getName());
+    }
+
+    /**
+     * Marks all resources with the given prefix as visible.
+     *
+     * @param resourcePrefix The resource prefix.
+     */
+    public void allowResources(String resourcePrefix) {
+        resourcePrefixes.add(resourcePrefix + "/");
     }
 }

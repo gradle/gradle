@@ -1,5 +1,3 @@
-import org.junit.Assert
-
 configurations {
     compile
 }
@@ -12,5 +10,5 @@ defaultTasks 'listJars'
 
 task listJars << {
     configurations.compile.resolve()
-    Assert.fail()
+    throw new RuntimeException("Should not reach here")
 }

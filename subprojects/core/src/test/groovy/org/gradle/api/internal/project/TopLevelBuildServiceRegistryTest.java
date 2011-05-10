@@ -190,7 +190,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAWorkerProcessFactory() {
-        allowGetRootClassLoader();
+        allowGetPluginClassLoader();
         assertThat(factory.getFactory(WorkerProcessBuilder.class), instanceOf(DefaultWorkerProcessFactory.class));
     }
 
@@ -231,9 +231,9 @@ public class TopLevelBuildServiceRegistryTest {
         }});
     }
 
-    private void allowGetRootClassLoader() {
+    private void allowGetPluginClassLoader() {
         context.checking(new Expectations() {{
-            allowing(classLoaderRegistry).getRootClassLoader();
+            allowing(classLoaderRegistry).getPluginsClassLoader();
             will(returnValue(new ClassLoader() {
             }));
         }});

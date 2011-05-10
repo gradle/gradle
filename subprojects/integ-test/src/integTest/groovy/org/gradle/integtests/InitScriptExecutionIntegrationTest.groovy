@@ -26,23 +26,31 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void executesInitScriptWithCorrectEnvironment() {
+        def implClassName = 'com.google.common.collect.Multimap'
         createExternalJar();
 
         TestFile initScript = testFile('init.gradle')
-        initScript << '''
+        initScript << """
 initscript {
     dependencies { classpath files('repo/test-1.3.jar') }
 }
 new org.gradle.test.BuildClass()
 println 'quiet message'
-captureStandardOutput(LogLevel.ERROR)
+logging.captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 assert gradle != null
 assert initscript.classLoader == getClass().classLoader.parent
 assert initscript.classLoader == Thread.currentThread().contextClassLoader
 assert scriptClassLoader == initscript.classLoader.parent
-assert Gradle.class.classLoader == scriptClassLoader.parent.parent
-'''
+assert Gradle.class.classLoader == scriptClassLoader.parent.parent.parent
+Gradle.class.classLoader.loadClass('${implClassName}')
+try {
+    initscript.classLoader.loadClass('${implClassName}')
+    assert false: 'should fail'
+} catch (ClassNotFoundException e) {
+    // expected
+}
+"""
         testFile('build.gradle') << 'task doStuff'
 
         ExecutionResult result = inTestDirectory().usingInitScript(initScript).withTasks('doStuff').run()

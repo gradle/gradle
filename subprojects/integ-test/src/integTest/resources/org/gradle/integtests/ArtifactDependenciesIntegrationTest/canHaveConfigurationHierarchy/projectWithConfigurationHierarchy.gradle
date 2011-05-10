@@ -1,5 +1,3 @@
-import static org.junit.Assert.*
-
 configurations {
     compile
     runtime { extendsFrom compile }
@@ -28,32 +26,32 @@ task listJars << {
     def compile = configurations.compile
 
     Set jars = compile.collect { it.name } as Set
-    assertEquals(['projectA-1.2.jar', 'projectB-api-1.5.jar'] as Set, jars)
+    assert ['projectA-1.2.jar', 'projectB-api-1.5.jar'] as Set == jars
 
     def projectA = compile.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectA' }
     def root = (projectA.parents as List)[0]
     def artifacts = projectA.getAllArtifacts(root).collect { it.name } as Set
-    assertEquals(['projectA', 'projectB-api'] as Set, artifacts)
+    assert ['projectA', 'projectB-api'] as Set == artifacts
 
     def projectB = projectA.children.find { it.moduleName == 'projectB' }
     artifacts = projectB.getAllArtifacts(projectA).collect { it.name } as Set
-    assertEquals(['projectB-api'] as Set, artifacts)
+    assert ['projectB-api'] as Set == artifacts
 
     def runtime = configurations.runtime
 
     jars = runtime.collect { it.name } as Set
-    assertEquals(['projectA-1.2.jar', 'projectB-api-1.5.jar', 'projectB-1.5.jar', 'projectB-extraRuntime-1.5.jar'] as Set, jars)
+    assert ['projectA-1.2.jar', 'projectB-api-1.5.jar', 'projectB-1.5.jar', 'projectB-extraRuntime-1.5.jar'] as Set == jars
 
     projectA = runtime.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectA' && it.configuration == 'api' }
     root = (projectA.parents as List)[0]
     artifacts = projectA.getAllArtifacts(root).collect { it.name } as Set
     // TODO - this is not right
 //    assertEquals(['projectA', 'projectB-api', 'projectB'] as Set, artifacts)
-    assertEquals(['projectA', 'projectB-api', 'projectB', 'projectB-extraRuntime'] as Set, artifacts)
+    assert ['projectA', 'projectB-api', 'projectB', 'projectB-extraRuntime'] as Set == artifacts
 
     projectB = runtime.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectB' && it.configuration == 'extraRuntime' }
     artifacts = projectB.getAllArtifacts(root).collect { it.name } as Set
     // TODO - this is not right
 //    assertEquals(['projectB', 'projectB-extraRuntime'] as Set, artifacts)
-    assertEquals(['projectB-api', 'projectB', 'projectB-extraRuntime'] as Set, artifacts)
+    assert ['projectB-api', 'projectB', 'projectB-extraRuntime'] as Set == artifacts
 }

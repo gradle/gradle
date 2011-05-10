@@ -18,10 +18,7 @@ package org.gradle.initialization;
 
 import org.apache.tools.ant.Project;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.util.ClasspathUtil;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.Jvm;
-import org.gradle.util.MultiParentClassLoader;
+import org.gradle.util.*;
 
 import java.io.File;
 import java.net.URL;
@@ -29,8 +26,9 @@ import java.net.URLClassLoader;
 import java.util.Collections;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
-    private final URLClassLoader rootClassLoader;
-    private final URLClassLoader coreImplClassLoader;
+    private final FilteringClassLoader rootClassLoader;
+    private final ClassLoader coreImplClassLoader;
+    private final ClassLoader pluginsClassLoader;
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry) {
         // Add in tools.jar to the Ant classloader
@@ -43,10 +41,21 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         // Add in libs for plugins
         ClassLoader runtimeClassloader = getClass().getClassLoader();
         URL[] pluginsClassPath = classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
-        rootClassLoader = new URLClassLoader(pluginsClassPath, runtimeClassloader);
+        pluginsClassLoader = new URLClassLoader(pluginsClassPath, runtimeClassloader);
 
         URL[] coreImplClassPath = classPathRegistry.getClassPathUrls("GRADLE_CORE_IMPL");
-        coreImplClassLoader = new URLClassLoader(coreImplClassPath, rootClassLoader);
+        coreImplClassLoader = new URLClassLoader(coreImplClassPath, pluginsClassLoader);
+
+        rootClassLoader = new FilteringClassLoader(pluginsClassLoader);
+        rootClassLoader.allowPackage("org.gradle");
+        rootClassLoader.allowResources("META-INF/gradle-plugins");
+        rootClassLoader.allowPackage("org.apache.tools.ant");
+        rootClassLoader.allowPackage("groovy");
+        rootClassLoader.allowPackage("org.codehaus.groovy");
+        rootClassLoader.allowPackage("org.apache.ivy");
+        rootClassLoader.allowPackage("org.slf4j");
+        rootClassLoader.allowPackage("org.apache.commons.logging");
+        rootClassLoader.allowPackage("org.apache.log4j");
     }
 
     public ClassLoader getRootClassLoader() {
@@ -55,6 +64,10 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
 
     public ClassLoader getCoreImplClassLoader() {
         return coreImplClassLoader;
+    }
+
+    public ClassLoader getPluginsClassLoader() {
+        return pluginsClassLoader;
     }
 
     public MultiParentClassLoader createScriptClassLoader() {

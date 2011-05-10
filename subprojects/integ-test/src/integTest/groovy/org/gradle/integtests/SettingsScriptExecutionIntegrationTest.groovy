@@ -28,21 +28,30 @@ class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     public void executesSettingsScriptWithCorrectEnvironment() {
         createExternalJar()
         createBuildSrc()
+        def implClassName = 'com.google.common.collect.Multimap'
 
-        testFile('settings.gradle') << '''
+        testFile('settings.gradle') << """
 buildscript {
     dependencies { classpath files('repo/test-1.3.jar') }
 }
 new org.gradle.test.BuildClass()
 new BuildSrcClass();
 println 'quiet message'
-captureStandardOutput(LogLevel.ERROR)
+logging.captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 assert settings != null
 assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
 assert gradle.scriptClassLoader.parent == buildscript.classLoader.parent.parent
-'''
+assert Gradle.class.classLoader == buildscript.classLoader.parent.parent.parent.parent
+Gradle.class.classLoader.loadClass('${implClassName}')
+try {
+    buildscript.classLoader.loadClass('${implClassName}')
+    assert false: 'should fail'
+} catch (ClassNotFoundException e) {
+    // expected
+}
+"""
         testFile('build.gradle') << 'task doStuff'
 
         ExecutionResult result = inTestDirectory().withTasks('doStuff').run()

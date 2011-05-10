@@ -39,7 +39,7 @@ task test
 '''
         inTestDirectory().withTasks('test').run()
     }
-    
+
     @Test
     public void canReferencePluginInExternalJarById() {
         ArtifactBuilder builder = artifactBuilder()
@@ -65,5 +65,41 @@ assert 'value' == prop
 task test
 '''
         inTestDirectory().withTasks('test').run()
+    }
+
+    @Test
+    public void loadsPluginInCorrectEnvironment() {
+        def implClassName = 'com.google.common.collect.Multimap'
+        ArtifactBuilder builder = artifactBuilder()
+        builder.sourceFile('CustomPlugin.groovy') << """
+import org.gradle.api.*
+public class CustomPlugin implements Plugin<Project> {
+    public void apply(Project p) {
+        Project.class.classLoader.loadClass('${implClassName}')
+        try {
+            getClass().classLoader.loadClass('${implClassName}')
+            assert false: 'should fail'
+        } catch (ClassNotFoundException e) {
+            // expected
+        }
+        p.task('test')
+    }
+}
+"""
+        builder.resourceFile('META-INF/gradle-plugins/custom.properties') << '''
+implementation-class=CustomPlugin
+'''
+        builder.buildJar(testFile('external.jar'))
+
+        testFile('build.gradle') << '''
+buildscript {
+    dependencies {
+        classpath files('external.jar')
+    }
+}
+task test
+'''
+        inTestDirectory().withTasks('test').run()
+
     }
 }
