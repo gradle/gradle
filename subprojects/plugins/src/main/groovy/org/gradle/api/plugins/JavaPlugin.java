@@ -134,7 +134,7 @@ public class JavaPlugin implements Plugin<Project> {
             public void execute(Test test) {
                 test.getConventionMapping().map("testClassesDir", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();
+                        return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDir();
                     }
                 });
                 test.getConventionMapping().map("classpath", new Callable<Object>() {
