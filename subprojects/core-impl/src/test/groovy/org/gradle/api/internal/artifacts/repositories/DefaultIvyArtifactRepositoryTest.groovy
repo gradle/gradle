@@ -18,13 +18,19 @@ package org.gradle.api.internal.artifacts.repositories
 import spock.lang.Specification
 import org.apache.ivy.plugins.resolver.URLResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
+import org.gradle.api.internal.file.FileResolver
+import org.apache.ivy.plugins.resolver.FileSystemResolver
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
-    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository()
+    final FileResolver fileResolver = Mock()
+    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver)
 
     def createsAUrlResolver() {
         repository.name = 'name'
         repository.artifactPattern 'pattern'
+
+        given:
+        fileResolver.resolveUri('pattern') >> new URI('scheme:resource')
 
         when:
         def resolvers = []
@@ -35,12 +41,15 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = resolvers[0]
         resolver instanceof URLResolver
         resolver.name == 'name'
-        resolver.artifactPatterns == ['pattern'] as List
+        resolver.artifactPatterns == ['scheme:resource'] as List
     }
 
     def createsARepositoryResolverForHttpPatterns() {
         repository.name = 'name'
         repository.artifactPattern 'http://host/[organisation]/[artifact]-[revision].[ext]'
+
+        given:
+        fileResolver.resolveUri('http://host/') >> new URI('http://host/')
 
         when:
         def resolvers = []
@@ -53,5 +62,24 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.repository instanceof CommonsHttpClientBackedRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[artifact]-[revision].[ext]'] as List
+    }
+
+    def createsARepositoryResolverForFilePattern() {
+        repository.name = 'name'
+        repository.artifactPattern 'repo/[organisation]/[artifact]-[revision].[ext]'
+
+        given:
+        fileResolver.resolveUri('repo/') >> new URI('file:/repo')
+
+        when:
+        def resolvers = []
+        repository.createResolvers(resolvers)
+
+        then:
+        resolvers.size() == 1
+        def resolver = resolvers[0]
+        resolver instanceof FileSystemResolver
+        resolver.name == 'name'
+        resolver.artifactPatterns == ['/repo/[organisation]/[artifact]-[revision].[ext]'] as List
     }
 }

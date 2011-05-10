@@ -46,5 +46,5 @@ public interface ResolverFactory {
     MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
                                        Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);
 
-    IvyArtifactRepository createIvyRepository();
+    IvyArtifactRepository createIvyRepository(FileResolver resolver);
 }

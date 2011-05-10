@@ -20,14 +20,16 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.tasks.Upload;
 import org.gradle.util.HelperUtil;
+
+import java.io.File;
+import java.util.Set;
+
 import static org.gradle.util.WrapUtil.toSet;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-
-import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -35,6 +37,14 @@ import java.util.Set;
 public class MavenPluginTest {
     private final DefaultProject project = HelperUtil.createRootProject();
     private final MavenPlugin mavenPlugin = new MavenPlugin();
+
+    @org.junit.Test
+    public void addsConventionMappingsToRepositoriesHandler() {
+        mavenPlugin.apply(project);
+
+        assertThat(project.getRepositories().getMavenPomDir(), equalTo(new File(project.getBuildDir(), "poms")));
+        assertThat(project.getRepositories().getMavenScopeMappings(), notNullValue());
+    }
 
     @org.junit.Test
     public void applyWithWarPlugin() {
@@ -74,6 +84,16 @@ public class MavenPluginTest {
         Task task = project.getTasks().getByName(MavenPlugin.INSTALL_TASK_NAME);
         Set dependencies = task.getTaskDependencies().getDependencies(task);
         assertEquals(dependencies, toSet(project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME)));
+    }
+
+    @org.junit.Test
+    public void addsAndConfiguresAnInstallTask() {
+        project.getPlugins().apply(JavaPlugin.class);
+        mavenPlugin.apply(project);
+
+        Upload task = project.getTasks().withType(Upload.class).getByName(MavenPlugin.INSTALL_TASK_NAME);
+        assertThat(task.getRepositories().getMavenPomDir(), equalTo(project.getRepositories().getMavenPomDir()));
+        assertThat(task.getRepositories().getMavenScopeMappings(), sameInstance(project.getRepositories().getMavenScopeMappings()));
     }
 
     @org.junit.Test

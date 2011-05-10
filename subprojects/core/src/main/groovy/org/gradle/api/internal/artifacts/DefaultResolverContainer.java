@@ -43,21 +43,22 @@ import java.util.List;
  */
 public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<DependencyResolver>
         implements ResolverContainer, MavenPomMetaInfoProvider {
-    private ResolverFactory resolverFactory;
+    private final ResolverFactory resolverFactory;
 
-    private List<String> resolverNames = new ArrayList<String>();
+    private final List<String> resolverNames = new ArrayList<String>();
 
     private File mavenPomDir;
 
-    private FileResolver fileResolver;
+    private final FileResolver fileResolver;
 
     private Conf2ScopeMappingContainer mavenScopeMappings;
 
     private ConfigurationContainer configurationContainer;
 
-    public DefaultResolverContainer(ResolverFactory resolverFactory, ClassGenerator classGenerator) {
+    public DefaultResolverContainer(ResolverFactory resolverFactory, FileResolver fileResolver, ClassGenerator classGenerator) {
         super(DependencyResolver.class, classGenerator);
         this.resolverFactory = resolverFactory;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -177,24 +178,12 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
         return resolverFactory;
     }
 
-    public void setResolverFactory(ResolverFactory resolverFactory) {
-        this.resolverFactory = resolverFactory;
-    }
-
     public List<String> getResolverNames() {
         return resolverNames;
     }
 
-    public void setResolverNames(List<String> resolverNames) {
-        this.resolverNames = resolverNames;
-    }
-
     public FileResolver getFileResolver() {
         return fileResolver;
-    }
-
-    public void setFileResolver(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
     }
 
     public ConfigurationContainer getConfigurationContainer() {

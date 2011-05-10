@@ -16,25 +16,28 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-import org.apache.ivy.plugins.resolver.ResolverSettings
 //import org.apache.maven.artifact.ant.RemoteRepository
+
+
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.plugins.resolver.ResolverSettings
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.artifacts.dsl.IvyArtifactRepository
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
-import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
-import org.gradle.util.HashUtil
-import org.junit.Test
-import static org.junit.Assert.*
 import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.artifacts.dsl.IvyArtifactRepository
-import org.gradle.api.Action
-import org.junit.runner.RunWith
-import org.jmock.integration.junit4.JMock
+import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
-import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.gradle.util.HashUtil
 import org.hamcrest.Matchers
+import org.jmock.integration.junit4.JMock
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
 
 /**
  * @author Hans Dockter
@@ -47,7 +50,7 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
 
     public ResolverContainer createResolverContainer() {
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
-        repositoryHandler = classGenerator.newInstance(DefaultRepositoryHandler.class, resolverFactoryMock, classGenerator);
+        repositoryHandler = classGenerator.newInstance(DefaultRepositoryHandler.class, resolverFactoryMock, fileResolver, classGenerator);
         return repositoryHandler;
     }
 
@@ -278,16 +281,16 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     @Test
     public void createIvyRepositoryUsingClosure() {
         IvyArtifactRepository repository = context.mock(TestIvyArtifactRepository.class)
-        DependencyResolver resolver = context.mock(DependencyResolver.class)
+        DependencyResolver resolver = resolver()
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository()
+            one(resolverFactoryMock).createIvyRepository(fileResolver)
             will(returnValue(repository))
             one(repository).createResolvers(withParam(Matchers.notNullValue()))
             will { arg -> arg << resolver }
             one(resolverFactoryMock).createResolver(resolver)
             will(returnValue(resolver))
-            allowing(resolver).getName()
+            allowing(repository).getName()
             will(returnValue("name"))
         }
 
@@ -305,17 +308,17 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     public void createIvyRepositoryUsingAction() {
         IvyArtifactRepository repository = context.mock(TestIvyArtifactRepository.class)
         Action<IvyArtifactRepository> action = context.mock(Action.class)
-        DependencyResolver resolver = context.mock(DependencyResolver.class)
+        DependencyResolver resolver = resolver()
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository()
+            one(resolverFactoryMock).createIvyRepository(fileResolver)
             will(returnValue(repository))
             one(action).execute(repository)
             one(repository).createResolvers(withParam(Matchers.notNullValue()))
             will { arg -> arg << resolver }
             one(resolverFactoryMock).createResolver(resolver)
             will(returnValue(resolver))
-            allowing(resolver).getName()
+            allowing(repository).getName()
             will(returnValue("name"))
         }
 
@@ -323,7 +326,60 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         assert result == repository
         assert repositoryHandler.resolvers.contains(resolver)
     }
-    
+
+    @Test
+    public void providesADefaultNameForIvyRepository() {
+        IvyArtifactRepository repository1 = context.mock(TestIvyArtifactRepository.class)
+
+        context.checking {
+            one(resolverFactoryMock).createIvyRepository(fileResolver)
+            will(returnValue(repository1))
+            one(repository1).getName()
+            will(returnValue(null))
+            one(repository1).setName("ivy")
+            ignoring(repository1)
+            allowing(repository1).getName()
+            will(returnValue("ivy"))
+        }
+
+        repositoryHandler.ivy { }
+
+        IvyArtifactRepository repository2 = context.mock(TestIvyArtifactRepository.class)
+
+        context.checking {
+            one(resolverFactoryMock).createIvyRepository(fileResolver)
+            will(returnValue(repository2))
+            allowing(repository2).getName()
+            will(returnValue("ivy2"))
+            ignoring(repository2)
+        }
+
+        repositoryHandler.ivy { }
+
+        IvyArtifactRepository repository3 = context.mock(TestIvyArtifactRepository.class)
+
+        context.checking {
+            one(resolverFactoryMock).createIvyRepository(fileResolver)
+            will(returnValue(repository3))
+            one(repository3).getName()
+            will(returnValue(null))
+            one(repository3).setName("ivy3")
+            ignoring(repository3)
+            allowing(repository3).getName()
+            will(returnValue("ivy3"))
+        }
+
+        repositoryHandler.ivy { }
+    }
+
+    private DependencyResolver resolver(String name = 'name') {
+        DependencyResolver resolver = context.mock(DependencyResolver.class)
+        context.checking {
+            allowing(resolver).getName(); will(returnValue(name))
+        }
+        return resolver
+    }
+
     private void prepareName(mavenResolver, String expectedName) {
         context.checking {
             one(mavenResolver).setName(expectedName)

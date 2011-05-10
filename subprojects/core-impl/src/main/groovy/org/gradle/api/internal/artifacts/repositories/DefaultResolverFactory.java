@@ -27,7 +27,9 @@ import org.gradle.api.internal.artifacts.ivyservice.GradleIBiblioResolver;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.publish.maven.*;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.*;
+import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller;
+import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer;
+import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
@@ -146,8 +148,8 @@ public class DefaultResolverFactory implements ResolverFactory {
                 pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create());
     }
 
-    public IvyArtifactRepository createIvyRepository() {
-        return new DefaultIvyArtifactRepository();
+    public IvyArtifactRepository createIvyRepository(FileResolver resolver) {
+        return new DefaultIvyArtifactRepository(resolver);
     }
 
     private PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory) {

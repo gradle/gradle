@@ -31,7 +31,30 @@ public class IvyPublishIntegrationTest {
     public final HttpServer server = new HttpServer()
 
     @Test
-    public void canPublishUsingAnonymousHttp() {
+    public void canPublishToLocalFileRepository() {
+        dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
+        dist.testFile("build.gradle") << '''
+apply plugin: 'java'
+version = '2'
+group = 'org.gradle'
+uploadArchives {
+    repositories {
+        ivy {
+            artifactPattern "build/repo/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        }
+    }
+}
+'''
+        executer.withTasks("uploadArchives").run()
+
+        def uploadedJar = dist.testFile('build/repo/org.gradle/publish/2/publish-2.jar')
+        def uploadedIvy = dist.testFile('build/repo/org.gradle/publish/2/ivy-2.xml')
+        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
+        uploadedIvy.assertIsFile()
+    }
+
+    @Test
+    public void canPublishToUnauthenticatedHttpRepository() {
         server.start()
 
         dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
@@ -42,7 +65,6 @@ group = 'org.gradle'
 uploadArchives {
     repositories {
         ivy {
-            name = 'gradleReleases'
             artifactPattern "http://localhost:${server.port}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
         }
     }
@@ -60,7 +82,7 @@ uploadArchives {
     }
 
     @Test
-    public void canPublishUsingAuthenticatedHttp() {
+    public void canPublishToAuthenticatedHttpRepository() {
         server.start()
 
         dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
@@ -71,7 +93,6 @@ group = 'org.gradle'
 uploadArchives {
     repositories {
         ivy {
-            name = 'gradleReleases'
             userName = 'user'
             password = 'password'
             realm = 'test'
@@ -93,7 +114,7 @@ uploadArchives {
     }
 
     @Test
-    public void reportsFailedHttpPublish() {
+    public void reportsFailedPublishToHttpRepository() {
         server.start()
 
         dist.testFile("build.gradle") << """
@@ -101,7 +122,6 @@ apply plugin: 'java'
 uploadArchives {
     repositories {
         ivy {
-            name = 'gradleReleases'
             artifactPattern "http://localhost:${server.port}/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
         }
     }

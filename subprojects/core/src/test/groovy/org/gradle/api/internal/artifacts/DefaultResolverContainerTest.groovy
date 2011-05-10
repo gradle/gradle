@@ -59,9 +59,10 @@ class DefaultResolverContainerTest {
     ResolverFactory resolverFactoryMock;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    FileResolver fileResolver = context.mock(FileResolver.class)
 
     ResolverContainer createResolverContainer() {
-        return new DefaultResolverContainer(resolverFactoryMock, context.mock(ClassGenerator.class))
+        return new DefaultResolverContainer(resolverFactoryMock, fileResolver, context.mock(ClassGenerator.class))
     }
 
     @Before public void setUp() {
@@ -194,11 +195,9 @@ class DefaultResolverContainerTest {
         File testPomDir = new File("pomdir");
         ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
         Conf2ScopeMappingContainer conf2ScopeMappingContainer = context.mock(Conf2ScopeMappingContainer.class)
-        FileResolver fileResolver = context.mock(FileResolver.class)
         resolverContainer.setMavenPomDir(testPomDir)
         resolverContainer.setConfigurationContainer(configurationContainer)
         resolverContainer.setMavenScopeMappings(conf2ScopeMappingContainer)
-        resolverContainer.setFileResolver(fileResolver)
         DependencyResolver expectedResolver = context.mock(resolverType)
         context.checking {
             allowing(expectedResolver).getName(); will(returnValue(DefaultResolverContainerTest.TEST_REPO_NAME))

@@ -175,7 +175,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         fileOperations = services.get(FileOperations.class);
         repositoryHandlerFactory = services.getFactory(RepositoryHandler.class);
         projectEvaluator = services.get(ProjectEvaluator.class);
-        repositoryHandler = repositoryHandlerFactory.create();
+        repositoryHandler = services.get(RepositoryHandler.class);
         configurationContainer = services.get(ConfigurationContainer.class);
         pluginContainer = services.get(PluginContainer.class);
         artifactHandler = services.get(ArtifactHandler.class);

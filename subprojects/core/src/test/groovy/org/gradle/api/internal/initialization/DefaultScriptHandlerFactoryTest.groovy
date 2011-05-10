@@ -17,23 +17,22 @@ package org.gradle.api.internal.initialization
 
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
+import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ObservableUrlClassLoader
 import spock.lang.Specification
-import org.gradle.api.internal.Factory
 
 class DefaultScriptHandlerFactoryTest extends Specification {
-    private final Factory<RepositoryHandler> repositoryHandlerFactory = Mock()
-    private final ConfigurationContainerFactory configurationContainerFactory = Mock()
     private final DependencyMetaDataProvider metaDataProvider = Mock()
-    private final DependencyFactory dependencyFactory = Mock()
     private final ClassLoader parentClassLoader = new ClassLoader() {}
     private final RepositoryHandler repositoryHandler = Mock()
     private final ConfigurationContainer configurationContainer = Mock()
-    private final DefaultScriptHandlerFactory factory = new DefaultScriptHandlerFactory(repositoryHandlerFactory, configurationContainerFactory, metaDataProvider, dependencyFactory)
+    private final FileResolver fileResolver = Mock()
+    private final DependencyManagementServices dependencyManagementServices = Mock()
+    private final DefaultScriptHandlerFactory factory = new DefaultScriptHandlerFactory(dependencyManagementServices, fileResolver, metaDataProvider)
 
     def createsScriptHandler() {
         ScriptSource script = scriptSource()
@@ -77,8 +76,10 @@ class DefaultScriptHandlerFactoryTest extends Specification {
     }
 
     private def expectConfigContainerCreated() {
-        _ * repositoryHandlerFactory.create() >> repositoryHandler
-        _ * configurationContainerFactory.createConfigurationContainer(repositoryHandler, metaDataProvider, _) >> configurationContainer
+        DependencyResolutionServices dependencyResolutionServices = Mock()
+        _ * dependencyManagementServices.create(fileResolver, metaDataProvider, _, _) >> dependencyResolutionServices
+        _ * dependencyResolutionServices.resolveRepositoryHandler >> repositoryHandler
+        _ * dependencyResolutionServices.configurationContainer >> configurationContainer
     }
 
     private def scriptSource(String className = 'script') {

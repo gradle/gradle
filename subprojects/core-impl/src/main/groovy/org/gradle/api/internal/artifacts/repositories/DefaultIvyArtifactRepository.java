@@ -16,57 +16,65 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.apache.ivy.plugins.resolver.URLResolver;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
+import org.gradle.api.internal.file.FileResolver;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultIvyArtifactRepository implements IvyArtifactRepository, ArtifactRepositoryInternal {
     private String name;
     private String username;
     private String password;
     private final Set<String> artifactPatterns = new LinkedHashSet<String>();
+    private final FileResolver resolver;
+
+    public DefaultIvyArtifactRepository(FileResolver resolver) {
+        this.resolver = resolver;
+    }
 
     public void createResolvers(Collection<DependencyResolver> resolvers) {
-        List<String> httpPatterns = new ArrayList<String>();
-        List<String> otherPatterns = new ArrayList<String>();
-
         for (String artifactPattern : artifactPatterns) {
-            try {
-                URI uri = new URI(artifactPattern.replaceAll("\\[.*\\]", "token"));
-                if (uri.getScheme() != null && (uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https"))) {
-                    httpPatterns.add(artifactPattern);
-                    continue;
-                }
-            } catch (URISyntaxException e) {
-                // Ignore
+            // get rid of the ivy [] token, as [ ] are not valid URI characters
+            int pos = artifactPattern.indexOf('[');
+            String basePath = pos < 0 ? artifactPattern : artifactPattern.substring(0, pos);
+            URI baseUri = resolver.resolveUri(basePath);
+            String pattern = pos < 0 ? "" : artifactPattern.substring(pos);
+            String absolutePattern = baseUri.toString() + pattern;
+            RepositoryResolver resolver;
+            if ("http".equalsIgnoreCase(baseUri.getScheme()) || "https".equalsIgnoreCase(baseUri.getScheme())) {
+                resolver = http();
+            } else if ("file".equalsIgnoreCase(baseUri.getScheme())) {
+                absolutePattern = baseUri.getPath() + '/' + pattern;
+                resolver = file();
+            } else {
+                resolver = url();
             }
-            otherPatterns.add(artifactPattern);
-        }
-
-        if (!otherPatterns.isEmpty()) {
-            URLResolver resolver = new URLResolver();
             resolver.setName(name);
-            for (String artifactPattern : otherPatterns) {
-                resolver.addArtifactPattern(artifactPattern);
-                resolver.addIvyPattern(artifactPattern);
-            }
+            resolver.addArtifactPattern(absolutePattern);
+            resolver.addIvyPattern(absolutePattern);
+
             resolvers.add(resolver);
         }
+    }
 
-        if (!httpPatterns.isEmpty()) {
-            RepositoryResolver resolver = new RepositoryResolver();
-            resolver.setRepository(new CommonsHttpClientBackedRepository(username, password));
-            resolver.setName(name);
-            for (String artifactPattern : httpPatterns) {
-                resolver.addArtifactPattern(artifactPattern);
-                resolver.addIvyPattern(artifactPattern);
-            }
-            resolvers.add(resolver);
-        }
+    private RepositoryResolver url() {
+        return new URLResolver();
+    }
+
+    private RepositoryResolver file() {
+        return new FileSystemResolver();
+    }
+
+    private RepositoryResolver http() {
+        RepositoryResolver resolver = new RepositoryResolver();
+        resolver.setRepository(new CommonsHttpClientBackedRepository(username, password));
+        return resolver;
     }
 
     public void artifactPattern(String pattern) {
