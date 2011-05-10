@@ -600,6 +600,38 @@ class JUnitTestClassProcessorTest {
         processor.stop();
     }
 
+    @Test
+    public void executesAJUnit3TestClassThatRenamesItself() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite, TestStartEvent event ->
+                assertThat(suite.id, equalTo(1L))
+                assertThat(suite.name, equalTo(AJunit3TestThatRenamesItself.class.name))
+                assertThat(suite.className, equalTo(AJunit3TestThatRenamesItself.class.name))
+                assertThat(event.parentId, nullValue())
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test, TestStartEvent event ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('testOk'))
+                assertThat(test.className, equalTo(AJunit3TestThatRenamesItself.class.name))
+                assertThat(event.parentId, equalTo(1L))
+            }
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(AJunit3TestThatRenamesItself.class));
+        processor.stop();
+    }
+
     private TestClassRunInfo testClass(Class<?> type) {
         return testClass(type.name)
     }
@@ -701,6 +733,12 @@ public class ATestClassWithBrokenBeforeClassMethod {
 
 public class AJunit3TestClass extends TestCase {
     public void testOk() {
+    }
+}
+
+public class AJunit3TestThatRenamesItself extends TestCase {
+    public void testOk() {
+        setName('another test')
     }
 }
 
