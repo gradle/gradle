@@ -67,10 +67,10 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     def createsARepositoryResolverForFilePattern() {
         repository.name = 'name'
         repository.artifactPattern 'repo/[organisation]/[artifact]-[revision].[ext]'
-        def file = new File("test").canonicalFile
+        def file = new File("test").toURI()
 
         given:
-        fileResolver.resolveUri('repo/') >> file.toURI()
+        fileResolver.resolveUri('repo/') >> file
 
         when:
         def resolvers = []
@@ -81,6 +81,6 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = resolvers[0]
         resolver instanceof FileSystemResolver
         resolver.name == 'name'
-        resolver.artifactPatterns == ["${file.absolutePath}/[organisation]/[artifact]-[revision].[ext]"] as List
+        resolver.artifactPatterns == ["${file.path}/[organisation]/[artifact]-[revision].[ext]"] as List
     }
 }
