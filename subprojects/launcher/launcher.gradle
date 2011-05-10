@@ -7,7 +7,7 @@ dependencies {
     compile project(':ui')
     compile project(':toolingApi')
 
-    compile 'net.java.dev.jna:jna:3.2.2'
+    compile libraries.jna
 
     compile libraries.slf4j_api
 

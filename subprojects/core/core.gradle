@@ -56,7 +56,7 @@ dependencies {
             'org.fusesource.jansi:jansi:1.2.1',
             'org.jruby.ext.posix:jna-posix:1.0.3'
 
-    runtime 'net.java.dev.jna:jna:3.2.2'
+    runtime libraries.jna
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 

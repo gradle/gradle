@@ -64,6 +64,7 @@ libraries = [
         log4j_to_slf4j: 'org.slf4j:log4j-over-slf4j:1.6.1@jar',
         logback_classic: 'ch.qos.logback:logback-classic:0.9.28@jar',
         logback_core: 'ch.qos.logback:logback-core:0.9.28@jar',
+        jna: 'net.java.dev.jna:jna:3.2.2@jar',
         junit: 'junit:junit:4.8.2',
         xmlunit: 'xmlunit:xmlunit:1.3',
 ]
