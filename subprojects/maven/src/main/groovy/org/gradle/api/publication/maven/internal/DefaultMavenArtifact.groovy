@@ -13,26 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publication.maven
+package org.gradle.api.publication.maven.internal
 
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.tasks.TaskAction
-import org.sonatype.aether.impl.internal.DefaultServiceLocator
-import org.sonatype.aether.spi.connector.RepositoryConnectorFactory
-import org.sonatype.aether.RepositorySystem
-import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory
+import org.gradle.api.publication.maven.MavenArtifact
 
-/**
- * Publishes a Maven publication to a Maven repository.
- */
-class Publish extends ConventionTask {
-    MavenPublication publication
-    MavenRepository repository
-
-    @TaskAction
-    void execute() {
-
-
-    }
+class DefaultMavenArtifact implements MavenArtifact {
+    String classifier
+    String extension
+    File file
 }
-
