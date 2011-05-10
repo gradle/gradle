@@ -84,13 +84,6 @@ classes.dependsOn releasesResource
 ideaModule.dependsOn releasesResource
 eclipseClasspath.dependsOn releasesResource
 
-//TODO SF - what is 'ide' task and why do we need it?
-task ideReleasesResource(type: GenerateReleasesXml) {
-    destFile = new File(ideDir, "resources/test/org/gradle/releases.xml")
-}
-
-ide.dependsOn ideReleasesResource
-
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 test {
