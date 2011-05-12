@@ -214,7 +214,7 @@ class JavaPluginTest {
     @Test public void appliesMappingsToTasksAddedByTheBuildScript() {
         javaPlugin.apply(project);
 
-        def task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test.class)
+        def task = project.task('customTest', type: org.gradle.api.tasks.testing.Test.class)
         assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.output.classesDir))
         assertThat(task.workingDir, equalTo(project.projectDir))
