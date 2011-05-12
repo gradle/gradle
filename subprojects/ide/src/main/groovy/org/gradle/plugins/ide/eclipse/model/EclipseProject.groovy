@@ -108,10 +108,10 @@ class EclipseProject {
      * Configures eclipse project name. It is <b>optional</b> because the task should configure it correctly for you.
      * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b>
      * to make sure the moduleName is unique in the scope of a multi-module build.
-     * The 'uniqeness' of a module name is required for correct import
+     * The 'uniqueness' of a module name is required for correct import
      * into Eclipse and the task will make sure the name is unique.
      * <p>
-     * The logic that makes sure project names are uniqe is available <b>since</b> 1.0-milestone-2
+     * The logic that makes sure project names are unique is available <b>since</b> 1.0-milestone-2
      * <p>
      * If your project has problems with unique names it is recommended to always run gradle eclipse from the root, e.g. for all subprojects, including generation of .classpath.
      * If you run the generation of the eclipse project only for a single subproject then you may have different results
