@@ -16,7 +16,7 @@
 package org.gradle.api.publication.maven
 
 interface MavenPomCustomizer {
-    void apply(Closure pomBuilder)
+    void call(Closure pomBuilder)
     void whenConfigured(Closure modelTransformer)
     void withXml(Closure xmlTransformer)
 }

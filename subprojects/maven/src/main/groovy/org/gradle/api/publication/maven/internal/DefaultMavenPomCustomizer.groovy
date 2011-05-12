@@ -17,14 +17,16 @@ package org.gradle.api.publication.maven.internal
 
 import org.gradle.api.publication.maven.MavenPomCustomizer
 import org.gradle.api.publication.maven.internal.pombuilder.CustomModelBuilder
+import org.gradle.api.internal.XmlTransformer
 import org.apache.maven.model.Model
+import org.apache.maven.model.io.DefaultModelWriter
 
 class DefaultMavenPomCustomizer implements MavenPomCustomizer {
     private Closure pomBuilder
     private Closure pomTransformer
     private Closure xmlTransformer
 
-    void apply(Closure pomBuilder) {
+    void call(Closure pomBuilder) {
         this.pomBuilder = pomBuilder
     }
 
@@ -36,22 +38,39 @@ class DefaultMavenPomCustomizer implements MavenPomCustomizer {
         this.xmlTransformer = xmlTransformer
     }
 
-    void execute(Model model) {
+    String execute(Model model) {
         executePomBuilder(model)
         executePomTransformer(model)
-        executeXmlTransformer(model)
+        def pom = renderPomXml(model)
+        executeXmlTransformer(pom)
     }
 
     private void executePomBuilder(Model model) {
-        CustomModelBuilder modelBuilder = new CustomModelBuilder(model);
+        if (!pomBuilder) { return }
+
+        def modelBuilder = new CustomModelBuilder(model)
         modelBuilder.project(pomBuilder)
     }
 
     private void executePomTransformer(Model model) {
+        if (!pomTransformer) { return }
+
         pomTransformer(model)
     }
 
-    private void executeXmlTransformer(Model model) {
-        // TODO
+    private String renderPomXml(Model model) {
+        def modelWriter = new DefaultModelWriter()
+        def output = new StringWriter()
+        modelWriter.write(output, [:], model)
+        output.toString()
+    }
+
+    private String executeXmlTransformer(String pom) {
+        if (!xmlTransformer) { return pom }
+
+        def transformer = new XmlTransformer()
+        transformer.indentation = "  "
+        transformer.addAction(xmlTransformer)
+        transformer.transform(pom)
     }
 }
