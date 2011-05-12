@@ -54,14 +54,6 @@ classes.dependsOn reportResources
 ideaModule.dependsOn reportResources
 eclipseClasspath.dependsOn reportResources
 
-//TODO SF - what is 'ide' task and why do we need it?
-task ideResources(type: Copy) {
-    from(configurations.reports)
-    into "${ideDir}/resources/test/org/gradle/api/internal/tasks/testing/junit/report"
-}
-
-ide.dependsOn ideResources
-
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'

@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
@@ -44,7 +45,7 @@ import java.util.*;
 public class DefaultSettingsConverter implements SettingsConverter {
     private static Logger logger = Logging.getLogger(DefaultSettingsConverter.class);
 
-    private RepositoryCacheManager repositoryCacheManager;
+    private RepositoryCacheManager repositoryCacheManager = new DefaultRepositoryCacheManager();
     private IvySettings ivySettings;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
@@ -143,16 +144,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
         ivySettings.setDefaultCacheIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
-        setRepositoryCacheManager(ivySettings);
+        ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
+        ((IvySettingsAware)repositoryCacheManager).setSettings(ivySettings);
         return ivySettings;
-    }
-
-    private void setRepositoryCacheManager(IvySettings ivySettings) {
-        if (repositoryCacheManager == null) {
-            repositoryCacheManager = ivySettings.getDefaultRepositoryCacheManager();
-        } else {
-            ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
-        }
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {

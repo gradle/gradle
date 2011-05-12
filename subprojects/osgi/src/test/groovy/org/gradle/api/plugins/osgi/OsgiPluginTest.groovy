@@ -42,6 +42,6 @@ public class OsgiPluginTest extends Specification {
         OsgiManifest osgiManifest = project.jar.manifest
         osgiManifest.mergeSpecs[0].mergePaths[0] == project.manifest
         osgiManifest.classpath == project.configurations."$JavaPlugin.RUNTIME_CONFIGURATION_NAME"
-        osgiManifest.classesDir == project.sourceSets."$SourceSet.MAIN_SOURCE_SET_NAME".classesDir
+        osgiManifest.classesDir == project.sourceSets."$SourceSet.MAIN_SOURCE_SET_NAME".output.classesDir
     }
 }

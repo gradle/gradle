@@ -52,7 +52,7 @@ public class GroovyPlugin implements Plugin<Project> {
 
         JavaPluginConvention convention = project.getConvention().getPlugin(JavaPluginConvention.class);
         SourceSet sourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        groovyDoc.setClasspath(sourceSet.getClasses().plus(sourceSet.getCompileClasspath()));
+        groovyDoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
 
         GroovySourceSet groovySourceSet = ((DynamicObjectAware) sourceSet).getConvention().getPlugin(GroovySourceSet.class);
         groovyDoc.setSource(groovySourceSet.getGroovy());

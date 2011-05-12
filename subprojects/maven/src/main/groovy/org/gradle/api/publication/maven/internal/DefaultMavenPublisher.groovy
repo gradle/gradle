@@ -32,14 +32,20 @@ import org.apache.maven.repository.internal.DefaultServiceLocator
 import org.gradle.api.publication.maven.MavenPublisher
 import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.MavenRepository
+import org.sonatype.aether.connector.wagon.WagonProvider
+import org.sonatype.aether.repository.Authentication
 
 class DefaultMavenPublisher implements MavenPublisher {
     private final RepositorySystem repositorySystem
     private final RepositorySystemSession session
 
     DefaultMavenPublisher() {
+        this(new LocalRepository(new File("/swd/tmp/m2repo")))
+    }
+
+    DefaultMavenPublisher(LocalRepository localRepository) {
         repositorySystem = createRepositorySystem()
-        session = createRepositorySystemSession(repositorySystem)
+        session = createRepositorySystemSession(repositorySystem, localRepository)
     }
 
     void install(MavenPublication publication) {
@@ -59,13 +65,13 @@ class DefaultMavenPublisher implements MavenPublisher {
         def locator = new DefaultServiceLocator()
         locator.addService(RepositoryConnectorFactory, FileRepositoryConnectorFactory)
         locator.addService(RepositoryConnectorFactory, WagonRepositoryConnectorFactory)
+        locator.setServices(WagonProvider.class, new ManualWagonProvider());
         locator.getService(RepositorySystem)
     }
 
-    private RepositorySystemSession createRepositorySystemSession(RepositorySystem repositorySystem) {
+    private RepositorySystemSession createRepositorySystemSession(RepositorySystem repositorySystem, LocalRepository localRepository) {
         def session = new MavenRepositorySystemSession()
-        def localRepo = new LocalRepository(new File("/swd/tmp/m2repo"))
-        session.localRepositoryManager = repositorySystem.newLocalRepositoryManager(localRepo)
+        session.localRepositoryManager = repositorySystem.newLocalRepositoryManager(localRepository)
         session
     }
 
@@ -85,6 +91,10 @@ class DefaultMavenPublisher implements MavenPublisher {
         def result = new RemoteRepository()
         result.url = repository.url
         result.contentType = "default" // FileRepositoryConnectorFactory doesn’t accept any other content type
+        def auth = repository.authentication
+        if (auth) {
+            result.authentication = new Authentication(auth.userName, auth.password)
+        }
         result
     }
 }
