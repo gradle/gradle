@@ -18,6 +18,7 @@ package org.gradle.api.publication.maven
 interface MavenDependency {
     String getGroupId()
     String getArtifactId()
+    String getVersion()
     String getClassifier()
     MavenScope getScope()
     boolean isOptional()

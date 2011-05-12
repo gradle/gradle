@@ -18,15 +18,17 @@ package org.gradle.api.publication.maven.internal
 import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.MavenArtifact
 import org.gradle.api.publication.maven.MavenDependency
-import org.gradle.api.publication.maven.MavenPom
+import org.gradle.api.publication.maven.MavenPomCustomizer
 
 class DefaultMavenPublication implements MavenPublication {
+    String modelVersion
     String groupId
     String artifactId
     String version
     String packaging
+    String description
     MavenArtifact mainArtifact
     Set<MavenArtifact> subArtifacts = []
     Set<MavenDependency> dependencies = []
-    MavenPom pom
+    MavenPomCustomizer pom
 }

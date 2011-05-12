@@ -15,30 +15,43 @@
  */
 package org.gradle.api.publication.maven.internal
 
-import org.codehaus.groovy.runtime.InvokerHelper
+import org.gradle.api.publication.maven.MavenPomCustomizer
 import org.gradle.api.publication.maven.internal.pombuilder.CustomModelBuilder
 import org.apache.maven.model.Model
-import org.gradle.api.publication.maven.MavenPom
 
-class DefaultMavenPom implements MavenPom {
-    private final Model model
-    private Closure modelTransformer
+class DefaultMavenPomCustomizer implements MavenPomCustomizer {
+    private Closure pomBuilder
+    private Closure pomTransformer
     private Closure xmlTransformer
 
-    DefaultMavenPom(Model model) {
-        this.model = model
-    }
-
     void apply(Closure pomBuilder) {
-        CustomModelBuilder modelBuilder = new CustomModelBuilder(model);
-        InvokerHelper.invokeMethod(modelBuilder, "project", pomBuilder);
+        this.pomBuilder = pomBuilder
     }
 
-    void whenConfigured(Closure modelTransformer) {
-        this.modelTransformer = modelTransformer
+    void whenConfigured(Closure pomTransformer) {
+        this.pomTransformer = pomTransformer
     }
 
     void withXml(Closure xmlTransformer) {
         this.xmlTransformer = xmlTransformer
+    }
+
+    void execute(Model model) {
+        executePomBuilder(model)
+        executePomTransformer(model)
+        executeXmlTransformer(model)
+    }
+
+    private void executePomBuilder(Model model) {
+        CustomModelBuilder modelBuilder = new CustomModelBuilder(model);
+        modelBuilder.project(pomBuilder)
+    }
+
+    private void executePomTransformer(Model model) {
+        pomTransformer(model)
+    }
+
+    private void executeXmlTransformer(Model model) {
+        // TODO
     }
 }

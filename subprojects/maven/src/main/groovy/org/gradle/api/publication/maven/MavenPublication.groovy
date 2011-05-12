@@ -16,12 +16,14 @@
 package org.gradle.api.publication.maven
 
 interface MavenPublication {
+    String getModelVersion()
     String getGroupId()
     String getArtifactId()
     String getVersion()
     String getPackaging()
+    String getDescription()
     MavenArtifact getMainArtifact()
     Set<MavenArtifact> getSubArtifacts()
     Set<MavenDependency> getDependencies()
-    MavenPom getPom()
+    MavenPomCustomizer getPom()
 }
