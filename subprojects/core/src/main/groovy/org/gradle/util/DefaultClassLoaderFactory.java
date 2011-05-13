@@ -38,8 +38,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         //
         // Note that in practise, this is only triggered when running in our tests
 
-        URL classpathEntry = ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory");
-        if (classpathEntry != null) {
+        if (needJaxpImpl()) {
             try {
                 classpath.add(ClasspathUtil.getClasspathForResource(ClassLoader.getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory").toURI().toURL());
             } catch (MalformedURLException e) {
@@ -48,5 +47,19 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         }
 
         return new URLClassLoader(classpath.toArray(new URL[classpath.size()]), ClassLoader.getSystemClassLoader().getParent());
+    }
+
+    public FilteringClassLoader createFilteringClassLoader(ClassLoader parent) {
+        // See the comment for {@link #createIsolatedClassLoader} above
+        FilteringClassLoader classLoader = new FilteringClassLoader(parent);
+        if (needJaxpImpl()) {
+            // This isn't quite right
+            classLoader.allowPackage("org.apache.xerces");
+        }
+        return classLoader;
+    }
+
+    private boolean needJaxpImpl() {
+        return ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory") != null;
     }
 }

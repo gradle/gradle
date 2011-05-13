@@ -30,7 +30,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader coreImplClassLoader;
     private final ClassLoader pluginsClassLoader;
 
-    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry) {
+    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         // Add in tools.jar to the Ant classloader
         ClassLoader antClassLoader = Project.class.getClassLoader();
         File toolsJar = Jvm.current().getToolsJar();
@@ -43,7 +43,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         // Core impl
         URL[] coreImplClassPath = classPathRegistry.getClassPathUrls("GRADLE_CORE_IMPL");
         coreImplClassLoader = new URLClassLoader(coreImplClassPath, runtimeClassLoader);
-        FilteringClassLoader coreImplExports = new FilteringClassLoader(coreImplClassLoader);
+        FilteringClassLoader coreImplExports = classLoaderFactory.createFilteringClassLoader(coreImplClassLoader);
         coreImplExports.allowPackage("org.gradle");
 
         // Add in libs for plugins
@@ -51,7 +51,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         MultiParentClassLoader pluginsImports = new MultiParentClassLoader(runtimeClassLoader, coreImplExports);
         pluginsClassLoader = new URLClassLoader(pluginsClassPath, pluginsImports);
 
-        rootClassLoader = new FilteringClassLoader(pluginsClassLoader);
+        rootClassLoader = classLoaderFactory.createFilteringClassLoader(pluginsClassLoader);
         rootClassLoader.allowPackage("org.gradle");
         rootClassLoader.allowResources("META-INF/gradle-plugins");
         rootClassLoader.allowPackage("org.apache.tools.ant");

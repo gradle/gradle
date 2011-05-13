@@ -24,4 +24,13 @@ public interface ClassLoaderFactory {
      * @return The ClassLoader
      */
     ClassLoader createIsolatedClassLoader(Iterable<URL> urls);
+
+    /**
+     * Creates a ClassLoader implementation which has, by default, only the classes from the Java API visible, but which can allow access
+     * to selected classes from the given parent ClassLoader.
+     *
+     * @param parent the parent ClassLoader
+     * @return The ClassLoader
+     */
+    FilteringClassLoader createFilteringClassLoader(ClassLoader parent);
 }

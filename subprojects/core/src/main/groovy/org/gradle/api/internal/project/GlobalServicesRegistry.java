@@ -58,7 +58,7 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     }
 
     protected ClassLoaderRegistry createClassLoaderRegistry() {
-        return new DefaultClassLoaderRegistry(get(ClassPathRegistry.class));
+        return new DefaultClassLoaderRegistry(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
     }
 
     protected ListenerManager createListenerManager() {
