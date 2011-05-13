@@ -84,6 +84,13 @@ classes.dependsOn releasesResource
 ideaModule.dependsOn releasesResource
 eclipseClasspath.dependsOn releasesResource
 
+//TODO SF:
+//def generatedResourcesDir = "$buildDir/generated-resources/main"
+//task releasesResource(type: GenerateReleasesXml) {
+//    destFile = "$generatedResourceDir/org/gradle/releases.xml"
+//}
+//sourceSets.main.output.dir(generatedResourcesDir, builtBy: releaseResources)
+
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 test {
