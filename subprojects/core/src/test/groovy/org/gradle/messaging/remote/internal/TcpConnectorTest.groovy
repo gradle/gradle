@@ -56,7 +56,7 @@ class TcpConnectorTest extends ConcurrentSpecification {
 
     def "client throws exception when cannot connect to server"() {
         def outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
-        def address = new URI("tcp://localhost:12345")
+        def address = new SocketInetAddress(InetAddress.getByName("localhost"), 12345)
 
         when:
         outgoingConnector.connect(address)

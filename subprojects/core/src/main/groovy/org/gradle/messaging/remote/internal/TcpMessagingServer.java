@@ -19,11 +19,10 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.Action;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
-
-import java.net.URI;
 
 /**
  * A {@link org.gradle.messaging.remote.MessagingServer} implementation which uses a single incoming TCP port for all peers.
@@ -41,7 +40,7 @@ public class TcpMessagingServer implements MessagingServer {
         server = new DefaultMessagingServer(connector, messageClassLoader);
     }
 
-    public URI accept(Action<ConnectEvent<ObjectConnection>> action) {
+    public Address accept(Action<ConnectEvent<ObjectConnection>> action) {
         return server.accept(action);
     }
 
@@ -51,7 +50,7 @@ public class TcpMessagingServer implements MessagingServer {
     }
 
     private static class NoOpOutgoingConnector implements OutgoingConnector {
-        public Connection<Message> connect(URI destinationUri) {
+        public Connection<Message> connect(Address destinationAddress) {
             throw new UnsupportedOperationException();
         }
     }

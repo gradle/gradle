@@ -15,15 +15,12 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.messaging.remote.Address;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.net.URI;
-
-import static org.hamcrest.Matchers.*;
 
 @RunWith(JMock.class)
 public class DefaultMessagingClientTest {
@@ -32,11 +29,11 @@ public class DefaultMessagingClientTest {
 
     @Test
     public void createsConnectionOnConstructionAndStopsOnStop() throws Exception {
-        final URI serverAddress = new URI("test:somestuff");
+        final Address serverAddress = context.mock(Address.class);
         final MultiChannelConnection<Message> connection = context.mock(MultiChannelConnection.class);
 
         context.checking(new Expectations() {{
-            one(connector).connect(with(equalTo(serverAddress)));
+            one(connector).connect(serverAddress);
             will(returnValue(connection));
         }});
 

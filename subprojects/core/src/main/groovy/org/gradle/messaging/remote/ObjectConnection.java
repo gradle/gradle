@@ -16,7 +16,6 @@
 package org.gradle.messaging.remote;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.dispatch.Addressable;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 
@@ -34,7 +33,7 @@ public interface ObjectConnection extends Addressable, AsyncStoppable {
 
     /**
      * Registers a handler for incoming messages on the given type. The provided handler is not required to be
-     * thread-safe.
+     * thread-safe. Messages are delivered to the handler by a single thread.
      *
      * @param type The type.
      * @param instance The handler instance. Incoming messages on the given type are delivered to this handler.
@@ -43,7 +42,7 @@ public interface ObjectConnection extends Addressable, AsyncStoppable {
 
     /**
      * Registers a handler for incoming messages on the given type. The provided handler is not required to be
-     * thread-safe.
+     * thread-safe. Messages are delivered to the handler by a single thread.
      *
      * @param type The type.
      * @param dispatch The handler instance. Incoming messages on the given type are delivered to this handler.

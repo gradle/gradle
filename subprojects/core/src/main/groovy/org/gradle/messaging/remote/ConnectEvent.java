@@ -16,16 +16,12 @@
 
 package org.gradle.messaging.remote;
 
-import org.gradle.messaging.dispatch.Addressable;
-
-import java.net.URI;
-
 public class ConnectEvent<T> implements Addressable {
     private final T connection;
-    private final URI localAddress;
-    private final URI remoteAddress;
+    private final Address localAddress;
+    private final Address remoteAddress;
 
-    public ConnectEvent(T connection, URI localAddress, URI remoteAddress) {
+    public ConnectEvent(T connection, Address localAddress, Address remoteAddress) {
         this.connection = connection;
         this.localAddress = localAddress;
         this.remoteAddress = remoteAddress;
@@ -35,11 +31,11 @@ public class ConnectEvent<T> implements Addressable {
         return connection;
     }
 
-    public URI getLocalAddress() {
+    public Address getLocalAddress() {
         return localAddress;
     }
 
-    public URI getRemoteAddress() {
+    public Address getRemoteAddress() {
         return remoteAddress;
     }
 }

@@ -17,20 +17,26 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.messaging.concurrent.*;
-import org.gradle.messaging.dispatch.*;
+import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.messaging.dispatch.AsyncDispatch;
+import org.gradle.messaging.dispatch.AsyncReceive;
+import org.gradle.messaging.dispatch.DiscardOnFailureDispatch;
+import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.remote.Address;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
-    private final URI sourceAddress;
-    private final URI destinationAddress;
+    private final Address sourceAddress;
+    private final Address destinationAddress;
     private final EndOfStreamDispatch outgoingDispatch;
     private final AsyncDispatch<Object> outgoingQueue;
     private final AsyncReceive<Object> incomingReceive;
@@ -39,7 +45,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
     private final StoppableExecutor executor;
     private final Connection<Object> connection;
 
-    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, final Connection<Object> connection, URI sourceAddress, URI destinationAddress) {
+    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, final Connection<Object> connection, Address sourceAddress, Address destinationAddress) {
         this.connection = connection;
         this.executor = executorFactory.create(displayName);
 
@@ -66,14 +72,14 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
         return new DiscardOnFailureDispatch<Object>(dispatch, LoggerFactory.getLogger(DefaultMultiChannelConnector.class));
     }
 
-    public URI getLocalAddress() {
+    public Address getLocalAddress() {
         if (sourceAddress == null) {
             throw new UnsupportedOperationException();
         }
         return sourceAddress;
     }
 
-    public URI getRemoteAddress() {
+    public Address getRemoteAddress() {
         if (destinationAddress == null) {
             throw new UnsupportedOperationException();
         }

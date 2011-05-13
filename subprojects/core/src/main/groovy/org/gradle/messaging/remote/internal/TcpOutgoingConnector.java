@@ -17,6 +17,7 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.messaging.remote.Address;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +35,11 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         this.classLoader = classLoader;
     }
 
-    public <T> Connection<T> connect(URI destinationUri) {
-        if (!destinationUri.getScheme().equals("tcp") || destinationUri.getHost() == null || !destinationUri.getHost().equals("localhost")) {
-            throw new IllegalArgumentException(String.format("Cannot create connection to destination URI '%s'.",
-                    destinationUri));
+    public <T> Connection<T> connect(Address destinationAddress) {
+        if (!(destinationAddress instanceof SocketInetAddress)) {
+            throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
+        SocketInetAddress socketInetAddress = (SocketInetAddress) destinationAddress;
 
         // Find all loop back addresses. Not all of them are necessarily reachable (eg when socket option IPV6_V6ONLY
         // is on - the default for debian and others), so we will try each of them until we can connect
@@ -51,7 +52,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                 LOGGER.debug("Trying to connect to address {}.", address);
                 SocketChannel socketChannel;
                 try {
-                    socketChannel = SocketChannel.open(new InetSocketAddress(address, destinationUri.getPort()));
+                    socketChannel = SocketChannel.open(new InetSocketAddress(address, socketInetAddress.getPort()));
                 } catch (SocketException e) {
                     LOGGER.debug("Cannot connect to address {}, skipping.", address);
                     lastFailure = e;
@@ -59,15 +60,15 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                 }
                 LOGGER.debug("Connected to address {}.", address);
                 URI localAddress = new URI(String.format("tcp://localhost:%d", socketChannel.socket().getLocalPort()));
-                return new SocketConnection<T>(socketChannel, localAddress, destinationUri, classLoader);
+                return new SocketConnection<T>(socketChannel, localAddress, destinationAddress, classLoader);
             }
             throw lastFailure;
         } catch (java.net.ConnectException e) {
             throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
-                    destinationUri, loopBackAddresses), e);
+                    destinationAddress, loopBackAddresses), e);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not connect to server %s. Tried addresses: %s.",
-                    destinationUri, loopBackAddresses), e);
+                    destinationAddress, loopBackAddresses), e);
         }
     }
 

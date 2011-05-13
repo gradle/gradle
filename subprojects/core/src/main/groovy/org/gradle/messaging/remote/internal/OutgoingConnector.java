@@ -15,12 +15,12 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import java.net.URI;
+import org.gradle.messaging.remote.Address;
 
 public interface OutgoingConnector {
     /**
      * Creates a connection to the given address.
      * @throws org.gradle.messaging.remote.internal.ConnectException when there is nothing listening on the remote URI
      */
-    <T> Connection<T> connect(URI destinationUri) throws ConnectException;
+    <T> Connection<T> connect(Address destinationAddress) throws ConnectException;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.messaging.remote;
 
-package org.gradle.messaging.remote.internal;
+import java.io.Serializable;
 
-import org.gradle.messaging.remote.Address;
-
-public class ConnectRequest extends Message {
-    private final Address destinationAddress;
-
-    public ConnectRequest(Address destinationAddress) {
-        this.destinationAddress = destinationAddress;
-    }
-
-    public Address getDestinationAddress() {
-        return destinationAddress;
-    }
+/**
+ * The address for a communication endpoint.
+ */
+public interface Address extends Serializable {
+    /**
+     * Returns the display name for this address. Implementations should also override toString() to return the display name.
+     *
+     * @return The display name.
+     */
+    String getDisplayName();
 }

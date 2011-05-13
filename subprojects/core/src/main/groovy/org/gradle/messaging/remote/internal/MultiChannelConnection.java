@@ -17,7 +17,7 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.dispatch.Addressable;
+import org.gradle.messaging.remote.Addressable;
 import org.gradle.messaging.dispatch.Dispatch;
 
 public interface MultiChannelConnection<T> extends Addressable, AsyncStoppable {

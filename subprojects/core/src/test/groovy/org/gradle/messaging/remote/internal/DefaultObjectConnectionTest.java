@@ -17,9 +17,10 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.dispatch.Addressable;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.Addressable;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -27,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -182,11 +182,11 @@ public class DefaultObjectConnectionTest {
                     throw new UnsupportedOperationException();
                 }
 
-                public URI getLocalAddress() {
+                public Address getLocalAddress() {
                     throw new UnsupportedOperationException();
                 }
 
-                public URI getRemoteAddress() {
+                public Address getRemoteAddress() {
                     throw new UnsupportedOperationException();
                 }
             };
@@ -210,11 +210,11 @@ public class DefaultObjectConnectionTest {
                     throw new UnsupportedOperationException();
                 }
 
-                public URI getLocalAddress() {
+                public Address getLocalAddress() {
                     throw new UnsupportedOperationException();
                 }
 
-                public URI getRemoteAddress() {
+                public Address getRemoteAddress() {
                     throw new UnsupportedOperationException();
                 }
             };

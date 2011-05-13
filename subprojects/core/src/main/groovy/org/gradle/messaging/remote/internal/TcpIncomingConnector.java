@@ -21,6 +21,7 @@ import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
@@ -28,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -49,14 +49,14 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
         localAddresses = TcpOutgoingConnector.findLocalAddresses();
     }
 
-    public URI accept(Action<ConnectEvent<Connection<Object>>> action) {
+    public Address accept(Action<ConnectEvent<Connection<Object>>> action) {
         ServerSocketChannel serverSocket;
-        URI localAddress;
+        Address localAddress;
         try {
             serverSocket = ServerSocketChannel.open();
             serverSockets.add(serverSocket);
             serverSocket.socket().bind(new InetSocketAddress(0));
-            localAddress = new URI(String.format("tcp://localhost:%d", serverSocket.socket().getLocalPort()));
+            localAddress = new SocketInetAddress(InetAddress.getByName("localhost"), serverSocket.socket().getLocalPort());
             LOGGER.debug("Listening on {}.", localAddress);
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
@@ -77,10 +77,10 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
 
     private class Receiver implements Runnable {
         private final ServerSocketChannel serverSocket;
-        private final URI localAddress;
+        private final Address localAddress;
         private final Action<ConnectEvent<Connection<Object>>> action;
 
-        public Receiver(ServerSocketChannel serverSocket, URI localAddress, Action<ConnectEvent<Connection<Object>>> action) {
+        public Receiver(ServerSocketChannel serverSocket, Address localAddress, Action<ConnectEvent<Connection<Object>>> action) {
             this.serverSocket = serverSocket;
             this.localAddress = localAddress;
             this.action = action;
@@ -91,15 +91,15 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
                 try {
                     while (true) {
                         SocketChannel socket = serverSocket.accept();
-                        InetSocketAddress remoteAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
-                        if (!localAddresses.contains(remoteAddress.getAddress())) {
-                            LOGGER.error("Cannot accept connection from remote address {}.", remoteAddress.getAddress());
+                        InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
+                        if (!localAddresses.contains(remoteSocketAddress.getAddress())) {
+                            LOGGER.error("Cannot accept connection from remote address {}.", remoteSocketAddress.getAddress());
                             socket.close();
                             continue;
                         }
-                        URI remoteUri = new URI(String.format("tcp://localhost:%d", remoteAddress.getPort()));
-                        LOGGER.debug("Accepted connection from {}.", remoteUri);
-                        action.execute(new ConnectEvent<Connection<Object>>(new SocketConnection<Object>(socket, localAddress, remoteUri, classLoader), localAddress, remoteUri));
+                        Address remoteAddress = new SocketInetAddress(remoteSocketAddress.getAddress(), remoteSocketAddress.getPort());
+                        LOGGER.debug("Accepted connection from {}.", remoteAddress);
+                        action.execute(new ConnectEvent<Connection<Object>>(new SocketConnection<Object>(socket, localAddress, remoteAddress, classLoader), localAddress, remoteAddress));
                     }
                 } catch (ClosedChannelException e) {
                     // Ignore

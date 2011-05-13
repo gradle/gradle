@@ -24,6 +24,7 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.Connection;
@@ -151,7 +152,7 @@ public class DaemonConnector {
 
         LOGGER.lifecycle("Awaiting requests.");
 
-        URI uri = incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>() {
+        Address address = incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>() {
             public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
                 try {
                     finished.onStartActivity();
@@ -163,7 +164,7 @@ public class DaemonConnector {
             }
         });
 
-        storeDaemonAddress(uri);
+        storeDaemonAddress(address);
 
         boolean stopped = finished.awaitStop();
         if (!stopped) {
@@ -174,7 +175,7 @@ public class DaemonConnector {
         getRegistryFile().delete();
     }
 
-    private void storeDaemonAddress(URI uri) {
+    private void storeDaemonAddress(Address address) {
         try {
             File registryFile = getRegistryFile();
             registryFile.getParentFile().mkdirs();
@@ -182,9 +183,9 @@ public class DaemonConnector {
             try {
                 // Lock file while writing to it
                 outputStream.getChannel().lock();
-                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-                dataOutputStream.writeUTF(uri.toString());
-                dataOutputStream.flush();
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                objectOutputStream.writeObject(address);
+                objectOutputStream.flush();
             } finally {
                 // Also releases the lock
                 outputStream.close();

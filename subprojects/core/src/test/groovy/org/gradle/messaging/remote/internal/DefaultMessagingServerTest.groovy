@@ -22,11 +22,13 @@ import spock.lang.Specification
 import org.gradle.api.Action
 import org.gradle.messaging.remote.ConnectEvent
 import org.gradle.messaging.remote.ObjectConnection
+import org.gradle.messaging.remote.Address
 
 class DefaultMessagingServerTest extends Specification {
+    final Address remoteAddress = Mock()
+    final Address localAddress = Mock()
     private final MultiChannelConnector multiChannelConnector = Mock()
     private final DefaultMessagingServer server = new DefaultMessagingServer(multiChannelConnector, getClass().classLoader)
-
 
     def createsConnection() {
         Action<ConnectEvent<ObjectConnection>> action = Mock()
@@ -34,21 +36,21 @@ class DefaultMessagingServerTest extends Specification {
         MultiChannelConnection<Message> connection = Mock()
 
         when:
-        def uri = server.accept(action)
+        def address = server.accept(action)
 
         then:
-        uri == new URI("test:dest")
-        1 * multiChannelConnector.accept(!null) >> { wrappedAction = it[0]; return new URI("test:dest") }
+        address == localAddress
+        1 * multiChannelConnector.accept(!null) >> { wrappedAction = it[0]; return localAddress }
 
         when:
-        wrappedAction.execute(new ConnectEvent(connection, new URI("test:local"), new URI("test:remote")))
+        wrappedAction.execute(new ConnectEvent(connection, localAddress, remoteAddress))
 
         then:
         1 * action.execute(!null) >> {
             ConnectEvent event = it[0]
             assert event.connection instanceof DefaultObjectConnection
-            assert event.localAddress == new URI("test:local")
-            assert event.remoteAddress == new URI("test:remote")
+            assert event.localAddress == localAddress
+            assert event.remoteAddress == remoteAddress
         }
     }
 
@@ -86,7 +88,7 @@ class DefaultMessagingServerTest extends Specification {
 
         1 * multiChannelConnector.accept(!null) >> {
             def wrappedAction = it[0]
-            wrappedAction.execute(new ConnectEvent(channelConnection, new URI("test:local"), new URI("test:remote")))
+            wrappedAction.execute(new ConnectEvent(channelConnection, localAddress, remoteAddress))
         }
         1 * action.execute(!null) >> {
             connection = it[0].connection

@@ -19,11 +19,11 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.Action;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
 
-import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,7 +38,7 @@ public class DefaultMessagingServer implements MessagingServer {
         this.classLoader = classLoader;
     }
 
-    public URI accept(final Action<ConnectEvent<ObjectConnection>> action) {
+    public Address accept(final Action<ConnectEvent<ObjectConnection>> action) {
         return connector.accept(new Action<ConnectEvent<MultiChannelConnection<Object>>>() {
             public void execute(ConnectEvent<MultiChannelConnection<Object>> connectEvent) {
                 finishConnect(connectEvent, action);

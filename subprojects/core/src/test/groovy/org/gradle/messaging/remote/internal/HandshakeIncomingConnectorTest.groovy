@@ -22,8 +22,10 @@ import spock.lang.Specification
 import org.gradle.api.Action
 import java.util.concurrent.Executor
 import org.gradle.messaging.remote.ConnectEvent
+import org.gradle.messaging.remote.Address
 
 class HandshakeIncomingConnectorTest extends Specification {
+    private final Address localAddress = Mock()
     private final Executor executor = Mock()
     private final IncomingConnector target = Mock()
     private final Connection connection = Mock()
@@ -36,33 +38,36 @@ class HandshakeIncomingConnectorTest extends Specification {
         def address = connector.accept(action)
 
         then:
-        1 * target.accept(!null) >> new URI("test:source")
-        address == new URI("channel:test:source!0")
+        address == new CompositeAddress(localAddress, 0L)
+        1 * target.accept(!null) >> localAddress
+        0 * target._
     }
 
-    def eachCallToAcceptAllocatesADifferentUri() {
+    def eachCallToAcceptAllocatesADifferentAddress() {
         Action<ConnectEvent<Connection<Message>>> action = Mock()
-        1 * target.accept(!null) >> new URI("test:source")
 
         when:
         def address1 = connector.accept(action)
         def address2 = connector.accept(action)
 
         then:
-        address1 == new URI("channel:test:source!0")
-        address2 == new URI("channel:test:source!1")
+        address1 == new CompositeAddress(localAddress, 0L)
+        address2 == new CompositeAddress(localAddress, 1L)
+        1 * target.accept(!null) >> localAddress
+        0 * target._
     }
     
     def performsHandshakeOnAccept() {
         Action<ConnectEvent<Connection<Message>>> action = Mock()
+        Address remoteAddress = Mock()
         def wrappedAction
         def handshakeRunnable
-        1 * target.accept(!null) >> { wrappedAction = it[0]; new URI("test:source") }
+        1 * target.accept(!null) >> { wrappedAction = it[0]; localAddress }
 
         def address = connector.accept(action)
 
         when:
-        wrappedAction.execute(new ConnectEvent<Connection<Message>>(connection, new URI("test:source"), new URI("test:dest")))
+        wrappedAction.execute(new ConnectEvent<Connection<Message>>(connection, localAddress, remoteAddress))
 
         then:
         1 * executor.execute(!null) >> { handshakeRunnable = it[0] }

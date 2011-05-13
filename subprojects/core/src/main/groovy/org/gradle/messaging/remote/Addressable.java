@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.messaging.remote;
 
-package org.gradle.messaging.remote.internal;
+public interface Addressable {
+    Address getLocalAddress();
 
-import org.gradle.messaging.remote.Address;
-
-public class ConnectRequest extends Message {
-    private final Address destinationAddress;
-
-    public ConnectRequest(Address destinationAddress) {
-        this.destinationAddress = destinationAddress;
-    }
-
-    public Address getDestinationAddress() {
-        return destinationAddress;
-    }
+    Address getRemoteAddress();
 }

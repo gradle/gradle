@@ -15,15 +15,14 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
-
-import java.net.URI;
 
 public class DefaultMessagingClient implements MessagingClient {
     private final ObjectConnection connection;
 
-    public DefaultMessagingClient(MultiChannelConnector connector, ClassLoader classLoader, URI serverAddress) {
+    public DefaultMessagingClient(MultiChannelConnector connector, ClassLoader classLoader, Address serverAddress) {
         MultiChannelConnection<Object> connection = connector.connect(serverAddress);
         IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, connection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(connection);

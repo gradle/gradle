@@ -17,11 +17,9 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
-import org.gradle.util.UncheckedException;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -30,27 +28,22 @@ public class HandshakeIncomingConnector implements IncomingConnector {
     private final IncomingConnector connector;
     private final Executor executor;
     private final Object lock = new Object();
-    private URI localAddress;
+    private Address localAddress;
     private long nextId;
-    private final Map<URI, Action<ConnectEvent<Connection<Object>>>> pendingActions = new HashMap<URI, Action<ConnectEvent<Connection<Object>>>>();
+    private final Map<Address, Action<ConnectEvent<Connection<Object>>>> pendingActions = new HashMap<Address, Action<ConnectEvent<Connection<Object>>>>();
 
     public HandshakeIncomingConnector(IncomingConnector connector, Executor executor) {
         this.connector = connector;
         this.executor = executor;
     }
 
-    public URI accept(Action<ConnectEvent<Connection<Object>>> action) {
+    public Address accept(Action<ConnectEvent<Connection<Object>>> action) {
         synchronized (lock) {
             if (localAddress == null) {
                 localAddress = connector.accept(handShakeAction());
             }
-            
-            URI localAddress;
-            try {
-                localAddress = new URI(String.format("channel:%s!%d", this.localAddress, nextId++));
-            } catch (URISyntaxException e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
+
+            Address localAddress = new CompositeAddress(this.localAddress, nextId++);
             pendingActions.put(localAddress, action);
             return localAddress;
         }
@@ -71,7 +64,7 @@ public class HandshakeIncomingConnector implements IncomingConnector {
     private void handshake(ConnectEvent<Connection<Object>> connectEvent) {
         Connection<Object> connection = connectEvent.getConnection();
         ConnectRequest request = (ConnectRequest) connection.receive();
-        URI localAddress = request.getDestinationAddress();
+        Address localAddress = request.getDestinationAddress();
         Action<ConnectEvent<Connection<Object>>> channelConnection;
         synchronized (lock) {
             channelConnection = pendingActions.remove(localAddress);

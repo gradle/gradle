@@ -17,12 +17,12 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.messaging.remote.Address;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -56,11 +56,11 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
     private final List<URL> implementationClassPath;
-    private final URI serverAddress;
+    private final Address serverAddress;
     private final ClassPathRegistry classPathRegistry;
 
     public ApplicationClassesInSystemClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
-                                          List<URL> implementationClassPath, URI serverAddress,
+                                          List<URL> implementationClassPath, Address serverAddress,
                                           ClassPathRegistry classPathRegistry) {
         this.workerId = workerId;
         this.displayName = displayName;
