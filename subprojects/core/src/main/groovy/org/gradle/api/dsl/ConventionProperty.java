@@ -31,7 +31,6 @@ package org.gradle.api.dsl;
  *   conventionProperty.add('c')  //WRONG!
  *
  *   //However, convention properties can be assigned:
- *   conventionProperty += 'c'  //OK
  *   conventionProperty = ['a', 'b']  //OK
  *
  *   //Simple properties can be mutated or assigned:
