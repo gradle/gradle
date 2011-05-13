@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.org.gradle.api.publication.maven.internal
+package org.gradle.api.publication.maven.internal
 
-import org.apache.maven.model.Model
 import org.apache.maven.model.Dependency
-import org.gradle.api.publication.maven.internal.DefaultMavenPomCustomizer
-
+import org.apache.maven.model.Model
 import spock.lang.Specification
 
 class DefaultMavenPomCustomizerTest extends Specification {
