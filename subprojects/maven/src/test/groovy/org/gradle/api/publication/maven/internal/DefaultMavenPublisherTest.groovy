@@ -28,9 +28,9 @@ import spock.lang.Ignore
  * @author: Szczepan Faber, created at: 5/12/11
  */
 @Ignore
-//this is ignored because for some reason it does not work
-//from the main build due to cryptic java.lang.VerifyError
-//and I wanted to be able to push & pair on it
+//This is ignored because I'm having trouble running it from the gradle build (java.lang.VerifyError)
+//so far I figured that the offending dependency is maven-ant-tasks pulled as a transitive dependency of :core
+//once we exclude this transitive dependency all should work well
 class DefaultMavenPublisherTest extends Specification {
 
     @Rule def dir = new TemporaryFolder()
