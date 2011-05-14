@@ -30,23 +30,30 @@ class MavenModelBuilder {
     MavenPublication build(Project project) {
         DefaultMavenPublication publication = project.services.get(ClassGenerator).newInstance(DefaultMavenPublication)
         publication.mainArtifact = project.services.get(ClassGenerator).newInstance(DefaultMavenArtifact)
+        //@Peter, I was prolific with comments because I wasn't sure I'll be able to pair soon. Get rid of comments if you like.
 
+        //basic values can be easily extracted from the project:
         publication.conventionMapping.description = { project.description }
         publication.conventionMapping.groupId = { project.group.toString() }
         publication.modelVersion = '4.0.0'
 
         project.plugins.withType(JavaPlugin) {
             publication.packaging = 'jar'
-            //or: in theory we can extract this info from maven resolver but that's difficult as the code is complex
+            //I like the simple way of setting the packaging above. There're other theoretical ways of getting the packaging, but they're ugly:
+            //or: we can extract packaging from maven installer but that's difficult as the code is complex
             //or: publication.conventionMapping.groupId = { project.convention.plugins.maven.pom().groupId }
             //or: publication.packaging = project.convention.plugins.maven.pom().packaging
 
             withTask(project, 'jar', Jar) { Jar jar ->
+                //It makes more sense to me to get the artifact info from the 'jar' section of the build because 'jar' task is the way for a user to declaratively configure version/baseName.
                 publication.conventionMapping.artifactId = { jar.baseName }
                 publication.conventionMapping.version = { jar.version }
+
+                //We can also get this info from the project... se below
                 //or: publication.conventionMapping.artifactId = { project.convention.plugins.base.archivesBaseName }
                 //or: publication.conventionMapping.version = { project.version.toString() }
 
+                //again it feels natural to get it from the 'jar' section of the build.
                 publication.mainArtifact.classifier = project.jar.classifier
                 publication.mainArtifact.extension = project.jar.extension
                 publication.mainArtifact.file = project.jar.archivePath
