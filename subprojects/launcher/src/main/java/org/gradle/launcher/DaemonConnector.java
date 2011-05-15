@@ -36,7 +36,6 @@ import org.gradle.util.Jvm;
 import org.gradle.util.UncheckedException;
 
 import java.io.*;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -58,26 +57,26 @@ public class DaemonConnector {
      * @return The connection, or null if not running.
      */
     public Connection<Object> maybeConnect() {
-        URI uri = loadDaemonAddress();
-        if (uri == null) {
+        Address address = loadDaemonAddress();
+        if (address == null) {
             return null;
         }
         try {
-            return new TcpOutgoingConnector(getClass().getClassLoader()).connect(uri);
+            return new TcpOutgoingConnector(getClass().getClassLoader()).connect(address);
         } catch (ConnectException e) {
             // Ignore
             return null;
         }
     }
 
-    private URI loadDaemonAddress() {
+    private Address loadDaemonAddress() {
         try {
             FileInputStream inputStream = new FileInputStream(getRegistryFile());
             try {
                 // Acquire shared lock on file while reading it
                 inputStream.getChannel().lock(0, Long.MAX_VALUE, true);
-                DataInputStream dataInputStream = new DataInputStream(inputStream);
-                return new URI(dataInputStream.readUTF());
+                ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+                return (Address) objectInputStream.readObject();
             } finally {
                 // Also releases the lock
                 inputStream.close();
