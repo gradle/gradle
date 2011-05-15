@@ -61,6 +61,9 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
         }
     }
 
+    /**
+     * Starts dispatching messages to the given handler. The handler does not need to be thread-safe.
+     */
     public void dispatchTo(final Dispatch<? super T> dispatch) {
         onDispatchThreadStart();
         executor.execute(new Runnable() {
@@ -166,6 +169,9 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
         setState(State.Stopped);
     }
 
+    /**
+     * Stops accepting new messages, and blocks until all queued messages have been dispatched.
+     */
     public void stop() {
         lock.lock();
         try {

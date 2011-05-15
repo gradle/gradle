@@ -22,7 +22,7 @@ public interface Receive<T> {
     /**
      * Blocks until the next message is available. Returns null when the end of the message stream has been reached.
      *
-     * @return The next message.
+     * @return The next message, or null when the end of the stream has been reached.
      */
     T receive();
 }

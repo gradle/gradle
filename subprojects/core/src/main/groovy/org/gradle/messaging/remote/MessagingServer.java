@@ -27,12 +27,12 @@ public interface MessagingServer extends Stoppable {
      * Creates an endpoint which a single peer can connect to.
      *
      * @param action The action to execute when the connection has been established.
-     * @return The local address of the endpoint, for the peer to connect to
+     * @return The local address of the endpoint, for the peer to connect to.
      */
     Address accept(Action<ConnectEvent<ObjectConnection>> action);
 
     /**
-     * Performs a graceful stop of this server. Blocks until connections have been stopped.
+     * Performs a graceful stop of this server. Blocks until all connections created by this server have been stopped.
      */
     void stop();
 }

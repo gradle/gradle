@@ -45,6 +45,9 @@ public class AsyncReceive<T> implements AsyncStoppable {
         this.dispatch = dispatch;
     }
 
+    /**
+     * Starts receiving from the given receive. The receive does not need to be thread-safe.
+     */
     public void receiveFrom(final Receive<? extends T> receive) {
         onReceiveThreadStart();
         executor.execute(new Runnable() {
@@ -105,6 +108,9 @@ public class AsyncReceive<T> implements AsyncStoppable {
         condition.signalAll();
     }
 
+    /**
+     * Stops receiving new messages.
+     */
     public void requestStop() {
         lock.lock();
         try {
@@ -122,6 +128,9 @@ public class AsyncReceive<T> implements AsyncStoppable {
         }
     }
 
+    /**
+     * Stops receiving new messages. Blocks until all queued messages have been delivered.
+     */
     public void stop() {
         lock.lock();
         try {

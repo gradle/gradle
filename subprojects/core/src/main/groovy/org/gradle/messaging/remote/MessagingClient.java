@@ -27,7 +27,7 @@ public interface MessagingClient extends Stoppable {
     ObjectConnection getConnection();
 
     /**
-     * Performs a graceful stop of this client. Stops the client's connection.
+     * Performs a graceful stop of this client. Blocks until the client's connection has been stopped.
      */
     void stop();
 }
