@@ -16,34 +16,53 @@
 package org.gradle.messaging.remote.internal
 
 import org.gradle.api.Action
-import org.gradle.util.MultithreadedTestCase
-import org.junit.Test
-import static org.junit.Assert.*
+import org.gradle.util.ConcurrentSpecification
 
-class TcpConnectorTest extends MultithreadedTestCase {
-    @Test
-    public void canConnectToServer() {
-        TcpOutgoingConnector outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
-        TcpIncomingConnector incomingConnector = new TcpIncomingConnector(executorFactory, getClass().classLoader)
+class TcpConnectorTest extends ConcurrentSpecification {
+    def "client can connect to server"() {
+        def outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
+        def incomingConnector = new TcpIncomingConnector(executorFactory, getClass().classLoader)
+        Action action = Mock()
 
-        Action action = { syncAt(1) } as Action
+        when:
         def address = incomingConnector.accept(action)
-
         def connection = outgoingConnector.connect(address)
-        assertNotNull(connection)
-        run { syncAt(1) }
 
+        then:
+        connection != null
+
+        cleanup:
         incomingConnector.requestStop()
     }
 
-    @Test
-    public void outgoingConnectorThrowsConnectExceptionWhenCannotConnect() {
-        TcpOutgoingConnector outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
+    def "server executes action when incoming connection received"() {
+        def outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
+        def incomingConnector = new TcpIncomingConnector(executorFactory, getClass().classLoader)
+        def connectionReceived = asyncAction()
+        Action action = Mock()
 
-        try {
-            outgoingConnector.connect(new URI("tcp://localhost:12345"))
-            fail()
-        } catch (ConnectException e) {
+        when:
+        connectionReceived.startedBy {
+            def address = incomingConnector.accept(action)
+            outgoingConnector.connect(address)
         }
+
+        then:
+        1 * action.execute(!null) >> { connectionReceived.done() }
+
+        cleanup:
+        incomingConnector.requestStop()
+    }
+
+    def "client throws exception when cannot connect to server"() {
+        def outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
+        def address = new URI("tcp://localhost:12345")
+
+        when:
+        outgoingConnector.connect(address)
+
+        then:
+        ConnectException e = thrown()
+        e.message.startsWith "Could not connect to server ${address}."
     }
 }

@@ -79,58 +79,46 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     }
 
     def getModelBlocksUntilResultReceivedFromProtocolConnection() {
-        def supplyResult = later()
+        def supplyResult = blockingAction()
         ProjectVersion3 result = Mock()
         Project adaptedResult = Mock()
         _ * adapter.adapt(Project.class, result) >> adaptedResult
 
         when:
         def model
-        def action = start {
+        supplyResult.blocksUntilCallback {
             model = builder.get()
         }
 
         then:
-        action.waitsFor(supplyResult)
+        model == adaptedResult
         1 * protocolConnection.getModel(!null, !null, !null) >> { args ->
             def handler = args[2]
-            supplyResult.finishLater {
+            supplyResult.callbackLater {
                 handler.onComplete(result)
             }
         }
-
-        when:
-        finished()
-
-        then:
-        model == adaptedResult
     }
 
     def getModelBlocksUntilFailureReceivedFromProtocolConnectionAndRethrowsFailure() {
-        def supplyResult = later()
+        def supplyResult = blockingAction()
         RuntimeException failure = new RuntimeException()
 
         when:
         def model
-        def action = start {
+        supplyResult.blocksUntilCallback {
             model = builder.get()
         }
 
         then:
-        action.waitsFor(supplyResult)
+        GradleConnectionException e = thrown()
+        e.cause.is(failure)
         1 * protocolConnection.getModel(!null, !null, !null) >> { args ->
             def handler = args[2]
-            supplyResult.finishLater {
+            supplyResult.callbackLater {
                 handler.onFailure(failure)
             }
         }
-
-        when:
-        finished()
-
-        then:
-        GradleConnectionException e = thrown()
-        e.cause.is(failure)
     }
 }
 

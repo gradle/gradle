@@ -17,9 +17,9 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Project
-import org.gradle.util.ConcurrentSpecification
+import spock.lang.Specification
 
-class DefaultProjectConnectionTest extends ConcurrentSpecification {
+class DefaultProjectConnectionTest extends Specification {
     final AsyncConnection protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()

@@ -16,115 +16,239 @@
 package org.gradle.util
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.TimeUnit
-import spock.lang.Ignore
+import org.gradle.api.Action
 
 class ConcurrentSpecificationTest extends ConcurrentSpecification {
-    
-    def canCheckThatMethodCallWaitsUntilAsyncCallbackIsComplete() {
-        SomeAsyncWorker worker = Mock()
-        SomeSyncClass target = new SomeSyncClass(worker: worker)
-
-        def notifyListener = later()
+    def "can check that an action calls a mock method asynchronously"() {
+        Runnable action = Mock()
+        def executed = asyncAction()
 
         when:
-        def result
-        def action = start {
-            result = target.doWork('value')
+        executed.startedBy {
+            executor.execute { action.run() }
         }
 
         then:
-        action.waitsFor(notifyListener)
-        1 * worker.doLater(!null) >> { args -> notifyListener.finishLater { args[0].call('result') } }
-
-        when:
-        finished()
-
-        then:
-        result == 'result'
+        1 * action.run() >> { executed.done() }
     }
 
-    def canCheckThatMethodCallDoesNotWaitUntilAsyncCallbackIsComplete() {
-        SomeAsyncWorker worker = Mock()
-        Closure handler = Mock()
-        SomeSyncClass target = new SomeSyncClass(worker: worker)
-
-        def notifyListener = later()
-
+    def "async action fails when expected mock method is never called"() {
         when:
-        def action = start {
-            target.startWork(handler)
-        }
+        asyncAction().startedBy {}
 
         then:
-        action.doesNotWaitFor(notifyListener)
-        1 * worker.doLater(!null) >> { args -> notifyListener.finishLater { args[0].call('result') } }
-
-        when:
-        finished()
-
-        then:
-        1 * handler.call('[result]')
+        RuntimeException e = thrown()
+        e.message == 'Expected async action to complete, but it did not.'
     }
 
-    def canHaveMultipleAsyncActions() {
-        SomeAsyncWorker worker = Mock()
-        Closure handler = Mock()
-        SomeSyncClass target = new SomeSyncClass(worker: worker)
-
-        Closure listener
-        def notifyListener = later()
-        def notifyListenerAgain = later()
+    def "async action fails when expected mock method is called from start action thread"() {
+        Runnable action = Mock()
+        def executed = asyncAction()
 
         when:
-        def action = start {
-            target.startWork(handler)
-            target.startWork(handler)
+        executed.startedBy {
+            action.run()
         }
 
         then:
-        action.doesNotWaitFor(notifyListener, notifyListenerAgain)
-        2 * worker.doLater(!null) >> { args ->
-            if (!listener) {
-                listener = args[0];
-                notifyListener.finishLater { args[0].call('result1') }
-            } else {
-                notifyListenerAgain.finishLater { args[0].call('result2') }
-            }
-        }
-
-        when:
-        notifyListener.completed()
-
-        then:
-        1 * handler.call('[result1]')
-
-        when:
-        finished()
-
-        then:
-        1 * handler.call('[result2]')
+        1 * action.run() >> { executed.done() }
+        RuntimeException e = thrown()
+        e.message == 'Cannot wait for start action to complete from the start action.'
     }
 
-    def canCheckThatMethodCallsBlockUntilAnotherMethodIsCalled() {
-        SomeConditionClass condition = new SomeConditionClass()
+    def "async action fails when start action throws an exception"() {
+        def failure = new RuntimeException()
 
         when:
-        def action1 = start {
-            condition.waitUntilComplete()
-        }
-        def action2 = start {
-            condition.waitUntilComplete()
+        asyncAction().startedBy {
+            throw failure
         }
 
         then:
-        all(action1, action2).waitsFor {
-            condition.complete()
-        }
+        RuntimeException e = thrown()
+        e == failure
     }
 
-    def canCheckThatMethodCompletesInSpecifiedTime() {
+    def "async action fails when expected mock method throws an exception"() {
+        Runnable action = Mock()
+        def failure = new RuntimeException()
+
+        when:
+        asyncAction().startedBy {
+            executor.execute { action.run() }
+        }
+
+        then:
+        1 * action.run() >> { throw failure }
+        RuntimeException e = thrown()
+        e == failure
+    }
+
+    def "async action fails when start action does not finish"() {
+        def latch = new CountDownLatch(1)
+
+        when:
+        asyncAction().startedBy {
+            latch.await()
+        }
+
+        then:
+        RuntimeException e = thrown()
+        e.message == 'Expected start action to complete quickly, but it did not.'
+
+        cleanup:
+        latch.countDown()
+    }
+
+    def "async action fails when done called before start action is called"() {
+        when:
+        asyncAction().done()
+
+        then:
+        RuntimeException e = thrown()
+        e.message == 'Action has not been started by calling startedBy().'
+    }
+
+    def "can check that an action blocks until an asynchronous callback is made"() {
+        Action<Runnable> service = Mock()
+        def operation = blockingAction()
+
+        when:
+        operation.blocksUntilCallback {
+            def latch = new CountDownLatch(1)
+            service.execute { latch.countDown() }
+            latch.await()
+        }
+
+        then:
+        1 * service.execute(!null) >> { args -> operation.callbackLater { args[0].run() } }
+    }
+
+    def "blocking action fails when blocking action throws exception"() {
+        def failure = new RuntimeException()
+
+        when:
+        blockingAction().blocksUntilCallback {
+            throw failure
+        }
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+    }
+
+    def "blocking action fails when blocking action finishes without waiting for callback action"() {
+        when:
+        blockingAction().blocksUntilCallback {
+        }
+
+        then:
+        RuntimeException e = thrown()
+        e.message == 'Expected action to block, but it did not.'
+    }
+
+    def "blocking action fails when blocking action never finishes"() {
+        Runnable action = Mock()
+        def latch = new CountDownLatch(1)
+        def operation = blockingAction()
+
+        when:
+        operation.blocksUntilCallback {
+            action.run()
+            latch.await()
+        }
+
+        then:
+        1 * action.run() >> { operation.callbackLater {} }
+        RuntimeException e = thrown()
+        e.message == 'Expected action to unblock, but it did not.'
+
+        cleanup:
+        latch.countDown()
+    }
+
+    def "blocking action fails when blocking action never registers callback action"() {
+        def latch = new CountDownLatch(1)
+        def operation = blockingAction()
+
+        when:
+        operation.blocksUntilCallback {
+            latch.await()
+        }
+
+        then:
+        RuntimeException e = thrown()
+        e.message == 'Expected action to register a callback action, but it did not.'
+
+        cleanup:
+        latch.countDown()
+    }
+
+    def "blocking action fails when mock method throws exception"() {
+        def failure = new RuntimeException()
+
+        when:
+        blockingAction().blocksUntilCallback {
+            throw failure
+        }
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+    }
+
+    def "blocking action fails when callback action never finishes"() {
+        def operation = blockingAction()
+        def latch = new CountDownLatch(1)
+        Runnable action = Mock()
+
+        when:
+        operation.blocksUntilCallback {
+            action.run()
+            latch.await()
+        }
+
+        then:
+        1 * action.run() >> { operation.callbackLater { latch.await() } }
+        RuntimeException e = thrown()
+        e.message == 'Expected callback action to complete, but it did not.'
+
+        cleanup:
+        latch.countDown()
+    }
+
+    def "blocking action fails when callback action method throws exception"() {
+        def failure = new RuntimeException()
+        def operation = blockingAction()
+        def latch = new CountDownLatch(1)
+        Runnable action = Mock()
+
+        when:
+        operation.blocksUntilCallback {
+            action.run()
+            latch.await()
+        }
+
+        then:
+        1 * action.run() >> { operation.callbackLater { throw failure } }
+        RuntimeException e = thrown()
+        e == failure
+
+        cleanup:
+        latch.countDown()
+    }
+
+    def "blocking action fails when callback made before blocking action started"() {
+        when:
+        blockingAction().callbackLater { }
+
+        then:
+        RuntimeException e = thrown()
+        e.message == 'Action has not been started by calling blocksUntilCallback().'
+    }
+
+    def "can check that some method completes in expected time"() {
         SomeConditionClass condition = new SomeConditionClass()
 
         when:
@@ -132,23 +256,17 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
         def action = start {
             timedOut = condition.waitUntilComplete(200)
         }
-
-        then:
         action.completesWithin(200, TimeUnit.MILLISECONDS)
-
-        when:
-        finished()
 
         then:
         timedOut
     }
 
-    def finishRethrowsExceptionThrownByTestThread() {
+    def "finish rethrows exception thrown by test thread"() {
         RuntimeException failure = new RuntimeException()
 
         when:
         start {
-            failure.fillInStackTrace()
             throw failure
         }
         finished()
@@ -156,42 +274,6 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
         then:
         RuntimeException e = thrown()
         e.is(failure)
-    }
-
-    @Ignore
-    def completeRethrowsExceptionThrownByTestThread() {
-        RuntimeException failure = new RuntimeException()
-
-        when:
-        def action = start {
-            failure.fillInStackTrace()
-            throw failure
-        }
-        action.completed()
-
-        then:
-        RuntimeException e = thrown()
-        e.is(failure)
-    }
-}
-
-interface SomeAsyncWorker {
-    void doLater(Closure cl)
-}
-
-class SomeSyncClass {
-    SomeAsyncWorker worker
-
-    def doWork(Object value) {
-        SynchronousQueue queue = new SynchronousQueue()
-        worker.doLater { arg ->
-            queue.put(arg)
-        }
-        return queue.take()
-    }
-
-    def startWork(Closure handler) {
-        worker.doLater { result -> handler.call("[$result]" as String) }
     }
 }
 

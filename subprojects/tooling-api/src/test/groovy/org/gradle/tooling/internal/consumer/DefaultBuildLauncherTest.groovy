@@ -92,47 +92,42 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
     }
 
     def buildBlocksUntilResultReceived() {
-        def supplyResult = later()
+        def supplyResult = blockingAction()
         Task task = Mock()
 
         when:
-        def action = start {
+        supplyResult.blocksUntilCallback {
             launcher.forTasks(task).run()
         }
 
         then:
-        action.waitsFor(supplyResult)
         1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
             def handler = args[2]
-            supplyResult.finishLater {
+            supplyResult.callbackLater {
                 handler.onComplete(null)
             }
         }
     }
 
     def buildBlocksUntilFailureReceived() {
-        def supplyResult = later()
+        def supplyResult = blockingAction()
+        def failure = new RuntimeException()
         Task task = Mock()
 
         when:
-        def action = start {
+        supplyResult.blocksUntilCallback {
             launcher.forTasks(task).run()
         }
 
         then:
-        action.waitsFor(supplyResult)
+        GradleConnectionException e = thrown()
+        e.cause == failure
         1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
             def handler = args[2]
-            supplyResult.finishLater {
-                handler.onFailure(new RuntimeException())
+            supplyResult.callbackLater {
+                handler.onFailure(failure)
             }
         }
-
-        when:
-        finished()
-
-        then:
-        GradleConnectionException e = thrown()
     }
 
     def task(String path) {
