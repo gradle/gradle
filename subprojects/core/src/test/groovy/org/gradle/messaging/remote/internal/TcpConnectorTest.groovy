@@ -38,11 +38,11 @@ class TcpConnectorTest extends ConcurrentSpecification {
     def "server executes action when incoming connection received"() {
         def outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
         def incomingConnector = new TcpIncomingConnector(executorFactory, getClass().classLoader)
-        def connectionReceived = asyncAction()
+        def connectionReceived = startsAsyncAction()
         Action action = Mock()
 
         when:
-        connectionReceived.startedBy {
+        connectionReceived.started {
             def address = incomingConnector.accept(action)
             outgoingConnector.connect(address)
         }

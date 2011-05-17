@@ -13,37 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.messaging.dispatch;
 
-import org.gradle.api.Action;
-import org.gradle.messaging.concurrent.Stoppable;
-import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 
-public class ExceptionTrackingListener implements Action<Throwable>, Stoppable {
+public class DiscardingFailureHandler<T> implements DispatchFailureHandler<T>, ReceiveFailureHandler {
     private final Logger logger;
-    private RuntimeException failure;
 
-    public ExceptionTrackingListener(Logger logger) {
+    public DiscardingFailureHandler(Logger logger) {
         this.logger = logger;
     }
 
-    public void execute(Throwable failure) {
-        if (this.failure != null) {
-            logger.error(failure.getMessage(), failure);
-        } else {
-            this.failure = UncheckedException.asUncheckedException(failure);
-        }
+    public void receiveFailed(Throwable failure) {
+        logger.error("Could not receive message. Ignoring.", failure);
     }
 
-    public void stop() {
-        if (failure != null) {
-            try {
-                throw failure;
-            } finally {
-                failure = null;
-            }
-        }
+    public void dispatchFailed(T message, Throwable failure) {
+        logger.error(String.format("Could not dispatch message %s. Discarding message.", message), failure);
     }
 }

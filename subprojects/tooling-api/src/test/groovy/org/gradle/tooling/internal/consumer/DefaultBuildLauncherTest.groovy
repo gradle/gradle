@@ -92,11 +92,11 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
     }
 
     def buildBlocksUntilResultReceived() {
-        def supplyResult = blockingAction()
+        def supplyResult = waitsForAsyncCallback()
         Task task = Mock()
 
         when:
-        supplyResult.blocksUntilCallback {
+        supplyResult.start {
             launcher.forTasks(task).run()
         }
 
@@ -110,12 +110,12 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
     }
 
     def buildBlocksUntilFailureReceived() {
-        def supplyResult = blockingAction()
+        def supplyResult = waitsForAsyncCallback()
         def failure = new RuntimeException()
         Task task = Mock()
 
         when:
-        supplyResult.blocksUntilCallback {
+        supplyResult.start {
             launcher.forTasks(task).run()
         }
 

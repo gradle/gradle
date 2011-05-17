@@ -112,7 +112,7 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
                 actor.stop()
                 fail()
             } catch (DispatchException e) {
-                assertThat(e.message, startsWith('Failed to dispatch message'))
+                assertThat(e.message, startsWith("Could not dispatch message"))
                 assertThat(e.cause, sameInstance(failure))
             }
         }

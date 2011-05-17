@@ -82,19 +82,19 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
 
     public void dispatch(MethodInvocation invocation) {
         try {
-            ExceptionTrackingListener tracker = new ExceptionTrackingListener(LOGGER);
+            ExceptionTrackingFailureHandler tracker = new ExceptionTrackingFailureHandler(LOGGER);
             for (Dispatch<MethodInvocation> handler : new ArrayList<Dispatch<MethodInvocation>>(handlers.values())) {
                 try {
                     handler.dispatch(invocation);
                 } catch (UncheckedException e) {
-                    tracker.execute(e.getCause());
+                    tracker.dispatchFailed(invocation, e.getCause());
                 } catch (Throwable t) {
-                    tracker.execute(t);
+                    tracker.dispatchFailed(invocation, t);
                 }
             }
             tracker.stop();
-        } catch (Throwable t) {
-            throw new ListenerNotificationException(getErrorMessage(), t);
+        } catch (DispatchException t) {
+            throw new ListenerNotificationException(getErrorMessage(), t.getCause());
         }
     }
 

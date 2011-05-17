@@ -79,14 +79,14 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     }
 
     def getModelBlocksUntilResultReceivedFromProtocolConnection() {
-        def supplyResult = blockingAction()
+        def supplyResult = waitsForAsyncCallback()
         ProjectVersion3 result = Mock()
         Project adaptedResult = Mock()
         _ * adapter.adapt(Project.class, result) >> adaptedResult
 
         when:
         def model
-        supplyResult.blocksUntilCallback {
+        supplyResult.start {
             model = builder.get()
         }
 
@@ -101,12 +101,12 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     }
 
     def getModelBlocksUntilFailureReceivedFromProtocolConnectionAndRethrowsFailure() {
-        def supplyResult = blockingAction()
+        def supplyResult = waitsForAsyncCallback()
         RuntimeException failure = new RuntimeException()
 
         when:
         def model
-        supplyResult.blocksUntilCallback {
+        supplyResult.start {
             model = builder.get()
         }
 

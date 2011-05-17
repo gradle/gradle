@@ -18,20 +18,20 @@ package org.gradle.messaging.dispatch
 import org.slf4j.Logger
 import spock.lang.Specification
 
-class ExceptionTrackingListenerTest extends Specification {
+class ExceptionTrackingFailureHandlerTest extends Specification {
     private final Logger logger = Mock()
-    private final ExceptionTrackingListener dispatch = new ExceptionTrackingListener(logger)
+    private final ExceptionTrackingFailureHandler dispatch = new ExceptionTrackingFailureHandler(logger)
 
     def stopRethrowsFailure() {
         RuntimeException failure = new RuntimeException()
 
         when:
-        dispatch.execute(failure)
+        dispatch.dispatchFailed("message", failure)
         dispatch.stop()
 
         then:
-        def e = thrown(RuntimeException)
-        e == failure
+        def e = thrown(DispatchException)
+        e.cause == failure
         0 * logger._
     }
 
@@ -40,13 +40,13 @@ class ExceptionTrackingListenerTest extends Specification {
         RuntimeException failure2 = new RuntimeException('broken2')
 
         when:
-        dispatch.execute(failure1)
-        dispatch.execute(failure2)
+        dispatch.dispatchFailed("message1", failure1)
+        dispatch.dispatchFailed("message2", failure2)
         dispatch.stop()
 
         then:
-        def e = thrown(RuntimeException)
-        e == failure1
+        def e = thrown(DispatchException)
+        e.cause == failure1
         1 * logger.error('broken2', failure2)
         0 * logger._
     }

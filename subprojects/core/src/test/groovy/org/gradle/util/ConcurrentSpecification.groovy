@@ -99,15 +99,22 @@ class ConcurrentSpecification extends Specification {
     /**
      * Creates a new asynchronous action.
      */
-    AsyncAction asyncAction() {
-        return new AsyncAction(this)
+    StartAsyncAction startsAsyncAction() {
+        return new StartAsyncAction(this)
     }
 
     /**
      * Creates a new blocking action.
      */
-    BlockingAction blockingAction() {
-        return new BlockingAction(this)
+    WaitForAsyncCallback waitsForAsyncCallback() {
+        return new WaitForAsyncCallback(this)
+    }
+
+    /**
+     * Creates a new action which waits until an async. action is complete.
+     */
+    WaitForAsyncAction waitsForAsyncActionToComplete() {
+        return new WaitForAsyncAction(this)
     }
 
     /**
@@ -409,6 +416,7 @@ class AbstractAsyncAction {
     protected final ConcurrentSpecification owner
     private final Lock lock = new ReentrantLock()
     protected final Condition condition = lock.newCondition()
+    protected Throwable failure
 
     AbstractAsyncAction(ConcurrentSpecification owner) {
         this.owner = owner
@@ -416,6 +424,13 @@ class AbstractAsyncAction {
 
     protected Date shortTimeout() {
         return ConcurrentSpecification.shortTimeout()
+    }
+
+    protected void onFailure(Throwable throwable) {
+        withLock {
+            failure = throwable
+            condition.signalAll()
+        }
     }
 
     protected def withLock(Closure cl) {
@@ -428,24 +443,23 @@ class AbstractAsyncAction {
     }
 }
 
-class AsyncAction extends AbstractAsyncAction {
+class StartAsyncAction extends AbstractAsyncAction {
     private boolean started
     private boolean completed
     private Thread startThread
-    private Throwable failure
 
-    AsyncAction(ConcurrentSpecification owner) {
+    StartAsyncAction(ConcurrentSpecification owner) {
         super(owner)
     }
 
     /**
-     * Runs the given action, and then waits until another another thread calls {@link #done()}.  Asserts that the start action does
-     * not block waiting for this async action to complete.
+     * Runs the given action, and then waits until another another thread calls {@link #done()}.  Asserts that the action does not block waiting for
+     * the async action to complete.
      *
      * @param action The start action
      * @return this
      */
-    AsyncAction startedBy(Runnable action) {
+    StartAsyncAction started(Runnable action) {
         owner.onFailure this.&onFailure
         doStart(action)
         waitForStartToComplete()
@@ -454,19 +468,13 @@ class AsyncAction extends AbstractAsyncAction {
     }
 
     /**
-     * Marks that this async. action is now finished.
+     * Marks that the async. action is now finished.
      */
     void done() {
         waitForStartToComplete()
         doFinish()
     }
 
-    private void onFailure(Throwable throwable) {
-        withLock {
-            failure = throwable
-            condition.signalAll()
-        }
-    }
 
     private void doStart(Runnable action) {
         owner.startThread {
@@ -496,7 +504,7 @@ class AsyncAction extends AbstractAsyncAction {
     private void doFinish() {
         withLock {
             if (completed) {
-                throw new IllegalStateException("Cannot complete action multiple times.")
+                throw new IllegalStateException("Cannot run async action multiple times.")
             }
             completed = true
             condition.signalAll()
@@ -507,14 +515,14 @@ class AsyncAction extends AbstractAsyncAction {
         Date timeout = shortTimeout()
         withLock {
             if (startThread == null) {
-                throw new IllegalStateException("Action has not been started by calling startedBy().")
+                throw new IllegalStateException("Action has not been started.")
             }
             if (Thread.currentThread() == startThread) {
-                throw new IllegalStateException("Cannot wait for start action to complete from the start action.")
+                throw new IllegalStateException("Cannot wait for action to complete from the thread that is executing it.")
             }
             while (!started && !failure) {
                 if (!condition.awaitUntil(timeout)) {
-                    throw new IllegalStateException("Expected start action to complete quickly, but it did not.")
+                    throw new IllegalStateException("Expected action to complete quickly, but it did not.")
                 }
             }
             if (failure) {
@@ -538,18 +546,71 @@ class AsyncAction extends AbstractAsyncAction {
     }
 }
 
-class BlockingAction extends AbstractAsyncAction {
-    private boolean started
-    private boolean completed
-    private boolean callbackCompleted
-    private Runnable callback
-    private Throwable failure
+abstract class AbstractWaitAction extends AbstractAsyncAction {
+    protected boolean started
+    protected boolean completed
 
-    BlockingAction(ConcurrentSpecification owner) {
+    AbstractWaitAction(ConcurrentSpecification owner) {
         super(owner)
     }
 
-    BlockingAction blocksUntilCallback(Runnable action) {
+    protected void waitForBlockingActionToComplete() {
+        Date expiry = shortTimeout()
+        withLock {
+            while (!completed && !failure) {
+                if (!condition.awaitUntil(expiry)) {
+                    throw new IllegalStateException("Expected action to unblock, but it did not.")
+                }
+            }
+            if (failure) {
+                throw failure
+            }
+        }
+    }
+
+    protected void startBlockingAction(Runnable action) {
+        owner.startThread {
+            withLock {
+                started = true
+                condition.signalAll()
+            }
+
+            action.run()
+
+            withLock {
+                completed = true
+                condition.signalAll()
+            }
+        }
+
+        withLock {
+            while (!started) {
+                condition.await()
+            }
+        }
+    }
+
+    protected void assertBlocked() {
+        withLock {
+            if (completed) {
+                throw new IllegalStateException("Expected action to block, but it did not.")
+            }
+        }
+    }
+}
+
+class WaitForAsyncCallback extends AbstractWaitAction {
+    private boolean callbackCompleted
+    private Runnable callback
+
+    WaitForAsyncCallback(ConcurrentSpecification owner) {
+        super(owner)
+    }
+
+    /**
+     * Runs the given action. Asserts that it blocks until after asynchronous callback is made. The action must register the callback using {@link #callbackLater(Runnable)}.
+     */
+    WaitForAsyncCallback start(Runnable action) {
         owner.onFailure this.&onFailure
 
         startBlockingAction(action)
@@ -562,6 +623,22 @@ class BlockingAction extends AbstractAsyncAction {
         waitForBlockingActionToComplete()
 
         return this
+    }
+
+    /**
+     * Registers the callback which will unblock the action.
+     */
+    public void callbackLater(Runnable action) {
+        withLock {
+            if (callback) {
+                throw new IllegalStateException("Cannot register callback action multiple times.")
+            }
+            if (!started) {
+                throw new IllegalStateException("Action has not been started.")
+            }
+            callback = action
+            condition.signalAll()
+        }
     }
 
     private def runCallbackAction() {
@@ -587,62 +664,6 @@ class BlockingAction extends AbstractAsyncAction {
         }
     }
 
-    void callbackLater(Runnable action) {
-        withLock {
-            if (callback) {
-                throw new IllegalStateException("Cannot register callback action multiple times.")
-            }
-            if (!started) {
-                throw new IllegalStateException("Action has not been started by calling blocksUntilCallback().")
-            }
-            callback = action
-            condition.signalAll()
-        }
-    }
-
-    private void waitForBlockingActionToComplete() {
-        Date expiry = shortTimeout()
-        withLock {
-            while (!completed && !failure) {
-                if (!condition.awaitUntil(expiry)) {
-                    throw new IllegalStateException("Expected action to unblock, but it did not.")
-                }
-            }
-            if (failure) {
-                throw failure
-            }
-        }
-    }
-
-    private void startBlockingAction(Runnable action) {
-        owner.startThread {
-            withLock {
-                started = true
-                condition.signalAll()
-            }
-
-            action.run()
-
-            withLock {
-                completed = true
-                condition.signalAll()
-            }
-        }
-
-        withLock {
-            while (!started) {
-                condition.await()
-            }
-        }
-    }
-
-    private void onFailure(Throwable t) {
-        withLock {
-            failure = t
-            condition.signalAll()
-        }
-    }
-
     private void waitForCallbackToBeRegistered() {
         Date expiry = shortTimeout()
         withLock {
@@ -659,9 +680,42 @@ class BlockingAction extends AbstractAsyncAction {
             }
         }
     }
+}
 
-    private void assertBlocked() {
+class WaitForAsyncAction extends AbstractWaitAction {
+    boolean asyncActionComplete
+
+    WaitForAsyncAction(ConcurrentSpecification owner) {
+        super(owner)
+    }
+
+    WaitForAsyncAction start(Runnable action) {
+        startBlockingAction(action)
+        waitForAsyncAction()
+        waitForBlockingActionToComplete()
+        return this
+    }
+
+    WaitForAsyncAction done() {
+//        Thread.sleep(500)
+//        assertBlocked()
+
         withLock {
+            asyncActionComplete = true
+            condition.signalAll()
+        }
+
+        return this
+    }
+
+    def waitForAsyncAction() {
+        Date expiry = shortTimeout()
+        withLock {
+            while (!asyncActionComplete && !completed) {
+                if (!condition.awaitUntil(expiry)) {
+                    throw new IllegalStateException("Expected async action to be started, but it was not.")
+                }
+            }
             if (completed) {
                 throw new IllegalStateException("Expected action to block, but it did not.")
             }

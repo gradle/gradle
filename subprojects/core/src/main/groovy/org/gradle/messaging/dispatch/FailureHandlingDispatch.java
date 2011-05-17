@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.messaging.dispatch;
 
-import org.gradle.api.Action;
+public class FailureHandlingDispatch<T> implements Dispatch<T> {
+    private final Dispatch<? super T> dispatch;
+    private final DispatchFailureHandler<? super T> handler;
 
-public class ExceptionTrackingDispatch<T> implements Dispatch<T> {
-    private final Dispatch<T> dispatch;
-    private final Action<? super DispatchException> action;
-
-    public ExceptionTrackingDispatch(Dispatch<T> dispatch, Action<? super DispatchException> action) {
+    public FailureHandlingDispatch(Dispatch<? super T> dispatch, DispatchFailureHandler<? super T> handler) {
         this.dispatch = dispatch;
-        this.action = action;
+        this.handler = handler;
     }
 
     public void dispatch(T message) {
         try {
             dispatch.dispatch(message);
-        } catch (Throwable t) {
-            action.execute(new DispatchException(String.format("Failed to dispatch message %s.", message), t));
+        } catch (Throwable throwable) {
+            handler.dispatchFailed(message, throwable);
         }
     }
 }

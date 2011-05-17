@@ -16,7 +16,6 @@
 
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 
@@ -65,7 +64,7 @@ public class SocketConnection<T> implements Connection<T> {
             if (isEndOfStream(e)) {
                 return null;
             }
-            throw new GradleException(String.format("Could not read message from '%s'.", remoteAddress), e);
+            throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
     }
 
@@ -84,7 +83,7 @@ public class SocketConnection<T> implements Connection<T> {
             Message.send(message, outstr);
             outstr.flush();
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not write message to '%s'.", remoteAddress), e);
+            throw new MessageIOException(String.format("Could not write message to '%s'.", remoteAddress), e);
         }
     }
 
