@@ -35,7 +35,7 @@
         </para>
 
         <para>The plugin can also build a distribution for your application. The distribution will package up the runtime dependencies of the application
-            along with some OS specific start scripts. You can run <userinput>gradle install</userinput> to create an image of the application in
+            along with some OS specific start scripts. You can run <userinput>gradle installApp</userinput> to create an image of the application in
             <filename>build/install/<replaceable>projectName</replaceable></filename>. You can run <userinput>gradle distZip</userinput> to create a
             ZIP containing the distribution.
         </para>
@@ -76,7 +76,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>install</literal>
+                    <literal>installApp</literal>
                 </td>
                 <td>
                     <literal>jar</literal>, <literal>startScripts</literal>
