@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.Action;
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectEvent;
 
-public interface IncomingConnector<T> {
-    /**
-     * Allocates a new incoming endpoint.
-     *
-     * @param action the action to execute on incoming connection. The supplied action is not required to be thread-safe.
-     * @return the address of the endpoint which the connector is listening on.
-     */
-    Address accept(Action<ConnectEvent<Connection<T>>> action);
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
+public interface MessageSerializer<T> {
+    T read(DataInputStream inputStream, Address localAddress, Address remoteAddress) throws Exception;
+
+    void write(T message, DataOutputStream outputStream) throws Exception;
 }

@@ -26,10 +26,7 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
-import org.gradle.messaging.remote.internal.ConnectException;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.TcpIncomingConnector;
-import org.gradle.messaging.remote.internal.TcpOutgoingConnector;
+import org.gradle.messaging.remote.internal.*;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Jvm;
@@ -62,7 +59,7 @@ public class DaemonConnector {
             return null;
         }
         try {
-            return new TcpOutgoingConnector(getClass().getClassLoader()).connect(address);
+            return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(address);
         } catch (ConnectException e) {
             // Ignore
             return null;
@@ -146,7 +143,7 @@ public class DaemonConnector {
      */
     void accept(final IncomingConnectionHandler handler) {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
-        TcpIncomingConnector incomingConnector = new TcpIncomingConnector(executorFactory, getClass().getClassLoader());
+        TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
         final CompletionHandler finished = new CompletionHandler();
 
         LOGGER.lifecycle("Awaiting requests.");

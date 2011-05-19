@@ -19,10 +19,10 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.messaging.remote.Address;
 import org.gradle.util.UncheckedException;
 
-public class HandshakeOutgoingConnector implements OutgoingConnector {
-    private final OutgoingConnector connector;
+public class HandshakeOutgoingConnector implements OutgoingConnector<Message> {
+    private final OutgoingConnector<Message> connector;
 
-    public HandshakeOutgoingConnector(OutgoingConnector connector) {
+    public HandshakeOutgoingConnector(OutgoingConnector<Message> connector) {
         this.connector = connector;
     }
 

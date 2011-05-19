@@ -23,7 +23,7 @@ import org.gradle.messaging.remote.Address
 
 class HandshakeOutgoingConnectorTest extends Specification {
     private final Address targetAddress = Mock()
-    private final OutgoingConnector target = Mock()
+    private final OutgoingConnector<Message> target = Mock()
     private final Connection<Message> connection = Mock()
     private final HandshakeOutgoingConnector connector = new HandshakeOutgoingConnector(target)
 

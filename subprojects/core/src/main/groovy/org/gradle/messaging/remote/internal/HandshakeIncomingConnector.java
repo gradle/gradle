@@ -24,15 +24,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-public class HandshakeIncomingConnector implements IncomingConnector {
-    private final IncomingConnector connector;
+public class HandshakeIncomingConnector implements IncomingConnector<Object> {
+    private final IncomingConnector<Object> connector;
     private final Executor executor;
     private final Object lock = new Object();
     private Address localAddress;
     private long nextId;
     private final Map<Address, Action<ConnectEvent<Connection<Object>>>> pendingActions = new HashMap<Address, Action<ConnectEvent<Connection<Object>>>>();
 
-    public HandshakeIncomingConnector(IncomingConnector connector, Executor executor) {
+    public HandshakeIncomingConnector(IncomingConnector<Object> connector, Executor executor) {
         this.connector = connector;
         this.executor = executor;
     }

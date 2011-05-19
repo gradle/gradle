@@ -35,21 +35,21 @@ import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
+public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
     private final StoppableExecutor executor;
-    private final ClassLoader classLoader;
+    private final MessageSerializer<T> serializer;
     private final List<InetAddress> localAddresses;
     private final List<ServerSocketChannel> serverSockets = new CopyOnWriteArrayList<ServerSocketChannel>();
 
-    public TcpIncomingConnector(ExecutorFactory executorFactory, ClassLoader classLoader) {
+    public TcpIncomingConnector(ExecutorFactory executorFactory, MessageSerializer<T> serializer) {
+        this.serializer = serializer;
         this.executor = executorFactory.create("Incoming TCP Connector");
-        this.classLoader = classLoader;
 
         localAddresses = TcpOutgoingConnector.findLocalAddresses();
     }
 
-    public Address accept(Action<ConnectEvent<Connection<Object>>> action) {
+    public Address accept(Action<ConnectEvent<Connection<T>>> action) {
         ServerSocketChannel serverSocket;
         Address localAddress;
         try {
@@ -62,7 +62,7 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
             throw UncheckedException.asUncheckedException(e);
         }
 
-        executor.execute(new Receiver(serverSocket, localAddress, action));
+        executor.execute(new Receiver(serverSocket, action));
         return localAddress;
     }
 
@@ -77,12 +77,10 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
 
     private class Receiver implements Runnable {
         private final ServerSocketChannel serverSocket;
-        private final Address localAddress;
-        private final Action<ConnectEvent<Connection<Object>>> action;
+        private final Action<ConnectEvent<Connection<T>>> action;
 
-        public Receiver(ServerSocketChannel serverSocket, Address localAddress, Action<ConnectEvent<Connection<Object>>> action) {
+        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action) {
             this.serverSocket = serverSocket;
-            this.localAddress = localAddress;
             this.action = action;
         }
 
@@ -97,9 +95,13 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
                             socket.close();
                             continue;
                         }
-                        Address remoteAddress = new SocketInetAddress(remoteSocketAddress.getAddress(), remoteSocketAddress.getPort());
-                        LOGGER.debug("Accepted connection from {}.", remoteAddress);
-                        action.execute(new ConnectEvent<Connection<Object>>(new SocketConnection<Object>(socket, localAddress, remoteAddress, classLoader), localAddress, remoteAddress));
+
+                        SocketConnection<T> connection = new SocketConnection<T>(socket, serializer);
+                        Address localAddress = connection.getLocalAddress();
+                        Address remoteAddress = connection.getRemoteAddress();
+
+                        LOGGER.debug("Accepted connection from {} to {}.", remoteAddress, localAddress);
+                        action.execute(new ConnectEvent<Connection<T>>(connection, localAddress, remoteAddress));
                     }
                 } catch (ClosedChannelException e) {
                     // Ignore

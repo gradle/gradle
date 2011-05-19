@@ -35,7 +35,7 @@ public class TcpMessagingServer implements MessagingServer {
 
     public TcpMessagingServer(ClassLoader messageClassLoader) {
         executorFactory = new DefaultExecutorFactory();
-        incomingConnector = new TcpIncomingConnector(executorFactory, messageClassLoader);
+        incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(messageClassLoader));
         connector = new DefaultMultiChannelConnector(new NoOpOutgoingConnector(), incomingConnector, executorFactory);
         server = new DefaultMessagingServer(connector, messageClassLoader);
     }
@@ -49,7 +49,7 @@ public class TcpMessagingServer implements MessagingServer {
         new CompositeStoppable(server, connector, incomingConnector, executorFactory).stop();
     }
 
-    private static class NoOpOutgoingConnector implements OutgoingConnector {
+    private static class NoOpOutgoingConnector implements OutgoingConnector<Message> {
         public Connection<Message> connect(Address destinationAddress) {
             throw new UnsupportedOperationException();
         }

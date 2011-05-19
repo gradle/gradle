@@ -34,7 +34,7 @@ public class TcpMessagingClient implements MessagingClient {
 
     public TcpMessagingClient(ClassLoader messagingClassLoader, Address serverAddress) {
         executorFactory = new DefaultExecutorFactory();
-        connector = new DefaultMultiChannelConnector(new TcpOutgoingConnector(messagingClassLoader), new NoOpIncomingConnector(), executorFactory);
+        connector = new DefaultMultiChannelConnector(new TcpOutgoingConnector<Message>(new DefaultMessageSerializer<Message>(messagingClassLoader)), new NoOpIncomingConnector(), executorFactory);
         client = new DefaultMessagingClient(connector, messagingClassLoader, serverAddress);
     }
 
@@ -46,7 +46,7 @@ public class TcpMessagingClient implements MessagingClient {
         new CompositeStoppable(client, connector, executorFactory).stop();
     }
 
-    private static class NoOpIncomingConnector implements IncomingConnector {
+    private static class NoOpIncomingConnector implements IncomingConnector<Object> {
         public Address accept(Action<ConnectEvent<Connection<Object>>> action) {
             throw new UnsupportedOperationException();
         }

@@ -19,9 +19,11 @@ import org.gradle.api.Action
 import org.gradle.util.ConcurrentSpecification
 
 class TcpConnectorTest extends ConcurrentSpecification {
+    final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
+    final def outgoingConnector = new TcpOutgoingConnector<String>(serializer)
+    final def incomingConnector = new TcpIncomingConnector<String>(executorFactory, serializer)
+
     def "client can connect to server"() {
-        def outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
-        def incomingConnector = new TcpIncomingConnector(executorFactory, getClass().classLoader)
         Action action = Mock()
 
         when:
@@ -36,8 +38,6 @@ class TcpConnectorTest extends ConcurrentSpecification {
     }
 
     def "server executes action when incoming connection received"() {
-        def outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
-        def incomingConnector = new TcpIncomingConnector(executorFactory, getClass().classLoader)
         def connectionReceived = startsAsyncAction()
         Action action = Mock()
 
@@ -55,7 +55,6 @@ class TcpConnectorTest extends ConcurrentSpecification {
     }
 
     def "client throws exception when cannot connect to server"() {
-        def outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
         def address = new SocketInetAddress(InetAddress.getByName("localhost"), 12345)
 
         when:

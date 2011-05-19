@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,21 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.remote.Address;
 
-public interface OutgoingConnector<T> {
-    /**
-     * Creates a connection to the given address.
-     *
-     * @throws ConnectException when there is nothing listening on the remote address
-     */
-    Connection<T> connect(Address destinationAddress) throws ConnectException;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
+public class DefaultMessageSerializer<T> implements MessageSerializer<T> {
+    private final ClassLoader classLoader;
+
+    public DefaultMessageSerializer(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
+    public T read(DataInputStream inputStream, Address localAddress, Address remoteAddress) throws Exception {
+        return (T) Message.receive(inputStream, classLoader);
+    }
+
+    public void write(T message, DataOutputStream outputStream) throws Exception {
+        Message.send(message, outputStream);
+    }
 }

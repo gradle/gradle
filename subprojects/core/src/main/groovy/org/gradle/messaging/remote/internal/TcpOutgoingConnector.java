@@ -21,21 +21,24 @@ import org.gradle.messaging.remote.Address;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-public class TcpOutgoingConnector implements OutgoingConnector {
+public class TcpOutgoingConnector<T> implements OutgoingConnector<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
-    private ClassLoader classLoader;
+    private final MessageSerializer<T> serializer;
 
-    public TcpOutgoingConnector(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+    public TcpOutgoingConnector(MessageSerializer<T> serializer) {
+        this.serializer = serializer;
     }
 
-    public <T> Connection<T> connect(Address destinationAddress) {
+    public Connection<T> connect(Address destinationAddress) {
         if (!(destinationAddress instanceof SocketInetAddress)) {
             throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
@@ -59,8 +62,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                     continue;
                 }
                 LOGGER.debug("Connected to address {}.", address);
-                URI localAddress = new URI(String.format("tcp://localhost:%d", socketChannel.socket().getLocalPort()));
-                return new SocketConnection<T>(socketChannel, localAddress, destinationAddress, classLoader);
+                return new SocketConnection<T>(socketChannel, serializer);
             }
             throw lastFailure;
         } catch (java.net.ConnectException e) {
