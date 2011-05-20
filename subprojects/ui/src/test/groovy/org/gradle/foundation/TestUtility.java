@@ -268,7 +268,7 @@ public class TestUtility {
          * @param file the file in question
          * @return true to overwrite it, false not to.
          */
-        public boolean confirmOverwritingExisingFile(File file) {
+        public boolean confirmOverwritingExistingFile(File file) {
             return confirmOverwrite;
         }
 

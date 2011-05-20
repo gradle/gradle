@@ -22,6 +22,7 @@ import org.gradle.gradleplugin.foundation.filters.ProjectAndTaskFilter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -86,7 +87,8 @@ public class TaskTreePopulationVisitor {
        @author mhunsicker
     */
 
-    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor, P rootProjectObject) {
+    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor,
+                                                   P rootProjectObject) {
         visitProjectAndTasks(projects, visitor, new AllowAllProjectAndTaskFilter(), rootProjectObject);
     }
 
@@ -102,17 +104,22 @@ public class TaskTreePopulationVisitor {
        @author mhunsicker
     */
 
-    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor, ProjectAndTaskFilter filter, P rootProjectObject) {
-        List<P> userProjectObjects = visitProjects(visitor, filter, projects, rootProjectObject);
+    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor,
+                                                   ProjectAndTaskFilter filter, P rootProjectObject) {
+        List<P> userProjectObjects = visitProjects(visitor, filter, projects, rootProjectObject, new AlphabeticalProjectNameComparator(), new AlphabeticalTaskNameComparator());
 
         //notify the visitation of the root projects. There are no tasks for this one, but there are projects.
         visitor.completedVisitingProject(rootProjectObject, userProjectObjects, Collections.EMPTY_LIST);
     }
 
-    private static <P, T> List<P> visitProjects(Visitor<P, T> visitor, ProjectAndTaskFilter filter, List<ProjectView> projects, P parentProjectObject) {
+    private static <P, T> List<P> visitProjects(Visitor<P, T> visitor, ProjectAndTaskFilter filter,
+                                                List<ProjectView> sourceProjects, P parentProjectObject, Comparator<ProjectView> projectSorter, Comparator<TaskView> taskSorter) {
         List<P> projectObjects = new ArrayList<P>();
 
-        Iterator<ProjectView> iterator = projects.iterator();
+        sourceProjects = new ArrayList<ProjectView>(sourceProjects);  //make a copy because we're going to sort them.
+        Collections.sort(sourceProjects, projectSorter);
+
+        Iterator<ProjectView> iterator = sourceProjects.iterator();
         int index = 0;
         while (iterator.hasNext()) {
             ProjectView project = iterator.next();
@@ -122,10 +129,10 @@ public class TaskTreePopulationVisitor {
                 projectObjects.add(userProjectObject);
 
                 //visit sub projects
-                List<P> subProjectObjects = visitProjects(visitor, filter, project.getSubProjects(), userProjectObject);
+                List<P> subProjectObjects = visitProjects(visitor, filter, project.getSubProjects(), userProjectObject, projectSorter, taskSorter);
 
                 //visit tasks. Notice that we pass in the number of subprojects as a starting index. This is so they'll come afterwards.
-                List<T> taskObjects = visitTasks(visitor, filter, project, subProjectObjects.size(), userProjectObject);
+                List<T> taskObjects = visitTasks(visitor, filter, project, subProjectObjects.size(), userProjectObject, taskSorter);
 
                 visitor.completedVisitingProject(userProjectObject, subProjectObjects, taskObjects);
             }
@@ -141,13 +148,16 @@ public class TaskTreePopulationVisitor {
        @author mhunsicker
     */
 
-    private static <P, T> List<T> visitTasks(Visitor<P, T> visitor, ProjectAndTaskFilter filter, ProjectView project, int startingIndex, P userProjectObject) {
+    private static <P, T> List<T> visitTasks(Visitor<P, T> visitor, ProjectAndTaskFilter filter, ProjectView project,
+                                             int startingIndex, P userProjectObject, Comparator<TaskView> taskSorter) {
         List<T> taskObjects = new ArrayList<T>();
-        Iterator<TaskView> iterator = project.getTasks().iterator();
+        List<TaskView> tasks = new ArrayList<TaskView>(project.getTasks()); //make a copy because we're going to sort them
+        Collections.sort(tasks, taskSorter);
+
+        Iterator<TaskView> iterator = tasks.iterator();
         int index = startingIndex;
         while (iterator.hasNext()) {
             TaskView task = iterator.next();
-
             if (filter.doesAllowTask(task)) {
                 T taskObject = visitor.visitTask(task, index, project, userProjectObject);
                 taskObjects.add(taskObject);
@@ -156,5 +166,23 @@ public class TaskTreePopulationVisitor {
         }
 
         return taskObjects;
+    }
+
+    /**
+     * This comparator sorts project names alphabetically ignoring case.
+     */
+    public static class AlphabeticalProjectNameComparator implements Comparator<ProjectView> {
+        public int compare(ProjectView o1, ProjectView o2) {
+            return o1.getName().compareToIgnoreCase(o2.getName());
+        }
+    }
+
+    /**
+     * This comparator sorts task names alphabetically ignoring case.
+     */
+    public static class AlphabeticalTaskNameComparator implements Comparator<TaskView> {
+        public int compare(TaskView o1, TaskView o2) {
+            return o1.getName().compareToIgnoreCase(o2.getName());
+        }
     }
 }

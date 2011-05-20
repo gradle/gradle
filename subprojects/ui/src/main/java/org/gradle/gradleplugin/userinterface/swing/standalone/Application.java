@@ -259,13 +259,9 @@ public class Application implements AlternateUIInteraction {
     }
 
     /**
-     * <!===== getFileNameExtension ===========================================> Returns the file extension preserving its case.
-     *
-     * <!      Name       Description>
-     *
+     * Returns the file extension preserving its case.
      * @param fileName the file name
-     * @return its extension.
-     * @author mhunsicker <!=======================================================================>
+     * @return the extension.
      */
     public static String getFileNameExtension(String fileName) {
         String result = fileName;
@@ -358,7 +354,7 @@ public class Application implements AlternateUIInteraction {
          * @param file the file in question
          * @return true to overwrite it, false not to.
          */
-        public boolean confirmOverwritingExisingFile(File file) {
+        public boolean confirmOverwritingExistingFile(File file) {
             return true;   //It's most likely going to exist. Always overwrite it.
         }
 

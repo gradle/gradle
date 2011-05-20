@@ -394,20 +394,19 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
      * Call this to prompt the user for a task to add.
      */
     private void addTask() {
-        favoritesEditor.addFavorite(new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Add Favorite", true));
+        favoritesEditor.addFavorite(new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Add Favorite", SwingEditFavoriteInteraction.SynchronizeType.OnlyIfAlreadySynchronized));
     }
 
     private void editTask() {
         FavoriteTask selectedFavoriteTask = getFirstSelectedFavoriteTask();
         //if the user has kept these two in synch, we'll continue to keep them in synch.
-        boolean synchronizeDisplayNameWithCommand = selectedFavoriteTask.getDisplayName().equals(selectedFavoriteTask.getFullCommandLine());
-        favoritesEditor.editFavorite(selectedFavoriteTask, new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Edit Favorite", synchronizeDisplayNameWithCommand));
+        favoritesEditor.editFavorite(selectedFavoriteTask, new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Edit Favorite", SwingEditFavoriteInteraction.SynchronizeType.OnlyIfAlreadySynchronized));
     }
 
     /**
      * This duplicates all the selected tasks
      */
     private void duplicateTasks() {
-        favoritesEditor.duplicateFavorites(getSelectedFavoriteTasks());
+        favoritesEditor.duplicateFavorites(getSelectedFavoriteTasks(), new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Duplicate Favorite", SwingEditFavoriteInteraction.SynchronizeType.OnlyIfAlreadySynchronized));
     }
 }

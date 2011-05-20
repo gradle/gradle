@@ -18,19 +18,41 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
+import org.gradle.foundation.output.FileLink;
 import org.gradle.foundation.output.FileLinkDefinitionLord;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
+import org.gradle.gradleplugin.foundation.favorites.FavoriteTask;
+import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
+import org.gradle.gradleplugin.userinterface.swing.common.SearchPanel;
+import org.gradle.gradleplugin.userinterface.swing.common.TextPaneSearchInteraction;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JTextPane;
+import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.JButton;
+import javax.swing.AbstractAction;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
+import java.awt.event.ActionEvent;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.io.File;
 
 /**
  * This is a panel that displays the results of executing a gradle command. It shows gradle's output as well as progress.
@@ -39,6 +61,7 @@ import java.util.Calendar;
  */
 public class OutputPanel extends JPanel implements ExecuteGradleCommandServerProtocol.ExecutionInteraction {
 
+    private GradlePluginLord gradlePluginLord;
     private OutputPanelParent parent;
     private AlternateUIInteraction alternateUIInteraction;
 
@@ -53,16 +76,27 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     private JLabel statusLabel;
 
     private JButton executeAgainButton;
+    private JButton stopButton;
+    private JButton findButton;
+    private JToggleButton pinButton;
+    private JButton addToFavoritesButton;
+
+    private JPanel linkNavigationPanel;
 
     private JLabel forceShowOutputButtonLabel;   //a label that acts like a button
 
+    private SearchPanel searchPanel;
+
     private boolean isBusy;     //is this actively showing output?
-    private boolean isPending;  //is this waitin got show output?
+    private boolean isPending;  //is this waiting to show output?
     private boolean isPinned;   //keeps this panel open and disallows it from being re-used.
     private boolean showProgress = true;
     private boolean onlyShowOutputOnErrors;
+    private boolean wasStopped;   //whether or not execution has been stopped by the user
 
     private Request request;
+    private JButton nextLinkButton;
+    private JButton previousLinkButton;
 
     public interface OutputPanelParent {
 
@@ -75,7 +109,8 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         public FileLinkDefinitionLord getFileLinkDefinitionLord();
     }
 
-    public OutputPanel(OutputPanelParent parent, AlternateUIInteraction alternateUIInteraction) {
+    public OutputPanel(GradlePluginLord gradlePluginLord, OutputPanelParent parent, AlternateUIInteraction alternateUIInteraction) {
+        this.gradlePluginLord = gradlePluginLord;
         this.parent = parent;
         this.alternateUIInteraction = alternateUIInteraction;
     }
@@ -98,6 +133,8 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         } else {
             setOnlyShowOutputOnErrors(onlyShowOutputOnErrors);
         }
+
+        enableAddToFavoritesAppropriately();
 
         //set this to indeterminate until we figure out how many tasks to execute.
         progressBar.setIndeterminate(true);
@@ -123,6 +160,7 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
 
     public void setPinned(boolean pinned) {
         isPinned = pinned;
+        pinButton.setSelected(isPinned);
     }
 
     public boolean isBusy() {
@@ -153,8 +191,17 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     private void setupUI() {
         setLayout(new BorderLayout());
 
-        add(createInfoPanel(), BorderLayout.NORTH);
-        add(createGradleOutputPanel(), BorderLayout.CENTER);
+        add(createSideOptionsPanel(), BorderLayout.WEST);
+
+        //why am I adding this center panel? Its so I can make the WEST side always stay in place. NORTH takes presedent over WEST normally.
+        //and the NORTH panel here changes it height (when the progress bar comes and goes). This made the buttons along the WEST layout move
+        //and was very jarring if you were about to click one. Now the buttons stay in place.
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        add(centerPanel, BorderLayout.CENTER);
+
+        centerPanel.add(createGradleOutputPanel(), BorderLayout.CENTER);
+        centerPanel.add(createInfoPanel(), BorderLayout.NORTH);
+        centerPanel.add(createSearchPanel(), BorderLayout.SOUTH);
     }
 
     private Component createGradleOutputPanel() {
@@ -200,12 +247,6 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         statusPanel = new JPanel();
         statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.X_AXIS));
         statusLabel = new JLabel();
-        executeAgainButton = Utility.createButton(OutputPanel.class, "/org/gradle/gradleplugin/userinterface/swing/generic/tabs/execute.png", "Execute Again", new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                parent.executeAgain(request, OutputPanel.this);
-            }
-        });
-        executeAgainButton.setVisible(false);
 
         //this button is only shown when the output is hidden
         forceShowOutputButtonLabel = new JLabel("Show Output");
@@ -223,9 +264,6 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
                 forceShowOutputButtonLabel.setForeground(UIManager.getColor("Label.foreground"));
             }
         });
-
-        statusPanel.add(executeAgainButton);
-        statusPanel.add(Box.createHorizontalStrut(2));
         statusPanel.add(statusLabel);
         statusPanel.add(Box.createHorizontalGlue());
         statusPanel.add(forceShowOutputButtonLabel);
@@ -235,14 +273,159 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     }
 
     /**
-     * Call this if you're going to reuse this. it resets its output.
+     * This creates a panel that has several options such as execute again, stop, cancel, go to next link, etc..
+     */
+    private Component createSideOptionsPanel() {
+        executeAgainButton = Utility.createButton(OutputPanel.class, "/org/gradle/gradleplugin/userinterface/swing/generic/tabs/execute.png", "Execute again", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                parent.executeAgain(request, OutputPanel.this);
+            }
+        });
+
+        executeAgainButton.setEnabled(false);
+
+        stopButton = Utility.createButton(OutputPanel.class, "/org/gradle/gradleplugin/userinterface/swing/generic/stop.png", "Stop executing", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                stop();
+            }
+        });
+        stopButton.setEnabled(true);
+
+        findButton = Utility.createButton(OutputPanel.class, "/org/gradle/gradleplugin/userinterface/swing/generic/find.png", "Find in output", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                searchPanel.show();
+            }
+        });
+
+        pinButton = Utility.createToggleButton(OutputPanel.class, "/org/gradle/gradleplugin/userinterface/swing/generic/pin.png", "Pin this output tab", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                setPinned(!isPinned);
+            }
+        });
+
+        addToFavoritesButton = Utility.createButton(OutputPanel.class, "/org/gradle/gradleplugin/userinterface/swing/generic/add-favorite.png", "Add to favorites", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                addToFavorites();
+            }
+        });
+
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        panel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2)); //not only does this make it look better, it's really need so the pin toggle shows up clearly.
+
+        panel.add(executeAgainButton);
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(stopButton);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(pinButton);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(findButton);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(createLinkNavigationOptions());
+        //the navigation options create a vertical strut and is only shown if the options are present, so we don't need to add one here.
+        panel.add(addToFavoritesButton);
+
+        panel.add(Box.createVerticalGlue());
+
+        return panel;
+    }
+
+    /**
+     * This creates a panel that has options for going to the next and previous link. This may be entirely hidden if the user doesn't have the ability to open file links.
+     */
+    private Component createLinkNavigationOptions() {
+
+        linkNavigationPanel = new JPanel();
+        linkNavigationPanel.setLayout(new BoxLayout(linkNavigationPanel, BoxLayout.Y_AXIS));
+
+        nextLinkButton = Utility.createButton(getClass(), "/org/gradle/gradleplugin/userinterface/swing/generic/next-link.png", "Go to the next link", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                goToNextLink();
+            }
+        });
+
+        previousLinkButton = Utility.createButton(getClass(), "/org/gradle/gradleplugin/userinterface/swing/generic/previous-link.png", "Go to the previous link", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                goToPreviousLink();
+            }
+        });
+
+        linkNavigationPanel.add(previousLinkButton);
+        linkNavigationPanel.add(Box.createVerticalStrut(5));
+        linkNavigationPanel.add(nextLinkButton);
+        linkNavigationPanel.add(Box.createVerticalStrut(10));
+
+        if (!alternateUIInteraction.doesSupportEditingOpeningFiles()) {
+            linkNavigationPanel.setVisible(false); //If we don't support it, hide this panel. Its just easier to create the above controls and know they're always present and hide them than constantly check for nulls.
+        }
+
+        return linkNavigationPanel;
+    }
+
+    private Component createSearchPanel() {
+        StyleContext styleContent = StyleContext.getDefaultStyleContext();
+
+        AttributeSet highlightStyle = gradleOutputTextPane.getDefaultStyle().copyAttributes();
+        highlightStyle = styleContent.addAttribute(highlightStyle, StyleConstants.Foreground, Color.white);
+        highlightStyle = styleContent.addAttribute(highlightStyle, StyleConstants.Background, Color.orange);
+        highlightStyle = styleContent.addAttribute(highlightStyle, StyleConstants.Underline, true);
+
+        AttributeSet emphasizedHighlightStyle = highlightStyle.copyAttributes();
+        emphasizedHighlightStyle = styleContent.addAttribute(emphasizedHighlightStyle, StyleConstants.Foreground, Color.black);
+        emphasizedHighlightStyle = styleContent.addAttribute(emphasizedHighlightStyle, StyleConstants.Background, Color.yellow);
+
+        searchPanel = new SearchPanel(new OutputPanelSearchInteraction(gradleOutputTextPane.getTextComponent(), gradleOutputTextPane.getDefaultStyle(), highlightStyle, emphasizedHighlightStyle));
+        searchPanel.hide();
+
+        return searchPanel.getComponent();
+    }
+
+    /**
+     * Special implementation just so can control how results are repainted. Specifically, so we can erase search highlights.
+     */
+    private class OutputPanelSearchInteraction extends TextPaneSearchInteraction {
+        private OutputPanelSearchInteraction(JTextPane textComponentToSearch, AttributeSet defaultStyle, AttributeSet highlightStyle, AttributeSet emphasizedHighlightStyle) {
+            super(textComponentToSearch, defaultStyle, highlightStyle, emphasizedHighlightStyle);
+        }
+
+        /**
+         * We override this so we can handle our more-complicated case. The base class will remove the highlighting, and in doing so, will remove ALL highlighting. We want to keep the highlighting we've
+         * specially added.
+         */
+        @Override
+        public void removeResultHighlights() {
+            gradleOutputTextPane.resetHighlights();
+        }
+    }
+
+    private void goToNextLink() {
+        FileLink fileLink = gradleOutputTextPane.getNextFileLink();
+        gradleOutputTextPane.selectFileLink(fileLink);
+    }
+
+    private void goToPreviousLink() {
+        FileLink fileLink = gradleOutputTextPane.getPreviousFileLink();
+        gradleOutputTextPane.selectFileLink(fileLink);
+    }
+
+    /**
+     * Call this before you use this. It resets its output as well as enabling buttons appropriately.
      */
     public void reset() {
-        executeAgainButton.setVisible(false);
+        executeAgainButton.setEnabled(false);
+        stopButton.setEnabled(true);
         statusLabel.setText("");
         statusLabel.setForeground(UIManager.getColor("Label.foreground"));
         gradleOutputTextPane.setText("");
         progressLabel.setText("");
+        wasStopped = false;
+
+        searchPanel.hide();
+
+        previousLinkButton.setEnabled(false);
+        nextLinkButton.setEnabled(false);
     }
 
     /**
@@ -254,6 +437,7 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 gradleOutputTextPane.appendText(text);
+                updateLinkNavigationOptions();
             }
         });
     }
@@ -340,21 +524,31 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
                     statusLabel.setText("Completed successfully at " + formattedTime);
                     appendGradleOutput("\nCompleted Successfully");
                 } else {
-                    statusLabel.setText("Completed with errors at " + formattedTime);
+                    if (wasStopped) {
+                        statusLabel.setText("User stopped execution at " + formattedTime);
+                    } else {
+                        statusLabel.setText("Completed with errors at " + formattedTime);
+                    }
+
                     statusLabel.setForeground(Color.red.darker());
 
                     //since errors occurred, show the output. If onlyShowOutputOnErrors is false, this textPanel will already be visible.
                     gradleOutputTextPanel.setVisible(true);
                 }
 
-                executeAgainButton.setVisible(true);
+                executeAgainButton.setEnabled(true);
+                stopButton.setEnabled(false);
 
                 appendThrowable(throwable);
 
                 //lastly, if the text output is not visible, make the 'show output' button visible
                 forceShowOutputButtonLabel.setVisible(!gradleOutputTextPanel.isVisible());
+                updateLinkNavigationOptions();
+
+                searchPanel.performSearchAgain(); //this will update our results if the user was searching during the execution
 
                 parent.reportExecuteFinished(request, wasSuccessful);
+
             }
         });
     }
@@ -431,11 +625,9 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     }
 
     public boolean close() {
-        if (request != null)   //if we have a request, we can only close if it allows us to.
-        {
-            if (!request.cancel()) {
-                return false;
-            }
+
+        if (!stop()) {
+            return false;
         }
 
         parent.removeOutputPanel(this);
@@ -443,6 +635,25 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         setPinned(false);  //unpin it when it is removed
         return true;
     }
+
+    /**
+     * This stops the currently executing task if any exists.
+     *
+     * @return true if the request stopped, false if not.
+     */
+    public boolean stop() {
+        if (request != null)   //if we have a request, we can only close if it allows us to.
+        {
+            if (!request.cancel()) {
+                return false;
+            }
+        }
+
+        wasStopped = true;
+
+        return true;
+    }
+
 
     /**
      * Sets the font for this component.
@@ -458,5 +669,57 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         {
             gradleOutputTextPane.setFont(font);
         }
+    }
+
+    /**
+     * Shows or hides the link navigation options appropriately
+     */
+    private void updateLinkNavigationOptions() {
+        if (gradleOutputTextPane.hasClickableLinks()) {
+
+            nextLinkButton.setEnabled(true);
+            previousLinkButton.setEnabled(true);
+        } else {
+            nextLinkButton.setEnabled(false);
+            previousLinkButton.setEnabled(false);
+        }
+    }
+
+    /**
+     * Adds the current request to the favorites and allows the user to edit it.
+     */
+    private void addToFavorites() {
+        if (request == null) {
+            return;
+        }
+
+        String fullCommandLine = request.getFullCommandLine();
+        String displayName = request.getDisplayName();
+
+        FavoriteTask favoriteTask = gradlePluginLord.getFavoritesEditor().addFavorite(fullCommandLine, displayName, false);
+        if (favoriteTask != null) {
+            gradlePluginLord.getFavoritesEditor().editFavorite(favoriteTask, new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(this), "Edit Favorite", SwingEditFavoriteInteraction.SynchronizeType.OnlyIfAlreadySynchronized));
+            enableAddToFavoritesAppropriately();
+        }
+    }
+
+    /**
+     * This shows or hides the 'add to favorites' button based on the current request.
+     */
+    private void enableAddToFavoritesAppropriately() {
+        boolean isVisible = true;
+        if (request == null) {
+            isVisible = false;
+        } else {
+            //adding 'refresh' to favorites no sense. Hide this button in that case.
+            if (request.getType() == RefreshTaskListRequest.TYPE) {
+                isVisible = false;
+            } else if (gradlePluginLord.getFavoritesEditor().getFavorite(request.getFullCommandLine()) != null) //is it a command that's already a favorite?
+            {
+                isVisible = false;
+            }
+        }
+
+        addToFavoritesButton.setVisible(isVisible);
     }
 }

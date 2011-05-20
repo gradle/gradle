@@ -34,6 +34,7 @@ import org.junit.Test;
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -126,7 +127,7 @@ public class FavoritesIntegrationTest {
 
         Assert.assertTrue(originalEditor.getFavoriteTasks().isEmpty());
 
-        //add two tasks
+        //add some tasks
         FavoriteTask favoriteTask1 = originalEditor.addFavorite(mySubProject1Comple, true);
         FavoriteTask favoriteTask2 = originalEditor.addFavorite(mySubSubProjectLib, false);
 
@@ -164,7 +165,7 @@ public class FavoritesIntegrationTest {
     }
 
     /**
-     * This verifies that the serialization mechananism corrects the extension so that it is correct. We'll save a file with the wrong extension. The save mechanism should save it with the correct
+     * This verifies that the serialization mechanism corrects the extension so that it is correct. We'll save a file with the wrong extension. The save mechanism should save it with the correct
      * extension appended to the end (leaving the wrong extension in tact, just not at the end).
      */
     @Test
@@ -245,7 +246,7 @@ public class FavoritesIntegrationTest {
     }
 
     /**
-     * This exists soley so we can track if confirmOverwritingExisingFile was called.
+     * This exists solely so we can track if confirmOverwritingExistingFile was called.
      */
     private class TestOverwriteConfirmExportInteraction extends TestUtility.TestExportInteraction {
         public boolean wasConfirmed;
@@ -270,7 +271,7 @@ public class FavoritesIntegrationTest {
          * @return true to overwrite it, false not to.
          */
         @Override
-        public boolean confirmOverwritingExisingFile(File file) {
+        public boolean confirmOverwritingExistingFile(File file) {
             wasConfirmed = true;
             return false;
         }
@@ -283,7 +284,7 @@ public class FavoritesIntegrationTest {
     public void testDuplicateSingleFavorite() {
         FavoritesEditor editor = new FavoritesEditor();
 
-        //add two tasks
+        //add some tasks
         FavoriteTask favoriteTask1 = editor.addFavorite(mySubProject1Comple, true);
         FavoriteTask favoriteTask2 = editor.addFavorite(mySubSubProjectLib, false);
         FavoriteTask favoriteTask3 = editor.addFavorite(mySubSubProjectDoc, false);
@@ -294,20 +295,20 @@ public class FavoritesIntegrationTest {
         editFavorite(editor, favoriteTask3, "name3", false);
 
         //duplicate a single task
-        FavoriteTask favoriteTask4 = editor.duplicateFavorite(favoriteTask1);
+        FavoriteTask favoriteTask4 = editor.duplicateFavorite(favoriteTask1, new TestEditFavoriteInteraction("name4", "command4"));
         Assert.assertNotNull(favoriteTask4);
-        Assert.assertEquals(favoriteTask1.getFullCommandLine(), favoriteTask4.getFullCommandLine());
-        Assert.assertEquals(favoriteTask1.getDisplayName(), favoriteTask4.getDisplayName());
+        Assert.assertEquals("command4", favoriteTask4.getFullCommandLine());
+        Assert.assertEquals("name4", favoriteTask4.getDisplayName());
         Assert.assertEquals(favoriteTask1.alwaysShowOutput(), favoriteTask4.alwaysShowOutput());
 
         //there should be 4 tasks now
         Assert.assertEquals(4, editor.getFavoriteTasks().size());
 
         //now duplicate another one
-        FavoriteTask favoriteTask5 = editor.duplicateFavorite(favoriteTask2);
+        FavoriteTask favoriteTask5 = editor.duplicateFavorite(favoriteTask2, new TestEditFavoriteInteraction("name5", "command5"));
         Assert.assertNotNull(favoriteTask5);
-        Assert.assertEquals(favoriteTask2.getFullCommandLine(), favoriteTask5.getFullCommandLine());
-        Assert.assertEquals(favoriteTask2.getDisplayName(), favoriteTask5.getDisplayName());
+        Assert.assertEquals("command5", favoriteTask5.getFullCommandLine());
+        Assert.assertEquals("name5", favoriteTask5.getDisplayName());
         Assert.assertEquals(favoriteTask2.alwaysShowOutput(), favoriteTask5.alwaysShowOutput());
 
         //there should be 5 tasks now
@@ -321,7 +322,7 @@ public class FavoritesIntegrationTest {
     public void testDuplicatingMultipleFavorites() {
         FavoritesEditor editor = new FavoritesEditor();
 
-        //add two tasks
+        //add some tasks
         FavoriteTask favoriteTask1 = editor.addFavorite(mySubProject1Comple, true);
         FavoriteTask favoriteTask2 = editor.addFavorite(mySubSubProjectLib, false);
         FavoriteTask favoriteTask3 = editor.addFavorite(mySubSubProjectDoc, false);
@@ -336,8 +337,9 @@ public class FavoritesIntegrationTest {
         tasksToCopy.add(favoriteTask1);
         tasksToCopy.add(favoriteTask2);
 
-        //now peform the duplication
-        editor.duplicateFavorites(tasksToCopy);
+        //now perform the duplication
+        editor.duplicateFavorites(tasksToCopy, new TestEditFavoriteInteraction(new NameAndCommand("newname1", "newcommand1"),
+                new NameAndCommand("newname2", "newcommand2")));
 
         //there should be 5 tasks now
         Assert.assertEquals(5, editor.getFavoriteTasks().size());
@@ -346,16 +348,100 @@ public class FavoritesIntegrationTest {
         FavoriteTask favoriteTask4 = editor.getFavoriteTasks().get(3);
 
         Assert.assertNotNull(favoriteTask4);
-        Assert.assertEquals(favoriteTask1.getFullCommandLine(), favoriteTask4.getFullCommandLine());
-        Assert.assertEquals(favoriteTask1.getDisplayName(), favoriteTask4.getDisplayName());
+        Assert.assertEquals("newcommand1", favoriteTask4.getFullCommandLine());
+        Assert.assertEquals("newname1", favoriteTask4.getDisplayName());
         Assert.assertEquals(favoriteTask1.alwaysShowOutput(), favoriteTask4.alwaysShowOutput());
 
         //the 5th one (4 from index 0) should be the same as the second one
         FavoriteTask favoriteTask5 = editor.getFavoriteTasks().get(4);
         Assert.assertNotNull(favoriteTask5);
-        Assert.assertEquals(favoriteTask2.getFullCommandLine(), favoriteTask5.getFullCommandLine());
-        Assert.assertEquals(favoriteTask2.getDisplayName(), favoriteTask5.getDisplayName());
+        Assert.assertEquals("newcommand2", favoriteTask5.getFullCommandLine());
+        Assert.assertEquals("newname2", favoriteTask5.getDisplayName());
         Assert.assertEquals(favoriteTask2.alwaysShowOutput(), favoriteTask5.alwaysShowOutput());
+    }
+
+    /**
+     * This tests duplicating multiple favorites at once, but we cancel out after duplicating one. We want to make sure that it doesn't continue to create the others. First, we'll create some, then
+     * duplicate them.
+     */
+    @Test
+    public void testDuplicatingMultipleFavoritesAndCanceling() {
+
+        FavoritesEditor editor = new FavoritesEditor();
+
+        //add some tasks
+        FavoriteTask favoriteTask1 = editor.addFavorite(mySubProject1Comple, true);
+        FavoriteTask favoriteTask2 = editor.addFavorite(mySubSubProjectLib, false);
+        FavoriteTask favoriteTask3 = editor.addFavorite(mySubSubProjectDoc, false);
+
+        //now change the display names and the alwaysShowOutput field, just so we can verify that all fields are copied.
+        editFavorite(editor, favoriteTask1, "name1", false);
+        editFavorite(editor, favoriteTask2, "name2", true);
+        editFavorite(editor, favoriteTask3, "name3", false);
+
+        //get the ones to duplicate in a list
+        List<FavoriteTask> tasksToCopy = new ArrayList<FavoriteTask>();
+        tasksToCopy.add(favoriteTask1);
+        tasksToCopy.add(favoriteTask2);
+
+        //now perform the duplication, we only pass in one NameAndCommand but we're editing 2. This makes it cancel the second one.
+        editor.duplicateFavorites(tasksToCopy, new TestEditFavoriteInteraction(new NameAndCommand("newname1", "newcommand1")));
+
+        //there should be 4 tasks now
+        Assert.assertNotSame("Failed to cancel", 5, editor.getFavoriteTasks().size()); //this just provides a better error if this fails to cancel
+        Assert.assertEquals(4, editor.getFavoriteTasks().size());
+
+        //the 4th one (3 from index 0) should be the same as the first one
+        FavoriteTask favoriteTask4 = editor.getFavoriteTasks().get(3);
+
+        Assert.assertNotNull(favoriteTask4);
+        Assert.assertEquals("newcommand1", favoriteTask4.getFullCommandLine());
+        Assert.assertEquals("newname1", favoriteTask4.getDisplayName());
+        Assert.assertEquals(favoriteTask1.alwaysShowOutput(), favoriteTask4.alwaysShowOutput());
+    }
+
+    private class TestEditFavoriteInteraction implements FavoritesEditor.EditFavoriteInteraction {
+        private List<NameAndCommand> values = new ArrayList<NameAndCommand>();
+
+        private TestEditFavoriteInteraction(NameAndCommand... values) {
+            if (values != null) {
+                this.values = new ArrayList<NameAndCommand>(Arrays.asList(values));   //making a new ArrayList because Arrays.asList makes it unmodifiable.
+            }
+        }
+
+        private TestEditFavoriteInteraction(String displayName, String fullCommandLine) {
+            values.add(new NameAndCommand(displayName, fullCommandLine));
+        }
+
+        public boolean editFavorite(FavoritesEditor.EditibleFavoriteTask favoriteTask) {
+            if (values.isEmpty()) {
+                return false;   //if we have no more choices, that simulates the user canceling
+            }
+
+            NameAndCommand nameAndCommand = values.remove(0);
+
+            favoriteTask.displayName = nameAndCommand.displayName;
+            favoriteTask.fullCommandLine = nameAndCommand.fullCommandLine;
+
+            return true;
+        }
+
+        public void reportError(String error) {
+            throw new AssertionFailedError("Unexpected error; " + error);
+        }
+    }
+
+    /**
+     * wrapper class to hold a display name and a full command line
+     */
+    private class NameAndCommand {
+        String displayName;
+        String fullCommandLine;
+
+        private NameAndCommand(String displayName, String fullCommandLine) {
+            this.displayName = displayName;
+            this.fullCommandLine = fullCommandLine;
+        }
     }
 
     /**

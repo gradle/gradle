@@ -15,20 +15,23 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
-import org.gradle.foundation.output.FileLink;
 import org.gradle.foundation.output.FileLinkDefinitionLord;
 import org.gradle.foundation.output.LiveOutputParser;
+import org.gradle.foundation.output.FileLink;
 
 import javax.swing.*;
 import javax.swing.text.*;
+
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.util.Iterator;
+import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.Iterator;
+import java.io.File;
 
 /**
  * Rich text pane meant to simplify adding text, scrolling, prevent line wrapping, and highlighting FileLinks.
@@ -46,7 +49,8 @@ public class OutputTextPane {
     private LiveOutputParser liveOutputParser;
 
     private Interaction interaction;
-    private boolean hasClickableFiles;  //determines whether or not we allow the user to click on files. We'll highlight them if we allow this.
+    private boolean allowsClickingFiles;  //determines whether or not we allow the user to click on file links. We'll highlight them if we allow this.
+    private boolean hasClickableLinks;     //whether or not any clickable links actually exist
 
     private JPopupMenu popupMenu;
 
@@ -63,9 +67,9 @@ public class OutputTextPane {
         public void fileClicked(File file, int line);
     }
 
-    public OutputTextPane(Interaction interaction, boolean hasClickableFiles, Font font, FileLinkDefinitionLord fileLinkDefinitionLord) {
+    public OutputTextPane(Interaction interaction, boolean allowsClickingFiles, Font font, FileLinkDefinitionLord fileLinkDefinitionLord) {
         this.interaction = interaction;
-        this.hasClickableFiles = hasClickableFiles;
+        this.allowsClickingFiles = allowsClickingFiles;
         this.font = font;
 
         document = new DefaultStyledDocument();
@@ -87,26 +91,41 @@ public class OutputTextPane {
         textPane.setCaret(caret);
 
         Color background = Color.white;
-        textPane.setBackground(
-                background);  //its not editable, but it looks better with a white background. (I tried using UI.Manager.getColor( "TextArea.background" ) (and others) but it was showing up as gray when using inside Idea. I think the L&F remapped some things and we want it white.
+        textPane.setBackground(background);  //its not editable, but it looks better with a white background. (I tried using UI.Manager.getColor( "TextArea.background" ) (and others) but it was showing up as gray when using inside Idea. I think the L&F remapped some things and we want it white.
         scroll.setBackground(background);    //the scroll pane was showing up as grey in the Idea plugin. Not sure why. This should fix it.
         scroll.getViewport().setBackground(background);    //this makes the non-text area of the scroll pane appear white on Windows (if you have short text).
         resetFontStyles();
 
         textPane.addMouseListener(new MouseAdapter() {
+            /**
+             {@inheritDoc}
+             */
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                handleClick(e.getButton() == MouseEvent.BUTTON3, e.getPoint());
+            }
+
             @Override
             public void mouseReleased(MouseEvent e) {
-                handleClick(e.getButton() == MouseEvent.BUTTON3, e.getPoint());
+                if (e.getButton() == MouseEvent.BUTTON3) {
+                    showPopup(e.getPoint());
+                }
+            }
+        });
+        textPane.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                handleKeyPress(e.getKeyCode());
             }
         });
         liveOutputParser = new LiveOutputParser(fileLinkDefinitionLord, true);
     }
 
     private void resetFontStyles() {
+        defaultStyle = createDefaultAttributeSet();
+
         //setup the fileStyle
         StyleContext styleContent = StyleContext.getDefaultStyleContext();
-
-        defaultStyle = createDefaultAttributeSet();
 
         //modify the default to have a blue color and an underline
         fileStyle = createDefaultAttributeSet();
@@ -126,8 +145,19 @@ public class OutputTextPane {
         return attributeSet;
     }
 
+    public AttributeSet getDefaultStyle() {
+        return defaultStyle;
+    }
+
+    /**
+     * @return the component you would use to insert this control into a container. Its actually the scroll pane.
+     */
     public JComponent asComponent() {
         return scroll;
+    }
+
+    public JTextPane getTextComponent() {
+        return textPane;
     }
 
     public String getText() {
@@ -138,13 +168,26 @@ public class OutputTextPane {
      * When a user clicks, we determine if a FileLink was clicked on and if so, notify our interaction.
      */
     private void handleClick(boolean isRightButton, Point point) {
-        if (isRightButton) {
-            showPopup(point);
-        } else {
-            if (hasClickableFiles) {
-                FileLink fileLink = getFileLinkAt(point);
-                if (fileLink != null) {
-                    interaction.fileClicked(fileLink.getFile(), fileLink.getLineNumber());
+        if (!isRightButton && allowsClickingFiles) {
+            FileLink fileLink = getFileLinkAt(point);
+            if (fileLink != null) {
+                interaction.fileClicked(fileLink.getFile(), fileLink.getLineNumber());
+            }
+        }
+    }
+
+    /**
+     * When a user hits enter we'll open any file links that they're on. This is useful if the user is going to the next/previous link and want to open the current link.
+     */
+    private void handleKeyPress(int keyCode) {
+        if (allowsClickingFiles) {
+            if (keyCode == KeyEvent.VK_ENTER) {
+                int caretLocation = textPane.getCaretPosition();
+                if (caretLocation != -1) {
+                    FileLink fileLink = liveOutputParser.getFileLink(caretLocation);
+                    if (fileLink != null) {
+                        interaction.fileClicked(fileLink.getFile(), fileLink.getLineNumber());
+                    }
                 }
             }
         }
@@ -186,6 +229,7 @@ public class OutputTextPane {
         appendText(text, false);
     }
 
+
     /**
      * This sets the full text of this control, removing existing text.
      *
@@ -219,6 +263,7 @@ public class OutputTextPane {
         try {
             if (replaceExisting)   //if we're supposed to be replacing, then do so.
             {
+                hasClickableLinks = false;
                 document.remove(0, document.getLength());
             }
 
@@ -229,7 +274,7 @@ public class OutputTextPane {
 
         //parse this text and apply the styles accordingly. Note: the LiveOutputParser only returns FileLinks for full lines. The text
         //we add may contain a FileLink, but it won't parse it until it reaches a new line.
-        if (hasClickableFiles) {
+        if (allowsClickingFiles) {
             List<FileLink> fileLinks = liveOutputParser.appendText(text);
             highlightFileLinks(fileLinks);
         }
@@ -253,7 +298,8 @@ public class OutputTextPane {
         while (iterator.hasNext()) {
             FileLink fileLink = iterator.next();
 
-            document.setCharacterAttributes(fileLink.getStartingIndex(), fileLink.getLength(), fileStyle, true);
+            document.setCharacterAttributes(fileLink.getStartingIndex(), fileLink.getLength(), fileStyle, false);
+            hasClickableLinks = true;
         }
     }
 
@@ -312,5 +358,64 @@ public class OutputTextPane {
         String text = liveOutputParser.getText();
         liveOutputParser.reset();
         appendText(text, true);
+    }
+
+    public boolean hasClickableLinks() {
+        return hasClickableLinks;
+    }
+
+    public boolean allowsClickingFiles() {
+        return allowsClickingFiles;
+    }
+
+    /**
+     * Selects and scrolls to the specified file link
+     */
+    public void selectFileLink(FileLink fileLink) {
+
+        if (fileLink == null) {
+            return;
+        }
+
+        textPane.setCaretPosition(fileLink.getStartingIndex());
+        textPane.select(fileLink.getStartingIndex(), fileLink.getEndingIndex());
+
+        try {
+            Rectangle startingRectangle = textPane.modelToView(fileLink.getStartingIndex());
+            Rectangle endDingRectangle = textPane.modelToView(fileLink.getEndingIndex());
+
+            Rectangle totalBounds = startingRectangle.union(endDingRectangle);
+
+            textPane.scrollRectToVisible(totalBounds);
+            textPane.requestFocus();   //this seems to help the selection being painted
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Returns the previous file link relative to the specified file link. If you pass in null, we'll return the last one.
+     */
+    public FileLink getPreviousFileLink() {
+        return liveOutputParser.getPreviousFileLink(textPane.getCaretPosition());
+    }
+
+    /**
+     * Returns the next file link relative to the specified file link. If you pass in null, we'll return the first one.
+     */
+    public FileLink getNextFileLink() {
+        return liveOutputParser.getNextFileLink(textPane.getCaretPosition());
+    }
+
+    /**
+     * Call this if you've changed any styles of our text and want to revert it back to the defaults.
+     */
+    public void resetHighlights() {
+        document.setCharacterAttributes(0, document.getLength(), defaultStyle, true);
+
+        if (allowsClickingFiles) {
+            List<FileLink> fileLinks = liveOutputParser.getFileLinks();
+            highlightFileLinks(fileLinks);
+        }
     }
 }
