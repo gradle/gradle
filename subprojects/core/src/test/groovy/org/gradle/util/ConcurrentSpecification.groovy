@@ -25,6 +25,7 @@ import org.gradle.messaging.concurrent.StoppableExecutor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * <p>A base class for writing specifications which exercise concurrent code.
@@ -390,13 +391,15 @@ class CompositeTestParticipant extends AbstractTestParticipant {
 
 class StoppableExecutorStub implements StoppableExecutor {
     final ConcurrentSpecification owner
+    final Set<TestThread> threads = new CopyOnWriteArraySet<TestThread>()
 
     StoppableExecutorStub(ConcurrentSpecification owner) {
         this.owner = owner
     }
 
     void stop() {
-        throw new UnsupportedOperationException()
+        def timeout = owner.shortTimeout()
+        threads.each { it.completesBefore(timeout) }
     }
 
     void stop(int timeoutValue, TimeUnit timeoutUnits) {
@@ -408,7 +411,7 @@ class StoppableExecutorStub implements StoppableExecutor {
     }
 
     void execute(Runnable runnable) {
-        owner.startThread(runnable)
+        threads.add(owner.startThread(runnable))
     }
 }
 

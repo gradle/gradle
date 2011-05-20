@@ -54,8 +54,8 @@ public class CompositeStoppable implements Stoppable {
         return this;
     }
 
-    public CompositeStoppable add(Stoppable stoppable) {
-        elements.add(stoppable);
+    public CompositeStoppable add(Stoppable... stoppable) {
+        this.elements.addAll(Arrays.asList(stoppable));
         return this;
     }
 

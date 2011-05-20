@@ -258,6 +258,7 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
             start { action.run() }
             latch.await()
         }
+        finished()
 
         then:
         1 * action.run() >> { args -> operation.done(); latch.countDown() }
@@ -274,9 +275,10 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
         operation.start {
             start { action.run() }
         }
+        finished()
 
         then:
-        1 * action.run() >> { operation.done() }
+        _ * action.run() >> { operation.done() }
         RuntimeException e = thrown()
         e.message == 'Expected action to block, but it did not.'
     }
@@ -291,6 +293,7 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
             start { action.run() }
             latch.await()
         }
+        finished()
 
         then:
         1 * action.run() >> { latch.countDown(); operation.done() }
