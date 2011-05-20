@@ -16,9 +16,12 @@
 package org.gradle.messaging.remote.internal;
 
 /**
- * <p>A protocol implementation.
+ * <p>A protocol implementation. A protocol is a stage in a bi-directional messaging pipeline. It can receive incoming and outgoing messages.
+ * In response to these messages, it can dispatch incoming and outgoing messages. It can also register callbacks to be executed later, to allow
+ * timeouts and periodic behaviour to be implemented.
  *
- * <p>All methods on protocol are called from a single thread at a time.
+ * <p>All methods on protocol are called from a single thread at a time, so implementations do not have to use any locking for their state. The method
+ * implementations should not block.
  *
  * @param <T> The message type.
  */
@@ -44,7 +47,7 @@ public interface Protocol<T> {
      * Requests that this protocol initiate its stop messages. The protocol can call {@link ProtocolContext#stopLater()} to defer stop until some
      * messages are received. In which case, it should later call {@link ProtocolContext#stopped()} to indicate it has finished.
      *
-     * If the protocol does not call stopLater(), it is assumed to have stopped.
+     * If the protocol does not call stopLater(), it is assumed to have stopped when this method returns.
      */
     void stopRequested();
 }

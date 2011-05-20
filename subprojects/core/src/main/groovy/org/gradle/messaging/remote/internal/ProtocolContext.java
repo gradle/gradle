@@ -15,16 +15,25 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * Used by {@link Protocol} implementations to send incoming and outgoing messages.
+ *
+ * @param <T> The message type.
+ */
 public interface ProtocolContext<T> {
     void dispatchOutgoing(T message);
 
     void dispatchIncoming(T message);
 
-    void loopbackLater(T message, Date when);
+    Callback callbackLater(int delay, TimeUnit delayUnits, Runnable action);
 
     void stopLater();
 
     void stopped();
+
+    interface Callback {
+        void cancel();
+    }
 }

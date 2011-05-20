@@ -21,8 +21,8 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ArrayBlockingQueue
 import org.gradle.messaging.dispatch.ReceiveFailureHandler
 import org.gradle.messaging.dispatch.DispatchFailureHandler
-import spock.lang.Ignore
 import org.gradle.messaging.dispatch.Receive
+import java.util.concurrent.TimeUnit
 
 class ProtocolStackTest extends ConcurrentSpecification {
     final Protocol<String> top = Mock()
@@ -43,6 +43,10 @@ class ProtocolStackTest extends ConcurrentSpecification {
         _ * bottom.start(!null) >> {
             bottomContext = it[0]
         }
+        _ * outgoingFailureHandler.dispatchFailed(!null, !null) >> { throw it[1] }
+        _ * incomingFailureHandler.dispatchFailed(!null, !null) >> { throw it[1] }
+        _ * receiveFailureHandler.receiveFailed(!null) >> { throw it[0] }
+
         stack = new ProtocolStack<String>(outgoing, receive, executor, receiveFailureHandler, outgoingFailureHandler, incomingFailureHandler, top, bottom)
     }
 
@@ -145,9 +149,75 @@ class ProtocolStackTest extends ConcurrentSpecification {
         1 * outgoing.dispatch("outgoing2") >> { dispatched.done() }
     }
 
-    @Ignore
-    def "loopback message is dispatched to protocol after timeout"() {
-        expect: false
+    def "protocol callback after timeout"() {
+        Runnable callback = Mock()
+        def calledBack = startsAsyncAction()
+
+        when:
+        calledBack.started {
+            stack.dispatch("message")
+        }
+
+        then:
+        1 * top.handleOutgoing("message") >> {
+            topContext.callbackLater(500, TimeUnit.MILLISECONDS, callback)
+        }
+        1 * callback.run() >> { calledBack.done() }
+    }
+
+    def "protocol callback is not called after it is cancelled"() {
+        Runnable callback = Mock()
+        def calledBack = startsAsyncAction()
+
+        when:
+        calledBack.started {
+            stack.dispatch("message")
+        }
+
+        then:
+        1 * top.handleOutgoing("message") >> {
+            topContext.callbackLater(200, TimeUnit.MILLISECONDS, callback).cancel()
+            Thread.sleep(500)
+            calledBack.done()
+        }
+        0 * callback._
+    }
+
+    def "protocol callback with long delay is not called after protocol is stopped"() {
+        Runnable callback = Mock()
+        def callbackRegistered = startsAsyncAction()
+
+        when:
+        callbackRegistered.started {
+            stack.dispatch("message")
+        }
+        receive.stop()
+        stack.stop()
+
+        then:
+        1 * top.handleOutgoing("message") >> {
+            topContext.callbackLater(5, TimeUnit.SECONDS, callback)
+            callbackRegistered.done()
+        }
+        0 * callback._
+    }
+
+    def "protocol callback with short delay is not called after protocol is stopped"() {
+        Runnable callback = Mock()
+        def stopped = waitsForAsyncActionToComplete()
+
+        when:
+        stopped.start {
+            receive.stop()
+            stack.stop()
+        }
+
+        then:
+        1 * top.stopRequested() >> {
+            topContext.callbackLater(0, TimeUnit.MILLISECONDS, callback)
+            stopped.done()
+        }
+        0 * callback._
     }
 
     def "notifies failure handler on receive failure"() {

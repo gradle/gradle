@@ -17,19 +17,21 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.dispatch.*;
+import org.gradle.util.TrueTimeProvider;
 import org.gradle.util.UncheckedException;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProtocolStack<T> implements AsyncConnection<T> {
     private final AsyncDispatch<Runnable> workQueue;
     private final AsyncDispatch<T> handlerQueue;
     private final AsyncDispatch<T> outgoingQueue;
-    private final AsyncReceive<T> receiver;
+    private final AsyncReceive<Runnable> receiver;
+    private final DelayedReceive<Runnable> callbackQueue;
     private final LinkedList<Stage> stack = new LinkedList<Stage>();
     private final LinkedList<Runnable> contextQueue = new LinkedList<Runnable>();
     private final DispatchFailureHandler<T> outgoingDispatchFailureHandler;
@@ -42,6 +44,7 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
                          Protocol<T>... protocols) {
         this.outgoingDispatchFailureHandler = outgoingDispatchFailureHandler;
         this.incomingDispatchFailureHandler = incomingDispatchFailureHandler;
+        this.callbackQueue = new DelayedReceive<Runnable>(new TrueTimeProvider());
         protocolsStopped = new CountDownLatch(protocols.length);
 
         // Setup the outgoing queues.
@@ -73,8 +76,9 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
         assert contextQueue.isEmpty();
 
         // Finally, start receiving
-        receiver = new AsyncReceive<T>(executor, new IncomingMessageDispatch());
-        receiver.receiveFrom(new FailureHandlingReceive<T>(incoming, receiveFailureHandler));
+        receiver = new AsyncReceive<Runnable>(executor, workQueue);
+        receiver.receiveFrom(callbackQueue);
+        receiver.receiveFrom(new IncomingMessageReceive(new FailureHandlingReceive<T>(incoming, receiveFailureHandler)));
     }
 
     public void receiveOn(Dispatch<? super T> handler) {
@@ -108,7 +112,8 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
         } catch (InterruptedException e) {
             throw UncheckedException.asUncheckedException(e);
         }
-        new CompositeStoppable(receiver, workQueue, handlerQueue, outgoingQueue).stop();
+        callbackQueue.clear();
+        new CompositeStoppable(callbackQueue, receiver, workQueue, handlerQueue, outgoingQueue).stop();
     }
 
     private class ExecuteRunnable implements Dispatch<Runnable> {
@@ -120,13 +125,23 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
         }
     }
 
-    private class IncomingMessageDispatch implements Dispatch<T> {
-        public void dispatch(final T message) {
-            workQueue.dispatch(new Runnable() {
+    private class IncomingMessageReceive implements Receive<Runnable> {
+        private final Receive<T> receive;
+
+        private IncomingMessageReceive(Receive<T> receive) {
+            this.receive = receive;
+        }
+
+        public Runnable receive() {
+            final T message = receive.receive();
+            if (message == null) {
+                return null;
+            }
+            return new Runnable() {
                 public void run() {
                     stack.getLast().handleIncoming(message);
                 }
-            });
+            };
         }
     }
 
@@ -202,8 +217,10 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
             });
         }
 
-        public void loopbackLater(T message, Date when) {
-            throw new UnsupportedOperationException();
+        public Callback callbackLater(int delay, TimeUnit delayUnits, Runnable action) {
+            DefaultCallback callback = new DefaultCallback(action);
+            callbackQueue.dispatchLater(callback, delay, delayUnits);
+            return callback;
         }
 
         public void stopped() {
@@ -223,6 +240,26 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
             protocol.stopRequested();
             if (!stopPending) {
                 stopped();
+            }
+        }
+
+        private class DefaultCallback implements Runnable, ProtocolContext.Callback {
+            final Runnable action;
+            boolean cancelled;
+
+            private DefaultCallback(Runnable action) {
+                this.action = action;
+            }
+
+            public void cancel() {
+                cancelled = true;
+                callbackQueue.remove(this);
+            }
+
+            public void run() {
+                if (!cancelled && !stopped) {
+                    action.run();
+                }
             }
         }
     }
