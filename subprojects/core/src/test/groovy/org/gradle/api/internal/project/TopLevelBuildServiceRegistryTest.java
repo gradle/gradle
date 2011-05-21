@@ -23,8 +23,8 @@ import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
@@ -41,6 +41,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -74,6 +75,7 @@ public class TopLevelBuildServiceRegistryTest {
     private final ClassLoaderRegistry classLoaderRegistry = context.mock(ClassLoaderRegistry.class);
     private final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
     private final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory.class);
+    private final MessagingServer messagingServer = context.mock(MessagingServer.class);
 
     @Before
     public void setUp() {
@@ -134,7 +136,7 @@ public class TopLevelBuildServiceRegistryTest {
     @Test
     public void providesATaskExecuter() {
         expectListenerManagerCreated();
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(cacheFactory).open(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)));
         }});
         assertThat(factory.get(TaskExecuter.class), instanceOf(ExecuteAtMostOnceTaskExecuter.class));
@@ -190,7 +192,10 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAWorkerProcessFactory() {
-        allowGetPluginClassLoader();
+        context.checking(new Expectations(){{
+            allowing(parent).get(MessagingServer.class);
+            will(returnValue(messagingServer));
+        }});
         assertThat(factory.getFactory(WorkerProcessBuilder.class), instanceOf(DefaultWorkerProcessFactory.class));
     }
 
@@ -228,14 +233,6 @@ public class TopLevelBuildServiceRegistryTest {
         context.checking(new Expectations() {{
             one(classLoaderRegistry).createScriptClassLoader();
             will(returnValue(new MultiParentClassLoader()));
-        }});
-    }
-
-    private void allowGetPluginClassLoader() {
-        context.checking(new Expectations() {{
-            allowing(classLoaderRegistry).getPluginsClassLoader();
-            will(returnValue(new ClassLoader() {
-            }));
         }});
     }
 

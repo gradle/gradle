@@ -62,7 +62,6 @@ import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.internal.TcpMessagingServer;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
@@ -320,10 +319,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
         return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry,
                 new IdentityFileResolver(), new LongIdGenerator());
-    }
-    
-    protected MessagingServer createMessagingServer() {
-        return new TcpMessagingServer(get(ClassLoaderRegistry.class).getPluginsClassLoader());
     }
 
     protected BuildConfigurer createBuildConfigurer() {

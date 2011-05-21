@@ -36,19 +36,19 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOutgoingBroadcast.class);
     private final String group;
+    private final OutgoingConnector<Object> outgoingConnector;
     private final ExecutorFactory executor;
     private final ProtocolStack<DiscoveryMessage> protocolStack;
     private final Lock lock = new ReentrantLock();
     private final Set<String> pending = new HashSet<String>();
     private final Map<String, AsyncDispatch<MethodInvocation>> channels = new HashMap<String, AsyncDispatch<MethodInvocation>>();
     private final Map<Address, Connection<Object>> connections = new HashMap<Address, Connection<Object>>();
-    private final OutgoingConnector<Object> connector;
 
-    public DefaultOutgoingBroadcast(String group, Connection<DiscoveryMessage> channel, ExecutorFactory executor) {
+    public DefaultOutgoingBroadcast(String group, Connection<DiscoveryMessage> channel, OutgoingConnector<Object> outgoingConnector, ExecutorFactory executor) {
         this.group = group;
+        this.outgoingConnector = outgoingConnector;
         this.executor = executor;
         DiscardingFailureHandler<DiscoveryMessage> failureHandler = new DiscardingFailureHandler<DiscoveryMessage>(LOGGER);
-        connector = new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
         protocolStack = new ProtocolStack<DiscoveryMessage>(channel, channel, executor.create("discovery protocol"), failureHandler, failureHandler, failureHandler, new ChannelLookupProtocol());
         protocolStack.receiveOn(new DiscoveryMessageDispatch());
     }
@@ -103,7 +103,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
                 }
 
                 if (connection == null) {
-                    connection = connector.connect(serviceAddress);
+                    connection = outgoingConnector.connect(serviceAddress);
                 }
 
                 lock.lock();

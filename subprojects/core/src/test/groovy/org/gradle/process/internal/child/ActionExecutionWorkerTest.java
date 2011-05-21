@@ -17,9 +17,12 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -33,29 +36,37 @@ import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class ActionExecutionWorkerTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final Action<WorkerProcessContext> action = context.mock(Action.class);
+    private final ObjectConnection connection = context.mock(ObjectConnection.class);
+    private final MessagingServices messagingServices = context.mock(MessagingServices.class);
     private final MessagingClient client = context.mock(MessagingClient.class);
     private final WorkerContext workerContext = context.mock(WorkerContext.class);
+    private final Address serverAddress = context.mock(Address.class);
     private final ClassLoader appClassLoader = new ClassLoader() {
     };
-    private final ActionExecutionWorker main = new ActionExecutionWorker(action, 12, "<display name>", null) {
+    private final ActionExecutionWorker main = new ActionExecutionWorker(action, 12, "<display name>", serverAddress) {
         @Override
-        MessagingClient createClient() {
-            return client;
+        MessagingServices createClient() {
+            return messagingServices;
         }
     };
 
     @Test
     public void createsConnectionAndExecutesAction() throws Exception {
-        final ObjectConnection connection = context.mock(ObjectConnection.class);
         final Collector<WorkerProcessContext> collector = collector();
 
         context.checking(new Expectations() {{
+            allowing(messagingServices).get(MessagingClient.class);
+            will(returnValue(client));
+
+            one(client).getConnection(serverAddress);
+            will(returnValue(connection));
+
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));
             will(collectTo(collector));
 
-            one(client).stop();
+            one(messagingServices).stop();
         }});
 
         main.execute(workerContext);
@@ -63,8 +74,6 @@ public class ActionExecutionWorkerTest {
         context.checking(new Expectations() {{
             allowing(workerContext).getApplicationClassLoader();
             will(returnValue(appClassLoader));
-            allowing(client).getConnection();
-            will(returnValue(connection));
         }});
 
         assertThat(collector.get().getServerConnection(), sameInstance(connection));
@@ -77,12 +86,17 @@ public class ActionExecutionWorkerTest {
     public void cleansUpWhenActionThrowsException() throws Exception {
         final RuntimeException failure = new RuntimeException();
 
-
         context.checking(new Expectations() {{
+            allowing(messagingServices).get(MessagingClient.class);
+            will(returnValue(client));
+
+            one(client).getConnection(serverAddress);
+            will(returnValue(connection));
+
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));
             will(throwException(failure));
 
-            one(client).stop();
+            one(messagingServices).stop();
         }});
 
         try {

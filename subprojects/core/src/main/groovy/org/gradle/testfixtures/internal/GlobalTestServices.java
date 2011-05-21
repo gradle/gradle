@@ -15,6 +15,7 @@
  */
 package org.gradle.testfixtures.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.Factory;
@@ -34,6 +35,10 @@ import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.ProgressListener;
+import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.ConnectEvent;
+import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 import org.gradle.util.TrueTimeProvider;
@@ -77,6 +82,14 @@ public class GlobalTestServices extends DefaultServiceRegistry {
 
     protected ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
+    }
+    
+    protected MessagingServer createMessagingServer() {
+        return new MessagingServer() {
+            public Address accept(Action<ConnectEvent<ObjectConnection>> action) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
 }

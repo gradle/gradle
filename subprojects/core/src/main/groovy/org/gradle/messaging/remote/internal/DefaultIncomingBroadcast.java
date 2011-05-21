@@ -39,18 +39,16 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     private final ProtocolStack<DiscoveryMessage> protocolStack;
     private final String group;
     private final Lock lock = new ReentrantLock();
-    private final TcpIncomingConnector<Object> incomingConnector;
     private final Set<String> channels = new HashSet<String>();
     private final Set<Connection<Object>> connections = new HashSet<Connection<Object>>();
     private final IncomingDemultiplex demultiplex;
     private final AsyncReceive<Object> asyncReceive;
     private final Address address;
 
-    public DefaultIncomingBroadcast(String group, Connection<DiscoveryMessage> connection, ExecutorFactory executorFactory) {
+    public DefaultIncomingBroadcast(String group, Connection<DiscoveryMessage> connection, IncomingConnector<Object> incomingConnector, ExecutorFactory executorFactory) {
         this.group = group;
         DiscardingFailureHandler<DiscoveryMessage> failureHandler = new DiscardingFailureHandler<DiscoveryMessage>(LOGGER);
         protocolStack = new ProtocolStack<DiscoveryMessage>(connection, connection, executorFactory.create("discovery protocol"), failureHandler, failureHandler, failureHandler, new ChannelRegistrationProtocol());
-        incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
         demultiplex = new IncomingDemultiplex(executorFactory.create("channel demultiplex"));
         asyncReceive = new AsyncReceive<Object>(executorFactory.create("channel receive"), demultiplex);
         address = incomingConnector.accept(new IncomingConnectionAction());
@@ -72,7 +70,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     public void stop() {
         lock.lock();
         try {
-            new CompositeStoppable(protocolStack, incomingConnector).add(connections).add(asyncReceive, demultiplex).stop();
+            new CompositeStoppable(protocolStack).add(connections).add(asyncReceive, demultiplex).stop();
         } finally {
             channels.clear();
             connections.clear();

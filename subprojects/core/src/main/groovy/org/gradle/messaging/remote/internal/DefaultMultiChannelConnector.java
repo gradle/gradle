@@ -29,7 +29,7 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
     private final StoppableExecutor executorService;
     private final HandshakeIncomingConnector incomingConnector;
 
-    public DefaultMultiChannelConnector(OutgoingConnector<Message> outgoingConnector, IncomingConnector incomingConnector,
+    public DefaultMultiChannelConnector(OutgoingConnector<Message> outgoingConnector, IncomingConnector<Object> incomingConnector,
                                         ExecutorFactory executorFactory) {
         this.outgoingConnector = new HandshakeOutgoingConnector(outgoingConnector);
         this.executorFactory = executorFactory;

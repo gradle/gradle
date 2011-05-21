@@ -26,10 +26,11 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.cache.DefaultCacheFactory;
 import org.gradle.cache.DefaultCacheRepository;
 import org.gradle.listener.ListenerBroadcast;
-import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.messaging.remote.internal.TcpMessagingServer;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.*;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.LongIdGenerator;
@@ -38,6 +39,7 @@ import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,7 +58,8 @@ import static org.junit.Assert.*;
 public class WorkerProcessIntegrationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
-    private final TcpMessagingServer server = new TcpMessagingServer(getClass().getClassLoader());
+    private final MessagingServices messagingServices = new MessagingServices(getClass().getClassLoader());
+    private final MessagingServer server = messagingServices.get(MessagingServer.class);
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new WorkerProcessClassPathProvider(new DefaultCacheRepository(tmpDir.getDir(), CacheUsage.ON, new DefaultCacheFactory())));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new BaseDirConverter(tmpDir.getTestDir()), new LongIdGenerator());
@@ -67,6 +70,11 @@ public class WorkerProcessIntegrationTest {
     @Before
     public void setUp() {
         broadcast.add(listenerMock);
+    }
+
+    @After
+    public void tearDown() {
+        messagingServices.stop();
     }
 
     @Test
@@ -163,7 +171,7 @@ public class WorkerProcessIntegrationTest {
         for (ChildProcess process : processes) {
             process.waitForStop();
         }
-        server.stop();
+        messagingServices.stop();
         exceptionListener.rethrow();
     }
 

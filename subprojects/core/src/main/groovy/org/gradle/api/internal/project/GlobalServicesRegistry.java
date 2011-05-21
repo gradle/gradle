@@ -24,12 +24,15 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
-import org.gradle.initialization.*;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.CommandLineConverter;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 
@@ -75,5 +78,13 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
 
     protected ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
+    }
+
+    protected MessagingServices createMessagingServices() {
+        return new MessagingServices(get(ClassLoaderRegistry.class).getPluginsClassLoader());
+    }
+
+    protected MessagingServer createMessagingServer() {
+        return get(MessagingServices.class).get(MessagingServer.class);
     }
 }

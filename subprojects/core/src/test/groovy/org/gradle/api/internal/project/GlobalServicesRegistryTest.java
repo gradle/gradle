@@ -28,15 +28,17 @@ import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.*;
+import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultLoggingManagerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
+import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 public class GlobalServicesRegistryTest {
     private final GlobalServicesRegistry registry = new GlobalServicesRegistry();
@@ -90,5 +92,10 @@ public class GlobalServicesRegistryTest {
     @Test
     public void providesAClassLoaderFactory() {
         assertThat(registry.get(ClassLoaderFactory.class), instanceOf(DefaultClassLoaderFactory.class));
+    }
+
+    @Test
+    public void providesAMessagingServer() {
+        assertThat(registry.get(MessagingServer.class), instanceOf(MessagingServer.class));
     }
 }

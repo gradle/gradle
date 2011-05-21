@@ -17,12 +17,11 @@
 package org.gradle.messaging.remote;
 
 import org.gradle.api.Action;
-import org.gradle.messaging.concurrent.Stoppable;
 
 /**
  * A {@code MessagingServer} allows the creation of multiple bi-direction uni-cast connections with some peer.
  */
-public interface MessagingServer extends Stoppable {
+public interface MessagingServer {
     /**
      * Creates an endpoint which a single peer can connect to.
      *
@@ -30,9 +29,4 @@ public interface MessagingServer extends Stoppable {
      * @return The local address of the endpoint, for the peer to connect to.
      */
     Address accept(Action<ConnectEvent<ObjectConnection>> action);
-
-    /**
-     * Performs a graceful stop of this server. Blocks until all connections created by this server have been stopped.
-     */
-    void stop();
 }
