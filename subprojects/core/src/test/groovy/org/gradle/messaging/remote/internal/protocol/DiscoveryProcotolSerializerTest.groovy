@@ -31,8 +31,8 @@ class DiscoveryProcotolSerializerTest extends Specification {
         where:
         original << [
                 new LookupRequest("group", "channel"),
-                new ChannelAvailable("group", "channel", new SocketInetAddress(InetAddress.localHost, 8091)),
-                new ChannelUnavailable("group", "channel", new SocketInetAddress(InetAddress.localHost, 8091))
+                new ChannelAvailable("group", "channel", new SocketInetAddress(InetAddress.getByName("127.0.0.1"), 8091)),
+                new ChannelUnavailable("group", "channel", new SocketInetAddress(InetAddress.getByName("127.0.0.1"), 8091))
         ]
     }
 

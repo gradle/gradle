@@ -76,7 +76,7 @@ public class DefaultWorkerProcessFactoryTest {
         builder.applicationClasspath(Arrays.asList(new File("app.jar")));
         builder.sharedPackages("package1", "package2");
 
-        final Address serverAddress = new SocketInetAddress(InetAddress.getLocalHost(), 40);
+        final Address serverAddress = new SocketInetAddress(InetAddress.getByName("127.0.0.1"), 40);
 
         context.checking(new Expectations(){{
             one(messagingServer).accept(with(notNullValue(Action.class)));
