@@ -19,6 +19,7 @@ import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.dispatch.AsyncDispatch;
 import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.remote.internal.protocol.ChannelMessage;
 
 import java.util.HashMap;
 import java.util.Map;

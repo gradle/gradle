@@ -19,6 +19,7 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.Action;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
+import org.gradle.messaging.remote.internal.protocol.ConnectRequest;
 
 import java.util.HashMap;
 import java.util.Map;

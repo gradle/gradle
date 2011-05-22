@@ -17,7 +17,7 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.MessageSerializer;
-import org.gradle.messaging.remote.internal.SocketInetAddress;
+import org.gradle.messaging.remote.internal.inet.SocketInetAddress;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

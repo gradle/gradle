@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.remote.internal
+package org.gradle.messaging.remote.internal.inet
 
 import org.gradle.api.Action
 import org.gradle.util.ConcurrentSpecification
+import org.gradle.messaging.remote.internal.DefaultMessageSerializer
+import org.gradle.messaging.remote.internal.ConnectException
 
 class TcpConnectorTest extends ConcurrentSpecification {
     final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)

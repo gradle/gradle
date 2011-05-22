@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.remote.internal;
+package org.gradle.messaging.remote.internal.inet;
 
 import org.gradle.api.Action;
 import org.gradle.messaging.concurrent.AsyncStoppable;
@@ -23,6 +23,9 @@ import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
+import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.IncomingConnector;
+import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

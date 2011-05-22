@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote.internal.protocol
 
-import org.gradle.messaging.remote.internal.SocketInetAddress
+import org.gradle.messaging.remote.internal.inet.SocketInetAddress
 import spock.lang.Specification
 
 class DiscoveryProcotolSerializerTest extends Specification {

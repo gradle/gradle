@@ -16,6 +16,7 @@
 package org.gradle.messaging.remote.internal
 
 import spock.lang.Specification
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent
 
 class EndOfStreamHandshakeProtocolTest extends Specification {
     final ProtocolContext<Object> context = Mock()

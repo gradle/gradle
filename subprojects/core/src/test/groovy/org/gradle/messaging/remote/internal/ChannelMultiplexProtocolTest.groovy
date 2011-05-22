@@ -16,6 +16,8 @@
 package org.gradle.messaging.remote.internal
 
 import spock.lang.Specification
+import org.gradle.messaging.remote.internal.protocol.ChannelMessage
+import org.gradle.messaging.remote.internal.protocol.ChannelMetaInfo
 
 class ChannelMultiplexProtocolTest extends Specification {
     final ProtocolContext<Object> context = Mock()

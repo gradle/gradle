@@ -15,6 +15,8 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
+
 public class EndOfStreamHandshakeProtocol implements Protocol<Object> {
     private final Runnable action;
     private ProtocolContext<Object> context;

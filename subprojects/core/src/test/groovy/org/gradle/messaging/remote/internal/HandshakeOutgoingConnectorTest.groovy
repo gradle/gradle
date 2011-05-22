@@ -20,6 +20,7 @@ package org.gradle.messaging.remote.internal
 
 import spock.lang.Specification
 import org.gradle.messaging.remote.Address
+import org.gradle.messaging.remote.internal.protocol.ConnectRequest
 
 class HandshakeOutgoingConnectorTest extends Specification {
     private final Address targetAddress = Mock()

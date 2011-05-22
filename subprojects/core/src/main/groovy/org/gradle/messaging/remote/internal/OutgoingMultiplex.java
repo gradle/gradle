@@ -16,6 +16,7 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.remote.internal.protocol.ChannelMessage;
 
 class OutgoingMultiplex implements Dispatch<Object> {
     private final Dispatch<Object> dispatch;

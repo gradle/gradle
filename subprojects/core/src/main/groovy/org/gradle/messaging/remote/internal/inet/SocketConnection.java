@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.remote.internal;
+package org.gradle.messaging.remote.internal.inet;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.MessageIOException;
+import org.gradle.messaging.remote.internal.MessageSerializer;
 
 import java.io.*;
 import java.net.InetSocketAddress;

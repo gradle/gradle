@@ -22,6 +22,9 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.messaging.remote.Address
+import org.gradle.messaging.remote.internal.protocol.ChannelMessage
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent
+import org.gradle.messaging.remote.internal.protocol.ChannelMetaInfo
 
 @RunWith(JMock.class)
 public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {

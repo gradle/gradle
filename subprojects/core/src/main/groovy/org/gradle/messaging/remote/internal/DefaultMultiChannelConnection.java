@@ -22,6 +22,7 @@ import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.*;
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;

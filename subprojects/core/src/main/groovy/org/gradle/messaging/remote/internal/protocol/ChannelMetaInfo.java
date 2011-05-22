@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.remote.internal;
+package org.gradle.messaging.remote.internal.protocol;
+
+import org.gradle.messaging.remote.internal.Message;
 
 public class ChannelMetaInfo extends Message {
     private final Object channelKey;

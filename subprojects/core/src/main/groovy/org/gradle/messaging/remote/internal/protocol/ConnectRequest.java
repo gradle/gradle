@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.remote.internal;
+package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.Message;
 
 public class ConnectRequest extends Message {
     private final Address destinationAddress;

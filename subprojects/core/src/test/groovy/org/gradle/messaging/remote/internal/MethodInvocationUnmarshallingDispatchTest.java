@@ -17,6 +17,8 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.remote.internal.protocol.MethodMetaInfo;
+import org.gradle.messaging.remote.internal.protocol.RemoteMethodInvocation;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;

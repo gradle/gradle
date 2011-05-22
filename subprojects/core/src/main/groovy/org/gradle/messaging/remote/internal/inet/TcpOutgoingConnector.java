@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.remote.internal;
+package org.gradle.messaging.remote.internal.inet;
 
 import org.gradle.api.GradleException;
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

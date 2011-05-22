@@ -15,6 +15,9 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.messaging.remote.internal.protocol.ChannelMessage;
+import org.gradle.messaging.remote.internal.protocol.ChannelMetaInfo;
+
 import java.util.HashMap;
 import java.util.Map;
 

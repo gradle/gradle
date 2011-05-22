@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.internal.SocketInetAddress;
+import org.gradle.messaging.remote.internal.inet.SocketInetAddress;
 import org.gradle.process.internal.child.IsolatedApplicationClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.IdGenerator;

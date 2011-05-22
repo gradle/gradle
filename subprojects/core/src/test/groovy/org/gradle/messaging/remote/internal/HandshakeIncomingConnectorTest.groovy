@@ -23,6 +23,7 @@ import org.gradle.api.Action
 import java.util.concurrent.Executor
 import org.gradle.messaging.remote.ConnectEvent
 import org.gradle.messaging.remote.Address
+import org.gradle.messaging.remote.internal.protocol.ConnectRequest
 
 class HandshakeIncomingConnectorTest extends Specification {
     private final Address localAddress = Mock()
