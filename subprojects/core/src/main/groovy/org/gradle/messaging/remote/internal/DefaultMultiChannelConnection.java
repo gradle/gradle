@@ -53,11 +53,11 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
         failureHandler = new DiscardingFailureHandler<Object>(LoggerFactory.getLogger(DefaultMultiChannelConnector.class));
 
         stack = new ProtocolStack<Object>(executor, failureHandler, failureHandler, endOfStream, channel);
-        this.connection.receiveOn(stack.getBottom());
-        stack.getBottom().receiveOn(connection);
+        this.connection.dispatchTo(stack.getBottom());
+        stack.getBottom().dispatchTo(connection);
 
         incomingDemux = new IncomingDemultiplex(executor);
-        stack.getTop().receiveOn(incomingDemux);
+        stack.getTop().dispatchTo(incomingDemux);
     }
 
     private Dispatch<Object> wrapFailures(Dispatch<Object> dispatch) {

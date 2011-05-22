@@ -45,7 +45,7 @@ class AsyncConnectionAdapterTest extends ConcurrentSpecification {
 
         when:
         receiving.started {
-            asyncConnection.receiveOn(incoming)
+            asyncConnection.dispatchTo(incoming)
         }
 
         then:
@@ -60,7 +60,7 @@ class AsyncConnectionAdapterTest extends ConcurrentSpecification {
 
         when:
         endOfStream.started {
-            asyncConnection.receiveOn(incoming)
+            asyncConnection.dispatchTo(incoming)
         }
 
         then:
@@ -76,7 +76,7 @@ class AsyncConnectionAdapterTest extends ConcurrentSpecification {
 
         when:
         endOfStream.started {
-            asyncConnection.receiveOn(incoming)
+            asyncConnection.dispatchTo(incoming)
         }
 
         then:
@@ -91,7 +91,7 @@ class AsyncConnectionAdapterTest extends ConcurrentSpecification {
 
         when:
         endOfStream.started {
-            asyncConnection.receiveOn(incoming)
+            asyncConnection.dispatchTo(incoming)
         }
 
         then:
@@ -120,7 +120,7 @@ class AsyncConnectionAdapterTest extends ConcurrentSpecification {
 
         when:
         stopped.start {
-            asyncConnection.receiveOn(incoming)
+            asyncConnection.dispatchTo(incoming)
             asyncConnection.stop()
         }
 

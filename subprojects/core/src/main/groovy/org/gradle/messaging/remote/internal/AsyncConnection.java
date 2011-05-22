@@ -28,5 +28,5 @@ public interface AsyncConnection<T> extends Dispatch<T> {
      *
      * @param handler The handler.
      */
-    void receiveOn(Dispatch<? super T> handler);
+    void dispatchTo(Dispatch<? super T> handler);
 }

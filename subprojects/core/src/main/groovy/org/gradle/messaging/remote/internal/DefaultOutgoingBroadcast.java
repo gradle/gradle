@@ -54,9 +54,9 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
         StoppableExecutor discoveryExecutor = executorFactory.create("discovery broadcast");
         executors.add(discoveryExecutor);
         protocolStack = new ProtocolStack<DiscoveryMessage>(discoveryExecutor, failureHandler, failureHandler, new ChannelLookupProtocol());
-        connection.receiveOn(protocolStack.getBottom());
-        protocolStack.getBottom().receiveOn(connection);
-        protocolStack.getTop().receiveOn(new DiscoveryMessageDispatch());
+        connection.dispatchTo(protocolStack.getBottom());
+        protocolStack.getBottom().dispatchTo(connection);
+        protocolStack.getTop().dispatchTo(new DiscoveryMessageDispatch());
     }
 
     public <T> T addOutgoing(Class<T> type) {

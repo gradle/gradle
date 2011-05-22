@@ -52,8 +52,8 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
         executor = executorFactory.create("incoming broadcast");
         DiscardingFailureHandler<DiscoveryMessage> failureHandler = new DiscardingFailureHandler<DiscoveryMessage>(LOGGER);
         protocolStack = new ProtocolStack<DiscoveryMessage>(executor, failureHandler, failureHandler, new ChannelRegistrationProtocol());
-        connection.receiveOn(protocolStack.getBottom());
-        protocolStack.getBottom().receiveOn(connection);
+        connection.dispatchTo(protocolStack.getBottom());
+        protocolStack.getBottom().dispatchTo(connection);
         demultiplex = new IncomingDemultiplex(executor);
         asyncReceive = new AsyncReceive<Object>(executor, demultiplex);
         address = incomingConnector.accept(new IncomingConnectionAction());

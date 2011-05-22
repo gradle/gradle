@@ -269,7 +269,7 @@ public class ProtocolStack<T> implements AsyncStoppable {
     }
 
     private class BottomConnection implements AsyncConnection<T> {
-        public void receiveOn(Dispatch<? super T> handler) {
+        public void dispatchTo(Dispatch<? super T> handler) {
             outgoingQueue.dispatchTo(new FailureHandlingDispatch<T>(handler, outgoingDispatchFailureHandler));
         }
 
@@ -288,7 +288,7 @@ public class ProtocolStack<T> implements AsyncStoppable {
     }
 
     private class TopConnection implements AsyncConnection<T> {
-        public void receiveOn(Dispatch<? super T> handler) {
+        public void dispatchTo(Dispatch<? super T> handler) {
             incomingQueue.dispatchTo(new FailureHandlingDispatch<T>(handler, incomingDispatchFailureHandler));
         }
 

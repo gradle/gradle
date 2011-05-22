@@ -41,7 +41,7 @@ class ProtocolStackTest extends ConcurrentSpecification {
         _ * incomingFailureHandler.dispatchFailed(!null, !null) >> { throw it[1] }
 
         stack = new ProtocolStack<String>(executor, outgoingFailureHandler, incomingFailureHandler, top, bottom)
-        stack.bottom.receiveOn(outgoing)
+        stack.bottom.dispatchTo(outgoing)
     }
 
     def cleanup() {
@@ -113,7 +113,7 @@ class ProtocolStackTest extends ConcurrentSpecification {
 
     def "incoming message dispatched by top protocol is dispatch to a handler"() {
         Dispatch<String> incoming = Mock()
-        stack.top.receiveOn(incoming)
+        stack.top.dispatchTo(incoming)
         def dispatched = startsAsyncAction()
 
         when:
@@ -256,7 +256,7 @@ class ProtocolStackTest extends ConcurrentSpecification {
 
     def "notifies failure handler when incoming handler throws exception"() {
         Dispatch<String> incoming = Mock()
-        stack.top.receiveOn(incoming)
+        stack.top.dispatchTo(incoming)
         def failure = new RuntimeException()
         def notified = startsAsyncAction()
 
@@ -304,7 +304,7 @@ class ProtocolStackTest extends ConcurrentSpecification {
 
     def "stops blocks until all incoming messages handled"() {
         Dispatch<String> incoming = Mock()
-        stack.top.receiveOn(incoming)
+        stack.top.dispatchTo(incoming)
         def stopped = waitsForAsyncActionToComplete()
 
         when:

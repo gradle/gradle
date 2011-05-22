@@ -56,7 +56,7 @@ public class AsyncConnectionAdapter<T> implements AsyncConnection<T>, Stoppable 
         outgoing.dispatch(message);
     }
 
-    public void receiveOn(Dispatch<? super T> handler) {
+    public void dispatchTo(Dispatch<? super T> handler) {
         incoming.dispatchTo(handler);
     }
 
