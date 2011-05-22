@@ -57,7 +57,7 @@ public class AbstractFileTreeTest extends Specification {
         filtered.visit(visitor)
 
         then:
-//        1 * visitor.visitFile(file1)
+        1 * visitor.visitFile(file1)
         0 * visitor._
     }
 
