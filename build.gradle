@@ -18,6 +18,7 @@ import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.Version
 import org.gradle.build.Install
 import org.gradle.build.Git
+
 import java.util.jar.Attributes
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
@@ -83,15 +84,8 @@ libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.25@jar",
         "org.mortbay.jetty:jetty-util:6.1.25@jar",
         "org.mortbay.jetty:servlet-api:2.5-20081211@jar"]
 
-boolean hasCIBuildInfo() {
-    return System.getenv('buildInfoConfig.propertiesFile') != null ||
-            System.getProperty('buildInfoConfig.propertiesFile') != null
-}
-
 allprojects {
-    if (!hasCIBuildInfo()) {
-        apply plugin: 'artifactory'
-    }
+    apply plugin: 'artifactory'
     group = 'org.gradle'
 
     plugins.withType(JavaPlugin).whenPluginAdded {
@@ -122,17 +116,19 @@ artifactory {
                 artifactLayout = '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
             }
         }
-        publishPom = true
-        publishIvy = true
-    }
-    projectPublish {
-        publishConfigs('archives', 'publishRuntime')
-        if (it.project.tasks.findByName('generatePom') != null) {
-            mavenDescriptor = it.project.generatePom.pomFile
-        } else {
-            mavenDescriptor = 'does-not-exists.pom'
+        defaults {
+            publishConfigs('archives', 'publishRuntime')
+            if (it.project.tasks.findByName('generatePom') != null) {
+                mavenDescriptor = it.project.generatePom.pomFile
+            } else {
+                mavenDescriptor = 'does-not-exists.pom'
+            }
+            properties = ['build.status': "$it.project.status".toString()]
+            publishBuildInfo = true
+            publishArtifacts = true
+            publishPom = true
+            publishIvy = true
         }
-        properties = ['build.status': "$it.project.status".toString()]
     }
     resolve {
         // Resolution should use release only in release mode
@@ -142,8 +138,9 @@ artifactory {
         repository {
             repoKey = 'wharf'
             ivy {
-                   ivyLayout = '[organisation]/[module]/ivy-[revision].xml'
-                   artifactLayout = '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+                ivyLayout = '[organisation]/[module]/ivy-[revision].xml'
+                artifactLayout = '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+                mavenCompatible = false
             }
         }
     }
@@ -207,9 +204,9 @@ ideaProject {
     wildcards += ['?*.gradle']
     javaVersion = '1.6'
     withXml { provider ->
-		def node = provider.asNode()
+        def node = provider.asNode()
 
-		// Use git
+        // Use git
         def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
         vcsConfig.mapping[0].'@vcs' = 'Git'
 
@@ -375,7 +372,7 @@ ideaWorkspace {
 
 ideaProject {
     withXml { provider ->
-		def node = provider.asNode()
+        def node = provider.asNode()
         def compilerConfig = node.component.find { it.'@name' == 'CompilerConfiguration' }
         def exclude = compilerConfig.appendNode('excludeFromCompile')
         Collection resourceDirs = groovyProjects().collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
@@ -391,7 +388,7 @@ configure(groovyProjects()) {
         scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
     }
     eclipseClasspath {
-        plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs*.findAll { it.isDirectory() }} )))
+        plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs*.findAll { it.isDirectory() }})))
         whenConfigured { classpath ->
             classpath.entries.removeAll { it instanceof org.gradle.plugins.eclipse.model.SourceFolder && it.path.endsWith('/resources') }
         }
@@ -563,7 +560,7 @@ uploadDists {
     uploadDescriptor = true
 }
 
-artifactoryProjectPublish {
+artifactoryPublish {
     dependsOn build
     configuration = configurations.dists
     mavenDescriptor = 'does-not-exists.xml'

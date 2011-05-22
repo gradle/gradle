@@ -3,7 +3,7 @@ import groovy.text.Template
 
 buildscript {
     repositories {
-        mavenCentral()
+        mavenRepo(urls: 'http://repo.gradle.org/repo1').setChecksums('sha1')
     }
     dependencies {
         classpath gradleApi()
@@ -11,7 +11,7 @@ buildscript {
 }
 
 repositories {
-    mavenCentral()
+    mavenRepo(urls: 'http://repo.gradle.org/repo1').setChecksums('sha1')
 }
 
 configurations {

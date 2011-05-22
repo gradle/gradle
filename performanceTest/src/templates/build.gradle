@@ -18,11 +18,15 @@ apply plugin: 'java'
 
 <% if (projectName.contains("2")) { %>
 repositories {
-    mavenRepo urls: 'http://repo.jfrog.org/artifactory/repo1'
+    mavenRepo(urls: 'http://repo.jfrog.org/artifactory/repo1').setChecksums('sha1')
+}
+<% } else if (projectName.contains("3")) { %>
+repositories {
+    mavenCentral().setChecksums('sha1')
 }
 <% } else { %>
 repositories {
-    mavenRepo urls: 'http://repo.gradle.org/repo1'
+    mavenRepo(urls: 'http://repo.gradle.org/repo1').setChecksums('sha1')
 }
 <% } %>
 
