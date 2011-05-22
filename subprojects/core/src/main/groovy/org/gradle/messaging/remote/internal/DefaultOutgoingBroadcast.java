@@ -18,6 +18,7 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.*;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.protocol.ChannelAvailable;
@@ -37,20 +38,25 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOutgoingBroadcast.class);
     private final String group;
     private final OutgoingConnector<Object> outgoingConnector;
-    private final ExecutorFactory executor;
+    private final ExecutorFactory executorFactory;
     private final ProtocolStack<DiscoveryMessage> protocolStack;
     private final Lock lock = new ReentrantLock();
+    private final Set<Stoppable> executors = new HashSet<Stoppable>();
     private final Set<String> pending = new HashSet<String>();
     private final Map<String, AsyncDispatch<MethodInvocation>> channels = new HashMap<String, AsyncDispatch<MethodInvocation>>();
     private final Map<Address, Connection<Object>> connections = new HashMap<Address, Connection<Object>>();
 
-    public DefaultOutgoingBroadcast(String group, Connection<DiscoveryMessage> channel, OutgoingConnector<Object> outgoingConnector, ExecutorFactory executor) {
+    public DefaultOutgoingBroadcast(String group, AsyncConnection<DiscoveryMessage> connection, OutgoingConnector<Object> outgoingConnector, ExecutorFactory executorFactory) {
         this.group = group;
         this.outgoingConnector = outgoingConnector;
-        this.executor = executor;
+        this.executorFactory = executorFactory;
         DiscardingFailureHandler<DiscoveryMessage> failureHandler = new DiscardingFailureHandler<DiscoveryMessage>(LOGGER);
-        protocolStack = new ProtocolStack<DiscoveryMessage>(channel, channel, executor.create("discovery protocol"), failureHandler, failureHandler, failureHandler, new ChannelLookupProtocol());
-        protocolStack.receiveOn(new DiscoveryMessageDispatch());
+        StoppableExecutor discoveryExecutor = executorFactory.create("discovery broadcast");
+        executors.add(discoveryExecutor);
+        protocolStack = new ProtocolStack<DiscoveryMessage>(discoveryExecutor, failureHandler, failureHandler, new ChannelLookupProtocol());
+        connection.receiveOn(protocolStack.getBottom());
+        protocolStack.getBottom().receiveOn(connection);
+        protocolStack.getTop().receiveOn(new DiscoveryMessageDispatch());
     }
 
     public <T> T addOutgoing(Class<T> type) {
@@ -59,10 +65,12 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
         try {
             AsyncDispatch<MethodInvocation> channel = channels.get(channelKey);
             if (channel == null) {
-                channel = new AsyncDispatch<MethodInvocation>(executor.create(String.format("outgoing %s", type.getSimpleName())));
+                StoppableExecutor executor = executorFactory.create(String.format("outgoing %s", type.getSimpleName()));
+                executors.add(executor);
+                channel = new AsyncDispatch<MethodInvocation>(executor);
                 channels.put(channelKey, channel);
                 if (pending.add(channelKey)) {
-                    protocolStack.dispatch(new LookupRequest(group, channelKey));
+                    protocolStack.getTop().dispatch(new LookupRequest(group, channelKey));
                 }
             }
             return new ProxyDispatchAdapter<T>(type, channel).getSource();
@@ -74,7 +82,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     public void stop() {
         lock.lock();
         try {
-            new CompositeStoppable().add(protocolStack).add(channels.values()).add(connections.values()).stop();
+            new CompositeStoppable().add(protocolStack).add(channels.values()).add(connections.values()).add(executors).stop();
         } finally {
             channels.clear();
             connections.clear();

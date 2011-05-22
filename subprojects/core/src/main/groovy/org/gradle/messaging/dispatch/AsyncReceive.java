@@ -25,8 +25,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * <p>Receives messages asynchronously. One or more {@link Receive} instances can use used as a source of messages.
- * Messages are sent to a {@link Dispatch} </p>
+ * <p>Receives messages asynchronously. One or more {@link Receive} instances can use used as a source of messages. Messages are sent to a {@link Dispatch} </p>
  */
 public class AsyncReceive<T> implements AsyncStoppable {
     private enum State {
@@ -36,13 +35,33 @@ public class AsyncReceive<T> implements AsyncStoppable {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final Executor executor;
-    private final Dispatch<? super T> dispatch;
+    private Dispatch<? super T> dispatch;
     private int receivers;
     private State state = State.Init;
 
-    public AsyncReceive(Executor executor, final Dispatch<? super T> dispatch) {
+    public AsyncReceive(Executor executor) {
         this.executor = executor;
-        this.dispatch = dispatch;
+    }
+
+    public AsyncReceive(Executor executor, final Dispatch<? super T> dispatch) {
+        this(executor);
+        dispatchTo(dispatch);
+    }
+
+    /**
+     * Starts dispatching to the given dispatch. The dispatch must be thread-safe.
+     */
+    public void dispatchTo(final Dispatch<? super T> dispatch) {
+        lock.lock();
+        try {
+            if (this.dispatch != null) {
+                throw new IllegalStateException("Cannot dispatch to multiple dispatches.");
+            }
+            this.dispatch = dispatch;
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -85,6 +104,24 @@ public class AsyncReceive<T> implements AsyncStoppable {
 
     private void receiveMessages(Receive<? extends T> receive) {
         while (true) {
+            Dispatch<? super T> dispatch;
+            lock.lock();
+            try {
+                while (this.dispatch == null && state == State.Init) {
+                    try {
+                        condition.await();
+                    } catch (InterruptedException e) {
+                        throw UncheckedException.asUncheckedException(e);
+                    }
+                }
+                if (state != State.Init) {
+                    return;
+                }
+                dispatch = this.dispatch;
+            } finally {
+                lock.unlock();
+            }
+
             T message = receive.receive();
             if (message == null) {
                 return;

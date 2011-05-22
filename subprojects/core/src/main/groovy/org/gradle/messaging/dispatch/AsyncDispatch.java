@@ -144,7 +144,7 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
                 }
             }
             if (state == State.Stopped) {
-                throw new IllegalStateException("This message dispatch has been stopped.");
+                throw new IllegalStateException("Cannot dispatch message, as this message dispatch has been stopped. Message: " + message);
             }
             queue.add(message);
             condition.signalAll();

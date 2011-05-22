@@ -19,7 +19,7 @@ package org.gradle.messaging.remote;
 import org.gradle.api.Action;
 
 /**
- * A {@code MessagingServer} allows the creation of multiple bi-direction uni-cast connections with some peer.
+ * A {@code MessagingServer} allows the creation of multiple bi-directional uni-cast connections with some peer.
  */
 public interface MessagingServer {
     /**

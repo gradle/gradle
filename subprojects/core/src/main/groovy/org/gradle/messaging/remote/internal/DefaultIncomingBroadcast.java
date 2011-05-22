@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.AsyncReceive;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.dispatch.ReflectionDispatch;
@@ -41,16 +42,20 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     private final Lock lock = new ReentrantLock();
     private final Set<String> channels = new HashSet<String>();
     private final Set<Connection<Object>> connections = new HashSet<Connection<Object>>();
+    private final StoppableExecutor executor;
     private final IncomingDemultiplex demultiplex;
     private final AsyncReceive<Object> asyncReceive;
     private final Address address;
 
-    public DefaultIncomingBroadcast(String group, Connection<DiscoveryMessage> connection, IncomingConnector<Object> incomingConnector, ExecutorFactory executorFactory) {
+    public DefaultIncomingBroadcast(String group, AsyncConnection<DiscoveryMessage> connection, IncomingConnector<Object> incomingConnector, ExecutorFactory executorFactory) {
         this.group = group;
+        executor = executorFactory.create("incoming broadcast");
         DiscardingFailureHandler<DiscoveryMessage> failureHandler = new DiscardingFailureHandler<DiscoveryMessage>(LOGGER);
-        protocolStack = new ProtocolStack<DiscoveryMessage>(connection, connection, executorFactory.create("discovery protocol"), failureHandler, failureHandler, failureHandler, new ChannelRegistrationProtocol());
-        demultiplex = new IncomingDemultiplex(executorFactory.create("channel demultiplex"));
-        asyncReceive = new AsyncReceive<Object>(executorFactory.create("channel receive"), demultiplex);
+        protocolStack = new ProtocolStack<DiscoveryMessage>(executor, failureHandler, failureHandler, new ChannelRegistrationProtocol());
+        connection.receiveOn(protocolStack.getBottom());
+        protocolStack.getBottom().receiveOn(connection);
+        demultiplex = new IncomingDemultiplex(executor);
+        asyncReceive = new AsyncReceive<Object>(executor, demultiplex);
         address = incomingConnector.accept(new IncomingConnectionAction());
     }
 
@@ -59,7 +64,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
         lock.lock();
         try {
             if (channels.add(channelKey)) {
-                protocolStack.dispatch(new ChannelAvailable(group, channelKey, address));
+                protocolStack.getTop().dispatch(new ChannelAvailable(group, channelKey, address));
             }
             demultiplex.addIncomingChannel(channelKey, new MethodInvocationUnmarshallingDispatch(new ReflectionDispatch(handler), type.getClassLoader()));
         } finally {
@@ -70,7 +75,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     public void stop() {
         lock.lock();
         try {
-            new CompositeStoppable(protocolStack).add(connections).add(asyncReceive, demultiplex).stop();
+            new CompositeStoppable(protocolStack).add(connections).add(asyncReceive, demultiplex, executor).stop();
         } finally {
             channels.clear();
             connections.clear();

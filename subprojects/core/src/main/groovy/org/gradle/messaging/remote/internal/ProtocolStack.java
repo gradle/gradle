@@ -15,6 +15,7 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.dispatch.*;
 import org.gradle.util.TrueTimeProvider;
@@ -26,9 +27,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ProtocolStack<T> implements AsyncConnection<T> {
+public class ProtocolStack<T> implements AsyncStoppable {
     private final AsyncDispatch<Runnable> workQueue;
-    private final AsyncDispatch<T> handlerQueue;
+    private final AsyncDispatch<T> incomingQueue;
     private final AsyncDispatch<T> outgoingQueue;
     private final AsyncReceive<Runnable> receiver;
     private final DelayedReceive<Runnable> callbackQueue;
@@ -38,9 +39,10 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
     private final DispatchFailureHandler<T> incomingDispatchFailureHandler;
     private final CountDownLatch protocolsStopped;
     private final AtomicBoolean stopRequested = new AtomicBoolean();
+    private final AsyncConnection<T> bottomConnection;
+    private final AsyncConnection<T> topConnection;
 
-    public ProtocolStack(Dispatch<? super T> outgoing, Receive<? extends T> incoming, Executor executor, ReceiveFailureHandler receiveFailureHandler,
-                         DispatchFailureHandler<T> outgoingDispatchFailureHandler, DispatchFailureHandler<T> incomingDispatchFailureHandler,
+    public ProtocolStack(Executor executor, DispatchFailureHandler<T> outgoingDispatchFailureHandler, DispatchFailureHandler<T> incomingDispatchFailureHandler,
                          Protocol<T>... protocols) {
         this.outgoingDispatchFailureHandler = outgoingDispatchFailureHandler;
         this.incomingDispatchFailureHandler = incomingDispatchFailureHandler;
@@ -48,9 +50,8 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
         protocolsStopped = new CountDownLatch(protocols.length);
 
         // Setup the outgoing queues.
-        handlerQueue = new AsyncDispatch<T>(executor);
+        incomingQueue = new AsyncDispatch<T>(executor);
         outgoingQueue = new AsyncDispatch<T>(executor);
-        outgoingQueue.dispatchTo(new FailureHandlingDispatch<T>(outgoing, outgoingDispatchFailureHandler));
 
         //Start work queue
         workQueue = new AsyncDispatch<Runnable>(executor);
@@ -75,22 +76,21 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
         }
         assert contextQueue.isEmpty();
 
-        // Finally, start receiving
-        receiver = new AsyncReceive<Runnable>(executor, workQueue);
+        // Wire up callback queue
+        receiver = new AsyncReceive<Runnable>(executor);
+        receiver.dispatchTo(workQueue);
         receiver.receiveFrom(callbackQueue);
-        receiver.receiveFrom(new IncomingMessageReceive(new FailureHandlingReceive<T>(incoming, receiveFailureHandler)));
+
+        bottomConnection = new BottomConnection();
+        topConnection = new TopConnection();
     }
 
-    public void receiveOn(Dispatch<? super T> handler) {
-        handlerQueue.dispatchTo(new FailureHandlingDispatch<T>(handler, incomingDispatchFailureHandler));
+    public AsyncConnection<T> getBottom() {
+        return bottomConnection;
     }
 
-    public void dispatch(final T message) {
-        workQueue.dispatch(new Runnable() {
-            public void run() {
-                stack.getFirst().handleOutgoing(message);
-            }
-        });
+    public AsyncConnection<T> getTop() {
+        return topConnection;
     }
 
     public void requestStop() {
@@ -113,7 +113,7 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
             throw UncheckedException.asUncheckedException(e);
         }
         callbackQueue.clear();
-        new CompositeStoppable(callbackQueue, receiver, workQueue, handlerQueue, outgoingQueue).stop();
+        new CompositeStoppable(callbackQueue, receiver, workQueue, incomingQueue, outgoingQueue).stop();
     }
 
     private class ExecuteRunnable implements Dispatch<Runnable> {
@@ -122,26 +122,6 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
             while (!contextQueue.isEmpty()) {
                 contextQueue.removeFirst().run();
             }
-        }
-    }
-
-    private class IncomingMessageReceive implements Receive<Runnable> {
-        private final Receive<T> receive;
-
-        private IncomingMessageReceive(Receive<T> receive) {
-            this.receive = receive;
-        }
-
-        public Runnable receive() {
-            final T message = receive.receive();
-            if (message == null) {
-                return null;
-            }
-            return new Runnable() {
-                public void run() {
-                    stack.getLast().handleIncoming(message);
-                }
-            };
         }
     }
 
@@ -267,7 +247,7 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
     private class TopStage extends Stage {
         @Override
         public void handleIncoming(T message) {
-            handlerQueue.dispatch(message);
+            incomingQueue.dispatch(message);
         }
 
         @Override
@@ -285,6 +265,44 @@ public class ProtocolStack<T> implements AsyncConnection<T> {
         @Override
         public void handleOutgoing(T message) {
             outgoingQueue.dispatch(message);
+        }
+    }
+
+    private class BottomConnection implements AsyncConnection<T> {
+        public void receiveOn(Dispatch<? super T> handler) {
+            outgoingQueue.dispatchTo(new FailureHandlingDispatch<T>(handler, outgoingDispatchFailureHandler));
+        }
+
+        public void dispatch(final T message) {
+            workQueue.dispatch(new Runnable() {
+                @Override
+                public String toString() {
+                    return String.format("incoming %s", message);
+                }
+
+                public void run() {
+                    stack.getLast().handleIncoming(message);
+                }
+            });
+        }
+    }
+
+    private class TopConnection implements AsyncConnection<T> {
+        public void receiveOn(Dispatch<? super T> handler) {
+            incomingQueue.dispatchTo(new FailureHandlingDispatch<T>(handler, incomingDispatchFailureHandler));
+        }
+
+        public void dispatch(final T message) {
+            workQueue.dispatch(new Runnable() {
+                @Override
+                public String toString() {
+                    return String.format("outgoing %s", message);
+                }
+
+                public void run() {
+                    stack.getFirst().handleOutgoing(message);
+                }
+            });
         }
     }
 }

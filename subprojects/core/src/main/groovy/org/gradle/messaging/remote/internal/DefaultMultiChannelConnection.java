@@ -31,19 +31,18 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
     private final Address destinationAddress;
     private final IncomingDemultiplex incomingDemux;
     private final StoppableExecutor executor;
-    private final Connection<Object> connection;
+    private final AsyncConnectionAdapter<Object> connection;
     private final ProtocolStack<Object> stack;
     private final DiscardingFailureHandler<Object> failureHandler;
 
-    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, final Connection<Object> connection, Address sourceAddress, Address destinationAddress) {
-        this.connection = connection;
+    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, Connection<Object> connection, Address sourceAddress, Address destinationAddress) {
+        this.connection = new AsyncConnectionAdapter<Object>(connection, new ObjectReceiveHandler(), executorFactory);
         this.executor = executorFactory.create(displayName);
 
         this.sourceAddress = sourceAddress;
         this.destinationAddress = destinationAddress;
 
-        Dispatch<Object> outgoing = connection;
-        Receive<Object> incoming = new EndOfStreamReceive(connection);
+
         Protocol<Object> endOfStream = new EndOfStreamHandshakeProtocol(new Runnable() {
             public void run() {
                 requestStop();
@@ -52,11 +51,12 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
         Protocol<Object> channel = new ChannelMultiplexProtocol();
         failureHandler = new DiscardingFailureHandler<Object>(LoggerFactory.getLogger(DefaultMultiChannelConnector.class));
 
-        stack = new ProtocolStack<Object>(outgoing, incoming, executor, failureHandler, failureHandler, failureHandler, endOfStream, channel);
+        stack = new ProtocolStack<Object>(executor, failureHandler, failureHandler, endOfStream, channel);
+        this.connection.receiveOn(stack.getBottom());
+        stack.getBottom().receiveOn(connection);
 
-        // Incoming pipeline: <connection> -> <async-receive> -> <ignore-failures> -> <end-of-stream-filter> -> <channel-demux> -> <channel-async-queue> -> <ignore-failures> -> <handler>
         incomingDemux = new IncomingDemultiplex(executor);
-        stack.receiveOn(incomingDemux);
+        stack.getTop().receiveOn(incomingDemux);
     }
 
     private Dispatch<Object> wrapFailures(Dispatch<Object> dispatch) {
@@ -86,7 +86,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
     }
 
     public Dispatch<Object> addOutgoingChannel(Object channelKey) {
-        return new OutgoingMultiplex(channelKey, stack);
+        return new OutgoingMultiplex(channelKey, stack.getTop());
     }
 
     public void stop() {
@@ -103,4 +103,13 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
         }
     }
 
+    private static class ObjectReceiveHandler implements ReceiveHandler<Object> {
+        public boolean isEndOfStream(Object message) {
+            return message instanceof EndOfStreamEvent;
+        }
+
+        public Object endOfStream() {
+            return new EndOfStreamEvent();
+        }
+    }
 }

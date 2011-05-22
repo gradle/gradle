@@ -54,7 +54,7 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     private DefaultExecutorFactory executorFactory;
     private DefaultMessagingServer messagingServer;
     private DefaultIncomingBroadcast incomingBroadcast;
-    private MulticastConnection<DiscoveryMessage> multicastConnection;
+    private AsyncConnectionAdapter<DiscoveryMessage> multicastConnection;
     private DefaultOutgoingBroadcast outgoingBroadcast;
 
     public MessagingServices(ClassLoader messageClassLoader) {
@@ -90,9 +90,9 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         stoppable.add(messagingClient);
         stoppable.add(messagingServer);
         stoppable.add(multiChannelConnector);
-        stoppable.add(multicastConnection);
         stoppable.add(outgoingBroadcast);
         stoppable.add(incomingBroadcast);
+        stoppable.add(multicastConnection);
         stoppable.add(executorFactory);
         stoppable.stop();
     }
@@ -127,17 +127,28 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     }
 
     protected IncomingBroadcast createIncomingBroadcast() {
-        incomingBroadcast = new DefaultIncomingBroadcast(broadcastGroup, get(MulticastConnection.class), get(IncomingConnector.class), get(ExecutorFactory.class));
+        incomingBroadcast = new DefaultIncomingBroadcast(broadcastGroup, get(AsyncConnection.class), get(IncomingConnector.class), get(ExecutorFactory.class));
         return incomingBroadcast;
     }
 
     protected OutgoingBroadcast createOutgoingBroadcast() {
-        outgoingBroadcast = new DefaultOutgoingBroadcast(broadcastGroup, get(MulticastConnection.class), get(OutgoingConnector.class), get(ExecutorFactory.class));
+        outgoingBroadcast = new DefaultOutgoingBroadcast(broadcastGroup, get(AsyncConnection.class), get(OutgoingConnector.class), get(ExecutorFactory.class));
         return outgoingBroadcast;
     }
 
-    protected MulticastConnection<DiscoveryMessage> createMulticastConnection() {
-        multicastConnection = new MulticastConnection<DiscoveryMessage>(broadcastAddress, new DiscoveryProtocolSerializer());
+    protected AsyncConnection<DiscoveryMessage> createMulticastConnection() {
+        MulticastConnection<DiscoveryMessage> connection = new MulticastConnection<DiscoveryMessage>(broadcastAddress, new DiscoveryProtocolSerializer());
+        multicastConnection = new AsyncConnectionAdapter<DiscoveryMessage>(connection, new DiscoveryMessageReceiveHandler(), get(ExecutorFactory.class));
         return multicastConnection;
+    }
+
+    private static class DiscoveryMessageReceiveHandler implements ReceiveHandler<DiscoveryMessage> {
+        public boolean isEndOfStream(DiscoveryMessage message) {
+            return false;
+        }
+
+        public DiscoveryMessage endOfStream() {
+            return null;
+        }
     }
 }
