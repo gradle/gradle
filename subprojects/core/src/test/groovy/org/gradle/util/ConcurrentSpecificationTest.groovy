@@ -285,23 +285,23 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
 
     def "blocking action fails when action does not wait for async action to complete"() {
         Runnable action = Mock()
-        def latch = new CountDownLatch(1)
+        def started = new CountDownLatch(1)
         def operation = waitsForAsyncActionToComplete()
 
         when:
         operation.start {
             start { action.run() }
-            latch.await()
+            started.await()
         }
         finished()
 
         then:
-        1 * action.run() >> { latch.countDown(); operation.done() }
+        1 * action.run() >> { started.countDown(); operation.done() }
         RuntimeException e = thrown()
         e.message == 'Expected action to block, but it did not.'
 
         cleanup:
-        latch.countDown()
+        started.countDown()
     }
 
     def "blocking action fails when action does not start async action"() {

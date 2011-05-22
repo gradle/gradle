@@ -693,6 +693,7 @@ class WaitForAsyncAction extends AbstractWaitAction {
     }
 
     WaitForAsyncAction start(Runnable action) {
+        owner.onFailure this.&onFailure
         startBlockingAction(action)
         waitForAsyncAction()
         waitForBlockingActionToComplete()
@@ -700,8 +701,8 @@ class WaitForAsyncAction extends AbstractWaitAction {
     }
 
     WaitForAsyncAction done() {
-//        Thread.sleep(500)
-//        assertBlocked()
+        Thread.sleep(500)
+        assertBlocked()
 
         withLock {
             asyncActionComplete = true
@@ -714,10 +715,13 @@ class WaitForAsyncAction extends AbstractWaitAction {
     def waitForAsyncAction() {
         Date expiry = shortTimeout()
         withLock {
-            while (!asyncActionComplete && !completed) {
+            while (!asyncActionComplete && !completed && !failure) {
                 if (!condition.awaitUntil(expiry)) {
                     throw new IllegalStateException("Expected async action to be started, but it was not.")
                 }
+            }
+            if (failure) {
+                throw failure
             }
             if (completed) {
                 throw new IllegalStateException("Expected action to block, but it did not.")
