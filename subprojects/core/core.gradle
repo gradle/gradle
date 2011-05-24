@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.build.GenerateReleasesXml
 
 apply plugin: 'groovy'
@@ -74,22 +73,17 @@ dependencies {
     integTestFixtures sourceSets.integTest.output
 }
 
-sourceSets.main.output.dirs(generated: "$buildDir/generated-resources/main")
-
+def generatedResourcesDir = "$buildDir/generated-resources/main"
 task releasesResource(type: GenerateReleasesXml) {
-    destFile = new File(sourceSets.main.output.dirs.generated, "org/gradle/releases.xml")
+    destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
 }
+//sourceSets.main.output.dir generatedResourcesDir, buildBy: 'releasesResource'
+sourceSets.main.output.dirs (dir: generatedResourcesDir)
 
+//TODO SF: should not be needed
 classes.dependsOn releasesResource
 ideaModule.dependsOn releasesResource
 eclipseClasspath.dependsOn releasesResource
-
-//TODO SF:
-//def generatedResourcesDir = "$buildDir/generated-resources/main"
-//task releasesResource(type: GenerateReleasesXml) {
-//    destFile = "$generatedResourceDir/org/gradle/releases.xml"
-//}
-//sourceSets.main.output.dir(generatedResourcesDir, builtBy: releaseResources)
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

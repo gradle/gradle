@@ -22,8 +22,8 @@ import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.internal.IdePlugin
-import org.gradle.plugins.ide.idea.model.*
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.plugins.ide.idea.model.*
 
 /**
  * @author Hans Dockter
@@ -144,8 +144,8 @@ class IdeaPlugin extends IdePlugin {
                     TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
             ]
             module.conventionMapping.singleEntryLibraries = { [
-                    RUNTIME: project.sourceSets.main.output.dirs.values(),
-                    TEST: project.sourceSets.test.output.dirs.values()
+                    RUNTIME: project.sourceSets.main.output.dirs,
+                    TEST: project.sourceSets.test.output.dirs
             ] }
         }
     }

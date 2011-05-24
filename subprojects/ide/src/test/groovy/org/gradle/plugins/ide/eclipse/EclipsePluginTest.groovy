@@ -138,13 +138,13 @@ class EclipsePluginTest extends Specification {
         eclipsePlugin.apply(project)
         project.apply(plugin: 'java')
 
-        project.sourceSets.main.output.dirs (generated: 'generated-folder' )
-        project.sourceSets.main.output.dirs (ws:        'ws-generated' )
+        project.sourceSets.main.output.dir 'generated-folder'
+        project.sourceSets.main.output.dir 'ws-generated'
 
-        project.sourceSets.test.output.dirs (generated: 'generated-test' )
-        project.sourceSets.test.output.dirs (resources: 'test-resources' )
+        project.sourceSets.test.output.dir 'generated-test'
+        project.sourceSets.test.output.dir 'test-resources'
 
-        project.sourceSets.test.output.dirs (unwanted: '../some/unwanted/external/dir' )
+        project.sourceSets.test.output.dir '../some/unwanted/external/dir'
 
         then:
         def folders = project.eclipseClasspath.classpath.classFolders

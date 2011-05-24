@@ -44,7 +44,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>dirs</td>
+                <td>dir</td>
             </tr>
             <tr>
                 <td>getDirs</td>

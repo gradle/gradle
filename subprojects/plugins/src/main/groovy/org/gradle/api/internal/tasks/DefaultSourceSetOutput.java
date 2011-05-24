@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Transformer;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
@@ -23,8 +25,7 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.SourceSetOutput;
 
 import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 /**
@@ -34,7 +35,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     private DefaultConfigurableFileCollection outputDirectories;
     private Object classesDir;
     private Object resourcesDir;
-    private Map<String, Object> dirs = new LinkedHashMap<String, Object>();
+    private List<Object> dirs = new LinkedList<Object>();
     private FileResolver fileResolver;
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, TaskResolver taskResolver) {
@@ -87,16 +88,24 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         outputDirectories.builtBy(taskPaths);
     }
 
-    public void dirs(Map<String, Object> dirs) {
-        this.dirs.putAll(dirs);
-        this.outputDirectories.from(dirs.values().toArray());
+    public void dir(Object dir) {
+        this.dir(new HashMap<String, Object>(), dir);
     }
 
-    public Map<String, File> getDirs() {
-        Map<String, File> out = new LinkedHashMap<String, File>();
-        for(String name : this.dirs.keySet()) {
-            out.put(name, fileResolver.resolve(this.dirs.get(name)));
+    public void dir(Map<String, Object> options, Object dir) {
+        this.dirs.add(dir);
+        this.outputDirectories.from(dir);
+        Object buildBy = options.get("buildBy");
+        if (buildBy != null) {
+            this.outputDirectories.builtBy(buildBy);
         }
-        return out;
+    }
+
+    public Collection<File> getDirs() {
+        return CollectionUtils.collect(dirs, new Transformer() {
+            public Object transform(Object input) {
+                return fileResolver.resolve(input);
+            }
+        });
     }
 }

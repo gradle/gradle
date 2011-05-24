@@ -25,10 +25,10 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
-import org.gradle.plugins.ide.internal.IdePlugin
-import org.gradle.plugins.ide.eclipse.model.*
-import org.gradle.plugins.ide.internal.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
+import org.gradle.plugins.ide.internal.IdePlugin
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.plugins.ide.eclipse.model.*
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -150,7 +150,7 @@ class EclipsePlugin extends IdePlugin {
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]
                     classpath.conventionMapping.classFolders = {
-                        def dirs = project.sourceSets.main.output.dirs.values() + project.sourceSets.test.output.dirs.values()
+                        def dirs = project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
                         dirs.collect { project.relativePath(it)} .findAll { !it.contains('..') }
                     }
                 }

@@ -1,5 +1,3 @@
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -41,15 +39,19 @@ dependencies {
     testFixtures sourceSets.test.output
 }
 
-sourceSets.main.output.dirs(generated: "$buildDir/generated-resources/main")
+def generatedResourcesDir = "$buildDir/generated-resources/main"
+//sourceSets.main.output.dir(generatedResourcesDir, buildBy: 'reportResources')
+sourceSets.main.output.dirs (dir: generatedResourcesDir)
+
 
 task reportResources << {
     copy {
         from(configurations.reports)
-        into "${sourceSets.main.output.dirs.generated}/org/gradle/api/internal/tasks/testing/junit/report"
+        into "$generatedResourcesDir/org/gradle/api/internal/tasks/testing/junit/report"
     }
 }
 
+//TODO SF: should not be needed
 classes.dependsOn reportResources
 ideaModule.dependsOn reportResources
 eclipseClasspath.dependsOn reportResources

@@ -182,8 +182,8 @@ idea {
 apply plugin: "java"
 apply plugin: "idea"
 
-sourceSets.main.output.dirs (generated: "$buildDir/generated/main")
-sourceSets.test.output.dirs (test: "$buildDir/ws/test")
+sourceSets.main.output.dir "$buildDir/generated/main"
+sourceSets.test.output.dir "$buildDir/ws/test"
 '''
         def iml = parseFile(print: true, 'root.iml')
 

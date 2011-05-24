@@ -19,6 +19,7 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -51,10 +52,12 @@ import java.util.Map;
  * <pre autoTested=''>
  * apply plugin: 'java'
  *
+ * def generatedResources = "$buildDir/generated-resources/main"
+ *
  * sourceSets {
  *   main {
  *     //let's register an output folder on the main SourceSet:
- *     output.dirs myGeneratedDir: "$buildDir/generated-resources/main"
+ *     output.dir(generatedResources, buildBy: 'generateMyResources')
  *     //it is now a part of the 'main' classpath and will be a part of the jar
  *   }
  * }
@@ -62,22 +65,17 @@ import java.util.Map;
  * //a task that generates the resources:
  * task generateMyResources {
  *   doLast {
- *     //notice how the ouptut dir is referred:
- *     def generated = new File(sourceSets.main.output.dirs.myGeneratedDir, "myGeneratedResource.properties")
+ *     def generated = new File(generatedResources, "myGeneratedResource.properties")
  *     generated.text = "message=Stay happy!"
  *   }
  * }
  *
- * //if you apply eclipse/idea plugins it might be useful
- * //to have the generated resources ready when eclipse/idea files are built:
- *
+ * //eclipse/idea plugins will automatically depend on 'generateMyResources'
+ * //because the output dir was registered with 'buildBy' information
  * apply plugin: 'idea'; apply plugin: 'eclipse'
- *
- * eclipseClasspath.dependsOn generateMyResources
- * ideaModule.dependsOn generateMyResources
  * </pre>
  *
- * Find more information in {@link #dirs(java.util.Map)} and {@link #getDirs()}
+ * Find more information in {@link #dir(java.util.Map, Object)} and {@link #getDirs()}
  */
 public interface SourceSetOutput extends FileCollection {
 
@@ -118,31 +116,31 @@ public interface SourceSetOutput extends FileCollection {
     void setResourcesDir(Object resourcesDir);
 
     /**
-     * Allows to register the output directories.
-     * <p>
-     * The key of a map entry is a label for a directory - you will use it to refer this dir in the gradle build.
-     * <p>
-     * The value of a map entry is a directory path resolvable as per {@link org.gradle.api.Project#file(Object)}.
-     * <p>
-     * Registering the output dir with a SourceSet has benefits because other plugins can use this information
-     * (i.e. java plugin will use them in calculating classpath or jarring content;
-     * eclipse/idea plugin will put those dirs on the relevant classpath)
+     * Registers an extra output dir and the buildBy information. Useful for generated resources.
      * <p>
      * See example at {@link SourceSetOutput}
      *
-     * @param dirs a map containing
+     * @param options - use 'buildBy' key to configure the 'buildBy' task of the dir
+     * @param dir - will be resolved as {@link org.gradle.api.Project#file(Object)}
      */
-    void dirs(Map<String, Object> dirs);
+    void dir(Map<String, Object> options, Object dir);
 
     /**
-     * Returns a *new instance* of dirs map with all values resolved to Files.
-     * <p>
-     * Can be used to refer to registered output dirs. Manipulating this object does not change the SourceSet.output.
-     * If you need to register a new output dir please use the {@link #dirs(java.util.Map)} method.
+     * Registers an extra output dir. Useful for generated resources.
      * <p>
      * See example at {@link SourceSetOutput}
      *
-     * @return a new instance  dirs with resolved files
+     * @param dir - will be resolved as {@link org.gradle.api.Project#file(Object)}
      */
-    Map<String, File> getDirs();
+    void dir(Object dir);
+
+    /**
+     * Returns a *new instance* of collection with all the dirs registered with with #dir method.
+     * Each file is resolved as {@link org.gradle.api.Project#file(Object)}
+     * <p>
+     * See example at {@link SourceSetOutput}
+     *
+     * @return a new instance of registered dirs with resolved files
+     */
+    Collection<File> getDirs();
 }
