@@ -133,7 +133,7 @@ class EclipsePlugin extends IdePlugin {
         model.classpath.conventionMapping.classesOutputDir = { new File(project.projectDir, 'bin') }
 
         project.plugins.withType(JavaBasePlugin) {
-            maybeAddTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) {
+            maybeAddTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) { task ->
                 //task properties:
                 description = "Generates the Eclipse classpath file."
                 inputFile = project.file('.classpath')
@@ -152,6 +152,9 @@ class EclipsePlugin extends IdePlugin {
                     classpath.conventionMapping.classFolders = {
                         def dirs = project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
                         dirs.collect { project.relativePath(it)} .findAll { !it.contains('..') }
+                    }
+                    task.dependsOn {
+                        project.sourceSets.main.output.dirBuilders + project.sourceSets.test.output.dirBuilders
                     }
                 }
 

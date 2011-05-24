@@ -143,4 +143,13 @@ public interface SourceSetOutput extends FileCollection {
      * @return a new instance of registered dirs with resolved files
      */
     Collection<File> getDirs();
+
+    /**
+     * Returns a collection with all the 'buildBy' elements that were registered using #dir method.
+     * <p>
+     * See example at {@link SourceSetOutput}
+     *
+     * @return a new instance of registered dirs with resolved files
+     */
+    Collection getDirBuilders();
 }

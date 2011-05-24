@@ -77,13 +77,10 @@ def generatedResourcesDir = "$buildDir/generated-resources/main"
 task releasesResource(type: GenerateReleasesXml) {
     destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
 }
-//sourceSets.main.output.dir generatedResourcesDir, buildBy: 'releasesResource'
-sourceSets.main.output.dirs (dir: generatedResourcesDir)
+sourceSets.main.output.dir generatedResourcesDir, buildBy: 'releasesResource'
 
 //TODO SF: should not be needed
 classes.dependsOn releasesResource
-ideaModule.dependsOn releasesResource
-eclipseClasspath.dependsOn releasesResource
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

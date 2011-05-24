@@ -192,6 +192,34 @@ sourceSets.test.output.dir "$buildDir/generated/test"
         assert libPaths == ['build/generated/main', 'build/generated/test']
     }
 
+    @Test
+    void "the 'buildBy' task be executed"() {
+        //when
+        runEclipseTask '''
+apply plugin: "java"
+apply plugin: "eclipse"
+
+sourceSets.main.output.dir "$buildDir/generated/main", buildBy: 'generateForMain'
+sourceSets.test.output.dir "$buildDir/generated/test", buildBy: 'generateForTest'
+
+def tasksExecuted = []
+
+task generateForMain << {
+    tasksExecuted << 'generateForMain'
+}
+
+task generateForTest << {
+    tasksExecuted << 'generateForTest'
+}
+
+eclipse.doLast {
+    assert tasksExecuted.contains('generateForMain')
+    assert tasksExecuted.contains('generateForTest')
+}
+'''
+        //then no exception is thrown
+    }
+
     protected def contains(String ... contents) {
         contents.each { assert content.contains(it)}
     }

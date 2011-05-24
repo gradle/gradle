@@ -26,8 +26,7 @@ dependencies {
 }
 
 def generatedResourcesDir = "$buildDir/generated-resources/main"
-//sourceSets.main.output.dirs(generatedResourcesDir, buildBy: 'wrapperJar')
-sourceSets.main.output.dirs (dir: generatedResourcesDir)
+sourceSets.main.output.dir generatedResourcesDir, buildBy: 'wrapperJar'
 
 task wrapperJar(type: Jar) {
     dependsOn compileJava, processResources

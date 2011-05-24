@@ -36,6 +36,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     private Object classesDir;
     private Object resourcesDir;
     private List<Object> dirs = new LinkedList<Object>();
+    private List<Object> dirBuilders = new LinkedList<Object>();
     private FileResolver fileResolver;
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, TaskResolver taskResolver) {
@@ -93,19 +94,25 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     }
 
     public void dir(Map<String, Object> options, Object dir) {
+        Object buildBy = options.get("buildBy");
         this.dirs.add(dir);
         this.outputDirectories.from(dir);
-        Object buildBy = options.get("buildBy");
         if (buildBy != null) {
-            this.outputDirectories.builtBy(buildBy);
+            this.builtBy(buildBy);
+            this.dirBuilders.add(buildBy);
         }
     }
 
     public Collection<File> getDirs() {
-        return CollectionUtils.collect(dirs, new Transformer() {
+        Collection out = CollectionUtils.collect(dirs, new Transformer() {
             public Object transform(Object input) {
                 return fileResolver.resolve(input);
             }
         });
+        return out;
+    }
+
+    public Collection getDirBuilders() {
+        return dirBuilders;
     }
 }

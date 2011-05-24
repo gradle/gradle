@@ -40,8 +40,7 @@ dependencies {
 }
 
 def generatedResourcesDir = "$buildDir/generated-resources/main"
-//sourceSets.main.output.dir(generatedResourcesDir, buildBy: 'reportResources')
-sourceSets.main.output.dirs (dir: generatedResourcesDir)
+sourceSets.main.output.dir generatedResourcesDir, buildBy: 'reportResources'
 
 
 task reportResources << {
@@ -53,8 +52,6 @@ task reportResources << {
 
 //TODO SF: should not be needed
 classes.dependsOn reportResources
-ideaModule.dependsOn reportResources
-eclipseClasspath.dependsOn reportResources
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'

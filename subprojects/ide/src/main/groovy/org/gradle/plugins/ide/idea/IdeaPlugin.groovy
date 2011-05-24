@@ -147,6 +147,9 @@ class IdeaPlugin extends IdePlugin {
                     RUNTIME: project.sourceSets.main.output.dirs,
                     TEST: project.sourceSets.test.output.dirs
             ] }
+            dependsOn {
+                project.sourceSets.main.output.dirBuilders + project.sourceSets.test.output.dirBuilders
+            }
         }
     }
 
