@@ -47,9 +47,8 @@ public class DefaultObjectConnectionTest {
 
     @Before
     public void setUp() {
-        IncomingMethodInvocationHandler senderIncoming = new IncomingMethodInvocationHandler(getClass().getClassLoader(), connection.getSender());
-        IncomingMethodInvocationHandler receiverIncoming = new IncomingMethodInvocationHandler(
-                getClass().getClassLoader(), connection.getReceiver());
+        IncomingMethodInvocationHandler senderIncoming = new IncomingMethodInvocationHandler(connection.getSender());
+        IncomingMethodInvocationHandler receiverIncoming = new IncomingMethodInvocationHandler(connection.getReceiver());
         OutgoingMethodInvocationHandler senderOutgoing = new OutgoingMethodInvocationHandler(connection.getSender());
         OutgoingMethodInvocationHandler receiverOutgoing = new OutgoingMethodInvocationHandler(connection.getReceiver());
         sender = new DefaultObjectConnection(messageConnection, stopControl, senderOutgoing, senderIncoming);
@@ -58,6 +57,10 @@ public class DefaultObjectConnectionTest {
 
     @Test
     public void createsProxyForOutgoingType() throws Exception {
+        // Setup
+        final TestRemote handler = context.mock(TestRemote.class);
+        receiver.addIncoming(TestRemote.class, handler);
+
         TestRemote proxy = sender.addOutgoing(TestRemote.class);
         assertThat(proxy, strictlyEqual(proxy));
         assertThat(proxy.toString(), equalTo("TestRemote broadcast"));
@@ -166,11 +169,11 @@ public class DefaultObjectConnectionTest {
 
         MultiChannelConnection<Object> getSender() {
             return new MultiChannelConnection<Object>() {
-                public Dispatch<Object> addOutgoingChannel(Object channelKey) {
+                public Dispatch<Object> addOutgoingChannel(String channelKey) {
                     return channels.get(channelKey);
                 }
 
-                public void addIncomingChannel(Object channelKey, Dispatch<Object> dispatch) {
+                public void addIncomingChannel(String channelKey, Dispatch<Object> dispatch) {
                     throw new UnsupportedOperationException();
                 }
 
@@ -194,11 +197,11 @@ public class DefaultObjectConnectionTest {
 
         MultiChannelConnection<Object> getReceiver() {
             return new MultiChannelConnection<Object>() {
-                public Dispatch<Object> addOutgoingChannel(Object channelKey) {
+                public Dispatch<Object> addOutgoingChannel(String channelKey) {
                     throw new UnsupportedOperationException();
                 }
 
-                public void addIncomingChannel(Object channelKey, Dispatch<Object> dispatch) {
+                public void addIncomingChannel(String channelKey, Dispatch<Object> dispatch) {
                     channels.put(channelKey, dispatch);
                 }
 

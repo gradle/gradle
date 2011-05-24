@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.remote.internal;
+package org.gradle.messaging.remote.internal.protocol;
 
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.remote.internal.protocol.ChannelMessage;
-
-class OutgoingMultiplex implements Dispatch<Object> {
-    private final Dispatch<ChannelMessage> dispatch;
-    private final String channelKey;
-
-    OutgoingMultiplex(String channelKey, Dispatch<ChannelMessage> dispatch) {
-        this.channelKey = channelKey;
-        this.dispatch = dispatch;
-    }
-
-    public void dispatch(Object message) {
-        dispatch.dispatch(new ChannelMessage(channelKey, message));
-    }
+public interface RoutableMessage {
+    /**
+     * Returns the destination for this message, or null for broadcast.
+     */
+    Object getDestination();
 }

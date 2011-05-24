@@ -24,6 +24,7 @@ class ProtocolStackTest extends ConcurrentSpecification {
     final Protocol<String> top = Mock()
     final Protocol<String> bottom = Mock()
     final Dispatch<String> outgoing = Mock()
+    final Dispatch<String> incoming = Mock()
     final DispatchFailureHandler<String> outgoingFailureHandler = Mock()
     final DispatchFailureHandler<String> incomingFailureHandler = Mock()
     ProtocolContext<String> topContext
@@ -50,12 +51,35 @@ class ProtocolStackTest extends ConcurrentSpecification {
 
     def "starts protocol on construction"() {
         Protocol<String> protocol = Mock()
+        def started = startsAsyncAction()
 
         when:
-        def stack = new ProtocolStack<String>(executor, outgoingFailureHandler, incomingFailureHandler, protocol)
+        def stack
+        started.started {
+            stack = new ProtocolStack<String>(executor, outgoingFailureHandler, incomingFailureHandler, protocol)
+        }
 
         then:
-        1 * protocol.start(!null)
+        1 * protocol.start(!null) >> { started.done() }
+
+        cleanup:
+        stack?.stop()
+    }
+
+    def "top protocol can dispatch incoming message during start"() {
+        Protocol<String> protocol = Mock()
+        def dispatched = startsAsyncAction()
+
+        when:
+        def stack
+        dispatched.started {
+            stack = new ProtocolStack<String>(executor, outgoingFailureHandler, incomingFailureHandler, protocol)
+            stack.top.dispatchTo(incoming)
+        }
+
+        then:
+        1 * protocol.start(!null) >> { it[0].dispatchIncoming("message") }
+        1 * incoming.dispatch("message") >> { dispatched.done() }
 
         cleanup:
         stack?.stop()
@@ -112,7 +136,6 @@ class ProtocolStackTest extends ConcurrentSpecification {
     }
 
     def "incoming message dispatched by top protocol is dispatch to a handler"() {
-        Dispatch<String> incoming = Mock()
         stack.top.dispatchTo(incoming)
         def dispatched = startsAsyncAction()
 
@@ -255,7 +278,6 @@ class ProtocolStackTest extends ConcurrentSpecification {
     }
 
     def "notifies failure handler when incoming handler throws exception"() {
-        Dispatch<String> incoming = Mock()
         stack.top.dispatchTo(incoming)
         def failure = new RuntimeException()
         def notified = startsAsyncAction()
@@ -285,7 +307,7 @@ class ProtocolStackTest extends ConcurrentSpecification {
         1 * bottom.stopRequested() >> { stopRequested.done() }
     }
 
-    def "stops blocks until protocols have stopped"() {
+    def "stop blocks until protocols have stopped"() {
         def stopped = waitsForAsyncActionToComplete()
 
         when:
@@ -295,15 +317,17 @@ class ProtocolStackTest extends ConcurrentSpecification {
 
         then:
         1 * top.stopRequested() >> {
-            topContext.stopLater(); topContext.stopped()
+            topContext.stopLater()
+            topContext.dispatchOutgoing("stopping")
         }
+        1 * bottom.handleOutgoing("stopping") >> { bottomContext.dispatchIncoming("ok") }
+        1 * top.handleIncoming("ok") >> { topContext.stopped() }
         1 * bottom.stopRequested() >> {
             stopped.done()
         }
     }
 
-    def "stops blocks until all incoming messages handled"() {
-        Dispatch<String> incoming = Mock()
+    def "stop blocks until all incoming messages handled"() {
         stack.top.dispatchTo(incoming)
         def stopped = waitsForAsyncActionToComplete()
 

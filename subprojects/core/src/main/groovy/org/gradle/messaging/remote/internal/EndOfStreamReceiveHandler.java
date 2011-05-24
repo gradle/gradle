@@ -15,25 +15,14 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
 
-/**
- * <p>A messaging endpoint which allows push-style dispatch and receive.
- *
- * <p>Implementations must be thread-safe.
- */
-public interface AsyncConnection<T> extends Dispatch<T> {
-    /**
-     * Dispatches a message to this connection. The implementation should not block.
-     *
-     * @param message The message.
-     */
-    void dispatch(T message);
+class EndOfStreamReceiveHandler implements ReceiveHandler<Message> {
+    public boolean isEndOfStream(Message message) {
+        return message instanceof EndOfStreamEvent;
+    }
 
-    /**
-     * Adds a handler to receive incoming messages. The handler does not need to be thread-safe. The handler should not block.
-     *
-     * @param handler The handler.
-     */
-    void dispatchTo(Dispatch<? super T> handler);
+    public Message endOfStream() {
+        return new EndOfStreamEvent();
+    }
 }

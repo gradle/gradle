@@ -22,15 +22,22 @@ import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
+import org.gradle.util.IdGenerator;
+import org.gradle.util.UUIDGenerator;
+
+import java.util.UUID;
 
 public class DefaultMultiChannelConnector implements MultiChannelConnector, Stoppable {
-    private final OutgoingConnector outgoingConnector;
+    private final OutgoingConnector<Message> outgoingConnector;
     private final ExecutorFactory executorFactory;
     private final StoppableExecutor executorService;
     private final HandshakeIncomingConnector incomingConnector;
+    private final IdGenerator<UUID> idGenerator = new UUIDGenerator();
+    private final ClassLoader messagingClassLoader;
 
-    public DefaultMultiChannelConnector(OutgoingConnector<Message> outgoingConnector, IncomingConnector<Object> incomingConnector,
-                                        ExecutorFactory executorFactory) {
+    public DefaultMultiChannelConnector(OutgoingConnector<Message> outgoingConnector, IncomingConnector<Message> incomingConnector,
+                                        ExecutorFactory executorFactory, ClassLoader messagingClassLoader) {
+        this.messagingClassLoader = messagingClassLoader;
         this.outgoingConnector = new HandshakeOutgoingConnector(outgoingConnector);
         this.executorFactory = executorFactory;
         executorService = executorFactory.create("Incoming Connection Handler");
@@ -42,25 +49,25 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
     }
 
     public Address accept(final Action<ConnectEvent<MultiChannelConnection<Object>>> action) {
-        return incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>() {
-            public void execute(ConnectEvent<Connection<Object>> event) {
+        return incomingConnector.accept(new Action<ConnectEvent<Connection<Message>>>() {
+            public void execute(ConnectEvent<Connection<Message>> event) {
                 finishConnect(event, action);
             }
         });
     }
 
-    private void finishConnect(ConnectEvent<Connection<Object>> event,
+    private void finishConnect(ConnectEvent<Connection<Message>> event,
                                Action<ConnectEvent<MultiChannelConnection<Object>>> action) {
         Address localAddress = event.getLocalAddress();
         Address remoteAddress = event.getRemoteAddress();
-        DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory,
-                String.format("Incoming Connection %s", localAddress), event.getConnection(), localAddress, remoteAddress);
+        MessageHub hub = new MessageHub(String.format("Incoming Connection %s", localAddress), "message server", executorFactory, idGenerator, messagingClassLoader);
+        DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(hub, event.getConnection(), localAddress, remoteAddress);
         action.execute(new ConnectEvent<MultiChannelConnection<Object>>(channelConnection, localAddress, remoteAddress));
     }
 
     public MultiChannelConnection<Object> connect(Address destinationAddress) {
-        Connection<Object> connection = outgoingConnector.connect(destinationAddress);
-        return new DefaultMultiChannelConnection(executorFactory,
-                String.format("Outgoing Connection %s", destinationAddress), connection, null, destinationAddress);
+        Connection<Message> connection = outgoingConnector.connect(destinationAddress);
+        MessageHub hub = new MessageHub(String.format("Outgoing Connection %s", destinationAddress), "message client", executorFactory, idGenerator, messagingClassLoader);
+        return new DefaultMultiChannelConnection(hub, connection, null, destinationAddress);
     }
 }

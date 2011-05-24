@@ -16,52 +16,20 @@
 
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.GradleException;
-import org.gradle.messaging.concurrent.CompositeStoppable;
-import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
-import org.gradle.messaging.dispatch.*;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
-import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
 
 class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
     private final Address sourceAddress;
     private final Address destinationAddress;
-    private final IncomingDemultiplex incomingDemux;
-    private final StoppableExecutor executor;
-    private final AsyncConnectionAdapter<Object> connection;
-    private final ProtocolStack<Object> stack;
-    private final DiscardingFailureHandler<Object> failureHandler;
+    private final MessageHub hub;
 
-    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, Connection<Object> connection, Address sourceAddress, Address destinationAddress) {
-        this.connection = new AsyncConnectionAdapter<Object>(connection, new ObjectReceiveHandler(), executorFactory);
-        this.executor = executorFactory.create(displayName);
-
+    DefaultMultiChannelConnection(MessageHub hub, Connection<Message> connection, Address sourceAddress, Address destinationAddress) {
+        this.hub = hub;
         this.sourceAddress = sourceAddress;
         this.destinationAddress = destinationAddress;
 
-
-        Protocol<Object> endOfStream = new EndOfStreamHandshakeProtocol(new Runnable() {
-            public void run() {
-                requestStop();
-            }
-        });
-        Protocol<Object> channel = new ChannelMultiplexProtocol();
-        failureHandler = new DiscardingFailureHandler<Object>(LoggerFactory.getLogger(DefaultMultiChannelConnector.class));
-
-        stack = new ProtocolStack<Object>(executor, failureHandler, failureHandler, endOfStream, channel);
-        this.connection.dispatchTo(stack.getBottom());
-        stack.getBottom().dispatchTo(connection);
-
-        incomingDemux = new IncomingDemultiplex(executor);
-        stack.getTop().dispatchTo(incomingDemux);
-    }
-
-    private Dispatch<Object> wrapFailures(Dispatch<Object> dispatch) {
-        return new FailureHandlingDispatch<Object>(dispatch, failureHandler);
+        hub.addConnection(connection);
     }
 
     public Address getLocalAddress() {
@@ -78,39 +46,20 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
         return destinationAddress;
     }
 
+    public void addIncomingChannel(String channelKey, final Dispatch<Object> dispatch) {
+        hub.addIncoming(channelKey, dispatch);
+    }
+
+    public Dispatch<Object> addOutgoingChannel(String channelKey) {
+        return hub.addUnicastOutgoing(channelKey);
+    }
+
     public void requestStop() {
-        stack.requestStop();
-    }
-
-    public void addIncomingChannel(Object channelKey, Dispatch<Object> dispatch) {
-        incomingDemux.addIncomingChannel(channelKey, wrapFailures(dispatch));
-    }
-
-    public Dispatch<Object> addOutgoingChannel(Object channelKey) {
-        return new OutgoingMultiplex(channelKey, stack.getTop());
+        hub.requestStop();
     }
 
     public void stop() {
-        executor.execute(new Runnable() {
-            public void run() {
-                requestStop();
-                new CompositeStoppable(stack, connection, incomingDemux).stop();
-            }
-        });
-        try {
-            executor.stop(120, TimeUnit.SECONDS);
-        } catch (Throwable e) {
-            throw new GradleException("Could not stop connection.", e);
-        }
-    }
-
-    private static class ObjectReceiveHandler implements ReceiveHandler<Object> {
-        public boolean isEndOfStream(Object message) {
-            return message instanceof EndOfStreamEvent;
-        }
-
-        public Object endOfStream() {
-            return new EndOfStreamEvent();
-        }
+        requestStop();
+        hub.stop();
     }
 }

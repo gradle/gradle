@@ -70,8 +70,27 @@ public class AsyncReceiveTest extends ConcurrentSpecification {
         }
 
         then:
-        2 * source1.receive() >>> ['message', null]
-        1 * target1.dispatch('message') >> { received.done() }
+        3 * source1.receive() >>> ['message1', 'message2', null]
+        1 * target1.dispatch('message1')
+        1 * target1.dispatch('message2') >> { received.done() }
+    }
+
+    def "can dispatch to multiple dispatches"() {
+        def received = startsAsyncAction()
+
+        when:
+        received.started {
+            dispatch.receiveFrom(source1)
+            dispatch.receiveFrom(source2)
+            dispatch.dispatchTo(target1)
+            dispatch.dispatchTo(target2)
+        }
+
+        then:
+        2 * source1.receive() >>> ['message1', null]
+        2 * source2.receive() >>> ['message2', null]
+        1 * _.dispatch('message1')
+        1 * _.dispatch('message2') >> { received.done() }
     }
 
     def "stop blocks until all receive calls have completed"() {
@@ -112,7 +131,7 @@ public class AsyncReceiveTest extends ConcurrentSpecification {
     def "can stop when no dispatch provided"() {
         given:
         dispatch.receiveFrom(source1)
-        
+
         expect:
         dispatch.stop()
     }

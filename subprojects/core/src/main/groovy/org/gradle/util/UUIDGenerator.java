@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.remote.internal;
+package org.gradle.util;
 
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.remote.internal.protocol.ChannelMessage;
+import java.util.UUID;
 
-class OutgoingMultiplex implements Dispatch<Object> {
-    private final Dispatch<ChannelMessage> dispatch;
-    private final String channelKey;
-
-    OutgoingMultiplex(String channelKey, Dispatch<ChannelMessage> dispatch) {
-        this.channelKey = channelKey;
-        this.dispatch = dispatch;
-    }
-
-    public void dispatch(Object message) {
-        dispatch.dispatch(new ChannelMessage(channelKey, message));
+public class UUIDGenerator implements IdGenerator<UUID> {
+    public UUID generateId() {
+        return UUID.randomUUID();
     }
 }

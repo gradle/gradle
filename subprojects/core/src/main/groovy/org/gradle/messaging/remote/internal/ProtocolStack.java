@@ -20,6 +20,8 @@ import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.dispatch.*;
 import org.gradle.util.TrueTimeProvider;
 import org.gradle.util.UncheckedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
@@ -28,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProtocolStack<T> implements AsyncStoppable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProtocolStack.class);
     private final AsyncDispatch<Runnable> workQueue;
     private final AsyncDispatch<T> incomingQueue;
     private final AsyncDispatch<T> outgoingQueue;
@@ -35,14 +38,14 @@ public class ProtocolStack<T> implements AsyncStoppable {
     private final DelayedReceive<Runnable> callbackQueue;
     private final LinkedList<Stage> stack = new LinkedList<Stage>();
     private final LinkedList<Runnable> contextQueue = new LinkedList<Runnable>();
-    private final DispatchFailureHandler<T> outgoingDispatchFailureHandler;
-    private final DispatchFailureHandler<T> incomingDispatchFailureHandler;
+    private final DispatchFailureHandler<? super T> outgoingDispatchFailureHandler;
+    private final DispatchFailureHandler<? super T> incomingDispatchFailureHandler;
     private final CountDownLatch protocolsStopped;
     private final AtomicBoolean stopRequested = new AtomicBoolean();
     private final AsyncConnection<T> bottomConnection;
     private final AsyncConnection<T> topConnection;
 
-    public ProtocolStack(Executor executor, DispatchFailureHandler<T> outgoingDispatchFailureHandler, DispatchFailureHandler<T> incomingDispatchFailureHandler,
+    public ProtocolStack(Executor executor, DispatchFailureHandler<? super T> outgoingDispatchFailureHandler, DispatchFailureHandler<? super T> incomingDispatchFailureHandler,
                          Protocol<T>... protocols) {
         this.outgoingDispatchFailureHandler = outgoingDispatchFailureHandler;
         this.incomingDispatchFailureHandler = incomingDispatchFailureHandler;
@@ -69,13 +72,6 @@ public class ProtocolStack<T> implements AsyncStoppable {
             context.attach(outgoingStage, incomingStage);
         }
 
-        // Start each protocol from bottom to top
-        for (int i = stack.size() - 1; i >= 0; i--) {
-            Stage context = stack.get(i);
-            context.start();
-        }
-        assert contextQueue.isEmpty();
-
         // Wire up callback queue
         receiver = new AsyncReceive<Runnable>(executor);
         receiver.dispatchTo(workQueue);
@@ -83,6 +79,16 @@ public class ProtocolStack<T> implements AsyncStoppable {
 
         bottomConnection = new BottomConnection();
         topConnection = new TopConnection();
+
+        // Start each protocol from bottom to top
+        workQueue.dispatch(new Runnable() {
+            public void run() {
+                for (int i = stack.size() - 1; i >= 0; i--) {
+                    Stage context = stack.get(i);
+                    context.start();
+                }
+            }
+        });
     }
 
     public AsyncConnection<T> getBottom() {
@@ -97,9 +103,8 @@ public class ProtocolStack<T> implements AsyncStoppable {
         if (!stopRequested.getAndSet(true)) {
             workQueue.dispatch(new Runnable() {
                 public void run() {
-                    for (Stage stage : stack) {
-                        stage.requestStop();
-                    }
+                    LOGGER.debug("Requesting stop for top protocol of stack.");
+                    stack.getFirst().requestStop();
                 }
             });
         }
@@ -114,6 +119,7 @@ public class ProtocolStack<T> implements AsyncStoppable {
         }
         callbackQueue.clear();
         new CompositeStoppable(callbackQueue, receiver, workQueue, incomingQueue, outgoingQueue).stop();
+        LOGGER.debug("Protocol stack stopped.");
     }
 
     private class ExecuteRunnable implements Dispatch<Runnable> {
@@ -208,6 +214,7 @@ public class ProtocolStack<T> implements AsyncStoppable {
             if (!stopped) {
                 stopped = true;
                 protocolsStopped.countDown();
+                outgoing.requestStop();
             }
         }
 
@@ -253,6 +260,11 @@ public class ProtocolStack<T> implements AsyncStoppable {
         @Override
         public void handleOutgoing(T message) {
             outgoing.handleOutgoing(message);
+        }
+
+        @Override
+        public void requestStop() {
+            outgoing.requestStop();
         }
     }
 

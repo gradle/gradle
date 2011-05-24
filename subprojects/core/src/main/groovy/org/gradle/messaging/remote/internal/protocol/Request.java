@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,17 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
-public class ChannelMessage extends AbstractPayloadMessage implements PayloadMessage {
-    private final String channel;
+public class Request extends AbstractPayloadMessage implements RoutableMessage, PayloadMessage {
+    private final Object consumerId;
     private final Object payload;
 
-    public ChannelMessage(String channel, Object payload) {
-        this.channel = channel;
+    public Request(Object consumerId, Object payload) {
+        this.consumerId = consumerId;
         this.payload = payload;
     }
 
-    public String getChannel() {
-        return channel;
+    public Object getDestination() {
+        return consumerId;
     }
 
     public Object getPayload() {
@@ -35,29 +35,29 @@ public class ChannelMessage extends AbstractPayloadMessage implements PayloadMes
     }
 
     public Message withPayload(Object payload) {
-        return new ChannelMessage(channel, payload);
+        return new Request(consumerId, payload);
     }
 
     @Override
     public String toString() {
-        return String.format("[ChannelMessage channel: %s, payload: %s]", channel, payload);
+        return String.format("[Request consumer: %s, payload: %s]", consumerId, payload);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
+    public boolean equals(Object o) {
+        if (o == this) {
             return true;
         }
-        if (obj == null || !getClass().equals(obj.getClass())) {
+        if (o == null || o.getClass() != getClass()) {
             return false;
         }
 
-        ChannelMessage other = (ChannelMessage) obj;
-        return channel.equals(other.channel) && payload.equals(other.payload);
+        Request other = (Request) o;
+        return consumerId.equals(other.consumerId) && payload.equals(other.payload);
     }
 
     @Override
     public int hashCode() {
-        return channel.hashCode() ^ payload.hashCode();
+        return consumerId.hashCode() ^ payload.hashCode();
     }
 }

@@ -19,6 +19,8 @@ package org.gradle.messaging.dispatch;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.util.UncheckedException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -35,7 +37,7 @@ public class AsyncReceive<T> implements AsyncStoppable {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final Executor executor;
-    private Dispatch<? super T> dispatch;
+    private final List<Dispatch<? super T>> dispatches = new ArrayList<Dispatch<? super T>>();
     private int receivers;
     private State state = State.Init;
 
@@ -49,15 +51,12 @@ public class AsyncReceive<T> implements AsyncStoppable {
     }
 
     /**
-     * Starts dispatching to the given dispatch. The dispatch must be thread-safe.
+     * Starts dispatching to the given dispatch. The dispatch does not need be thread-safe.
      */
     public void dispatchTo(final Dispatch<? super T> dispatch) {
         lock.lock();
         try {
-            if (this.dispatch != null) {
-                throw new IllegalStateException("Cannot dispatch to multiple dispatches.");
-            }
-            this.dispatch = dispatch;
+            dispatches.add(dispatch);
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -107,7 +106,7 @@ public class AsyncReceive<T> implements AsyncStoppable {
             Dispatch<? super T> dispatch;
             lock.lock();
             try {
-                while (this.dispatch == null && state == State.Init) {
+                while (dispatches.isEmpty() && state == State.Init) {
                     try {
                         condition.await();
                     } catch (InterruptedException e) {
@@ -117,25 +116,26 @@ public class AsyncReceive<T> implements AsyncStoppable {
                 if (state != State.Init) {
                     return;
                 }
-                dispatch = this.dispatch;
+                dispatch = dispatches.remove(0);
             } finally {
                 lock.unlock();
             }
 
-            T message = receive.receive();
-            if (message == null) {
-                return;
-            }
-
-            dispatch.dispatch(message);
-
-            lock.lock();
             try {
-                if (state != State.Init) {
+                T message = receive.receive();
+                if (message == null) {
                     return;
                 }
+
+                dispatch.dispatch(message);
             } finally {
-                lock.unlock();
+                lock.lock();
+                try {
+                    dispatches.add(dispatch);
+                    condition.signalAll();
+                } finally {
+                    lock.unlock();
+                }
             }
         }
     }

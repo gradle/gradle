@@ -28,6 +28,7 @@ import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryProtocolSerializer;
+import org.gradle.util.UUIDGenerator;
 import org.gradle.util.UncheckedException;
 
 import java.net.InetAddress;
@@ -52,9 +53,10 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     private final ClassLoader messageClassLoader;
     private final String broadcastGroup;
     private final SocketInetAddress broadcastAddress;
+    private final String nodeName;
     private DefaultMessagingClient messagingClient;
     private DefaultMultiChannelConnector multiChannelConnector;
-    private TcpIncomingConnector<Object> incomingConnector;
+    private TcpIncomingConnector<Message> incomingConnector;
     private DefaultExecutorFactory executorFactory;
     private DefaultMessagingServer messagingServer;
     private DefaultIncomingBroadcast incomingBroadcast;
@@ -73,6 +75,11 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         this.messageClassLoader = messageClassLoader;
         this.broadcastGroup = broadcastGroup;
         this.broadcastAddress = broadcastAddress;
+        try {
+            nodeName = String.format("%s@%s", System.getProperty("user.name"), InetAddress.getLocalHost().getHostName());
+        } catch (UnknownHostException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
     }
 
     private static SocketInetAddress defaultBroadcastAddress() {
@@ -107,42 +114,72 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     }
 
     protected OutgoingConnector<Message> createOutgoingConnector() {
-        return new TcpOutgoingConnector<Message>(new DefaultMessageSerializer<Message>(messageClassLoader));
+        return new TcpOutgoingConnector<Message>(
+                new DefaultMessageSerializer<Message>(
+                        messageClassLoader));
     }
 
-    protected IncomingConnector<Object> createIncomingConnector() {
-        incomingConnector = new TcpIncomingConnector<Object>(get(ExecutorFactory.class), new DefaultMessageSerializer<Object>(messageClassLoader));
+    protected IncomingConnector<Message> createIncomingConnector() {
+        incomingConnector = new TcpIncomingConnector<Message>(
+                get(ExecutorFactory.class),
+                new DefaultMessageSerializer<Message>(
+                        messageClassLoader));
         return incomingConnector;
     }
 
     protected MultiChannelConnector createMultiChannelConnector() {
-        multiChannelConnector = new DefaultMultiChannelConnector(get(OutgoingConnector.class), get(IncomingConnector.class), get(ExecutorFactory.class));
+        multiChannelConnector = new DefaultMultiChannelConnector(
+                get(OutgoingConnector.class),
+                get(IncomingConnector.class),
+                get(ExecutorFactory.class),
+                messageClassLoader);
         return multiChannelConnector;
     }
 
     protected MessagingClient createMessagingClient() {
-        messagingClient = new DefaultMessagingClient(get(MultiChannelConnector.class), messageClassLoader);
+        messagingClient = new DefaultMessagingClient(
+                get(MultiChannelConnector.class),
+                messageClassLoader);
         return messagingClient;
     }
 
     protected MessagingServer createMessagingServer() {
-        messagingServer = new DefaultMessagingServer(get(MultiChannelConnector.class), messageClassLoader);
+        messagingServer = new DefaultMessagingServer(
+                get(MultiChannelConnector.class),
+                messageClassLoader);
         return messagingServer;
     }
 
     protected IncomingBroadcast createIncomingBroadcast() {
-        incomingBroadcast = new DefaultIncomingBroadcast(broadcastGroup, get(AsyncConnection.class), get(IncomingConnector.class), get(ExecutorFactory.class));
+        incomingBroadcast = new DefaultIncomingBroadcast(
+                broadcastGroup,
+                nodeName,
+                get(AsyncConnection.class),
+                get(IncomingConnector.class),
+                get(ExecutorFactory.class),
+                new UUIDGenerator(),
+                messageClassLoader);
         return incomingBroadcast;
     }
 
     protected OutgoingBroadcast createOutgoingBroadcast() {
-        outgoingBroadcast = new DefaultOutgoingBroadcast(broadcastGroup, get(AsyncConnection.class), get(OutgoingConnector.class), get(ExecutorFactory.class));
+        outgoingBroadcast = new DefaultOutgoingBroadcast(
+                broadcastGroup,
+                nodeName,
+                get(AsyncConnection.class),
+                get(OutgoingConnector.class),
+                get(ExecutorFactory.class),
+                new UUIDGenerator(),
+                messageClassLoader);
         return outgoingBroadcast;
     }
 
     protected AsyncConnection<DiscoveryMessage> createMulticastConnection() {
         MulticastConnection<DiscoveryMessage> connection = new MulticastConnection<DiscoveryMessage>(broadcastAddress, new DiscoveryProtocolSerializer());
-        multicastConnection = new AsyncConnectionAdapter<DiscoveryMessage>(connection, new DiscoveryMessageReceiveHandler(), get(ExecutorFactory.class));
+        multicastConnection = new AsyncConnectionAdapter<DiscoveryMessage>(
+                connection,
+                new DiscoveryMessageReceiveHandler(),
+                get(ExecutorFactory.class));
         return multicastConnection;
     }
 

@@ -24,12 +24,10 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class IncomingMethodInvocationHandler {
-    private final ClassLoader classLoader;
     private final MultiChannelConnection<Object> connection;
     private final Set<Class<?>> classes = new CopyOnWriteArraySet<Class<?>>();
 
-    public IncomingMethodInvocationHandler(ClassLoader classLoader, MultiChannelConnection<Object> connection) {
-        this.classLoader = classLoader;
+    public IncomingMethodInvocationHandler(MultiChannelConnection<Object> connection) {
         this.connection = connection;
     }
 
@@ -44,7 +42,7 @@ public class IncomingMethodInvocationHandler {
             if (!classes.add(incomingType)) {
                 throw new IllegalArgumentException(String.format("A handler has already been added for type '%s'.", incomingType.getName()));
             }
-            connection.addIncomingChannel(incomingType.getName(), new MethodInvocationUnmarshallingDispatch(dispatch, classLoader));
+            connection.addIncomingChannel(incomingType.getName(), new TypeCastDispatch<MethodInvocation, Object>(MethodInvocation.class, dispatch));
         }
     }
 

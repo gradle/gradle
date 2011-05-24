@@ -41,6 +41,11 @@ public class ChannelAvailable extends DiscoveryMessage {
         return super.hashCode() ^ channel.hashCode() ^ address.hashCode();
     }
 
+    @Override
+    public String toString() {
+        return String.format("[ChannelAvailable channel: %s, address: %s]", channel, address);
+    }
+
     public String getChannel() {
         return channel;
     }

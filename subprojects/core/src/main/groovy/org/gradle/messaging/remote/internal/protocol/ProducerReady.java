@@ -15,16 +15,17 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
-public class LookupRequest extends DiscoveryMessage {
-    private final String channel;
+public class ProducerReady extends ProducerMessage {
+    private final String displayName;
 
-    public LookupRequest(String group, String channel) {
-        super(group);
-        this.channel = channel;
+    public ProducerReady(Object producerId, Object consumerId, String displayName) {
+        super(producerId, consumerId);
+        this.displayName = displayName;
     }
 
-    public String getChannel() {
-        return channel;
+    @Override
+    public String toString() {
+        return String.format("[ProducerReady id: %s, consumerId: %s, displayName: %s", getProducerId(), getConsumerId(), displayName);
     }
 
     @Override
@@ -32,18 +33,12 @@ public class LookupRequest extends DiscoveryMessage {
         if (!super.equals(o)) {
             return false;
         }
-
-        LookupRequest other = (LookupRequest) o;
-        return channel.equals(other.channel);
+        ProducerReady other = (ProducerReady) o;
+        return displayName.equals(other.displayName);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ channel.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("[LookupRequest channel: %s]", channel);
+        return super.hashCode() ^ displayName.hashCode();
     }
 }

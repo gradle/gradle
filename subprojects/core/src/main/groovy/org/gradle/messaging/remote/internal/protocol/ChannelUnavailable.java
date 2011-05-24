@@ -49,4 +49,9 @@ public class ChannelUnavailable extends DiscoveryMessage {
     public int hashCode() {
         return super.hashCode() ^ channel.hashCode() ^ address.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return String.format("[ChannelUnavailable channel: %s, address: %s]", channel, address);
+    }
 }

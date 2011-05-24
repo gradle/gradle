@@ -50,7 +50,7 @@ public class DefaultMessagingServer implements MessagingServer, Stoppable {
     private void finishConnect(ConnectEvent<MultiChannelConnection<Object>> connectEvent,
                                Action<ConnectEvent<ObjectConnection>> action) {
         MultiChannelConnection<Object> messageConnection = connectEvent.getConnection();
-        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, messageConnection);
+        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(messageConnection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(messageConnection);
         AtomicReference<ObjectConnection> connectionRef = new AtomicReference<ObjectConnection>();
         AsyncStoppable stopControl = new ConnectionAsyncStoppable(messageConnection, connectionRef);

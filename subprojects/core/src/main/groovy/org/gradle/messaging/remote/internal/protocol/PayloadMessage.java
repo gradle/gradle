@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.remote.internal;
+package org.gradle.messaging.remote.internal.protocol;
 
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.remote.internal.protocol.ChannelMessage;
+import org.gradle.messaging.remote.internal.Message;
 
-class OutgoingMultiplex implements Dispatch<Object> {
-    private final Dispatch<ChannelMessage> dispatch;
-    private final String channelKey;
+public interface PayloadMessage {
+    Object getNestedPayload();
 
-    OutgoingMultiplex(String channelKey, Dispatch<ChannelMessage> dispatch) {
-        this.channelKey = channelKey;
-        this.dispatch = dispatch;
-    }
-
-    public void dispatch(Object message) {
-        dispatch.dispatch(new ChannelMessage(channelKey, message));
-    }
+    Message withNestedPayload(Object payload);
 }

@@ -17,23 +17,16 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
 
-/**
- * <p>A messaging endpoint which allows push-style dispatch and receive.
- *
- * <p>Implementations must be thread-safe.
- */
-public interface AsyncConnection<T> extends Dispatch<T> {
-    /**
-     * Dispatches a message to this connection. The implementation should not block.
-     *
-     * @param message The message.
-     */
-    void dispatch(T message);
+class TypeCastDispatch<S, T> implements Dispatch<T> {
+    private final Class<S> type;
+    private final Dispatch<? super S> dispatch;
 
-    /**
-     * Adds a handler to receive incoming messages. The handler does not need to be thread-safe. The handler should not block.
-     *
-     * @param handler The handler.
-     */
-    void dispatchTo(Dispatch<? super T> handler);
+    TypeCastDispatch(Class<S> type, Dispatch<? super S> dispatch) {
+        this.type = type;
+        this.dispatch = dispatch;
+    }
+
+    public void dispatch(T message) {
+        dispatch.dispatch(type.cast(message));
+    }
 }

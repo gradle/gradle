@@ -36,7 +36,7 @@ public class DefaultMessagingClient implements MessagingClient, Stoppable {
 
     public ObjectConnection getConnection(Address address) {
         MultiChannelConnection<Object> connection = connector.connect(address);
-        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, connection);
+        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(connection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(connection);
         ObjectConnection objectConnection = new DefaultObjectConnection(connection, connection, outgoing, incoming);
         connections.add(objectConnection);

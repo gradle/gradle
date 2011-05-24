@@ -15,35 +15,46 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
-public class LookupRequest extends DiscoveryMessage {
-    private final String channel;
+import org.gradle.messaging.remote.internal.Message;
 
-    public LookupRequest(String group, String channel) {
-        super(group);
-        this.channel = channel;
+public class ConsumerUnavailable extends Message implements RoutableMessage, RouteUnavailableMessage {
+    private final Object id;
+
+    public ConsumerUnavailable(Object id) {
+        this.id = id;
     }
 
-    public String getChannel() {
-        return channel;
+    public Object getId() {
+        return id;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        LookupRequest other = (LookupRequest) o;
-        return channel.equals(other.channel);
+    public Object getSource() {
+        return id;
     }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode() ^ channel.hashCode();
+    public Object getDestination() {
+        return null;
     }
 
     @Override
     public String toString() {
-        return String.format("[LookupRequest channel: %s]", channel);
+        return String.format("[ConsumerUnavailable id: %s]", id);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || o.getClass() != getClass()) {
+            return false;
+        }
+        ConsumerUnavailable other = (ConsumerUnavailable) o;
+        return id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

@@ -17,9 +17,7 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
-import org.gradle.messaging.dispatch.ThreadSafeDispatch;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,11 +33,10 @@ public class OutgoingMethodInvocationHandler {
     public <T> T addOutgoing(Class<T> type) {
         ProxyDispatchAdapter<?> existing = outgoing.get(type);
         if (existing != null) {
-            return type.cast(outgoing.get(type).getSource());
+            return type.cast(existing.getSource());
         }
 
-        Dispatch<MethodInvocation> dispatch = new ThreadSafeDispatch<MethodInvocation>(
-                new MethodInvocationMarshallingDispatch(connection.addOutgoingChannel(type.getName())));
+        Dispatch<Object> dispatch = connection.addOutgoingChannel(type.getName());
         ProxyDispatchAdapter<T> adapter = new ProxyDispatchAdapter<T>(type, dispatch);
         outgoing.put(type, adapter);
         return adapter.getSource();
