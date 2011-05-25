@@ -123,11 +123,18 @@ class EclipseWtpComponent {
     Set<File> sourceDirs
 
     /**
-     * The configurations whose files are to be transformed into dependent-module elements.
+     * The configurations whose files are to be transformed into dependent-module elements with a deploy path of '/'.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    Set<Configuration> plusConfigurations
+    Set<Configuration> rootConfigurations = []
+
+    /**
+     * The configurations whose files are to be transformed into dependent-module elements with a deploy path of {@link #libDeployPath}.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    Set<Configuration> libConfigurations
 
     /**
      * The configurations whose files are to be excluded from dependent-module elements.
@@ -185,6 +192,20 @@ class EclipseWtpComponent {
      * For examples see docs for {@link EclipseWtp}
      */
     String contextPath
+
+    /**
+     * The deploy path for classes.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    String classesDeployPath = "/WEB-INF/classes"
+
+    /**
+     * The deploy path for libraries.
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    String libDeployPath = "/WEB-INF/lib"
 
     /**
      * Enables advanced configuration like tinkering with the output xml

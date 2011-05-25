@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.plugins.ide.eclipse.model.Facet.FacetType;
+
 import spock.lang.Specification
 
 /**
@@ -23,6 +25,7 @@ import spock.lang.Specification
 
 class FacetTest extends Specification {
     final static String XML_TEXT = '<installed facet="jst.web" version="2.4"/>'
+    final static String FIXED_XML_TEXT = '<fixed facet="jst.web"/>'
 
     def canReadFromXml() {
         when:
@@ -30,6 +33,14 @@ class FacetTest extends Specification {
 
         then:
         facet == createFacet()
+    }
+
+    def canReadFixedFromXml() {
+        when:
+        Facet facet = new Facet(new XmlParser().parseText(FIXED_XML_TEXT))
+
+        then:
+        facet == createFixedFacet()
     }
 
     def canWriteToXml() {
@@ -42,6 +53,16 @@ class FacetTest extends Specification {
         new Facet(rootNode.installed[0]) == createFacet()
     }
 
+    def canWriteFixedToXml() {
+        Node rootNode = new Node(null, 'root')
+
+        when:
+        createFixedFacet().appendNode(rootNode)
+
+        then:
+        new Facet(rootNode.fixed[0]) == createFixedFacet()
+    }
+
     def equality() {
         Facet facet = createFacet()
         facet.name += 'x'
@@ -50,8 +71,20 @@ class FacetTest extends Specification {
         facet != createFacet()
     }
 
+    def fixedEquality() {
+        Facet facet = createFixedFacet()
+        facet.name += 'x'
+
+        expect:
+        facet != createFixedFacet()
+    }
+
     private Facet createFacet() {
-        return new Facet("jst.web", "2.4")
+        return new Facet(FacetType.installed, "jst.web", "2.4")
+    }
+
+    private Facet createFixedFacet() {
+        return new Facet(FacetType.fixed, "jst.web", null)
     }
 
 

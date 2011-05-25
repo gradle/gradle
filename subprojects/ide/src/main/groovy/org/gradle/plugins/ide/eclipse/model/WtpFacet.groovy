@@ -20,7 +20,6 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 /**
  * Creates the .settings/org.eclipse.wst.common.project.facet.core.xml file for WTP projects.
- * Only handles installed facets. Fixed facets will be left untouched.
  *
  * @author Hans Dockter
  */
@@ -32,6 +31,7 @@ class WtpFacet extends XmlPersistableConfigurationObject {
     }
 
     @Override protected void load(Node xml) {
+        xml.fixed.each { facets.add(new Facet(it)) }
         xml.installed.each { facets.add(new Facet(it)) }
     }
 
@@ -51,6 +51,7 @@ class WtpFacet extends XmlPersistableConfigurationObject {
     }
 
     private void removeConfigurableDataFromXml() {
+        xml.fixed.each { xml.remove(it) }
         xml.installed.each { xml.remove(it) }
     }
 
