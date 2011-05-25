@@ -74,13 +74,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
 
     public void stop() {
         CompositeStoppable stoppable = new CompositeStoppable();
-        lock.lock();
-        try {
-            stoppable.add(protocolStack, hub, executor);
-        } finally {
-            channels.clear();
-            lock.unlock();
-        }
+        stoppable.add(protocolStack, hub, executor);
         stoppable.stop();
     }
 

@@ -83,6 +83,7 @@ public class BroadcastSendProtocol implements Protocol<Object> {
         context.callbackLater(5, TimeUnit.SECONDS, new Runnable() {
             public void run() {
                 LOGGER.debug("Timeout waiting for queued messages to be dispatched. Stopping now.");
+                queue.clear();
                 context.stopped();
             }
         });

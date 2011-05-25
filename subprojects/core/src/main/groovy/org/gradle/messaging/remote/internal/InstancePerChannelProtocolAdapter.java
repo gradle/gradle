@@ -23,10 +23,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * A {@link Protocol} implementation which routes messages for a channel via a channel-specific {@link Protocol} instance.
  */
-public class InstancePerChannelProtocolAdapter<T> implements Protocol<ChannelMessage> {
+public class InstancePerChannelProtocolAdapter<T> implements Protocol<Message> {
     private final Class<T> type;
     private final ChannelProtocolFactory<T> factory;
-    private ProtocolContext<ChannelMessage> context;
+    private ProtocolContext<Message> context;
     private final Set<String> initialChannels = new HashSet<String>();
     private Map<String, ProtocolContextAdapter> channels = new HashMap<String, ProtocolContextAdapter>();
     private boolean stopping;
@@ -37,19 +37,21 @@ public class InstancePerChannelProtocolAdapter<T> implements Protocol<ChannelMes
         this.initialChannels.addAll(Arrays.asList(initialChannels));
     }
 
-    public void start(ProtocolContext<ChannelMessage> context) {
+    public void start(ProtocolContext<Message> context) {
         this.context = context;
         for (String initialChannel : initialChannels) {
             findChannel(initialChannel);
         }
     }
 
-    public void handleOutgoing(ChannelMessage message) {
-        findChannel(message).handleOutgoing(type.cast(message.getPayload()));
+    public void handleOutgoing(Message message) {
+        ChannelMessage channelMessage = (ChannelMessage) message;
+        findChannel(channelMessage).handleOutgoing(type.cast(channelMessage.getPayload()));
     }
 
-    public void handleIncoming(ChannelMessage message) {
-        findChannel(message).handleIncoming(type.cast(message.getPayload()));
+    public void handleIncoming(Message message) {
+        ChannelMessage channelMessage = (ChannelMessage) message;
+        findChannel(channelMessage).handleIncoming(type.cast(channelMessage.getPayload()));
     }
 
     public void stopRequested() {
@@ -111,7 +113,7 @@ public class InstancePerChannelProtocolAdapter<T> implements Protocol<ChannelMes
         }
 
         public Callback callbackLater(int delay, TimeUnit delayUnits, Runnable action) {
-            throw new UnsupportedOperationException();
+            return context.callbackLater(delay, delayUnits, action);
         }
 
         public void stopLater() {

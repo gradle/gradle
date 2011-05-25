@@ -19,68 +19,66 @@ import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
-import org.gradle.messaging.dispatch.AsyncDispatch;
-import org.gradle.messaging.dispatch.AsyncReceive;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.Receive;
+import org.gradle.messaging.dispatch.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Adapts a {@link Connection} into a {@link AsyncConnection}.
+ * Adapts a {@link Connection} into an {@link AsyncConnection}.
  */
 public class AsyncConnectionAdapter<T> implements AsyncConnection<T>, Stoppable {
     private final Connection<T> connection;
-    private final AsyncDispatch<T> outgoing;
     private final AsyncReceive<T> incoming;
-    private final ReceiveHandler<T> receiveHandler;
+    private final ProtocolStack<T> stack;
+    private final AsyncDispatch<T> outgoing;
     private final Set<Stoppable> executors = new HashSet<Stoppable>();
 
-    public AsyncConnectionAdapter(Connection<T> connection, ReceiveHandler<T> receiveHandler, ExecutorFactory executor) {
+    public AsyncConnectionAdapter(Connection<T> connection, DispatchFailureHandler<? super T> dispatchFailureHandler, ExecutorFactory executor, Protocol<T>... protocols) {
         this.connection = connection;
-        this.receiveHandler = receiveHandler;
 
         StoppableExecutor outgoingExecutor = executor.create(String.format("%s send", connection));
         executors.add(outgoingExecutor);
         outgoing = new AsyncDispatch<T>(outgoingExecutor);
         outgoing.dispatchTo(connection);
 
+        StoppableExecutor dispatchExecutor = executor.create(String.format("%s dispatch", connection));
+        executors.add(dispatchExecutor);
+        stack = new ProtocolStack<T>(dispatchExecutor, dispatchFailureHandler, dispatchFailureHandler, protocols);
+        stack.getTop().dispatchTo(outgoing);
+
         StoppableExecutor incomingExecutor = executor.create(String.format("%s receive", connection));
         executors.add(incomingExecutor);
         incoming = new AsyncReceive<T>(incomingExecutor);
-        incoming.receiveFrom(new IncomingReceive());
+        incoming.dispatchTo(stack.getTop());
+        incoming.receiveFrom(new ConnectionReceive<T>(connection));
     }
 
     public void dispatch(T message) {
-        outgoing.dispatch(message);
+        stack.getBottom().dispatch(message);
     }
 
     public void dispatchTo(Dispatch<? super T> handler) {
-        incoming.dispatchTo(handler);
+        stack.getBottom().dispatchTo(handler);
     }
 
     public void stop() {
-        new CompositeStoppable(outgoing, connection, incoming).add(executors).stop();
+        new CompositeStoppable(stack, outgoing, connection, incoming).add(executors).stop();
     }
 
-    private class IncomingReceive implements Receive<T> {
-        boolean finished;
+    private class ConnectionReceive<T> implements Receive<T> {
+        private final Connection<T> connection;
+
+        public ConnectionReceive(Connection<T> connection) {
+            this.connection = connection;
+        }
 
         public T receive() {
-            if (finished) {
-                return null;
+            T result = connection.receive();
+            if (result == null) {
+                stack.requestStop();
             }
-
-            T message = connection.receive();
-            if (message == null) {
-                finished = true;
-                return receiveHandler.endOfStream();
-            } else if (receiveHandler.isEndOfStream(message)) {
-                finished = true;
-            }
-
-            return message;
+            return result;
         }
     }
 }

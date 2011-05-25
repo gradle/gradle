@@ -95,7 +95,7 @@ public class SocketConnection<T> implements Connection<T> {
             serializer.write(message, outstr);
             outstr.flush();
         } catch (Exception e) {
-            throw new MessageIOException(String.format("Could not write message to '%s'.", remoteAddress), e);
+            throw new MessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         }
     }
 

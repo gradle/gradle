@@ -70,33 +70,33 @@ public class ReceiveProtocol implements Protocol<Message> {
         producers.remove(producerId);
         if (stopping && producers.isEmpty()) {
             LOGGER.debug("All producers finished. Stopping now.");
-            stopped();
+            allProducersFinished();
         }
     }
 
     public void handleOutgoing(Message message) {
         if (message instanceof WorkerStopping) {
-            maybeStop();
+            workerStopped();
         } else {
             throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s", message));
         }
     }
 
-    private void maybeStop() {
+    private void workerStopped() {
         stopping = true;
         if (producers.isEmpty()) {
-            LOGGER.debug("==> No producers. Stopping now.");
-            stopped();
+            LOGGER.debug("No producers. Stopping now.");
+            allProducersFinished();
             return;
         }
 
-        LOGGER.debug("==> Waiting for producers to finish. Stopping later. Producers: {}", producers);
+        LOGGER.debug("Waiting for producers to finish. Stopping later. Producers: {}", producers);
         for (Object producer : producers) {
             context.dispatchOutgoing(new ConsumerStopping(id, producer));
         }
     }
 
-    private void stopped() {
+    private void allProducersFinished() {
         context.dispatchOutgoing(new ConsumerUnavailable(id));
         context.dispatchIncoming(new WorkerStopped());
     }

@@ -42,7 +42,7 @@ public class WorkerProtocol implements Protocol<Object> {
 
     public void handleIncoming(Object message) {
         if (message instanceof WorkerStopped) {
-            LOGGER.debug("Received worker stopped: {}");
+            LOGGER.debug("Received worker stopped: {}", message);
             context.stopped();
         } else if (message instanceof Request) {
             Request request = (Request) message;

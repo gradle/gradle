@@ -115,9 +115,8 @@ public class Router implements Stoppable {
                                 allRoutes.get(destination).destination.receive(message);
                             }
                         } else if (routingTarget instanceof EndOfStreamEvent) {
-                            LOGGER.debug("Received end of stream");
                             for (Route route : routes) {
-                                LOGGER.debug("Removing route {}", route);
+                                LOGGER.debug("Removing route {} due to end of stream.", route.id);
                                 Message unavailableMessage = route.getUnavailableMessage();
                                 broadcast(unavailableMessage);
                                 allRoutes.remove(route.id);
@@ -125,6 +124,8 @@ public class Router implements Stoppable {
                             localConnections.remove(Endpoint.this);
                             remoteConnections.remove(Endpoint.this);
                             routes.clear();
+                            // Ping the message back
+                            receive(message);
                         } else {
                             throw new UnsupportedOperationException(String.format("Received message which cannot be routed: %s.", message));
                         }

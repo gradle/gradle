@@ -42,7 +42,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     private final OutgoingConnector<Message> outgoingConnector;
     private final ProtocolStack<DiscoveryMessage> discoveryBroadcast;
     private final Lock lock = new ReentrantLock();
-    private final Set<Stoppable> executors = new HashSet<Stoppable>();
+    private final StoppableExecutor executor;
     private final Set<String> pending = new HashSet<String>();
     private final Set<Address> connections = new HashSet<Address>();
     private final MessageHub hub;
@@ -54,9 +54,8 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
 
         hub = new MessageHub("outgoing broadcast", nodeName, executorFactory, idGenerator, messagingClassLoader);
 
-        StoppableExecutor discoveryExecutor = executorFactory.create("broadcast lookup");
-        executors.add(discoveryExecutor);
-        discoveryBroadcast = new ProtocolStack<DiscoveryMessage>(discoveryExecutor, failureHandler, failureHandler, new ChannelLookupProtocol());
+        executor = executorFactory.create("broadcast lookup");
+        discoveryBroadcast = new ProtocolStack<DiscoveryMessage>(executor, failureHandler, failureHandler, new ChannelLookupProtocol());
         connection.dispatchTo(new GroupMessageFilter(group, discoveryBroadcast.getBottom()));
         discoveryBroadcast.getBottom().dispatchTo(connection);
         discoveryBroadcast.getTop().dispatchTo(new DiscoveryMessageDispatch());
@@ -79,9 +78,8 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
         CompositeStoppable stoppable = new CompositeStoppable();
         lock.lock();
         try {
-            stoppable.add(hub).add(discoveryBroadcast).add(executors).stop();
+            stoppable.add(hub).add(discoveryBroadcast).add(executor);
         } finally {
-            executors.clear();
             connections.clear();
             lock.unlock();
         }

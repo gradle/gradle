@@ -73,6 +73,9 @@ public class SendProtocol implements Protocol<Object> {
                 context.dispatchIncoming(new ConsumerUnavailable(consumerUnavailable.getId()));
             }
             maybeStop();
+        } else if (message instanceof ProducerAvailable || message instanceof ProducerUnavailable) {
+            // Ignore these broadcasts
+            return;
         } else {
             throw new IllegalArgumentException(String.format("Unexpected incoming message received: %s", message));
         }

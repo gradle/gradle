@@ -188,4 +188,15 @@ class SendProtocolTest extends Specification {
         1 * context.stopped()
         0 * context._
     }
+
+    def "ignores incoming producer broadcasts"() {
+        when:
+        protocol.handleIncoming(message)
+
+        then:
+        0 * context._
+
+        where:
+        message << [ new ProducerAvailable("other", "display"), new ProducerUnavailable("other") ]
+    }
 }

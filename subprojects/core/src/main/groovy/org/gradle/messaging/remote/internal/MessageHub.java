@@ -15,11 +15,13 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.concurrent.*;
+import org.gradle.messaging.concurrent.AsyncStoppable;
+import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchFailureHandler;
-import org.gradle.messaging.remote.internal.protocol.ChannelMessage;
 import org.gradle.util.IdGenerator;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +32,11 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class MessageHub implements AsyncStoppable {
     private final Lock lock = new ReentrantLock();
-    private final Set<StoppableExecutor> executors = new HashSet<StoppableExecutor>();
-    private final Set<AsyncConnectionAdapter<Message>> connections = new HashSet<AsyncConnectionAdapter<Message>>();
-    private final Set<ProtocolStack<ChannelMessage>> handlers = new HashSet<ProtocolStack<ChannelMessage>>();
-    private ProtocolStack<ChannelMessage> unicastOutgoing;
-    private ProtocolStack<ChannelMessage> broadcastOutgoing;
+    private final CompositeStoppable executors = new CompositeStoppable();
+    private final CompositeStoppable connections = new CompositeStoppable();
+    private final Set<ProtocolStack<Message>> handlers = new HashSet<ProtocolStack<Message>>();
+    private ProtocolStack<Message> unicastOutgoing;
+    private ProtocolStack<Message> broadcastOutgoing;
     private final DispatchFailureHandler<Object> failureHandler;
     private final Router router;
     private final String displayName;
@@ -55,7 +57,7 @@ public class MessageHub implements AsyncStoppable {
         executors.add(executor);
         router = new Router(executor, failureHandler);
 
-        incomingExecutor = executorFactory.create(displayName + " incoming");
+        incomingExecutor = executorFactory.create(displayName + " worker");
         executors.add(incomingExecutor);
     }
 
@@ -65,7 +67,7 @@ public class MessageHub implements AsyncStoppable {
     public void addConnection(Connection<Message> connection) {
         lock.lock();
         try {
-            AsyncConnectionAdapter<Message> asyncConnection = new AsyncConnectionAdapter<Message>(connection, new EndOfStreamReceiveHandler(), executorFactory);
+            AsyncConnectionAdapter<Message> asyncConnection = new AsyncConnectionAdapter<Message>(connection, failureHandler, executorFactory, new ConnectionDisconnectProtocol());
             connections.add(asyncConnection);
 
             AsyncConnection<Message> incomingEndpoint = router.createRemoteConnection();
@@ -80,27 +82,27 @@ public class MessageHub implements AsyncStoppable {
         return new OutgoingMultiplex(channel, getUnicastOutgoing());
     }
 
-    private Dispatch<ChannelMessage> getUnicastOutgoing() {
+    private Dispatch<Message> getUnicastOutgoing() {
         lock.lock();
         try {
             if (unicastOutgoing == null) {
-                Protocol<ChannelMessage> unicastSendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
+                Protocol<Message> unicastSendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
                     public Protocol<Object> newChannel(Object channelKey) {
                         return new UnicastSendProtocol();
                     }
                 });
-                Protocol<ChannelMessage> sendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
+                Protocol<Message> sendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
                     public Protocol<Object> newChannel(Object channelKey) {
                         return new SendProtocol(idGenerator.generateId(), nodeName);
                     }
                 });
                 StoppableExecutor executor = executorFactory.create(displayName + " outgoing unicast");
                 executors.add(executor);
-                unicastOutgoing = new ProtocolStack<ChannelMessage>(executor, failureHandler, failureHandler, unicastSendProtocol, sendProtocol);
+                unicastOutgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, unicastSendProtocol, sendProtocol, new ConnectionDisconnectProtocol());
 
                 AsyncConnection<Message> outgoingEndpoint = router.createLocalConnection();
                 unicastOutgoing.getBottom().dispatchTo(outgoingEndpoint);
-                outgoingEndpoint.dispatchTo(new TypeCastDispatch<ChannelMessage, Message>(ChannelMessage.class, unicastOutgoing.getBottom()));
+                outgoingEndpoint.dispatchTo(unicastOutgoing.getBottom());
             }
             return unicastOutgoing.getTop();
         } finally {
@@ -112,27 +114,27 @@ public class MessageHub implements AsyncStoppable {
         return new OutgoingMultiplex(channel, getMulticastOutgoing());
     }
 
-    private Dispatch<ChannelMessage> getMulticastOutgoing() {
+    private Dispatch<Message> getMulticastOutgoing() {
         lock.lock();
         try {
             if (broadcastOutgoing == null) {
-                Protocol<ChannelMessage> unicastSendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
+                Protocol<Message> broadcastSendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
                     public Protocol<Object> newChannel(Object channelKey) {
                         return new BroadcastSendProtocol();
                     }
                 });
-                Protocol<ChannelMessage> sendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
+                Protocol<Message> sendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
                     public Protocol<Object> newChannel(Object channelKey) {
                         return new SendProtocol(idGenerator.generateId(), nodeName);
                     }
                 });
                 StoppableExecutor executor = executorFactory.create(displayName + " outgoing broadcast");
                 executors.add(executor);
-                broadcastOutgoing = new ProtocolStack<ChannelMessage>(executor, failureHandler, failureHandler, unicastSendProtocol, sendProtocol);
+                broadcastOutgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, broadcastSendProtocol, sendProtocol, new ConnectionDisconnectProtocol());
 
                 AsyncConnection<Message> outgoingEndpoint = router.createLocalConnection();
                 broadcastOutgoing.getBottom().dispatchTo(outgoingEndpoint);
-                outgoingEndpoint.dispatchTo(new TypeCastDispatch<ChannelMessage, Message>(ChannelMessage.class, broadcastOutgoing.getBottom()));
+                outgoingEndpoint.dispatchTo(broadcastOutgoing.getBottom());
             }
             return broadcastOutgoing.getTop();
         } finally {
@@ -144,23 +146,23 @@ public class MessageHub implements AsyncStoppable {
         lock.lock();
         try {
             final Object id = idGenerator.generateId();
-            Protocol<ChannelMessage> workerProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
+            Protocol<Message> workerProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
                 public Protocol<Object> newChannel(Object channelKey) {
                     return new WorkerProtocol(dispatch);
                 }
             }, channel);
-            Protocol<ChannelMessage> receiveProtocol = new InstancePerChannelProtocolAdapter<Message>(Message.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Message>() {
+            Protocol<Message> receiveProtocol = new InstancePerChannelProtocolAdapter<Message>(Message.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Message>() {
                 public Protocol<Message> newChannel(Object channelKey) {
                     return new ReceiveProtocol(id, nodeName);
                 }
             }, channel);
 
-            ProtocolStack<ChannelMessage> stack = new ProtocolStack<ChannelMessage>(incomingExecutor, failureHandler, failureHandler, workerProtocol, receiveProtocol);
+            ProtocolStack<Message> stack = new ProtocolStack<Message>(incomingExecutor, failureHandler, failureHandler, workerProtocol, receiveProtocol, new ConnectionDisconnectProtocol());
             handlers.add(stack);
 
             AsyncConnection<Message> incomingEndpoint = router.createLocalConnection();
             stack.getBottom().dispatchTo(incomingEndpoint);
-            incomingEndpoint.dispatchTo(new TypeCastDispatch<ChannelMessage, Message>(ChannelMessage.class, stack.getBottom()));
+            incomingEndpoint.dispatchTo(stack.getBottom());
         } finally {
             lock.unlock();
         }
@@ -175,7 +177,7 @@ public class MessageHub implements AsyncStoppable {
             if (broadcastOutgoing != null) {
                 broadcastOutgoing.requestStop();
             }
-            for (ProtocolStack<ChannelMessage> handler : handlers) {
+            for (ProtocolStack<?> handler : handlers) {
                 handler.requestStop();
             }
         } finally {
@@ -196,7 +198,6 @@ public class MessageHub implements AsyncStoppable {
             stoppable.add(router);
             stoppable.add(executors);
         } finally {
-            executors.clear();
             unicastOutgoing = null;
             lock.unlock();
         }

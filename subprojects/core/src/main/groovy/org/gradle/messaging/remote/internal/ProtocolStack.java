@@ -20,8 +20,6 @@ import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.dispatch.*;
 import org.gradle.util.TrueTimeProvider;
 import org.gradle.util.UncheckedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
@@ -30,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProtocolStack<T> implements AsyncStoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProtocolStack.class);
     private final AsyncDispatch<Runnable> workQueue;
     private final QueuingDispatch<T> incomingQueue = new QueuingDispatch<T>();
     private final QueuingDispatch<T> outgoingQueue = new QueuingDispatch<T>();
@@ -99,7 +96,6 @@ public class ProtocolStack<T> implements AsyncStoppable {
         if (!stopRequested.getAndSet(true)) {
             workQueue.dispatch(new Runnable() {
                 public void run() {
-                    LOGGER.debug("Requesting stop for top protocol of stack.");
                     stack.getFirst().requestStop();
                 }
             });
@@ -115,7 +111,6 @@ public class ProtocolStack<T> implements AsyncStoppable {
         }
         callbackQueue.clear();
         new CompositeStoppable(callbackQueue, receiver, workQueue, incomingQueue, outgoingQueue).stop();
-        LOGGER.debug("Protocol stack stopped.");
     }
 
     private class ExecuteRunnable implements Dispatch<Runnable> {

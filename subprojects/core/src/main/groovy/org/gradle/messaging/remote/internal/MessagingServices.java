@@ -20,6 +20,7 @@ import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.inet.MulticastConnection;
@@ -30,6 +31,7 @@ import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryProtocolSerializer;
 import org.gradle.util.UUIDGenerator;
 import org.gradle.util.UncheckedException;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -178,18 +180,8 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         MulticastConnection<DiscoveryMessage> connection = new MulticastConnection<DiscoveryMessage>(broadcastAddress, new DiscoveryProtocolSerializer());
         multicastConnection = new AsyncConnectionAdapter<DiscoveryMessage>(
                 connection,
-                new DiscoveryMessageReceiveHandler(),
+                new DiscardingFailureHandler<DiscoveryMessage>(LoggerFactory.getLogger(MulticastConnection.class)),
                 get(ExecutorFactory.class));
         return multicastConnection;
-    }
-
-    private static class DiscoveryMessageReceiveHandler implements ReceiveHandler<DiscoveryMessage> {
-        public boolean isEndOfStream(DiscoveryMessage message) {
-            return false;
-        }
-
-        public DiscoveryMessage endOfStream() {
-            return null;
-        }
     }
 }
