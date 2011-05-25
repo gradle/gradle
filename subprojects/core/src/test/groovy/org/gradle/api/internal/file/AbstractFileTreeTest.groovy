@@ -42,6 +42,7 @@ public class AbstractFileTreeTest extends Specification {
         1 * file.stopVisiting()
     }
 
+/*
     def canFilterTreeUsingClosure() {
         FileVisitDetails file1 = Mock()
         FileVisitDetails file2 = Mock()
@@ -60,6 +61,7 @@ public class AbstractFileTreeTest extends Specification {
         1 * visitor.visitFile(file1)
         0 * visitor._
     }
+*/
 
     def filteredTreeHasSameDependenciesAsThis() {
         TaskDependency buildDependencies = Mock()
