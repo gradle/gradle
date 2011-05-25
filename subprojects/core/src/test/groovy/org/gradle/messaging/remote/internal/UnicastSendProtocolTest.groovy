@@ -18,6 +18,7 @@ package org.gradle.messaging.remote.internal
 import spock.lang.Specification
 import org.gradle.messaging.remote.internal.protocol.ConsumerAvailable
 import org.gradle.messaging.remote.internal.protocol.Request
+import org.gradle.messaging.remote.internal.protocol.ConsumerUnavailable
 
 class UnicastSendProtocolTest extends Specification {
     final ProtocolContext<Message> context = Mock()
@@ -99,6 +100,43 @@ class UnicastSendProtocolTest extends Specification {
         protocol.handleOutgoing(message)
 
         when:
+        protocol.stopRequested()
+
+        then:
+        1 * context.stopped()
+        0 * context._
+    }
+
+    def "discards messages after consumer becomes unavailable"() {
+        Message message = Mock()
+
+        given:
+        protocol.handleIncoming(new ConsumerAvailable("id", "display"))
+        protocol.handleIncoming(new ConsumerUnavailable("id"))
+
+        when:
+        protocol.handleOutgoing(message)
+
+        then:
+        0 * context._
+
+        when:
+        protocol.stopRequested()
+
+        then:
+        1 * context.stopped()
+        0 * context._
+    }
+
+    def "stop ignores consumer unavailable when everything dispatched"() {
+        Message message = Mock()
+
+        given:
+        protocol.handleOutgoing(message)
+        protocol.handleIncoming(new ConsumerAvailable("id", "display"))
+
+        when:
+        protocol.handleIncoming(new ConsumerUnavailable("id"))
         protocol.stopRequested()
 
         then:

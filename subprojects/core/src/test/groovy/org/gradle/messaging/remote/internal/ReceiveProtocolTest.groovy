@@ -24,6 +24,9 @@ import org.gradle.messaging.remote.internal.protocol.ProducerStopped
 import org.gradle.messaging.remote.internal.protocol.ConsumerUnavailable
 import org.gradle.messaging.remote.internal.protocol.ConsumerStopped
 import org.gradle.messaging.remote.internal.protocol.Request
+import org.gradle.messaging.remote.internal.protocol.ProducerUnavailable
+import org.gradle.messaging.remote.internal.protocol.WorkerStopping
+import org.gradle.messaging.remote.internal.protocol.WorkerStopped
 
 class ReceiveProtocolTest extends Specification {
     final ProtocolContext<Message> context = Mock()
@@ -38,16 +41,16 @@ class ReceiveProtocolTest extends Specification {
         protocol.start(context)
 
         then:
-        1 * context.dispatchIncoming(new ConsumerAvailable("id", "display"))
+        1 * context.dispatchOutgoing(new ConsumerAvailable("id", "display"))
         0 * context._
     }
 
     def "acknowledges outgoing producer ready message"() {
         when:
-        protocol.handleOutgoing(new ProducerReady("producer", "id", "display"))
+        protocol.handleIncoming(new ProducerReady("producer", "id"))
 
         then:
-        1 * context.dispatchIncoming(new ConsumerReady("id", "producer"))
+        1 * context.dispatchOutgoing(new ConsumerReady("id", "producer"))
         0 * context._
     }
 
@@ -56,67 +59,94 @@ class ReceiveProtocolTest extends Specification {
         def request = new Request("id", message)
 
         when:
-        protocol.handleOutgoing(request)
+        protocol.handleIncoming(request)
 
         then:
-        1 * context.dispatchOutgoing(request)
+        1 * context.dispatchIncoming(request)
         0 * context._
     }
 
-    def "dispatches incoming consumer stopping to all producers on stop and waits for acknowledgements"() {
+    def "dispatches incoming consumer stopping to all producers on worker stop and waits for acknowledgements"() {
         given:
-        protocol.handleOutgoing(new ProducerReady("producer1", "id", "display"))
-        protocol.handleOutgoing(new ProducerReady("producer2", "id", "display"))
+        protocol.handleIncoming(new ProducerReady("producer1", "id"))
+        protocol.handleIncoming(new ProducerReady("producer2", "id"))
 
         when:
-        protocol.stopRequested()
+        protocol.handleOutgoing(new WorkerStopping())
 
         then:
-        1 * context.dispatchIncoming(new ConsumerStopping("id", "producer1"))
-        1 * context.dispatchIncoming(new ConsumerStopping("id", "producer2"))
-        1 * context.stopLater()
+        1 * context.dispatchOutgoing(new ConsumerStopping("id", "producer1"))
+        1 * context.dispatchOutgoing(new ConsumerStopping("id", "producer2"))
         0 * context._
 
         when:
-        protocol.handleOutgoing(new ProducerStopped("producer1", "id"))
+        protocol.handleIncoming(new ProducerStopped("producer1", "id"))
 
         then:
-        1 * context.dispatchIncoming(new ConsumerStopped("id", "producer1"))
+        1 * context.dispatchOutgoing(new ConsumerStopped("id", "producer1"))
         0 * context._
 
         when:
-        protocol.handleOutgoing(new ProducerStopped("producer2", "id"))
+        protocol.handleIncoming(new ProducerStopped("producer2", "id"))
 
         then:
-        1 * context.dispatchIncoming(new ConsumerStopped("id", "producer2"))
-        1 * context.dispatchIncoming(new ConsumerUnavailable("id"))
-        1 * context.stopped()
+        1 * context.dispatchOutgoing(new ConsumerStopped("id", "producer2"))
+        1 * context.dispatchOutgoing(new ConsumerUnavailable("id"))
+        1 * context.dispatchIncoming(new WorkerStopped())
         0 * context._
     }
 
     def "acknowledges outgoing producer stopped message"() {
         given:
-        protocol.handleOutgoing(new ProducerReady("producer", "id", "display"))
+        protocol.handleIncoming(new ProducerReady("producer", "id"))
 
         when:
-        protocol.handleOutgoing(new ProducerStopped("producer", "id"))
+        protocol.handleIncoming(new ProducerStopped("producer", "id"))
 
         then:
-        1 * context.dispatchIncoming(new ConsumerStopped("id", "producer"))
+        1 * context.dispatchOutgoing(new ConsumerStopped("id", "producer"))
         0 * context._
     }
 
-    def "stop does not dispatch consumer stopping to producer which has stopped"() {
+    def "worker stop does not dispatch consumer stopping to producer which has stopped"() {
         given:
-        protocol.handleOutgoing(new ProducerReady("producer", "id", "display"))
-        protocol.handleOutgoing(new ProducerStopped("producer", "id"))
+        protocol.handleIncoming(new ProducerReady("producer", "id"))
+        protocol.handleIncoming(new ProducerStopped("producer", "id"))
 
         when:
-        protocol.stopRequested()
+        protocol.handleOutgoing(new WorkerStopping())
 
         then:
-        1 * context.dispatchIncoming(new ConsumerUnavailable("id"))
-        1 * context.stopped()
+        1 * context.dispatchOutgoing(new ConsumerUnavailable("id"))
+        1 * context.dispatchIncoming(new WorkerStopped())
+        0 * context._
+    }
+
+    def "worker stop does not dispatch consumer stopping to producer which becomes unavailable"() {
+        given:
+        protocol.handleIncoming(new ProducerReady("producer", "id"))
+        protocol.handleIncoming(new ProducerUnavailable("producer"))
+
+        when:
+        protocol.handleOutgoing(new WorkerStopping())
+
+        then:
+        1 * context.dispatchOutgoing(new ConsumerUnavailable("id"))
+        1 * context.dispatchIncoming(new WorkerStopped())
+        0 * context._
+    }
+
+    def "worker stop does not wait for producer which becomes unavailable during stop"() {
+        given:
+        protocol.handleIncoming(new ProducerReady("producer", "id"))
+        protocol.handleOutgoing(new WorkerStopping())
+
+        when:
+        protocol.handleIncoming(new ProducerUnavailable("producer"))
+
+        then:
+        1 * context.dispatchOutgoing(new ConsumerUnavailable("id"))
+        1 * context.dispatchIncoming(new WorkerStopped())
         0 * context._
     }
 }

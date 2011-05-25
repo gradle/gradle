@@ -15,8 +15,23 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
-public class ProducerReady extends ProducerMessage {
-    public ProducerReady(Object producerId, Object consumerId) {
-        super(producerId, consumerId);
+import org.gradle.messaging.remote.internal.Message;
+
+public class WorkerStopping extends Message {
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || o.getClass() != getClass()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return 7;
     }
 }

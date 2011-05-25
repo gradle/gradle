@@ -17,25 +17,53 @@ package org.gradle.messaging.remote.internal
 
 import org.gradle.messaging.dispatch.Dispatch
 import spock.lang.Specification
+import org.gradle.messaging.remote.internal.protocol.WorkerStopping
+import org.gradle.messaging.remote.internal.protocol.WorkerStopped
 import org.gradle.messaging.remote.internal.protocol.Request
 
 class WorkerProtocolTest extends Specification {
     final ProtocolContext<Message> context = Mock()
-    final Dispatch<Message> worker = Mock()
+    final Dispatch<Object> worker = Mock()
     final WorkerProtocol protocol = new WorkerProtocol(worker)
 
     def setup() {
         protocol.start(context)
     }
 
-    def "dispatches outgoing message to worker"() {
-        Message message = Mock()
-        Request request = new Request("id", message)
-
+    def "dispatches incoming message to worker"() {
         when:
-        protocol.handleOutgoing(request)
+        protocol.handleIncoming(new Request("id", "message"))
 
         then:
-        1 * worker.dispatch(message)
+        1 * worker.dispatch("message")
+    }
+
+    def "dispatches outgoing worker stopping on stop and waits for acknowledgement"() {
+        when:
+        protocol.stopRequested()
+
+        then:
+        1 * context.dispatchOutgoing(new WorkerStopping())
+        1 * context.stopLater()
+        0 * context._
+
+        when:
+        protocol.handleIncoming(new WorkerStopped())
+
+        then:
+        1 * context.stopped()
+        0 * context._
+    }
+
+    def "continues to dispatch incoming messages while waiting for stop acknowledgement"() {
+        given:
+        protocol.stopRequested()
+
+        when:
+        protocol.handleIncoming(new Request("id", "message"))
+
+        then:
+        1 * worker.dispatch("message")
+        0 * context._
     }
 }

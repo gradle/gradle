@@ -16,7 +16,13 @@
 package org.gradle.messaging.remote.internal.protocol;
 
 public interface RouteAvailableMessage {
+    /**
+     * Returns the route id.
+     */
     Object getId();
 
+    /**
+     * Returns the corresponding unavailable message for this message.
+     */
     RouteUnavailableMessage getUnavailableMessage();
 }

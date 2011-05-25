@@ -15,8 +15,12 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
-public class ProducerReady extends ProducerMessage {
-    public ProducerReady(Object producerId, Object consumerId) {
-        super(producerId, consumerId);
+public class ProducerAvailable extends ParticipantAvailable {
+    public ProducerAvailable(Object id, String displayName) {
+        super(id, displayName);
+    }
+
+    public RouteUnavailableMessage getUnavailableMessage() {
+        return new ProducerUnavailable(getId());
     }
 }

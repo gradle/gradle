@@ -15,56 +15,13 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
-import org.gradle.messaging.remote.internal.Message;
-
-public class ConsumerAvailable extends Message implements ReplyRoutableMessage, RouteAvailableMessage {
-    private final Object id;
-    private final String displayName;
-
+public class ConsumerAvailable extends ParticipantAvailable {
     public ConsumerAvailable(Object id, String displayName) {
-        this.id = id;
-        this.displayName = displayName;
-    }
-
-    public Object getId() {
-        return id;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public Object getSource() {
-        return id;
-    }
-
-    public Object getDestination() {
-        return null;
+        super(id, displayName);
     }
 
     public RouteUnavailableMessage getUnavailableMessage() {
-        return new ConsumerUnavailable(id);
+        return new ConsumerUnavailable(getId());
     }
 
-    @Override
-    public String toString() {
-        return String.format("[ConsumerAvailable id: %s, displayName: %s]", id, displayName);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o == null || o.getClass() != getClass()) {
-            return false;
-        }
-        ConsumerAvailable other = (ConsumerAvailable) o;
-        return id.equals(other.id) && displayName.equals(other.displayName);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode() ^ displayName.hashCode();
-    }
 }

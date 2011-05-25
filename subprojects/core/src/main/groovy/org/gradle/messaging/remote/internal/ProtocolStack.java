@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ProtocolStack<T> implements AsyncStoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProtocolStack.class);
     private final AsyncDispatch<Runnable> workQueue;
-    private final AsyncDispatch<T> incomingQueue;
-    private final AsyncDispatch<T> outgoingQueue;
+    private final QueuingDispatch<T> incomingQueue = new QueuingDispatch<T>();
+    private final QueuingDispatch<T> outgoingQueue = new QueuingDispatch<T>();
     private final AsyncReceive<Runnable> receiver;
     private final DelayedReceive<Runnable> callbackQueue;
     private final LinkedList<Stage> stack = new LinkedList<Stage>();
@@ -51,10 +51,6 @@ public class ProtocolStack<T> implements AsyncStoppable {
         this.incomingDispatchFailureHandler = incomingDispatchFailureHandler;
         this.callbackQueue = new DelayedReceive<Runnable>(new TrueTimeProvider());
         protocolsStopped = new CountDownLatch(protocols.length);
-
-        // Setup the outgoing queues.
-        incomingQueue = new AsyncDispatch<T>(executor);
-        outgoingQueue = new AsyncDispatch<T>(executor);
 
         //Start work queue
         workQueue = new AsyncDispatch<Runnable>(executor);

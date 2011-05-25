@@ -19,19 +19,28 @@ import spock.lang.Specification
 import org.gradle.messaging.remote.internal.protocol.*
 
 class SendProtocolTest extends Specification {
-    final ProtocolContext<Message> context = Mock()
+    final ProtocolContext<Object> context = Mock()
     final SendProtocol protocol = new SendProtocol("id", "display")
 
     def setup() {
         protocol.start(context)
     }
 
-    def "dispatches outgoing producer started when incoming consumer available received"() {
+    def "dispatches outgoing producer available message on start"() {
+        when:
+        protocol.start(context)
+
+        then:
+        1 * context.dispatchOutgoing(new ProducerAvailable("id", "display"))
+        0 * context._
+    }
+
+    def "dispatches outgoing producer ready when incoming consumer available received"() {
         when:
         protocol.handleIncoming(new ConsumerAvailable("consumer", "consumer-display"))
 
         then:
-        1 * context.dispatchOutgoing(new ProducerReady("id", "consumer", "display"))
+        1 * context.dispatchOutgoing(new ProducerReady("id", "consumer"))
         0 * context._
     }
 
@@ -88,6 +97,7 @@ class SendProtocolTest extends Specification {
         protocol.handleIncoming(new ConsumerStopped("consumer2", "id"))
 
         then:
+        1 * context.dispatchOutgoing(new ProducerUnavailable("id"))
         1 * context.stopped()
         0 * context._
     }
@@ -97,6 +107,7 @@ class SendProtocolTest extends Specification {
         protocol.stopRequested()
 
         then:
+        1 * context.dispatchOutgoing(new ProducerUnavailable("id"))
         1 * context.stopped()
         0 * context._
     }
@@ -111,6 +122,7 @@ class SendProtocolTest extends Specification {
         protocol.stopRequested()
 
         then:
+        1 * context.dispatchOutgoing(new ProducerUnavailable("id"))
         1 * context.stopped()
         0 * context._
     }
@@ -129,6 +141,7 @@ class SendProtocolTest extends Specification {
         protocol.stopRequested()
 
         then:
+        1 * context.dispatchOutgoing(new ProducerUnavailable("id"))
         1 * context.stopped()
         0 * context._
     }
@@ -151,6 +164,7 @@ class SendProtocolTest extends Specification {
 
         then:
         1 * context.dispatchIncoming(new ConsumerUnavailable("consumer"))
+        1 * context.dispatchOutgoing(new ProducerUnavailable("id"))
         1 * context.stopped()
         0 * context._
     }
@@ -170,6 +184,7 @@ class SendProtocolTest extends Specification {
         protocol.stopRequested()
 
         then:
+        1 * context.dispatchOutgoing(new ProducerUnavailable("id"))
         1 * context.stopped()
         0 * context._
     }

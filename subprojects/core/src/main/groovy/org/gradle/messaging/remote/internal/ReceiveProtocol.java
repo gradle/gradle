@@ -37,55 +37,72 @@ public class ReceiveProtocol implements Protocol<Message> {
 
     public void start(ProtocolContext<Message> context) {
         this.context = context;
-        context.dispatchIncoming(new ConsumerAvailable(id, displayName));
+        LOGGER.debug("Starting receiver {}.", id);
+        context.dispatchOutgoing(new ConsumerAvailable(id, displayName));
     }
 
-    public void handleOutgoing(Message message) {
+    public void handleIncoming(Message message) {
         if (message instanceof ProducerReady) {
             LOGGER.debug("Producer ready: {}", message);
             ProducerReady producerReady = (ProducerReady) message;
             producers.add(producerReady.getProducerId());
-            context.dispatchIncoming(new ConsumerReady(id, producerReady.getProducerId()));
+            context.dispatchOutgoing(new ConsumerReady(id, producerReady.getProducerId()));
         } else if (message instanceof ProducerStopped) {
             LOGGER.debug("Producer stopped: {}", message);
             ProducerStopped producerStopped = (ProducerStopped) message;
-            producers.remove(producerStopped.getProducerId());
-            context.dispatchIncoming(new ConsumerStopped(id, producerStopped.getProducerId()));
-            if (stopping && producers.isEmpty()) {
-                LOGGER.debug("All producers finished. Stopping now.");
-                stopped();
-            }
-        } else if (message instanceof ConsumerAvailable || message instanceof ConsumerUnavailable) {
+            context.dispatchOutgoing(new ConsumerStopped(id, producerStopped.getProducerId()));
+            removeProducer(producerStopped.getProducerId());
+        } else if (message instanceof ProducerUnavailable) {
+            LOGGER.debug("Producer unavailable: {}", message);
+            ProducerUnavailable producerUnavailable = (ProducerUnavailable) message;
+            removeProducer(producerUnavailable.getId());
+        } else if (message instanceof ProducerAvailable || message instanceof ConsumerAvailable || message instanceof ConsumerUnavailable) {
             // Ignore these broadcasts
             return;
-        } else if (message instanceof RoutableMessage) {
-            context.dispatchOutgoing(message);
+        } else if (message instanceof Request) {
+            context.dispatchIncoming(message);
         } else {
             throw new IllegalArgumentException(String.format("Unexpected incoming message received: %s", message));
         }
     }
 
-    public void handleIncoming(Message message) {
-        context.dispatchIncoming(message);
+    private void removeProducer(Object producerId) {
+        producers.remove(producerId);
+        if (stopping && producers.isEmpty()) {
+            LOGGER.debug("All producers finished. Stopping now.");
+            stopped();
+        }
     }
 
-    public void stopRequested() {
+    public void handleOutgoing(Message message) {
+        if (message instanceof WorkerStopping) {
+            maybeStop();
+        } else {
+            throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s", message));
+        }
+    }
+
+    private void maybeStop() {
         stopping = true;
         if (producers.isEmpty()) {
-            LOGGER.debug("No producers. Stopping now.");
+            LOGGER.debug("==> No producers. Stopping now.");
             stopped();
             return;
         }
 
-        LOGGER.debug("Waiting for producers to finish. Stopping later. Producers: {}", producers);
-        context.stopLater();
+        LOGGER.debug("==> Waiting for producers to finish. Stopping later. Producers: {}", producers);
         for (Object producer : producers) {
-            context.dispatchIncoming(new ConsumerStopping(id, producer));
+            context.dispatchOutgoing(new ConsumerStopping(id, producer));
         }
     }
 
     private void stopped() {
-        context.dispatchIncoming(new ConsumerUnavailable(id));
+        context.dispatchOutgoing(new ConsumerUnavailable(id));
+        context.dispatchIncoming(new WorkerStopped());
+    }
+
+    public void stopRequested() {
+        assert stopping;
         context.stopped();
     }
 }

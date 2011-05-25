@@ -17,29 +17,34 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
-public abstract class ProducerMessage extends Message implements ReplyRoutableMessage {
-    protected final Object producerId;
-    protected final Object consumerId;
+public abstract class ParticipantAvailable extends Message implements ReplyRoutableMessage, RouteAvailableMessage {
+    private final Object id;
+    private final String displayName;
 
-    public ProducerMessage(Object producerId, Object consumerId) {
-        this.consumerId = consumerId;
-        this.producerId = producerId;
+    public ParticipantAvailable(Object id, String displayName) {
+        this.id = id;
+        this.displayName = displayName;
     }
 
-    public Object getConsumerId() {
-        return consumerId;
+    public Object getId() {
+        return id;
     }
 
-    public Object getProducerId() {
-        return producerId;
+    public String getDisplayName() {
+        return displayName;
     }
 
     public Object getSource() {
-        return producerId;
+        return id;
     }
 
     public Object getDestination() {
-        return consumerId;
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s id: %s, displayName: %s]", getClass().getSimpleName(), id, displayName);
     }
 
     @Override
@@ -50,17 +55,12 @@ public abstract class ProducerMessage extends Message implements ReplyRoutableMe
         if (o == null || o.getClass() != getClass()) {
             return false;
         }
-        ProducerMessage other = (ProducerMessage) o;
-        return consumerId.equals(other.consumerId) && producerId.equals(other.producerId);
+        ParticipantAvailable other = (ParticipantAvailable) o;
+        return id.equals(other.id) && displayName.equals(other.displayName);
     }
 
     @Override
     public int hashCode() {
-        return consumerId.hashCode() ^ producerId.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("[%s producerId: %s, consumerId: %s", getClass().getSimpleName(), producerId, consumerId);
+        return id.hashCode() ^ displayName.hashCode();
     }
 }

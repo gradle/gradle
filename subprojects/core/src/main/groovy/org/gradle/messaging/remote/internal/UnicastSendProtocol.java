@@ -16,6 +16,7 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.remote.internal.protocol.ConsumerAvailable;
+import org.gradle.messaging.remote.internal.protocol.ConsumerUnavailable;
 import org.gradle.messaging.remote.internal.protocol.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,9 @@ import java.util.List;
 
 public class UnicastSendProtocol implements Protocol<Object> {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnicastSendProtocol.class);
+    private static final Object BROKEN_CONSUMER = new Object();
     private final List<Object> queue = new ArrayList<Object>();
+    private String consumerDisplayName;
     private Object consumerId;
     private ProtocolContext<Object> context;
     private boolean stopping;
@@ -39,6 +42,7 @@ public class UnicastSendProtocol implements Protocol<Object> {
             ConsumerAvailable consumerAvailable = (ConsumerAvailable) message;
             LOGGER.debug("Consumer available: {}", consumerAvailable);
             consumerId = consumerAvailable.getId();
+            consumerDisplayName = consumerAvailable.getDisplayName();
             for (Object queued : queue) {
                 context.dispatchOutgoing(new Request(consumerId, queued));
             }
@@ -47,6 +51,8 @@ public class UnicastSendProtocol implements Protocol<Object> {
                 LOGGER.debug("Queued messages dispatched. Stopping now.");
                 context.stopped();
             }
+        } else if (message instanceof ConsumerUnavailable) {
+            consumerId = BROKEN_CONSUMER;
         } else {
             throw new IllegalArgumentException(String.format("Received unexpected incoming message: %s", message));
         }
@@ -55,6 +61,8 @@ public class UnicastSendProtocol implements Protocol<Object> {
     public void handleOutgoing(Object message) {
         if (consumerId == null) {
             queue.add(message);
+        } else if (consumerId == BROKEN_CONSUMER) {
+            LOGGER.warn("Discarding message {}, as {} is no longer available.", message, consumerDisplayName);
         } else {
             context.dispatchOutgoing(new Request(consumerId, message));
         }

@@ -144,23 +144,23 @@ public class MessageHub implements AsyncStoppable {
         lock.lock();
         try {
             final Object id = idGenerator.generateId();
+            Protocol<ChannelMessage> workerProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
+                public Protocol<Object> newChannel(Object channelKey) {
+                    return new WorkerProtocol(dispatch);
+                }
+            }, channel);
             Protocol<ChannelMessage> receiveProtocol = new InstancePerChannelProtocolAdapter<Message>(Message.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Message>() {
                 public Protocol<Message> newChannel(Object channelKey) {
                     return new ReceiveProtocol(id, nodeName);
                 }
             }, channel);
-            Protocol<ChannelMessage> workerProtocol = new InstancePerChannelProtocolAdapter<Message>(Message.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Message>() {
-                public Protocol<Message> newChannel(Object channelKey) {
-                    return new WorkerProtocol(dispatch);
-                }
-            });
 
-            ProtocolStack<ChannelMessage> stack = new ProtocolStack<ChannelMessage>(incomingExecutor, failureHandler, failureHandler, receiveProtocol, workerProtocol);
+            ProtocolStack<ChannelMessage> stack = new ProtocolStack<ChannelMessage>(incomingExecutor, failureHandler, failureHandler, workerProtocol, receiveProtocol);
             handlers.add(stack);
 
             AsyncConnection<Message> incomingEndpoint = router.createLocalConnection();
-            stack.getTop().dispatchTo(incomingEndpoint);
-            incomingEndpoint.dispatchTo(new TypeCastDispatch<ChannelMessage, Message>(ChannelMessage.class, stack.getTop()));
+            stack.getBottom().dispatchTo(incomingEndpoint);
+            incomingEndpoint.dispatchTo(new TypeCastDispatch<ChannelMessage, Message>(ChannelMessage.class, stack.getBottom()));
         } finally {
             lock.unlock();
         }

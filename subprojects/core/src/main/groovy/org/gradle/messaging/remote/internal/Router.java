@@ -19,6 +19,7 @@ import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.dispatch.AsyncDispatch;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchFailureHandler;
+import org.gradle.messaging.dispatch.QueuingDispatch;
 import org.gradle.messaging.remote.internal.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,7 @@ public class Router implements Stoppable {
     private final AsyncDispatch<Runnable> workQueue;
     private final Set<Endpoint> localConnections = new HashSet<Endpoint>();
     private final Set<Endpoint> remoteConnections = new HashSet<Endpoint>();
-    private final Map<Object, Route> routes = new HashMap<Object, Route>();
+    private final Map<Object, Route> allRoutes = new HashMap<Object, Route>();
     private final DispatchFailureHandler<? super Message> failureHandler;
 
     public Router(Executor executor, DispatchFailureHandler<? super Message> failureHandler) {
@@ -57,17 +58,17 @@ public class Router implements Stoppable {
     }
 
     private abstract class Endpoint {
-        private Dispatch<? super Message> handler;
-        private List<Message> queue = new ArrayList<Message>();
+        private QueuingDispatch<Message> handler = new QueuingDispatch<Message>();
         private final Set<Endpoint> broadcastTo;
+        private final Set<Route> routes = new HashSet<Route>();
 
         protected Endpoint(final Set<Endpoint> connections, final Set<Endpoint> broadcastTo) {
             this.broadcastTo = broadcastTo;
             workQueue.dispatch(new Runnable() {
                 public void run() {
                     connections.add(Endpoint.this);
-                    for (Route route : routes.values()) {
-                        if (broadcastTo.contains(route.destination) && route.announcement != null) {
+                    for (Route route : allRoutes.values()) {
+                        if (broadcastTo.contains(route.destination)) {
                             receive(route.announcement);
                         }
                     }
@@ -78,11 +79,7 @@ public class Router implements Stoppable {
         public void dispatchTo(final Dispatch<? super Message> handler) {
             workQueue.dispatch(new Runnable() {
                 public void run() {
-                    Endpoint.this.handler = handler;
-                    for (Message message : queue) {
-                        handler.dispatch(message);
-                    }
-                    queue = null;
+                    Endpoint.this.handler.dispatchTo(handler);
                 }
             });
         }
@@ -100,17 +97,14 @@ public class Router implements Stoppable {
                         if (routingTarget instanceof RouteAvailableMessage) {
                             RouteAvailableMessage routeAvailableMessage = (RouteAvailableMessage) routingTarget;
                             LOGGER.debug("Received route available. Message: {}", routeAvailableMessage);
-                            routes.put(routeAvailableMessage.getId(), new Route(Endpoint.this, message));
+                            Route route = new Route(routeAvailableMessage.getId(), Endpoint.this, message);
+                            routes.add(route);
+                            allRoutes.put(routeAvailableMessage.getId(), route);
                         } else if (routingTarget instanceof RouteUnavailableMessage) {
                             RouteUnavailableMessage routeUnavailableMessage = (RouteUnavailableMessage) routingTarget;
                             LOGGER.debug("Received route unavailable. Message: {}", routeUnavailableMessage);
-                            routes.remove(routeUnavailableMessage.getId());
-                        } else if (routingTarget instanceof ReplyRoutableMessage) {
-                            ReplyRoutableMessage replyRoutableMessage = (ReplyRoutableMessage) routingTarget;
-                            if (!routes.containsKey(replyRoutableMessage.getSource())) {
-                                LOGGER.debug("Added return route. Route: {}, message: {}", replyRoutableMessage.getSource(), replyRoutableMessage);
-                                routes.put(replyRoutableMessage.getSource(), new Route(Endpoint.this, null));
-                            }
+                            Route route = allRoutes.remove(routeUnavailableMessage.getId());
+                            routes.remove(route);
                         }
                         if (routingTarget instanceof RoutableMessage) {
                             RoutableMessage routableMessage = (RoutableMessage) routingTarget;
@@ -118,24 +112,19 @@ public class Router implements Stoppable {
                             if (destination == null) {
                                 broadcast(message);
                             } else {
-                                routes.get(destination).destination.receive(message);
+                                allRoutes.get(destination).destination.receive(message);
                             }
                         } else if (routingTarget instanceof EndOfStreamEvent) {
                             LOGGER.debug("Received end of stream");
-                            Iterator<Map.Entry<Object, Route>> iterator = routes.entrySet().iterator();
-                            while (iterator.hasNext()) {
-                                Map.Entry<Object, Route> entry = iterator.next();
-                                if (entry.getValue().destination.equals(Endpoint.this)) {
-                                    LOGGER.debug("Removing route {}", entry.getKey());
-                                    Message unavailableMessage = entry.getValue().getUnavailableMessage();
-                                    if (unavailableMessage != null) {
-                                        broadcast(unavailableMessage);
-                                    }
-                                    iterator.remove();
-                                }
+                            for (Route route : routes) {
+                                LOGGER.debug("Removing route {}", route);
+                                Message unavailableMessage = route.getUnavailableMessage();
+                                broadcast(unavailableMessage);
+                                allRoutes.remove(route.id);
                             }
                             localConnections.remove(Endpoint.this);
                             remoteConnections.remove(Endpoint.this);
+                            routes.clear();
                         } else {
                             throw new UnsupportedOperationException(String.format("Received message which cannot be routed: %s.", message));
                         }
@@ -147,34 +136,28 @@ public class Router implements Stoppable {
         }
 
         void receive(Message message) {
-            if (handler == null) {
-                queue.add(message);
-            } else {
-                handler.dispatch(message);
-            }
+            handler.dispatch(message);
         }
 
         void broadcast(Message message) {
             for (Endpoint remoteConnection : broadcastTo) {
                 remoteConnection.receive(message);
             }
-
         }
     }
 
     private static class Route {
+        final Object id;
         final ChannelMessage announcement;
         final Endpoint destination;
 
-        private Route(Endpoint destination, Message announcement) {
+        private Route(Object id, Endpoint destination, Message announcement) {
+            this.id = id;
             this.destination = destination;
             this.announcement = (ChannelMessage) announcement;
         }
 
         public Message getUnavailableMessage() {
-            if (announcement == null) {
-                return null;
-            }
             RouteAvailableMessage routeAvailableMessage = (RouteAvailableMessage) announcement.getPayload();
             return announcement.withPayload(routeAvailableMessage.getUnavailableMessage());
         }

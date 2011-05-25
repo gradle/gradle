@@ -58,4 +58,9 @@ public abstract class ConsumerMessage extends Message implements ReplyRoutableMe
     public int hashCode() {
         return consumerId.hashCode() ^ producerId.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return String.format("[%s, consumerId: %s, producerId: %s]", getClass().getSimpleName(), consumerId, producerId);
+    }
 }

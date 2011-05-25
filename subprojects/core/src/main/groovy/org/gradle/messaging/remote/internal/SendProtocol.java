@@ -39,7 +39,9 @@ public class SendProtocol implements Protocol<Object> {
     }
 
     public void start(ProtocolContext<Object> context) {
+        LOGGER.debug("Starting producer {}", id);
         this.context = context;
+        context.dispatchOutgoing(new ProducerAvailable(id, displayName));
     }
 
     public void handleIncoming(Object message) {
@@ -48,7 +50,7 @@ public class SendProtocol implements Protocol<Object> {
             ConsumerAvailable consumerAvailable = (ConsumerAvailable) message;
             pending.put(consumerAvailable.getId(), consumerAvailable);
             consumers.add(consumerAvailable.getId());
-            context.dispatchOutgoing(new ProducerReady(id, consumerAvailable.getId(), displayName));
+            context.dispatchOutgoing(new ProducerReady(id, consumerAvailable.getId()));
         } else if (message instanceof ConsumerReady) {
             LOGGER.debug("Consumer ready: {}", message);
             ConsumerReady consumerReady = (ConsumerReady) message;
@@ -62,10 +64,7 @@ public class SendProtocol implements Protocol<Object> {
             LOGGER.debug("Consumer stopped: {}", message);
             ConsumerStopped consumerStopped = (ConsumerStopped) message;
             consumers.remove(consumerStopped.getConsumerId());
-            if (consumers.isEmpty() && stopping) {
-                LOGGER.debug("All consumers stopped. Stopping.");
-                context.stopped();
-            }
+            maybeStop();
         } else if (message instanceof ConsumerUnavailable) {
             LOGGER.debug("Consumer unavailable: {}", message);
             ConsumerUnavailable consumerUnavailable = (ConsumerUnavailable) message;
@@ -73,12 +72,17 @@ public class SendProtocol implements Protocol<Object> {
             if (pending.remove(consumerUnavailable.getId()) == null) {
                 context.dispatchIncoming(new ConsumerUnavailable(consumerUnavailable.getId()));
             }
-            if (consumers.isEmpty() && stopping) {
-                LOGGER.debug("All consumers stopped. Stopping.");
-                context.stopped();
-            }
+            maybeStop();
         } else {
             throw new IllegalArgumentException(String.format("Unexpected incoming message received: %s", message));
+        }
+    }
+
+    private void maybeStop() {
+        if (consumers.isEmpty() && stopping) {
+            LOGGER.debug("All consumers stopped. Stopping now.");
+            context.dispatchOutgoing(new ProducerUnavailable(id));
+            context.stopped();
         }
     }
 
@@ -97,7 +101,7 @@ public class SendProtocol implements Protocol<Object> {
     public void stopRequested() {
         stopping = true;
         if (consumers.isEmpty()) {
-            context.stopped();
+            maybeStop();
             return;
         }
 

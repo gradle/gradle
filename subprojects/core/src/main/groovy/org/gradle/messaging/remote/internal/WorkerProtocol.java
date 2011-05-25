@@ -17,6 +17,8 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.remote.internal.protocol.Request;
+import org.gradle.messaging.remote.internal.protocol.WorkerStopped;
+import org.gradle.messaging.remote.internal.protocol.WorkerStopping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,33 +27,38 @@ import org.slf4j.LoggerFactory;
  *
  * Note: this protocol blocks while messages are being dispatched. This means sending and receiving are stuck for the whole stack. Generally, this protocol should live in its own stack.
  */
-public class WorkerProtocol implements Protocol<Message> {
+public class WorkerProtocol implements Protocol<Object> {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProtocol.class);
     private final Dispatch<Object> worker;
-    private ProtocolContext<Message> context;
+    private ProtocolContext<Object> context;
 
     public WorkerProtocol(Dispatch<Object> worker) {
         this.worker = worker;
     }
 
-    public void start(ProtocolContext<Message> context) {
+    public void start(ProtocolContext<Object> context) {
         this.context = context;
     }
 
-    public void handleIncoming(Message message) {
-    }
-
-    public void handleOutgoing(Message message) {
-        if (message instanceof Request) {
+    public void handleIncoming(Object message) {
+        if (message instanceof WorkerStopped) {
+            LOGGER.debug("Received worker stopped: {}");
+            context.stopped();
+        } else if (message instanceof Request) {
             Request request = (Request) message;
-            LOGGER.debug("Dispatching request to worker: {}", request.getPayload());
+            LOGGER.debug("Dispatching request to worker: {}", message);
             worker.dispatch(request.getPayload());
         } else {
-            throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s", message));
+            throw new IllegalArgumentException(String.format("Unexpected incoming message received: %s", message));
         }
     }
 
+    public void handleOutgoing(Object message) {
+        throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s", message));
+    }
+
     public void stopRequested() {
-        context.stopped();
+        context.dispatchOutgoing(new WorkerStopping());
+        context.stopLater();
     }
 }

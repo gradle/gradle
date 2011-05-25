@@ -17,29 +17,28 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
-public abstract class ProducerMessage extends Message implements ReplyRoutableMessage {
-    protected final Object producerId;
-    protected final Object consumerId;
+public class ParticipantUnavailable extends Message implements RoutableMessage, RouteUnavailableMessage {
+    private final Object id;
 
-    public ProducerMessage(Object producerId, Object consumerId) {
-        this.consumerId = consumerId;
-        this.producerId = producerId;
+    public ParticipantUnavailable(Object id) {
+        this.id = id;
     }
 
-    public Object getConsumerId() {
-        return consumerId;
-    }
-
-    public Object getProducerId() {
-        return producerId;
+    public Object getId() {
+        return id;
     }
 
     public Object getSource() {
-        return producerId;
+        return id;
     }
 
     public Object getDestination() {
-        return consumerId;
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s id: %s]", getClass().getSimpleName(), id);
     }
 
     @Override
@@ -50,17 +49,12 @@ public abstract class ProducerMessage extends Message implements ReplyRoutableMe
         if (o == null || o.getClass() != getClass()) {
             return false;
         }
-        ProducerMessage other = (ProducerMessage) o;
-        return consumerId.equals(other.consumerId) && producerId.equals(other.producerId);
+        ParticipantUnavailable other = (ParticipantUnavailable) o;
+        return id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return consumerId.hashCode() ^ producerId.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("[%s producerId: %s, consumerId: %s", getClass().getSimpleName(), producerId, consumerId);
+        return id.hashCode();
     }
 }
