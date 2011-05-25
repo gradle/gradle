@@ -120,13 +120,13 @@ artifactory {
             publishConfigs('archives', 'publishRuntime')
             if (it.project.tasks.findByName('generatePom') != null) {
                 mavenDescriptor = it.project.generatePom.pomFile
+		publishPom = true
             } else {
-                mavenDescriptor = 'does-not-exists.pom'
+		publishPom = false
             }
             properties = ['build.status': "$it.project.status".toString()]
             publishBuildInfo = true
             publishArtifacts = true
-            publishPom = true
             publishIvy = true
         }
     }
@@ -563,8 +563,8 @@ uploadDists {
 artifactoryPublish {
     dependsOn build
     configuration = configurations.dists
-    mavenDescriptor = 'does-not-exists.xml'
-    ivyDescriptor = 'does-not-exists.xml'
+    publishPom = false
+    publishIvy = false
 }
 
 task developerBuild {
