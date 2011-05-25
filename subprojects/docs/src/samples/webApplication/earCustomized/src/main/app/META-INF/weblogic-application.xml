@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wls:weblogic-application xmlns:wls="http://www.bea.com/ns/weblogic/weblogic-application" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/javaee_6.xsd http://www.bea.com/ns/weblogic/weblogic-application http://www.bea.com/ns/weblogic/weblogic-application/1.0/weblogic-application.xsd">
+    <wls:application-param>
+        <wls:param-name>webapp.encoding.default</wls:param-name>
+        <wls:param-value>UTF-8</wls:param-value>
+    </wls:application-param>
+</wls:weblogic-application>
+
