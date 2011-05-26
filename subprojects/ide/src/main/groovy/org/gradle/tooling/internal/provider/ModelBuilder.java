@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.DefaultEclipseProject;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 import org.gradle.tooling.internal.provider.dependencies.EclipseProjectDependenciesFactory;
 import org.gradle.tooling.internal.provider.dependencies.ExternalDependenciesFactory;
 import org.gradle.tooling.internal.provider.dependencies.SourceDirectoriesFactory;
@@ -45,6 +46,7 @@ public class ModelBuilder {
     private DefaultEclipseProject currentProject;
     private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
     private GradleInternal gradle;
+    private EclipsePluginApplierResult applierResult;
 
     public ModelBuilder(boolean includeTasks, boolean projectDependenciesOnly) {
         this.includeTasks = includeTasks;
@@ -53,6 +55,7 @@ public class ModelBuilder {
 
     public void buildAll(GradleInternal gradle) {
         this.gradle = gradle;
+        applierResult = new EclipsePluginApplier().apply(gradle);
         buildHierarchy(gradle.getRootProject());
         populate(gradle.getRootProject());
     }
@@ -84,7 +87,8 @@ public class ModelBuilder {
         eclipseProject.setProjectDependencies(projectDependencies);
         eclipseProject.setSourceDirectories(sourceDirectories);
         if (includeTasks) {
-            eclipseProject.setTasks(new TasksFactory().create(project, eclipseProject));
+            List<EclipseTaskVersion1> allTasks = new TasksFactory().create(project, eclipseProject, applierResult);
+            eclipseProject.setTasks(allTasks);
         }
 
         for (Project childProject : project.getChildProjects().values()) {

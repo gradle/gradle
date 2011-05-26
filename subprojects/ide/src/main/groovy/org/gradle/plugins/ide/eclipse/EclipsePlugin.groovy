@@ -28,6 +28,7 @@ import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import static java.util.Arrays.asList
 import org.gradle.plugins.ide.eclipse.model.*
 
 /**
@@ -37,12 +38,17 @@ import org.gradle.plugins.ide.eclipse.model.*
  */
 class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_TASK_NAME = "eclipse"
-    static final String CLEAN_ECLIPSE_TASK_NAME = "cleanEclipse"
     static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject"
     static final String ECLIPSE_WTP_COMPONENT_TASK_NAME = "eclipseWtpComponent"
     static final String ECLIPSE_WTP_FACET_TASK_NAME = "eclipseWtpFacet"
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
+
+    Collection<String> getTaskNames() {
+        return asList(ECLIPSE_TASK_NAME, cleanName(ECLIPSE_TASK_NAME), ECLIPSE_PROJECT_TASK_NAME, cleanName(ECLIPSE_PROJECT_TASK_NAME),
+        ECLIPSE_WTP_COMPONENT_TASK_NAME, cleanName(ECLIPSE_WTP_COMPONENT_TASK_NAME), ECLIPSE_WTP_FACET_TASK_NAME, cleanName(ECLIPSE_WTP_FACET_TASK_NAME),
+        ECLIPSE_CP_TASK_NAME, cleanName(ECLIPSE_CP_TASK_NAME), ECLIPSE_JDT_TASK_NAME, cleanName(ECLIPSE_JDT_TASK_NAME))
+    }
 
     EclipseModel model = new EclipseModel()
 

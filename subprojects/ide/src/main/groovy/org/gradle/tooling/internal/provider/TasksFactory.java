@@ -25,13 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TasksFactory {
-    public List<EclipseTaskVersion1> create(Project project, EclipseProjectVersion3 eclipseProject) {
+    public List<EclipseTaskVersion1> create(Project project, EclipseProjectVersion3 eclipseProject, EclipsePluginApplierResult applierResult) {
         List<EclipseTaskVersion1> tasks = new ArrayList<EclipseTaskVersion1>();
         for (final Task task : project.getTasks()) {
-            tasks.add(new DefaultTask(eclipseProject, task.getPath(), task.getName(), task.getDescription()));
+            boolean taskIsExecutable = !applierResult.wasApplied(task.getPath());
+            if (taskIsExecutable) {
+                tasks.add(new DefaultTask(eclipseProject, task.getPath(), task.getName(), task.getDescription()));
+            }
         }
         return tasks;
     }
-
 }
-

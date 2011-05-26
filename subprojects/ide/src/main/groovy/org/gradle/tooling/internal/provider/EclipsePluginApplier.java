@@ -27,13 +27,17 @@ import java.util.Set;
  * @author Szczepan Faber, @date: 25.03.11
  */
 public class EclipsePluginApplier {
-    public void apply(GradleInternal gradle) {
+    public EclipsePluginApplierResult apply(GradleInternal gradle) {
+        EclipsePluginApplierResult applierResult = new EclipsePluginApplierResult();
         ProjectInternal root = gradle.getRootProject();
         Set<Project> allprojects = root.getAllprojects();
         for (Project p : allprojects) {
-            p.getPlugins().apply(EclipsePlugin.class);
+            if (!p.getPlugins().hasPlugin(EclipsePlugin.class)) {
+                EclipsePlugin plugin = p.getPlugins().apply(EclipsePlugin.class);
+                applierResult.rememberTasks(p.getPath(), plugin.getTaskNames());
+            }
         }
-        //TODO SF: this is temporary, until we figure out how to tackle this
         root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
+        return applierResult;
     }
 }

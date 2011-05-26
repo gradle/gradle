@@ -16,23 +16,27 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.BuildAdapter;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Szczepan Faber, @date: 25.03.11
+ * @author: Szczepan Faber, created at: 5/26/11
  */
-public class ModelBuildingAdapter extends BuildAdapter {
+public class EclipsePluginApplierResult {
 
-    ModelBuilder builder;
+    private Set<String> allAppliedTasks = new HashSet<String>();
 
-    public ModelBuildingAdapter(ModelBuilder builder) {
-        this.builder = builder;
+    public boolean wasApplied(String taskPath) {
+        return allAppliedTasks.contains(taskPath);
     }
 
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
-        builder.buildAll((GradleInternal) gradle);
+    public void rememberTasks(String projectPath, Collection<String> taskNames) {
+        for (String taskName : taskNames) {
+            String taskPath = StringUtils.removeEnd(projectPath, ":") + ":" + taskName;
+            allAppliedTasks.add(taskPath);
+        }
     }
 }

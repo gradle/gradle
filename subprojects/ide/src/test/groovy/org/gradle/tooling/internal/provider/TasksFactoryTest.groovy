@@ -31,7 +31,7 @@ class TasksFactoryTest extends Specification {
         def taskB = task('b')
 
         when:
-        def result = factory.create(project, eclipseProject)
+        def result = factory.create(project, eclipseProject, new EclipsePluginApplierResult())
 
         then:
         result.size() == 2
@@ -42,6 +42,24 @@ class TasksFactoryTest extends Specification {
         result[1].name == 'b'
         1 * project.tasks >> tasks
         tasks.iterator() >> [taskA, taskB].iterator()
+    }
+
+    def "skips applied tasks"() {
+        def taskA = task('a')
+        def taskB = task('b')
+
+        1 * project.tasks >> tasks
+        tasks.iterator() >> [taskA, taskB].iterator()
+
+        def applierResult = new EclipsePluginApplierResult()
+        applierResult.rememberTasks(":", ['b'])
+
+        when:
+        def result = factory.create(project, eclipseProject, applierResult)
+
+        then:
+        result.size() == 1
+        result[0].path == ':a'
     }
 
     def task(String name) {

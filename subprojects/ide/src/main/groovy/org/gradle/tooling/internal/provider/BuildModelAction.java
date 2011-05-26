@@ -36,8 +36,7 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
     }
 
     public BuildResult run(GradleLauncher launcher) {
-        ModelBuildingAdapter adapter = new ModelBuildingAdapter(
-                new EclipsePluginApplier(), builder);
+        ModelBuildingAdapter adapter = new ModelBuildingAdapter(builder);
         launcher.addListener(adapter);
         return launcher.getBuildAnalysis();
     }

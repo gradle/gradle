@@ -49,7 +49,7 @@ public abstract class IdePlugin implements Plugin<Project> {
         return project.getTasks().getByName(cleanName(worker.getName()));
     }
 
-    private String cleanName(String taskName) {
+    protected String cleanName(String taskName) {
         return String.format("clean%s", StringUtils.capitalize(taskName));
     }
 
