@@ -17,7 +17,7 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
-public abstract class ConsumerMessage extends Message implements ReplyRoutableMessage {
+public abstract class ConsumerMessage extends Message implements RoutableMessage {
     protected final Object consumerId;
     protected final Object producerId;
 
@@ -32,10 +32,6 @@ public abstract class ConsumerMessage extends Message implements ReplyRoutableMe
 
     public Object getProducerId() {
         return producerId;
-    }
-
-    public Object getSource() {
-        return consumerId;
     }
 
     public Object getDestination() {

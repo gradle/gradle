@@ -25,7 +25,9 @@ import org.gradle.messaging.dispatch.DispatchFailureHandler;
 import org.gradle.util.IdGenerator;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -35,8 +37,8 @@ public class MessageHub implements AsyncStoppable {
     private final CompositeStoppable executors = new CompositeStoppable();
     private final CompositeStoppable connections = new CompositeStoppable();
     private final Set<ProtocolStack<Message>> handlers = new HashSet<ProtocolStack<Message>>();
-    private ProtocolStack<Message> unicastOutgoing;
-    private ProtocolStack<Message> broadcastOutgoing;
+    private final Map<String, ProtocolStack<Message>> outgoingUnicasts = new HashMap<String, ProtocolStack<Message>>();
+    private final Map<String, ProtocolStack<Message>> outgoingBroadcasts = new HashMap<String, ProtocolStack<Message>>();
     private final DispatchFailureHandler<Object> failureHandler;
     private final Router router;
     private final String displayName;
@@ -79,83 +81,55 @@ public class MessageHub implements AsyncStoppable {
     }
 
     public Dispatch<Object> addUnicastOutgoing(String channel) {
-        return new OutgoingMultiplex(channel, getUnicastOutgoing());
-    }
-
-    private Dispatch<Message> getUnicastOutgoing() {
         lock.lock();
         try {
-            if (unicastOutgoing == null) {
-                Protocol<Message> unicastSendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
-                    public Protocol<Object> newChannel(Object channelKey) {
-                        return new UnicastSendProtocol();
-                    }
-                });
-                Protocol<Message> sendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
-                    public Protocol<Object> newChannel(Object channelKey) {
-                        return new SendProtocol(idGenerator.generateId(), nodeName);
-                    }
-                });
-                StoppableExecutor executor = executorFactory.create(displayName + " outgoing unicast");
+            ProtocolStack<Message> outgoing = outgoingUnicasts.get(channel);
+            if (outgoing == null) {
+                Protocol<Message> unicastSendProtocol = new UnicastSendProtocol();
+                Protocol<Message> sendProtocol = new SendProtocol(idGenerator.generateId(), nodeName, channel);
+                StoppableExecutor executor = executorFactory.create(displayName + " outgoing " + channel);
                 executors.add(executor);
-                unicastOutgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, unicastSendProtocol, sendProtocol, new ConnectionDisconnectProtocol());
+                outgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, unicastSendProtocol, sendProtocol, new ConnectionDisconnectProtocol());
+                outgoingUnicasts.put(channel, outgoing);
 
                 AsyncConnection<Message> outgoingEndpoint = router.createLocalConnection();
-                unicastOutgoing.getBottom().dispatchTo(outgoingEndpoint);
-                outgoingEndpoint.dispatchTo(unicastOutgoing.getBottom());
+                outgoing.getBottom().dispatchTo(outgoingEndpoint);
+                outgoingEndpoint.dispatchTo(outgoing.getBottom());
             }
-            return unicastOutgoing.getTop();
+            return new OutgoingMultiplex(channel, outgoing.getTop());
         } finally {
             lock.unlock();
         }
     }
 
     public Dispatch<Object> addMulticastOutgoing(String channel) {
-        return new OutgoingMultiplex(channel, getMulticastOutgoing());
-    }
-
-    private Dispatch<Message> getMulticastOutgoing() {
         lock.lock();
         try {
-            if (broadcastOutgoing == null) {
-                Protocol<Message> broadcastSendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
-                    public Protocol<Object> newChannel(Object channelKey) {
-                        return new BroadcastSendProtocol();
-                    }
-                });
-                Protocol<Message> sendProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
-                    public Protocol<Object> newChannel(Object channelKey) {
-                        return new SendProtocol(idGenerator.generateId(), nodeName);
-                    }
-                });
-                StoppableExecutor executor = executorFactory.create(displayName + " outgoing broadcast");
+            ProtocolStack<Message> outgoing = outgoingBroadcasts.get(channel);
+            if (outgoing == null) {
+                Protocol<Message> broadcastProtocol = new BroadcastSendProtocol();
+                Protocol<Message> sendProtocol = new SendProtocol(idGenerator.generateId(), nodeName, channel);
+                StoppableExecutor executor = executorFactory.create(displayName + " outgoing broadcast " + channel);
                 executors.add(executor);
-                broadcastOutgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, broadcastSendProtocol, sendProtocol, new ConnectionDisconnectProtocol());
+                outgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, broadcastProtocol, sendProtocol, new ConnectionDisconnectProtocol());
+                outgoingBroadcasts.put(channel, outgoing);
 
                 AsyncConnection<Message> outgoingEndpoint = router.createLocalConnection();
-                broadcastOutgoing.getBottom().dispatchTo(outgoingEndpoint);
-                outgoingEndpoint.dispatchTo(broadcastOutgoing.getBottom());
+                outgoing.getBottom().dispatchTo(outgoingEndpoint);
+                outgoingEndpoint.dispatchTo(outgoing.getBottom());
             }
-            return broadcastOutgoing.getTop();
+            return new OutgoingMultiplex(channel, outgoing.getTop());
         } finally {
             lock.unlock();
         }
     }
 
-    public void addIncoming(String channel, final Dispatch<Object> dispatch) {
+    public void addIncoming(final String channel, final Dispatch<Object> dispatch) {
         lock.lock();
         try {
             final Object id = idGenerator.generateId();
-            Protocol<Message> workerProtocol = new InstancePerChannelProtocolAdapter<Object>(Object.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Object>() {
-                public Protocol<Object> newChannel(Object channelKey) {
-                    return new WorkerProtocol(dispatch);
-                }
-            }, channel);
-            Protocol<Message> receiveProtocol = new InstancePerChannelProtocolAdapter<Message>(Message.class, new InstancePerChannelProtocolAdapter.ChannelProtocolFactory<Message>() {
-                public Protocol<Message> newChannel(Object channelKey) {
-                    return new ReceiveProtocol(id, nodeName);
-                }
-            }, channel);
+            Protocol<Message> workerProtocol = new WorkerProtocol(dispatch);
+            Protocol<Message> receiveProtocol = new ReceiveProtocol(id, nodeName, channel);
 
             ProtocolStack<Message> stack = new ProtocolStack<Message>(incomingExecutor, failureHandler, failureHandler, workerProtocol, receiveProtocol, new ConnectionDisconnectProtocol());
             handlers.add(stack);
@@ -171,11 +145,11 @@ public class MessageHub implements AsyncStoppable {
     public void requestStop() {
         lock.lock();
         try {
-            if (unicastOutgoing != null) {
-                unicastOutgoing.requestStop();
+            for (ProtocolStack<Message> stack : outgoingUnicasts.values()) {
+                stack.requestStop();
             }
-            if (broadcastOutgoing != null) {
-                broadcastOutgoing.requestStop();
+            for (ProtocolStack<Message> stack : outgoingBroadcasts.values()) {
+                stack.requestStop();
             }
             for (ProtocolStack<?> handler : handlers) {
                 handler.requestStop();
@@ -191,14 +165,16 @@ public class MessageHub implements AsyncStoppable {
         CompositeStoppable stoppable = new CompositeStoppable();
         lock.lock();
         try {
-            stoppable.add(unicastOutgoing);
-            stoppable.add(broadcastOutgoing);
+            stoppable.add(outgoingUnicasts.values());
+            stoppable.add(outgoingBroadcasts.values());
             stoppable.add(handlers);
             stoppable.add(connections);
             stoppable.add(router);
             stoppable.add(executors);
         } finally {
-            unicastOutgoing = null;
+            outgoingUnicasts.clear();
+            outgoingBroadcasts.clear();
+            handlers.clear();
             lock.unlock();
         }
 

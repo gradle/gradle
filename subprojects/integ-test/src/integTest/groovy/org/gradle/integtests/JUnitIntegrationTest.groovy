@@ -18,11 +18,10 @@ package org.gradle.integtests
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.gradle.integtests.fixtures.*
-import static org.gradle.util.Matchers.*
+import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.junit.Assert.assertThat
 
 public class JUnitIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()

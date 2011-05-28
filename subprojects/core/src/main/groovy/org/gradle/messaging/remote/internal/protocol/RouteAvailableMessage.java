@@ -25,4 +25,9 @@ public interface RouteAvailableMessage {
      * Returns the corresponding unavailable message for this message.
      */
     RouteUnavailableMessage getUnavailableMessage();
+
+    /**
+     * Returns true if the given route should be broadcast to this route.
+     */
+    boolean acceptIncoming(RouteAvailableMessage message);
 }

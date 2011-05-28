@@ -27,20 +27,20 @@ import org.slf4j.LoggerFactory;
  *
  * Note: this protocol blocks while messages are being dispatched. This means sending and receiving are stuck for the whole stack. Generally, this protocol should live in its own stack.
  */
-public class WorkerProtocol implements Protocol<Object> {
+public class WorkerProtocol implements Protocol<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProtocol.class);
     private final Dispatch<Object> worker;
-    private ProtocolContext<Object> context;
+    private ProtocolContext<Message> context;
 
     public WorkerProtocol(Dispatch<Object> worker) {
         this.worker = worker;
     }
 
-    public void start(ProtocolContext<Object> context) {
+    public void start(ProtocolContext<Message> context) {
         this.context = context;
     }
 
-    public void handleIncoming(Object message) {
+    public void handleIncoming(Message message) {
         if (message instanceof WorkerStopped) {
             LOGGER.debug("Received worker stopped: {}", message);
             context.stopped();
@@ -53,7 +53,7 @@ public class WorkerProtocol implements Protocol<Object> {
         }
     }
 
-    public void handleOutgoing(Object message) {
+    public void handleOutgoing(Message message) {
         throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s", message));
     }
 

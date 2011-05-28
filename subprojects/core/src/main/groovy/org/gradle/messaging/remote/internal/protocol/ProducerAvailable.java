@@ -16,11 +16,19 @@
 package org.gradle.messaging.remote.internal.protocol;
 
 public class ProducerAvailable extends ParticipantAvailable {
-    public ProducerAvailable(Object id, String displayName) {
-        super(id, displayName);
+    public ProducerAvailable(Object id, String displayName, String channelKey) {
+        super(id, displayName, channelKey);
     }
 
     public RouteUnavailableMessage getUnavailableMessage() {
         return new ProducerUnavailable(getId());
+    }
+
+    public boolean acceptIncoming(RouteAvailableMessage message) {
+        if (message instanceof ConsumerAvailable) {
+            ConsumerAvailable consumerAvailable = (ConsumerAvailable) message;
+            return consumerAvailable.getChannelKey().equals(getChannelKey());
+        }
+        return false;
     }
 }

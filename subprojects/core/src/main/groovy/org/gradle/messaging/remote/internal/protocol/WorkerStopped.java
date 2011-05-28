@@ -34,4 +34,9 @@ public class WorkerStopped extends Message {
     public int hashCode() {
         return 17;
     }
+
+    @Override
+    public String toString() {
+        return "[WorkerStopped]";
+    }
 }

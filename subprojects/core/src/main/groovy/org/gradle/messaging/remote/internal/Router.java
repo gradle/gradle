@@ -20,23 +20,30 @@ import org.gradle.messaging.dispatch.AsyncDispatch;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchFailureHandler;
 import org.gradle.messaging.dispatch.QueuingDispatch;
-import org.gradle.messaging.remote.internal.protocol.*;
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
+import org.gradle.messaging.remote.internal.protocol.RoutableMessage;
+import org.gradle.messaging.remote.internal.protocol.RouteAvailableMessage;
+import org.gradle.messaging.remote.internal.protocol.RouteUnavailableMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 public class Router implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Router.class);
     private final AsyncDispatch<Runnable> workQueue;
-    private final Set<Endpoint> localConnections = new HashSet<Endpoint>();
-    private final Set<Endpoint> remoteConnections = new HashSet<Endpoint>();
-    private final Map<Object, Route> allRoutes = new HashMap<Object, Route>();
+    private final Group localConnections = new LocalGroup();
+    private final Group remoteConnections = new RemoteGroup();
     private final DispatchFailureHandler<? super Message> failureHandler;
 
     public Router(Executor executor, DispatchFailureHandler<? super Message> failureHandler) {
         this.failureHandler = failureHandler;
+        localConnections.peer = remoteConnections;
+        remoteConnections.peer = localConnections;
         workQueue = new AsyncDispatch<Runnable>(executor);
         workQueue.dispatchTo(new Dispatch<Runnable>() {
             public void dispatch(Runnable message) {
@@ -46,34 +53,27 @@ public class Router implements Stoppable {
     }
 
     public AsyncConnection<Message> createLocalConnection() {
-        return new LocalConnection();
+        return new Endpoint(localConnections);
     }
 
     public AsyncConnection<Message> createRemoteConnection() {
-        return new RemoteConnection();
+        return new Endpoint(remoteConnections);
     }
 
     public void stop() {
         workQueue.stop();
     }
 
-    private abstract class Endpoint {
+    private class Endpoint implements AsyncConnection<Message> {
         private QueuingDispatch<Message> handler = new QueuingDispatch<Message>();
-        private final Set<Endpoint> broadcastTo;
-        private final Set<Route> routes = new HashSet<Route>();
+        final Group owner;
+        final Group peerGroup;
+        final Set<Route> routes = new HashSet<Route>();
 
-        protected Endpoint(final Set<Endpoint> connections, final Set<Endpoint> broadcastTo) {
-            this.broadcastTo = broadcastTo;
-            workQueue.dispatch(new Runnable() {
-                public void run() {
-                    connections.add(Endpoint.this);
-                    for (Route route : allRoutes.values()) {
-                        if (broadcastTo.contains(route.destination)) {
-                            receive(route.announcement);
-                        }
-                    }
-                }
-            });
+        protected Endpoint(Group owner) {
+            this.owner = owner;
+            this.peerGroup = owner.peer;
+            owner.addEndpoint(this);
         }
 
         public void dispatchTo(final Dispatch<? super Message> handler) {
@@ -88,44 +88,28 @@ public class Router implements Stoppable {
             workQueue.dispatch(new Runnable() {
                 public void run() {
                     try {
-                        Message routingTarget = message;
-                        if (message instanceof ChannelMessage) {
-                            ChannelMessage channelMessage = (ChannelMessage) message;
-                            routingTarget = (Message) channelMessage.getPayload();
-                        }
-
-                        if (routingTarget instanceof RouteAvailableMessage) {
-                            RouteAvailableMessage routeAvailableMessage = (RouteAvailableMessage) routingTarget;
+                        if (message instanceof RouteAvailableMessage) {
+                            RouteAvailableMessage routeAvailableMessage = (RouteAvailableMessage) message;
                             LOGGER.debug("Received route available. Message: {}", routeAvailableMessage);
-                            Route route = new Route(routeAvailableMessage.getId(), Endpoint.this, message);
+                            Route route = new Route(routeAvailableMessage.getId(), Endpoint.this, routeAvailableMessage);
                             routes.add(route);
-                            allRoutes.put(routeAvailableMessage.getId(), route);
-                        } else if (routingTarget instanceof RouteUnavailableMessage) {
-                            RouteUnavailableMessage routeUnavailableMessage = (RouteUnavailableMessage) routingTarget;
+                            owner.addRoute(route);
+                        } else if (message instanceof RouteUnavailableMessage) {
+                            RouteUnavailableMessage routeUnavailableMessage = (RouteUnavailableMessage) message;
                             LOGGER.debug("Received route unavailable. Message: {}", routeUnavailableMessage);
-                            Route route = allRoutes.remove(routeUnavailableMessage.getId());
+                            Route route = owner.removeRoute(routeUnavailableMessage.getId());
                             routes.remove(route);
-                        }
-                        if (routingTarget instanceof RoutableMessage) {
-                            RoutableMessage routableMessage = (RoutableMessage) routingTarget;
-                            Object destination = routableMessage.getDestination();
-                            if (destination == null) {
-                                broadcast(message);
-                            } else {
-                                allRoutes.get(destination).destination.receive(message);
-                            }
-                        } else if (routingTarget instanceof EndOfStreamEvent) {
+                        } else if (message instanceof RoutableMessage) {
+                            RoutableMessage routableMessage = (RoutableMessage) message;
+                            peerGroup.send(routableMessage.getDestination(), message);
+                        } else if (message instanceof EndOfStreamEvent) {
                             for (Route route : routes) {
                                 LOGGER.debug("Removing route {} due to end of stream.", route.id);
-                                Message unavailableMessage = route.getUnavailableMessage();
-                                broadcast(unavailableMessage);
-                                allRoutes.remove(route.id);
+                                owner.removeRoute(route.id);
                             }
-                            localConnections.remove(Endpoint.this);
-                            remoteConnections.remove(Endpoint.this);
-                            routes.clear();
+                            owner.removeEndpoint(Endpoint.this);
                             // Ping the message back
-                            receive(message);
+                            dispatchIncoming(message);
                         } else {
                             throw new UnsupportedOperationException(String.format("Received message which cannot be routed: %s.", message));
                         }
@@ -136,43 +120,119 @@ public class Router implements Stoppable {
             });
         }
 
-        void receive(Message message) {
+        void dispatchIncoming(Message message) {
             handler.dispatch(message);
-        }
-
-        void broadcast(Message message) {
-            for (Endpoint remoteConnection : broadcastTo) {
-                remoteConnection.receive(message);
-            }
         }
     }
 
     private static class Route {
         final Object id;
-        final ChannelMessage announcement;
+        final RouteAvailableMessage announcement;
         final Endpoint destination;
+        final Set<Route> targets = new HashSet<Route>();
 
-        private Route(Object id, Endpoint destination, Message announcement) {
+        private Route(Object id, Endpoint destination, RouteAvailableMessage announcement) {
             this.id = id;
             this.destination = destination;
-            this.announcement = (ChannelMessage) announcement;
+            this.announcement = announcement;
         }
 
-        public Message getUnavailableMessage() {
-            RouteAvailableMessage routeAvailableMessage = (RouteAvailableMessage) announcement.getPayload();
-            return announcement.withPayload(routeAvailableMessage.getUnavailableMessage());
-        }
-    }
-
-    private class LocalConnection extends Endpoint implements AsyncConnection<Message> {
-        private LocalConnection() {
-            super(localConnections, remoteConnections);
+        public void connectTo(Route target) {
+            targets.add(target);
+            target.destination.dispatchIncoming((Message) announcement);
         }
     }
 
-    private class RemoteConnection extends Endpoint implements AsyncConnection<Message> {
-        private RemoteConnection() {
-            super(remoteConnections, localConnections);
+    private static class Group {
+        private final Map<Object, Route> routes = new HashMap<Object, Route>();
+        private final Set<Endpoint> endpoints = new HashSet<Endpoint>();
+        Group peer;
+
+        public void addEndpoint(Endpoint endpoint) {
+            endpoints.add(endpoint);
+        }
+
+        public void addRoute(Route route) {
+            routes.put(route.id, route);
+        }
+
+        public Route removeRoute(Object routeId) {
+            return routes.remove(routeId);
+        }
+
+        public void send(Object routeId, Message message) {
+            routes.get(routeId).destination.dispatchIncoming(message);
+        }
+
+        public void removeEndpoint(Endpoint endpoint) {
+            endpoints.remove(endpoint);
+        }
+    }
+
+    private static class LocalGroup extends Group {
+        @Override
+        public void addRoute(Route route) {
+            super.addRoute(route);
+            for (Endpoint endpoint : peer.endpoints) {
+                endpoint.dispatchIncoming((Message) route.announcement);
+            }
+            for (Route targetRoute : peer.routes.values()) {
+                if (route.announcement.acceptIncoming(targetRoute.announcement)) {
+                    targetRoute.connectTo(route);
+                }
+            }
+        }
+
+        @Override
+        public Route removeRoute(Object routeId) {
+            Route route = super.removeRoute(routeId);
+            Message unavailableMessage = (Message) route.announcement.getUnavailableMessage();
+            for (Endpoint endpoint : peer.endpoints) {
+                endpoint.dispatchIncoming(unavailableMessage);
+            }
+            for (Route targetRoute : peer.routes.values()) {
+                targetRoute.targets.remove(route);
+            }
+            return route;
+        }
+
+        @Override
+        public void removeEndpoint(Endpoint endpoint) {
+            super.removeEndpoint(endpoint);
+            for (Route route : peer.routes.values()) {
+                route.targets.removeAll(endpoint.routes);
+            }
+        }
+    }
+
+    private static class RemoteGroup extends Group {
+        @Override
+        public void addEndpoint(Endpoint endpoint) {
+            super.addEndpoint(endpoint);
+            for (Route route : peer.routes.values()) {
+                endpoint.dispatchIncoming((Message) route.announcement);
+            }
+        }
+
+        @Override
+        public void addRoute(Route route) {
+            super.addRoute(route);
+            for (Route targetRoute : peer.routes.values()) {
+                if (targetRoute.announcement.acceptIncoming(route.announcement)) {
+                    route.connectTo(targetRoute);
+                }
+            }
+        }
+
+        @Override
+        public Route removeRoute(Object routeId) {
+            Route route = super.removeRoute(routeId);
+            for (Route target : route.targets) {
+                Message unavailableMessage = (Message) route.announcement.getUnavailableMessage();
+                target.destination.dispatchIncoming(unavailableMessage);
+            }
+            route.targets.clear();
+            return route;
         }
     }
 }

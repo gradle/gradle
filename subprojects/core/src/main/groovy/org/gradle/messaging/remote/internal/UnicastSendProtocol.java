@@ -24,20 +24,20 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UnicastSendProtocol implements Protocol<Object> {
+public class UnicastSendProtocol implements Protocol<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnicastSendProtocol.class);
     private static final Object BROKEN_CONSUMER = new Object();
     private final List<Object> queue = new ArrayList<Object>();
     private String consumerDisplayName;
     private Object consumerId;
-    private ProtocolContext<Object> context;
+    private ProtocolContext<Message> context;
     private boolean stopping;
 
-    public void start(ProtocolContext<Object> context) {
+    public void start(ProtocolContext<Message> context) {
         this.context = context;
     }
 
-    public void handleIncoming(Object message) {
+    public void handleIncoming(Message message) {
         if (message instanceof ConsumerAvailable) {
             ConsumerAvailable consumerAvailable = (ConsumerAvailable) message;
             LOGGER.debug("Consumer available: {}", consumerAvailable);
@@ -58,13 +58,18 @@ public class UnicastSendProtocol implements Protocol<Object> {
         }
     }
 
-    public void handleOutgoing(Object message) {
-        if (consumerId == null) {
-            queue.add(message);
-        } else if (consumerId == BROKEN_CONSUMER) {
-            LOGGER.warn("Discarding message {}, as {} is no longer available.", message, consumerDisplayName);
+    public void handleOutgoing(Message message) {
+        if (message instanceof Request) {
+            Request request = (Request) message;
+            if (consumerId == null) {
+                queue.add(request.getPayload());
+            } else if (consumerId == BROKEN_CONSUMER) {
+                LOGGER.warn("Discarding message {}, as {} is no longer available.", message, consumerDisplayName);
+            } else {
+                context.dispatchOutgoing(new Request(consumerId, request.getPayload()));
+            }
         } else {
-            context.dispatchOutgoing(new Request(consumerId, message));
+            throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s", message));
         }
     }
 

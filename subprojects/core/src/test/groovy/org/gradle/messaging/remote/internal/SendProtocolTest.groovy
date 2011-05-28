@@ -20,7 +20,7 @@ import org.gradle.messaging.remote.internal.protocol.*
 
 class SendProtocolTest extends Specification {
     final ProtocolContext<Object> context = Mock()
-    final SendProtocol protocol = new SendProtocol("id", "display")
+    final SendProtocol protocol = new SendProtocol("id", "display", "channel")
 
     def setup() {
         protocol.start(context)
@@ -31,13 +31,13 @@ class SendProtocolTest extends Specification {
         protocol.start(context)
 
         then:
-        1 * context.dispatchOutgoing(new ProducerAvailable("id", "display"))
+        1 * context.dispatchOutgoing(new ProducerAvailable("id", "display", "channel"))
         0 * context._
     }
 
     def "dispatches outgoing producer ready when incoming consumer available received"() {
         when:
-        protocol.handleIncoming(new ConsumerAvailable("consumer", "consumer-display"))
+        protocol.handleIncoming(new ConsumerAvailable("consumer", "consumer-display", "channel"))
 
         then:
         1 * context.dispatchOutgoing(new ProducerReady("id", "consumer"))
@@ -45,7 +45,7 @@ class SendProtocolTest extends Specification {
     }
 
     def "dispatches incoming consumer available when consumer ready received"() {
-        def available = new ConsumerAvailable("consumer", "display")
+        def available = new ConsumerAvailable("consumer", "display", "channel")
 
         given:
         protocol.handleIncoming(available)
@@ -60,7 +60,7 @@ class SendProtocolTest extends Specification {
 
     def "dispatches incoming consumer unavailable and outgoing producer stopped when consumer stopping received"() {
         given:
-        protocol.handleIncoming(new ConsumerAvailable("consumer", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("consumer", "display", "channel"))
 
         when:
         protocol.handleIncoming(new ConsumerStopping("consumer", "id"))
@@ -73,9 +73,9 @@ class SendProtocolTest extends Specification {
 
     def "stop dispatches outgoing producer stopped to all consumers and waits for acknowledgement"() {
         given:
-        protocol.handleIncoming(new ConsumerAvailable("consumer1", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("consumer1", "display", "channel"))
         protocol.handleIncoming(new ConsumerReady("consumer1", "id"))
-        protocol.handleIncoming(new ConsumerAvailable("consumer2", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("consumer2", "display", "channel"))
         protocol.handleIncoming(new ConsumerReady("consumer2", "id"))
 
         when:
@@ -114,7 +114,7 @@ class SendProtocolTest extends Specification {
 
     def "does not dispatch stopped message to consumer which has stopped"() {
         given:
-        protocol.handleIncoming(new ConsumerAvailable("consumer", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("consumer", "display", "channel"))
         protocol.handleIncoming(new ConsumerStopping("consumer", "id"))
         protocol.handleIncoming(new ConsumerStopped("consumer", "id"))
 
@@ -129,7 +129,7 @@ class SendProtocolTest extends Specification {
 
     def "handles consumer which becomes unavailable while waiting for consumer ready"() {
         given:
-        protocol.handleIncoming(new ConsumerAvailable("consumer", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("consumer", "display", "channel"))
 
         when:
         protocol.handleIncoming(new ConsumerUnavailable("consumer"))
@@ -148,7 +148,7 @@ class SendProtocolTest extends Specification {
 
     def "handles consumer which becomes unavailable while waiting for consumer stopped"() {
         given:
-        protocol.handleIncoming(new ConsumerAvailable("consumer", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("consumer", "display", "channel"))
         protocol.handleIncoming(new ConsumerReady("consumer", "id"))
 
         when:
@@ -171,7 +171,7 @@ class SendProtocolTest extends Specification {
 
     def "handles consumer which becomes unavailable without consumer stopping message received"() {
         given:
-        protocol.handleIncoming(new ConsumerAvailable("consumer", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("consumer", "display", "channel"))
         protocol.handleIncoming(new ConsumerReady("consumer", "id"))
 
         when:
@@ -187,16 +187,5 @@ class SendProtocolTest extends Specification {
         1 * context.dispatchOutgoing(new ProducerUnavailable("id"))
         1 * context.stopped()
         0 * context._
-    }
-
-    def "ignores incoming producer broadcasts"() {
-        when:
-        protocol.handleIncoming(message)
-
-        then:
-        0 * context._
-
-        where:
-        message << [ new ProducerAvailable("other", "display"), new ProducerUnavailable("other") ]
     }
 }

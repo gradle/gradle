@@ -24,27 +24,29 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class SendProtocol implements Protocol<Object> {
+public class SendProtocol implements Protocol<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SendProtocol.class);
+    private final String channelKey;
     private final Object id;
     private final String displayName;
-    private ProtocolContext<Object> context;
+    private ProtocolContext<Message> context;
     private boolean stopping;
     private final Map<Object, ConsumerAvailable> pending = new HashMap<Object, ConsumerAvailable>();
     private final Set<Object> consumers = new HashSet<Object>();
 
-    public SendProtocol(Object id, String displayName) {
+    public SendProtocol(Object id, String displayName, String channelKey) {
+        this.channelKey = channelKey;
         this.id = id;
         this.displayName = displayName;
     }
 
-    public void start(ProtocolContext<Object> context) {
+    public void start(ProtocolContext<Message> context) {
         LOGGER.debug("Starting producer {}", id);
         this.context = context;
-        context.dispatchOutgoing(new ProducerAvailable(id, displayName));
+        context.dispatchOutgoing(new ProducerAvailable(id, displayName, channelKey));
     }
 
-    public void handleIncoming(Object message) {
+    public void handleIncoming(Message message) {
         if (message instanceof ConsumerAvailable) {
             LOGGER.debug("Consumer available: {}", message);
             ConsumerAvailable consumerAvailable = (ConsumerAvailable) message;
@@ -73,9 +75,6 @@ public class SendProtocol implements Protocol<Object> {
                 context.dispatchIncoming(new ConsumerUnavailable(consumerUnavailable.getId()));
             }
             maybeStop();
-        } else if (message instanceof ProducerAvailable || message instanceof ProducerUnavailable) {
-            // Ignore these broadcasts
-            return;
         } else {
             throw new IllegalArgumentException(String.format("Unexpected incoming message received: %s", message));
         }
@@ -89,7 +88,7 @@ public class SendProtocol implements Protocol<Object> {
         }
     }
 
-    public void handleOutgoing(Object message) {
+    public void handleOutgoing(Message message) {
         if (message instanceof RoutableMessage) {
             RoutableMessage routableMessage = (RoutableMessage) message;
             if (!consumers.contains(routableMessage.getDestination())) {

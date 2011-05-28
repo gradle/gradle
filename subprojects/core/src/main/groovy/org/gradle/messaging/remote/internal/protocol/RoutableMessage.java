@@ -17,7 +17,7 @@ package org.gradle.messaging.remote.internal.protocol;
 
 public interface RoutableMessage {
     /**
-     * Returns the destination for this message, or null for broadcast.
+     * Returns the destination for this message.
      */
     Object getDestination();
 }

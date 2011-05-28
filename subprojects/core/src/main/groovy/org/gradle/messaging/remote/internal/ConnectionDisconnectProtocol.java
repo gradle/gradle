@@ -30,6 +30,7 @@ public class ConnectionDisconnectProtocol implements Protocol<Message> {
 
     public void handleIncoming(Message message) {
         if (message instanceof EndOfStreamEvent) {
+            LOGGER.debug("Received incoming EOS. Stopping");
             assert stopping;
             context.stopped();
         } else if (stopping) {
@@ -45,6 +46,7 @@ public class ConnectionDisconnectProtocol implements Protocol<Message> {
 
     public void stopRequested() {
         stopping = true;
+        LOGGER.debug("Sending outgoing EOS.");
         context.dispatchOutgoing(new EndOfStreamEvent());
         context.stopLater();
     }

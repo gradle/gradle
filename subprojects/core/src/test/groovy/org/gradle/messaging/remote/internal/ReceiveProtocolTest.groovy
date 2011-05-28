@@ -30,7 +30,7 @@ import org.gradle.messaging.remote.internal.protocol.WorkerStopped
 
 class ReceiveProtocolTest extends Specification {
     final ProtocolContext<Message> context = Mock()
-    final ReceiveProtocol protocol = new ReceiveProtocol("id", "display")
+    final ReceiveProtocol protocol = new ReceiveProtocol("id", "display", "channel")
 
     def setup() {
         protocol.start(context)
@@ -41,7 +41,7 @@ class ReceiveProtocolTest extends Specification {
         protocol.start(context)
 
         then:
-        1 * context.dispatchOutgoing(new ConsumerAvailable("id", "display"))
+        1 * context.dispatchOutgoing(new ConsumerAvailable("id", "display", "channel"))
         0 * context._
     }
 

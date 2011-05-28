@@ -26,19 +26,21 @@ public class ReceiveProtocol implements Protocol<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReceiveProtocol.class);
     private final Object id;
     private final String displayName;
+    private final String channelKey;
     private final Set<Object> producers = new HashSet<Object>();
     private ProtocolContext<Message> context;
     private boolean stopping;
 
-    public ReceiveProtocol(Object id, String displayName) {
+    public ReceiveProtocol(Object id, String displayName, String channelKey) {
         this.id = id;
         this.displayName = displayName;
+        this.channelKey = channelKey;
     }
 
     public void start(ProtocolContext<Message> context) {
         this.context = context;
         LOGGER.debug("Starting receiver {}.", id);
-        context.dispatchOutgoing(new ConsumerAvailable(id, displayName));
+        context.dispatchOutgoing(new ConsumerAvailable(id, displayName, channelKey));
     }
 
     public void handleIncoming(Message message) {
@@ -56,7 +58,7 @@ public class ReceiveProtocol implements Protocol<Message> {
             LOGGER.debug("Producer unavailable: {}", message);
             ProducerUnavailable producerUnavailable = (ProducerUnavailable) message;
             removeProducer(producerUnavailable.getId());
-        } else if (message instanceof ProducerAvailable || message instanceof ConsumerAvailable || message instanceof ConsumerUnavailable) {
+        } else if (message instanceof ProducerAvailable) {
             // Ignore these broadcasts
             return;
         } else if (message instanceof Request) {

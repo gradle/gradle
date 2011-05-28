@@ -16,18 +16,18 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.remote.internal.protocol.ChannelMessage;
+import org.gradle.messaging.remote.internal.protocol.Request;
 
 class OutgoingMultiplex implements Dispatch<Object> {
-    private final Dispatch<? super ChannelMessage> dispatch;
+    private final Dispatch<? super Message> dispatch;
     private final String channelKey;
 
-    OutgoingMultiplex(String channelKey, Dispatch<? super ChannelMessage> dispatch) {
+    OutgoingMultiplex(String channelKey, Dispatch<? super Message> dispatch) {
         this.channelKey = channelKey;
         this.dispatch = dispatch;
     }
 
     public void dispatch(Object message) {
-        dispatch.dispatch(new ChannelMessage(channelKey, message));
+        dispatch.dispatch(new Request(channelKey, message));
     }
 }

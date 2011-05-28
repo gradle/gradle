@@ -17,7 +17,7 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
-public class ParticipantUnavailable extends Message implements RoutableMessage, RouteUnavailableMessage {
+public class ParticipantUnavailable extends Message implements RouteUnavailableMessage {
     private final Object id;
 
     public ParticipantUnavailable(Object id) {
@@ -30,10 +30,6 @@ public class ParticipantUnavailable extends Message implements RoutableMessage, 
 
     public Object getSource() {
         return id;
-    }
-
-    public Object getDestination() {
-        return null;
     }
 
     @Override

@@ -27,28 +27,33 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class BroadcastSendProtocol implements Protocol<Object> {
+public class BroadcastSendProtocol implements Protocol<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BroadcastSendProtocol.class);
-    private ProtocolContext<Object> context;
+    private ProtocolContext<Message> context;
     private final Set<Object> consumers = new HashSet<Object>();
     private final List<Object> queue = new ArrayList<Object>();
     private boolean stopping;
 
-    public void start(ProtocolContext<Object> context) {
+    public void start(ProtocolContext<Message> context) {
         this.context = context;
     }
 
-    public void handleOutgoing(Object message) {
-        if (consumers.isEmpty()) {
-            queue.add(message);
-        } else {
-            for (Object consumer : consumers) {
-                context.dispatchOutgoing(new Request(consumer, message));
+    public void handleOutgoing(Message message) {
+        if (message instanceof Request) {
+            Request request = (Request) message;
+            if (consumers.isEmpty()) {
+                queue.add(request.getPayload());
+            } else {
+                for (Object consumer : consumers) {
+                    context.dispatchOutgoing(new Request(consumer, request.getPayload()));
+                }
             }
+        } else {
+            throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s", message));
         }
     }
 
-    public void handleIncoming(Object message) {
+    public void handleIncoming(Message message) {
         if (message instanceof ConsumerAvailable) {
             ConsumerAvailable consumerAvailable = (ConsumerAvailable) message;
             consumers.add(consumerAvailable.getId());

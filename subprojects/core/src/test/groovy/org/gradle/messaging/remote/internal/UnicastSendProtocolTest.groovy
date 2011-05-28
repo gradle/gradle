@@ -29,43 +29,36 @@ class UnicastSendProtocolTest extends Specification {
     }
 
     def "queues outgoing messages until a consumer is available"() {
-        Message message1 = Mock()
-        Message message2 = Mock()
-
         when:
-        protocol.handleOutgoing(message1)
-        protocol.handleOutgoing(message2)
+        protocol.handleOutgoing(new Request("channel", "message1"))
+        protocol.handleOutgoing(new Request("channel", "message2"))
 
         then:
         0 * context._
 
         when:
-        protocol.handleIncoming(new ConsumerAvailable("id", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channel"))
 
         then:
-        1 * context.dispatchOutgoing(new Request("id", message1))
-        1 * context.dispatchOutgoing(new Request("id", message2))
+        1 * context.dispatchOutgoing(new Request("id", "message1"))
+        1 * context.dispatchOutgoing(new Request("id", "message2"))
         0 * context._
     }
 
     def "forwards messages when a consumer is available"() {
-        Message message = Mock()
-
         given:
-        protocol.handleIncoming(new ConsumerAvailable("id", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channel"))
 
         when:
-        protocol.handleOutgoing(message)
+        protocol.handleOutgoing(new Request("channel", "message"))
 
         then:
-        1 * context.dispatchOutgoing(new Request("id", message))
+        1 * context.dispatchOutgoing(new Request("id", "message"))
     }
 
     def "stop waits until a consumer is available and messages dispatched"() {
-        Message message = Mock()
-
         given:
-        protocol.handleOutgoing(message)
+        protocol.handleOutgoing(new Request("channel", "message"))
 
         when:
         protocol.stopRequested()
@@ -75,10 +68,10 @@ class UnicastSendProtocolTest extends Specification {
         0 * context._
 
         when:
-        protocol.handleIncoming(new ConsumerAvailable("id", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channnel"))
 
         then:
-        1 * context.dispatchOutgoing(new Request("id", message))
+        1 * context.dispatchOutgoing(new Request("id", "message"))
         1 * context.stopped()
         0 * context._
     }
@@ -93,11 +86,9 @@ class UnicastSendProtocolTest extends Specification {
     }
 
     def "stops immediately when all messages have been dispatched"() {
-        Message message = Mock()
-
         given:
-        protocol.handleIncoming(new ConsumerAvailable("id", "display"))
-        protocol.handleOutgoing(message)
+        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channel"))
+        protocol.handleOutgoing(new Request("channel", "message"))
 
         when:
         protocol.stopRequested()
@@ -108,14 +99,12 @@ class UnicastSendProtocolTest extends Specification {
     }
 
     def "discards messages after consumer becomes unavailable"() {
-        Message message = Mock()
-
         given:
-        protocol.handleIncoming(new ConsumerAvailable("id", "display"))
+        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channel"))
         protocol.handleIncoming(new ConsumerUnavailable("id"))
 
         when:
-        protocol.handleOutgoing(message)
+        protocol.handleOutgoing(new Request("channel", "message"))
 
         then:
         0 * context._
@@ -129,11 +118,9 @@ class UnicastSendProtocolTest extends Specification {
     }
 
     def "stop ignores consumer unavailable when everything dispatched"() {
-        Message message = Mock()
-
         given:
-        protocol.handleOutgoing(message)
-        protocol.handleIncoming(new ConsumerAvailable("id", "display"))
+        protocol.handleOutgoing(new Request("channel", "message"))
+        protocol.handleIncoming(new ConsumerAvailable("id", "display", "channel"))
 
         when:
         protocol.handleIncoming(new ConsumerUnavailable("id"))

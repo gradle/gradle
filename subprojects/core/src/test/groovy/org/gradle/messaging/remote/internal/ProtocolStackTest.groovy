@@ -357,4 +357,25 @@ class ProtocolStackTest extends ConcurrentSpecification {
         1 * bottom.handleOutgoing("message") >> { bottomContext.dispatchOutgoing("message") }
         1 * outgoing.dispatch("message") >> { stopped.done() }
     }
+
+    def "protocols can dispatch outgoing messages on stop"() {
+        def stopped = waitsForAsyncActionToComplete()
+
+        when:
+        stopped.start {
+            stack.stop()
+        }
+
+        then:
+        1 * top.stopRequested() >> { topContext.dispatchOutgoing("top stopped") }
+        1 * bottom.handleOutgoing("top stopped") >> { bottomContext.dispatchOutgoing("top stopped") }
+        1 * bottom.stopRequested() >> { bottomContext.dispatchOutgoing("bottom stopped") }
+
+        and:
+        1 * outgoing.dispatch("top stopped")
+
+        and:
+        1 * outgoing.dispatch("bottom stopped") >> { stopped.done() }
+    }
+
 }

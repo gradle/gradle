@@ -17,13 +17,15 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
-public abstract class ParticipantAvailable extends Message implements ReplyRoutableMessage, RouteAvailableMessage {
+public abstract class ParticipantAvailable extends Message implements RouteAvailableMessage {
+    private final String channelKey;
     private final Object id;
     private final String displayName;
 
-    public ParticipantAvailable(Object id, String displayName) {
+    public ParticipantAvailable(Object id, String displayName, String channelKey) {
         this.id = id;
         this.displayName = displayName;
+        this.channelKey = channelKey;
     }
 
     public Object getId() {
@@ -34,17 +36,17 @@ public abstract class ParticipantAvailable extends Message implements ReplyRouta
         return displayName;
     }
 
+    public String getChannelKey() {
+        return channelKey;
+    }
+
     public Object getSource() {
         return id;
     }
 
-    public Object getDestination() {
-        return null;
-    }
-
     @Override
     public String toString() {
-        return String.format("[%s id: %s, displayName: %s]", getClass().getSimpleName(), id, displayName);
+        return String.format("[%s id: %s, displayName: %s, channel: %s]", getClass().getSimpleName(), id, displayName, channelKey);
     }
 
     @Override
@@ -56,11 +58,11 @@ public abstract class ParticipantAvailable extends Message implements ReplyRouta
             return false;
         }
         ParticipantAvailable other = (ParticipantAvailable) o;
-        return id.equals(other.id) && displayName.equals(other.displayName);
+        return id.equals(other.id) && displayName.equals(other.displayName) && channelKey.equals(other.channelKey);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode() ^ displayName.hashCode();
+        return id.hashCode() ^ displayName.hashCode() ^ channelKey.hashCode();
     }
 }

@@ -205,7 +205,11 @@ public class ProtocolStack<T> implements AsyncStoppable {
             if (!stopped) {
                 stopped = true;
                 protocolsStopped.countDown();
-                outgoing.requestStop();
+                contextQueue.add(new Runnable() {
+                    public void run() {
+                        outgoing.requestStop();
+                    }
+                });
             }
         }
 
