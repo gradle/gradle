@@ -185,6 +185,25 @@ project(':child') {
         project.projectDependencies[0].path == 'child'
     }
 
+    def "minimal Eclipse model does not attempt to call any tasks"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+
+sourceSets.main.output.dir "$buildDir/foo", buildBy: 'generateResources'
+
+task generateResources << {
+  assert false : 'should not be called when building minimal model'
+}
+'''
+
+        when:
+        withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+
+        then:
+        noExceptionThrown()
+    }
+
     //TODO SF: write a test that checks if minimal project has necessary project dependencies
 
     def "can build the minimal Eclipse model for a java project with the idea plugin applied"() {
