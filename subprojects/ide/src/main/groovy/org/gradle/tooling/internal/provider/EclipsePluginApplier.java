@@ -17,8 +17,6 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 
 import java.util.Set;
@@ -27,17 +25,13 @@ import java.util.Set;
  * @author Szczepan Faber, @date: 25.03.11
  */
 public class EclipsePluginApplier {
-    public EclipsePluginApplierResult apply(GradleInternal gradle) {
-        EclipsePluginApplierResult applierResult = new EclipsePluginApplierResult();
-        ProjectInternal root = gradle.getRootProject();
+    public void apply(Project root) {
         Set<Project> allprojects = root.getAllprojects();
         for (Project p : allprojects) {
             if (!p.getPlugins().hasPlugin(EclipsePlugin.class)) {
-                EclipsePlugin plugin = p.getPlugins().apply(EclipsePlugin.class);
-                applierResult.rememberTasks(p.getPath(), plugin.getTaskNames());
+                p.getPlugins().apply(EclipsePlugin.class);
             }
         }
         root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
-        return applierResult;
     }
 }

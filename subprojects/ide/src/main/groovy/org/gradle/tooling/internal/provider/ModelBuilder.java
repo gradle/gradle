@@ -41,23 +41,24 @@ import java.util.Map;
 * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
 */
 public class ModelBuilder {
-    private final boolean includeTasks;
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject currentProject;
     private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
     private GradleInternal gradle;
-    private EclipsePluginApplierResult applierResult;
+    private final TasksFactory tasksFactory;
 
     public ModelBuilder(boolean includeTasks, boolean projectDependenciesOnly) {
-        this.includeTasks = includeTasks;
+        this.tasksFactory = new TasksFactory(includeTasks);
         this.projectDependenciesOnly = projectDependenciesOnly;
     }
 
     public void buildAll(GradleInternal gradle) {
         this.gradle = gradle;
-        applierResult = new EclipsePluginApplier().apply(gradle);
-        buildHierarchy(gradle.getRootProject());
-        populate(gradle.getRootProject());
+        Project root = gradle.getRootProject();
+        tasksFactory.collectTasks(root);
+        new EclipsePluginApplier().apply(root);
+        buildHierarchy(root);
+        populate(root);
     }
 
     public DefaultEclipseProject getProject() {
@@ -86,10 +87,8 @@ public class ModelBuilder {
         eclipseProject.setClasspath(dependencies);
         eclipseProject.setProjectDependencies(projectDependencies);
         eclipseProject.setSourceDirectories(sourceDirectories);
-        if (includeTasks) {
-            List<EclipseTaskVersion1> allTasks = new TasksFactory().create(project, eclipseProject, applierResult);
-            eclipseProject.setTasks(allTasks);
-        }
+        List<EclipseTaskVersion1> allTasks = tasksFactory.create(project, eclipseProject);
+        eclipseProject.setTasks(allTasks);
 
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);

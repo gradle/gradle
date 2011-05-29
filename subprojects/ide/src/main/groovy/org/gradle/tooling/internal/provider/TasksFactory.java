@@ -23,16 +23,32 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class TasksFactory {
-    public List<EclipseTaskVersion1> create(Project project, EclipseProjectVersion3 eclipseProject, EclipsePluginApplierResult applierResult) {
+    Map<Project, Set<Task>> allTasks;
+    private final boolean includeTasks;
+
+    public TasksFactory(boolean includeTasks) {
+        this.includeTasks = includeTasks;
+    }
+
+    public List<EclipseTaskVersion1> create(Project project, EclipseProjectVersion3 eclipseProject) {
         List<EclipseTaskVersion1> tasks = new ArrayList<EclipseTaskVersion1>();
-        for (final Task task : project.getTasks()) {
-            boolean taskIsExecutable = !applierResult.wasApplied(task.getPath());
-            if (taskIsExecutable) {
-                tasks.add(new DefaultTask(eclipseProject, task.getPath(), task.getName(), task.getDescription()));
+        if (includeTasks) {
+            for (final Task task : allTasks.get(project)) {
+                tasks.add(createDefaultTask(eclipseProject, task));
             }
         }
         return tasks;
+    }
+
+    DefaultTask createDefaultTask(EclipseProjectVersion3 eclipseProject, Task task) {
+        return new DefaultTask(eclipseProject, task.getPath(), task.getName(), task.getDescription());
+    }
+
+    public void collectTasks(Project root) {
+        allTasks = root.getAllTasks(true);
     }
 }

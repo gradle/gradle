@@ -16,57 +16,49 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.internal.AbstractTask
+import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class TasksFactoryTest extends Specification {
     final Project project = Mock()
     final org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3 eclipseProject = Mock()
-    final TaskContainer tasks = Mock()
-    final TasksFactory factory = new TasksFactory()
+    final task = HelperUtil.createTask(AbstractTask)
 
-    def "builds the tasks for a project"() {
-        def taskA = task('a')
-        def taskB = task('b')
-
-        when:
-        def result = factory.create(project, eclipseProject, new EclipsePluginApplierResult())
-
-        then:
-        result.size() == 2
-        result[0].path == ':a'
-        result[0].name == 'a'
-        result[0].description == 'task a'
-        result[0].project == eclipseProject
-        result[1].name == 'b'
-        1 * project.tasks >> tasks
-        tasks.iterator() >> [taskA, taskB].iterator()
-    }
-
-    def "skips applied tasks"() {
-        def taskA = task('a')
-        def taskB = task('b')
-
-        1 * project.tasks >> tasks
-        tasks.iterator() >> [taskA, taskB].iterator()
-
-        def applierResult = new EclipsePluginApplierResult()
-        applierResult.rememberTasks(":", ['b'])
+    def "creates task"() {
+        task.description = "foo"
+        TasksFactory factory = new TasksFactory(true)
 
         when:
-        def result = factory.create(project, eclipseProject, applierResult)
+        def createdTask = factory.createDefaultTask(eclipseProject, task);
 
         then:
-        result.size() == 1
-        result[0].path == ':a'
+        createdTask.name == task.name
+        createdTask.description == task.description
+        createdTask.path == task.path
     }
 
-    def task(String name) {
-        Task task = Mock()
-        _ * task.path >> ":$name"
-        _ * task.name >> name
-        _ * task.description >> "task $name"
-        return task
+    def "does not create tasks"() {
+        TasksFactory factory = new TasksFactory(false)
+
+        when:
+        factory.allTasks = [:]
+        factory.allTasks.put(project, [task] as Set)
+        def tasks = factory.create(project, eclipseProject)
+
+        then:
+        tasks == []
+    }
+
+    def "creates tasks"() {
+        TasksFactory factory = new TasksFactory(true)
+
+        when:
+        factory.allTasks = [:]
+        factory.allTasks.put(project, [task] as Set)
+        def tasks = factory.create(project, eclipseProject)
+
+        then:
+        tasks.size() == 1
     }
 }
