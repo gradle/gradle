@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
@@ -25,7 +24,8 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.SourceSetOutput;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -35,8 +35,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     private DefaultConfigurableFileCollection outputDirectories;
     private Object classesDir;
     private Object resourcesDir;
-    private List<Object> dirs = new LinkedList<Object>();
-    private List<Object> dirBuilders = new LinkedList<Object>();
+    private DefaultConfigurableFileCollection dirs;
     private FileResolver fileResolver;
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, TaskResolver taskResolver) {
@@ -51,6 +50,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
                 return getResourcesDir();
             }
         });
+        dirs = new DefaultConfigurableFileCollection("dirs", fileResolver, taskResolver);
     }
 
     @Override
@@ -95,24 +95,15 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     public void dir(Map<String, Object> options, Object dir) {
         Object buildBy = options.get("buildBy");
-        this.dirs.add(dir);
+        this.dirs.from(dir);
         this.outputDirectories.from(dir);
         if (buildBy != null) {
             this.builtBy(buildBy);
-            this.dirBuilders.add(buildBy);
+            this.dirs.builtBy(buildBy);
         }
     }
 
-    public Collection<File> getDirs() {
-        Collection out = CollectionUtils.collect(dirs, new Transformer() {
-            public Object transform(Object input) {
-                return fileResolver.resolve(input);
-            }
-        });
-        return out;
-    }
-
-    public Collection getDirBuilders() {
-        return dirBuilders;
+    public FileCollection getDirs() {
+        return dirs;
     }
 }

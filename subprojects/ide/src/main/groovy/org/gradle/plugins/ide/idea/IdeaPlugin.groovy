@@ -148,7 +148,7 @@ class IdeaPlugin extends IdePlugin {
                     TEST: project.sourceSets.test.output.dirs
             ] }
             dependsOn {
-                project.sourceSets.main.output.dirBuilders + project.sourceSets.test.output.dirBuilders
+                project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
             }
         }
     }

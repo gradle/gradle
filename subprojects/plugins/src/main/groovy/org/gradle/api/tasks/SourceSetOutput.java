@@ -19,7 +19,6 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -135,21 +134,12 @@ public interface SourceSetOutput extends FileCollection {
     void dir(Object dir);
 
     /**
-     * Returns a *new instance* of collection with all the dirs registered with with #dir method.
+     * Returns all dirs registered with with #dir method.
      * Each file is resolved as {@link org.gradle.api.Project#file(Object)}
      * <p>
      * See example at {@link SourceSetOutput}
      *
      * @return a new instance of registered dirs with resolved files
      */
-    Collection<File> getDirs();
-
-    /**
-     * Returns a collection with all the 'buildBy' elements that were registered using #dir method.
-     * <p>
-     * See example at {@link SourceSetOutput}
-     *
-     * @return a new instance of registered dirs with resolved files
-     */
-    Collection getDirBuilders();
+    FileCollection getDirs();
 }

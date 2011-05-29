@@ -153,7 +153,7 @@ class EclipsePlugin extends IdePlugin {
                         dirs.collect { project.relativePath(it)} .findAll { !it.contains('..') }
                     }
                     task.dependsOn {
-                        project.sourceSets.main.output.dirBuilders + project.sourceSets.test.output.dirBuilders
+                        project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
                     }
                 }
 
