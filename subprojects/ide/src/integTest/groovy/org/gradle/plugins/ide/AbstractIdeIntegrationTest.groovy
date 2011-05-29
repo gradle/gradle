@@ -17,19 +17,20 @@
 
 package org.gradle.plugins.ide
 
+import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
 
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
-    protected void runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {
+    protected ExecutionResult runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {
         def settingsFile = file("settings.gradle")
         settingsFile << settingsScript
 
         def buildFile = file("build.gradle")
         buildFile << buildScript
 
-        executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks(taskName).run()
+        return executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks(taskName).run()
     }
 
     protected File getFile(Map options, String filename) {
@@ -56,8 +57,8 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         return module.publishArtifact()
     }
 
-    protected runIdeaTask(buildScript) {
-        runTask("idea", buildScript)
+    protected ExecutionResult runIdeaTask(buildScript) {
+        return runTask("idea", buildScript)
     }
 
     protected parseImlFile(Map options = [:], String projectName) {

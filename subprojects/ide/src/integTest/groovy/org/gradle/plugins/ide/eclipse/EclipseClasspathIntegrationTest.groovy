@@ -195,29 +195,18 @@ sourceSets.test.output.dir "$buildDir/generated/test"
     @Test
     void "the 'buildBy' task be executed"() {
         //when
-        runEclipseTask '''
+        def result = runEclipseTask('''
 apply plugin: "java"
 apply plugin: "eclipse"
 
 sourceSets.main.output.dir "$buildDir/generated/main", buildBy: 'generateForMain'
 sourceSets.test.output.dir "$buildDir/generated/test", buildBy: 'generateForTest'
 
-def tasksExecuted = []
-
-task generateForMain << {
-    tasksExecuted << 'generateForMain'
-}
-
-task generateForTest << {
-    tasksExecuted << 'generateForTest'
-}
-
-eclipse.doLast {
-    assert tasksExecuted.contains('generateForMain')
-    assert tasksExecuted.contains('generateForTest')
-}
-'''
-        //then no exception is thrown
+task generateForMain << {}
+task generateForTest << {}
+''')
+        //then
+        result.assertTasksExecuted(':generateForMain', ':generateForTest', ':eclipseClasspath', ':eclipseJdt', ':eclipseProject', ':eclipse')
     }
 
     protected def contains(String ... contents) {

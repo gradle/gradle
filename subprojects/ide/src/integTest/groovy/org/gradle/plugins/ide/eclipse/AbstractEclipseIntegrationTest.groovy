@@ -18,10 +18,11 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 
 class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
-    protected runEclipseTask(settingsScript = "rootProject.name = 'root'", buildScript) {
+    protected ExecutionResult runEclipseTask(settingsScript = "rootProject.name = 'root'", buildScript) {
         runTask("eclipse", settingsScript, buildScript)
     }
 
