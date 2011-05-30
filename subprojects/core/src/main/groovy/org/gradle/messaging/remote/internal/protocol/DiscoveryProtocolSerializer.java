@@ -17,12 +17,15 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.MessageSerializer;
-import org.gradle.messaging.remote.internal.inet.SocketInetAddress;
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryMessage> {
     public static final byte PROTOCOL_VERSION = 1;
@@ -50,14 +53,14 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
     private DiscoveryMessage readChannelUnavailable(DataInputStream inputStream) throws IOException {
         String group = inputStream.readUTF();
         String channel = inputStream.readUTF();
-        SocketInetAddress address = readAddress(inputStream);
+        Address address = readAddress(inputStream);
         return new ChannelUnavailable(group, channel, address);
     }
 
     private DiscoveryMessage readChannelAvailable(DataInputStream inputStream) throws IOException {
         String group = inputStream.readUTF();
         String channel = inputStream.readUTF();
-        SocketInetAddress address = readAddress(inputStream);
+        Address address = readAddress(inputStream);
         return new ChannelAvailable(group, channel, address);
     }
 
@@ -67,13 +70,21 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
         return new LookupRequest(group, channel);
     }
 
-    private SocketInetAddress readAddress(DataInputStream inputStream) throws IOException {
-        int length = inputStream.readInt();
-        byte[] binAddress = new byte[length];
-        inputStream.readFully(binAddress);
-        InetAddress inetAddress = InetAddress.getByAddress(binAddress);
+    private MultiChoiceAddress readAddress(DataInputStream inputStream) throws IOException {
+        long mostSigUuidBits = inputStream.readLong();
+        long leastSigUuidBits = inputStream.readLong();
+        UUID uuid = new UUID(mostSigUuidBits, leastSigUuidBits);
         int port = inputStream.readInt();
-        return new SocketInetAddress(inetAddress, port);
+        int addressCount = inputStream.readInt();
+        List<InetAddress> addresses = new ArrayList<InetAddress>();
+        for (int i = 0; i < addressCount; i++) {
+            int length = inputStream.readInt();
+            byte[] binAddress = new byte[length];
+            inputStream.readFully(binAddress);
+            InetAddress inetAddress = InetAddress.getByAddress(binAddress);
+            addresses.add(inetAddress);
+        }
+        return new MultiChoiceAddress(uuid, port, addresses);
     }
 
     public void write(DiscoveryMessage message, DataOutputStream outputStream) throws Exception {
@@ -93,14 +104,14 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
         outputStream.writeByte(CHANNEL_UNAVAILABLE);
         outputStream.writeUTF(channelUnavailable.getGroup());
         outputStream.writeUTF(channelUnavailable.getChannel());
-        writeAddress(outputStream, (SocketInetAddress) channelUnavailable.getAddress());
+        writeAddress(outputStream, (MultiChoiceAddress) channelUnavailable.getAddress());
     }
 
     private void writeChannelAvailable(DataOutputStream outputStream, ChannelAvailable channelAvailable) throws IOException {
         outputStream.writeByte(CHANNEL_AVAILABLE);
         outputStream.writeUTF(channelAvailable.getGroup());
         outputStream.writeUTF(channelAvailable.getChannel());
-        writeAddress(outputStream, (SocketInetAddress) channelAvailable.getAddress());
+        writeAddress(outputStream, (MultiChoiceAddress) channelAvailable.getAddress());
     }
 
     private void writeLookupRequest(DataOutputStream outputStream, LookupRequest request) throws IOException {
@@ -109,10 +120,16 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
         outputStream.writeUTF(request.getChannel());
     }
 
-    private void writeAddress(DataOutputStream outputStream, SocketInetAddress address) throws IOException {
-        byte[] binAddress = address.getAddress().getAddress();
-        outputStream.writeInt(binAddress.length);
-        outputStream.write(binAddress);
+    private void writeAddress(DataOutputStream outputStream, MultiChoiceAddress address) throws IOException {
+        UUID uuid = (UUID) address.getCanonicalAddress();
+        outputStream.writeLong(uuid.getMostSignificantBits());
+        outputStream.writeLong(uuid.getLeastSignificantBits());
         outputStream.writeInt(address.getPort());
+        outputStream.writeInt(address.getCandidates().size());
+        for (InetAddress inetAddress : address.getCandidates()) {
+            byte[] binAddress = inetAddress.getAddress();
+            outputStream.writeInt(binAddress.length);
+            outputStream.write(binAddress);
+        }
     }
 }

@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ChannelLookupProtocol implements Protocol<DiscoveryMessage> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChannelLookupProtocol.class);
-    private final Map<String, RequestDetails> pending = new HashMap<String, RequestDetails>();
+    private final Map<String, RequestDetails> channels = new HashMap<String, RequestDetails>();
     private ProtocolContext<DiscoveryMessage> context;
 
     public void start(ProtocolContext<DiscoveryMessage> context) {
@@ -40,7 +40,7 @@ public class ChannelLookupProtocol implements Protocol<DiscoveryMessage> {
             LookupRequest lookupRequest = (LookupRequest) message;
             LOGGER.debug("Broadcasting lookup request {}.", lookupRequest);
             RequestDetails request = new RequestDetails(lookupRequest);
-            pending.put(lookupRequest.getChannel(), request);
+            channels.put(lookupRequest.getChannel(), request);
             request.run();
         } else {
             throw new UnsupportedOperationException();
@@ -50,7 +50,7 @@ public class ChannelLookupProtocol implements Protocol<DiscoveryMessage> {
     public void handleIncoming(DiscoveryMessage message) {
         if (message instanceof ChannelAvailable) {
             ChannelAvailable channelAvailable = (ChannelAvailable) message;
-            RequestDetails request = pending.remove(channelAvailable.getChannel());
+            RequestDetails request = channels.get(channelAvailable.getChannel());
             if (request != null) {
                 LOGGER.debug("Channel discovered: {}.", channelAvailable);
                 request.handleResponse(channelAvailable);

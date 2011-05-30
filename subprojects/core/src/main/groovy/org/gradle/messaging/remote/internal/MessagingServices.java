@@ -23,10 +23,7 @@ import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.internal.inet.MulticastConnection;
-import org.gradle.messaging.remote.internal.inet.SocketInetAddress;
-import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
-import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
+import org.gradle.messaging.remote.internal.inet.*;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryProtocolSerializer;
 import org.gradle.util.UUIDGenerator;
@@ -125,7 +122,9 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         incomingConnector = new TcpIncomingConnector<Message>(
                 get(ExecutorFactory.class),
                 new DefaultMessageSerializer<Message>(
-                        messageClassLoader));
+                        messageClassLoader),
+                new InetAddressFactory(),
+                new UUIDGenerator());
         return incomingConnector;
     }
 

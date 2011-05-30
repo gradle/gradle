@@ -26,6 +26,7 @@ import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.IncomingConnector;
 import org.gradle.messaging.remote.internal.MessageSerializer;
+import org.gradle.util.IdGenerator;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,31 +43,39 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
     private final StoppableExecutor executor;
     private final MessageSerializer<T> serializer;
+    private final IdGenerator<?> idGenerator;
     private final List<InetAddress> localAddresses;
+    private final List<InetAddress> remoteAddresses;
     private final List<ServerSocketChannel> serverSockets = new CopyOnWriteArrayList<ServerSocketChannel>();
 
-    public TcpIncomingConnector(ExecutorFactory executorFactory, MessageSerializer<T> serializer) {
+    public TcpIncomingConnector(ExecutorFactory executorFactory, MessageSerializer<T> serializer, InetAddressFactory addressFactory, IdGenerator<?> idGenerator) {
         this.serializer = serializer;
+        this.idGenerator = idGenerator;
         this.executor = executorFactory.create("Incoming TCP Connector");
 
-        localAddresses = TcpOutgoingConnector.findLocalAddresses();
+        localAddresses = addressFactory.findLocalAddresses();
+        remoteAddresses = addressFactory.findRemoteAddresses();
     }
 
-    public Address accept(Action<ConnectEvent<Connection<T>>> action) {
+    public Address accept(Action<ConnectEvent<Connection<T>>> action, boolean allowRemote) {
         ServerSocketChannel serverSocket;
-        Address localAddress;
+        int localPort;
         try {
             serverSocket = ServerSocketChannel.open();
             serverSockets.add(serverSocket);
             serverSocket.socket().bind(new InetSocketAddress(0));
-            localAddress = new SocketInetAddress(InetAddress.getByName("localhost"), serverSocket.socket().getLocalPort());
-            LOGGER.debug("Listening on {}.", localAddress);
+            localPort = serverSocket.socket().getLocalPort();
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         }
 
-        executor.execute(new Receiver(serverSocket, action));
-        return localAddress;
+        Object id = idGenerator.generateId();
+        List<InetAddress> addresses = allowRemote ? remoteAddresses : localAddresses;
+        Address address = new MultiChoiceAddress(id, localPort, addresses);
+        LOGGER.debug("Listening on {}.", address);
+
+        executor.execute(new Receiver(serverSocket, action, allowRemote));
+        return address;
     }
 
     public void requestStop() {
@@ -81,10 +90,12 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
     private class Receiver implements Runnable {
         private final ServerSocketChannel serverSocket;
         private final Action<ConnectEvent<Connection<T>>> action;
+        private final boolean allowRemote;
 
-        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action) {
+        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action, boolean allowRemote) {
             this.serverSocket = serverSocket;
             this.action = action;
+            this.allowRemote = allowRemote;
         }
 
         public void run() {
@@ -93,7 +104,7 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
                     while (true) {
                         SocketChannel socket = serverSocket.accept();
                         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
-                        if (!localAddresses.contains(remoteSocketAddress.getAddress())) {
+                        if (!allowRemote && !localAddresses.contains(remoteSocketAddress.getAddress())) {
                             LOGGER.error("Cannot accept connection from remote address {}.", remoteSocketAddress.getAddress());
                             socket.close();
                             continue;

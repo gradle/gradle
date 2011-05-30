@@ -49,11 +49,12 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
     }
 
     public Address accept(final Action<ConnectEvent<MultiChannelConnection<Object>>> action) {
-        return incomingConnector.accept(new Action<ConnectEvent<Connection<Message>>>() {
+        Action<ConnectEvent<Connection<Message>>> connectAction = new Action<ConnectEvent<Connection<Message>>>() {
             public void execute(ConnectEvent<Connection<Message>> event) {
                 finishConnect(event, action);
             }
-        });
+        };
+        return incomingConnector.accept(connectAction, false);
     }
 
     private void finishConnect(ConnectEvent<Connection<Message>> event,

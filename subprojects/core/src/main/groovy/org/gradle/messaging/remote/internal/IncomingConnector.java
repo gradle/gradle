@@ -25,7 +25,8 @@ public interface IncomingConnector<T> {
      * Allocates a new incoming endpoint.
      *
      * @param action the action to execute on incoming connection. The supplied action is not required to be thread-safe.
+     * @param allowRemote If true, only allow connections from remote machines. If false, allow only from the local machine.
      * @return the address of the endpoint which the connector is listening on.
      */
-    Address accept(Action<ConnectEvent<Connection<T>>> action);
+    Address accept(Action<ConnectEvent<Connection<T>>> action, boolean allowRemote);
 }

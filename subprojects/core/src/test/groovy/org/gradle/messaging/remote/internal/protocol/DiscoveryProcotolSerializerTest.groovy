@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote.internal.protocol
 
-import org.gradle.messaging.remote.internal.inet.SocketInetAddress
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
 import spock.lang.Specification
 
 class DiscoveryProcotolSerializerTest extends Specification {
@@ -31,8 +31,8 @@ class DiscoveryProcotolSerializerTest extends Specification {
         where:
         original << [
                 new LookupRequest("group", "channel"),
-                new ChannelAvailable("group", "channel", new SocketInetAddress(InetAddress.getByName("127.0.0.1"), 8091)),
-                new ChannelUnavailable("group", "channel", new SocketInetAddress(InetAddress.getByName("127.0.0.1"), 8091))
+                new ChannelAvailable("group", "channel", new MultiChoiceAddress(UUID.randomUUID(), 8091, [InetAddress.getByName("127.0.0.1")])),
+                new ChannelUnavailable("group", "channel", new MultiChoiceAddress(UUID.randomUUID(), 8091, [InetAddress.getByName("127.0.0.1")]))
         ]
     }
 

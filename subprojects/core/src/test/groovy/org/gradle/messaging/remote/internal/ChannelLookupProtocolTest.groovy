@@ -95,7 +95,7 @@ class ChannelLookupProtocolTest extends Specification {
         1 * timeout.cancel()
     }
 
-    def "forwards at most one channel available message"() {
+    def "forwards each channel available message received"() {
         final Address address2 = Mock()
         def request = new LookupRequest("group", "channel")
         def response1 = new ChannelAvailable("group", "channel", address)
@@ -110,6 +110,7 @@ class ChannelLookupProtocolTest extends Specification {
 
         then:
         1 * context.dispatchIncoming(response1)
+        1 * context.dispatchIncoming(response2)
         0 * context._
     }
 

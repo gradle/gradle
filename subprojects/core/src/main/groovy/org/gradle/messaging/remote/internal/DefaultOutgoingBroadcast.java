@@ -43,7 +43,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     private final ProtocolStack<DiscoveryMessage> discoveryBroadcast;
     private final Lock lock = new ReentrantLock();
     private final StoppableExecutor executor;
-    private final Set<String> pending = new HashSet<String>();
+    private final Set<String> channels = new HashSet<String>();
     private final Set<Address> connections = new HashSet<Address>();
     private final MessageHub hub;
 
@@ -65,7 +65,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
         String channelKey = type.getName();
         lock.lock();
         try {
-            if (pending.add(channelKey)) {
+            if (channels.add(channelKey)) {
                 discoveryBroadcast.getTop().dispatch(new LookupRequest(group, channelKey));
             }
         } finally {
@@ -93,7 +93,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
                 Address serviceAddress = available.getAddress();
                 lock.lock();
                 try {
-                    if (!pending.remove(available.getChannel())) {
+                    if (!channels.contains(available.getChannel())) {
                         return;
                     }
                     if (connections.contains(serviceAddress)) {

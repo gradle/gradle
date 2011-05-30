@@ -38,10 +38,11 @@ public class HandshakeIncomingConnector implements IncomingConnector<Message> {
         this.executor = executor;
     }
 
-    public Address accept(Action<ConnectEvent<Connection<Message>>> action) {
+    public Address accept(Action<ConnectEvent<Connection<Message>>> action, boolean allowRemote) {
+        assert !allowRemote;
         synchronized (lock) {
             if (localAddress == null) {
-                localAddress = connector.accept(handShakeAction());
+                localAddress = connector.accept(handShakeAction(), false);
             }
 
             Address localAddress = new CompositeAddress(this.localAddress, nextId++);

@@ -44,6 +44,11 @@ public class MulticastConnection<T> implements Connection<T> {
         localAddress = new SocketInetAddress(socket.getInetAddress(), socket.getLocalPort());
     }
 
+    @Override
+    public String toString() {
+        return String.format("multicast connection %s", address);
+    }
+
     public void dispatch(T message) {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

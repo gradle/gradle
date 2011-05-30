@@ -27,12 +27,10 @@ import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.*;
+import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
-import org.gradle.util.GUtil;
-import org.gradle.util.GradleVersion;
-import org.gradle.util.Jvm;
-import org.gradle.util.UncheckedException;
+import org.gradle.util.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -145,12 +143,12 @@ public class DaemonConnector {
      */
     void accept(final IncomingConnectionHandler handler) {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
-        TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
+        TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
         final CompletionHandler finished = new CompletionHandler();
 
         LOGGER.lifecycle("Awaiting requests.");
 
-        Address address = incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>() {
+        Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
             public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
                 try {
                     finished.onStartActivity();
@@ -160,7 +158,8 @@ public class DaemonConnector {
                     connectionConnectEvent.getConnection().stop();
                 }
             }
-        });
+        };
+        Address address = incomingConnector.accept(connectEvent, false);
 
         storeDaemonAddress(address);
 

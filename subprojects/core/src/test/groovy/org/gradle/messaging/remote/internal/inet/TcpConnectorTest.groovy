@@ -16,20 +16,37 @@
 package org.gradle.messaging.remote.internal.inet
 
 import org.gradle.api.Action
-import org.gradle.util.ConcurrentSpecification
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.messaging.remote.internal.ConnectException
+import org.gradle.messaging.remote.internal.DefaultMessageSerializer
+import org.gradle.util.ConcurrentSpecification
+import org.gradle.util.UUIDGenerator
 
 class TcpConnectorTest extends ConcurrentSpecification {
     final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
+    final def idGenerator = new UUIDGenerator()
+    final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector<String>(serializer)
-    final def incomingConnector = new TcpIncomingConnector<String>(executorFactory, serializer)
+    final def incomingConnector = new TcpIncomingConnector<String>(executorFactory, serializer, addressFactory, idGenerator)
 
     def "client can connect to server"() {
         Action action = Mock()
 
         when:
-        def address = incomingConnector.accept(action)
+        def address = incomingConnector.accept(action, false)
+        def connection = outgoingConnector.connect(address)
+
+        then:
+        connection != null
+
+        cleanup:
+        incomingConnector.requestStop()
+    }
+
+    def "client can connect to server using remote addresses"() {
+        Action action = Mock()
+
+        when:
+        def address = incomingConnector.accept(action, true)
         def connection = outgoingConnector.connect(address)
 
         then:
@@ -45,7 +62,7 @@ class TcpConnectorTest extends ConcurrentSpecification {
 
         when:
         connectionReceived.started {
-            def address = incomingConnector.accept(action)
+            def address = incomingConnector.accept(action, false)
             outgoingConnector.connect(address)
         }
 
@@ -57,7 +74,7 @@ class TcpConnectorTest extends ConcurrentSpecification {
     }
 
     def "client throws exception when cannot connect to server"() {
-        def address = new SocketInetAddress(InetAddress.getByName("localhost"), 12345)
+        def address = new MultiChoiceAddress("address", 12345, [InetAddress.getByName("localhost")])
 
         when:
         outgoingConnector.connect(address)

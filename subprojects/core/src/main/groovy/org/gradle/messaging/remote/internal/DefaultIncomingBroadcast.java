@@ -55,7 +55,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
         connection.dispatchTo(new GroupMessageFilter(group, protocolStack.getBottom()));
         protocolStack.getBottom().dispatchTo(connection);
 
-        address = incomingConnector.accept(new IncomingConnectionAction());
+        address = incomingConnector.accept(new IncomingConnectionAction(), true);
         hub = new MessageHub("incoming broadcast", nodeName, executorFactory, idGenerator, messagingClassLoader);
     }
 
