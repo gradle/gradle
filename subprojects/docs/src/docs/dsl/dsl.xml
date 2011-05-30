@@ -56,9 +56,12 @@
 
     <!--
       -
+      - 1. Adding new types:
       - To add more types to this guide, add them to one of the following tables. The contents of
       - ${classname}.xml for each type listed below is then included in the guide.
       -
+      - 2. Adding new sections:
+      - The section title should end with 'types' (see AssembleDslDocTask.mergeContent)
       -->
 
     <section>
@@ -179,54 +182,6 @@
                 <td>org.gradle.api.tasks.javadoc.Groovydoc</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.ide.eclipse.model.EclipseProject</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.model.EclipseClasspath</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.model.EclipseJdt</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.model.EclipseWtp</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseProject</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseJdt</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.model.IdeaProject</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.model.IdeaModule</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.GenerateIdeaModule</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.GenerateIdeaProject</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.GenerateIdeaWorkspace</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.bundling.Jar</td>
             </tr>
             <tr>
@@ -282,6 +237,62 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>IDE types</title>
+        <para>Listed below are various types and tasks contributed by IDE plugins</para>
+        <table>
+            <title>IDE types</title>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.model.EclipseProject</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.model.EclipseClasspath</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.model.EclipseJdt</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.model.EclipseWtp</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseProject</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseJdt</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.idea.model.IdeaProject</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.idea.model.IdeaModule</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.idea.GenerateIdeaModule</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.idea.GenerateIdeaProject</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.idea.GenerateIdeaWorkspace</td>
             </tr>
         </table>
     </section>
