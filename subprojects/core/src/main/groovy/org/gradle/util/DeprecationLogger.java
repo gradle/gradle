@@ -39,4 +39,10 @@ public class DeprecationLogger {
                     methodName));
         }
     }
+
+    public static void nagUserWith(String message) {
+        if (METHODS.add(message)) {
+            LOGGER.warn(message);
+        }
+    }
 }

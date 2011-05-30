@@ -15,11 +15,11 @@
  */
 package org.gradle.wrapper
 
-import spock.lang.Specification
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import org.gradle.util.TestFile
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
+import org.junit.Rule
+import spock.lang.Specification
 
 class WrapperTest extends Specification {
     @Rule
@@ -102,5 +102,47 @@ class WrapperTest extends Specification {
         then:
         FileNotFoundException e = thrown()
         e.message == "Wrapper properties file '$propertiesFile' does not exist."
+    }
+
+    def "allows old format of the wrapper"() {
+        given:
+        def properties = new Properties()
+
+        properties.distributionBase = 'testDistBase'
+        properties.distributionPath = 'testDistPath'
+        properties.zipStoreBase = 'testZipBase'
+        properties.zipStorePath = 'testZipPath'
+
+        properties.urlRoot="http://gradle.artifactoryonline.com/gradle/distributions"
+        properties.distributionVersion="1.0-milestone-3"
+        properties.distributionName="gradle"
+        properties.distributionClassifier="bin"
+
+        propertiesFile.withOutputStream { properties.store(it, 'header') }
+
+        when:
+        new Wrapper(propertiesFile, new Properties())
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "reports error when none of the valid formats are met"() {
+        given:
+        def properties = new Properties()
+
+        properties.distributionBase = 'testDistBase'
+        properties.distributionPath = 'testDistPath'
+        properties.zipStoreBase = 'testZipBase'
+        properties.zipStorePath = 'testZipPath'
+
+        propertiesFile.withOutputStream { properties.store(it, 'header') }
+
+        when:
+        new Wrapper(propertiesFile, new Properties())
+
+        then:
+        Exception e = thrown()
+        e.cause.message.contains "key 'distributionUrl'"
     }
 }

@@ -15,8 +15,11 @@
  */
 package org.gradle.wrapper;
 
+import org.gradle.util.DeprecationLogger;
+
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Properties;
 
 /**
@@ -42,19 +45,43 @@ public class Wrapper {
         this(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties());
     }
 
-    private Wrapper(File propertiesFile, Properties properties) {
+    Wrapper(File propertiesFile, Properties properties) {
         this.properties = properties;
         this.propertiesFile = propertiesFile;
         if (propertiesFile.exists()) {
             try {
                 loadProperties(propertiesFile, properties);
-                distribution = new URI(getProperty(DISTRIBUTION_URL_PROPERTY));
+                distribution = readDistroUrl();
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }
         } else {
             distribution = null;
         }
+    }
+
+    private URI readDistroUrl() throws URISyntaxException {
+        if (properties.getProperty(DISTRIBUTION_URL_PROPERTY) != null) {
+            return new URI(getProperty(DISTRIBUTION_URL_PROPERTY));
+        }
+        //try the deprecated way:
+        return readDistroUrlDeprecatedWay();
+    }
+
+    @Deprecated
+    private URI readDistroUrlDeprecatedWay() throws URISyntaxException {
+        String distroUrl = null;
+        try {
+        distroUrl = getProperty("urlRoot") + "/"
+            + getProperty("distributionName") + "-"
+            + getProperty("distributionVersion") + "-"
+            + getProperty("distributionClassifier") + ".zip";
+        DeprecationLogger.nagUserWith("Wrapper properties: 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier' are deprecated and will be removed soon. Please use " + DISTRIBUTION_URL_PROPERTY + " instead.");
+    } catch (Exception e) {
+        //even the deprecated properties are not provided, report error:
+        reportMissingProperty(DISTRIBUTION_URL_PROPERTY);
+    }
+        return new URI(distroUrl);
     }
 
     private static void loadProperties(File propertiesFile, Properties properties) throws IOException {
@@ -90,9 +117,13 @@ public class Wrapper {
     private String getProperty(String propertyName) {
         String value = properties.getProperty(propertyName);
         if (value == null) {
-            throw new RuntimeException(String.format(
-                    "No value with key '%s' specified in wrapper properties file '%s'.", propertyName, propertiesFile));
+            return reportMissingProperty(propertyName);
         }
         return value;
+    }
+
+    private String reportMissingProperty(String propertyName) {
+        throw new RuntimeException(String.format(
+                "No value with key '%s' specified in wrapper properties file '%s'.", propertyName, propertiesFile));
     }
 }
