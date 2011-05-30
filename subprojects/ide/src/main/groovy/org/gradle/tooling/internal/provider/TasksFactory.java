@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.tooling.internal.DefaultEclipseProject;
 import org.gradle.tooling.internal.DefaultTask;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
@@ -34,21 +35,21 @@ public class TasksFactory {
         this.includeTasks = includeTasks;
     }
 
-    public List<EclipseTaskVersion1> create(Project project, EclipseProjectVersion3 eclipseProject) {
-        List<EclipseTaskVersion1> tasks = new ArrayList<EclipseTaskVersion1>();
-        if (includeTasks) {
-            for (final Task task : allTasks.get(project)) {
-                tasks.add(createDefaultTask(eclipseProject, task));
-            }
-        }
-        return tasks;
-    }
-
     DefaultTask createDefaultTask(EclipseProjectVersion3 eclipseProject, Task task) {
         return new DefaultTask(eclipseProject, task.getPath(), task.getName(), task.getDescription());
     }
 
     public void collectTasks(Project root) {
         allTasks = root.getAllTasks(true);
+    }
+
+    public void populate(Project project, DefaultEclipseProject eclipseProject) {
+        if (includeTasks) {
+            List<EclipseTaskVersion1> tasks = new ArrayList<EclipseTaskVersion1>();
+            for (final Task task : allTasks.get(project)) {
+                tasks.add(createDefaultTask(eclipseProject, task));
+            }
+            eclipseProject.setTasks(tasks);
+        }
     }
 }

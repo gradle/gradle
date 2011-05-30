@@ -26,7 +26,6 @@ import org.gradle.tooling.internal.DefaultEclipseProject;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 import org.gradle.tooling.internal.provider.dependencies.EclipseProjectDependenciesFactory;
 import org.gradle.tooling.internal.provider.dependencies.ExternalDependenciesFactory;
 import org.gradle.tooling.internal.provider.dependencies.SourceDirectoriesFactory;
@@ -87,8 +86,7 @@ public class ModelBuilder {
         eclipseProject.setClasspath(dependencies);
         eclipseProject.setProjectDependencies(projectDependencies);
         eclipseProject.setSourceDirectories(sourceDirectories);
-        List<EclipseTaskVersion1> allTasks = tasksFactory.create(project, eclipseProject);
-        eclipseProject.setTasks(allTasks);
+        tasksFactory.populate(project, eclipseProject);
 
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);

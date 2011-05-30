@@ -17,12 +17,13 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.Project
 import org.gradle.api.internal.AbstractTask
+import org.gradle.tooling.internal.DefaultEclipseProject
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class TasksFactoryTest extends Specification {
     final Project project = Mock()
-    final org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3 eclipseProject = Mock()
+    final org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3 eclipseProject = new DefaultEclipseProject(null, null, null, null, [])
     final task = HelperUtil.createTask(AbstractTask)
 
     def "creates task"() {
@@ -44,21 +45,21 @@ class TasksFactoryTest extends Specification {
         when:
         factory.allTasks = [:]
         factory.allTasks.put(project, [task] as Set)
-        def tasks = factory.create(project, eclipseProject)
+        factory.populate(project, eclipseProject)
 
         then:
-        tasks == []
+        eclipseProject.tasks == []
     }
 
-    def "creates tasks"() {
+    def "populates tasks"() {
         TasksFactory factory = new TasksFactory(true)
 
         when:
         factory.allTasks = [:]
         factory.allTasks.put(project, [task] as Set)
-        def tasks = factory.create(project, eclipseProject)
+        factory.populate(project, eclipseProject)
 
         then:
-        tasks.size() == 1
+        eclipseProject.tasks.size() == 1
     }
 }
