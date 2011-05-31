@@ -110,6 +110,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 classes.dependsOn(sourceSet.getProcessResourcesTaskName(), compileTaskName);
                 classes.setDescription(String.format("Assembles the %s classes.", sourceSet.getName()));
                 classes.setGroup(BasePlugin.BUILD_GROUP);
+                classes.dependsOn(sourceSet.getOutput().getDirs());
 
                 sourceSet.compiledBy(sourceSet.getClassesTaskName());
             }

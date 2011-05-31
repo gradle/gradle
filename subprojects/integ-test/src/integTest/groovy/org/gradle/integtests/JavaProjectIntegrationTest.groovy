@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests;
+package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.ExecutionFailure;
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest;
-import org.gradle.util.TestFile;
-import org.junit.Test;
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.junit.Test
+import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.ExecutionFailure
 
-import java.io.IOException;
+class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
-public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesEmptyProject() {
         testFile("build.gradle").writelns("apply plugin: 'java'");
@@ -34,7 +33,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     public void compilationFailureBreaksBuild() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("apply plugin: 'java'");
-        testFile("src/main/java/org/gradle/broken.java").write("broken");
+        testFile("src/main/java/org/gradle/broken.java") << "broken";
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
 
@@ -46,8 +45,8 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     public void testCompilationFailureBreaksBuild() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("apply plugin: 'java'");
-        testFile("src/main/java/org/gradle/ok.java").write("package org.gradle; class ok { }");
-        testFile("src/test/java/org/gradle/broken.java").write("broken");
+        testFile("src/main/java/org/gradle/ok.java") << "package org.gradle; class ok { }"
+        testFile("src/test/java/org/gradle/broken.java") << "broken"
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
 
@@ -59,7 +58,9 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     public void handlesTestSrcWhichDoesNotContainAnyTestCases() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("apply plugin: 'java'");
-        testFile("src/test/java/org/gradle/NotATest.java").writelns("package org.gradle;", "public class NotATest {}");
+        testFile("src/test/java/org/gradle/NotATest.java") << """
+package org.gradle;
+public class NotATest {}"""
 
         usingBuildFile(buildFile).withTasks("build").run();
     }
@@ -68,7 +69,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     public void javadocGenerationFailureBreaksBuild() throws IOException {
         TestFile buildFile = testFile("javadocs.gradle");
         buildFile.write("apply plugin: 'java'");
-        testFile("src/main/java/org/gradle/broken.java").write("class Broken { }");
+        testFile("src/main/java/org/gradle/broken.java") << "class Broken { }"
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("javadoc").runWithFailure();
 
@@ -80,7 +81,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     public void handlesResourceOnlyProject() throws IOException {
         TestFile buildFile = testFile("resources.gradle");
         buildFile.write("apply plugin: 'java'");
-        testFile("src/main/resources/org/gradle/resource.file").write("test resource");
+        testFile("src/main/resources/org/gradle/resource.file") << "test resource"
 
         usingBuildFile(buildFile).withTasks("build").run();
         testFile("build/resources/main/org/gradle/resource.file").assertExists();
@@ -92,10 +93,10 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle");
         buildFile.write("apply plugin: 'java'");
 
-        testFile("src/main/resources/prod.resource").write("");
-        testFile("src/main/java/Main.java").write("class Main {}");
-        testFile("src/test/resources/test.resource").write("test resource");
-        testFile("src/test/java/TestFoo.java").write("class TestFoo {}");
+        testFile("src/main/resources/prod.resource") << ""
+        testFile("src/main/java/Main.java") << "class Main {}"
+        testFile("src/test/resources/test.resource") << "test resource"
+        testFile("src/test/java/TestFoo.java") << "class TestFoo {}"
 
         //when
         usingBuildFile(buildFile).withTasks("build").run();
@@ -113,15 +114,43 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void generatesArtifactsWhenVersionIsEmpty() {
-        testFile("settings.gradle").write("rootProject.name = 'empty'");
-        TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns(
-                "apply plugin: 'java'",
-                "version = ''"
-        );
-        testFile("src/main/resources/org/gradle/resource.file").write("some resource");
+        testFile("settings.gradle") << "rootProject.name = 'empty'"
+        def buildFile = testFile("build.gradle");
+        buildFile << """
+apply plugin: 'java'
+version = ''
+"""
+
+        testFile("src/main/resources/org/gradle/resource.file") << "some resource"
 
         usingBuildFile(buildFile).withTasks("jar").run();
         testFile("build/libs/empty.jar").assertIsFile();
+    }
+
+    @Test
+    public void "task registered as a builder of resources is executed"() {
+        TestFile buildFile = testFile("build.gradle");
+        buildFile << '''
+apply plugin: 'java'
+
+task generateResource << {}
+task generateTestResource << {}
+task notRegistered << {}
+
+sourceSets.main.output.dir "$buildDir/generatedResources", buildBy: 'generateResource'
+sourceSets.main.output.dir "$buildDir/generatedResourcesWithoutBuilder"
+
+sourceSets.test.output.dir "$buildDir/generatedTestResources", buildBy: 'generateTestResource'
+'''
+
+        //when
+        def result = usingBuildFile(buildFile).withTasks("classes").run();
+        //then
+        result.assertTasksExecuted(":compileJava", ":generateResource", ":processResources", ":classes")
+
+        //when
+        result = usingBuildFile(buildFile).withTasks("testClasses").run();
+        //then
+        result.output.contains(":generateTestResource")
     }
 }
