@@ -56,10 +56,6 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     IdeaModule module
 
-    //TODO SF: IMPORTANT
-    //Once we decide to break backwards compatibility below hacky delegating getters/setters will be gone
-    //and the implementation of this task will dwindle into few lines of code or disappear completely
-
     @Override protected Module create() {
         new Module(xmlTransformer, module.pathFactory)
     }
