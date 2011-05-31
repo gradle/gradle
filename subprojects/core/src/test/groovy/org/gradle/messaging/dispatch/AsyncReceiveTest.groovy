@@ -53,7 +53,6 @@ public class AsyncReceiveTest extends ConcurrentSpecification {
             dispatch.receiveFrom(source1)
             dispatch.receiveFrom(source2)
         }
-        dispatch.stop()
         finished()
 
         then:
