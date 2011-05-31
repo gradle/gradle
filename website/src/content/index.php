@@ -38,13 +38,13 @@
 <div id="training" class="homeList">
     <h2>Upcoming training</h2>
     <ul>
-        <li><a href="http://gradleware.com/home/training">July  21-23, 2011, M&uuml;nchen, DE</li>
-        <li><a href="http://gradleware.com/home/training">July  25-27, 2011, London, UK</li>
-	    <li><a href="http://gradleware.com/home/training">September 14-15, 2011, Stockholm, SE</li>
-		<li><a href="http://gradleware.com/home/training">September 20-22, 2011, Frankfurt, DE</li>
-        <li><a href="http://gradleware.com/home/training">October 11-13, 2011, Stuttgart, DE</li>
-        <li><a href="http://gradleware.com/home/training">November 1-3, 2011, Berlin, DE</li>
-	    <li><a href="http://gradleware.com/home/training">November 21-22, 2011, Oslo, NO</li>
+        <li><a href="http://gradleware.com/training.html">July  21-23, 2011, M&uuml;nchen, DE</li>
+        <li><a href="http://gradleware.com/training.html">July  25-27, 2011, London, UK</li>
+	    <li><a href="http://gradleware.com/training.html">September 14-15, 2011, Stockholm, SE</li>
+		<li><a href="http://gradleware.com/training.html">September 20-22, 2011, Frankfurt, DE</li>
+        <li><a href="http://gradleware.com/training.html">October 11-13, 2011, Stuttgart, DE</li>
+        <li><a href="http://gradleware.com/training.html">November 1-3, 2011, Berlin, DE</li>
+	    <li><a href="http://gradleware.com/training.html">November 21-22, 2011, Oslo, NO</li>
         <li>2011 U.S. DATES SOON TO COME</li>
     </ul>
     <div class="more"><a href="http://gradleware.com/home/training">learn more</a></div>
