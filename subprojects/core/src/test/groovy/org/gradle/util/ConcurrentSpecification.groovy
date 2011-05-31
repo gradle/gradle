@@ -49,9 +49,14 @@ class ConcurrentSpecification extends Specification {
     private final Set<TestThread> threads = [] as Set
     private Closure failureHandler
     private final List<Throwable> failures = []
+    private long timeout = 5000
 
     def cleanup() {
         finished()
+    }
+
+    void setShortTimeout(int millis) {
+        this.timeout = millis
     }
 
     ExecutorFactory getExecutorFactory() {
@@ -180,8 +185,8 @@ class ConcurrentSpecification extends Specification {
 
     }
 
-    static Date shortTimeout() {
-        return new Date(System.currentTimeMillis() + 5000)
+    Date shortTimeout() {
+        return new Date(System.currentTimeMillis() + timeout)
     }
 
     void run(Closure cl, Date timeout) {
@@ -426,7 +431,7 @@ class AbstractAsyncAction {
     }
 
     protected Date shortTimeout() {
-        return ConcurrentSpecification.shortTimeout()
+        return owner.shortTimeout()
     }
 
     protected void onFailure(Throwable throwable) {
@@ -456,7 +461,7 @@ class StartAsyncAction extends AbstractAsyncAction {
     }
 
     /**
-     * Runs the given action, and then waits until another another thread calls {@link #done()}.  Asserts that the action does not block waiting for
+     * Runs the given action, and then waits until another another thread calls {@link #done()}.  Asserts that the start action does not block waiting for
      * the async action to complete.
      *
      * @param action The start action
@@ -723,7 +728,7 @@ class WaitForAsyncAction extends AbstractWaitAction {
             if (failure) {
                 throw failure
             }
-            if (completed) {
+            if (!asyncActionComplete && completed) {
                 throw new IllegalStateException("Expected action to block, but it did not.")
             }
         }

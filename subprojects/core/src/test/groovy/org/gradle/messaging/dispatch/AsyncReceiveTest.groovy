@@ -36,6 +36,7 @@ public class AsyncReceiveTest extends ConcurrentSpecification {
             dispatch.dispatchTo(target1)
             dispatch.receiveFrom(source1)
         }
+        finished()
 
         then:
         3 * source1.receive() >>> ['message1', 'message2', null]
@@ -52,6 +53,8 @@ public class AsyncReceiveTest extends ConcurrentSpecification {
             dispatch.receiveFrom(source1)
             dispatch.receiveFrom(source2)
         }
+        dispatch.stop()
+        finished()
 
         then:
         2 * source1.receive() >>> ['message1', null]
