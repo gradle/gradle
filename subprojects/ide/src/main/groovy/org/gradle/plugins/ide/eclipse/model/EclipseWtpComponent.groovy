@@ -137,6 +137,16 @@ class EclipseWtpComponent {
     Set<Configuration> libConfigurations
 
     /**
+     * Synonym for {@link #libConfigurations}.
+     */
+    Set<Configuration> getPlusConfigurations() {
+        return libConfigurations
+    }
+    void setPlusConfigurations(Set<Configuration> plusConfigurations) {
+        this.libConfigurations = plusConfigurations
+    }
+
+    /**
      * The configurations whose files are to be excluded from dependent-module elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}

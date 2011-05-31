@@ -111,18 +111,20 @@ class EclipsePlugin extends IdePlugin {
                 projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.scala-ide.sdt.core.scalanature")
             }
 
-            configureEclipseProjectWithType(project, projectModel, WarPlugin)
-            configureEclipseProjectWithType(project, projectModel, EarPlugin)
+            configureEclipseProjectWithType(project, WarPlugin)
+            configureEclipseProjectWithType(project, EarPlugin)
         }
     }
 
-    private void configureEclipseProjectWithType(Project project, EclipseProject projectModel, Class<?> type) {
+    private void configureEclipseProjectWithType(Project project, Class<?> type) {
         project.plugins.withType(type) {
-            projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-            projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
-            projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
-            projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-            projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
+            configureTask(project, ECLIPSE_PROJECT_TASK_NAME) {
+                projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
+            }
 
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
                 configureTask(otherProject, ECLIPSE_PROJECT_TASK_NAME) {

@@ -395,13 +395,33 @@
             </tr>
             <tr>
                 <td>
+                    <literal>rootConfigurations</literal>
+                </td>
+                <td>
+                    <classname>Set&lt;Configuration&gt;</classname>
+                </td>
+                <td><literal>[]</literal></td>
+                <td>The configurations whose files are to be transformed into classpath entries with a deploy path of '/'.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>libConfigurations</literal>
+                </td>
+                <td>
+                    <classname>Set&lt;Configuration&gt;</classname>
+                </td>
+                <td><literal>[configurations.testRuntime]</literal></td>
+                <td>The configurations whose files are to be transformed into classpath entries with a deploy path of <literal>libDeployPath</literal>.</td>
+            </tr>
+            <tr>
+                <td>
                     <literal>plusConfigurations</literal>
                 </td>
                 <td>
                     <classname>Set&lt;Configuration&gt;</classname>
                 </td>
                 <td><literal>[configurations.testRuntime]</literal></td>
-                <td>The configurations whose files are to be transformed into classpath entries.</td>
+                <td>A synonym for <literal>libConfigurations</literal>, for backwards compatibility.</td>
             </tr>
             <tr>
                 <td>
