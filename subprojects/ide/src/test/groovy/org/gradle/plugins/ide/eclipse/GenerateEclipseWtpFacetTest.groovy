@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
 import org.gradle.plugins.ide.eclipse.model.Facet
+import org.gradle.plugins.ide.eclipse.model.Facet.FacetType;
 
 /**
  * @author Hans Dockter
@@ -35,10 +36,10 @@ public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
 
     def "facet should add"() {
         when:
-        task.facet name: 'facet1', version: '1.0'
-        task.facet name: 'facet2', version: '2.0'
+        task.facet type: 'installed', name: 'facet1', version: '1.0'
+        task.facet type: 'installed', name: 'facet2', version: '2.0'
 
         then:
-        task.facets == [new Facet('facet1', '1.0'), new Facet('facet2', '2.0')]
+        task.facets == [new Facet(FacetType.installed, 'facet1', '1.0'), new Facet(FacetType.installed, 'facet2', '2.0')]
     }
 }

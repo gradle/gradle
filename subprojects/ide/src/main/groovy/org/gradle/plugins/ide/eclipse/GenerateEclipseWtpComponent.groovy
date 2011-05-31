@@ -71,14 +71,25 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     }
 
     /**
-     * The configurations whose files are to be transformed into dependent-module elements.
+     * The configurations whose files are to be transformed into dependent-module elements with a deploy path of '/'.
      */
-    Set<Configuration> getPlusConfigurations() {
-        component.plusConfigurations
+    Set<Configuration> getRootConfigurations() {
+        component.rootConfigurations
     }
 
-    void setPlusConfigurations(Set<Configuration> plusConfigurations) {
-        component.plusConfigurations = plusConfigurations
+    void setRootConfigurations(Set<Configuration> rootConfigurations) {
+        component.rootConfigurations = rootConfigurations
+    }
+
+    /**
+     * The configurations whose files are to be transformed into dependent-module elements with a deploy path of {@link #getLibDeployPath()}.
+     */
+    Set<Configuration> getLibConfigurations() {
+        component.libConfigurations
+    }
+
+    void setLibConfigurations(Set<Configuration> libConfigurations) {
+        component.libConfigurations = libConfigurations
     }
 
     /**
@@ -145,6 +156,28 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
     void setContextPath(String contextPath) {
         component.contextPath = contextPath
+    }
+
+    /**
+     * The deploy path for classes.
+     */
+    String getClassesDeployPath() {
+        component.classesDeployPath
+    }
+
+    void setClassesDeployPath(String classesDeployPath) {
+        component.classesDeployPath = classesDeployPath
+    }
+
+    /**
+     * The deploy path for libraries.
+     */
+    String getLibDeployPath() {
+        component.libDeployPath
+    }
+
+    void setLibDeployPath(String libDeployPath) {
+        component.libDeployPath = libDeployPath
     }
 
     /**

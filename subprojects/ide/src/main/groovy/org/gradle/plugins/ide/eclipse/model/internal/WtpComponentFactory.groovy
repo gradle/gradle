@@ -32,34 +32,40 @@ class WtpComponentFactory {
         def entries = getEntriesFromSourceDirs(wtp)
         entries.addAll(wtp.resources)
         entries.addAll(wtp.properties)
-        entries.addAll(getEntriesFromConfigurations(wtp))
+        // for ear files root deps are NOT transitive; wars don't use root deps so this doesn't hurt them
+        // TODO: maybe do this in a more explicit way, via config or something
+        entries.addAll(getEntriesFromConfigurations(wtp.rootConfigurations, wtp.minusConfigurations, wtp, '/', false))
+        entries.addAll(getEntriesFromConfigurations(wtp.libConfigurations, wtp.minusConfigurations, wtp, wtp.libDeployPath, true))
 
         component.configure(wtp.deployName, wtp.contextPath, entries)
     }
 
     private List getEntriesFromSourceDirs(EclipseWtpComponent wtp) {
         wtp.sourceDirs.findAll { it.isDirectory() }.collect { dir ->
-            new WbResource("/WEB-INF/classes", wtp.project.relativePath(dir))
+            new WbResource(wtp.classesDeployPath, wtp.project.relativePath(dir))
         }
     }
 
-    private List getEntriesFromConfigurations(EclipseWtpComponent wtp) {
-        (getEntriesFromProjectDependencies(wtp) as List) + (getEntriesFromLibraries(wtp) as List)
+    private List getEntriesFromConfigurations(Set plusConfigurations, Set minusConfigurations, EclipseWtpComponent wtp, String deployPath, boolean transitive) {
+        (getEntriesFromProjectDependencies(plusConfigurations, minusConfigurations, deployPath, transitive) as List) +
+                (getEntriesFromLibraries(plusConfigurations, minusConfigurations, wtp, deployPath) as List)
     }
 
     // must include transitive project dependencies
-    private Set getEntriesFromProjectDependencies(EclipseWtpComponent wtp) {
-        def dependencies = getDependencies(wtp.plusConfigurations, wtp.minusConfigurations,
+    private Set getEntriesFromProjectDependencies(Set plusConfigurations, Set minusConfigurations, String deployPath, boolean transitive) {
+        def dependencies = getDependencies(plusConfigurations, minusConfigurations,
                 { it instanceof org.gradle.api.artifacts.ProjectDependency })
 
         def projects = dependencies*.dependencyProject
 
         def allProjects = [] as LinkedHashSet
         allProjects.addAll(projects)
-        projects.each { collectDependedUponProjects(it, allProjects) }
+        if (transitive) {
+            projects.each { collectDependedUponProjects(it, allProjects) }
+        }
 
         allProjects.collect { project ->
-            new WbDependentModule("/WEB-INF/lib", "module:/resource/" + project.name + "/" + project.name)
+            new WbDependentModule(deployPath, "module:/resource/" + project.name + "/" + project.name)
         }
     }
 
@@ -77,16 +83,16 @@ class WtpComponentFactory {
     }
 
     // must NOT include transitive library dependencies
-    private Set getEntriesFromLibraries(EclipseWtpComponent wtp) {
-        Set declaredDependencies = getDependencies(wtp.plusConfigurations, wtp.minusConfigurations,
+    private Set getEntriesFromLibraries(Set plusConfigurations, Set minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
+        Set declaredDependencies = getDependencies(plusConfigurations, minusConfigurations,
                 { it instanceof ExternalDependency})
 
         Set libFiles = wtp.project.configurations.detachedConfiguration((declaredDependencies as Dependency[])).files +
-                getSelfResolvingFiles(getDependencies(wtp.plusConfigurations, wtp.minusConfigurations,
+                getSelfResolvingFiles(getDependencies(plusConfigurations, minusConfigurations,
                         { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}))
 
         libFiles.collect { file ->
-            createWbDependentModuleEntry(file, wtp.pathVariables)
+            createWbDependentModuleEntry(file, wtp.variables, deployPath)
         }
     }
 
@@ -94,7 +100,7 @@ class WtpComponentFactory {
         dependencies.collect { it.resolve() }.flatten() as LinkedHashSet
     }
 
-    private WbDependentModule createWbDependentModuleEntry(File file, Map<String, File> variables) {
+    private WbDependentModule createWbDependentModuleEntry(File file, Map<String, File> variables, String deployPath) {
         def usedVariableEntry = variables.find { name, value -> file.canonicalPath.startsWith(value.canonicalPath) }
         def handleSnippet
         if (usedVariableEntry) {
@@ -103,7 +109,7 @@ class WtpComponentFactory {
             handleSnippet = "lib/${file.canonicalPath}"
         }
         handleSnippet = FilenameUtils.separatorsToUnix(handleSnippet)
-        return new WbDependentModule('/WEB-INF/lib', "module:/classpath/$handleSnippet")
+        return new WbDependentModule(deployPath, "module:/classpath/$handleSnippet")
     }
 
     private LinkedHashSet getDependencies(Set plusConfigurations, Set minusConfigurations, Closure filter) {
