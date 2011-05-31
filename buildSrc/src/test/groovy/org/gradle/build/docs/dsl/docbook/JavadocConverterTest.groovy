@@ -160,7 +160,7 @@ line 2</para>'''
         def result = parser.parse(classMetaData, listener)
 
         then:
-        format(result.docbook) == '''<programlisting>this is some
+        format(result.docbook) == '''<programlisting language="java">this is some
 
 literal code</programlisting>'''
     }
@@ -176,7 +176,7 @@ literal code</programlisting>'''
         def result = parser.parse(classMetaData, listener)
 
         then:
-        format(result.docbook) == '''<para>for example: </para><programlisting>this is some
+        format(result.docbook) == '''<para>for example: </para><programlisting language="java">this is some
 literal code</programlisting><para> does something.
 </para><para>another para.
 </para><itemizedlist><listitem>item1</listitem></itemizedlist>'''
