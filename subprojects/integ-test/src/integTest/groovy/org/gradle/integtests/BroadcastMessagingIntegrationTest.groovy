@@ -24,6 +24,7 @@ import java.util.concurrent.CountDownLatch
 import spock.lang.Ignore
 import java.util.concurrent.TimeUnit
 
+@Ignore
 class BroadcastMessagingIntegrationTest extends ConcurrentSpecification {
     static final Random RANDOM = new Random()
     final def testGroup = "test-group-${RANDOM.nextLong()}"
