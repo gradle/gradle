@@ -19,18 +19,18 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.plugins.EarPlugin
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
-import org.gradle.api.plugins.EarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
+import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
 import org.gradle.plugins.ide.internal.IdePlugin
+import org.gradle.plugins.ide.internal.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType;
-import org.gradle.plugins.ide.internal.XmlFileContentMerger
-import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -247,7 +247,12 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseWtpFacet(Project project) {
-        project.plugins.matching { it instanceof WarPlugin || it instanceof EarPlugin }.each { plugin ->
+        configureEclipseWtpFacetWithType(project, WarPlugin)
+        configureEclipseWtpFacetWithType(project, EarPlugin)
+    }
+
+    private void configureEclipseWtpFacetWithType(Project project, Class<?> type) {
+        project.plugins.withType(type) {
             maybeAddTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
                 //task properties:
                 description = 'Generates the Eclipse WTP facet settings file.'
@@ -256,10 +261,10 @@ class EclipsePlugin extends IdePlugin {
 
                 //model properties:
                 model.wtp.facet = facet
-                if (plugin instanceof WarPlugin) {
+                if (WarPlugin.isAssignableFrom(type)) {
                     facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
                         new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
-                } else if (plugin instanceof EarPlugin) {
+                } else if (EarPlugin.isAssignableFrom(type)) {
                     facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.ear", null), new Facet(FacetType.installed, "jst.ear", "5.0")] }
                 }
             }

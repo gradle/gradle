@@ -28,14 +28,22 @@ class Facet {
     String version
 
     def Facet() {
+        type = FacetType.installed
     }
 
     def Facet(Node node) {
         this(FacetType.valueOf(node.name()), node.@facet, node.@version)
     }
 
+    def Facet(String name, String version) {
+        this(FacetType.installed, name, version)
+    }
+
     def Facet(FacetType type, String name, String version) {
         assert type != null && name != null
+        if (!type) {
+            type = FacetType.installed
+        }
         if (type == FacetType.installed) {
             assert version != null
         } else {

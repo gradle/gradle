@@ -92,7 +92,7 @@ class WtpComponentFactory {
                         { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}))
 
         libFiles.collect { file ->
-            createWbDependentModuleEntry(file, wtp.variables, deployPath)
+            createWbDependentModuleEntry(file, wtp.pathVariables, deployPath)
         }
     }
 

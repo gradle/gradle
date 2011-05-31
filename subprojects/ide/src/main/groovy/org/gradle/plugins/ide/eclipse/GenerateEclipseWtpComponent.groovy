@@ -83,6 +83,17 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
     }
 
     /**
+     * Synonym for {@link #libConfigurations}.
+     */
+    Set<Configuration> getPlusConfigurations() {
+        return libConfigurations
+    }
+
+    void setPlusConfigurations(Set<Configuration> plusConfigurations) {
+        this.libConfigurations = plusConfigurations
+    }
+
+    /**
      * The configurations whose files are to be excluded from dependent-module elements.
      */
     Set<Configuration> getMinusConfigurations() {
