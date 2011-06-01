@@ -50,9 +50,6 @@ task reportResources << {
     }
 }
 
-//TODO SF: should not be needed
-classes.dependsOn reportResources
-
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'

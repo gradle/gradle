@@ -79,9 +79,6 @@ task releasesResource(type: GenerateReleasesXml) {
 }
 sourceSets.main.output.dir generatedResourcesDir, buildBy: 'releasesResource'
 
-//TODO SF: should not be needed
-classes.dependsOn releasesResource
-
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 test {

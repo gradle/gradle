@@ -37,8 +37,3 @@ task wrapperJar(type: Jar) {
     destinationDir = new File(generatedResourcesDir)
     manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.GradleWrapperMain')
 }
-
-//TODO SF: should not be needed
-classes {
-    dependsOn wrapperJar
-}
