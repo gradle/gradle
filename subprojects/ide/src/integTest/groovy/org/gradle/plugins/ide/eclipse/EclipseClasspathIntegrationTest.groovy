@@ -62,7 +62,7 @@ eclipse {
 
     containers 'someFriendlyContainer', 'andYetAnotherContainer'
 
-    classesOutputDir = file('build-eclipse')
+    defaultOutputDir = file('build-eclipse')
 
     downloadSources = false
     downloadJavadoc = true

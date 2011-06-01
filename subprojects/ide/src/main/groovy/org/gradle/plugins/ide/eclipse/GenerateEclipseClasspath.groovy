@@ -108,11 +108,11 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * The default output directory for eclipse generated files, eg classes.
      */
     File getDefaultOutputDir() {
-        classpath.classesOutputDir
+        classpath.defaultOutputDir
     }
 
     void setDefaultOutputDir(File defaultOutputDir) {
-        classpath.classesOutputDir = defaultOutputDir
+        classpath.defaultOutputDir = defaultOutputDir
     }
 
     /**

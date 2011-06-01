@@ -30,7 +30,7 @@ class ClasspathFactory {
 
     List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
         def entries = []
-        entries.add(new Output(classpath.project.relativePath(classpath.classesOutputDir)))
+        entries.add(new Output(classpath.project.relativePath(classpath.defaultOutputDir)))
         sourceFoldersCreator.populateForClasspath(entries, classpath)
         entries.addAll(getEntriesFromContainers(classpath.getContainers()))
         entries.addAll(getDependencies(classpath))

@@ -52,7 +52,7 @@ import org.gradle.util.ConfigureUtil
  *     containers 'someFriendlyContainer', 'andYetAnotherContainer'
  *
  *     //customizing the classes output directory:
- *     classesOutputDir = file('build-eclipse')
+ *     defaultOutputDir = file('build-eclipse')
  *
  *     //default settings for dependencies sources/javadoc download:
  *     downloadSources = true
@@ -143,12 +143,11 @@ class EclipseClasspath {
     }
 
     /**
-     * The default output directory for eclipse generated files, eg classes.
+     * The default output directory where eclipse puts compiled classes
      * <p>
      * For example see docs for {@link EclipseClasspath}
      */
-    File classesOutputDir
-    //TODO SF: should be called 'defaultOutputFolder' as eclipse calls it?
+    File defaultOutputDir
 
     /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.
