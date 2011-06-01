@@ -37,4 +37,16 @@ class IdeaModel {
     void project(Closure closure) {
         ConfigureUtil.configure(closure, getProject())
     }
+
+    /**
+     * Adds path variables to be used for replacing absolute paths in resulting files (*.iml, etc.)
+     * <p>
+     * For example see docs for {@link IdeaModule}
+     *
+     * @param pathVariables A map with String->File pairs.
+     */
+    void pathVariables(Map<String, File> pathVariables) {
+        assert pathVariables != null
+        module.pathVariables.putAll pathVariables
+    }
 }

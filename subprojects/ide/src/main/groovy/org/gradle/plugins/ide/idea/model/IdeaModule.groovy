@@ -43,6 +43,10 @@ import org.gradle.util.ConfigureUtil
  * }
  *
  * idea {
+ *
+ *   //if you want parts of paths in resulting files (*.iml, etc.) to be replaced by variables (Files)
+ *   pathVariables GRADLE_HOME: file('~/cool-software/gradle')
+ *
  *   module {
  *     //if for some reason you want to add an extra sourceDirs
  *     sourceDirs += file('some-extra-source-folder')
@@ -75,10 +79,6 @@ import org.gradle.util.ConfigureUtil
  *
  *     //and hate reading sources :)
  *     downloadSources = false
- *
- *     //if you want parts of paths in resulting *.iml to be replaced by variables (Files)
- *     pathVariables = [GRADLE_HOME: file('~/cool-software/gradle')]
- *     //TODO SF move up
  *   }
  * }
  * </pre>
