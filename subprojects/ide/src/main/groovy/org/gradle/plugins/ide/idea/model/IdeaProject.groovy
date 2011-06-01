@@ -17,8 +17,8 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.gradle.util.ConfigureUtil
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.util.ConfigureUtil
 
 /**
  * Enables fine-tuning project details (*.ipr file) of the Idea plugin
@@ -108,7 +108,7 @@ class IdeaProject {
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    Set wildcards
+    Set<String> wildcards
 
     /**
      * Output *.ipr

@@ -23,29 +23,7 @@ import org.gradle.plugins.ide.idea.model.Module
 /**
  * Generates an IDEA module file. If you want to fine tune the idea configuration
  * <p>
- * Please refer to more interesting examples in {@link IdeaModule}.
- * <p>
- * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
- * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'idea'
- *
- * configurations {
- *   provided
- *   provided.extendsFrom(compile)
- * }
- *
- * dependencies {
- *   //provided "some.interesting:dependency:1.0"
- * }
- *
- * ideaModule {
- *   scopes.PROVIDED.plus += configurations.provided
- *   doLast {
- *     //in case you need to do something after the generation...
- *   }
- * }
- * </pre>
+ * Please refer to interesting examples on idea configuration in {@link IdeaModule}.
  *
  * @author Hans Dockter
  */

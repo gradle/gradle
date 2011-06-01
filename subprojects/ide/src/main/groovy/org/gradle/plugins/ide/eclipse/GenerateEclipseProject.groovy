@@ -17,25 +17,16 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.XmlGeneratorTask
-import org.gradle.plugins.ide.eclipse.model.*
+import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.eclipse.model.EclipseProject
+import org.gradle.plugins.ide.eclipse.model.Link
+import org.gradle.plugins.ide.eclipse.model.Project
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
 
 /**
  * Generates an Eclipse <code>.project</code> file. If you want to fine tune the eclipse configuration
  * <p>
- * Please refer to more interesting examples in {@link EclipseProject}.
- * <p>
- * Example:
- * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
- *
- * eclipseProject {
- *   doLast {
- *     //...
- *   }
- * }
- * </pre>
+ * Please refer to interesting examples on eclipse configuration in {@link EclipseProject}.
  *
  * @author Hans Dockter
  */

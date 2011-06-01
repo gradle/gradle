@@ -17,9 +17,9 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.dsl.ConventionProperty
 
 /**
  * Enables fine-tuning module details (*.iml file) of the Idea plugin
@@ -77,6 +77,7 @@ import org.gradle.api.dsl.ConventionProperty
  *
  *     //if you want parts of paths in resulting *.iml to be replaced by variables (Files)
  *     pathVariables = [GRADLE_HOME: file('~/cool-software/gradle')]
+ *     //TODO SF move up
  *   }
  * }
  * </pre>
@@ -260,6 +261,7 @@ class IdeaModule {
      * For example see docs for {@link IdeaModule}
      */
     String javaVersion = Module.INHERITED
+    //TODO SF make it a JavaVersion
 
     /**
      * Enables advanced configuration like tinkering with the output xml

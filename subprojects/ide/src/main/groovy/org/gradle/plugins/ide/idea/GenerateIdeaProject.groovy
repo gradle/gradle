@@ -22,19 +22,7 @@ import org.gradle.plugins.ide.idea.model.Project
 /**
  * Generates an IDEA project file for root project *only*. If you want to fine tune the idea configuration
  * <p>
- * Please refer to more interesting examples in {@link IdeaProject}.
- * <p>
- * Example:
- * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'idea'
- *
- * ideaProject {
- *   doLast {
- *     //...
- *   }
- * }
- * </pre>
+ * Please refer to interesting examples on idea configuration in {@link IdeaProject}.
  *
  * @author Hans Dockter
  */
