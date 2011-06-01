@@ -47,7 +47,7 @@ class Project extends XmlPersistableConfigurationObject {
         this.pathFactory = pathFactory
     }
 
-    def configure(Set modulePaths, JavaVersion javaVersion, Set<String> wildcards) {
+    def configure(Collection<ModulePath> modulePaths, JavaVersion javaVersion, Collection<String> wildcards) {
         if (javaVersion) {
             jdk = new Jdk(javaVersion.toString())
         }

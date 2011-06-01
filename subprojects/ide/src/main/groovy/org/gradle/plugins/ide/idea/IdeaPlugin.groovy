@@ -108,7 +108,10 @@ class IdeaPlugin extends IdePlugin {
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
                 ideaProject.javaVersion = JavaVersion.VERSION_1_6
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
-                ideaProject.subprojects = project.rootProject.allprojects
+                ideaProject.conventionMapping.modules = {
+                    project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.convention.plugins.idea.module }
+                }
+
                 ideaProject.conventionMapping.pathFactory = {
                     new PathFactory().addPathVariable('PROJECT_DIR', outputFile.parentFile)
                 }

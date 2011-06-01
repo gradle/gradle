@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.JavaVersion
-import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
 
@@ -39,8 +38,8 @@ import org.gradle.util.ConfigureUtil
  *     //you can update the source wildcards
  *     wildcards += '!?*.ruby'
  *
- *     //you can update the project list that will make the modules list in the *.ipr
- *     //subprojects -= project(':someProjectThatWillBeExcluded')
+ *     //you can change the modules of the the *.ipr
+ *     //modules = project(':someProject').convention.plugins.idea.module
  *
  *     //you can change the output file
  *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
@@ -90,12 +89,11 @@ import org.gradle.util.ConfigureUtil
 class IdeaProject {
 
     /**
-     * The subprojects that should be mapped to modules in the ipr file. The subprojects will only be mapped if the Idea plugin has been
-     * applied to them.
+     * A {@link org.gradle.api.dsl.ConventionProperty} that holds modules for the ipr file.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    Set<org.gradle.api.Project> subprojects
+    List<IdeaModule> modules
 
     /**
      * The java version used for defining the project sdk.
@@ -142,12 +140,8 @@ class IdeaProject {
 
     void mergeXmlProject(Project xmlProject) {
         ipr.beforeMerged.execute(xmlProject)
-        def modulePaths = getSubprojects().inject(new LinkedHashSet()) { result, subproject ->
-            if (subproject.plugins.hasPlugin(IdeaPlugin)) {
-                File imlFile = subproject.ideaModule.outputFile
-                result << new ModulePath(getPathFactory().relativePath('PROJECT_DIR', imlFile))
-            }
-            result
+        def modulePaths = getModules().collect {
+            new ModulePath(getPathFactory().relativePath('PROJECT_DIR', it.outputFile))
         }
         xmlProject.configure(modulePaths, getJavaVersion(), getWildcards())
         ipr.whenMerged.execute(xmlProject)
