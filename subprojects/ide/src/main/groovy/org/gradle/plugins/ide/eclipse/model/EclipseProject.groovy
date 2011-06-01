@@ -223,7 +223,6 @@ class EclipseProject {
         if (illegalArgs) {
             throw new InvalidUserDataException("You provided illegal argument for a link: $illegalArgs. Valid link args are: $validKeys")
         }
-        //TODO SF: move validation here, update tests
         linkedResources << new Link(args.name, args.type, args.location, args.locationUri)
     }
 
