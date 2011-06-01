@@ -106,7 +106,7 @@ class IdeaPlugin extends IdePlugin {
                 model.project = ideaProject
 
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
-                ideaProject.javaVersion = JavaVersion.VERSION_1_6.toString()
+                ideaProject.javaVersion = JavaVersion.VERSION_1_6
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.subprojects = project.rootProject.allprojects
                 ideaProject.conventionMapping.pathFactory = {

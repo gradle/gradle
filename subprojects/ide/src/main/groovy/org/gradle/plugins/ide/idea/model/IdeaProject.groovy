@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.JavaVersion
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
@@ -101,7 +102,11 @@ class IdeaProject {
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    String javaVersion
+    JavaVersion javaVersion
+
+    void setJavaVersion(Object javaVersion) {
+        this.javaVersion = JavaVersion.toVersion(javaVersion)
+    }
 
     /**
      * The wildcard resource patterns.

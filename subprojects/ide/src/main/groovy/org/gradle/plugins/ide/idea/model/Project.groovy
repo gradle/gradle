@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
@@ -32,7 +33,7 @@ class Project extends XmlPersistableConfigurationObject {
     /**
      * A set of wildcard string to be included/excluded from the resources.
      */
-    Set wildcards = []
+    Set<String> wildcards = []
 
     /**
      * Represent the jdk information of the project java sdk.
@@ -46,9 +47,9 @@ class Project extends XmlPersistableConfigurationObject {
         this.pathFactory = pathFactory
     }
 
-    def configure(Set modulePaths, String javaVersion, Set wildcards) {
+    def configure(Set modulePaths, JavaVersion javaVersion, Set<String> wildcards) {
         if (javaVersion) {
-            jdk = new Jdk(javaVersion)
+            jdk = new Jdk(javaVersion.toString())
         }
         this.modulePaths.addAll(modulePaths)
         this.wildcards.addAll(wildcards)

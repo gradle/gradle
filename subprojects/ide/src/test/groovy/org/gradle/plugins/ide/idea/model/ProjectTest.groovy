@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.XmlTransformer
 import spock.lang.Specification
 
@@ -42,7 +43,7 @@ class ProjectTest extends Specification {
 
         when:
         project.load(customProjectReader)
-        project.configure(modules, '1.6', ['?*.groovy'] as Set)
+        project.configure(modules, JavaVersion.VERSION_1_6, ['?*.groovy'] as Set)
 
         then:
         project.modulePaths == customModules + modules
@@ -63,7 +64,7 @@ class ProjectTest extends Specification {
     def toXml_shouldContainCustomValues() {
         when:
         project.loadDefaults()
-        project.configure([] as Set, '1.5', ['?*.groovy'] as Set)
+        project.configure([] as Set, JavaVersion.VERSION_1_5, ['?*.groovy'] as Set)
         def xml = toXmlReader
         def other = new Project(new XmlTransformer(), pathFactory)
         other.load(xml)

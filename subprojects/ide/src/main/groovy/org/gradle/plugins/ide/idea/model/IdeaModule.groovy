@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
@@ -260,8 +261,11 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    String javaVersion = Module.INHERITED
-    //TODO SF make it a JavaVersion
+    JavaVersion javaVersion
+
+    void setJavaVersion(Object javaVersion) {
+        this.javaVersion = JavaVersion.toVersion(javaVersion)
+    }
 
     /**
      * Enables advanced configuration like tinkering with the output xml

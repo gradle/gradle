@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
@@ -141,7 +142,8 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    protected def configure(Path contentPath, Set sourceFolders, Set testSourceFolders, Set excludeFolders, Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies, String javaVersion) {
+    protected def configure(Path contentPath, Set sourceFolders, Set testSourceFolders, Set excludeFolders,
+                            Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies, JavaVersion javaVersion) {
         this.contentPath = contentPath
         this.sourceFolders.addAll(sourceFolders)
         this.testSourceFolders.addAll(testSourceFolders)
@@ -157,7 +159,9 @@ class Module extends XmlPersistableConfigurationObject {
         }
         this.dependencies = dependencies; // overwrite rather than append dependencies
         if (javaVersion) {
-            this.javaVersion = javaVersion
+            this.javaVersion = javaVersion.toString()
+        } else {
+            this.javaVersion = Module.INHERITED
         }
     }
 

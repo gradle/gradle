@@ -36,7 +36,7 @@ allprojects {
 
 idea {
     project {
-        javaVersion = '1.44'
+        javaVersion = '1.3'
         wildcards += '!?*.ruby'
 
         //let's remove one of the subprojects from generation:
@@ -56,7 +56,7 @@ idea {
 
         //then
         def ipr = getFile([:], 'someBetterName.ipr').text
-        assert ipr.contains('1.44')
+        assert ipr.contains('project-jdk-name="1.3"')
         assert ipr.contains('!?*.ruby')
         assert !ipr.contains('someProjectThatWillBeExcluded')
         assert ipr.contains('hey buddy!')
