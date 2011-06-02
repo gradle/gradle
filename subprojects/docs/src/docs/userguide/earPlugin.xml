@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2010 the original author or authors.
+  ~ Copyright 2011 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -169,7 +169,7 @@
         <title>Customizing</title>
         <para>Here is an example with the most important customization options:
         </para>
-        <sample id="webproject" dir="webApplication/earCustomised" title="Customization of ear plugin">
+        <sample id="webproject" dir="webApplication/earCustomized" title="Customization of ear plugin">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>You can also use customization options that the <apilink class="org.gradle.api.tasks.bundling.Jar"/>
@@ -177,7 +177,7 @@
         </para>
         <para>If you want to enable the generation of the default jar archive additional to the EAR archive just type:
         </para>
-        <sample id="customisedWebApplication" dir="webApplication/earCustomised" title="Generation of JAR archive in addition to EAR archive">
+        <sample id="customisedWebApplication" dir="webApplication/earCustomized" title="Generation of JAR archive in addition to EAR archive">
             <sourcefile file="build.gradle" snippet="enable-jar"/>
         </sample>
     </section>
