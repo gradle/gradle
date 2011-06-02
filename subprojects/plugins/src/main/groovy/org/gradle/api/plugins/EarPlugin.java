@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import java.util.concurrent.Callable;
-
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -33,6 +31,8 @@ import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Ear;
 import org.gradle.api.tasks.bundling.Jar;
+
+import java.util.concurrent.Callable;
 
 /**
  * <p>
@@ -57,6 +57,7 @@ public class EarPlugin implements Plugin<Project> {
 
         configureConfigurations(project);
 
+        //TODO SF evaluation order-sensitive
         final JavaPluginConvention javaPlugin = project.getConvention().findPlugin(JavaPluginConvention.class);
         if (javaPlugin != null) {
             SourceSet sourceSet = javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -103,6 +104,7 @@ public class EarPlugin implements Plugin<Project> {
             }
         });
 
+        //TODO SF why is the ear added this way and not a proper way?
         Ear ear = project.getTasks().add(EAR_TASK_NAME, Ear.class);
         ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
         ear.conventionMapping("libDirName", new ConventionValue() {

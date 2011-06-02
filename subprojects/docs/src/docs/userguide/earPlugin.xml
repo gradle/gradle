@@ -25,6 +25,7 @@
         <para>To use the Ear plugin, include in your build script:</para>
         <sample id="useEarPlugin" dir="webApplication/ear" title="Using the Ear plugin">
             <sourcefile file="build.gradle" snippet="use-ear-plugin"/>
+            <test args="assemble"/>
         </sample>
     </section>
 
@@ -169,8 +170,9 @@
         <title>Customizing</title>
         <para>Here is an example with the most important customization options:
         </para>
-        <sample id="webproject" dir="webApplication/earCustomized" title="Customization of ear plugin">
+        <sample id="earCustomized" dir="webApplication/earCustomized" title="Customization of ear plugin">
             <sourcefile file="build.gradle"/>
+            <test args="assemble"/>
         </sample>
         <para>You can also use customization options that the <apilink class="org.gradle.api.tasks.bundling.Jar"/>
         	task provides, such as <literal>from</literal> and <literal>metaInf</literal>.

@@ -16,9 +16,9 @@
 package org.gradle.api.enterprise.archives.internal
 
 import groovy.xml.QName
-
 import org.gradle.api.Action
 import org.gradle.api.UncheckedIOException
+import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.api.enterprise.archives.DeploymentDescriptor
 import org.gradle.api.enterprise.archives.EarModule
 import org.gradle.api.enterprise.archives.EarSecurityRole
@@ -97,7 +97,7 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         return this
     }
 
-    public DeploymentDescriptor withXml(Action<? super Node> action) {
+    public DeploymentDescriptor withXml(Action<? super XmlProvider> action) {
         actions.add action
         return this
     }
