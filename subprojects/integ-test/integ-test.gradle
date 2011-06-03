@@ -26,7 +26,7 @@ integTestTasks.all {
         systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
         systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
         systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-        forkEvery = 15
+        forkEvery = 10
         maxParallelForks = guessMaxForks()
 
         if (isDevBuild()) {
