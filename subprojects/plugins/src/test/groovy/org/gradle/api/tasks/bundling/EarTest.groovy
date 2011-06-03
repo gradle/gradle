@@ -72,8 +72,9 @@ class EarTest extends AbstractArchiveTaskTest {
             webModule("my.war", "/")
             securityRole "admin"
             securityRole "superadmin"
-            //TODO SF: not tested
-            withXml { new Node(it, "data-source", "my/data/source") }
+            withXml { provider ->
+                //just adds an action
+            }
         }
         assertEquals("myApp.xml", ear.deploymentDescriptor.fileName)
         assertEquals("5", ear.deploymentDescriptor.version)
@@ -91,5 +92,6 @@ class EarTest extends AbstractArchiveTaskTest {
         assertEquals(2, ear.deploymentDescriptor.securityRoles.size())
         assertEquals("admin", (ear.deploymentDescriptor.securityRoles as List)[0].roleName)
         assertEquals("superadmin", (ear.deploymentDescriptor.securityRoles as List)[1].roleName)
+        assertEquals(1, ear.deploymentDescriptor.actions.size())
     }
 }
