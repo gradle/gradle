@@ -31,7 +31,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
         descriptor.writeTo(out)
 
         then:
-        out.toString() == """<?xml version="1.0" encoding="UTF-8"?>
+        out.toString() == """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6"/>
 """
     }
@@ -48,13 +48,13 @@ class DefaultDeploymentDescriptorTest extends Specification {
         descriptor.webModule("my.war", "/")
         descriptor.securityRole "admin"
         descriptor.securityRole "superadmin"
-//        descriptor.withXml { it.asNode().appendChild("data-source", "my/data/source") }
+        descriptor.withXml { it.asNode().appendNode("data-source", "my/data/source") }
 
         when:
         descriptor.writeTo(out)
 
         then:
-        out.toString() == """<?xml version="1.0" encoding="UTF-8"?>
+        out.toString() == """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_5.xsd" version="5">
   <application-name>myapp</application-name>
   <description>My Application</description>
@@ -76,6 +76,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
     <role-name>superadmin</role-name>
   </security-role>
   <library-directory>APP-INF/lib</library-directory>
+  <data-source>my/data/source</data-source>
 </application>
 """
     }
