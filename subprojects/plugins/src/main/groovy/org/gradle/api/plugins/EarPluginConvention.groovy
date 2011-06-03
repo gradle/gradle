@@ -16,9 +16,9 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.enterprise.archives.DeploymentDescriptor;
-import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.enterprise.archives.DeploymentDescriptor
+import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
+import org.gradle.util.ConfigureUtil
 
 public class EarPluginConvention {
     private String appDirName
@@ -30,6 +30,7 @@ public class EarPluginConvention {
      * A custom deployment descriptor configuration. Default is an "application.xml" with sensible defaults.
      */
     DeploymentDescriptor deploymentDescriptor
+    //TODO SF pass resolver only
     final Project project
 
     def EarPluginConvention(Project project) {
