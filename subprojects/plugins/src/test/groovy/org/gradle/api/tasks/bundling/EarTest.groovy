@@ -92,6 +92,6 @@ class EarTest extends AbstractArchiveTaskTest {
         assertEquals(2, ear.deploymentDescriptor.securityRoles.size())
         assertEquals("admin", (ear.deploymentDescriptor.securityRoles as List)[0].roleName)
         assertEquals("superadmin", (ear.deploymentDescriptor.securityRoles as List)[1].roleName)
-        assertEquals(1, ear.deploymentDescriptor.actions.size())
+        assertEquals(1, ear.deploymentDescriptor.transformer.actions.size())
     }
 }
