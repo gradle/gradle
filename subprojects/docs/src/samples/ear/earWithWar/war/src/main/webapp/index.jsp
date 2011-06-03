@@ -1,4 +1,4 @@
-<jsp:useBean id="greeter" class="org.gradle.sample.Greeter"/>
+<jsp:useBean id="greeter" class="org.gradle.sample.SimpleGreeter"/>
 <html>
 <p>${greeter.greeting}</p>
 </html>
