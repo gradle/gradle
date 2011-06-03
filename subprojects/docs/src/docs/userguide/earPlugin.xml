@@ -23,7 +23,7 @@
     <section>
         <title>Usage</title>
         <para>To use the Ear plugin, include in your build script:</para>
-        <sample id="useEarPlugin" dir="webApplication/ear" title="Using the Ear plugin">
+        <sample id="earWithWar" dir="ear/earWithWar" title="Using the Ear plugin">
             <sourcefile file="build.gradle" snippet="use-ear-plugin"/>
             <test args="assemble"/>
         </sample>
@@ -170,7 +170,7 @@
         <title>Customizing</title>
         <para>Here is an example with the most important customization options:
         </para>
-        <sample id="earCustomized" dir="webApplication/earCustomized" title="Customization of ear plugin">
+        <sample id="earCustomized" dir="ear/earCustomized" title="Customization of ear plugin">
             <sourcefile file="build.gradle"/>
             <test args="assemble"/>
         </sample>
@@ -179,7 +179,7 @@
         </para>
         <para>If you want to enable the generation of the default jar archive additional to the EAR archive just type:
         </para>
-        <sample id="customisedWebApplication" dir="webApplication/earCustomized" title="Generation of JAR archive in addition to EAR archive">
+        <sample id="earCustomizedWithJarEnabled" dir="ear/earCustomized" title="Generation of JAR archive in addition to EAR archive">
             <sourcefile file="build.gradle" snippet="enable-jar"/>
         </sample>
     </section>
