@@ -19,18 +19,14 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.plugins.EarPlugin
-import org.gradle.api.plugins.GroovyBasePlugin
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
+import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.api.plugins.*
 import org.gradle.plugins.ide.eclipse.model.*
-import org.gradle.plugins.ide.eclipse.model.Facet.FacetType;
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -111,21 +107,28 @@ class EclipsePlugin extends IdePlugin {
                 projectModel.natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.scala-ide.sdt.core.scalanature")
             }
 
-            project.plugins.matching { it instanceof WarPlugin || it instanceof EarPlugin }.each {
+            configureEclipseProjectWithType(project, WarPlugin)
+            configureEclipseProjectWithType(project, EarPlugin)
+        }
+    }
+
+    private void configureEclipseProjectWithType(Project project, Class<?> type) {
+        project.plugins.withType(type) {
+            configureTask(project, ECLIPSE_PROJECT_TASK_NAME) {
                 projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
                 projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
                 projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
                 projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
                 projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
+            }
 
-                doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                    configureTask(otherProject, ECLIPSE_PROJECT_TASK_NAME) {
-                        projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                        projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                        projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
-                        projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                        projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
-                    }
+            doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
+                configureTask(otherProject, ECLIPSE_PROJECT_TASK_NAME) {
+                    projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                    projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                    projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                    projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                    projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
                 }
             }
         }
@@ -195,7 +198,12 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseWtpComponent(Project project) {
-        project.plugins.matching { it instanceof WarPlugin || it instanceof EarPlugin }.each { plugin ->
+        configureEclipseWtpComponentWithType(project, WarPlugin)
+        configureEclipseWtpComponentWithType(project, EarPlugin)
+    }
+
+    private void configureEclipseWtpComponentWithType(Project project, Class<?> type) {
+        project.plugins.withType(type) {
             maybeAddTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
                 //task properties:
                 description = 'Generates the Eclipse WTP component settings file.'
@@ -208,12 +216,12 @@ class EclipsePlugin extends IdePlugin {
                 component.deployName = project.name
                 component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
 
-                if (plugin instanceof WarPlugin) {
+                if (WarPlugin.class.isAssignableFrom(type)) {
                     component.libConfigurations = [project.configurations.runtime]
                     component.minusConfigurations = [project.configurations.providedRuntime]
                     component.conventionMapping.contextPath = { project.war.baseName }
                     component.resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
-                } else if (plugin instanceof EarPlugin) {
+                } else if (EarPlugin.class.isAssignableFrom(type)) {
                     component.rootConfigurations = [project.configurations.deploy]
                     component.libConfigurations = [project.configurations.earlib]
                     component.minusConfigurations = []

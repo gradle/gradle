@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+    <name>test</name>
+    <comment>for testing</comment> 
+    <projects>
+        <project>refProject</project>
+    </projects>
+    <buildSpec>
+        <buildCommand>
+            <name>org.eclipse.jdt.core.scalabuilder</name>
+            <arguments>
+                <dictionary>
+                    <key>climate</key>
+                    <value>cold</value>
+                </dictionary>
+            </arguments>
+        </buildCommand>
+    </buildSpec>
+    <natures>
+        <nature>org.eclipse.jdt.core.scalanature</nature>
+    </natures>
+    <linkedResources>
+        <link>
+            <name>somename</name>
+            <type>sometype</type>
+            <location>somelocation</location>
+        </link>
+    </linkedResources>
+</projectDescription>
