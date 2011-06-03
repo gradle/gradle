@@ -51,7 +51,6 @@ public class TextPaneSearchInteraction implements SearchPanel.SearchInteraction 
     /**
      * Notification that the search was complete and we have results to show to the user.
      */
-    @Override
     public void searchComplete(TextBlockSearchEditor editor) {
         removeResultHighlights();  //hide any previous results that may have been highlighted.
 
@@ -86,7 +85,6 @@ public class TextPaneSearchInteraction implements SearchPanel.SearchInteraction 
      * Call this to remove the highlights of the search results. Override this if you draw your own highlights and you'll probably just want to reset the AttributeSets to the entire text (and not call
      * this (super)).
      */
-    @Override
     public void removeResultHighlights() {
         removeExistingHighlights();
     }
@@ -109,7 +107,6 @@ public class TextPaneSearchInteraction implements SearchPanel.SearchInteraction 
         ((DefaultStyledDocument) textComponentToSearch.getDocument()).setCharacterAttributes(startingIndex, length, defaultStyle, true);
     }
 
-    @Override
     public String getTextToSearch() {
         return textComponentToSearch.getText();
     }
@@ -117,7 +114,6 @@ public class TextPaneSearchInteraction implements SearchPanel.SearchInteraction 
     /**
      * @return the current location of hte caret within the text we're going to search.
      */
-    @Override
     public int getCaretLocation() {
         return textComponentToSearch.getCaretPosition();
     }
@@ -128,7 +124,6 @@ public class TextPaneSearchInteraction implements SearchPanel.SearchInteraction 
      * @param editor the editor that was used to search
      * @param searchResult the specific result (within the editor's search results) to highlight.
      */
-    @Override
     public void highlightAndScrollToResult(TextBlockSearchEditor editor, TextBlockSearchEditor.SearchResult searchResult) {
         //first, reset the existing highlights so there's no highlights
         highlightResults(editor, false);

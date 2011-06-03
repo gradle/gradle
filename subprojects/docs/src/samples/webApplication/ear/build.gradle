@@ -2,8 +2,13 @@
 apply plugin: 'ear'
 // END SNIPPET use-ear-plugin
 
+repositories {
+    mavenCentral()
+}
+
+//TODO SF further refactoring in the ear samples needed (e.g. specific common folder, etc.)
 dependencies {
-    deploy project(':samples:webApplication:quickstart')
+    deploy project(':war')
 
     earlib group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
 }

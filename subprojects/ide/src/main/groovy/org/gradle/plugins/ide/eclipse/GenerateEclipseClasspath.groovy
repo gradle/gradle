@@ -24,19 +24,8 @@ import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 /**
  * Generates an Eclipse <code>.classpath</code> file. If you want to fine tune the eclipse configuration
  * <p>
- * Please refer to more interesting examples in {@link EclipseClasspath}.
- * <p>
- * Example:
- * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
+ * Please refer to interesting examples on eclipse configuration in {@link EclipseClasspath}.
  *
- * eclipseClasspath {
- *   doLast {
- *     //...
- *   }
- * }
- * </pre>
  * @author Hans Dockter
  */
 class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
@@ -119,11 +108,11 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * The default output directory for eclipse generated files, eg classes.
      */
     File getDefaultOutputDir() {
-        classpath.classesOutputDir
+        classpath.defaultOutputDir
     }
 
     void setDefaultOutputDir(File defaultOutputDir) {
-        classpath.classesOutputDir = defaultOutputDir
+        classpath.defaultOutputDir = defaultOutputDir
     }
 
     /**

@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.enterprise.archives.DeploymentDescriptor
 import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
 import org.junit.Before
 import org.junit.Test
@@ -73,6 +72,7 @@ class EarTest extends AbstractArchiveTaskTest {
             webModule("my.war", "/")
             securityRole "admin"
             securityRole "superadmin"
+            //TODO SF: not tested
             withXml { new Node(it, "data-source", "my/data/source") }
         }
         assertEquals("myApp.xml", ear.deploymentDescriptor.fileName)

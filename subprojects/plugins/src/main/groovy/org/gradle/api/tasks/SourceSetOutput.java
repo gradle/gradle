@@ -69,6 +69,8 @@ import java.util.Map;
  *   }
  * }
  *
+ * //java plugin task 'classes' and 'testClasses' will automatically depend on relevant tasks registered by 'buildBy'
+ *
  * //eclipse/idea plugins will automatically depend on 'generateMyResources'
  * //because the output dir was registered with 'buildBy' information
  * apply plugin: 'idea'; apply plugin: 'eclipse'

@@ -16,8 +16,8 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.util.ConfigureUtil
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.util.ConfigureUtil
 
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
@@ -50,7 +50,7 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
  *     //if you want to append some extra build command:
  *     buildCommand 'buildThisLovelyProject'
  *     //if you want to append a build command with parameters:
- *     buildCommand argumentOne: "I'm first", argumentTwo: "I'm second", 'buildItWithTheArguments'
+ *     buildCommand 'buildItWithTheArguments', argumentOne: "I'm first", argumentTwo: "I'm second"
  *
  *     //if you want to create an extra link in the eclipse project,
  *     //by location uri:
@@ -223,7 +223,6 @@ class EclipseProject {
         if (illegalArgs) {
             throw new InvalidUserDataException("You provided illegal argument for a link: $illegalArgs. Valid link args are: $validKeys")
         }
-        //TODO SF: move validation here, update tests
         linkedResources << new Link(args.name, args.type, args.location, args.locationUri)
     }
 

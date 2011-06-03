@@ -26,7 +26,9 @@ import org.gradle.messaging.remote.ObjectConnection
 import org.gradle.messaging.remote.internal.MessagingServices
 import org.gradle.util.ConcurrentSpecification
 import java.util.concurrent.CountDownLatch
+import spock.lang.Ignore
 
+@Ignore
 class UnicastMessagingIntegrationTest extends ConcurrentSpecification {
     def "server can send messages to client"() {
         RemoteService1 service = Mock()

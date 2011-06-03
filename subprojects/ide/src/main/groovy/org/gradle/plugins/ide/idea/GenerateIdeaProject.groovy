@@ -18,23 +18,12 @@ package org.gradle.plugins.ide.idea
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.gradle.plugins.ide.idea.model.Project
+import org.gradle.util.DeprecationLogger
 
 /**
  * Generates an IDEA project file for root project *only*. If you want to fine tune the idea configuration
  * <p>
- * Please refer to more interesting examples in {@link IdeaProject}.
- * <p>
- * Example:
- * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'idea'
- *
- * ideaProject {
- *   doLast {
- *     //...
- *   }
- * }
- * </pre>
+ * Please refer to interesting examples on idea configuration in {@link IdeaProject}.
  *
  * @author Hans Dockter
  */
@@ -59,11 +48,11 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
      * applied to them.
      */
     Set<org.gradle.api.Project> getSubprojects() {
-        ideaProject.subprojects
+        DeprecationLogger.nagUser("ideaProject.subprojects doesn't do anything at this moment. Please use idea.project.modules instead.")
     }
 
     void setSubprojects(Set<org.gradle.api.Project> subprojects) {
-        ideaProject.subprojects = subprojects
+        DeprecationLogger.nagUser("ideaProject.subprojects doesn't do anything at this moment. Please use idea.project.modules instead.")
     }
 
     /**

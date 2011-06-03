@@ -16,10 +16,11 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.dsl.ConventionProperty
 
 /**
  * Enables fine-tuning module details (*.iml file) of the Idea plugin
@@ -42,6 +43,10 @@ import org.gradle.api.dsl.ConventionProperty
  * }
  *
  * idea {
+ *
+ *   //if you want parts of paths in resulting files (*.iml, etc.) to be replaced by variables (Files)
+ *   pathVariables GRADLE_HOME: file('~/cool-software/gradle')
+ *
  *   module {
  *     //if for some reason you want to add an extra sourceDirs
  *     sourceDirs += file('some-extra-source-folder')
@@ -74,9 +79,6 @@ import org.gradle.api.dsl.ConventionProperty
  *
  *     //and hate reading sources :)
  *     downloadSources = false
- *
- *     //if you want parts of paths in resulting *.iml to be replaced by variables (Files)
- *     pathVariables = [GRADLE_HOME: file('~/cool-software/gradle')]
  *   }
  * }
  * </pre>
@@ -259,7 +261,11 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    String javaVersion = Module.INHERITED
+    JavaVersion javaVersion
+
+    void setJavaVersion(Object javaVersion) {
+        this.javaVersion = JavaVersion.toVersion(javaVersion)
+    }
 
     /**
      * Enables advanced configuration like tinkering with the output xml
@@ -270,9 +276,6 @@ class IdeaModule {
     void iml(Closure closure) {
         ConfigureUtil.configure(closure, getIml())
     }
-
-    //TODO SF: most likely what's above should be a part of an interface and what's below should not be exposed.
-    //For now, below methods are protected - same applies to new model
 
     org.gradle.api.Project project
     PathFactory pathFactory

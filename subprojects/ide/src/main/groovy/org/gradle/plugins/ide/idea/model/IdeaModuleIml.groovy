@@ -32,7 +32,8 @@ class IdeaModuleIml extends XmlFileContentMerger {
         super(xmlTransformer)
         this.generateTo = generateTo
     }
-/**
+
+    /**
      * Folder where the *.iml file will be generated to
      * <p>
      * For example see docs for {@link IdeaModule}

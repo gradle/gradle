@@ -17,6 +17,10 @@
                 <td><literal>project.configurations.groovy</literal></td>
             </tr>
             <tr>
+                <td>classpath</td>
+                <td><literal>sourceSets.main.output + sourceSets.main.compileClasspath</literal></td>
+            </tr>
+            <tr>
                 <td>use</td>
                 <td><literal>false</literal></td>
             </tr>

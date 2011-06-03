@@ -83,6 +83,7 @@ class JavaBasePluginTest extends Specification {
         classes.description == 'Assembles the custom classes.'
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
+        classes.dependsOn.contains project.sourceSets.custom.output.dirs
     }
 
     void appliesMappingsToTasksDefinedByBuildScript() {

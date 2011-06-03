@@ -18,8 +18,8 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
-import org.gradle.util.ConfigureUtil
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.util.ConfigureUtil
 
 /**
  * Enables fine-tuning classpath details (.classpath file) of the Eclipse plugin
@@ -42,10 +42,6 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
  *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')
  *
  *   classpath {
- *     //you can configure the sourceSets however Gradle simply uses current sourceSets
- *     //so it's probably best not to change it.
- *     //sourceSets =
- *
  *     //you can tweak the classpath of the eclipse project by adding extra configurations:
  *     plusConfigurations += configurations.provided
  *
@@ -56,7 +52,7 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
  *     containers 'someFriendlyContainer', 'andYetAnotherContainer'
  *
  *     //customizing the classes output directory:
- *     classesOutputDir = file('build-eclipse')
+ *     defaultOutputDir = file('build-eclipse')
  *
  *     //default settings for dependencies sources/javadoc download:
  *     downloadSources = true
@@ -147,12 +143,11 @@ class EclipseClasspath {
     }
 
     /**
-     * The default output directory for eclipse generated files, eg classes.
+     * The default output directory where eclipse puts compiled classes
      * <p>
      * For example see docs for {@link EclipseClasspath}
      */
-    File classesOutputDir
-    //TODO SF: should be called 'defaultOutputFolder' as eclipse calls it?
+    File defaultOutputDir
 
     /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.

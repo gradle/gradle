@@ -32,7 +32,7 @@ import org.gradle.plugins.ide.idea.model.PathFactory
 
 /**
  * All code was refactored from the GenerateIdeaModule class.
- * TODO SF: This class should be refactored so that we can reuse it in Eclipse plugin also.
+ * TODO: This class should be refactored so that we can reuse it in Eclipse plugin also.
  *
  * @author Szczepan Faber, created at: 4/1/11
  */
@@ -45,7 +45,7 @@ class IdeaDependenciesProvider {
     PathFactory pathFactory
 
     Set<org.gradle.plugins.ide.idea.model.Dependency> provide(IdeaModule ideaModule, PathFactory pathFactory) {
-        //TODO SF: below assignments are funky but I wanted to make little changes to the code refactored from GenerateIdeaModule
+        //(SF) below assignments are funky but I wanted to make little changes to the code refactored from GenerateIdeaModule
         this.project = ideaModule.project
         this.scopes = ideaModule.scopes
         this.downloadSources = ideaModule.downloadSources

@@ -19,16 +19,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.plugins.EarPlugin
-import org.gradle.api.plugins.GroovyBasePlugin
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
+import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.api.plugins.*
 import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType;
 
@@ -140,7 +137,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseClasspath(Project project) {
         model.classpath = project.services.get(ClassGenerator).newInstance(EclipseClasspath, [project: project])
-        model.classpath.conventionMapping.classesOutputDir = { new File(project.projectDir, 'bin') }
+        model.classpath.conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
 
         project.plugins.withType(JavaBasePlugin) {
             maybeAddTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) { task ->

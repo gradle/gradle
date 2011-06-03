@@ -117,6 +117,7 @@ public class JavadocConverter {
         NodeStack nodes = new NodeStack(document);
         final HtmlGeneratingTokenHandler handler = new HtmlGeneratingTokenHandler(nodes, document);
         handler.add(new HtmlElementTranslatingHandler(nodes, document));
+        handler.add(new PreElementHandler(nodes, document));
         handler.add(new JavadocTagToElementTranslatingHandler(nodes, document));
         handler.add(new HeaderHandler(nodes, document));
         handler.add(new LinkHandler(nodes, linkConverter, classMetaData, listener));
@@ -436,7 +437,6 @@ public class JavadocConverter {
             this.nodes = nodes;
             this.document = document;
             elementToElementMap.put("p", "para");
-            elementToElementMap.put("pre", "programlisting");
             elementToElementMap.put("ul", "itemizedlist");
             elementToElementMap.put("ol", "orderedlist");
             elementToElementMap.put("li", "listitem");
@@ -452,6 +452,37 @@ public class JavadocConverter {
                 return false;
             }
             nodes.push(element, document.createElement(newElementName));
+            return true;
+        }
+
+        public void onText(String text) {
+            nodes.appendChild(text);
+        }
+
+        public void onEndElement(String element) {
+            nodes.pop(element);
+        }
+    }
+
+    private static class PreElementHandler implements HtmlElementHandler {
+        private final NodeStack nodes;
+        private final Document document;
+
+        private PreElementHandler(NodeStack nodes, Document document) {
+            this.nodes = nodes;
+            this.document = document;
+        }
+
+        public boolean onStartElement(String element, Map<String, String> attributes) {
+            if (!"pre".equals(element)) {
+                return false;
+            }
+            Element newElement = document.createElement("programlisting");
+            //we're making an assumption that all <pre> elements contain java code
+            //this should mostly be true :)
+            //if it isn't true then the syntax highlighting won't spoil the view too much anyway
+            newElement.setAttribute("language", "java");
+            nodes.push(element, newElement);
             return true;
         }
 

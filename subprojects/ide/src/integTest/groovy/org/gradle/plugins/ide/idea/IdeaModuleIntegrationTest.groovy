@@ -51,6 +51,8 @@ configurations {
 }
 
 idea {
+    pathVariables CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile
+
     module {
         name = 'foo'
         contentRoot = file('customModuleContentRoot')
@@ -68,7 +70,6 @@ idea {
         testOutputDir = file('muchBetterTestOutputDir')
 
         javaVersion = '1.6'
-        pathVariables = [CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile]
 
         iml {
             generateTo = file('customImlFolder')

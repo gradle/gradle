@@ -100,34 +100,34 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns the classpath used to locate classes referenced by the documented sources.
+     * Returns the classpath containing the Groovy library to be used.
      *
-     * @return The classpath used to locate classes referenced by the documented sources
-     */
+     * @return The classpath containing the Groovy library to be used
+     */   
     @InputFiles
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
 
     /**
-     * Sets the classpath used to locate classes referenced by the documented sources.
+     * Sets the classpath containing the Groovy library to be used.
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
     }
 
     /**
-     * Returns the classpath containing the Groovy library to be used.
-     *
-     * @return The classpath containing the Groovy library to be used
-     */
+      * Returns the classpath used to locate classes referenced by the documented sources.
+      *
+      * @return The classpath used to locate classes referenced by the documented sources
+      */
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
     }
 
     /**
-     * Sets the classpath containing the Groovy library to be used.
+     * Sets the classpath used to locate classes referenced by the documented sources.
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;

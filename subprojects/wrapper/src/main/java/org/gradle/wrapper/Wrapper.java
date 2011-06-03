@@ -76,7 +76,7 @@ public class Wrapper {
             + getProperty("distributionName") + "-"
             + getProperty("distributionVersion") + "-"
             + getProperty("distributionClassifier") + ".zip";
-        DeprecationLogger.nagUserWith("Wrapper properties: 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier' are deprecated and will be removed soon. Please use " + DISTRIBUTION_URL_PROPERTY + " instead.");
+        DeprecationLogger.nagUserWith(propertiesFile + " contains deprecated entries: 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier' are deprecated and will be removed soon. Please use '" + DISTRIBUTION_URL_PROPERTY + "' instead.");
     } catch (Exception e) {
         //even the deprecated properties are not provided, report error:
         reportMissingProperty(DISTRIBUTION_URL_PROPERTY);

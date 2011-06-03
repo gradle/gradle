@@ -20,7 +20,8 @@ package org.gradle.api.dsl;
  * ConventionProperty can be assigned but <b>cannot</b> be mutated (even if the object is mutable!)
  * <p>
  * Understanding convention properties is important mostly for collections
- * because one might want to mutate the collection but it wouldn't work.
+ * because one might want to mutate the collection but it wouldn't work
+ * (actually mutating may work but it will be sensitive to the evaluation order).
  * <p>
  * Consider this example:
  *

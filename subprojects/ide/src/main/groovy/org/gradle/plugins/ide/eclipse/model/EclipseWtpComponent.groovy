@@ -17,10 +17,10 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
-import org.gradle.util.ConfigureUtil
 import org.gradle.api.dsl.ConventionProperty
+import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.util.ConfigureUtil
 
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
@@ -175,7 +175,6 @@ class EclipseWtpComponent {
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
     void resource(Map<String, String> args) {
-        //TODO SF validation
         resources.add(new WbResource(args.deployPath, args.sourcePath))
     }
 
@@ -194,7 +193,6 @@ class EclipseWtpComponent {
      * @param args A map that must contain a 'name' and 'value' key with corresponding values.
      */
     void property(Map<String, String> args) {
-        //TODO SF validation
         properties.add(new WbProperty(args.name, args.value))
     }
 

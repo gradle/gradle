@@ -25,19 +25,7 @@ import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurat
 /**
  * Generates the Eclipse JDT configuration file. If you want to fine tune the eclipse configuration
  * <p>
- * Please refer to more interesting examples in {@link EclipseJdt}.
- * <p>
- * Example:
- * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
- *
- * eclipseJdt {
- *   doLast {
- *     //...
- *   }
- * }
- * </pre>
+ * Please refer to interesting examples on eclipse configuration in {@link EclipseJdt}.
  */
 class GenerateEclipseJdt extends GeneratorTask<Jdt> {
 

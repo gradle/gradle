@@ -59,6 +59,7 @@
     <xi:include href='groovyPlugin.xml'/>
     <xi:include href='scalaPlugin.xml'/>
     <xi:include href='warPlugin.xml'/>
+    <xi:include href='earPlugin.xml'/>
     <xi:include href='jettyPlugin.xml'/>
     <xi:include href='codeQualityPlugin.xml'/>
     <xi:include href='sonarPlugin.xml'/>

@@ -26,20 +26,7 @@ import org.gradle.plugins.ide.internal.XmlFileContentMerger
  * Generates the org.eclipse.wst.common.project.facet.core settings file for Eclipse WTP.
  * If you want to fine tune the eclipse configuration
  * <p>
- * Please refer to more interesting examples in {@link EclipseWtpFacet}.
- * <p>
- * Example:
- * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
- * apply plugin: 'war'
- *
- * eclipseWtpFacet {
- *   doLast {
- *     //...
- *   }
- * }
- * </pre>
+ * Please refer to interesting examples on eclipse configuration in {@link EclipseWtpFacet}.
  *
  * @author Hans Dockter
  */

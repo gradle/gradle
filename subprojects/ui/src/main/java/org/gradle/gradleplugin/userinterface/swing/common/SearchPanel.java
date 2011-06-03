@@ -128,7 +128,6 @@ public class SearchPanel {
         isCaseSensitiveCheckBox.setMnemonic('c');
 
         isCaseSensitiveCheckBox.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
                 requestSearch();
             }
@@ -138,7 +137,6 @@ public class SearchPanel {
         useRegularExpressionsCheckBox.setMnemonic('r');
 
         useRegularExpressionsCheckBox.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
                 requestSearch();
             }
@@ -293,7 +291,6 @@ public class SearchPanel {
          *
          * @see Thread#run()
          */
-        @Override
         public void run() {
             while (true) {
                 SearchRequest request = getNextAvailableRequest();
@@ -305,7 +302,6 @@ public class SearchPanel {
                     editor.searchAllText(request.textToSearch, criteria);
 
                     SwingUtilities.invokeLater(new Runnable() {
-                        @Override
                         public void run() {
                             searchInteraction.searchComplete(editor);
                             enableButtonsAndFieldsAppropriately(editor.hasMatches());
@@ -367,7 +363,6 @@ public class SearchPanel {
     /**
      * Call this to show this panel so that a search can begin. <!      Name              Description>
      *
-     * @param searchInteraction how we interact with your components to search.
      * @author mhunsicker
      */
     public void show() {
