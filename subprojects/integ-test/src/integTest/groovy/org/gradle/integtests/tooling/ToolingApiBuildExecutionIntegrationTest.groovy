@@ -20,6 +20,7 @@ import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.BuildableProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class ToolingApiBuildExecutionIntegrationTest extends ToolingApiSpecification {
@@ -182,6 +183,7 @@ task c
         project.tasks.find { it.name == 'c' }
     }
 
+    @Ignore //just for the sake of debugging. Trying to figure out what causes TC to timeout.
     def "does not resolve dependencies when building the set of tasks for a project"() {
         dist.testFile('build.gradle') << '''
 apply plugin: 'java'
