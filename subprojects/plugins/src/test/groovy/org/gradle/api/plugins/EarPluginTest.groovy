@@ -16,18 +16,16 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.tasks.bundling.Ear
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
-import static org.gradle.util.Matchers.*
-import static org.gradle.util.WrapUtil.*
+import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -132,11 +130,13 @@ class EarPluginTest {
         project.plugins.apply(JavaPlugin.class)
         earPlugin.apply(project)
 
-        def task = project.task(type: Ear, 'customEar')
-        assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
+        def task = project.task(type: Ear, 'customEar') {
+            earModel = new EarPluginConvention(null)
+        }
         assertThat(task.destinationDir, equalTo(project.libsDir))
 
         assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, EarPlugin.EAR_TASK_NAME, 'customEar'))
+        assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
     }
 
     @Test public void addsDefaultEarToArchiveConfiguration() {

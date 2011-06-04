@@ -18,13 +18,13 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.enterprise.archives.DeploymentDescriptor
 import org.gradle.api.enterprise.archives.EarModule
-import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
 import org.gradle.api.enterprise.archives.internal.DefaultEarModule
 import org.gradle.api.enterprise.archives.internal.DefaultEarWebModule
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
+import org.gradle.api.plugins.EarPluginConvention
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -34,38 +34,31 @@ import org.gradle.util.ConfigureUtil
  */
 class Ear extends Jar {
     public static final String EAR_EXTENSION = 'ear'
-    public static final String DEFAULT_LIB_DIR_NAME = 'lib'
 
-    /**
-     * The name for the library directory in the generated EAR. Defaults to "lib".
-     */
-    String libDirName
-    /**
-     * The deployment descriptor for this JAR archive, e.g. application.xml.
-     */
-    DeploymentDescriptor deploymentDescriptor
+    EarPluginConvention earModel
 
     private CopySpec lib
 
     Ear() {
         extension = EAR_EXTENSION
-        lib = copyAction.rootSpec.addChild().into { libDirName ?: DEFAULT_LIB_DIR_NAME }
+        lib = copyAction.rootSpec.addChild().into {
+            earModel.libDirName
+        }
         copyAction.mainSpec.eachFile { FileCopyDetails details ->
-            DeploymentDescriptor descriptor = deploymentDescriptor
-            if (deploymentDescriptor && details.path.equalsIgnoreCase('META-INF/' + deploymentDescriptor.fileName)) {
+            if (earModel.deploymentDescriptor && details.path.equalsIgnoreCase('META-INF/' + earModel.deploymentDescriptor.fileName)) {
                 // the deployment descriptor already exists; no need to generate it
-                deploymentDescriptor = null
+                earModel.deploymentDescriptor = null
             }
             // since we might generate the deployment descriptor, record each top-level module
-            if (deploymentDescriptor && details.path.lastIndexOf('/') <= 0) {
+            if (earModel.deploymentDescriptor && details.path.lastIndexOf('/') <= 0) {
                 EarModule module
                 if (details.path.toLowerCase().endsWith(".war")) {
                     module = new DefaultEarWebModule(details.path, details.path.substring(0, details.path.lastIndexOf('.')))
                 } else {
                     module = new DefaultEarModule(details.path)
                 }
-                if (!deploymentDescriptor.modules.contains(module)) {
-                    deploymentDescriptor.modules.add module
+                if (!earModel.deploymentDescriptor.modules.contains(module)) {
+                    earModel.deploymentDescriptor.modules.add module
                 }
             }
         }
@@ -74,10 +67,10 @@ class Ear extends Jar {
         def metaInf = copyAction.mainSpec.addChild().into('META-INF')
         metaInf.addChild().from {
             MapFileTree descriptorSource = new MapFileTree(temporaryDir)
-            final DeploymentDescriptor descriptor = deploymentDescriptor
+            final DeploymentDescriptor descriptor = earModel.deploymentDescriptor
             if (descriptor) {
-                if (libDirName && !descriptor.libraryDirectory && libDirName != DEFAULT_LIB_DIR_NAME) {
-                    descriptor.libraryDirectory = libDirName
+                if (!descriptor.libraryDirectory) {
+                    descriptor.libraryDirectory = earModel.libDirName
                 }
                 descriptorSource.add(descriptor.fileName) {OutputStream outstr ->
                     descriptor.writeTo(new OutputStreamWriter(outstr))
@@ -89,33 +82,14 @@ class Ear extends Jar {
     }
 
     /**
-     * Configures the deployment descriptor for this EAR archive.
-     *
-     * <p>The given closure is executed to configure the deployment descriptor. The {@link DeploymentDescriptor}
-     * is passed to the closure as its delegate.</p>
-     *
-     * @param configureClosure The closure.
-     * @return This.
-     */
-    public Ear deploymentDescriptor(Closure configureClosure) {
-        if (!deploymentDescriptor) {
-            deploymentDescriptor = new DefaultDeploymentDescriptor(project.fileResolver)
-        }
-        ConfigureUtil.configure(configureClosure, deploymentDescriptor)
-        return this
-    }
-
-    /**
-     * A location for dependency libraries to include in the 'lib' directory of the EAR archive (or whatever name is
-     * configured via {@link #libDirName}).
+     * A location for dependency libraries to include in the 'lib' directory of the EAR archive.
      */
     public CopySpec getLib() {
         return lib.addChild()
     }
 
     /**
-     * Adds dependency libraries to include in the 'lib' directory of the EAR archive (or whatever name is configured
-     * via {@link #getLibDirName()}).
+     * Adds dependency libraries to include in the 'lib' directory of the EAR archive.
      *
      * <p>The given closure is executed to configure a {@code CopySpec}. The {@link CopySpec} is passed to the closure
      * as its delegate.</p>

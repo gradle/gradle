@@ -18,7 +18,6 @@ package org.gradle.integtests.plugins
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -66,11 +65,12 @@ dependencies {
 }
 
 ear {
-    libDirName = 'CUSTOM/lib'
+    //TODO SF for some awkard reason, setting this property won't work...
+    libDirName 'CUSTOM/lib'
 
     deploymentDescriptor {
         applicationName = "cool ear"
-        //TODO SF: cover some other fields as well
+//        TODO SF: cover some other fields as well
     }
 }
 
@@ -103,23 +103,53 @@ jar.enabled = true
         file("build/libs/root.jar").assertExists()
     }
 
-    @Ignore
     @Test
-    void "reads application metadata from specified folder"() {
-        file('src/main/app').write("xml contents...")
+    void "uses content found in specified app folder"() {
+        def applicationXml = """<?xml version="1.0"?>
+<application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
+  <application-name>customear</application-name>
+</application>
+"""
+
+        file('app/META-INF/application.xml').createFile().write(applicationXml)
+        file('app/someOtherFile.txt').createFile()
         file("build.gradle").write("""
 apply plugin: 'ear'
 
 ear {
-    appDirName = 'src/main/app'
+  appDirName 'app'
 }
-
 """)
+
         //when
         executer.withTasks('assemble').run()
         file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         //then
-        assert file("unzipped/src/main/app/application.xml") == 'some contents'
+        assert file("unzipped/someOtherFile.txt").assertExists()
+        assert file("unzipped/META-INF/application.xml").text == applicationXml
+    }
+
+    @Test
+    void "uses content found in default app folder"() {
+        def applicationXml = """<?xml version="1.0"?>
+<application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
+  <application-name>customear</application-name>
+</application>
+"""
+
+        file('src/main/application/META-INF/application.xml').createFile().write(applicationXml)
+        file('src/main/application/someOtherFile.txt').createFile()
+        file("build.gradle").write("""
+apply plugin: 'ear'
+""")
+
+        //when
+        executer.withTasks('assemble').run()
+        file("build/libs/root.ear").unzipTo(file("unzipped"))
+
+        //then
+        assert file("unzipped/someOtherFile.txt").assertExists()
+        assert file("unzipped/META-INF/application.xml").text == applicationXml
     }
 }

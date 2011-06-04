@@ -15,30 +15,42 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.enterprise.archives.DeploymentDescriptor
 import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.ConfigureUtil
 
 public class EarPluginConvention {
-    private String appDirName
+
+    /**
+     * The name of the application directory, relative to the project directory. Default is "src/main/application".
+     */
+    String appDirName
+
+    void appDirName(String appDirName) {
+        this.setAppDirName(appDirName);
+    }
+
     /**
      * The name of the library directory in the EAR file. Default is "lib".
      */
     String libDirName
+
+    void libDirName(String libDirName) {
+        this.libDirName = libDirName
+    }
+
     /**
      * A custom deployment descriptor configuration. Default is an "application.xml" with sensible defaults.
      */
     DeploymentDescriptor deploymentDescriptor
-    //TODO SF pass resolver only
-    final Project project
 
-    def EarPluginConvention(Project project) {
-        this.project = project
-        appDirName = 'src/main/application'
-        libDirName = 'lib'
-        deploymentDescriptor = new DefaultDeploymentDescriptor(project.fileResolver)
-        deploymentDescriptor.readFrom new File(appDir, "META-INF/" + deploymentDescriptor.fileName)
+    private final FileResolver fileResolver
+
+    def EarPluginConvention(FileResolver fileResolver) {
+        this.fileResolver = fileResolver
+        deploymentDescriptor = new DefaultDeploymentDescriptor(fileResolver)
+        deploymentDescriptor.readFrom "$appDirName/META-INF/$deploymentDescriptor.fileName"
     }
 
     /**
@@ -52,29 +64,20 @@ public class EarPluginConvention {
      */
     public EarPluginConvention deploymentDescriptor(Closure configureClosure) {
         if (!deploymentDescriptor) {
-            deploymentDescriptor = new DefaultDeploymentDescriptor(project.fileResolver)
+            deploymentDescriptor = new DefaultDeploymentDescriptor(fileResolver)
         }
         ConfigureUtil.configure(configureClosure, deploymentDescriptor)
         return this
     }
 
-    /**
-     * The name of the application directory, relative to the project directory. Default is "src/main/application".
-     */
     public String getAppDirName() {
         appDirName
     }
+
     public void setAppDirName(String appDirName) {
         this.appDirName = appDirName
         if (deploymentDescriptor) {
-            deploymentDescriptor.readFrom new File(appDir, "META-INF/" + deploymentDescriptor.fileName)
+            deploymentDescriptor.readFrom new File(appDirName, "META-INF/" + deploymentDescriptor.fileName)
         }
-    }
-
-    /**
-     * Returns the application directory.
-     */
-    File getAppDir() {
-        project.file(appDirName)
     }
 }

@@ -25,9 +25,9 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.enterprise.archives.DeploymentDescriptor;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Ear;
 import org.gradle.api.tasks.bundling.Jar;
@@ -41,19 +41,20 @@ import java.util.concurrent.Callable;
  * 
  * @author David Gileadi, Hans Dockter
  */
-public class EarPlugin implements Plugin<Project> {
+public class EarPlugin implements Plugin<AbstractProject> {
 
     public static final String EAR_TASK_NAME = "ear";
 
     public static final String DEPLOY_CONFIGURATION_NAME = "deploy";
     public static final String EARLIB_CONFIGURATION_NAME = "earlib";
 
-    public void apply(final Project project) {
-
+    public void apply(final AbstractProject project) {
         project.getPlugins().apply(BasePlugin.class);
 
-        final EarPluginConvention pluginConvention = new EarPluginConvention(project);
+        final EarPluginConvention pluginConvention = project.getServices().get(ClassGenerator.class).newInstance(EarPluginConvention.class, project.getFileResolver());
         project.getConvention().getPlugins().put("ear", pluginConvention);
+        pluginConvention.setLibDirName("lib");
+        pluginConvention.setAppDirName("src/main/application");
 
         configureConfigurations(project);
 
@@ -61,7 +62,11 @@ public class EarPlugin implements Plugin<Project> {
         final JavaPluginConvention javaPlugin = project.getConvention().findPlugin(JavaPluginConvention.class);
         if (javaPlugin != null) {
             SourceSet sourceSet = javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            sourceSet.getResources().srcDir(pluginConvention.getAppDir());
+            sourceSet.getResources().srcDir(new Callable() {
+                public Object call() throws Exception {
+                    return pluginConvention.getAppDirName();
+                }
+            });
         }
 
         project.getTasks().withType(Ear.class, new Action<Ear>() {
@@ -86,7 +91,7 @@ public class EarPlugin implements Plugin<Project> {
                         FileCollection files;
                         // add the app dir or the main java sourceSet
                         if (javaPlugin == null) {
-                            files = project.fileTree(pluginConvention.getAppDir());
+                            files = project.fileTree(pluginConvention.getAppDirName());
                         } else {
                             files = javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
                         }
@@ -107,16 +112,7 @@ public class EarPlugin implements Plugin<Project> {
         //TODO SF why is the ear added this way and not a proper way?
         Ear ear = project.getTasks().add(EAR_TASK_NAME, Ear.class);
         ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
-        ear.conventionMapping("libDirName", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return pluginConvention.getLibDirName();
-            }
-        });
-        ear.conventionMapping("deploymentDescriptor", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return pluginConvention.getDeploymentDescriptor();
-            }
-        });
+        ear.setEarModel(pluginConvention);
         DeploymentDescriptor deploymentDescriptor = pluginConvention.getDeploymentDescriptor();
         if (deploymentDescriptor != null) {
             if (deploymentDescriptor.getDisplayName() == null) {
