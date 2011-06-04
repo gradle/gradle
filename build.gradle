@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-group = 'org.gradle.plugin'
+group = 'org-gradle-plugin' // dashes while it's only deployed at GitHub
 version = '0.1.0-SNAPSHOT'
 isSnapshot = version.endsWith("SNAPSHOT")
 
