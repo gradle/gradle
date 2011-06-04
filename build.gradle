@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-group = 'org-gradle-plugin' // dashes while it's only deployed at GitHub
+group = 'gradle-pgp-signing' // dashes while it's only deployed at GitHub
 version = '0.1.0-SNAPSHOT'
 
 apply plugin: 'groovy'
