@@ -89,7 +89,7 @@ class Sign extends DefaultTask {
 	void sign() {
 		def signer = createSigner()
 		from.allArtifacts.each { PublishArtifact artifact ->
-			signer.sign(artifact.file, PgpSigner.OutputType.all).each { outputType, file ->
+			signer.sign(artifact.file, SignatureFileType.values()).each { outputType, file ->
 				addTo.addArtifact(createArtifactForSignature(file, outputType))
 			}
 		}
@@ -99,7 +99,7 @@ class Sign extends DefaultTask {
 		new PgpSigner(secretKey, password)
 	}
 	
-	protected PublishArtifact createArtifactForSignature(File signatureFile, PgpSigner.OutputType outputType) {
+	protected PublishArtifact createArtifactForSignature(File signatureFile, SignatureFileType outputType) {
 		new DefaultPublishArtifact(
 			signatureFile.name,
 			outputType.fileExtension,

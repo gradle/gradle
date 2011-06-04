@@ -17,7 +17,6 @@
 package org.gradle.plugin.pgp.signing
 
 import org.bouncycastle.bcpg.BCPGOutputStream
-import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.PGPSecretKey
@@ -46,14 +45,12 @@ class PgpSigner {
 	 * 
 	 * @return The created files indexed by the output type
 	 */
-	Map<OutputType, File> sign(File input, OutputType[] outputTypes) {
+	Map<SignatureFileType, File> sign(File input, SignatureFileType[] fileTypes) {
 		def signature = input.withInputStream { sign(it) }
 		def files = [:]
 		
-		for (outputType in outputTypes) {
-			def signatureFile = new File(input.absolutePath + ".$outputType.fileExtension")
-			signatureFile.withOutputStream { outputType.write(signature, it) }
-			files[outputType] = signatureFile
+		for (fileType in fileTypes) {
+			files[fileType] = fileType.createFor(input, signature)
 		}
 	}
 	
@@ -90,32 +87,4 @@ class PgpSigner {
 		output.toByteArray()
 	}
 	
-	/**
-	 * A kind of external representation of a signature.
-	 */
-	static enum OutputType {
-		BINARY("sig"),
-		ARMORED("asc", { new ArmoredOutputStream(it) })
-
-		final String fileExtension
-		private Closure outputDecorator
-		
-		OutputType(String fileExtension, Closure outputDecorator = { it }) {
-			this.fileExtension = fileExtension
-			this.outputDecorator = outputDecorator
-		}
-		
-		void write(byte[] bytes, OutputStream output) {
-			outputDecorator(output) << bytes
-		}
-		
-		void write(InputStream input, OutputStream output) {
-			outputDecorator(output) << input
-		}
-		
-		// nicer name
-		static OutputType[] getAll() {
-			OutputType.values()
-		}
-	}
 }
