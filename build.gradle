@@ -16,7 +16,6 @@
 
 group = 'org-gradle-plugin' // dashes while it's only deployed at GitHub
 version = '0.1.0-SNAPSHOT'
-isSnapshot = version.endsWith("SNAPSHOT")
 
 apply plugin: 'groovy'
 apply plugin: 'maven'
@@ -26,11 +25,9 @@ repositories {
 }
 
 dependencies {
-	groovy fileTree(dir: new File(gradle.gradleHomeDir, 'lib'), includes: ['**/groovy-all-*.jar'])
-	
-	compile gradleApi(),
-	        "org.bouncycastle:bcpg-jdk15:1.45"
-	
+	groovy localGroovy()
+	compile gradleApi()
+	compile "org.bouncycastle:bcpg-jdk15:1.45"
 	testCompile "org.spockframework:spock-core:0.5-groovy-1.7"
 }
 
