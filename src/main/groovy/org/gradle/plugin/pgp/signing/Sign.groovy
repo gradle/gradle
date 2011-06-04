@@ -16,11 +16,9 @@
 package org.gradle.plugin.pgp.signing
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
