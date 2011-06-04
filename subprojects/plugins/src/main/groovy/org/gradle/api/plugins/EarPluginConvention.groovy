@@ -27,6 +27,13 @@ public class EarPluginConvention {
      */
     String appDirName
 
+    public void setAppDirName(String appDirName) {
+        this.appDirName = appDirName
+        if (deploymentDescriptor) {
+            deploymentDescriptor.readFrom new File(appDirName, "META-INF/" + deploymentDescriptor.fileName)
+        }
+    }
+
     void appDirName(String appDirName) {
         this.setAppDirName(appDirName);
     }
@@ -68,16 +75,5 @@ public class EarPluginConvention {
         }
         ConfigureUtil.configure(configureClosure, deploymentDescriptor)
         return this
-    }
-
-    public String getAppDirName() {
-        appDirName
-    }
-
-    public void setAppDirName(String appDirName) {
-        this.appDirName = appDirName
-        if (deploymentDescriptor) {
-            deploymentDescriptor.readFrom new File(appDirName, "META-INF/" + deploymentDescriptor.fileName)
-        }
     }
 }
