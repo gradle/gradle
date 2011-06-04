@@ -109,7 +109,7 @@ public class EarPlugin implements Plugin<AbstractProject> {
             }
         });
 
-        //TODO SF why is the ear added this way and not a proper way?
+        //TODO SF why is the ear added this way and not a proper way? Also: groovify!
         Ear ear = project.getTasks().add(EAR_TASK_NAME, Ear.class);
         ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
         ear.setEarModel(pluginConvention);
@@ -140,6 +140,7 @@ public class EarPlugin implements Plugin<AbstractProject> {
                 .extendsFrom(moduleConfiguration, earlibConfiguration);
     }
 
+    //TODO SF hack duplicated with War plugin
     private void disableJarTaskAndRemoveFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
 
         Jar jarTask = (Jar) project.getTasks().findByName(JavaPlugin.JAR_TASK_NAME);
