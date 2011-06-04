@@ -79,5 +79,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
   <data-source>my/data/source</data-source>
 </application>
 """
+
+        //TODO SF make sure it is also able to parse such input (plus custom xml elements)
     }
 }
