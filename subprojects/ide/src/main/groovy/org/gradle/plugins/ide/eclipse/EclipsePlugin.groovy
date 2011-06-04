@@ -214,19 +214,22 @@ class EclipsePlugin extends IdePlugin {
                 model.wtp.component = component
 
                 component.deployName = project.name
-                component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
 
                 if (WarPlugin.class.isAssignableFrom(type)) {
                     component.libConfigurations = [project.configurations.runtime]
                     component.minusConfigurations = [project.configurations.providedRuntime]
                     component.conventionMapping.contextPath = { project.war.baseName }
                     component.resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
+                    component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
                 } else if (EarPlugin.class.isAssignableFrom(type)) {
                     component.rootConfigurations = [project.configurations.deploy]
                     component.libConfigurations = [project.configurations.earlib]
                     component.minusConfigurations = []
                     component.classesDeployPath = "/"
                     component.libDeployPath = "/lib"
+                    project.plugins.withType(JavaPlugin) {
+                        component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
+                    }
                 }
             }
 
