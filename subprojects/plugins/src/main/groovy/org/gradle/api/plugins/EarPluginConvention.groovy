@@ -34,6 +34,11 @@ public class EarPluginConvention {
         }
     }
 
+    /**
+     * Allows changing the application directory. Default is "src/main/application".
+     *
+     * @param appDirName
+     */
     void appDirName(String appDirName) {
         this.setAppDirName(appDirName);
     }
@@ -43,6 +48,10 @@ public class EarPluginConvention {
      */
     String libDirName
 
+    /**
+     * Allows changing the library directory in the EAR file. Default is "lib".
+     * Allows changing the library directory in the EAR file. Default is "lib".
+     */
     void libDirName(String libDirName) {
         this.libDirName = libDirName
     }

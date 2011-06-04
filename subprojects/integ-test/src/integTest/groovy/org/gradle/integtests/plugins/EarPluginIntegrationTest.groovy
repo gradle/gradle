@@ -142,6 +142,11 @@ ear {
         file('src/main/application/someOtherFile.txt').createFile()
         file("build.gradle").write("""
 apply plugin: 'ear'
+ear {
+    deploymentDescriptor {
+        applicationName = 'descriptor modification will not have any affect when application.xml already exists in source'
+    }
+}
 """)
 
         //when

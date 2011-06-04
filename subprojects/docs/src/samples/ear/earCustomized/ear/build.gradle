@@ -4,8 +4,10 @@ apply plugin: 'java'
 repositories { mavenCentral() }
 
 dependencies {
+    //following dependencies will become the ear modules and placed in the ear root
     deploy project(':war')
 
+    //following dependencies will become ear libs and placed in a dir configured via libDirName property
     earlib group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
 }
 
