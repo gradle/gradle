@@ -18,97 +18,73 @@ package org.gradle.plugin.pgp.signing
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
-
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
-import org.bouncycastle.openpgp.PGPSecretKey
-import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
-
 /**
- * A task for signing the build artifacts of a configuration, adding the generated signature files
- * as artifacts to another (potentially the same) configuration.
+ * Creates a file containing a digital signature alongside an input file.
  */
 class Sign extends DefaultTask {
 	
-	Configuration from
-	Configuration addTo
-	String password
-	PGPSecretKey secretKey
+	private File toSign
+	private Signatory signatory
+	private SignatureType type
 	
-	void secretKeyFile(String keyId, String path) {
-		secretKeyFile(keyId, project.file(path))
+	private File signature
+	private PublishArtifact artifact
+
+	void sign(AbstractArchiveTask task, SignatureType type) {
+		dependsOn(task)
+		sign(task.archivePath, type)
 	}
 	
-	void secretKeyFile(String keyId, File file) {
-		secretKey = file.withInputStream { readSecretKey(it, keyId, "$file.absolutePath") }
-	}
-	
-	void password(String password) {
-		this.password = password
-	}
-	
-	void from(Configuration configuration) {
-		setFrom(configuration)
-	}
-	
-	void setFrom(Configuration configuration) {
-		if (from != null) {
-			throw new IllegalStateException("Cannot change 'from' after it has been set")
-		}
-		this.from = configuration
-		dependsOn(configuration.buildArtifacts)
-	}
-	
-	void addTo(Configuration configuration) {
-		this.addTo = addTo
-	}
-	
-	protected PGPSecretKey readSecretKey(InputStream input, String keyId, String sourceDescription) {
-		readSecretKey(new PGPSecretKeyRingCollection(input), normalizeKeyId(keyId), sourceDescription)
-	}
-	
-	protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, PgpKeyId keyId, String sourceDescription) {
-		def key = keyRings.keyRings.find { new PgpKeyId(it.secretKey.keyID) == keyId }?.secretKey
-		if (key == null) {
-			throw new InvalidUserDataException("did not find secret key for id '$keyId' in key source '$sourceDescription'")
-		}
-		key
-	}
-	
-	protected PgpKeyId normalizeKeyId(String keyId) {
-		try {
-			new PgpKeyId(keyId)
-		} catch (IllegalArgumentException e) {
-			throw new InvalidUserDataException(e.message)
-		}
-	}
-	
-	@TaskAction
-	void sign() {
-		def signer = createSigner()
-		from.allArtifacts.each { PublishArtifact artifact ->
-			signer.sign(artifact.file, SignatureFileType.values()).each { outputType, file ->
-				addTo.addArtifact(createArtifactForSignature(file, outputType))
-			}
-		}
-	}
-	
-	protected createSigner() {
-		new PgpSigner(secretKey, password)
-	}
-	
-	protected PublishArtifact createArtifactForSignature(File signatureFile, SignatureFileType outputType) {
-		new DefaultPublishArtifact(
-			signatureFile.name,
-			outputType.fileExtension,
-			outputType.fileExtension,
+	void sign(File toSign, SignatureType type) {
+		this.toSign = toSign
+		this.type = type
+		this.signature = type.fileFor(toSign)
+		this.artifact = new DefaultPublishArtifact(
+			signature.name,
+			type.fileExtension,
+			type.fileExtension,
 			null, // no classifier
 			null, // no specific date, use now
-			signatureFile,
+			signature,
 			this
 		)
 	}
+
+	void signatory(Signatory signatory) {
+		this.signatory = signatory
+	}
 	
+	@TaskAction
+	void doSigning() {
+		type.sign(signatory, toSign)
+	}
+	
+	@InputFile
+	File getToSign() {
+		toSign
+	}
+
+	Signatory getSignatory() {
+		signatory
+	}
+
+	SignatureType getType() {
+		type
+	}
+	
+	@OutputFile 
+	File getSignature() {
+		signature
+	}
+	
+	PublishArtifact getArtifact() {
+		artifact
+	}
 }

@@ -17,25 +17,34 @@ package org.gradle.plugin.pgp.signing
 
 import org.bouncycastle.bcpg.ArmoredOutputStream
 
-enum SignatureFileType {
+enum SignatureType {
 	BINARY("sig"),
 	ARMORED("asc", { new ArmoredOutputStream(it) })
 
 	final String fileExtension
 	private Closure outputDecorator
 	
-	SignatureFileType(String fileExtension, Closure outputDecorator = { it }) {
+	SignatureType(String fileExtension, Closure outputDecorator = { it }) {
 		this.fileExtension = fileExtension
 		this.outputDecorator = outputDecorator
 	}
-	
-	void write(byte[] bytes, OutputStream output) {
-		outputDecorator(output) << bytes
+
+	void sign(Signatory signatory, InputStream toSign, OutputStream destination) {
+		signatory.sign(toSign, outputDecorator(destination))
+	}
+		
+	File fileFor(File toSign) {
+		new File(toSign.absolutePath + ".$fileExtension")
 	}
 	
-	File createFor(File signed, byte[] signature) {
-		def signatureFile = new File(signed.absolutePath + ".$fileExtension")
-		signatureFile.withOutputStream { write(signature, it) }
+	File sign(Signatory signatory, File toSign) {
+		def signatureFile = fileFor(toSign)
+		toSign.withInputStream { toSignStream ->
+			signatureFile.withOutputStream { signatureFileStream ->
+				sign(signatory, toSignStream, signatureFileStream)
+			}
+		}
 		signatureFile
 	}
+	
 }
