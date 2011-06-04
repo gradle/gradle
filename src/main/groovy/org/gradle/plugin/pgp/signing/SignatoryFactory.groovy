@@ -18,9 +18,21 @@ package org.gradle.plugin.pgp.signing
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
 
+import org.gradle.api.Project
 import org.gradle.api.InvalidUserDataException
 
 class SignatoryFactory {
+	
+	Signatory createSignatory(Project project) {
+		["pgpKeyId", "pgpSecretKeyRingFile", "pgpPassword"].each {
+			if (!project.hasProperty(it)) {
+				throw new InvalidUserDataException("'$it' property could not be found on project and is needed for signing")
+			}
+		}
+		
+		createSignatory(project.pgpKeyId, project.file(project.pgpSecretKeyRingFile), project.pgpPassword)
+	}
+	
 	
 	Signatory createSignatory(String keyId, File keyRing, String password) {
 		createSignatory(readSecretKey(keyId, keyRing), password)
