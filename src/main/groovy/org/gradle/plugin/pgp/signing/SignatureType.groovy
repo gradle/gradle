@@ -37,6 +37,16 @@ enum SignatureType {
 		new File(toSign.absolutePath + ".$fileExtension")
 	}
 	
+	String combinedExtension(File toSign) {
+		def name = toSign.name
+		def dotIndex = name.lastIndexOf(".")
+		if (dotIndex == -1 || dotIndex + 1 == name.size()) {
+			fileExtension
+		} else {
+			name[++dotIndex..-1] + ".$fileExtension"
+		}
+	}
+	
 	File sign(Signatory signatory, File toSign) {
 		def signatureFile = fileFor(toSign)
 		toSign.withInputStream { toSignStream ->

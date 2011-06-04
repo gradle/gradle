@@ -28,61 +28,54 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
  */
 class Sign extends DefaultTask {
 	
-	private File toSign
-	private Signatory signatory
-	private SignatureType type
+	private action = new SignAction()
 	
-	private File signature
-	private PublishArtifact artifact
-
-	void sign(AbstractArchiveTask task, SignatureType type) {
+	void sign(AbstractArchiveTask task) {
 		dependsOn(task)
-		sign(task.archivePath, type)
+		sign(task.archivePath, task.classifier)
 	}
 	
-	void sign(File toSign, SignatureType type) {
-		this.toSign = toSign
-		this.type = type
-		this.signature = type.fileFor(toSign)
-		this.artifact = new DefaultPublishArtifact(
-			signature.name,
-			type.fileExtension,
-			type.fileExtension,
-			null, // no classifier
-			null, // no specific date, use now
-			signature,
-			this
-		)
+	void sign(AbstractArchiveTask task, SignatureType type) {
+		dependsOn(task)
+		sign(task.archivePath, type, task.classifier)
+	}
+	
+	void sign(File toSign, String classifier = null, Object[] tasks) {
+		action.sign(toSign, classifier, tasks)
+	}
+	
+	void sign(File toSign, SignatureType type, String classifier = null) {
+		action.sign(toSign, type, classifier, this)
 	}
 
 	void signatory(Signatory signatory) {
-		this.signatory = signatory
+		action.signatory(signatory)
 	}
 	
 	@TaskAction
 	void doSigning() {
-		type.sign(signatory, toSign)
+		action.execute()
 	}
 	
 	@InputFile
 	File getToSign() {
-		toSign
+		action.toSign
 	}
 
 	Signatory getSignatory() {
-		signatory
+		action.signatory
 	}
 
 	SignatureType getType() {
-		type
+		action.type
 	}
 	
 	@OutputFile 
 	File getSignature() {
-		signature
+		action.signature
 	}
 	
 	PublishArtifact getArtifact() {
-		artifact
+		action.artifact
 	}
 }
