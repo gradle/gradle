@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse.model
 
-import org.gradle.util.ConfigureUtil
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.util.ConfigureUtil
 
 /**
  * Enables fine-tuning wtp facet details of the Eclipse plugin
@@ -72,8 +72,8 @@ class EclipseWtpFacet {
      * <p>
      * For examples see docs for {@link EclipseWtpFacet}
      */
-    // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
     List<Facet> facets = []
+    // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
 
     /**
      * Adds a facet.
@@ -99,9 +99,12 @@ class EclipseWtpFacet {
         ConfigureUtil.configure(closure, file)
     }
 
-    //********
-
+    /**
+     * See {@link #file(Closure) }
+     */
     XmlFileContentMerger file
+
+    //********
 
     void mergeXmlFacet(WtpFacet xmlFacet) {
         file.beforeMerged.execute(xmlFacet)
