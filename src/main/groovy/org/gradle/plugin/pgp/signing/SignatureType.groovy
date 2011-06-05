@@ -17,6 +17,8 @@ package org.gradle.plugin.pgp.signing
 
 import org.bouncycastle.bcpg.ArmoredOutputStream
 
+import org.gradle.plugin.pgp.signing.signatory.Signatory
+
 enum SignatureType {
 	BINARY("sig"),
 	ARMORED("asc", { new ArmoredOutputStream(it) })

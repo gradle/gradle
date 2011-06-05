@@ -19,6 +19,8 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
+import org.gradle.plugin.pgp.signing.signatory.Signatory
+
 class SignAction {
 
 	private File toSign

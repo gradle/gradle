@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.pgp.signing
+package org.gradle.plugin.pgp.signing.signatory
 
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
@@ -23,16 +23,41 @@ import org.gradle.api.InvalidUserDataException
 
 class SignatoryFactory {
 	
-	Signatory createSignatory(Project project) {
-		["pgpKeyId", "pgpSecretKeyRingFile", "pgpPassword"].each {
-			if (!project.hasProperty(it)) {
-				throw new InvalidUserDataException("'$it' property could not be found on project and is needed for signing")
+	static private final PROPERTIES = ["keyId", "secretKeyRingFile", "password"]
+	
+	Signatory createSignatory(Project project, boolean required = false) {
+		readProperties(project, null, required)
+	}
+	
+	Signatory createSignatory(Project project, String propertyPrefix, boolean required = false) {
+		readProperties(project, propertyPrefix, required)
+	}
+	
+	protected Signatory readProperties(Project project, String prefix, boolean required = false) {
+		def qualifiedProperties = PROPERTIES.collect { getQualifiedPropertyName(prefix, it) }
+		def values = []
+		for (property in qualifiedProperties) {
+			if (project.hasProperty(property)) {
+				values << project[property]
+			} else {
+				if (required) {
+					throw new InvalidUserDataException("property '$property' could not be found on project and is needed for signing")
+				} else {
+					return null
+				}
 			}
 		}
 		
-		createSignatory(project.pgpKeyId, project.file(project.pgpSecretKeyRingFile), project.pgpPassword)
+		def keyId = values[0].toString()
+		def keyRing = project.file(values[1].toString())
+		def password = values[2].toString()
+		
+		createSignatory(keyId, keyRing, password)
 	}
 	
+	protected getQualifiedPropertyName(String propertyPrefix, String name) {
+		"signing.${propertyPrefix ? propertyPrefix + '.' : ''}${name}"
+	}
 	
 	Signatory createSignatory(String keyId, File keyRing, String password) {
 		createSignatory(readSecretKey(keyId, keyRing), password)

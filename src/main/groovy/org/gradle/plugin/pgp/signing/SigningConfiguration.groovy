@@ -13,42 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.plugin.pgp.signing
 
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.NamedDomainObjectContainer
 
 import org.gradle.plugin.pgp.signing.signatory.*
 
-class SigningPlugin implements Plugin<Project> {
+class SigningConfiguration {
+	private Project project
+	private Map<String, Signatory> signatories = [:]
 	
-	void apply(Project project) {
-		def projectConfig = new SigningConfiguration(project)
-		def signingConvention = new SigningConvention(projectConfig)
-		project.convention.plugins.signing = signingConvention
+	SigningConfiguration(Project project) {
+		this.project = project
 	}
 	
-	/**
-	 * The top level interface mixed in to the project
-	 */
-	static class SigningConvention {
-		private SigningConfiguration projectConfig
-		
-		SigningConvention(SigningConfiguration projectConfig) {
-			this.projectConfig = projectConfig
-		}
-		
-		SigningConvention signing(Closure block) {
-			ConfigureUtil.configure(block, projectConfig)
-			this
-		}
-		
-		Map<String, Signatory> getSignatories() {
-			projectConfig.signatories
-		}
+	Map<String, Signatory> signatories(Closure block) {
+		ConfigureUtil.configure(block, new SignatoriesConfigurer(this))
+		signatories
 	}
-	
 }
