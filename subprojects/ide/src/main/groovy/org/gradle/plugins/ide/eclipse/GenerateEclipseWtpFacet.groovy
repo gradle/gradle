@@ -49,7 +49,7 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
     }
 
     /**
-     * Deprecated. Please use #eclipse.facet.facets. See examples in {@link EclipseWtpFacet}.
+     * Deprecated. Please use #eclipse.wtp.facet.facets. See examples in {@link EclipseWtpFacet}.
      * <p>
      * The facets to be added as elements.
      */
@@ -66,7 +66,7 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
     }
 
     /**
-     * Deprecated. Please use #eclipse.facet.facet. See examples in {@link EclipseWtpFacet}.
+     * Deprecated. Please use #eclipse.wtp.facet.facet. See examples in {@link EclipseWtpFacet}.
      * <p>
      * Adds a facet.
      *

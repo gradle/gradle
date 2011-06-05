@@ -130,7 +130,7 @@ class EclipseWtpComponent {
     Set<Configuration> rootConfigurations = []
 
     /**
-     * The configurations whose files are to be transformed into dependent-module elements with a deploy path of {@link #libDeployPath}.
+     * The configurations whose files are to be transformed into dependent-module elements with a deploy path of #libDeployPath.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
@@ -140,10 +140,10 @@ class EclipseWtpComponent {
      * Synonym for {@link #libConfigurations}.
      */
     Set<Configuration> getPlusConfigurations() {
-        return libConfigurations
+        getLibConfigurations()
     }
     void setPlusConfigurations(Set<Configuration> plusConfigurations) {
-        this.libConfigurations = plusConfigurations
+        setLibConfigurations(plusConfigurations)
     }
 
     /**
@@ -223,16 +223,19 @@ class EclipseWtpComponent {
      * <p>
      * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpComponent}
      * <p>
-     *
-     * For example see docs for {@link EclipseWtp}
+     * For example see docs for {@link EclipseWtpComponent}
      */
     void file(Closure closure) {
         ConfigureUtil.configure(closure, file)
     }
 
+    /**
+     * See {@link #file(Closure) }
+     */
+    XmlFileContentMerger file
+
     //********
 
-    XmlFileContentMerger file
     org.gradle.api.Project project
 
     /**
