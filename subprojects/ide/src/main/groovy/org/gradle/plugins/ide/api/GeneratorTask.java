@@ -112,15 +112,14 @@ public class GeneratorTask<T> extends ConventionTask {
     }
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * <p>Adds a closure to be called before the domain object is configured by this task. The domain object is passed
      * as a parameter to the closure.</p>
      *
      * <p>The closure is executed after the domain object has been loaded from the input file. Using this method allows
      * you to change the domain object in some way before the task configures it.</p>
-     *
-     * <p>
-     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
-     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
      *
      * @param closure The closure to execute.
      */
@@ -132,15 +131,14 @@ public class GeneratorTask<T> extends ConventionTask {
     }
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * <p>Adds an action to be called before the domain object is configured by this task. The domain object is passed
      * as a parameter to the action.</p>
      *
      * <p>The action is executed after the domain object has been loaded from the input file. Using this method allows
      * you to change the domain object in some way before the task configures it.</p>
-     *
-     * <p>
-     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
-     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
      *
      * @param action The action to execute.
      */
@@ -152,15 +150,14 @@ public class GeneratorTask<T> extends ConventionTask {
     }
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * <p>Adds a closure to be called after the domain object has been configured by this task. The domain object is
      * passed as a parameter to the closure.</p>
      *
      * <p>The closure is executed just before the domain object is written to the output file. Using this method allows
      * you to override the configuration applied by this task.</p>
-     *
-     * <p>
-     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
-     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
      *
      * @param closure The closure to execute.
      */
@@ -172,15 +169,14 @@ public class GeneratorTask<T> extends ConventionTask {
     }
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * <p>Adds an action to be called after the domain object has been configured by this task. The domain object is
      * passed as a parameter to the action.</p>
      *
      * <p>The action is executed just before the domain object is written to the output file. Using this method allows
      * you to override the configuration applied by this task.</p>
-     *
-     * <p>
-     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
-     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
      *
      * @param action The action to execute.
      */

@@ -46,9 +46,9 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * The content root directory of the module.
-     * <p>
      * Deprecated. Please use #idea.module.contentRoot. See examples in {@link IdeaModule}.
+     * <p>
+     * The content root directory of the module.
      */
     @Deprecated
     File getModuleDir() {
@@ -63,9 +63,9 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * The directories containing the production sources.
-     * <p>
      * Deprecated. Please use #idea.module.sourceDirs. See examples in {@link IdeaModule}.
+     * <p>
+     * The directories containing the production sources.
      */
     @Deprecated
     Set<File> getSourceDirs() {
@@ -80,9 +80,9 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * The directories containing the test sources.
-     * <p>
      * Deprecated. Please use #idea.module.testSourceDirs. See examples in {@link IdeaModule}.
+     * <p>
+     * The directories containing the test sources.
      */
     @Deprecated
     Set<File> getTestSourceDirs() {
@@ -97,9 +97,9 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * The directories to be excluded.
-     * <p>
      * Deprecated. Please use #idea.module.excludeDirs. See examples in {@link IdeaModule}.
+     * <p>
+     * The directories to be excluded.
      */
     @Deprecated
     Set<File> getExcludeDirs() {
@@ -114,10 +114,10 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
+     * Deprecated. Please use #idea.module.inheritOutputDirs. See examples in {@link IdeaModule}.
+     * <p>
      * If true, output directories for this module will be located below the output directory for the project;
      * otherwise, they will be set to the directories specified by #outputDir and #testOutputDir.
-     * <p>
-     * Deprecated. Please use #idea.module.inheritOutputDirs. See examples in {@link IdeaModule}.
      */
     @Deprecated
     Boolean getInheritOutputDirs() {
@@ -132,9 +132,9 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * The output directory for production classes. If {@code null}, no entry will be created.
-     * <p>
      * Deprecated. Please use #idea.module.outputDir. See examples in {@link IdeaModule}.
+     * <p>
+     * The output directory for production classes. If {@code null}, no entry will be created.
      */
     @Deprecated
     File getOutputDir() {
@@ -149,9 +149,9 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * The output directory for test classes. If {@code null}, no entry will be created.
-     * <p>
      * Deprecated. Please use #idea.module.testOutputDir. See examples in {@link IdeaModule}.
+     * <p>
+     * The output directory for test classes. If {@code null}, no entry will be created.
      */
     @Deprecated
     File getTestOutputDir() {
@@ -166,11 +166,11 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
+     * Deprecated. Please use #idea.module.javaVersion. See examples in {@link IdeaModule}.
+     * <p>
      * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (inherited)
      * is used. If it is set to <code>inherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
      * value of java version is used for this module
-     * <p>
-     * Deprecated. Please use #idea.module.javaVersion. See examples in {@link IdeaModule}.
      */
     @Deprecated
     String getJavaVersion() {
@@ -185,9 +185,9 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * Whether to download and add sources associated with the dependency jars.
-     * <p>
      * Deprecated. Please use #idea.module.downloadSources. See examples in {@link IdeaModule}.
+     * <p>
+     * Whether to download and add sources associated with the dependency jars.
      */
     @Deprecated
     boolean getDownloadSources() {
@@ -202,9 +202,9 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * Whether to download and add javadoc associated with the dependency jars.
-     * <p>
      * Deprecated. Please use #idea.module.downloadJavadoc. See examples in {@link IdeaModule}.
+     * <p>
+     * Whether to download and add javadoc associated with the dependency jars.
      */
     @Deprecated
     boolean getDownloadJavadoc() {
@@ -219,10 +219,10 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
+     * Deprecated. Please use #idea.pathVariables. See examples in {@link IdeaModule}.
+     * <p>
      * The variables to be used for replacing absolute paths in the iml entries. For example, you might add a
      * {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
-     * <p>
-     * Deprecated. Please use #idea.pathVariables. See examples in {@link IdeaModule}.
      */
     @Deprecated
     Map<String, File> getVariables() {
@@ -237,6 +237,8 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
+     * Deprecated. Please use #idea.module.scopes. See examples in {@link IdeaModule}.
+     * <p>
      * The keys of this map are the IDEA scopes. Each key points to another map that has two keys, plus and minus.
      * The values of those keys are collections of {@link org.gradle.api.artifacts.Configuration} objects. The files of the
      * plus configurations are added minus the files from the minus configurations. See example below...
@@ -259,8 +261,6 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      *   scopes.PROVIDED.plus += configurations.provided
      * }
      * </pre>
-     * <p>
-     * Deprecated. Please use #idea.module.scopes. See examples in {@link IdeaModule}.
      */
     @Deprecated
     Map<String, Map<String, Collection<Configuration>>> getScopes() {
@@ -275,13 +275,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
+     * Deprecated. Please use #idea.module.outputFile. See examples in {@link IdeaModule}.
+     * <p>
      * Configures output *.iml file. It's <b>optional</b> because the task should configure it correctly for you
      * (including making sure it is unique in the multi-module build).
      * If you really need to change the output file name it is much easier to do it via the <b>moduleName</b> property.
      * <p>
      * Please refer to documentation on <b>moduleName</b> property. In IntelliJ IDEA the module name is the same as the name of the *.iml file.
-     * <p>
-     * Deprecated. Please use #idea.module.outputFile. See examples in {@link IdeaModule}.
      */
     @Deprecated
     File getOutputFile() {
@@ -296,6 +296,8 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
+     * Deprecated. Please use #idea.module.name. See examples in {@link IdeaModule}.
+     * <p>
      * Configures module name. It's <b>optional</b> because the task should configure it correctly for you.
      * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b>
      * to make sure the moduleName is unique in the scope of a multi-module build.
@@ -315,8 +317,6 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * </pre>
      * <p>
      * <b>since</b> 1.0-milestone-2
-     * <p>
-     * Deprecated. Please use #idea.module.name. See examples in {@link IdeaModule}.
      */
     @Deprecated
     String getModuleName() {

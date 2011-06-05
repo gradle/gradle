@@ -44,10 +44,10 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     }
 
     /**
+     * Deprecated. Please use #idea.project.modules. See examples in {@link IdeaProject}.
+     * <p>
      * The subprojects that should be mapped to modules in the ipr file. The subprojects will only be mapped if the Idea plugin has been
      * applied to them.
-     * <p>
-     * Deprecated. Please use #idea.project.modules. See examples in {@link IdeaProject}.
      */
     @Deprecated
     Set<org.gradle.api.Project> getSubprojects() {
@@ -60,9 +60,9 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     }
 
     /**
-     * The java version used for defining the project sdk.
-     * <p>
      * Deprecated. Please use #idea.project.javaVersion. See examples in {@link IdeaProject}.
+     * <p>
+     * The java version used for defining the project sdk.
      */
     @Deprecated
     String getJavaVersion() {
@@ -77,9 +77,9 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     }
 
     /**
-     * The wildcard resource patterns.
-     * <p>
      * Deprecated. Please use #idea.project.wildcards. See examples in {@link IdeaProject}.
+     * <p>
+     * The wildcard resource patterns.
      */
     @Deprecated
     Set getWildcards() {
@@ -94,9 +94,9 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     }
 
     /**
-     * output *.ipr file
-     * <p>
      * Deprecated. Please use #idea.project.outputFile. See examples in {@link IdeaProject}.
+     * <p>
+     * output *.ipr file
      */
     @Deprecated
     File getOutputFile() {

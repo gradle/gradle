@@ -52,12 +52,12 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
     protected abstract T create();
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     * <p>
      * Adds a closure to be called when the XML document has been created. The XML is passed to the closure as a
      * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML before
      * it is written to the output file.
-     * <p>
-     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
-     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
      *
      * @param closure The closure to execute when the XML has been created.
      */
@@ -69,12 +69,12 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
     }
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     * <p>
      * Adds an action to be called when the XML document has been created. The XML is passed to the action as a
      * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML before
      * it is written to the output file.
-     * <p>
-     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
-     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
      *
      * @param action The action to execute when the IPR XML has been created.
      */
