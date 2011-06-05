@@ -23,6 +23,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -117,9 +118,16 @@ public class GeneratorTask<T> extends ConventionTask {
      * <p>The closure is executed after the domain object has been loaded from the input file. Using this method allows
      * you to change the domain object in some way before the task configures it.</p>
      *
+     * <p>
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * @param closure The closure to execute.
      */
+    @Deprecated
     public void beforeConfigured(Closure closure) {
+        DeprecationLogger.nagUser("<someIdeTask>.beforeConfigured is deprecated! Replaced by beforeMerged() method placed on the relevant model object of eclipse/idea.\n"
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
         beforeConfigured.add(closure);
     }
 
@@ -130,9 +138,16 @@ public class GeneratorTask<T> extends ConventionTask {
      * <p>The action is executed after the domain object has been loaded from the input file. Using this method allows
      * you to change the domain object in some way before the task configures it.</p>
      *
+     * <p>
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * @param action The action to execute.
      */
+    @Deprecated
     public void beforeConfigured(Action<? super T> action) {
+        DeprecationLogger.nagUser("<someIdeTask>.beforeConfigured is deprecated! Replaced by beforeMerged() method placed on the relevant model object of eclipse/idea.\n"
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
         beforeConfigured.add(action);
     }
 
@@ -143,9 +158,16 @@ public class GeneratorTask<T> extends ConventionTask {
      * <p>The closure is executed just before the domain object is written to the output file. Using this method allows
      * you to override the configuration applied by this task.</p>
      *
+     * <p>
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * @param closure The closure to execute.
      */
+    @Deprecated
     public void whenConfigured(Closure closure) {
+        DeprecationLogger.nagUser("<someIdeTask>.whenConfigured is deprecated! Replaced by whenMerged() method placed on the relevant model object of eclipse/idea.\n"
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
         afterConfigured.add(closure);
     }
 
@@ -156,9 +178,16 @@ public class GeneratorTask<T> extends ConventionTask {
      * <p>The action is executed just before the domain object is written to the output file. Using this method allows
      * you to override the configuration applied by this task.</p>
      *
+     * <p>
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * @param action The action to execute.
      */
+    @Deprecated
     public void whenConfigured(Action<? super T> action) {
+        DeprecationLogger.nagUser("<someIdeTask>.whenConfigured is deprecated! Replaced by whenMerged() method placed on the relevant model object of eclipse/idea.\n"
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
         afterConfigured.add(action);
     }
 

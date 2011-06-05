@@ -5,8 +5,82 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>idea</literal> plugin</td>
+                    <td>Default with <literal>idea</literal> and <literal>java</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>sourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>source dirs from <literal>project.sourceSets.main.allSource</literal></td>
+            </tr>
+            <tr>
+                <td>scopes</td>
+                <td><literal>[:]</literal></td>
+                <td>
+                    <itemizedlist>
+                        <listitem><literal>COMPILE</literal> -> <literal>project.configurations.compile</literal></listitem>
+                        <listitem><literal>RUNTIME</literal> -> <literal>project.configurations.runtime - project.configurations.compile</literal></listitem>
+                        <listitem><literal>TEST</literal> -> <literal>project.configurations.testRuntime - project.configurations.runtime</literal></listitem>
+                        <listitem><literal>PROVIDED</literal></listitem>
+                    </itemizedlist>
+                </td>
+            </tr>
+            <tr>
+                <td>downloadSources</td>
+                <td><literal>true</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>downloadJavadoc</td>
+                <td><literal>false</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>contentRoot</td>
+                <td><literal>project.projectDir</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>testSourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>source dirs from <literal>project.sourceSets.test.allSource</literal></td>
+            </tr>
+            <tr>
+                <td>excludeDirs</td>
+                <td><literal>[project.buildDir, project.file('.gradle')]</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>inheritOutputDirs</td>
+                <td><literal>null</literal></td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>outputDir</td>
+                <td><literal>null</literal></td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>testOutputDir</td>
+                <td><literal>null</literal></td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>javaVersion</td>
+                <td><literal>'inherited'</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>iml</td>
+                <td/>
+                <td/>
+            </tr>
+            <tr>
+                <td>outputFile</td>
+                <td>#moduleName + <literal>'.iml'</literal></td>
+                <td></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -14,7 +88,7 @@
         <table>
             <thead>
                 <tr>
-                    <td>Name</td>
+                    <td>iml</td>
                 </tr>
             </thead>
         </table>

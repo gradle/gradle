@@ -19,11 +19,14 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.Module
+import org.gradle.util.DeprecationLogger
 
 /**
  * Generates an IDEA module file. If you want to fine tune the idea configuration
  * <p>
  * Please refer to interesting examples on idea configuration in {@link IdeaModule}.
+ * <p>
+ * Trying to find out how to fix the deprecation warnings? See examples how to configure idea in {@link IdeaModule}.
  *
  * @author Hans Dockter
  */
@@ -44,79 +47,121 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     /**
      * The content root directory of the module.
+     * <p>
+     * Deprecated. Please use #idea.module.contentRoot. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     File getModuleDir() {
+        DeprecationLogger.nagUser("ideaModule.moduleDir", "idea.module.contentRoot")
         module.contentRoot
     }
 
+    @Deprecated
     void setModuleDir(File contentRoot) {
+        DeprecationLogger.nagUser("ideaModule.moduleDir", "idea.module.contentRoot")
         module.contentRoot = contentRoot
     }
 
     /**
      * The directories containing the production sources.
+     * <p>
+     * Deprecated. Please use #idea.module.sourceDirs. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     Set<File> getSourceDirs() {
+       DeprecationLogger.nagUser("ideaModule.sourceDirs", "idea.module.sourceDirs")
        module.sourceDirs
     }
 
+    @Deprecated
     void setSourceDirs(Set<File> sourceDirs) {
+       DeprecationLogger.nagUser("ideaModule.sourceDirs", "idea.module.sourceDirs")
        module.sourceDirs = sourceDirs
     }
 
     /**
      * The directories containing the test sources.
+     * <p>
+     * Deprecated. Please use #idea.module.testSourceDirs. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     Set<File> getTestSourceDirs() {
+        DeprecationLogger.nagUser("ideaModule.testSourceDirs", "idea.module.testSourceDirs")
         module.testSourceDirs
     }
 
+    @Deprecated
     void setTestSourceDirs(Set<File> testSourceDirs) {
+        DeprecationLogger.nagUser("ideaModule.testSourceDirs", "idea.module.testSourceDirs")
         module.testSourceDirs = testSourceDirs
     }
 
     /**
      * The directories to be excluded.
+     * <p>
+     * Deprecated. Please use #idea.module.excludeDirs. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     Set<File> getExcludeDirs() {
+        DeprecationLogger.nagUser("ideaModule.excludeDirs", "idea.module.excludeDirs")
         module.excludeDirs
     }
 
+    @Deprecated
     void setExcludeDirs(Set<File> excludeDirs) {
+        DeprecationLogger.nagUser("ideaModule.excludeDirs", "idea.module.excludeDirs")
         module.excludeDirs = excludeDirs
     }
 
     /**
      * If true, output directories for this module will be located below the output directory for the project;
      * otherwise, they will be set to the directories specified by #outputDir and #testOutputDir.
+     * <p>
+     * Deprecated. Please use #idea.module.inheritOutputDirs. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     Boolean getInheritOutputDirs() {
+        DeprecationLogger.nagUser("ideaModule.inheritOutputDirs", "idea.module.inheritOutputDirs")
         module.inheritOutputDirs
     }
 
+    @Deprecated
     void setInheritOutputDirs(Boolean inheritOutputDirs) {
+        DeprecationLogger.nagUser("ideaModule.inheritOutputDirs", "idea.module.inheritOutputDirs")
         module.inheritOutputDirs = inheritOutputDirs
     }
 
     /**
      * The output directory for production classes. If {@code null}, no entry will be created.
+     * <p>
+     * Deprecated. Please use #idea.module.outputDir. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     File getOutputDir() {
+        DeprecationLogger.nagUser("ideaModule.outputDir", "idea.module.outputDir")
         module.outputDir
     }
 
+    @Deprecated
     void setOutputDir(File outputDir) {
+        DeprecationLogger.nagUser("ideaModule.outputDir", "idea.module.outputDir")
         module.outputDir = outputDir
     }
 
     /**
      * The output directory for test classes. If {@code null}, no entry will be created.
+     * <p>
+     * Deprecated. Please use #idea.module.testOutputDir. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     File getTestOutputDir() {
+        DeprecationLogger.nagUser("ideaModule.testOutputDir", "idea.module.testOutputDir")
         module.testOutputDir
     }
 
+    @Deprecated
     void setTestOutputDir(File testOutputDir) {
+        DeprecationLogger.nagUser("ideaModule.testOutputDir", "idea.module.testOutputDir")
         module.testOutputDir = testOutputDir
     }
 
@@ -124,46 +169,70 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (inherited)
      * is used. If it is set to <code>inherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
      * value of java version is used for this module
+     * <p>
+     * Deprecated. Please use #idea.module.javaVersion. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     String getJavaVersion() {
+        DeprecationLogger.nagUser("ideaModule.javaVersion", "idea.module.javaVersion")
         module.javaVersion
     }
 
+    @Deprecated
     void setJavaVersion(String javaVersion) {
+        DeprecationLogger.nagUser("ideaModule.javaVersion", "idea.module.javaVersion")
         module.javaVersion = javaVersion
     }
 
     /**
      * Whether to download and add sources associated with the dependency jars.
+     * <p>
+     * Deprecated. Please use #idea.module.downloadSources. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     boolean getDownloadSources() {
+        DeprecationLogger.nagUser("ideaModule.downloadSources", "idea.module.downloadSources")
         module.downloadSources
     }
 
+    @Deprecated
     void setDownloadSources(boolean downloadSources) {
+        DeprecationLogger.nagUser("ideaModule.downloadSources", "idea.module.downloadSources")
         module.downloadSources = downloadSources
     }
 
     /**
      * Whether to download and add javadoc associated with the dependency jars.
+     * <p>
+     * Deprecated. Please use #idea.module.downloadJavadoc. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     boolean getDownloadJavadoc() {
+        DeprecationLogger.nagUser("ideaModule.downloadJavadoc", "idea.module.downloadJavadoc")
         module.downloadJavadoc
     }
 
+    @Deprecated
     void setDownloadJavadoc(boolean downloadJavadoc) {
+        DeprecationLogger.nagUser("ideaModule.downloadJavadoc", "idea.module.downloadJavadoc")
         module.downloadJavadoc = downloadJavadoc
     }
 
     /**
      * The variables to be used for replacing absolute paths in the iml entries. For example, you might add a
      * {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
+     * <p>
+     * Deprecated. Please use #idea.pathVariables. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     Map<String, File> getVariables() {
+        DeprecationLogger.nagUser("ideaModule.variables", "idea.pathVariables")
         module.pathVariables
     }
 
+    @Deprecated
     void setVariables(Map<String, File> variables) {
+        DeprecationLogger.nagUser("ideaModule.variables", "idea.pathVariables")
         module.pathVariables = variables
     }
 
@@ -190,12 +259,18 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      *   scopes.PROVIDED.plus += configurations.provided
      * }
      * </pre>
+     * <p>
+     * Deprecated. Please use #idea.module.scopes. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     Map<String, Map<String, Collection<Configuration>>> getScopes() {
+        DeprecationLogger.nagUser("ideaModule.scopes", "idea.module.scopes")
         module.scopes
     }
 
+    @Deprecated
     void setScopes(Map<String, Map<String, Collection<Configuration>>> scopes) {
+        DeprecationLogger.nagUser("ideaModule.scopes", "idea.module.scopes")
         module.scopes = scopes
     }
 
@@ -205,12 +280,18 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * If you really need to change the output file name it is much easier to do it via the <b>moduleName</b> property.
      * <p>
      * Please refer to documentation on <b>moduleName</b> property. In IntelliJ IDEA the module name is the same as the name of the *.iml file.
+     * <p>
+     * Deprecated. Please use #idea.module.outputFile. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     File getOutputFile() {
+        DeprecationLogger.nagUser("ideaModule.outputFile", "idea.module.outputFile")
         return module.outputFile
     }
 
+    @Deprecated
     void setOutputFile(File newOutputFile) {
+        DeprecationLogger.nagUser("ideaModule.outputFile", "idea.module.outputFile")
         module.outputFile = newOutputFile
     }
 
@@ -234,12 +315,18 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * </pre>
      * <p>
      * <b>since</b> 1.0-milestone-2
+     * <p>
+     * Deprecated. Please use #idea.module.name. See examples in {@link IdeaModule}.
      */
+    @Deprecated
     String getModuleName() {
+        DeprecationLogger.nagUser("ideaModule.moduleName", "idea.module.name")
         return module.name
     }
 
+    @Deprecated
     void setModuleName(String moduleName) {
+        DeprecationLogger.nagUser("ideaModule.moduleName", "idea.module.name")
         module.name = moduleName
     }
 }
