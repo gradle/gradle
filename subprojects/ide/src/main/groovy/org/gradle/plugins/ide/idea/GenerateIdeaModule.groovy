@@ -26,7 +26,7 @@ import org.gradle.util.DeprecationLogger
  * <p>
  * Please refer to interesting examples on idea configuration in {@link IdeaModule}.
  * <p>
- * Trying to find out how to fix the deprecation warnings? See examples how to configure idea in {@link IdeaModule}.
+ * TAt this moment nearly all configuration is done via {@link IdeaModule}.
  *
  * @author Hans Dockter
  */

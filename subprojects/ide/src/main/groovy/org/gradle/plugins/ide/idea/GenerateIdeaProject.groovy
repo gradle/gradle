@@ -23,7 +23,7 @@ import org.gradle.util.DeprecationLogger
 /**
  * Generates an IDEA project file for root project *only*. If you want to fine tune the idea configuration
  * <p>
- * Please refer to interesting examples on idea configuration in {@link IdeaProject}.
+ * At this moment nearly all configuration is done via {@link IdeaProject}.
  *
  * @author Hans Dockter
  */
@@ -46,45 +46,67 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     /**
      * The subprojects that should be mapped to modules in the ipr file. The subprojects will only be mapped if the Idea plugin has been
      * applied to them.
+     * <p>
+     * Deprecated. Please use #idea.project.modules. See examples in {@link IdeaProject}.
      */
+    @Deprecated
     Set<org.gradle.api.Project> getSubprojects() {
         DeprecationLogger.nagUser("ideaProject.subprojects doesn't do anything at this moment. Please use idea.project.modules instead.")
     }
 
+    @Deprecated
     void setSubprojects(Set<org.gradle.api.Project> subprojects) {
         DeprecationLogger.nagUser("ideaProject.subprojects doesn't do anything at this moment. Please use idea.project.modules instead.")
     }
 
     /**
      * The java version used for defining the project sdk.
+     * <p>
+     * Deprecated. Please use #idea.project.javaVersion. See examples in {@link IdeaProject}.
      */
+    @Deprecated
     String getJavaVersion() {
+        DeprecationLogger.nagUser("ideaProject.javaVersion", "idea.project.javaVersion")
         ideaProject.javaVersion
     }
 
+    @Deprecated
     void setJavaVersion(String javaVersion) {
+        DeprecationLogger.nagUser("ideaProject.javaVersion", "idea.project.javaVersion")
         ideaProject.javaVersion = javaVersion
     }
 
     /**
      * The wildcard resource patterns.
+     * <p>
+     * Deprecated. Please use #idea.project.wildcards. See examples in {@link IdeaProject}.
      */
+    @Deprecated
     Set getWildcards() {
+        DeprecationLogger.nagUser("ideaProject.wildcards", "idea.project.wildcards")
         ideaProject.wildcards
     }
 
+    @Deprecated
     void setWildcards(Set wildcards) {
+        DeprecationLogger.nagUser("ideaProject.wildcards", "idea.project.wildcards")
         ideaProject.wildcards = wildcards
     }
 
     /**
      * output *.ipr file
+     * <p>
+     * Deprecated. Please use #idea.project.outputFile. See examples in {@link IdeaProject}.
      */
+    @Deprecated
     File getOutputFile() {
+        DeprecationLogger.nagUser("ideaProject.outputFile", "idea.project.outputFile")
         return ideaProject.outputFile
     }
 
+    @Deprecated
     void setOutputFile(File newOutputFile) {
+        DeprecationLogger.nagUser("ideaProject.outputFile", "idea.project.outputFile")
         ideaProject.outputFile = newOutputFile
     }
 }

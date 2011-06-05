@@ -34,6 +34,9 @@ package org.gradle.api.dsl;
  *   //However, convention properties can be assigned:
  *   conventionProperty = ['a', 'b']  //OK
  *
+ *   //Following may work but depends on the order of evaluation:
+ *   conventionProperty -= 'a'  //SENSITIVE
+ *
  *   //Simple properties can be mutated or assigned:
  *   simpleProperty = ['1.5']  //OK
  *   simpleProperty.add('1.5')  //OK
