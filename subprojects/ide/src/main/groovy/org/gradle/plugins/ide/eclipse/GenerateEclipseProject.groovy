@@ -27,7 +27,7 @@ import org.gradle.util.DeprecationLogger
 /**
  * Generates an Eclipse <code>.project</code> file. If you want to fine tune the eclipse configuration
  * <p>
- * Please refer to interesting examples on eclipse configuration in {@link EclipseProject}.
+ * At this moment nearly all configuration is done via {@link EclipseProject}.
  *
  * @author Hans Dockter
  */
