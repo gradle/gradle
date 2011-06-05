@@ -113,6 +113,7 @@ jar.enabled = true
 
         file('app/META-INF/application.xml').createFile().write(applicationXml)
         file('app/someOtherFile.txt').createFile()
+        file('app/META-INF/stuff/yetAnotherFile.txt').createFile()
         file("build.gradle").write("""
 apply plugin: 'ear'
 
@@ -127,6 +128,7 @@ ear {
 
         //then
         assert file("unzipped/someOtherFile.txt").assertExists()
+        assert file("unzipped/META-INF/stuff/yetAnotherFile.txt").assertExists()
         assert file("unzipped/META-INF/application.xml").text == applicationXml
     }
 
@@ -140,6 +142,7 @@ ear {
 
         file('src/main/application/META-INF/application.xml').createFile().write(applicationXml)
         file('src/main/application/someOtherFile.txt').createFile()
+        file('src/main/application/META-INF/stuff/yetAnotherFile.txt').createFile()
         file("build.gradle").write("""
 apply plugin: 'ear'
 ear {
@@ -155,6 +158,7 @@ ear {
 
         //then
         assert file("unzipped/someOtherFile.txt").assertExists()
+        assert file("unzipped/META-INF/stuff/yetAnotherFile.txt").assertExists()
         assert file("unzipped/META-INF/application.xml").text == applicationXml
     }
 }
