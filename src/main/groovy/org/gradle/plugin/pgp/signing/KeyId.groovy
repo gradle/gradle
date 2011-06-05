@@ -21,25 +21,25 @@ import org.bouncycastle.openpgp.PGPSignature
 /**
  * A normalised form for keys, which are friendliest for users as hex strings but used internally as longs.
  */
-class PgpKeyId implements Comparable<PgpKeyId> {
+class KeyId implements Comparable<KeyId> {
 	
 	final String asHex
 	final long asLong
 
-	PgpKeyId(long keyId) {
+	KeyId(long keyId) {
 		asLong = keyId
 		asHex = toHex(keyId)
 	}
 
-	PgpKeyId(PGPPublicKey keyId) {
+	KeyId(PGPPublicKey keyId) {
 		this(keyId.keyID)
 	}
 
-	PgpKeyId(PGPSignature signature) {
+	KeyId(PGPSignature signature) {
 		this(signature.keyID)
 	}
 
-	public PgpKeyId(String keyId) {
+	public KeyId(String keyId) {
 		asLong = toLong(keyId)
 		asHex = toHex(asLong)
 	}
@@ -80,7 +80,7 @@ class PgpKeyId implements Comparable<PgpKeyId> {
 
 	@Override
 	boolean equals(Object other) {
-		other instanceof PgpKeyId && other.asHex == this.asHex
+		other instanceof KeyId && other.asHex == this.asHex
 	}
 
 	@Override
@@ -93,7 +93,7 @@ class PgpKeyId implements Comparable<PgpKeyId> {
 		asHex
 	}
 
-	int compareTo(PgpKeyId other) {
+	int compareTo(KeyId other) {
 		other == null ? -1 : this.asHex.compareTo(other.asHex)
 	}
 

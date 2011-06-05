@@ -24,13 +24,13 @@ import org.gradle.api.InvalidUserDataException
 class SignatoryFactory {
 	
 	Signatory createSignatory(Project project) {
-		["pgpKeyId", "pgpSecretKeyRingFile", "pgpPassword"].each {
+		["KeyId", "pgpSecretKeyRingFile", "pgpPassword"].each {
 			if (!project.hasProperty(it)) {
 				throw new InvalidUserDataException("'$it' property could not be found on project and is needed for signing")
 			}
 		}
 		
-		createSignatory(project.pgpKeyId, project.file(project.pgpSecretKeyRingFile), project.pgpPassword)
+		createSignatory(project.KeyId, project.file(project.pgpSecretKeyRingFile), project.pgpPassword)
 	}
 	
 	
@@ -50,8 +50,8 @@ class SignatoryFactory {
 		readSecretKey(new PGPSecretKeyRingCollection(input), normalizeKeyId(keyId), sourceDescription)
 	}
 	
-	protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, PgpKeyId keyId, String sourceDescription) {
-		def key = keyRings.keyRings.find { new PgpKeyId(it.secretKey.keyID) == keyId }?.secretKey
+	protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, KeyId keyId, String sourceDescription) {
+		def key = keyRings.keyRings.find { new KeyId(it.secretKey.keyID) == keyId }?.secretKey
 		if (key == null) {
 			throw new InvalidUserDataException("did not find secret key for id '$keyId' in key source '$sourceDescription'")
 		}
@@ -59,9 +59,9 @@ class SignatoryFactory {
 	}
 	
 	// TODO - move out to DSL adapter layer (i.e. signatories container)
-	protected PgpKeyId normalizeKeyId(String keyId) {
+	protected KeyId normalizeKeyId(String keyId) {
 		try {
-			new PgpKeyId(keyId)
+			new KeyId(keyId)
 		} catch (IllegalArgumentException e) {
 			throw new InvalidUserDataException(e.message)
 		}
