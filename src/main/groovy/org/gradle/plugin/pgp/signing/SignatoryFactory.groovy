@@ -24,13 +24,13 @@ import org.gradle.api.InvalidUserDataException
 class SignatoryFactory {
 	
 	Signatory createSignatory(Project project) {
-		["KeyId", "pgpSecretKeyRingFile", "pgpPassword"].each {
+		["pgpKeyId", "pgpSecretKeyRingFile", "pgpPassword"].each {
 			if (!project.hasProperty(it)) {
 				throw new InvalidUserDataException("'$it' property could not be found on project and is needed for signing")
 			}
 		}
 		
-		createSignatory(project.KeyId, project.file(project.pgpSecretKeyRingFile), project.pgpPassword)
+		createSignatory(project.pgpKeyId, project.file(project.pgpSecretKeyRingFile), project.pgpPassword)
 	}
 	
 	
