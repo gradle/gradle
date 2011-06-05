@@ -17,8 +17,8 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.JavaVersion
-import org.gradle.util.ConfigureUtil
 import org.gradle.plugins.ide.internal.FileContentMerger
+import org.gradle.util.ConfigureUtil
 
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
@@ -87,6 +87,8 @@ class EclipseJdt {
         ConfigureUtil.configure(closure, file)
     }
 
-    /*****/
+    /**
+     * See {@link #file(Closure) }
+     */
     FileContentMerger file = new FileContentMerger()
 }
