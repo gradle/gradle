@@ -245,10 +245,10 @@
     </section>
 
     <section>
-        <title>IDE model types</title>
-        <para>Used to configure IDE plugins</para>
+        <title>Eclipse/IDEA model types</title>
+        <para>Used to configure Eclipse or IDEA plugins</para>
         <table>
-            <title>IDE model types</title>
+            <title>Eclipse/IDEA model types</title>
             <tr>
                 <td>org.gradle.plugins.ide.eclipse.model.EclipseProject</td>
             </tr>
@@ -277,10 +277,10 @@
     </section>
 
     <section>
-        <title>IDE task types</title>
+        <title>Eclipse/IDEA task types</title>
         <para>Tasks contributed by IDE plugins. To configure IDE plugins please use IDE model types.</para>
         <table>
-            <title>IDE task types</title>
+            <title>Eclipse/IDEA task types</title>
             <tr>
                 <td>org.gradle.plugins.ide.eclipse.GenerateEclipseProject</td>
             </tr>

@@ -10,6 +10,11 @@
                 </tr>
             </thead>
             <tr>
+                <td>name</td>
+                <td><literal><replaceable>${project.name}</replaceable> (sometimes prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqeness)</literal></td>
+                <td/>
+            </tr>
+            <tr>
                 <td>sourceDirs</td>
                 <td><literal>[]</literal></td>
                 <td>source dirs from <literal>project.sourceSets.main.allSource</literal></td>
@@ -78,8 +83,8 @@
             </tr>
             <tr>
                 <td>outputFile</td>
-                <td>#moduleName + <literal>'.iml'</literal></td>
-                <td></td>
+                <td>#name + <literal>'.iml'</literal></td>
+                <td/>
             </tr>
         </table>
     </section>
@@ -88,9 +93,12 @@
         <table>
             <thead>
                 <tr>
-                    <td>iml</td>
+                    <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>iml</td>
+            </tr>
         </table>
     </section>
 </section>
