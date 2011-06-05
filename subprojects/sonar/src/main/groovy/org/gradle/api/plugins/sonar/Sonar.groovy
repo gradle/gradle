@@ -123,7 +123,7 @@ class Sonar extends ConventionTask {
      * @param sourceDirs the main source directory to be added
      */
     void projectMainSourceDir(File sourceDir) {
-        projectMainSourceDirs << sourceDir
+        getProjectMainSourceDirs() << sourceDir
     }
 
     /**
@@ -132,7 +132,7 @@ class Sonar extends ConventionTask {
      * @param sourceDirs the main source directories to be added
      */
     void projectMainSourceDirs(File... sourceDirs) {
-        projectMainSourceDirs.addAll(sourceDirs as List)
+        getProjectMainSourceDirs().addAll(sourceDirs as List)
     }
 
     /**
@@ -141,7 +141,7 @@ class Sonar extends ConventionTask {
      * @param sourceDirs the testsource directory to be added
      */
     void projectTestSourceDir(File sourceDir) {
-        projectTestSourceDirs << sourceDir
+        getProjectTestSourceDirs() << sourceDir
     }
 
     /**
@@ -150,7 +150,7 @@ class Sonar extends ConventionTask {
      * @param sourceDirs the test source directories to be added
      */
     void projectTestSourceDirs(File... sourceDirs) {
-        projectTestSourceDirs.addAll(sourceDirs as List)
+        getProjectTestSourceDirs().addAll(sourceDirs as List)
     }
 
     /**
@@ -159,7 +159,7 @@ class Sonar extends ConventionTask {
      * @param classesDir the classes directory to be added
      */
     void projectClassesDir(File classesDir) {
-        projectClassesDirs << classesDir
+        getProjectClassesDirs() << classesDir
     }
 
     /**
@@ -168,7 +168,7 @@ class Sonar extends ConventionTask {
      * @param classesDirs the classes directories to be added
      */
     void projectClassesDirs(File... classesDirs) {
-        projectClassesDirs.addAll(classesDirs as List)
+        getProjectClassesDirs().addAll(classesDirs as List)
     }
 
     /**
@@ -177,7 +177,7 @@ class Sonar extends ConventionTask {
      * @param dependency the depedency to be added
      */
     void projectDependency(File dependency) {
-        projectDependencies << dependency
+        getProjectDependencies() << dependency
     }
 
     /**
@@ -186,7 +186,7 @@ class Sonar extends ConventionTask {
      * @param dependencies the dependencies to be added
      */
     void projectDependencies(File... dependencies) {
-        projectDependencies.addAll(dependencies as List)
+        getProjectDependencies().addAll(dependencies as List)
     }
 
     /**
@@ -198,7 +198,7 @@ class Sonar extends ConventionTask {
      * @param value the value of the global property
      */
     void globalProperty(String name, String value) {
-        globalProperties.put(name, value)
+        getGlobalProperties().put(name, value)
     }
 
     /**
@@ -208,7 +208,7 @@ class Sonar extends ConventionTask {
      * @param properties the global properties to be added
      */
     void globalProperties(Map properties) {
-        globalProperties.putAll(properties)
+        getGlobalProperties().putAll(properties)
     }
 
     /**
@@ -220,7 +220,7 @@ class Sonar extends ConventionTask {
      * @param value the value of the project property
      */
     void projectProperty(String name, String value) {
-        projectProperties.put(name, value)
+        getProjectProperties().put(name, value)
     }
 
     /**
@@ -230,7 +230,7 @@ class Sonar extends ConventionTask {
      * @param properties the project properties to be added
      */
     void projectProperties(Map properties) {
-        projectProperties.putAll(properties)
+        getProjectProperties().putAll(properties)
     }
 
     protected URL findGradleSonarJar() {
