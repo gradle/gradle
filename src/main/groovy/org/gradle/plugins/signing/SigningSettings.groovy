@@ -15,8 +15,10 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.api.Task
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.util.ConfigureUtil
 
@@ -57,11 +59,26 @@ class SigningSettings {
 		configuration
 	}
 	
-	Sign sign(AbstractArchiveTask toSign) {
-		def signTask = project.task("${toSign.name}-sign", type: Sign) {
-			sign toSign
+	Sign sign(Task task) {
+		sign([task] as Task[]).first()
+	}
+	
+	Collection<Sign> sign(Task[] tasksToSign) {
+		tasksToSign.collect { taskToSign ->
+			def signTask = project.task("${taskToSign.name}-sign", type: Sign) {
+				sign taskToSign
+			}
+			configuration.addArtifact(signTask.artifact)
+			signTask
+		}
+	}
+	
+	Sign sign(PublishArtifact artifact) {
+		def signTask = project.task("${artifact.name}-sign", type: Sign) {
+			delegate.sign artifact
 		}
 		configuration.addArtifact(signTask.artifact)
 		signTask
 	}
+	
 }

@@ -36,6 +36,14 @@ class SignAction {
 		this.settings = settings
 	}
 	
+	SignAction sign(PublishArtifact artifact, Object[] tasks) {
+		sign(artifact.file, artifact.classifier, tasks)
+	}
+
+	SignAction sign(PublishArtifact artifact, SignatureType type, Object[] tasks) {
+		sign(artifact.file, type, artifact.classifier, tasks)
+	}
+	
 	SignAction sign(File toSign, String classifier = null, Object[] tasks) {
 		sign(toSign, SignatureType.ARMORED, classifier, tasks)
 	}

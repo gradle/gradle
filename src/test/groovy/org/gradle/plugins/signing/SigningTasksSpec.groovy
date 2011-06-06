@@ -15,28 +15,71 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.api.tasks.bundling.*
+
 class SigningTasksSpec extends SigningProjectSpec {
 	
 	def setup() {
 		applyPlugin()
 	}
 	
+	protected useJavaAndJavadocAndSourceJars() {
+		apply plugin: "java"
+		
+		task("sourcesJar", type: Jar, dependsOn: classes) { 
+			classifier = 'sources' 
+			from sourceSets.main.allSource
+		} 
+
+		task("javadocJar", type: Jar, dependsOn: javadoc) { 
+			classifier = 'javadoc' 
+			from javadoc.destinationDir 
+		} 
+	}
+	
 	def "sign jar with defaults"() {
 		given:
-		apply plugin: "java"
+		useJavaAndJavadocAndSourceJars()
 		
 		when:
 		signing {
 			sign jar
+			sign sourcesJar, javadocJar
 		}
 		
 		then:
-		def signTask = tasks["jar-sign"]
+		def signJarTask = tasks["jar-sign"]
+		def signSourcesJarTask = tasks["sourcesJar-sign"]
+		def signJavadocJarTask = tasks["javadocJar-sign"]
+		def signingTasks = [signJarTask, signSourcesJarTask, signJavadocJarTask]
 		
 		and:
-		jar in signTask.dependsOn
-		signTask.artifact in configurations.signatures.artifacts
-		signTask.signatory == signing.defaultSignatory
+		jar in signJarTask.dependsOn
+		sourcesJar in signSourcesJarTask.dependsOn
+		javadocJar in signJavadocJarTask.dependsOn
+		
+		and:
+		signingTasks.every { it.artifact in configurations.signatures.artifacts }
+
+		and:
+		signingTasks.every { it.signatory == signing.defaultSignatory }
+	}
+	
+	def "sign method return values"() {
+		given:
+		useJavaAndJavadocAndSourceJars()
+		
+		when:
+		def signJarTask = signing.sign(jar)
+		
+		then:
+		signJarTask.name == "jar-sign"
+		
+		when:
+		def (signSourcesJarTask, signJavadocJarTask) = signing.sign(sourcesJar, javadocJar)
+		
+		then:
+		[signSourcesJarTask, signJavadocJarTask]*.name == ["sourcesJar-sign", "javadocJar-sign"]
 	}
 	
 }

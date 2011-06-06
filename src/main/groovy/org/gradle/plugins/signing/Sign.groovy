@@ -49,8 +49,18 @@ class Sign extends DefaultTask {
 		sign(task.archivePath, type, task.classifier)
 	}
 	
-	void sign(File toSign, String classifier = null, Object[] tasks) {
-		action.sign(toSign, classifier, tasks)
+	void sign(PublishArtifact artifact) {
+		dependsOn(artifact.buildDependencies)
+		action.sign(artifact, this)
+	}
+	
+	void sign(PublishArtifact artifact, SignatureType type) {
+		dependsOn(artifact.buildDependencies)
+		action.sign(artifact, type, this)
+	}
+	
+	void sign(File toSign, String classifier = null) {
+		action.sign(toSign, classifier, this)
 	}
 	
 	void sign(File toSign, SignatureType type, String classifier = null) {
