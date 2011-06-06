@@ -36,7 +36,6 @@ deployUsernameProperty = "gradleRepoUsername"
 deployPasswordProperty = "gradleRepoPassword"
 canDeploy = [deployUsernameProperty, deployPasswordProperty].every { project.hasProperty(it) }
 
-
 uploadArchives {
 	doFirst {
 		if (!canDeploy) {
