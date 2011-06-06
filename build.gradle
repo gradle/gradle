@@ -32,6 +32,35 @@ dependencies {
 	testCompile "org.spockframework:spock-core:0.5-groovy-1.7"
 }
 
+deployUsernameProperty = "gradleRepoUsername"
+deployPasswordProperty = "gradleRepoPassword"
+canDeploy = [deployUsernameProperty, deployPasswordProperty].every { project.hasProperty(it) }
+
+
+uploadArchives {
+	doFirst {
+		if (!canDeploy) {
+			throw new InvalidUserDataException("No upload credentials, set '$deployUsernameProperty' and '$deployPasswordProperty' project properties")
+		}
+	}
+	if (canDeploy) {
+		repositories {
+			project.deployer = repositories.mavenDeployer {
+				def repoBase = "http://repo.gradle.org/gradle"
+				def username = project.properties[deployUsernameProperty]
+				def password = project.properties[deployPasswordProperty]
+				
+				repository(url: "$repoBase/plugins-releases-local") {
+					authentication(userName: username, password: password)
+				}
+				snapshotRepository(url: "$repoBase/plugins-snapshots-local") {
+					authentication(userName: username, password: password)
+				}
+			}
+		}
+	}
+}
+
 task wrapper(type: Wrapper) {
 	gradleVersion = '1.0-milestone-3'
 }
