@@ -130,13 +130,17 @@ class IdeaProject {
         ConfigureUtil.configure(closure, getIpr())
     }
 
+    /**
+     * See {@link #ipr(Closure) }
+     */
+    XmlFileContentMerger ipr
+
     //******
     //TODO SF decide if IDE model classes need interfaces. If no update the javadoc.
     //Public DSL above. Internals below.
     //******
 
     PathFactory pathFactory
-    XmlFileContentMerger ipr
 
     void mergeXmlProject(Project xmlProject) {
         ipr.beforeMerged.execute(xmlProject)

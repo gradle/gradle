@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.eclipse.model.Facet
-import org.gradle.plugins.ide.eclipse.model.Facet.FacetType;
+import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -228,8 +228,8 @@ class EclipsePluginTest extends Specification {
         assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseWtpComponent)
         assert eclipseWtpComponent.sourceDirs == project.sourceSets.main.allSource.srcDirs
-        assert eclipseWtpComponent.rootConfigurations == [] as Set
-        assert eclipseWtpComponent.libConfigurations == [project.configurations.runtime] as Set
+        assert eclipseWtpComponent.component.rootConfigurations == [] as Set
+        assert eclipseWtpComponent.component.libConfigurations == [project.configurations.runtime] as Set
         assert eclipseWtpComponent.minusConfigurations == [project.configurations.providedRuntime] as Set
         assert eclipseWtpComponent.deployName == project.name
         assert eclipseWtpComponent.contextPath == project.war.baseName
@@ -237,8 +237,8 @@ class EclipsePluginTest extends Specification {
         assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
         assert eclipseWtpComponent.variables == [:]
         assert eclipseWtpComponent.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
-        assert eclipseWtpComponent.classesDeployPath == "/WEB-INF/classes"
-        assert eclipseWtpComponent.libDeployPath == "/WEB-INF/lib"
+        assert eclipseWtpComponent.component.classesDeployPath == "/WEB-INF/classes"
+        assert eclipseWtpComponent.component.libDeployPath == "/WEB-INF/lib"
     }
 
     private void checkEclipseWtpComponentForEar() {
@@ -246,8 +246,8 @@ class EclipsePluginTest extends Specification {
         assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
         assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseWtpComponent)
         assert eclipseWtpComponent.sourceDirs == project.sourceSets.main.allSource.srcDirs
-        assert eclipseWtpComponent.rootConfigurations == [project.configurations.deploy] as Set
-        assert eclipseWtpComponent.libConfigurations == [project.configurations.earlib] as Set
+        assert eclipseWtpComponent.component.rootConfigurations == [project.configurations.deploy] as Set
+        assert eclipseWtpComponent.component.libConfigurations == [project.configurations.earlib] as Set
         assert eclipseWtpComponent.minusConfigurations == [] as Set
         assert eclipseWtpComponent.deployName == project.name
         assert eclipseWtpComponent.contextPath == null
@@ -255,8 +255,8 @@ class EclipsePluginTest extends Specification {
         assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
         assert eclipseWtpComponent.variables == [:]
         assert eclipseWtpComponent.resources == []
-        assert eclipseWtpComponent.classesDeployPath == "/"
-        assert eclipseWtpComponent.libDeployPath == "/lib"
+        assert eclipseWtpComponent.component.classesDeployPath == "/"
+        assert eclipseWtpComponent.component.libDeployPath == "/lib"
     }
 
     void assertThatCleanEclipseDependsOn(Project project, Task dependsOnTask) {

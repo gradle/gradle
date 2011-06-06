@@ -23,6 +23,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -111,6 +112,9 @@ public class GeneratorTask<T> extends ConventionTask {
     }
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * <p>Adds a closure to be called before the domain object is configured by this task. The domain object is passed
      * as a parameter to the closure.</p>
      *
@@ -119,11 +123,17 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @param closure The closure to execute.
      */
+    @Deprecated
     public void beforeConfigured(Closure closure) {
+        DeprecationLogger.nagUser("<someIdeTask>.beforeConfigured is deprecated! Replaced by beforeMerged() method placed on the relevant model object of eclipse/idea.\n"
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
         beforeConfigured.add(closure);
     }
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * <p>Adds an action to be called before the domain object is configured by this task. The domain object is passed
      * as a parameter to the action.</p>
      *
@@ -132,11 +142,17 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @param action The action to execute.
      */
+    @Deprecated
     public void beforeConfigured(Action<? super T> action) {
+        DeprecationLogger.nagUser("<someIdeTask>.beforeConfigured is deprecated! Replaced by beforeMerged() method placed on the relevant model object of eclipse/idea.\n"
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
         beforeConfigured.add(action);
     }
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * <p>Adds a closure to be called after the domain object has been configured by this task. The domain object is
      * passed as a parameter to the closure.</p>
      *
@@ -145,11 +161,17 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @param closure The closure to execute.
      */
+    @Deprecated
     public void whenConfigured(Closure closure) {
+        DeprecationLogger.nagUser("<someIdeTask>.whenConfigured is deprecated! Replaced by whenMerged() method placed on the relevant model object of eclipse/idea.\n"
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
         afterConfigured.add(closure);
     }
 
     /**
+     * Deprecated. Moved to the relevant type. Where? For starters, see examples in {@link org.gradle.plugins.ide.idea.model.IdeaProject} or
+     * {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}.
+     *
      * <p>Adds an action to be called after the domain object has been configured by this task. The domain object is
      * passed as a parameter to the action.</p>
      *
@@ -158,7 +180,10 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @param action The action to execute.
      */
+    @Deprecated
     public void whenConfigured(Action<? super T> action) {
+        DeprecationLogger.nagUser("<someIdeTask>.whenConfigured is deprecated! Replaced by whenMerged() method placed on the relevant model object of eclipse/idea.\n"
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
         afterConfigured.add(action);
     }
 

@@ -245,10 +245,10 @@
     </section>
 
     <section>
-        <title>IDE types</title>
-        <para>Listed below are various types and tasks contributed by IDE plugins</para>
+        <title>Eclipse/IDEA model types</title>
+        <para>Used to configure Eclipse or IDEA plugins</para>
         <table>
-            <title>IDE types</title>
+            <title>Eclipse/IDEA model types</title>
             <tr>
                 <td>org.gradle.plugins.ide.eclipse.model.EclipseProject</td>
             </tr>
@@ -268,6 +268,20 @@
                 <td>org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet</td>
             </tr>
             <tr>
+                <td>org.gradle.plugins.ide.idea.model.IdeaProject</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.idea.model.IdeaModule</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Eclipse/IDEA task types</title>
+        <para>Tasks contributed by IDE plugins. To configure IDE plugins please use IDE model types.</para>
+        <table>
+            <title>Eclipse/IDEA task types</title>
+            <tr>
                 <td>org.gradle.plugins.ide.eclipse.GenerateEclipseProject</td>
             </tr>
             <tr>
@@ -281,12 +295,6 @@
             </tr>
             <tr>
                 <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.model.IdeaProject</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.model.IdeaModule</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.ide.idea.GenerateIdeaModule</td>

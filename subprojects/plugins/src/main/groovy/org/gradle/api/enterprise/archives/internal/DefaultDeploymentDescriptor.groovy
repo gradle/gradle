@@ -23,6 +23,7 @@ import org.gradle.api.enterprise.archives.DeploymentDescriptor
 import org.gradle.api.enterprise.archives.EarModule
 import org.gradle.api.enterprise.archives.EarSecurityRole
 import org.gradle.api.enterprise.archives.EarWebModule
+import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.internal.file.FileResolver
 
 /**
@@ -41,7 +42,7 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     Set<? extends EarSecurityRole> securityRoles = new LinkedHashSet<EarSecurityRole>()
     Map<String, String> moduleTypeMappings = new HashMap<String, String>()
     private FileResolver fileResolver
-    private final List<Action<? super Node>> actions = new ArrayList<Action<? super Node>>()
+    final XmlTransformer transformer = new XmlTransformer()
 
     public DefaultDeploymentDescriptor(FileResolver fileResolver) {
         this(new File("META-INF", "application.xml"), fileResolver)
@@ -93,12 +94,12 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     public DeploymentDescriptor withXml(Closure closure) {
-        actions.add closure as Action
+        transformer.addAction(closure)
         return this
     }
 
     public DeploymentDescriptor withXml(Action<? super XmlProvider> action) {
-        actions.add action
+        transformer.addAction(action)
         return this
     }
 
@@ -166,7 +167,7 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                         securityRoles.add(new DefaultEarSecurityRole(child."role-name".text(), child.description.text()))
                         break
                     default:
-                        actions.add { it.append child }
+                        withXml { it.asNode().append child}
                         break
                 }
             }
@@ -199,41 +200,17 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     public DefaultDeploymentDescriptor writeTo(Writer writer) {
-
-        final PrintWriter printWriter = new PrintWriter(writer)
-        try {
-            writeXmlHead printWriter
-            IndentPrinter indentPrinter = new IndentPrinter(printWriter) {
-                        @Override
-                        public void println() {
-                            printWriter.println()
-                        }
-                    };
-            Node root = toXmlNode()
-            for (Action<? super Node> action : actions) {
-                action.execute root
+        if (version == "1.3") {
+            transformer.addAction {
+                def s = it.asString()
+                s.insert(s.indexOf("?>") + 2, '\n<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">')
             }
-
-            XmlNodePrinter nodePrinter = new XmlNodePrinter(indentPrinter)
-            nodePrinter.preserveWhitespace = true
-            nodePrinter.print root
-            printWriter.flush()
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
+        transformer.transform(toXmlNode(), writer)
         return this;
     }
 
-    protected writeXmlHead(PrintWriter printWriter) {
-
-        printWriter.println '<?xml version="1.0" encoding="UTF-8"?>'
-        if (version == "1.3") {
-            printWriter.println '<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">'
-        }
-    }
-
     protected Node toXmlNode() {
-
         Node root = new Node(null, nodeNameFor("application"))
         root.@version = version
         if (version != "1.3") {

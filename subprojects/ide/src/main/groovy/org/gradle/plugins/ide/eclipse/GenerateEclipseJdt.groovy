@@ -21,11 +21,12 @@ import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt
 import org.gradle.plugins.ide.eclipse.model.Jdt
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
+import org.gradle.util.DeprecationLogger
 
 /**
  * Generates the Eclipse JDT configuration file. If you want to fine tune the eclipse configuration
  * <p>
- * Please refer to interesting examples on eclipse configuration in {@link EclipseJdt}.
+ * At this moment nearly all configuration is done via {@link EclipseJdt}.
  */
 class GenerateEclipseJdt extends GeneratorTask<Jdt> {
 
@@ -35,24 +36,36 @@ class GenerateEclipseJdt extends GeneratorTask<Jdt> {
     EclipseJdt jdt
 
     /**
+     * Deprecated. Please use #eclipse.jdt.sourceCompatibility. See examples in {@link EclipseJdt}.
+     * <p>
      * The source Java language level.
      */
+    @Deprecated
     JavaVersion getSourceCompatibility() {
+        DeprecationLogger.nagUser("eclipseJdt.sourceCompatibility", "eclipse.jdt.sourceCompatibility")
         jdt.sourceCompatibility
     }
 
+    @Deprecated
     void setSourceCompatibility(Object sourceCompatibility) {
+        DeprecationLogger.nagUser("eclipseJdt.sourceCompatibility", "eclipse.jdt.sourceCompatibility")
         jdt.sourceCompatibility = sourceCompatibility
     }
 
     /**
+     * Deprecated. Please use #eclipse.jdt.targetCompatibility. See examples in {@link EclipseJdt}.
+     * <p>
      * The target JVM to generate {@code .class} files for.
      */
+    @Deprecated
     JavaVersion getTargetCompatibility() {
+        DeprecationLogger.nagUser("eclipseJdt.targetCompatibility", "eclipse.jdt.targetCompatibility")
         jdt.targetCompatibility
     }
 
+    @Deprecated
     void setTargetCompatibility(Object targetCompatibility) {
+        DeprecationLogger.nagUser("eclipseJdt.targetCompatibility", "eclipse.jdt.targetCompatibility")
         jdt.targetCompatibility = targetCompatibility
     }
 
