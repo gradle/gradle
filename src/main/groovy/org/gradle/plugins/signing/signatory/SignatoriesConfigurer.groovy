@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.pgp.signing.signatory
+package org.gradle.plugins.signing.signatory
 
-import org.gradle.plugin.pgp.signing.SigningConfiguration
+import org.gradle.plugins.signing.SigningConfiguration
 
 class SignatoriesConfigurer {
 	

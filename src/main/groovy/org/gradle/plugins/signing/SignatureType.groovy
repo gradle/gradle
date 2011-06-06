@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.pgp.signing
+package org.gradle.plugins.signing
 
 import org.bouncycastle.bcpg.ArmoredOutputStream
 
-import org.gradle.plugin.pgp.signing.signatory.Signatory
+import org.gradle.plugins.signing.signatory.Signatory
 
 enum SignatureType {
 	BINARY("sig"),

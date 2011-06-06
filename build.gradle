@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-group = 'gradle-pgp-signing' // dashes while it's only deployed at GitHub
-version = '0.1.0-SNAPSHOT'
+archivesBaseName = 'gradle-signing-plugin'
+group = 'org.gradle.plugins'
+version = '0.0.1-SNAPSHOT'
 
 apply plugin: 'groovy'
 apply plugin: 'maven'

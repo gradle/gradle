@@ -13,27 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.pgp.signing
 
-import org.gradle.api.Project
-import org.gradle.util.ConfigureUtil
+package org.gradle.plugins.signing.signatory
 
-import org.gradle.plugin.pgp.signing.signatory.*
+import spock.lang.*
 
-class SigningConfiguration {
-	private Project project
-	private Map<String, Signatory> signatories = [:]
+class KeyIdSpec extends Specification  {
 	
-	SigningConfiguration(Project project) {
-		this.project = project
+	protected key(arg) {
+		new KeyId(arg)
 	}
 	
-	Map<String, Signatory> signatories(Closure block) {
-		ConfigureUtil.configure(block, new SignatoriesConfigurer(this))
-		signatories
+	def "conversion is symmetrical"() {
+		expect:
+		key("ABCDABCD").asHex == "ABCDABCD"
 	}
 	
-	Signatory getDefaultSignatory() {
-		new SignatoryFactory().createSignatory(project)
+	@Unroll
+	def "conversion"() {
+		expect:
+		key(hex).asLong == decimal
+		key(decimal).asHex == hex
+		
+		where:
+		hex        | decimal
+		"AAAAAAAA" | 2863311530
+		"DA124B92" | 3658632082
+	}
+	
+	def "equals impl"() {
+		expect:
+		key("AAAAAAAA") == key(2863311530)
+	}
+	
+	def "comparison"() {
+		expect:
+		key("00000000") < key("00000001")
+		key("00000001") > key("00000000")
 	}
 }

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.pgp.signing
+package org.gradle.plugins.signing
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.NamedDomainObjectContainer
 
-import org.gradle.plugin.pgp.signing.signatory.*
+import org.gradle.plugins.signing.signatory.*
 
 class SigningPlugin implements Plugin<Project> {
 	

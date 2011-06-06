@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.pgp.signing
+package org.gradle.plugins.signing
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
-import org.gradle.plugin.pgp.signing.signatory.Signatory
+import org.gradle.plugins.signing.signatory.Signatory
 
 /**
  * Creates a file containing a digital signature alongside an input file.
