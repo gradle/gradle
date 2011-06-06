@@ -30,6 +30,12 @@ class SignAction {
 	private File signature
 	private PublishArtifact artifact
 	
+	private final SigningConfiguration signingConfiguration
+	
+	SignAction(SigningConfiguration signingConfiguration) {
+		this.signingConfiguration = signingConfiguration
+	}
+	
 	SignAction sign(File toSign, String classifier = null, Object[] tasks) {
 		sign(toSign, SignatureType.ARMORED, classifier, tasks)
 	}
@@ -56,7 +62,8 @@ class SignAction {
 	}
 	
 	SignAction execute() {
-		type.sign(signatory, toSign)
+		// TODO - explode if no signatory has been defined
+		type.sign(getSignatory(), toSign)
 		this
 	}
 	
@@ -65,7 +72,7 @@ class SignAction {
 	}
 
 	Signatory getSignatory() {
-		signatory
+		signatory ?: signingConfiguration.defaultSignatory
 	}
 
 	SignatureType getType() {

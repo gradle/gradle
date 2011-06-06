@@ -30,8 +30,15 @@ import org.gradle.plugin.pgp.signing.signatory.Signatory
  */
 class Sign extends DefaultTask {
 	
-	private action = new SignAction()
+	private final SignAction action
+	final SigningConfiguration signingConfiguration
 	
+	Sign() {
+		super()
+		signingConfiguration = project.signingConfiguration
+		action = new SignAction(signingConfiguration)
+	}
+
 	void sign(AbstractArchiveTask task) {
 		dependsOn(task)
 		sign(task.archivePath, task.classifier)
