@@ -15,40 +15,23 @@
  */
 package org.gradle.plugins.signing
 
-class ConventionSmokeSpec extends SigningProjectSpec {
+class SignatoriesConfigurationSpec extends SigningProjectSpec {
 	
 	def setup() {
 		applyPlugin()
 	}
-	
-	def "signing block"() {
-		when:
-		signing {
-			signatories {
-				
-			}
-		}
-		
-		then:
-		notThrown Exception
-	}
 
-	def "signatories"() {
-		expect:
-		signatories != null
-		signatories instanceof Map
-	}
-	
-	def "signing configuration"() {
-		expect:
-		signingConfiguration != null
-		signingConfiguration instanceof SigningConfiguration
-		signingConfiguration.project == project
-	}
-	
-	def "default signatory with no properties"() {
+	def "default signatory returns null if no properties set"() {
 		expect:
 		defaultSignatory == null
 	}
-
+	
+	def "default signatory with properties"() {
+		when:
+		addSigningPropertiesSet "gradle"
+		
+		then:
+		defaultSignatory != null
+	}
+	
 }

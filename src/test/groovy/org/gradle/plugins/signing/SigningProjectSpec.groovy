@@ -44,7 +44,39 @@ class SigningProjectSpec extends Specification {
 		apply plugin: "signing"
 	}
 	
-	def useProperties(Map props) {
-		properties.putAll(props)
+	def addProperties(Map props) {
+		props.each { k, v ->
+			project.setProperty(k, v)
+		}
+	}
+	
+	def addSigningProperties(keyId, secretKeyRingFile, password) {
+		addPrefixedSigningProperties(null, keyId, secretKeyRingFile, password)
+	}
+	
+	def addPrefixedSigningProperties(prefix, keyId, secretKeyRingFile, password) {
+		def truePrefix = prefix ? "${prefix}." : "" 
+		def properties = [:]
+		[keyId: keyId, secretKeyRingFile: secretKeyRingFile, password: password].each { k, v ->
+			properties["signing.${truePrefix}${k}"] = v
+		}
+		addProperties(properties)
+	}
+	
+	def addSigningPropertiesSet(setName, prefix = null) {
+		def keyId = getKeyResourceFile(setName, "keyId.txt").text.trim()
+		def secretKeyRingFile = getKeyResourceFile(setName, "secring.gpg").absolutePath
+		def password = getKeyResourceFile(setName, "password.txt").text.trim()
+		
+		addPrefixedSigningProperties(prefix, keyId, secretKeyRingFile, password)
+	}
+	
+	def getKeyResourceFile(setName, fileName) {
+		getResourceFile("keys/$setName/$fileName")
+	}
+	
+	def getResourceFile(path) {
+		def url = getClass().classLoader.getResource(path)
+		new File(url.toURI())
 	}
 }
