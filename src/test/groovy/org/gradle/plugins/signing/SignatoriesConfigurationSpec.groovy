@@ -23,7 +23,7 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
 
 	def "default signatory returns null if no properties set"() {
 		expect:
-		defaultSignatory == null
+		signing.defaultSignatory == null
 	}
 	
 	def "default signatory with properties"() {
@@ -31,7 +31,7 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
 		addSigningProperties()
 		
 		then:
-		defaultSignatory != null
+		signing.defaultSignatory != null
 	}
 	
 	def "defining signatories with properties"() {
@@ -46,8 +46,8 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
 		}
 		
 		then:
-		signatories.custom != null
-		signatories.custom.keyId.asHex == properties.keyId
+		signing.signatories.custom != null
+		signing.signatories.custom.keyId.asHex == properties.keyId
 	}
 	
 	def "defining signatories with default properties"() {
@@ -62,8 +62,8 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
 		}
 		
 		then:
-		signatories.custom != null
-		signatories.custom.keyId.asHex == properties.keyId
+		signing.signatories.custom != null
+		signing.signatories.custom.keyId.asHex == properties.keyId
 	}
 	
 }

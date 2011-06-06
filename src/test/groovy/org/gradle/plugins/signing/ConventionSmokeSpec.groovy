@@ -35,20 +35,20 @@ class ConventionSmokeSpec extends SigningProjectSpec {
 
 	def "signatories"() {
 		expect:
-		signatories != null
-		signatories instanceof Map
+		signing.signatories != null
+		signing.signatories instanceof Map
 	}
 	
 	def "signing configuration"() {
 		expect:
-		signingConfiguration != null
-		signingConfiguration instanceof SigningConfiguration
-		signingConfiguration.project == project
+		signing != null
+		signing instanceof SigningSettings
+		signing.project == project
 	}
 	
 	def "default signatory with no properties"() {
 		expect:
-		defaultSignatory == null
+		signing.defaultSignatory == null
 	}
 
 }

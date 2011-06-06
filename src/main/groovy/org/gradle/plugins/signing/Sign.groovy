@@ -31,12 +31,12 @@ import org.gradle.plugins.signing.signatory.Signatory
 class Sign extends DefaultTask {
 	
 	private final SignAction action
-	final SigningConfiguration signingConfiguration
+	final SigningSettings settings
 	
 	Sign() {
 		super()
-		signingConfiguration = project.signingConfiguration
-		action = new SignAction(signingConfiguration)
+		settings = project.signing
+		action = new SignAction(settings)
 	}
 
 	void sign(AbstractArchiveTask task) {

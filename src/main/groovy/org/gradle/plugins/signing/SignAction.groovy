@@ -30,10 +30,10 @@ class SignAction {
 	private File signature
 	private PublishArtifact artifact
 	
-	private final SigningConfiguration signingConfiguration
+	private final SigningSettings settings
 	
-	SignAction(SigningConfiguration signingConfiguration) {
-		this.signingConfiguration = signingConfiguration
+	SignAction(SigningSettings settings) {
+		this.settings = settings
 	}
 	
 	SignAction sign(File toSign, String classifier = null, Object[] tasks) {
@@ -72,7 +72,7 @@ class SignAction {
 	}
 
 	Signatory getSignatory() {
-		signatory ?: signingConfiguration.defaultSignatory
+		signatory ?: settings.defaultSignatory
 	}
 
 	SignatureType getType() {

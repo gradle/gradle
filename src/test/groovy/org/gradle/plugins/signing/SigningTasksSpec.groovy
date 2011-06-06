@@ -15,25 +15,28 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.api.Project
-import org.gradle.util.ConfigureUtil
-
-import org.gradle.plugins.signing.signatory.*
-
-class SigningConfiguration {
-	private Project project
-	private Map<String, Signatory> signatories = [:]
+class SigningTasksSpec extends SigningProjectSpec {
 	
-	SigningConfiguration(Project project) {
-		this.project = project
+	def setup() {
+		applyPlugin()
 	}
 	
-	Map<String, Signatory> signatories(Closure block) {
-		ConfigureUtil.configure(block, new SignatoriesConfigurer(this))
-		signatories
+	def "sign jar with defaults"() {
+		given:
+		apply plugin: "java"
+		
+		when:
+		signing {
+			sign jar
+		}
+		
+		then:
+		def signTask = tasks["jar-sign"]
+		
+		and:
+		jar in signTask.dependsOn
+		signTask.artifact in configurations.signatures.artifacts
+		signTask.signatory == signing.defaultSignatory
 	}
 	
-	Signatory getDefaultSignatory() {
-		new SignatoryFactory().createSignatory(project)
-	}
 }

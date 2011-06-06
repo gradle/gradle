@@ -15,14 +15,14 @@
  */
 package org.gradle.plugins.signing.signatory
 
-import org.gradle.plugins.signing.SigningConfiguration
+import org.gradle.plugins.signing.SigningSettings
 
 class SignatoriesConfigurer {
 	
-	private final SigningConfiguration config
+	private final SigningSettings config
 	private final SignatoryFactory factory
 	
-	SignatoriesConfigurer(SigningConfiguration config) {
+	SignatoriesConfigurer(SigningSettings config) {
 		this.config = config
 		this.factory = new SignatoryFactory()
 	}

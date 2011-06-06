@@ -19,43 +19,34 @@ package org.gradle.plugins.signing
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.NamedDomainObjectContainer
 
 import org.gradle.plugins.signing.signatory.*
 
 class SigningPlugin implements Plugin<Project> {
 	
 	void apply(Project project) {
-		def projectConfig = new SigningConfiguration(project)
-		def signingConvention = new SigningConvention(projectConfig)
-		project.convention.plugins.signing = signingConvention
+		def settings = new SigningSettings(project)
+		def convention = new SigningConvention(settings)
+		project.convention.plugins.signing = convention
 	}
 	
 	/**
 	 * The top level interface mixed in to the project
 	 */
 	static class SigningConvention {
-		private SigningConfiguration projectConfig
+		private SigningSettings settings
 		
-		SigningConvention(SigningConfiguration projectConfig) {
-			this.projectConfig = projectConfig
+		SigningConvention(SigningSettings settings) {
+			this.settings = settings
 		}
 		
-		SigningConvention signing(Closure block) {
-			ConfigureUtil.configure(block, projectConfig)
-			this
+		SigningSettings signing(Closure block) {
+			ConfigureUtil.configure(block, settings)
+			settings
 		}
 		
-		Map<String, Signatory> getSignatories() {
-			projectConfig.signatories
-		}
-		
-		Signatory getDefaultSignatory() {
-			projectConfig.defaultSignatory
-		}
-
-		SigningConfiguration getSigningConfiguration() {
-			projectConfig
+		SigningSettings getSigning() {
+			settings
 		}
 	}
 	
