@@ -53,7 +53,7 @@ class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void addPluginConvention() {
-        pluginConvention = new ApplicationPluginConvention()
+        pluginConvention = new ApplicationPluginConvention(project)
         pluginConvention.applicationName = project.name
         project.convention.plugins.application = pluginConvention
     }
@@ -113,6 +113,8 @@ class ApplicationPlugin implements Plugin<Project> {
         def startScripts = project.tasks[TASK_START_SCRIPTS_NAME]
 
         project.copySpec {
+            from({ pluginConvention.distResourceDir })
+
             into("lib") {
                 from(jar.outputs.files)
                 from(project.configurations.runtime)
