@@ -74,4 +74,8 @@ class Signatory {
 		sign(toSign, signature)
 		signature.toByteArray()
 	}
+	
+	KeyId getKeyId() {
+		new KeyId(secretKey.keyID)
+	}
 }

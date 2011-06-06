@@ -21,6 +21,8 @@ import org.gradle.testfixtures.ProjectBuilder
 
 class SigningProjectSpec extends Specification {
 	
+	static final DEFAULT_KEY_SET = "gradle"
+	
 	Project project = ProjectBuilder.builder().build()
 	
 	private assertProject() {
@@ -57,18 +59,25 @@ class SigningProjectSpec extends Specification {
 	def addPrefixedSigningProperties(prefix, keyId, secretKeyRingFile, password) {
 		def truePrefix = prefix ? "${prefix}." : "" 
 		def properties = [:]
-		[keyId: keyId, secretKeyRingFile: secretKeyRingFile, password: password].each { k, v ->
+		def values = [keyId: keyId, secretKeyRingFile: secretKeyRingFile, password: password]
+		values.each { k, v ->
 			properties["signing.${truePrefix}${k}"] = v
 		}
 		addProperties(properties)
+		values
 	}
 	
-	def addSigningPropertiesSet(setName, prefix = null) {
-		def keyId = getKeyResourceFile(setName, "keyId.txt").text.trim()
-		def secretKeyRingFile = getKeyResourceFile(setName, "secring.gpg").absolutePath
-		def password = getKeyResourceFile(setName, "password.txt").text.trim()
-		
-		addPrefixedSigningProperties(prefix, keyId, secretKeyRingFile, password)
+	def getSigningPropertiesSet(setName = DEFAULT_KEY_SET) {
+		def properties = [:]
+		properties.keyId = getKeyResourceFile(setName, "keyId.txt").text.trim()
+		properties.secretKeyRingFile = getKeyResourceFile(setName, "secring.gpg").absolutePath
+		properties.password = getKeyResourceFile(setName, "password.txt").text.trim()
+		properties
+	}
+	
+	def addSigningProperties(Map args = [:]) {
+		def properties = getSigningPropertiesSet(args.set ?: DEFAULT_KEY_SET)
+		addPrefixedSigningProperties(args.prefix, properties.keyId, properties.secretKeyRingFile, properties.password)
 	}
 	
 	def getKeyResourceFile(setName, fileName) {

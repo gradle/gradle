@@ -31,10 +31,16 @@ class SignatoriesConfigurer {
 		def signatories = config.signatories
 		def project = config.project
 		
-		if (args) {
-			signatories[name] = factory.createSignatory(args[0], args[1], args[2])
-		} else {
+		if (args.size() == 3) {
+			def keyId = args[0].toString()
+			def keyRing = project.file(args[1].toString())
+			def password = args[2].toString()
+			
+			signatories[name] = factory.createSignatory(keyId, keyRing, password)
+		} else if (args.size() == 0) {
 			signatories[name] = factory.createSignatory(project, name, true)
+		} else {
+			throw new Exception("Invalid args ($name: $args)")
 		}
 	}
 }

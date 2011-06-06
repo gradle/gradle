@@ -28,10 +28,42 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
 	
 	def "default signatory with properties"() {
 		when:
-		addSigningPropertiesSet "gradle"
+		addSigningProperties()
 		
 		then:
 		defaultSignatory != null
+	}
+	
+	def "defining signatories with properties"() {
+		given:
+		def properties = signingPropertiesSet
+		
+		when:
+		signing {
+			signatories {
+				custom properties.keyId, properties.secretKeyRingFile, properties.password
+			}
+		}
+		
+		then:
+		signatories.custom != null
+		signatories.custom.keyId.asHex == properties.keyId
+	}
+	
+	def "defining signatories with default properties"() {
+		given:
+		def properties = addSigningProperties(prefix: "custom")
+
+		when:
+		signing {
+			signatories {
+				custom()
+			}
+		}
+		
+		then:
+		signatories.custom != null
+		signatories.custom.keyId.asHex == properties.keyId
 	}
 	
 }
