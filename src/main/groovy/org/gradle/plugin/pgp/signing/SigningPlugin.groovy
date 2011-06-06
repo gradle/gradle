@@ -49,6 +49,14 @@ class SigningPlugin implements Plugin<Project> {
 		Map<String, Signatory> getSignatories() {
 			projectConfig.signatories
 		}
+		
+		Signatory getDefaultSignatory() {
+			projectConfig.defaultSignatory
+		}
+
+		SigningConfiguration getSigningConfiguration() {
+			projectConfig
+		}
 	}
 	
 }

@@ -32,4 +32,8 @@ class SigningConfiguration {
 		ConfigureUtil.configure(block, new SignatoriesConfigurer(this))
 		signatories
 	}
+	
+	Signatory getDefaultSignatory() {
+		new SignatoryFactory().createSignatory(project)
+	}
 }
