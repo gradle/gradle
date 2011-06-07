@@ -25,10 +25,12 @@ class SignOperationSpec extends SigningProjectSpec {
 	def "sign with defaults"() {
 		given:
 		def input = getResourceFile("some.txt")
+		def output = new File(input.absolutePath + ".asc")
 		
 		expect:
 		input.text // don't care what it is, just need some
-
+		!output.exists() || output.delete()
+		
 		when:
 		def operation = sign(input)
 		
