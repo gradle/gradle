@@ -15,27 +15,43 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+
 class SignOperationSpec extends SigningProjectSpec {
+	
+	def input
+	def output
 	
 	def setup() {
 		applyPlugin()
 		addSigningProperties()
+		input = getResourceFile("some.txt")
+		output = signing.type.fileFor(input)
+		assert !output.exists() || output.delete()
+		assert input.text // don't care what it is, just need some
 	}
 	
-	def "sign with defaults"() {
-		given:
-		def input = getResourceFile("some.txt")
-		def output = signing.type.fileFor(input)
-		
-		expect:
-		input.text // don't care what it is, just need some
-		!output.exists() || output.delete()
-		
+	def "sign file with defaults"() {
 		when:
 		def operation = sign(input)
 		
 		then:
-		operation.signature.exists()
+		output.exists()
+		output == operation.signature
+		output == operation.artifact.file
+	}
+	
+	def "sign artifact with defaults"() {
+		given:
+		def inputArtifact = new DefaultPublishArtifact(input.name, "Text File", "txt", null, null, input)
+		
+		when:
+		def operation = sign(inputArtifact)
+		
+		then:
+		output.exists()
+		output == operation.signature
+		output == operation.artifact.file
 	}
 	
 }
