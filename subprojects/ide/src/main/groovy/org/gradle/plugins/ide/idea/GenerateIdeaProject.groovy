@@ -51,12 +51,12 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     Set<org.gradle.api.Project> getSubprojects() {
-        DeprecationLogger.nagUser("ideaProject.subprojects doesn't do anything at this moment. Please use idea.project.modules instead.")
+        DeprecationLogger.nagUserWith("ideaProject.subprojects doesn't do anything at this moment. Please use idea.project.modules instead.")
     }
 
     @Deprecated
     void setSubprojects(Set<org.gradle.api.Project> subprojects) {
-        DeprecationLogger.nagUser("ideaProject.subprojects doesn't do anything at this moment. Please use idea.project.modules instead.")
+        DeprecationLogger.nagUserWith("ideaProject.subprojects doesn't do anything at this moment. Please use idea.project.modules instead.")
     }
 
     /**
