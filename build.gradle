@@ -18,8 +18,24 @@ archivesBaseName = 'gradle-signing-plugin'
 group = 'org.gradle.plugins'
 version = '0.0.1-SNAPSHOT'
 
+doSign = !project.hasProperty('noSign') && project.hasProperty("signing.keyId")
+
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenRepo name: "Gradle", urls: "http://repo.gradle.org/gradle/plugins-snapshots/"
+	}
+	dependencies {
+		classpath "org.gradle.plugins:gradle-signing-plugin:0.0.1-SNAPSHOT"
+	}
+}
+
 apply plugin: 'groovy'
 apply plugin: 'maven'
+
+if (doSign) {
+	apply plugin: 'signing'
+}
 
 repositories {
 	mavenCentral()
@@ -32,11 +48,24 @@ dependencies {
 	testCompile "org.spockframework:spock-core:0.5-groovy-1.7"
 }
 
+if (doSign) {
+	signing {
+		sign jar
+	}
+}
+
+configurations {
+	published.extendsFrom archives
+	if (doSign) {
+		published.extendsFrom signatures
+	}
+}
+
 deployUsernameProperty = "gradleRepoUsername"
 deployPasswordProperty = "gradleRepoPassword"
 canDeploy = [deployUsernameProperty, deployPasswordProperty].every { project.hasProperty(it) }
 
-uploadArchives {
+uploadPublished {
 	doFirst {
 		if (!canDeploy) {
 			throw new InvalidUserDataException("No upload credentials, set '$deployUsernameProperty' and '$deployPasswordProperty' project properties")
@@ -45,6 +74,17 @@ uploadArchives {
 	if (canDeploy) {
 		repositories {
 			project.deployer = repositories.mavenDeployer {
+				
+				if (doSign) {
+					beforeDeployment { MavenDeployment deployment ->
+						def signedPomArtifact = sign(deployment.pomArtifact).artifact
+						// Have to alter the “type” of the artifact to match what is published
+						// See http://issues.gradle.org/browse/GRADLE-1589
+						signedPomArtifact.type = "pom." + signing.type.fileExtension
+						deployment.addArtifact(signedPomArtifact)
+					}
+				}
+				
 				def repoBase = "http://repo.gradle.org/gradle"
 				def username = project.properties[deployUsernameProperty]
 				def password = project.properties[deployPasswordProperty]
