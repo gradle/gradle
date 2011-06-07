@@ -15,31 +15,15 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.api.tasks.bundling.*
-
 class SigningTasksSpec extends SigningProjectSpec {
 	
 	def setup() {
 		applyPlugin()
 	}
-	
-	protected useJavaAndJavadocAndSourceJars() {
-		apply plugin: "java"
 		
-		task("sourcesJar", type: Jar, dependsOn: classes) { 
-			classifier = 'sources' 
-			from sourceSets.main.allSource
-		} 
-
-		task("javadocJar", type: Jar, dependsOn: javadoc) { 
-			classifier = 'javadoc' 
-			from javadoc.destinationDir 
-		} 
-	}
-	
 	def "sign jar with defaults"() {
 		given:
-		useJavaAndJavadocAndSourceJars()
+		useJavadocAndSourceJars()
 		
 		when:
 		signing {
@@ -67,7 +51,7 @@ class SigningTasksSpec extends SigningProjectSpec {
 	
 	def "sign method return values"() {
 		given:
-		useJavaAndJavadocAndSourceJars()
+		useJavadocAndSourceJars()
 		
 		when:
 		def signJarTask = signing.sign(jar)

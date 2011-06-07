@@ -17,6 +17,7 @@ package org.gradle.plugins.signing
 
 import spock.lang.*
 import org.gradle.api.Project
+import org.gradle.api.tasks.bundling.*
 import org.gradle.testfixtures.ProjectBuilder
 
 class SigningProjectSpec extends Specification {
@@ -87,5 +88,19 @@ class SigningProjectSpec extends Specification {
 	def getResourceFile(path) {
 		def url = getClass().classLoader.getResource(path)
 		new File(url.toURI())
+	}
+	
+	def useJavadocAndSourceJars() {
+		apply plugin: "java"
+		
+		task("sourcesJar", type: Jar, dependsOn: classes) { 
+			classifier = 'sources' 
+			from sourceSets.main.allSource
+		} 
+
+		task("javadocJar", type: Jar, dependsOn: javadoc) { 
+			classifier = 'javadoc' 
+			from javadoc.destinationDir 
+		} 
 	}
 }
