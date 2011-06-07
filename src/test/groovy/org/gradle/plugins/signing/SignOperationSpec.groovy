@@ -25,7 +25,7 @@ class SignOperationSpec extends SigningProjectSpec {
 	def "sign with defaults"() {
 		given:
 		def input = getResourceFile("some.txt")
-		def output = new File(input.absolutePath + ".asc")
+		def output = signing.type.fileFor(input)
 		
 		expect:
 		input.text // don't care what it is, just need some
