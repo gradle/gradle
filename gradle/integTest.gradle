@@ -17,16 +17,20 @@ sourceSets {
     }
 }
 
-ideaModule {
-    testSourceDirs += sourceSets.integTest.groovy.srcDirs
-    testSourceDirs += sourceSets.integTest.resources.srcDirs
-    scopes.TEST.plus.add(configurations.integTestCompile)
-    scopes.TEST.plus.add(configurations.integTestRuntime)
+idea {
+    module {
+        testSourceDirs += sourceSets.integTest.groovy.srcDirs
+        testSourceDirs += sourceSets.integTest.resources.srcDirs
+        scopes.TEST.plus.add(configurations.integTestCompile)
+        scopes.TEST.plus.add(configurations.integTestRuntime)
+    }
 }
 
-eclipseClasspath {
-    plusConfigurations.add(configurations.integTestCompile)
-    plusConfigurations.add(configurations.integTestRuntime)
+eclipse {
+    classpath {
+        plusConfigurations.add(configurations.integTestCompile)
+        plusConfigurations.add(configurations.integTestRuntime)
+    }
 }
 
 integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
