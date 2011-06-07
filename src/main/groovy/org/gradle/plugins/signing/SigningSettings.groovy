@@ -31,10 +31,12 @@ class SigningSettings {
 	private Project project
 	private Map<String, Signatory> signatories = [:]
 	private Configuration configuration
+	private SignatureType type
 	
 	SigningSettings(Project project) {
 		this.project = project
 		this.configuration = getDefaultConfiguration()
+		this.type = getDefaultType()
 	}
 	
 	protected Configuration getDefaultConfiguration() {
@@ -46,6 +48,10 @@ class SigningSettings {
 		configuration
 	}
 	
+	protected SignatureType getDefaultType() {
+		SignatureType.ARMORED
+	}
+	
 	Map<String, Signatory> signatories(Closure block) {
 		ConfigureUtil.configure(block, new SignatoriesConfigurer(this))
 		signatories
@@ -53,6 +59,10 @@ class SigningSettings {
 	
 	Signatory getDefaultSignatory() {
 		new SignatoryFactory().createSignatory(project)
+	}
+	
+	SignatureType getType() {
+		type
 	}
 	
 	Configuration getConfiguration() {

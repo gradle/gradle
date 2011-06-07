@@ -47,7 +47,7 @@ class SignOperation {
 	}
 	
 	SignOperation sign(File toSign, String classifier = null, Object[] tasks) {
-		sign(toSign, SignatureType.ARMORED, classifier, tasks)
+		sign(toSign, settings.type, classifier, tasks)
 	}
 	
 	SignOperation sign(File toSign, SignatureType type, String classifier = null, Object[] tasks) {

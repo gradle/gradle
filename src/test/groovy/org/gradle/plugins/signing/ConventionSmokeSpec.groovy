@@ -50,5 +50,11 @@ class ConventionSmokeSpec extends SigningProjectSpec {
 		expect:
 		signing.defaultSignatory == null
 	}
+	
+	def "default type"() {
+		expect:
+		signing.type == SignatureType.ARMORED
+	}
+	
 
 }
