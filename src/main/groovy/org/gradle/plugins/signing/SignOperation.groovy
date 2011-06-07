@@ -98,9 +98,7 @@ class SignOperation {
 	}
 	
 	SignOperation configure(Closure closure) {
-		if (closure) {
-			ConfigureUtil.configure(block, this)
-		}
+		ConfigureUtil.configure(closure, this)
 		execute()
 	}
 }
