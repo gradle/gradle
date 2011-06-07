@@ -73,7 +73,7 @@ class SonarPluginTest extends Specification {
         task.projectProperties["sonar.surefire.reportsPath"] == project.file("build/test-results") as String
     }
 
-    def "appends new project properties to existing default configuration of Sonar task"() {
+    def "appends custom configuration to existing default configuration of Sonar task"() {
         def project = HelperUtil.createRootProject()
         project.plugins.apply(JavaPlugin)
         project.sourceSets.main.java.srcDir("src/main/other")
@@ -88,24 +88,31 @@ class SonarPluginTest extends Specification {
 
         when:
         project.plugins.apply(SonarPlugin)
-        project.tasks.getByName("sonar").projectProperty(coberturaReportKey, coberturaReportValue)
+        def task = (Sonar) project.tasks.getByName("sonar")
+        task.projectProperty(coberturaReportKey, coberturaReportValue)
+        task.projectMainSourceDir(project.file("src/resources"))
+        task.projectTestSourceDirs(project.file("test/resources"), project.file("testResources"))
+        task.globalProperties([newKey1: 'newVal1', newKey2: 'newVal2'])
 
         then:
-        def task = (Sonar) project.tasks.getByName("sonar")
         task.serverUrl == "http://localhost:9000"
         task.bootstrapDir.isDirectory()
         task.projectDir == project.projectDir
         task.buildDir == project.buildDir
         task.projectMainSourceDirs == [project.file("src/main/java"),
-                project.file("src/main/resources"), project.file("src/main/other")] as Set
+                project.file("src/main/resources"), project.file("src/main/other"),
+                project.file("src/resources")] as Set
         task.projectTestSourceDirs == [project.file("src/test/java"),
-                project.file("src/test/resources"), project.file("src/test/other")] as Set
+                project.file("src/test/resources"), project.file("src/test/other"),
+                project.file("test/resources"), project.file("testResources")] as Set
         task.projectClassesDirs == [project.file("build/classes/main")] as Set
         task.projectDependencies.isEmpty() // because our project doesn't have any dependencies defined
         task.projectKey == "testGroup:test"
         task.projectName == "test"
         task.projectDescription == "testDescription"
-        task.globalProperties.isEmpty()
+        task.globalProperties.size() == 2
+        task.globalProperties["newKey1"] == "newVal1"
+        task.globalProperties["newKey2"] == "newVal2"
         task.projectProperties.size() == 5
         task.projectProperties["sonar.java.source"] == "1.6"
         task.projectProperties["sonar.java.target"] == "1.5"
