@@ -19,9 +19,11 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
+import org.gradle.util.ConfigureUtil
+
 import org.gradle.plugins.signing.signatory.Signatory
 
-class SignAction {
+class SignOperation {
 
 	private File toSign
 	private Signatory signatory
@@ -32,23 +34,23 @@ class SignAction {
 	
 	private final SigningSettings settings
 	
-	SignAction(SigningSettings settings) {
+	SignOperation(SigningSettings settings) {
 		this.settings = settings
 	}
 	
-	SignAction sign(PublishArtifact artifact, Object[] tasks) {
+	SignOperation sign(PublishArtifact artifact, Object[] tasks) {
 		sign(artifact.file, artifact.classifier, tasks)
 	}
 
-	SignAction sign(PublishArtifact artifact, SignatureType type, Object[] tasks) {
+	SignOperation sign(PublishArtifact artifact, SignatureType type, Object[] tasks) {
 		sign(artifact.file, type, artifact.classifier, tasks)
 	}
 	
-	SignAction sign(File toSign, String classifier = null, Object[] tasks) {
+	SignOperation sign(File toSign, String classifier = null, Object[] tasks) {
 		sign(toSign, SignatureType.ARMORED, classifier, tasks)
 	}
 	
-	SignAction sign(File toSign, SignatureType type, String classifier = null, Object[] tasks) {
+	SignOperation sign(File toSign, SignatureType type, String classifier = null, Object[] tasks) {
 		this.toSign = toSign
 		this.type = type
 		this.signature = type.fileFor(toSign)
@@ -59,17 +61,17 @@ class SignAction {
 			classifier,
 			null, // no specific date, use now
 			signature,
-			*tasks
+			tasks == null ? [] : tasks
 		)
 		this
 	}
 
-	SignAction signatory(Signatory signatory) {
+	SignOperation signatory(Signatory signatory) {
 		this.signatory = signatory
 		this
 	}
 	
-	SignAction execute() {
+	SignOperation execute() {
 		// TODO - explode if no signatory has been defined
 		type.sign(getSignatory(), toSign)
 		this
@@ -93,5 +95,12 @@ class SignAction {
 	
 	PublishArtifact getArtifact() {
 		artifact
+	}
+	
+	SignOperation configure(Closure closure) {
+		if (closure) {
+			ConfigureUtil.configure(block, this)
+		}
+		execute()
 	}
 }

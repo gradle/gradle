@@ -30,13 +30,13 @@ import org.gradle.plugins.signing.signatory.Signatory
  */
 class Sign extends DefaultTask {
 	
-	private final SignAction action
+	private final SignOperation operation
 	final SigningSettings settings
 	
 	Sign() {
 		super()
 		settings = project.signing
-		action = new SignAction(settings)
+		operation = new SignOperation(settings)
 	}
 
 	void sign(AbstractArchiveTask task) {
@@ -51,50 +51,50 @@ class Sign extends DefaultTask {
 	
 	void sign(PublishArtifact artifact) {
 		dependsOn(artifact.buildDependencies)
-		action.sign(artifact, this)
+		operation.sign(artifact, this)
 	}
 	
 	void sign(PublishArtifact artifact, SignatureType type) {
 		dependsOn(artifact.buildDependencies)
-		action.sign(artifact, type, this)
+		operation.sign(artifact, type, this)
 	}
 	
 	void sign(File toSign, String classifier = null) {
-		action.sign(toSign, classifier, this)
+		operation.sign(toSign, classifier, this)
 	}
 	
 	void sign(File toSign, SignatureType type, String classifier = null) {
-		action.sign(toSign, type, classifier, this)
+		operation.sign(toSign, type, classifier, this)
 	}
 
 	void signatory(Signatory signatory) {
-		action.signatory(signatory)
+		operation.signatory(signatory)
 	}
 	
 	@TaskAction
 	void doSigning() {
-		action.execute()
+		operation.execute()
 	}
 	
 	@InputFile
 	File getToSign() {
-		action.toSign
+		operation.toSign
 	}
 
 	Signatory getSignatory() {
-		action.signatory
+		operation.signatory
 	}
 
 	SignatureType getType() {
-		action.type
+		operation.type
 	}
 	
 	@OutputFile 
 	File getSignature() {
-		action.signature
+		operation.signature
 	}
 	
 	PublishArtifact getArtifact() {
-		action.artifact
+		operation.artifact
 	}
 }

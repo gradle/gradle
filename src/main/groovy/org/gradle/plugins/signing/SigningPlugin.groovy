@@ -18,6 +18,8 @@ package org.gradle.plugins.signing
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.PublishArtifact
+
 import org.gradle.util.ConfigureUtil
 
 import org.gradle.plugins.signing.signatory.*
@@ -47,6 +49,38 @@ class SigningPlugin implements Plugin<Project> {
 		
 		SigningSettings getSigning() {
 			settings
+		}
+		
+		SignOperation sign(PublishArtifact toSign, Closure closure = null) {
+			createSignOperation {
+				sign toSign
+				configure(closure) 
+			}
+		}
+		
+		SignOperation sign(PublishArtifact toSign, SignatureType type, Closure closure = null) {
+			createSignOperation {
+				sign toSign, type
+				configure(closure) 
+			}
+		}
+		
+		SignOperation sign(File toSign, String classifier = null, Closure closure = null) {
+			createSignOperation {
+				sign toSign, classifier
+				configure(closure) 
+			}
+		}
+		
+		SignOperation sign(File toSign, SignatureType type, String classifier = null, Closure closure = null) {
+			createSignOperation {
+				sign toSign, type, classifier
+				configure(closure) 
+			}
+		}
+		
+		protected createSignOperation(Closure setup) {
+			ConfigureUtil.configure(setup, new SignOperation(settings))
 		}
 	}
 	
