@@ -84,34 +84,6 @@ try {
        inTestDirectory().usingInitScript(initScript1).usingInitScript(initScript2)
     }
 
-    @Test
-    public void executesInitScriptForBuildSrc() {
-        TestFile initScript = testFile('init.gradle')
-        initScript << '''
-println 'Activating Init Script'
-addListener(new AllGradleSettings())
-class AllGradleSettings extends BuildAdapter {
-    def void projectsLoaded(Gradle gradle) {
-        Project root = gradle.getRootProject()
-        if ('buildSrc'.equals(root.name)) {
-            println 'Got it for buildSrc'
-        } else {
-            println 'Got it for root'
-        }
-    }
-}
-'''
-        testFile('build.gradle') << 'task doStuff'
-        assertTrue(testFile('buildSrc').mkdir())
-        testFile('buildSrc/build.gradle') << "apply plugin: 'groovy'"
-
-        ExecutionResult result = inTestDirectory().usingInitScript(initScript).withTasks('doStuff').run()
-        // The init script should run twice
-        assertThat(result.output, containsString('Activating Init Script\nActivating Init Script'))
-        assertThat(result.output, containsString('Got it for root'))
-        assertThat(result.output, containsString('Got it for buildSrc'))
-    }
-
     private def createExternalJar() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile('org/gradle/test/BuildClass.java') << '''
