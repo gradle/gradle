@@ -31,7 +31,6 @@ class LoggingIntegrationTest {
     @Rule public final TestResources resources = new TestResources()
     @Rule public final Sample sampleResources = new Sample()
 
-    //some messages are twice here because the init script is applied to both: buildSrc and the project
     private final LogOutput logOutput = new LogOutput() {{
         quiet(
                 'An info log message which is always logged.',
@@ -42,8 +41,6 @@ class LoggingIntegrationTest {
                 'quietProject2CallbackOut',
                 'settings quiet out',
                 'init QUIET out',
-                'init QUIET out',
-                'init callback quiet out',
                 'init callback quiet out',
                 'main buildSrc quiet',
                 'nestedBuild buildSrc quiet',
@@ -56,8 +53,7 @@ class LoggingIntegrationTest {
                 'external ERROR error message',
                 '[ant:echo] An error message logged from Ant',
                 'A severe log message logged using JUL',
-                'init ERROR err',
-                'init ERROR err',
+                'init ERROR err'
         )
         warning(
                 'A warning log message.',
@@ -71,10 +67,8 @@ class LoggingIntegrationTest {
                 'A task message which is logged at LIFECYCLE level',
                 'settings lifecycle log',
                 'init lifecycle log',
-                'init lifecycle log',
                 'external LIFECYCLE error message',
                 'external LIFECYCLE log message',
-                'LOGGER: evaluating :',
                 'LOGGER: evaluating :',
                 'LOGGER: evaluating :project1',
                 'LOGGER: evaluating :project2',
@@ -100,14 +94,9 @@ class LoggingIntegrationTest {
                 'settings info out',
                 'settings info log',
                 'init INFO out',
-                'init INFO out',
-                'init INFO err',
                 'init INFO err',
                 'init info log',
-                'init info log',
                 'LOGGER: build finished',
-                'LOGGER: build finished',
-                'LOGGER: evaluated project :',
                 'LOGGER: evaluated project :',
                 'LOGGER: evaluated project :project1',
                 'LOGGER: evaluated project :project2',
