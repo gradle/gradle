@@ -55,7 +55,7 @@ dependencies {
             libraries.asm_all,
             'org.fusesource.jansi:jansi:1.2.1',
             'org.jruby.ext.posix:jna-posix:1.0.3',
-            'org.jfrog.wharf:wharf-core:1.0-rc-3'
+            'org.jfrog.wharf:wharf-core:1.0-20110609114056'
 
             runtime 'net.java.dev.jna:jna:3.2.2'
 
