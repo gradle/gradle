@@ -250,6 +250,9 @@
         <table>
             <title>Eclipse/IDEA model types</title>
             <tr>
+                <td>org.gradle.plugins.ide.eclipse.model.EclipseModel</td>
+            </tr>
+            <tr>
                 <td>org.gradle.plugins.ide.eclipse.model.EclipseProject</td>
             </tr>
             <tr>

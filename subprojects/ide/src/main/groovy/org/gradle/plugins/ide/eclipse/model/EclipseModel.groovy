@@ -49,10 +49,32 @@ import org.gradle.util.ConfigureUtil
  */
 class EclipseModel {
 
+    /**
+     * Configures eclipse project information
+     * <p>
+     * For examples see docs for {@link EclipseProject}
+     */
     EclipseProject project
+
+    /**
+     * Configures eclipse classpath information
+     * <p>
+     * For examples see docs for {@link EclipseClasspath}
+     */
     EclipseClasspath classpath
+
+    /**
+     * Configures eclipse java compatibility information (jdt)
+     * <p>
+     * For examples see docs for {@link EclipseProject}
+     */
     EclipseJdt jdt
 
+    /**
+     * Configures eclipse wtp information
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
     EclipseWtp wtp = new EclipseWtp()
 
     EclipseModel eclipse = this
@@ -61,7 +83,7 @@ class EclipseModel {
     }
 
     /**
-     * Configures eclipse project
+     * Configures eclipse project information
      * <p>
      * For examples see docs for {@link EclipseProject}
      *
@@ -106,6 +128,9 @@ class EclipseModel {
 
     /**
      * Adds path variables to be used for replacing absolute paths in classpath entries.
+     * <p>
+     * If the beginning of the absolute path of a library or other path-related element matches a value of a variable,
+     * a variable entry is used. The matching part of the library path is replaced with the variable name.
      * <p>
      * For example see docs for {@link EclipseModel}
      *
