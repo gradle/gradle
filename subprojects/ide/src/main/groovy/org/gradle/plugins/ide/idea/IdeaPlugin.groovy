@@ -69,7 +69,7 @@ class IdeaPlugin extends IdePlugin {
                 model.workspace = workspace
                 outputFile = new File(project.projectDir, project.name + ".iws")
             }
-            addWorker(task)
+            addWorker(task, false)
         }
     }
 
