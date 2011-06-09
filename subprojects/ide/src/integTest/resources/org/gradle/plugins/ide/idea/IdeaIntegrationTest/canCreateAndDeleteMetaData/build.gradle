@@ -7,8 +7,10 @@ allprojects {
 subprojects {
     apply plugin: 'java'
 
-    ideaModule {
-        downloadJavadoc = true
+    idea {
+        module {
+            downloadJavadoc = true
+        }
     }
 
     repositories {

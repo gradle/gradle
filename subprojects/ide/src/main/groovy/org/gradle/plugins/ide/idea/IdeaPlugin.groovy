@@ -129,7 +129,7 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaProjectForJava(Project project) {
         if (isRoot(project)) {
-            project.ideaProject {
+            project.convention.plugins.idea.project {
                 javaVersion = project.sourceCompatibility
             }
         }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'groovy' //needed so that resources are excluded from compilation (see how ideaProject task is configured in root project)
+apply plugin: 'groovy' //needed so that resources are excluded from compilation (see how idea project is configured in root project)
 apply from: "$rootDir/gradle/integTest.gradle"
 
 dependencies {
