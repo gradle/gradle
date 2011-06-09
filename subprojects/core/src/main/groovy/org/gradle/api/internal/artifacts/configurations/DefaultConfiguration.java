@@ -496,6 +496,36 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public void allDependencies(Closure action) {
         dependencies.all(action);
     }
+    
+    /**
+     * Print a formatted representation of a Configuration
+     */
+    public String toString() {
+        StringBuilder reply = new StringBuilder();
+        
+        reply.append("\nConfiguration:" + this.getName());
+
+        reply.append("\nLocal Dependencies:");
+        for (Dependency d : getDependencies()) {
+            reply.append("\n   " + d);
+        }
+        reply.append("\nLocal Artifacts:");
+        for (PublishArtifact a : getArtifacts()) {
+            reply.append("\n   " + a);
+        }
+        
+        reply.append("\nAll Dependencies:");
+        for (Dependency d : getAllDependencies()) {
+            reply.append("\n   " + d);
+        }
+        reply.append("\nAll Artifacts:");
+        for (PublishArtifact a : getAllArtifacts()) {
+            reply.append("\n   " + a);
+        }
+        
+        return reply.toString();
+    }
+
 
     private class ConfigurationTaskDependency extends AbstractTaskDependency {
         @Override
@@ -514,4 +544,3 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 }
-
