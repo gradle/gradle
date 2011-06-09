@@ -30,6 +30,12 @@ class IdeaModel {
     IdeaModule module
     IdeaProject project
 
+    IdeaModel idea = this
+
+    void idea(Closure closure) {
+        ConfigureUtil.configure(closure, this)
+    }
+
     void module(Closure closure) {
         ConfigureUtil.configure(closure, getModule())
     }
