@@ -55,6 +55,11 @@ class EclipseModel {
 
     EclipseWtp wtp = new EclipseWtp()
 
+    EclipseModel eclipse = this
+    void eclipse(Closure closure) {
+        ConfigureUtil.configure(closure, this)
+    }
+
     /**
      * Configures eclipse project
      * <p>
