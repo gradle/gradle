@@ -36,15 +36,13 @@ class ApplicationPluginConvention {
     /**
      * The directory that contains all additional files added to a application distribution.
      */
-    File applicationDistResources
-
     String distResourceDirName
 
-    Project project
+    final Project project
 
     def ApplicationPluginConvention(Project project) {
         this.project = project
-        distResourceDirName = 'src/dist'
+        distResourceDirName = 'src/main/dist'
     }
 
     /**
