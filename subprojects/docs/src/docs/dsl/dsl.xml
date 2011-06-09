@@ -271,11 +271,18 @@
                 <td>org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet</td>
             </tr>
             <tr>
+                <td>org.gradle.plugins.ide.idea.model.IdeaModel</td>
+            </tr>
+            <tr>
                 <td>org.gradle.plugins.ide.idea.model.IdeaProject</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.ide.idea.model.IdeaModule</td>
             </tr>
+            <tr>
+                <td>org.gradle.plugins.ide.idea.model.IdeaWorkspace</td>
+            </tr>
+
         </table>
     </section>
 

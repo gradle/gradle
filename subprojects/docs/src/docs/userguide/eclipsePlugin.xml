@@ -347,7 +347,7 @@
                     from the <literal>Classpath</literal> domain object:
                     <sample id="partialOverwrites" dir="eclipse"
                             title="Partial Overwrite for Classpath">
-                        <sourcefile file="build.gradle" snippet="module-before-configured"/>
+                        <sourcefile file="build.gradle" snippet="module-before-merged"/>
                     </sample>
                     The resulting <literal>.classpath</literal> file will only contain Gradle-generated dependency entries, but
                     not any other dependency entries that may have been present in the original file. (In the case of dependency entries,
@@ -355,7 +355,7 @@
                     The same could be done for the natures in the <literal>.project</literal> file:
                     <sample id="partialOverwritesProject" dir="eclipse"
                             title="Partial Overwrite for Project">
-                        <sourcefile file="build.gradle" snippet="project-before-configured"/>
+                        <sourcefile file="build.gradle" snippet="project-before-merged"/>
                     </sample>
                 </para>
             </section>
@@ -365,7 +365,7 @@
                     preferred way to customize Eclipse files. Here is how you would export all the dependencies of an Eclipse project:
                     <sample id="exportDependencies" dir="eclipse"
                             title="Export Dependencies">
-                        <sourcefile file="build.gradle" snippet="module-when-configured"/>
+                        <sourcefile file="build.gradle" snippet="module-when-merged"/>
                     </sample>
                 </para>
             </section>

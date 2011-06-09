@@ -27,8 +27,27 @@ import org.gradle.util.ConfigureUtil
  * @author Szczepan Faber, created at: 3/31/11
  */
 class IdeaModel {
+
+    /**
+     * Configures idea module information
+     * <p>
+     * For examples see docs for {@link IdeaModule}
+     */
     IdeaModule module
+
+    /**
+     * Configures idea project information
+     * <p>
+     * For examples see docs for {@link IdeaProject}
+     */
     IdeaProject project
+
+    /**
+     * Configures idea workspace information
+     * <p>
+     * For examples see docs for {@link IdeaWorkspace}
+     */
+    IdeaWorkspace workspace = new IdeaWorkspace()
 
     IdeaModel idea = this
 
@@ -36,12 +55,37 @@ class IdeaModel {
         ConfigureUtil.configure(closure, this)
     }
 
+    /**
+     * Configures idea module information
+     * <p>
+     * For examples see docs for {@link IdeaModule}
+     *
+     * @param closure
+     */
     void module(Closure closure) {
         ConfigureUtil.configure(closure, getModule())
     }
 
+    /**
+     * Configures idea project information
+     * <p>
+     * For examples see docs for {@link IdeaProject}
+     *
+     * @param closure
+     */
     void project(Closure closure) {
         ConfigureUtil.configure(closure, getProject())
+    }
+
+    /**
+     * Configures idea workspace information
+     * <p>
+     * For examples see docs for {@link IdeaWorkspace}
+     *
+     * @param closure
+     */
+    void workspace(Closure closure) {
+        ConfigureUtil.configure(closure, getWorkspace())
     }
 
     /**
