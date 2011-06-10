@@ -16,11 +16,16 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AutoCreateDomainObjectContainer;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.IvyService;
+
+import java.util.Collection;
 
 /**
  * @author Hans Dockter
@@ -71,5 +76,21 @@ public class DefaultConfigurationContainer extends AutoCreateDomainObjectContain
         }
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
+    }
+    
+    /**
+     * Build a formatted representation of all Configurations in this ConfigurationContainer.
+     * Configuration(s) being toStringed are likely derivations of DefaultConfiguration.
+     */
+    public String dump() {
+        StringBuilder reply = new StringBuilder();
+        
+        reply.append("Configuration of type: " + getTypeDisplayName());
+        Collection<Configuration> configs = getAll();
+        for (Configuration c : configs) {
+            reply.append("\n  " + c.toString());
+        }
+        
+        return reply.toString();
     }
 }

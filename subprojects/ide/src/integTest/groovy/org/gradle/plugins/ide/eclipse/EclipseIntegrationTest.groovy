@@ -163,7 +163,7 @@ eclipseJdt {
     whenConfigured { whenConfiguredObjects++ }
 }
 
-eclipse << {
+tasks.eclipse << {
     assert beforeConfiguredObjects == 5 : "beforeConfigured() hooks shoold be fired for domain model objects"
     assert whenConfiguredObjects == 5 : "whenConfigured() hooks shoold be fired for domain model objects"
 }
@@ -265,5 +265,46 @@ eclipseJdt {
         def jdt = parseJdtFile()
         assert jdt.contains('source=1.4')
         assert jdt.contains('targetPlatform=1.3')
+    }
+
+    @Test
+    void dslAllowsShortFormsForProject() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse.project.name = 'x'
+assert eclipse.project.name == 'x'
+
+eclipse {
+    project.name += 'x'
+    assert project.name == 'xx'
+}
+
+eclipse.project {
+    name += 'x'
+    assert name == 'xxx'
+}
+
+'''
+    }
+
+    @Test
+    void dslAllowsShortForms() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse.classpath.downloadSources = false
+assert eclipse.classpath.downloadSources == false
+
+eclipse.classpath.file.withXml {}
+eclipse.classpath {
+    file.withXml {}
+}
+eclipse {
+    classpath.file.withXml {}
+}
+'''
     }
 }
