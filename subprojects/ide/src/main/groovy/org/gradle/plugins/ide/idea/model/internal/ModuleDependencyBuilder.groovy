@@ -23,8 +23,8 @@ import org.gradle.plugins.ide.idea.model.ModuleDependency
  */
 class ModuleDependencyBuilder {
     ModuleDependency create(gradleProject, String scope) {
-        if (gradleProject.hasProperty('ideaModule') && gradleProject.ideaModule) {
-            new ModuleDependency(gradleProject.ideaModule.moduleName, scope)
+        if (gradleProject.hasProperty('idea') && gradleProject.idea) {
+            new ModuleDependency(gradleProject.idea.module.name, scope)
         } else {
             new ModuleDependency(gradleProject.name, scope)
         }

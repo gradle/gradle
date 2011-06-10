@@ -291,11 +291,8 @@ idea {
             }
         }
     }
-}
 
-//TODO SF apparently workspace needs explicit model as well :)
-ideaWorkspace {
-    withXml { provider ->
+    workspace.iws.withXml { provider ->
         Node node = provider.asNode()
 
         Node runManagerConfig = node.component.find { it.'@name' == 'RunManager' }

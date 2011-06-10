@@ -27,14 +27,15 @@ class ModuleDependencyBuilderTest extends Specification {
 
     static class ProjectStub {
         String name
-        IdeaModuleStub ideaModule
+        IdeaStub idea
     }
 
-    static class IdeaModuleStub { String moduleName }
+    static class IdeaStub { IdeaModuleStub module }
+    static class IdeaModuleStub { String name }
 
     def "builds dependency for project"() {
         when:
-        def dependency = builder.create(new ProjectStub(ideaModule: new IdeaModuleStub(moduleName: 'services')), 'compile')
+        def dependency = builder.create(new ProjectStub(idea: new IdeaStub(module: new IdeaModuleStub(name: 'services'))), 'compile')
         then:
         dependency.scope == 'compile'
         dependency.name == 'services'

@@ -275,23 +275,17 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * Deprecated. Please use #idea.module.outputFile. See examples in {@link IdeaModule}.
-     * <p>
      * Configures output *.iml file. It's <b>optional</b> because the task should configure it correctly for you
      * (including making sure it is unique in the multi-module build).
-     * If you really need to change the output file name it is much easier to do it via the <b>moduleName</b> property.
+     * If you really need to change the output file name it is much easier to do it via the <b>idea.module.name</b> property.
      * <p>
-     * Please refer to documentation on <b>moduleName</b> property. In IntelliJ IDEA the module name is the same as the name of the *.iml file.
+     * Please refer to documentation in {@link IdeaModule} <b>name</b> property. In IntelliJ IDEA the module name is the same as the name of the *.iml file.
      */
-    @Deprecated
     File getOutputFile() {
-        DeprecationLogger.nagUser("ideaModule.outputFile", "idea.module.outputFile")
         return module.outputFile
     }
 
-    @Deprecated
     void setOutputFile(File newOutputFile) {
-        DeprecationLogger.nagUser("ideaModule.outputFile", "idea.module.outputFile")
         module.outputFile = newOutputFile
     }
 
