@@ -496,13 +496,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public void allDependencies(Closure action) {
         dependencies.all(action);
     }
-    
+
     /**
      * Print a formatted representation of a Configuration
      */
-    public String toString() {
+    public String dump() {
         StringBuilder reply = new StringBuilder();
-        
+
         reply.append("\nConfiguration:" + this.getName());
 
         reply.append("\nLocal Dependencies:");
@@ -513,7 +513,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (PublishArtifact a : getArtifacts()) {
             reply.append("\n   " + a);
         }
-        
+
         reply.append("\nAll Dependencies:");
         for (Dependency d : getAllDependencies()) {
             reply.append("\n   " + d);
@@ -522,7 +522,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (PublishArtifact a : getAllArtifacts()) {
             reply.append("\n   " + a);
         }
-        
+
         return reply.toString();
     }
 
