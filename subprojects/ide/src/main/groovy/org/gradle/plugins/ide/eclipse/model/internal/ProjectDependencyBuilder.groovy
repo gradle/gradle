@@ -15,19 +15,21 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import org.gradle.api.Project
+import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency
 
 /**
  * @author Szczepan Faber, @date: 11.03.11
  */
 class ProjectDependencyBuilder {
-    ProjectDependency build(gradleProject) {
+    ProjectDependency build(Project project) {
         def name
-        if (gradleProject.hasProperty('eclipseProject') && gradleProject.eclipseProject) {
-            name = gradleProject.eclipse.project.name
+        if (project.plugins.hasPlugin(EclipsePlugin)) {
+            name = project.eclipse.project.name
         } else {
-            name = gradleProject.name
+            name = project.name
         }
-        new ProjectDependency('/' + name, true, null, [] as Set, gradleProject.path)
+        new ProjectDependency('/' + name, true, null, [] as Set, project.path)
     }
 }
