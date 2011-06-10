@@ -24,7 +24,7 @@ class ProjectDependencyBuilder {
     ProjectDependency build(gradleProject) {
         def name
         if (gradleProject.hasProperty('eclipseProject') && gradleProject.eclipseProject) {
-            name = gradleProject.eclipseProject.projectName
+            name = gradleProject.eclipse.project.name
         } else {
             name = gradleProject.name
         }
