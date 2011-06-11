@@ -16,17 +16,19 @@
 
 package org.gradle.plugins.ide.idea.model.internal
 
+import org.gradle.api.Project
+import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.ModuleDependency
 
 /**
  * @author Szczepan Faber, @date: 19.03.11
  */
 class ModuleDependencyBuilder {
-    ModuleDependency create(gradleProject, String scope) {
-        if (gradleProject.hasProperty('ideaModule') && gradleProject.ideaModule) {
-            new ModuleDependency(gradleProject.ideaModule.moduleName, scope)
+    ModuleDependency create(Project project, String scope) {
+        if (project.plugins.hasPlugin(IdeaPlugin)) {
+            new ModuleDependency(project.idea.module.name, scope)
         } else {
-            new ModuleDependency(gradleProject.name, scope)
+            new ModuleDependency(project.name, scope)
         }
     }
 }

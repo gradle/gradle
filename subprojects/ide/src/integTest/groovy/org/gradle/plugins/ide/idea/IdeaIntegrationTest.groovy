@@ -163,7 +163,7 @@ ideaModule {
     withXml { hookActivated++ }
 }
 
-idea << {
+tasks.idea << {
     assert hookActivated == 1 : "withXml() hook shoold be fired"
 }
 '''
@@ -241,6 +241,48 @@ ideaModule {
         assert iml.contains('inherit-compiler-output="false"')
         assert iml.contains('foo-out')
         assert iml.contains('foo-out-test')
+    }
+
+    @Test
+    void dslSupportsShortFormsForModule() {
+        runTask('idea', """
+apply plugin: 'idea'
+
+idea.module.name = 'X'
+assert idea.module.name == 'X'
+
+idea {
+    module.name += 'X'
+    assert module.name == 'XX'
+}
+
+idea.module {
+    name += 'X'
+    assert name == 'XXX'
+}
+
+""")
+    }
+
+    @Test
+    void dslSupportsShortFormsForProject() {
+        runTask('idea', """
+apply plugin: 'idea'
+
+idea.project.wildcards = ['1'] as Set
+assert idea.project.wildcards == ['1'] as Set
+
+idea {
+    project.wildcards += '2'
+    assert project.wildcards == ['1', '2'] as Set
+}
+
+idea.project {
+    wildcards += '3'
+    assert wildcards == ['1', '2', '3'] as Set
+}
+
+""")
     }
 
     private void assertHasExpectedContents(String path) {

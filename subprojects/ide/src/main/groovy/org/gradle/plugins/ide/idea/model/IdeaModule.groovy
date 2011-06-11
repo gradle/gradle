@@ -226,7 +226,7 @@ class IdeaModule {
 
     /**
      * If true, output directories for this module will be located below the output directory for the project;
-     * otherwise, they will be set to the directories specified by {@link #outputDir} and {@link #testOutputDir}.
+     * otherwise, they will be set to the directories specified by #outputDir and #testOutputDir.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
@@ -277,11 +277,13 @@ class IdeaModule {
         ConfigureUtil.configure(closure, getIml())
     }
 
-    org.gradle.api.Project project
-    PathFactory pathFactory
-    IdeaModuleIml iml
-    Map<String, Collection<File>> singleEntryLibraries
-
+    /**
+     * Configures output *.iml file. It's <b>optional</b> because the task should configure it correctly for you
+     * (including making sure it is unique in the multi-module build).
+     * If you really need to change the output file name (or the module name) it is much easier to do it via the <b>moduleName</b> property!
+     * <p>
+     * Please refer to documentation on <b>moduleName</b> property. In IntelliJ IDEA the module name is the same as the name of the *.iml file.
+     */
     File getOutputFile() {
         new File((File) iml.getGenerateTo(), getName() + ".iml")
     }
@@ -290,6 +292,16 @@ class IdeaModule {
         name = newOutputFile.name.replaceFirst(/\.iml$/,"");
         iml.generateTo = newOutputFile.parentFile
     }
+
+    /**
+     * See {@link #iml(Closure) }
+     */
+    IdeaModuleIml iml
+
+    org.gradle.api.Project project
+    PathFactory pathFactory
+
+    Map<String, Collection<File>> singleEntryLibraries
 
     Set<Path> getSourcePaths() {
         getSourceDirs().findAll { it.exists() }.collect { path(it) }

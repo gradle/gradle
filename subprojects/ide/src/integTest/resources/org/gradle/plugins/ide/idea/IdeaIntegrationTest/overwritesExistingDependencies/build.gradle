@@ -10,6 +10,6 @@ dependencies {
     runtime 'junit:junit:4.7@jar'
 }
 
-ideaModule {
-    variables['CUSTOM_DIR'] = new File(gradle.gradleUserHomeDir, 'custom')
+idea {
+    pathVariables CUSTOM_DIR: new File(gradle.gradleUserHomeDir, 'custom')
 }

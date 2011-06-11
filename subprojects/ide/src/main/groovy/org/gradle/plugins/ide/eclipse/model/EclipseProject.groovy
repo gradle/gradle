@@ -239,8 +239,12 @@ class EclipseProject {
         ConfigureUtil.configure(closure, file)
     }
 
-    /*****/
+    /**
+     * See {@link #file(Closure) }
+     */
     XmlFileContentMerger file
+
+    /*****/
 
     void mergeXmlProject(Project xmlProject) {
         file.beforeMerged.execute(xmlProject)

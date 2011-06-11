@@ -25,16 +25,6 @@
                 <td>(same)</td>
             </tr>
             <tr>
-                <td>rootConfigurations</td>
-                <td><literal>[]</literal></td>
-                <td><literal>[project.configurations.deploy]]</literal></td>
-            </tr>
-            <tr>
-                <td>libConfigurations</td>
-                <td><literal>[project.configurations.runtime]</literal></td>
-                <td><literal>[project.configurations.earlib]</literal></td>
-            </tr>
-            <tr>
                 <td>minusConfigurations</td>
                 <td><literal>[project.configurations.providedRuntime]</literal></td>
                 <td><literal>[]</literal></td>
@@ -63,16 +53,6 @@
                 <td>contextPath</td>
                 <td><literal>project.war.baseName</literal></td>
                 <td/>
-            </tr>
-            <tr>
-                <td>classesDeployPath</td>
-                <td><literal>/WEB-INF/classes</literal></td>
-                <td><literal>/</literal></td>
-            </tr>
-            <tr>
-                <td>libDeployPath</td>
-                <td><literal>/WEB-INF/lib</literal></td>
-                <td><literal>/lib</literal></td>
             </tr>
         </table>
     </section>

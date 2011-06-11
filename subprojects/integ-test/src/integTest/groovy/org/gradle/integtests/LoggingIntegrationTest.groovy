@@ -17,15 +17,10 @@
 package org.gradle.integtests
 
 import junit.framework.AssertionFailedError
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.*
 
 /**
  * @author Hans Dockter
@@ -276,15 +271,14 @@ class LogLevel {
     def checkOuts(boolean shouldContain, String result, List outs, Closure partialLine) {
         outs.each {String expectedOut ->
             def found = result.readLines().findAll {partialLine.call(expectedOut, it)}
+            def expectedCount = outs.findAll {partialLine.call(expectedOut, it)}.size()
             if (found.empty && shouldContain) {
                 throw new AssertionFailedError("Could not find expected line '$expectedOut' in output:\n$result")
             }
             if (!found.empty && !shouldContain) {
                 throw new AssertionFailedError("Found unexpected line '$expectedOut' in output:\n$result")
             }
-            if (found.size() > 1) {
-                throw new AssertionFailedError("Found line '$expectedOut' multiple times in output:\n$result")
-            }
+            assert found.empty || found.size() == expectedCount : "'$expectedOut' should occur exactly $expectedCount but found ${found.size()} times in output:\n$result"
         }
     }
 }

@@ -1,7 +1,7 @@
+import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
-import junit.framework.AssertionFailedError
 import org.junit.ComparisonFailure
 
 buildscript {
@@ -37,8 +37,12 @@ allprojects {
             }
 
             if (p.hasProperty('eclipseClasspath')) {
+                eclipse {
+                    classpath {
+                        downloadJavadoc = true
+                    }
+                }
                 eclipseClasspath {
-                    downloadJavadoc = true
                     doLast {
                         compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Classpath.xml")),
                                 file(".classpath").text)

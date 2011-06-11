@@ -65,9 +65,11 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaWorkspace(Project project) {
         if (isRoot(project)) {
             def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: GenerateIdeaWorkspace) {
+                workspace = new IdeaWorkspace(iws: new XmlFileContentMerger(xmlTransformer))
+                model.workspace = workspace
                 outputFile = new File(project.projectDir, project.name + ".iws")
             }
-            addWorker(task)
+            addWorker(task, false)
         }
     }
 
@@ -129,7 +131,7 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaProjectForJava(Project project) {
         if (isRoot(project)) {
-            project.ideaProject {
+            project.convention.plugins.idea.project {
                 javaVersion = project.sourceCompatibility
             }
         }

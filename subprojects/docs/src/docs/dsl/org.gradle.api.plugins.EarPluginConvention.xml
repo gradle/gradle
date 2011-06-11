@@ -20,10 +20,6 @@
                 <td>deploymentDescriptor</td>
                 <td>A deployment descriptor initialized with sensible defaults</td>
             </tr>
-            <tr>
-                <td>appDir</td>
-                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.appDirName}</replaceable></literal></td>
-            </tr>
         </table>
     </section>
     <section>
@@ -36,6 +32,12 @@
             </thead>
             <tr>
                 <td>deploymentDescriptor</td>
+            </tr>
+            <tr>
+                <td>appDirName</td>
+            </tr>
+            <tr>
+                <td>libDirName</td>
             </tr>
         </table>
     </section>

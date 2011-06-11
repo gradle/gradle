@@ -164,13 +164,6 @@ class EclipseClasspath {
     boolean downloadJavadoc = false
 
     /**
-     * Calculates, resolves & returns dependency entries of this classpath
-     */
-    public List<ClasspathEntry> resolveDependencies() {
-        return new ClasspathFactory().createEntries(this)
-    }
-
-    /**
      * Enables advanced configuration like tinkering with the output xml
      * or affecting the way existing .classpath content is merged with gradle build information
      * <p>
@@ -179,19 +172,31 @@ class EclipseClasspath {
      *
      * For example see docs for {@link EclipseProject}
      */
+
     void file(Closure closure) {
         ConfigureUtil.configure(closure, file)
     }
+    /**
+     * See {@link #file(Closure) }
+     */
+
+    XmlFileContentMerger file
 
     /******/
 
     org.gradle.api.Project project
-    XmlFileContentMerger file
     Map<String, File> pathVariables = [:]
     boolean projectDependenciesOnly = false
 
     //only folder paths internal to the project (e.g. beneath the project folder) are supported
     List<String> classFolders
+
+    /**
+     * Calculates, resolves & returns dependency entries of this classpath
+     */
+    public List<ClasspathEntry> resolveDependencies() {
+        return new ClasspathFactory().createEntries(this)
+    }
 
     void mergeXmlClasspath(Classpath xmlClasspath) {
         file.beforeMerged.execute(xmlClasspath)

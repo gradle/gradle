@@ -1,36 +1,36 @@
 // START SNIPPET use-plugin
 apply plugin: 'idea'
 // END SNIPPET use-plugin
-// START SNIPPET module-before-configured
-// START SNIPPET module-when-configured
-ideaModule {
-// END SNIPPET module-when-configured
-    beforeConfigured { module ->
+// START SNIPPET module-before-merged
+// START SNIPPET module-when-merged
+idea.module.iml {
+// END SNIPPET module-when-merged
+    beforeMerged { module ->
         module.dependencies.clear()
     }
-// END SNIPPET module-before-configured
-// START SNIPPET module-when-configured
-    whenConfigured { module ->
+// END SNIPPET module-before-merged
+// START SNIPPET module-when-merged
+    whenMerged { module ->
         module.dependencies*.exported = true
     }
-// START SNIPPET module-before-configured
+// START SNIPPET module-before-merged
 }
-// END SNIPPET module-before-configured
-// END SNIPPET module-when-configured
+// END SNIPPET module-before-merged
+// END SNIPPET module-when-merged
 
-// START SNIPPET project-before-configured
+// START SNIPPET project-before-merged
 // START SNIPPET project-with-xml
-ideaProject {
+idea.project.ipr {
 // END SNIPPET project-with-xml
-    beforeConfigured { project ->
+    beforeMerged { project ->
         project.modulePaths.clear()
     }
-// END SNIPPET project-before-configured
+// END SNIPPET project-before-merged
 // START SNIPPET project-with-xml
     withXml { provider ->
         provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
     }
-// START SNIPPET project-before-configured
+// START SNIPPET project-before-merged
 }
-// END SNIPPET project-before-configured
+// END SNIPPET project-before-merged
 // END SNIPPET project-with-xml

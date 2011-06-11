@@ -16,14 +16,13 @@
 package org.gradle.api.enterprise.archives;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.maven.XmlProvider;
 
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Map;
 import java.util.Set;
-
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.maven.XmlProvider;
 
 /**
  * A deployment descriptor such as application.xml.
@@ -77,7 +76,7 @@ public interface DeploymentDescriptor {
 
     /**
      * The name of the directory to look for libraries in. Optional. If not specified then "lib" is assumed. Typically
-     * this should be set via {@link org.gradle.api.tasks.bundling.Ear#setLibDirName(String)} instead of this property.
+     * this should be set via {@link org.gradle.api.plugins.EarPluginConvention#setLibDirName(String)} instead of this property.
      */
     public String getLibraryDirectory();
 

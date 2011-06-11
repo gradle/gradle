@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
+import org.gradle.api.plugins.EarPluginConvention
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.assertEquals
@@ -33,6 +34,7 @@ class EarTest extends AbstractArchiveTaskTest {
     @Before public void setUp() {
         super.setUp()
         ear = createTask(Ear)
+        ear.earModel = new EarPluginConvention(resolver)
         configure(ear)
     }
 
@@ -45,12 +47,12 @@ class EarTest extends AbstractArchiveTaskTest {
     }
 
     @Test public void testLibDirName() {
-        ear.libDirName = "APP-INF/lib"
-        assertEquals(ear.libDirName, ear.lib.destPath as String)
+        ear.earModel.libDirName = "APP-INF/lib"
+        assertEquals(ear.earModel.libDirName, ear.lib.destPath as String)
     }
 
     @Test public void testDeploymentDescriptor() {
-        ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null)
+        ear.earModel.deploymentDescriptor = new DefaultDeploymentDescriptor(null)
         checkDeploymentDescriptor()
     }
 
@@ -60,7 +62,7 @@ class EarTest extends AbstractArchiveTaskTest {
     }
 
     public void checkDeploymentDescriptor() {
-        ear.deploymentDescriptor {
+        ear.earModel.deploymentDescriptor {
             fileName = "myApp.xml"
             version = "5"
             applicationName = "myapp"
@@ -72,24 +74,27 @@ class EarTest extends AbstractArchiveTaskTest {
             webModule("my.war", "/")
             securityRole "admin"
             securityRole "superadmin"
-            //TODO SF: not tested
-            withXml { new Node(it, "data-source", "my/data/source") }
+            withXml { provider ->
+                //just adds an action
+            }
         }
-        assertEquals("myApp.xml", ear.deploymentDescriptor.fileName)
-        assertEquals("5", ear.deploymentDescriptor.version)
-        assertEquals("myapp", ear.deploymentDescriptor.applicationName)
-        assertEquals(true, ear.deploymentDescriptor.initializeInOrder)
-        assertEquals("My App", ear.deploymentDescriptor.displayName)
-        assertEquals("My Application", ear.deploymentDescriptor.description)
-        assertEquals("APP-INF/lib", ear.deploymentDescriptor.libraryDirectory)
-        assertEquals(2, ear.deploymentDescriptor.modules.size())
-        assertEquals("my.jar", (ear.deploymentDescriptor.modules as List)[0].path)
-        assertEquals("my.war", (ear.deploymentDescriptor.modules as List)[1].path)
-        assertEquals("/", (ear.deploymentDescriptor.modules as List)[1].contextRoot)
-        assertEquals("java", ear.deploymentDescriptor.moduleTypeMappings["my.jar"])
-        assertEquals("web", ear.deploymentDescriptor.moduleTypeMappings["my.war"])
-        assertEquals(2, ear.deploymentDescriptor.securityRoles.size())
-        assertEquals("admin", (ear.deploymentDescriptor.securityRoles as List)[0].roleName)
-        assertEquals("superadmin", (ear.deploymentDescriptor.securityRoles as List)[1].roleName)
+        def d = ear.earModel.deploymentDescriptor
+        assertEquals("myApp.xml", d.fileName)
+        assertEquals("5", d.version)
+        assertEquals("myapp", d.applicationName)
+        assertEquals(true, d.initializeInOrder)
+        assertEquals("My App", d.displayName)
+        assertEquals("My Application", d.description)
+        assertEquals("APP-INF/lib", d.libraryDirectory)
+        assertEquals(2, d.modules.size())
+        assertEquals("my.jar", (d.modules as List)[0].path)
+        assertEquals("my.war", (d.modules as List)[1].path)
+        assertEquals("/", (d.modules as List)[1].contextRoot)
+        assertEquals("java", d.moduleTypeMappings["my.jar"])
+        assertEquals("web", d.moduleTypeMappings["my.war"])
+        assertEquals(2, d.securityRoles.size())
+        assertEquals("admin", (d.securityRoles as List)[0].roleName)
+        assertEquals("superadmin", (d.securityRoles as List)[1].roleName)
+        assertEquals(1, d.transformer.actions.size())
     }
 }

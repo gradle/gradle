@@ -44,9 +44,13 @@
             <td><link linkend="war_plugin">War</link></td><td>Adds web application support to <filename>.project</filename> file.
             Generates WTP settings files.</td>
         </tr>
+        <tr>
+            <td><link linkend="ear_plugin">Ear</link></td><td>Adds ear application support to <filename>.project</filename> file.
+            Generates WTP settings files.</td>
+        </tr>
     </table>
 
-    <para>One focus of the Eclipse plugin is to be open to customization. Each task provides a standardized set of hooks
+    <para>One focus of the Eclipse plugin is to be open to customization. Therfore it provides a standardized set of hooks
         for adding and removing content from the generated files.
     </para>
 
@@ -57,7 +61,7 @@
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>The Eclipse plugin adds a number of tasks to your projects. The main tasks that you will use
-            are the <literal>eclipse</literal> and<literal>cleanEclipse</literal> tasks.
+            are the <literal>eclipse</literal> and <literal>cleanEclipse</literal> tasks.
         </para>
     </section>
     <section>
@@ -201,281 +205,66 @@
                 <td>Generates the <filename>.settings/org.eclipse.wst.common.project.facet.core.xml</filename> file.</td>
             </tr>
         </table>
+    </section>
+    <section>
+        <title>Configuration</title>
 
-        <table id='eclipse-project'>
-            <title>EclipseProject task</title>
+        <table id='eclipse-configuration'>
+            <title>Configuration of the eclipse plugin</title>
             <thead>
                 <tr>
-                    <td>Property</td>
-                    <td>Type</td>
-                    <td>Default Value</td>
+                    <td>Model</td>
+                    <td>Reference name</td>
                     <td>Description</td>
                 </tr>
             </thead>
             <tr>
                 <td>
-                    <literal>projectName</literal>
+                    <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseModel"/>
                 </td>
-                <td>
-                    <classname>String</classname>
-                </td>
-                <td><literal>project.name</literal></td>
-                <td>The name of the Eclipse project. Must not be null.</td>
+                <td><literal>eclipse</literal></td>
+                <td>Top level element that enables configuration of the eclipse plugin in a DSL-friendly fashion</td>
             </tr>
             <tr>
                 <td>
-                    <literal>comment</literal>
+                    <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseProject"/>
                 </td>
-                <td>
-                    <classname>String</classname>
-                </td>
-                <td><literal>project.description</literal></td>
-                <td>A comment for the Eclipse project.</td>
+                <td><literal>eclipse.project</literal></td>
+                <td>Allows configuring project information</td>
             </tr>
             <tr>
                 <td>
-                    <literal>referencedProjects</literal>
+                    <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseClasspath"/>
                 </td>
-                <td>
-                    <classname>Set&lt;String&gt;</classname>
-                </td>
-                <td>empty set</td>
-                <td>The referenced projects of the Eclipse project.</td>
+                <td><literal>eclipse.classpath</literal></td>
+                <td>Allows configuring classpath information</td>
             </tr>
             <tr>
                 <td>
-                    <literal>natures</literal>
+                    <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseJdt"/>
                 </td>
-                <td>
-                    <classname>List&lt;String&gt;</classname>
-                </td>
-                <td>The default is an empty set. Applying Java, Groovy, Scala or War plugin
-                will add additional natures.</td>
-                <td>The natures of the Eclipse project.</td>
+                <td><literal>eclipse.jdt</literal></td>
+                <td>Allows configuring jdt information (source/target java compatibility)</td>
             </tr>
             <tr>
                 <td>
-                    <literal>buildCommands</literal>
+                    <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent"/>
                 </td>
-                <td>
-                    <classname>List&lt;BuildCommand&gt;</classname>
-                </td>
-                <td>The default is an empty set. Applying Java, Groovy, Scala or War plugin
-                will add additional build commands.</td>
-                <td>The build commands of the Eclipse project.</td>
+                <td><literal>eclipse.wtp.component</literal></td>
+                <td>Allows configuring wtp component information</td>
             </tr>
             <tr>
                 <td>
-                    <literal>links</literal>
+                    <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet"/>
                 </td>
-                <td>
-                    <classname>Set&lt;Link&gt;</classname>
-                </td>
-                <td>empty set</td>
-                <td>The links for the Eclipse project.</td>
-            </tr>
-        </table>
-
-        <table id='eclipse-classpath'>
-            <title>EclipseClasspath task</title>
-            <thead>
-                <tr>
-                    <td>Property</td>
-                    <td>Type</td>
-                    <td>Default Value</td>
-                    <td>Description</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>
-                    <literal>sourceSets</literal>
-                </td>
-                <td><classname>Iterable&lt;SourceSet></classname></td>
-                <td>
-                    <literal>project.sourceSets</literal>
-                </td>
-                <td>The source sets whose source directories are to be added to the Eclipse classpath.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>containers</literal>
-                </td>
-                <td>
-                    <classname>Set&lt;String&gt;</classname>
-                </td>
-                <td>empty set</td>
-                <td>The containers to be added to the Eclipse classpath.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>plusConfigurations</literal>
-                </td>
-                <td>
-                    <classname>Set&lt;Configuration&gt;</classname>
-                </td>
-                <td><literal>[configurations.testRuntime]</literal></td>
-                <td>The configurations whose files are to be transformed into classpath entries.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>minusConfigurations</literal>
-                </td>
-                <td>
-                    <classname>Set&lt;Configuration&gt;</classname>
-                </td>
-                <td>empty set</td>
-                <td>The configurations whose files are to be excluded from the classpath entries.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>downloadSources</literal>
-                </td>
-                <td>
-                    <classname>boolean</classname>
-                </td>
-                <td>
-                    <literal>true</literal>
-                </td>
-                <td>Whether to download sources for external dependencies.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>downloadJavadoc</literal>
-                </td>
-                <td>
-                    <classname>boolean</classname>
-                </td>
-                <td>
-                    <literal>false</literal>
-                </td>
-                <td>Whether to download javadoc for external dependencies.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>variables</literal>
-                </td>
-                <td>
-                    <classname>Map&lt;String,File&gt;</classname>
-                </td>
-                <td><literal>[:]</literal></td>
-                <td>If the beginning of the absolute path of a library matches a value of a variable,
-                a variable entry is created. The matching part of the library path is replaced with the variable name.</td>
-            </tr>
-        </table>
-
-        <table id='eclipse-wtp-component'>
-            <title>EclipseWtpComponent task</title>
-            <thead>
-                <tr>
-                    <td>Property</td>
-                    <td>Type</td>
-                    <td>Default Value</td>
-                    <td>Description</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>
-                    <literal>sourceDirs</literal>
-                </td>
-                <td><classname>Set&lt;File&gt;</classname></td>
-                <td>
-                    The source directories of <literal>sourceSets.main</literal>
-                </td>
-                <td>The source sets whose source directories are to be added to the Eclipse classpath.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>deployName</literal>
-                </td>
-                <td>
-                    <classname>String</classname>
-                </td>
-                <td><literal>project.name</literal></td>
-                <td>The deploy name to be used.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>rootConfigurations</literal>
-                </td>
-                <td>
-                    <classname>Set&lt;Configuration&gt;</classname>
-                </td>
-                <td><literal>[]</literal></td>
-                <td>The configurations whose files are to be transformed into classpath entries with a deploy path of '/'.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>libConfigurations</literal>
-                </td>
-                <td>
-                    <classname>Set&lt;Configuration&gt;</classname>
-                </td>
-                <td><literal>[configurations.testRuntime]</literal></td>
-                <td>The configurations whose files are to be transformed into classpath entries with a deploy path of <literal>libDeployPath</literal>.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>plusConfigurations</literal>
-                </td>
-                <td>
-                    <classname>Set&lt;Configuration&gt;</classname>
-                </td>
-                <td><literal>[configurations.testRuntime]</literal></td>
-                <td>A synonym for <literal>libConfigurations</literal>, for backwards compatibility.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>minusConfigurations</literal>
-                </td>
-                <td>
-                    <classname>Set&lt;Configuration&gt;</classname>
-                </td>
-                <td><literal>[configurations.providedRuntime]</literal></td>
-                <td>The configurations whose files are to be excluded from the classpath entries.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>variables</literal>
-                </td>
-                <td>
-                    <classname>Map&lt;String,File&gt;</classname>
-                </td>
-                <td><literal>[:]</literal></td>
-                <td>If the beginning of the absolute path of a library matches a value of a variable,
-                a variable entry is created. The matching part of the library path is replaced with the variable name.</td>
-            </tr>
-        </table>
-
-        <table id='eclipse-wtp-facet'>
-            <title>EclipseWtpFacet task</title>
-            <thead>
-                <tr>
-                    <td>Property</td>
-                    <td>Type</td>
-                    <td>Default Value</td>
-                    <td>Description</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>
-                    <literal>facets</literal>
-                </td>
-                <td>
-                    <classname>List&lt;Facet&gt;</classname>
-                </td>
-                <td>
-                    <literal>jst.java</literal>
-                    and
-                    <literal>jst.web</literal>
-                    facet
-                </td>
-                <td>The facets to be added as installed elements.</td>
+                <td><literal>eclipse.wtp.facet</literal></td>
+                <td>Allows configuring wtp facet information</td>
             </tr>
         </table>
     </section>
     <section>
         <title>Customizing the generated files</title>
-        <para>All Eclipse tasks provide the same hooks and behavior for customizing the generated content.</para>
+        <para>The eclipse plugin provides the same hooks and behavior for customizing the generated files.</para>
         <para>The tasks recognize existing Eclipse files, and merge them with the generated content.</para>
         <section>
             <title>Merging</title>
@@ -488,63 +277,63 @@
                     the default behavior, add <code>eclipse.dependsOn(cleanEclipse)</code> to your build script. This makes it
                     unnecessary to execute the clean task explicitly.
                 </para>
-                <para>Complete overwrite works equally well for individual files, for example by executing<userinput>gradle cleanEclipseClasspath eclipseClasspath</userinput>.
+                <para>Complete overwrite works equally well for individual files, for example by executing <userinput> gradle cleanEclipseClasspath eclipseClasspath</userinput>.
                 </para>
             </section>
         </section>
         <section>
             <title>Hooking into the generation lifecycle</title>
             <para>The Eclipse plugin provides domain classes modeling the sections of the Eclipse files
-                that are autogenerated by Gradle. The generation lifecycle is as follows:
+                that are generated by Gradle. The generation lifecycle is as follows:
                 <orderedlist>
                     <listitem>If there is an existing file, its whole XML content is parsed and stored in memory; otherwise, a default file is used in its place</listitem>
                     <listitem>The domain objects are populated with the relevant content of the existing file</listitem>
-                    <listitem>The <code>beforeConfigured</code> hook is executed</listitem>
+                    <listitem>The <code>beforeMerged</code> hook is executed</listitem>
                     <listitem>The domain objects are populated with content from Gradle's build model, which may require merging with content from the existing file</listitem>
-                    <listitem>The <code>whenConfigured</code> hook is executed</listitem>
+                    <listitem>The <code>whenMerged</code> hook is executed</listitem>
                     <listitem>All sections modeled by the domain objects are removed from the in-memory XML representation</listitem>
                     <listitem>The domain objects inject their content into the in-memory XML representation</listitem>
                     <listitem>The <code>withXml</code> hook is executed</listitem>
                     <listitem>The in-memory XML representation is written to disk</listitem>
                 </orderedlist>
-                The following table lists the domain object used for each of the Eclipse task types:
+                The following table lists the domain object used for each of the Eclipse model types:
             </para>
-            <table id='eclipse-task-hooks'>
-                <title>Task Hooks</title>
+            <table id='eclipse-plugin-hooks'>
+                <title>Advanced configuration hooks</title>
                 <thead>
                     <tr>
-                        <td>Task type</td>
-                        <td><literal>beforeConfigured { arg -> }</literal> argument type</td>
-                        <td><literal>whenConfigured { arg -> }</literal> argument type</td>
+                        <td>Model</td>
+                        <td><literal>beforeMerged { arg -> }</literal> argument type</td>
+                        <td><literal>whenMerged { arg -> }</literal> argument type</td>
                         <td><literal>withXml { arg -> }</literal> argument type</td>
                     </tr>
                 </thead>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseProject"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseProject"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Project"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Project"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseClasspath"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Classpath"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Classpath"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseJdt"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseJdt"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Jdt"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Jdt"/></td>
-                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                    <td/>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpComponent"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpComponent"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 </tr>
                 <tr>
-                    <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet"/></td>
+                    <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpFacet"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpFacet"/></td>
                     <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
@@ -553,12 +342,12 @@
             <section id="sec:partial-overwrite">
                 <title>Partial overwrite of existing content</title>
                 <para>A <link linkend="sec:complete-overwrite">complete overwrite</link> causes all existing content to be discarded,
-                    thereby losing any changes made directly in the IDE. The <code>beforeConfigured</code> hook makes it possible
+                    thereby losing any changes made directly in the IDE. The <code>beforeMerged</code> hook makes it possible
                     to overwrite just certain parts of the existing content. The following example removes all existing dependencies
                     from the <literal>Classpath</literal> domain object:
                     <sample id="partialOverwrites" dir="eclipse"
                             title="Partial Overwrite for Classpath">
-                        <sourcefile file="build.gradle" snippet="module-before-configured"/>
+                        <sourcefile file="build.gradle" snippet="module-before-merged"/>
                     </sample>
                     The resulting <literal>.classpath</literal> file will only contain Gradle-generated dependency entries, but
                     not any other dependency entries that may have been present in the original file. (In the case of dependency entries,
@@ -566,17 +355,17 @@
                     The same could be done for the natures in the <literal>.project</literal> file:
                     <sample id="partialOverwritesProject" dir="eclipse"
                             title="Partial Overwrite for Project">
-                        <sourcefile file="build.gradle" snippet="project-before-configured"/>
+                        <sourcefile file="build.gradle" snippet="project-before-merged"/>
                     </sample>
                 </para>
             </section>
             <section>
                 <title>Modifying the fully populated domain objects</title>
-                <para>The <code>whenConfigured</code> hook allows to manipulate the fully populated domain objects. Often this is the
+                <para>The <code>whenMerged</code> hook allows to manipulate the fully populated domain objects. Often this is the
                     preferred way to customize Eclipse files. Here is how you would export all the dependencies of an Eclipse project:
                     <sample id="exportDependencies" dir="eclipse"
                             title="Export Dependencies">
-                        <sourcefile file="build.gradle" snippet="module-when-configured"/>
+                        <sourcefile file="build.gradle" snippet="module-when-merged"/>
                     </sample>
                 </para>
             </section>

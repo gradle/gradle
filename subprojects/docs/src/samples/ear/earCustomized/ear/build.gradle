@@ -4,14 +4,16 @@ apply plugin: 'java'
 repositories { mavenCentral() }
 
 dependencies {
+    //following dependencies will become the ear modules and placed in the ear root
     deploy project(':war')
 
+    //following dependencies will become ear libs and placed in a dir configured via libDirName property
     earlib group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
 }
 
 ear {
-    appDirName = 'src/main/app'  // look for application metadata in a custom source folder
-    libDirName = 'APP-INF/lib'  // put dependency libraries into APP-INF/lib inside the generated EAR;
+    appDirName 'src/main/app'  // use application metadata found in this folder
+    libDirName 'APP-INF/lib'  // put dependency libraries into APP-INF/lib inside the generated EAR;
                                 // also modify the generated deployment descriptor accordingly
     deploymentDescriptor {  // custom entries for application.xml:
 //      fileName = "application.xml"  // same as the default value
@@ -25,7 +27,9 @@ ear {
 //      webModule("my.war", "/")  // wouldn't deploy since my.war isn't a deploy depencency
         securityRole "admin"
         securityRole "superadmin"
-        withXml { root -> new Node(root, "data-source", "my/data/source") }  // add a custom node to the XML
+        withXml { provider -> // add a custom node to the XML
+            provider.asNode().appendNode("data-source", "my/data/source")
+        }
     }
 }
 

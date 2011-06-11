@@ -49,7 +49,7 @@ ideaWorkspace {
     whenConfigured { whenConfiguredObjects++ }
 }
 
-idea << {
+tasks.idea << {
     assert beforeConfiguredObjects == 3 : "beforeConfigured() hooks shoold be fired for domain model objects"
     assert whenConfiguredObjects == 3 : "whenConfigured() hooks shoold be fired for domain model objects"
 }
