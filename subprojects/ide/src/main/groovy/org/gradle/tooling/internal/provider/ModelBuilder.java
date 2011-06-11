@@ -39,7 +39,7 @@ import java.util.Map;
 /**
 * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
 */
-public class ModelBuilder {
+public class ModelBuilder implements ChainedModelBuilder {
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject currentProject;
     private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
@@ -51,7 +51,7 @@ public class ModelBuilder {
         this.projectDependenciesOnly = projectDependenciesOnly;
     }
 
-    public DefaultEclipseProject buildAll(GradleInternal gradle) {
+    public DefaultEclipseProject buildAll(GradleInternal gradle, Object currentModel) {
         this.gradle = gradle;
         Project root = gradle.getRootProject();
         tasksFactory.collectTasks(root);

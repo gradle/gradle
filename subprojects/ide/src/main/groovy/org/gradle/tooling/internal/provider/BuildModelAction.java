@@ -42,6 +42,6 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
     }
 
     public ProjectVersion3 getResult() {
-        return modelBuildingAdapter.getProject();
+        return (ProjectVersion3) modelBuildingAdapter.getProject();
     }
 }

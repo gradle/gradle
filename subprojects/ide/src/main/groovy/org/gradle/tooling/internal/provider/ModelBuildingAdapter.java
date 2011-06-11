@@ -19,26 +19,31 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.BuildAdapter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.tooling.internal.DefaultEclipseProject;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * @author Szczepan Faber, @date: 25.03.11
  */
 public class ModelBuildingAdapter extends BuildAdapter {
 
-    private ModelBuilder builder;
-    private DefaultEclipseProject eclipseProject;
+    private final List<ChainedModelBuilder> builders;
+    private Object eclipseProject;
 
-    public ModelBuildingAdapter(ModelBuilder builder) {
-        this.builder = builder;
+    public ModelBuildingAdapter(ChainedModelBuilder ... builders) {
+        this.builders = asList(builders);
     }
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
-        eclipseProject = builder.buildAll((GradleInternal) gradle);
+        for (ChainedModelBuilder b : builders) {
+            eclipseProject = b.buildAll((GradleInternal) gradle, eclipseProject);
+        }
     }
 
-    public DefaultEclipseProject getProject() {
+    public Object getProject() {
         return eclipseProject;
     }
 }
