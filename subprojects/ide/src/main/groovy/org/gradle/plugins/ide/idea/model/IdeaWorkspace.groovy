@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model
 
-import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
 
 /**

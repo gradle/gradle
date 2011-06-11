@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.plugins.ide.internal.XmlFileContentMerger
+import org.gradle.plugins.ide.api.XmlFileContentMerger
 
 /**
  * Models the generation/parsing/merging capabilities of idea module
