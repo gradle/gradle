@@ -16,33 +16,29 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
-import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
-import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
-import org.gradle.plugins.ide.eclipse.model.EclipseModel;
-import org.gradle.tooling.internal.DefaultEclipseProject;
+import org.gradle.plugins.ide.eclipse.model.*;
+import org.gradle.tooling.internal.*;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
-import org.gradle.tooling.internal.provider.dependencies.EclipseProjectDependenciesFactory;
-import org.gradle.tooling.internal.provider.dependencies.ExternalDependenciesFactory;
-import org.gradle.tooling.internal.provider.dependencies.SourceDirectoriesFactory;
 import org.gradle.util.GUtil;
+import org.gradle.util.ReflectionUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 /**
 * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
 */
 public class ModelBuilder implements ChainedModelBuilder {
     private boolean projectDependenciesOnly;
-    private DefaultEclipseProject currentProject;
-    private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
+    private Object currentProject;
+    private final Map<String, Object> projectMapping = new HashMap<String, Object>();
     private GradleInternal gradle;
     private final TasksFactory tasksFactory;
 
@@ -51,7 +47,7 @@ public class ModelBuilder implements ChainedModelBuilder {
         this.projectDependenciesOnly = projectDependenciesOnly;
     }
 
-    public DefaultEclipseProject buildAll(GradleInternal gradle, Object currentModel) {
+    public Object buildAll(GradleInternal gradle, Object currentModel) {
         this.gradle = gradle;
         Project root = gradle.getRootProject();
         tasksFactory.collectTasks(root);
@@ -61,7 +57,7 @@ public class ModelBuilder implements ChainedModelBuilder {
         return currentProject;
     }
 
-    private void addProject(Project project, DefaultEclipseProject eclipseProject) {
+    private void addProject(Project project, Object eclipseProject) {
         if (project == gradle.getDefaultProject()) {
             currentProject = eclipseProject;
         }
@@ -75,23 +71,46 @@ public class ModelBuilder implements ChainedModelBuilder {
         classpath.setProjectDependenciesOnly(projectDependenciesOnly);
         List<ClasspathEntry> entries = classpath.resolveDependencies();
 
-        List<ExternalDependencyVersion1> dependencies = new ExternalDependenciesFactory().create(project, entries);
-        List<EclipseProjectDependencyVersion2> projectDependencies = new EclipseProjectDependenciesFactory().create(projectMapping, entries);
-        List<EclipseSourceDirectoryVersion1> sourceDirectories = new SourceDirectoriesFactory().create(project, entries);
+        final List<ExternalDependencyVersion1> externalDependencies = new LinkedList<ExternalDependencyVersion1>();
+        final List<EclipseProjectDependencyVersion2> projectDependencies = new LinkedList<EclipseProjectDependencyVersion2>();
+        final List<EclipseSourceDirectoryVersion1> sourceDirectories = new ArrayList<EclipseSourceDirectoryVersion1>();
 
-        DefaultEclipseProject eclipseProject = projectMapping.get(project.getPath());
-        eclipseProject.setClasspath(dependencies);
-        eclipseProject.setProjectDependencies(projectDependencies);
-        eclipseProject.setSourceDirectories(sourceDirectories);
-        tasksFactory.populate(project, eclipseProject);
+        for (ClasspathEntry entry : entries) {
+            if (entry instanceof Library) {
+                Library library = (Library) entry;
+                final File file = project.file(library.getPath());
+                final File source = library.getSourcePath() == null ? null : project.file(library.getSourcePath());
+                final File javadoc = library.getJavadocPath() == null ? null : project.file(library.getJavadocPath());
+                externalDependencies.add(new DefaultExternalDependency(file, javadoc, source));
+            } else if (entry instanceof ProjectDependency) {
+                final ProjectDependency projectDependency = (ProjectDependency) entry;
+                final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
+                DefaultEclipseProjectDependency dep = ReflectionUtil.newInstance(DefaultEclipseProjectDependency.class, path, projectMapping.get(projectDependency.getGradlePath()));
+                projectDependencies.add(dep);
+            } else if (entry instanceof SourceFolder) {
+                String path = ((SourceFolder) entry).getPath();
+                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, project.file(path)));
+            }
+        }
+
+        final Object eclipseProject = projectMapping.get(project.getPath());
+        ReflectionUtil.setProperty(eclipseProject, "classpath", externalDependencies);
+        ReflectionUtil.setProperty(eclipseProject, "projectDependencies", projectDependencies);
+        ReflectionUtil.setProperty(eclipseProject, "sourceDirectories", sourceDirectories);
+
+        List out = new ArrayList();
+        for (final Task t : tasksFactory.getTasks(project)) {
+            out.add(ReflectionUtil.newInstance(DefaultTask.class, eclipseProject, t.getPath(), t.getName(), t.getDescription()));
+        }
+        ReflectionUtil.setProperty(eclipseProject, "tasks", out);
 
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
         }
     }
 
-    private DefaultEclipseProject buildHierarchy(Project project) {
-        List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
+    private Object buildHierarchy(Project project) {
+        List children = new ArrayList();
         for (Project child : project.getChildProjects().values()) {
             children.add(buildHierarchy(child));
         }
@@ -100,9 +119,9 @@ public class ModelBuilder implements ChainedModelBuilder {
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children);
-        for (DefaultEclipseProject child : children) {
-            child.setParent(eclipseProject);
+        Object eclipseProject = ReflectionUtil.newInstance(DefaultEclipseProject.class, name, project.getPath(), description, project.getProjectDir(), children);
+        for (Object child : children) {
+            ReflectionUtil.setProperty(child, "parent", eclipseProject);
         }
         addProject(project, eclipseProject);
         return eclipseProject;
