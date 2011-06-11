@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
+import org.gradle.tooling.internal.DefaultEclipseLinkedResource;
 import org.gradle.tooling.internal.DefaultEclipseSourceDirectory;
 import org.gradle.tooling.internal.DefaultExternalDependency;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
@@ -98,6 +99,14 @@ public class ModelBuilder {
         ReflectionUtil.setProperty(eclipseProject, "classpath", externalDependencies);
         ReflectionUtil.setProperty(eclipseProject, "projectDependencies", projectDependencies);
         ReflectionUtil.setProperty(eclipseProject, "sourceDirectories", sourceDirectories);
+
+        if (ReflectionUtil.hasProperty(eclipseProject, "linkedResources")) {
+            List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<DefaultEclipseLinkedResource>();
+            for(Link r: eclipseModel.getProject().getLinkedResources()) {
+                linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
+            }
+            ReflectionUtil.setProperty(eclipseProject, "linkedResources", linkedResources);
+        }
 
         List out = new ArrayList();
         for (final Task t : tasksFactory.getTasks(project)) {

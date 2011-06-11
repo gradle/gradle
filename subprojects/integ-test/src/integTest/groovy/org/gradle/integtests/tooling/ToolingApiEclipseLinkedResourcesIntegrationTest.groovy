@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.tooling
 
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1
+import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
 /**
@@ -39,10 +41,20 @@ eclipse.project {
         HierarchicalEclipseProject minimalProject = withConnection { it.getModel(HierarchicalEclipseProject.class) }
 
         then:
-        minimalProject.linkedResources.size() == 0
+        minimalProject.linkedResources.size() == 2
+
+        minimalProject.linkedResources[0].name == 'foo'
+        minimalProject.linkedResources[0].type == '2'
+        minimalProject.linkedResources[0].location == '/path/to/foo'
+        minimalProject.linkedResources[0].locationUri == null
+
+        minimalProject.linkedResources[1].name == 'bar'
+        minimalProject.linkedResources[1].type == '3'
+        minimalProject.linkedResources[1].location == null
+        minimalProject.linkedResources[1].locationUri == 'file://..'
     }
 
-    def "cannot build linked for previous version"() {
+    def "cannot build linked resources for previous version"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = "apply plugin: 'java'"
 
@@ -56,6 +68,46 @@ eclipse.project {
 
         then:
         def e = thrown(Exception)
+        //TODO SF - improve the error message
         e.message.contains "Cannot map method HierarchicalEclipseProject.getLinkedResources()"
+    }
+
+    def "keeps backwards compatibility"() {
+        //TODO SF - proudly copy pasted from ToolingApiEclipseModelIntegrationTest :-D
+        //We need to figure out the strategy for testing tooling api for previous versions
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+description = 'this is a project'
+'''
+        projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
+
+        when:
+        HierarchicalEclipseProject minimalProject = withConnection {
+            it.modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class)
+            it.getModel(HierarchicalEclipseProject.class)
+        }
+
+        then:
+        minimalProject.path == ':'
+        minimalProject.name == 'test project'
+        minimalProject.description == 'this is a project'
+        minimalProject.projectDirectory == projectDir
+        minimalProject.parent == null
+        minimalProject.children.empty
+
+        when:
+        EclipseProject fullProject = withConnection {
+            it.modelTypeMap.put(EclipseProject.class, EclipseProjectVersion3.class)
+            it.getModel(EclipseProject.class)
+        }
+
+        then:
+        fullProject.path == ':'
+        fullProject.name == 'test project'
+        fullProject.description == 'this is a project'
+        fullProject.projectDirectory == projectDir
+        fullProject.parent == null
+        fullProject.children.empty
     }
 }
