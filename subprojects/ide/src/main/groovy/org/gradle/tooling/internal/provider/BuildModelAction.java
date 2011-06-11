@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
 public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
-    private final ModelBuilder builder;
+    private ModelBuildingAdapter modelBuildingAdapter;
 
     public BuildModelAction(Class<? extends ProjectVersion3> type) {
         if (!type.isAssignableFrom(EclipseProjectVersion3.class)) {
@@ -32,16 +32,16 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
 
         boolean projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
         boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
-        builder = new ModelBuilder(includeTasks, projectDependenciesOnly);
+        ModelBuilder builder = new ModelBuilder(includeTasks, projectDependenciesOnly);
+        modelBuildingAdapter = new ModelBuildingAdapter(builder);
     }
 
     public BuildResult run(GradleLauncher launcher) {
-        ModelBuildingAdapter adapter = new ModelBuildingAdapter(builder);
-        launcher.addListener(adapter);
+        launcher.addListener(modelBuildingAdapter);
         return launcher.getBuildAnalysis();
     }
 
     public ProjectVersion3 getResult() {
-        return builder.getProject();
+        return modelBuildingAdapter.getProject();
     }
 }

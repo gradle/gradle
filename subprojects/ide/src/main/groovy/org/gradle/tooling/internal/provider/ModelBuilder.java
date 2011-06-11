@@ -51,16 +51,13 @@ public class ModelBuilder {
         this.projectDependenciesOnly = projectDependenciesOnly;
     }
 
-    public void buildAll(GradleInternal gradle) {
+    public DefaultEclipseProject buildAll(GradleInternal gradle) {
         this.gradle = gradle;
         Project root = gradle.getRootProject();
         tasksFactory.collectTasks(root);
         new EclipsePluginApplier().apply(root);
         buildHierarchy(root);
         populate(root);
-    }
-
-    public DefaultEclipseProject getProject() {
         return currentProject;
     }
 

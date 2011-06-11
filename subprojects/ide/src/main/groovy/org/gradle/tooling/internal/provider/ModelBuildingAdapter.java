@@ -19,13 +19,15 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.BuildAdapter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.tooling.internal.DefaultEclipseProject;
 
 /**
  * @author Szczepan Faber, @date: 25.03.11
  */
 public class ModelBuildingAdapter extends BuildAdapter {
 
-    ModelBuilder builder;
+    private ModelBuilder builder;
+    private DefaultEclipseProject eclipseProject;
 
     public ModelBuildingAdapter(ModelBuilder builder) {
         this.builder = builder;
@@ -33,6 +35,10 @@ public class ModelBuildingAdapter extends BuildAdapter {
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
-        builder.buildAll((GradleInternal) gradle);
+        eclipseProject = builder.buildAll((GradleInternal) gradle);
+    }
+
+    public DefaultEclipseProject getProject() {
+        return eclipseProject;
     }
 }
