@@ -36,7 +36,7 @@ eclipse.project {
 }
 '''
         when:
-        HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject minimalProject = withConnection { it.getModel(HierarchicalEclipseProject.class) }
 
         then:
         minimalProject.linkedResources.size() == 0
@@ -47,12 +47,15 @@ eclipse.project {
         projectDir.file('build.gradle').text = "apply plugin: 'java'"
 
         when:
-        def e = maybeFailWithConnection { connection ->
-            connection.modelTypeMap.put(HierarchicalEclipseProjectVersion1.class, HierarchicalEclipseProjectVersion1.class)
-            connection.getModel(HierarchicalEclipseProjectVersion1.class)
+        def minimalProject = withConnection { connection ->
+            connection.modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class)
+            connection.getModel(HierarchicalEclipseProject.class)
         }
 
+        minimalProject.linkedResources
+
         then:
-        e instanceof Exception
+        def e = thrown(Exception)
+        e.message.contains "Cannot map method HierarchicalEclipseProject.getLinkedResources()"
     }
 }
