@@ -20,27 +20,21 @@ import org.gradle.BuildAdapter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 
-import java.util.List;
-
-import static java.util.Arrays.asList;
-
 /**
  * @author Szczepan Faber, @date: 25.03.11
  */
 public class ModelBuildingAdapter extends BuildAdapter {
 
-    private final List<ChainedModelBuilder> builders;
+    private final ModelBuilder builder;
     private Object eclipseProject;
 
-    public ModelBuildingAdapter(ChainedModelBuilder ... builders) {
-        this.builders = asList(builders);
+    public ModelBuildingAdapter(ModelBuilder builder) {
+        this.builder = builder;
     }
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
-        for (ChainedModelBuilder b : builders) {
-            eclipseProject = b.buildAll((GradleInternal) gradle, eclipseProject);
-        }
+        eclipseProject = builder.buildAll((GradleInternal) gradle);
     }
 
     public Object getProject() {

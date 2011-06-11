@@ -45,4 +45,11 @@ public interface HierarchicalEclipseProject extends HierarchicalProject {
      * @return The source directories. Returns an empty set if the project has no source directories.
      */
     DomainObjectSet<? extends EclipseSourceDirectory> getSourceDirectories();
+
+    /**
+     * Returns the linked resources for this project.
+     *
+     * @return The linked resources.
+     */
+    DomainObjectSet<? extends EclipseLinkedResource> getLinkedResources();
 }

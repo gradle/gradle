@@ -15,19 +15,18 @@
  */
 package org.gradle.tooling.internal;
 
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion4;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion2;
 
 import java.io.Serializable;
 
-//TODO SF - rename to defaultEclipseTask
-public class DefaultTask implements EclipseTaskVersion1, Serializable {
-    private final EclipseProjectVersion3 project;
+public class DefaultTaskVersion2 implements EclipseTaskVersion2, Serializable {
+    private final EclipseProjectVersion4 project;
     private final String path;
     private final String name;
     private final String description;
 
-    public DefaultTask(EclipseProjectVersion3 project, String path, String name, String description) {
+    public DefaultTaskVersion2(EclipseProjectVersion4 project, String path, String name, String description) {
         this.project = project;
         this.path = path;
         this.name = name;
@@ -39,7 +38,7 @@ public class DefaultTask implements EclipseTaskVersion1, Serializable {
         return String.format("task '%s'", path);
     }
 
-    public EclipseProjectVersion3 getProject() {
+    public EclipseProjectVersion4 getProject() {
         return project;
     }
 
