@@ -18,10 +18,12 @@ package org.gradle.tooling.internal;
 
 import org.gradle.tooling.internal.protocol.eclipse.EclipseLinkedResourceVersion1;
 
+import java.io.Serializable;
+
 /**
  * @author: Szczepan Faber, created at: 6/11/11
  */
-public class DefaultEclipseLinkedResource implements EclipseLinkedResourceVersion1 {
+public class DefaultEclipseLinkedResource implements Serializable, EclipseLinkedResourceVersion1 {
 
     private String name;
     private String type;
