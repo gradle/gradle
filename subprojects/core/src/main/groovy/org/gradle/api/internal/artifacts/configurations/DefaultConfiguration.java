@@ -503,24 +503,50 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public String dump() {
         StringBuilder reply = new StringBuilder();
 
-        reply.append("\nConfiguration:" + this.getName());
+        reply.append("\nConfiguration:");
+        reply.append("  class='" + this.getClass() + "'");
+        reply.append("  name='" + this.getName() + "'");
+        reply.append("  hashcode='" + this.hashCode()+"'");
 
         reply.append("\nLocal Dependencies:");
-        for (Dependency d : getDependencies()) {
-            reply.append("\n   " + d);
+        if (getDependencies().size() > 0) {
+            for (Dependency d : getDependencies()) {
+                reply.append("\n   " + d);
+            }
         }
+        else {
+            reply.append("\n   none");
+        }
+        
         reply.append("\nLocal Artifacts:");
-        for (PublishArtifact a : getArtifacts()) {
-            reply.append("\n   " + a);
+        if (getArtifacts().size() > 0) {
+            for (PublishArtifact a : getArtifacts()) {
+                reply.append("\n   " + a);
+            }
+        }
+        else {
+            reply.append("\n   none");
         }
 
         reply.append("\nAll Dependencies:");
-        for (Dependency d : getAllDependencies()) {
-            reply.append("\n   " + d);
+        if (getAllDependencies().size() > 0) {
+            for (Dependency d : getAllDependencies()) {
+                reply.append("\n   " + d);
+            }
         }
+        else {
+            reply.append("\n   none");
+        }
+        
+        
         reply.append("\nAll Artifacts:");
-        for (PublishArtifact a : getAllArtifacts()) {
-            reply.append("\n   " + a);
+        if (getAllArtifacts().size() > 0) {
+            for (PublishArtifact a : getAllArtifacts()) {
+                reply.append("\n   " + a);
+            }
+        }
+        else {
+            reply.append("\n   none");
         }
 
         return reply.toString();
