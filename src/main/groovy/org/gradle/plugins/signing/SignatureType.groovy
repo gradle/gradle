@@ -21,18 +21,21 @@ import org.gradle.plugins.signing.signatory.Signatory
 
 enum SignatureType {
 	BINARY("sig"),
-	ARMORED("asc", { new ArmoredOutputStream(it) })
+	ARMORED("asc", { output, operation -> operation(new ArmoredOutputStream(output)).close() })
 
 	final String fileExtension
 	private Closure outputDecorator
 	
-	SignatureType(String fileExtension, Closure outputDecorator = { it }) {
+	SignatureType(String fileExtension, Closure outputDecorator = { output, operation -> operation(output) }) {
 		this.fileExtension = fileExtension
 		this.outputDecorator = outputDecorator
 	}
 
 	void sign(Signatory signatory, InputStream toSign, OutputStream destination) {
-		signatory.sign(toSign, outputDecorator(destination))
+		outputDecorator(destination) {
+			signatory.sign(toSign, it)
+			it
+		}
 	}
 		
 	File fileFor(File toSign) {
