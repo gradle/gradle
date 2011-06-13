@@ -78,7 +78,7 @@ class SigningSettings {
 			def signTask = project.task("${taskToSign.name}-sign", type: Sign) {
 				sign taskToSign
 			}
-			configuration.addArtifact(signTask.artifact)
+			configuration.addArtifact(signTask.singleArtifact)
 			signTask
 		}
 	}
@@ -87,7 +87,7 @@ class SigningSettings {
 		def signTask = project.task("${artifact.name}-sign", type: Sign) {
 			delegate.sign artifact
 		}
-		configuration.addArtifact(signTask.artifact)
+		configuration.addArtifact(signTask.singleArtifact)
 		signTask
 	}
 	

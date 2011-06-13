@@ -16,12 +16,12 @@
 package org.gradle.plugins.signing
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.file.FileCollection
 
 import org.gradle.plugins.signing.signatory.Signatory
 
@@ -30,71 +30,87 @@ import org.gradle.plugins.signing.signatory.Signatory
  */
 class Sign extends DefaultTask {
 	
-	private final SignOperation operation
 	final SigningSettings settings
+	final private SignOperation operation
 	
 	Sign() {
 		super()
 		settings = project.signing
 		operation = new SignOperation(settings)
 	}
-
-	void sign(AbstractArchiveTask task) {
-		dependsOn(task)
-		sign(task.archivePath, task.classifier)
+	
+	void sign(AbstractArchiveTask... toSign) {
+		for (it in toSign) {
+			dependsOn(it)
+			addSignature(it, it.archivePath, it.classifier)
+		}
 	}
 	
-	void sign(AbstractArchiveTask task, SignatureType type) {
-		dependsOn(task)
-		sign(task.archivePath, type, task.classifier)
+	void sign(PublishArtifact... toSign) {
+		for (it in toSign) {
+			dependsOn(it.buildDependencies)
+			addSignature(it, it.file, it.classifier)
+		}
 	}
 	
-	void sign(PublishArtifact artifact) {
-		dependsOn(artifact.buildDependencies)
-		operation.sign(artifact, this)
+	void sign(File... toSign) {
+		sign(null, *toSign)
 	}
 	
-	void sign(PublishArtifact artifact, SignatureType type) {
-		dependsOn(artifact.buildDependencies)
-		operation.sign(artifact, type, this)
+	void sign(String classifier, File... toSign) {
+		for (it in toSign) {
+			addSignature(it, it, classifier)
+		}
 	}
 	
-	void sign(File toSign, String classifier = null) {
-		operation.sign(toSign, classifier, this)
+	private addSignature(Object source, File toSign, String classifier = null) {
+		def signature = operation.addSignature(source, toSign, classifier, this)
+		
+		// Not using @InputFiles because there is no @OutputFiles, better to be consistent
+/*		inputs.file(toSign)*/
+/*		outputs.file(signature.file)*/
 	}
 	
-	void sign(File toSign, SignatureType type, String classifier = null) {
-		operation.sign(toSign, type, classifier, this)
-	}
-
 	void signatory(Signatory signatory) {
 		operation.signatory(signatory)
 	}
-	
-	@TaskAction
-	void doSigning() {
-		operation.execute()
-	}
-	
-	@InputFile
-	File getToSign() {
-		operation.toSign
-	}
-
+		
 	Signatory getSignatory() {
 		operation.signatory
+	}
+
+	void type(SignatureType type) {
+		operation.type(type)
 	}
 
 	SignatureType getType() {
 		operation.type
 	}
 	
-	@OutputFile 
-	File getSignature() {
-		operation.signature
+	@InputFile
+	FileCollection getSigned() {
+		operation.signed
 	}
 	
-	PublishArtifact getArtifact() {
-		operation.artifact
+	@OutputFile
+	FileCollection getFiles() {
+		operation.files
+	}
+
+	PublishArtifact[] getArtifacts() {
+		operation.artifacts
+	}
+
+	PublishArtifact getSingleArtifact() {
+		operation.singleArtifact
+	}
+	
+	Signature getSingleSignature() {
+		operation.singleSignature
+	}
+	
+	@TaskAction
+	void execute() {
+		operation.execute()
 	}
 }

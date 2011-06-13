@@ -77,7 +77,7 @@ uploadPublished {
 				
 				if (doSign) {
 					beforeDeployment { MavenDeployment deployment ->
-						def signedPomArtifact = sign(deployment.pomArtifact).artifact
+						def signedPomArtifact = sign(deployment.pomArtifact).singleArtifact
 						// Have to alter the “type” of the artifact to match what is published
 						// See http://issues.gradle.org/browse/GRADLE-1589
 						signedPomArtifact.type = "pom." + signing.type.fileExtension

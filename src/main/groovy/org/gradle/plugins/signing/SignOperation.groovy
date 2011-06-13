@@ -16,8 +16,12 @@
 package org.gradle.plugins.signing
 
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
+
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 
 import org.gradle.util.ConfigureUtil
 
@@ -25,76 +29,108 @@ import org.gradle.plugins.signing.signatory.Signatory
 
 class SignOperation {
 
-	private File toSign
-	private Signatory signatory
-	private SignatureType type
-	
-	private File signature
-	private PublishArtifact artifact
-	
+	SignatureType type
+	Signatory signatory
 	private final SigningSettings settings
+	final private List<Signature> signatures = []
 	
 	SignOperation(SigningSettings settings) {
 		this.settings = settings
 	}
 	
-	SignOperation sign(PublishArtifact artifact, Object[] tasks) {
-		sign(artifact.file, artifact.classifier, tasks)
+	String getDisplayName() {
+		"SignOperation"
 	}
+	
+	String toString() {
+		getDisplayName()
+	}
+	
+	SignOperation sign(PublishArtifact... toSign) {
+		toSign.each {
+			addSignature(it, it.file, it.classifier, it.buildDependencies)
+		}
+		this
+	}
+	
+	SignOperation sign(File... toSign) {
+		sign(null, *toSign)
+	}
+	
+	SignOperation sign(String classifier, File... toSign) {
+		toSign.each {
+			addSignature(it, it, classifier)
+		}
+		this
+	}
+	
+	Signature addSignature(Object source, File toSign, String classifier, Object[] dependsOn) {
+		def type = getType()
+		def file = type.fileFor(toSign)
 
-	SignOperation sign(PublishArtifact artifact, SignatureType type, Object[] tasks) {
-		sign(artifact.file, type, artifact.classifier, tasks)
-	}
-	
-	SignOperation sign(File toSign, String classifier = null, Object[] tasks) {
-		sign(toSign, settings.type, classifier, tasks)
-	}
-	
-	SignOperation sign(File toSign, SignatureType type, String classifier = null, Object[] tasks) {
-		this.toSign = toSign
-		this.type = type
-		this.signature = type.fileFor(toSign)
-		this.artifact = new DefaultPublishArtifact(
-			signature.name,
+		def artifact = new DefaultPublishArtifact(
+			file.name,
 			"Signature ($type.fileExtension)",
 			type.combinedExtension(toSign),
 			classifier,
 			null, // no specific date, use now
-			signature,
-			tasks == null ? [] : tasks
+			file,
+			dependsOn == null ? [] : dependsOn
 		)
-		this
-	}
-
-	SignOperation signatory(Signatory signatory) {
-		this.signatory = signatory
-		this
-	}
-	
-	SignOperation execute() {
-		// TODO - explode if no signatory has been defined
-		type.sign(getSignatory(), toSign)
-		this
-	}
-	
-	File getToSign() {
-		toSign
-	}
-
-	Signatory getSignatory() {
-		signatory ?: settings.defaultSignatory
-	}
-
-	SignatureType getType() {
-		type
-	}
-	
-	File getSignature() {
+		
+		def signature = new Signature(source, toSign, type, artifact)
+		signatures << signature
 		signature
 	}
 	
-	PublishArtifact getArtifact() {
-		artifact
+	SignOperation execute() {
+		for (signature in signatures) {
+			signature.type.sign(getSignatory(), signature.signed)
+		}
+		this
+	}
+	
+	Signature getSingleSignature() {
+		if (signatures.size() == 0) {
+			throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains no signatures.")
+		} else if (signatures.size() == 1) {
+			signatures.first()
+		} else {
+			throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains no ${signature.size()} signatures.")
+		}
+	}
+	
+	FileCollection getSigned() {
+		new SimpleFileCollection(*signatures*.signed)
+	}
+	
+	FileCollection getFiles() {
+		new SimpleFileCollection(*signatures*.file)
+	}
+	
+	PublishArtifact[] getArtifacts() {
+		signatures*.artifact as PublishArtifact[]
+	}
+
+	PublishArtifact getSingleArtifact() {
+		getSingleSignature().artifact
+	}
+	
+	void type(SignatureType type) {
+		this.type = type
+	}
+	
+	SignatureType getType() {
+		type ?: settings.type
+	}
+	
+	Signatory getSignatory() {
+		signatory ?: settings.defaultSignatory
+	}
+	
+	SignOperation signatory(Signatory signatory) {
+		this.signatory = signatory
+		this
 	}
 	
 	SignOperation configure(Closure closure) {

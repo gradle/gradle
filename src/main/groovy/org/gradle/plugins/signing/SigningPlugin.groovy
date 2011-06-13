@@ -51,32 +51,29 @@ class SigningPlugin implements Plugin<Project> {
 			settings
 		}
 		
-		SignOperation sign(PublishArtifact toSign, Closure closure = null) {
+		SignOperation sign(PublishArtifact... toSign) {
 			createSignOperation {
-				sign toSign
-				configure(closure) 
+				sign(*toSign)
+				execute()
 			}
 		}
 		
-		SignOperation sign(PublishArtifact toSign, SignatureType type, Closure closure = null) {
+		SignOperation sign(File... toSign) {
 			createSignOperation {
-				sign toSign, type
-				configure(closure) 
+				sign(*toSign)
+				execute()
 			}
 		}
 		
-		SignOperation sign(File toSign, String classifier = null, Closure closure = null) {
+		SignOperation sign(String classifier, File... toSign) {
 			createSignOperation {
-				sign toSign, classifier
-				configure(closure) 
+				sign(classifier, *toSign)
+				execute()
 			}
 		}
 		
-		SignOperation sign(File toSign, SignatureType type, String classifier = null, Closure closure = null) {
-			createSignOperation {
-				sign toSign, type, classifier
-				configure(closure) 
-			}
+		SignOperation sign(Closure closure) {
+			createSignOperation(closure)
 		}
 		
 		protected createSignOperation(Closure setup) {

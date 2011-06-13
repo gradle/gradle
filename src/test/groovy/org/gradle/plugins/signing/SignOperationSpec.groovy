@@ -19,39 +19,72 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
 class SignOperationSpec extends SigningProjectSpec {
 	
-	def input
-	def output
+	def input1
+	def input2
+	def input1Artifact
+	def input2Artifact
+	def output1
+	def output2
 	
 	def setup() {
 		applyPlugin()
 		addSigningProperties()
-		input = getResourceFile("some.txt")
-		output = signing.type.fileFor(input)
-		assert !output.exists() || output.delete()
-		assert input.text // don't care what it is, just need some
+		
+		input1 = getResourceFile("1.txt")
+		input1Artifact = new DefaultPublishArtifact(input1.name, "Text File", "txt", null, null, input1)
+		output1 = signing.type.fileFor(input1)
+		
+		input2 = getResourceFile("2.txt")
+		output2 = signing.type.fileFor(input2)
+		input2Artifact = new DefaultPublishArtifact(input2.name, "Text File", "txt", null, null, input2)
+		
+		[output1, output2].each { output ->
+			assert !output.exists() || output.delete()
+		}
+		
+		assert input1.text && input2.text  // don't care what it is, just need some
 	}
 	
-	def "sign file with defaults"() {
+	def "sign single file with defaults"() {
 		when:
-		def operation = sign(input)
+		def operation = sign(input1)
 		
 		then:
-		output.exists()
-		output == operation.signature
-		output == operation.artifact.file
+		output1.exists()
+		output1 == operation.singleSignature.file
+		output1 == operation.singleArtifact.file
 	}
 	
-	def "sign artifact with defaults"() {
-		given:
-		def inputArtifact = new DefaultPublishArtifact(input.name, "Text File", "txt", null, null, input)
-		
+	def "sign single artifact with defaults"() {
 		when:
-		def operation = sign(inputArtifact)
+		def operation = sign(input1Artifact)
 		
 		then:
-		output.exists()
-		output == operation.signature
-		output == operation.artifact.file
+		output1.exists()
+		output1 == operation.singleSignature.file
+		output1 == operation.singleArtifact.file
+	}
+	
+	def "sign multiple files with defaults"() {
+		when:
+		def operation = sign(input1, input2)
+		
+		then:
+		output1.exists() && output2.exists()
+		[input1, input2] == operation.signed.files.toList()[0..1]
+		[output1, output2] == operation.files.files.toList()[0..1]
+		[output1, output2] == operation.artifacts*.file.toList()
+	}
+
+	def "sign multiple artifacts with defaults"() {
+		when:
+		def operation = sign(input1Artifact, input2Artifact)
+		
+		then:
+		output1.exists() && output2.exists()
+		[input1, input2] == operation.signed.files.toList()[0..1]
+		[output1, output2] == operation.files.files.toList()[0..1]
+		[output1, output2] == operation.artifacts*.file.toList()
 	}
 	
 }

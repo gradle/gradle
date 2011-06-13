@@ -43,7 +43,7 @@ class SigningTasksSpec extends SigningProjectSpec {
 		javadocJar in signJavadocJarTask.dependsOn
 		
 		and:
-		signingTasks.every { it.artifact in configurations.signatures.artifacts }
+		signingTasks.every { it.singleArtifact in configurations.signatures.artifacts }
 
 		and:
 		signingTasks.every { it.signatory == signing.defaultSignatory }
