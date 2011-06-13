@@ -32,15 +32,12 @@ class SigningTasksSpec extends SigningProjectSpec {
 		}
 		
 		then:
-		def signJarTask = tasks["jar-sign"]
-		def signSourcesJarTask = tasks["sourcesJar-sign"]
-		def signJavadocJarTask = tasks["javadocJar-sign"]
-		def signingTasks = [signJarTask, signSourcesJarTask, signJavadocJarTask]
+		def signingTasks = [signJar, signSourcesJar, signJavadocJar]
 		
 		and:
-		jar in signJarTask.dependsOn
-		sourcesJar in signSourcesJarTask.dependsOn
-		javadocJar in signJavadocJarTask.dependsOn
+		jar in signJar.dependsOn
+		sourcesJar in signSourcesJar.dependsOn
+		javadocJar in signJavadocJar.dependsOn
 		
 		and:
 		signingTasks.every { it.singleArtifact in configurations.signatures.artifacts }
@@ -57,13 +54,13 @@ class SigningTasksSpec extends SigningProjectSpec {
 		def signJarTask = signing.sign(jar)
 		
 		then:
-		signJarTask.name == "jar-sign"
+		signJarTask.name == "signJar"
 		
 		when:
 		def (signSourcesJarTask, signJavadocJarTask) = signing.sign(sourcesJar, javadocJar)
 		
 		then:
-		[signSourcesJarTask, signJavadocJarTask]*.name == ["sourcesJar-sign", "javadocJar-sign"]
+		[signSourcesJarTask, signJavadocJarTask]*.name == ["signSourcesJar", "signJavadocJar"]
 	}
 	
 }
