@@ -928,19 +928,19 @@ public class DefaultConfigurationTest {
 
         assertThat(configuration.dump(),
                 containsString(
-                "\nConfiguration:"+
-                "  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'"+
-                "  name='name'"+
-                "  hashcode='"+ configuration.hashCode() +"'"+
-                "\nLocal Dependencies:"+
-                "\n   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}"+
-                "\nLocal Artifacts:"+
-                "\n   none"+
-                "\nAll Dependencies:"+
-                "\n   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}"+
-                "\n   DefaultExternalModuleDependency{group='dumpgroup2', name='dumpname2', version='dumpversion2', configuration='default'}"+
-                "\nAll Artifacts:"+
-                "\n   none"));
+                "\nConfiguration:"
+                + "  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'"
+                + "  name='name'"
+                + "  hashcode='"+ configuration.hashCode() +"'"
+                + "\nLocal Dependencies:"
+                + "\n   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}"
+                + "\nLocal Artifacts:"
+                + "\n   none"
+                + "\nAll Dependencies:"
+                + "\n   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}"
+                + "\n   DefaultExternalModuleDependency{group='dumpgroup2', name='dumpname2', version='dumpversion2', configuration='default'}"
+                + "\nAll Artifacts:"
+                + "\n   none"));
     }
 
     private void assertInvalidUserDataException(Executer executer) {

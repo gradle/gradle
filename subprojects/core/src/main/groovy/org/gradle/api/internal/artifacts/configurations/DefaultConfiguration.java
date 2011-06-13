@@ -506,25 +506,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         reply.append("\nConfiguration:");
         reply.append("  class='" + this.getClass() + "'");
         reply.append("  name='" + this.getName() + "'");
-        reply.append("  hashcode='" + this.hashCode()+"'");
+        reply.append("  hashcode='" + this.hashCode() + "'");
 
         reply.append("\nLocal Dependencies:");
         if (getDependencies().size() > 0) {
             for (Dependency d : getDependencies()) {
                 reply.append("\n   " + d);
             }
-        }
-        else {
+        } else {
             reply.append("\n   none");
         }
-        
+
         reply.append("\nLocal Artifacts:");
         if (getArtifacts().size() > 0) {
             for (PublishArtifact a : getArtifacts()) {
                 reply.append("\n   " + a);
             }
-        }
-        else {
+        } else {
             reply.append("\n   none");
         }
 
@@ -533,19 +531,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             for (Dependency d : getAllDependencies()) {
                 reply.append("\n   " + d);
             }
-        }
-        else {
+        } else {
             reply.append("\n   none");
         }
-        
-        
+
+
         reply.append("\nAll Artifacts:");
         if (getAllArtifacts().size() > 0) {
             for (PublishArtifact a : getAllArtifacts()) {
                 reply.append("\n   " + a);
             }
-        }
-        else {
+        } else {
             reply.append("\n   none");
         }
 
