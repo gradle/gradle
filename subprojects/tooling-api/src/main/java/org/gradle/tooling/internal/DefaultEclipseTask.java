@@ -21,13 +21,13 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 import java.io.Serializable;
 
 //TODO SF - rename to defaultEclipseTask
-public class DefaultTask implements EclipseTaskVersion1, Serializable {
+public class DefaultEclipseTask implements EclipseTaskVersion1, Serializable {
     private final EclipseProjectVersion3 project;
     private final String path;
     private final String name;
     private final String description;
 
-    public DefaultTask(EclipseProjectVersion3 project, String path, String name, String description) {
+    public DefaultEclipseTask(EclipseProjectVersion3 project, String path, String name, String description) {
         this.project = project;
         this.path = path;
         this.name = name;

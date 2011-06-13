@@ -20,13 +20,13 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion2;
 
 import java.io.Serializable;
 
-public class DefaultTaskVersion2 implements EclipseTaskVersion2, Serializable {
+public class DefaultEclipseTaskVersion2 implements EclipseTaskVersion2, Serializable {
     private final EclipseProjectVersion4 project;
     private final String path;
     private final String name;
     private final String description;
 
-    public DefaultTaskVersion2(EclipseProjectVersion4 project, String path, String name, String description) {
+    public DefaultEclipseTaskVersion2(EclipseProjectVersion4 project, String path, String name, String description) {
         this.project = project;
         this.path = path;
         this.name = name;

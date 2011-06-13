@@ -25,10 +25,10 @@ import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVe
 public class VersionedTypes {
 
     private static final VersionedTypes DEFAULT_VERSION = new VersionedTypes(
-            DefaultEclipseProject.class, DefaultTask.class, DefaultEclipseProjectDependency.class);
+            DefaultEclipseProject.class, DefaultEclipseTask.class, DefaultEclipseProjectDependency.class);
 
     private static final VersionedTypes LINKED_RESOURCES = new VersionedTypes(
-            DefaultEclipseProjectVersion4.class, DefaultTaskVersion2.class, DefaultEclipseProjectDependencyVersion3.class);
+            DefaultEclipseProjectVersion4.class, DefaultEclipseTaskVersion2.class, DefaultEclipseProjectDependencyVersion3.class);
 
     final public Class forProject;
     final public Class forTask;
