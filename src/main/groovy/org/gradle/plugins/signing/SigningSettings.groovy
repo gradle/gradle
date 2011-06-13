@@ -91,4 +91,17 @@ class SigningSettings {
 		signTask
 	}
 	
+	Sign sign(Configuration configuration) {
+		sign([configuration] as Configuration[]).first()
+	}
+	
+	Collection<Sign> sign(Configuration[] configurations) {
+		configurations.collect { configuration ->
+			def signTask = project.task("sign${configuration.name.capitalize()}", type: Sign) {
+				sign configuration
+			}
+			signTask.artifacts.each { getConfiguration().addArtifact(it) }
+			signTask
+		}
+	}
 }

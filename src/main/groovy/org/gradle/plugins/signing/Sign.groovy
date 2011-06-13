@@ -20,6 +20,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.file.FileCollection
 
@@ -60,6 +61,13 @@ class Sign extends DefaultTask {
 	void sign(String classifier, File... toSign) {
 		for (it in toSign) {
 			addSignature(it, it, classifier)
+		}
+	}
+	
+	void sign(Configuration... configurations) {
+		for (it in configurations) {
+			dependsOn(it.buildArtifacts)
+			sign(*it.allArtifacts.toList())
 		}
 	}
 	

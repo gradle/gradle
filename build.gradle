@@ -48,16 +48,31 @@ dependencies {
 	testCompile "org.spockframework:spock-core:0.5-groovy-1.7"
 }
 
-if (doSign) {
-	signing {
-		sign jar
+configurations {
+	meta
+	published.extendsFrom archives, meta
+	if (doSign) {
+		published.extendsFrom signatures
 	}
 }
 
-configurations {
-	published.extendsFrom archives
-	if (doSign) {
-		published.extendsFrom signatures
+task sourcesJar(type: Jar, dependsOn: classes) { 
+	classifier = 'sources' 
+	from sourceSets.main.allSource
+} 
+
+task groovydocJar(type: Jar, dependsOn: groovydoc) { 
+	classifier = 'javadoc' 
+	from groovydoc.destinationDir 
+} 
+
+artifacts {
+	meta groovydocJar, sourcesJar
+}
+
+if (doSign) {
+	signing {
+		sign configurations.archives, configurations.meta
 	}
 }
 
