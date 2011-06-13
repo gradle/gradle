@@ -75,7 +75,7 @@ class SigningSettings {
 	
 	Collection<Sign> sign(Task[] tasksToSign) {
 		tasksToSign.collect { taskToSign ->
-			def signTask = project.task("${taskToSign.name}-sign", type: Sign) {
+			def signTask = project.task("sign${taskToSign.name.capitalize()}", type: Sign) {
 				sign taskToSign
 			}
 			configuration.addArtifact(signTask.singleArtifact)
@@ -84,7 +84,7 @@ class SigningSettings {
 	}
 	
 	Sign sign(PublishArtifact artifact) {
-		def signTask = project.task("${artifact.name}-sign", type: Sign) {
+		def signTask = project.task("sign${artifact.name.capitalize()}", type: Sign) {
 			delegate.sign artifact
 		}
 		configuration.addArtifact(signTask.singleArtifact)
