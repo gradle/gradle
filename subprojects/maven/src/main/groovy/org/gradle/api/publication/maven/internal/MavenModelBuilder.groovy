@@ -17,10 +17,13 @@
 package org.gradle.api.publication.maven.internal
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publication.maven.MavenPublication
+import org.gradle.api.publication.maven.MavenScope
 import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
+import org.gradle.api.publication.maven.internal.model.DefaultMavenDependency
 import org.gradle.api.publication.maven.internal.model.DefaultMavenPublication
 import org.gradle.api.tasks.bundling.Jar
 
@@ -60,6 +63,28 @@ class MavenModelBuilder {
                 publication.mainArtifact.extension = project.jar.extension
                 publication.mainArtifact.file = project.jar.archivePath
             }
+        }
+
+        //TODO SF:
+        //should project dependencies be transformed into entries in the pom?
+        //flat file dependencies should not break things
+        //how to approach the case when the ExternalDependency has multiple artifcts?
+
+        //dependencies
+        project.configurations['compile'].getDependencies(ExternalDependency).each {
+            publication.dependencies << new DefaultMavenDependency(it, MavenScope.COMPILE);
+        }
+
+        project.configurations['testCompile'].getDependencies(ExternalDependency).each {
+            publication.dependencies << new DefaultMavenDependency(it, MavenScope.TEST);
+        }
+
+        project.configurations['runtime'].getDependencies(ExternalDependency).each {
+            publication.dependencies << new DefaultMavenDependency(it, MavenScope.RUNTIME);
+        }
+
+        project.configurations['testRuntime'].getDependencies(ExternalDependency).each {
+            publication.dependencies << new DefaultMavenDependency(it, MavenScope.TEST);
         }
 
         return publication

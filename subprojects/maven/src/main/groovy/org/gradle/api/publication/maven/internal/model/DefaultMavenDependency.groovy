@@ -13,22 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.publication.maven.internal.model
 
-import org.gradle.api.publication.maven.MavenArtifact
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.publication.maven.MavenDependency
-import org.gradle.api.publication.maven.MavenPomCustomizer
-import org.gradle.api.publication.maven.MavenPublication
+import org.gradle.api.publication.maven.MavenScope
 
-class DefaultMavenPublication implements MavenPublication {
-    String modelVersion
+/**
+ * @author: Szczepan Faber, created at: 6/14/11
+ */
+class DefaultMavenDependency implements MavenDependency {
+
+    DefaultMavenDependency() {}
+
+    DefaultMavenDependency(ExternalDependency externalDependency, MavenScope scope) {
+        this.artifactId = externalDependency.name
+        this.groupId = externalDependency.group
+        this.version = externalDependency.version
+        this.classifier = null
+        this.scope = scope
+        this.optional = false
+    }
+
     String groupId
     String artifactId
     String version
-    String packaging
-    String description
-    MavenArtifact mainArtifact
-    List<MavenArtifact> subArtifacts = []
-    List<MavenDependency> dependencies = []
-    MavenPomCustomizer pom
+    String classifier
+    MavenScope scope
+    boolean optional
 }
