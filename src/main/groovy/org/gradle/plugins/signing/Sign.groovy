@@ -25,6 +25,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.file.FileCollection
 
 import org.gradle.plugins.signing.signatory.Signatory
+import org.gradle.plugins.signing.type.SignatureType
 
 /**
  * Creates a file containing a digital signature alongside an input file.

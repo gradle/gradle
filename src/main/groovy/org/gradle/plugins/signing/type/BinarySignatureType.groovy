@@ -13,27 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.signing.type
 
-package org.gradle.plugins.signing
-
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.plugins.signing.type.SignatureType
-
-class Signature {
+class BinarySignatureType extends AbstractSignatureType {
 	
-	final Object source
-	final File signed
-	final SignatureType type
-	final PublishArtifact artifact
-	
-	Signature(Object source, File signed, SignatureType type, PublishArtifact signature) {
-		this.source = source
-		this.signed = signed
-		this.type = type
-		this.artifact = signature
+	String getExtension() {
+		"sig"
 	}
 	
-	File getFile() {
-		artifact.file
-	}
 }

@@ -13,45 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing
-
-import org.bouncycastle.bcpg.ArmoredOutputStream
+package org.gradle.plugins.signing.type
 
 import org.gradle.plugins.signing.signatory.Signatory
 
-enum SignatureType {
-	BINARY("sig"),
-	ARMORED("asc", { output, operation -> operation(new ArmoredOutputStream(output)).close() })
+abstract class AbstractSignatureType implements SignatureType {
 
-	final String fileExtension
-	private Closure outputDecorator
-	
-	SignatureType(String fileExtension, Closure outputDecorator = { output, operation -> operation(output) }) {
-		this.fileExtension = fileExtension
-		this.outputDecorator = outputDecorator
-	}
-
-	void sign(Signatory signatory, InputStream toSign, OutputStream destination) {
-		outputDecorator(destination) {
-			signatory.sign(toSign, it)
-			it
-		}
-	}
-		
-	File fileFor(File toSign) {
-		new File(toSign.absolutePath + ".$fileExtension")
-	}
-	
-	String combinedExtension(File toSign) {
-		def name = toSign.name
-		def dotIndex = name.lastIndexOf(".")
-		if (dotIndex == -1 || dotIndex + 1 == name.size()) {
-			fileExtension
-		} else {
-			name[++dotIndex..-1] + ".$fileExtension"
-		}
-	}
-	
 	File sign(Signatory signatory, File toSign) {
 		def signatureFile = fileFor(toSign)
 		toSign.withInputStream { toSignStream ->
@@ -60,6 +27,24 @@ enum SignatureType {
 			}
 		}
 		signatureFile
+	}
+	
+	void sign(Signatory signatory, InputStream toSign, OutputStream destination) {
+		signatory.sign(toSign, destination)
+	}
+
+	File fileFor(File toSign) {
+		new File(toSign.path + ".${getExtension()}")
+	}
+	
+	String combinedExtension(File toSign) {
+		def name = toSign.name
+		def dotIndex = name.lastIndexOf(".")
+		if (dotIndex == -1 || dotIndex + 1 == name.size()) {
+			getExtension()
+		} else {
+			name[++dotIndex..-1] + ".${getExtension()}"
+		}
 	}
 	
 }

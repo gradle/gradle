@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.util.ConfigureUtil
 
 import org.gradle.plugins.signing.signatory.Signatory
+import org.gradle.plugins.signing.type.SignatureType
 
 class SignOperation {
 
@@ -70,7 +71,7 @@ class SignOperation {
 
 		def artifact = new DefaultPublishArtifact(
 			file.name,
-			"Signature ($type.fileExtension)",
+			"Signature ($type.extension)",
 			type.combinedExtension(toSign),
 			classifier,
 			null, // no specific date, use now

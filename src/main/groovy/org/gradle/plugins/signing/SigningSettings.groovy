@@ -24,6 +24,10 @@ import org.gradle.util.ConfigureUtil
 
 import org.gradle.plugins.signing.signatory.*
 
+import org.gradle.plugins.signing.type.SignatureType
+import org.gradle.plugins.signing.type.handler.SignatureTypeHandler
+import org.gradle.plugins.signing.type.handler.DefaultSignatureTypeHandler
+
 class SigningSettings {
 	
 	static final String DEFAULT_CONFIGURATION_NAME = "signatures"
@@ -31,12 +35,12 @@ class SigningSettings {
 	private Project project
 	private Map<String, Signatory> signatories = [:]
 	private Configuration configuration
-	private SignatureType type
+	private SignatureTypeHandler typeHandler
 	
 	SigningSettings(Project project) {
 		this.project = project
 		this.configuration = getDefaultConfiguration()
-		this.type = getDefaultType()
+		this.typeHandler = createSignatureTypeHandler()
 	}
 	
 	protected Configuration getDefaultConfiguration() {
@@ -48,8 +52,8 @@ class SigningSettings {
 		configuration
 	}
 	
-	protected SignatureType getDefaultType() {
-		SignatureType.ARMORED
+	protected SignatureTypeHandler createSignatureTypeHandler() {
+		new DefaultSignatureTypeHandler()
 	}
 	
 	Map<String, Signatory> signatories(Closure block) {
@@ -62,7 +66,7 @@ class SigningSettings {
 	}
 	
 	SignatureType getType() {
-		type
+		typeHandler.defaultType
 	}
 	
 	Configuration getConfiguration() {

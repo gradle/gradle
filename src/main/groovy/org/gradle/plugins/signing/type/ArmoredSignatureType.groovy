@@ -13,27 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.signing.type
 
-package org.gradle.plugins.signing
+import org.bouncycastle.bcpg.ArmoredOutputStream
+import org.gradle.plugins.signing.signatory.Signatory
 
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.plugins.signing.type.SignatureType
+class ArmoredSignatureType extends AbstractSignatureType {
 
-class Signature {
-	
-	final Object source
-	final File signed
-	final SignatureType type
-	final PublishArtifact artifact
-	
-	Signature(Object source, File signed, SignatureType type, PublishArtifact signature) {
-		this.source = source
-		this.signed = signed
-		this.type = type
-		this.artifact = signature
+	String getExtension() {
+		"asc"
 	}
 	
-	File getFile() {
-		artifact.file
+	void sign(Signatory signatory, InputStream toSign, OutputStream destination) {
+		def armoredOutputStream = new ArmoredOutputStream(destination)
+		super.sign(signatory, toSign, armoredOutputStream)
+		armoredOutputStream.close()
 	}
+
 }

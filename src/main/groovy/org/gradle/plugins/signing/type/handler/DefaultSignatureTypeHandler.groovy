@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.signing.type.handler
 
-package org.gradle.plugins.signing
+import org.gradle.plugins.signing.type.*
 
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.plugins.signing.type.SignatureType
-
-class Signature {
+class DefaultSignatureTypeHandler extends AbstractSignatureTypeHandler {
 	
-	final Object source
-	final File signed
-	final SignatureType type
-	final PublishArtifact artifact
-	
-	Signature(Object source, File signed, SignatureType type, PublishArtifact signature) {
-		this.source = source
-		this.signed = signed
-		this.type = type
-		this.artifact = signature
+	DefaultSignatureTypeHandler() {
+		register(new BinarySignatureType())
+		def armored = new ArmoredSignatureType()
+		register(armored)
+		setDefaultType(armored.extension)
 	}
 	
-	File getFile() {
-		artifact.file
-	}
 }
