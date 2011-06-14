@@ -16,25 +16,20 @@
 
 package org.gradle.api.publication.maven.internal
 
+import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
+import org.gradle.api.publication.maven.internal.model.DefaultMavenAuthentication
+import org.gradle.api.publication.maven.internal.model.DefaultMavenPublication
+import org.gradle.api.publication.maven.internal.model.DefaultMavenRepository
 import org.gradle.util.Resources
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.sonatype.aether.repository.LocalRepository
 import spock.lang.Specification
-import spock.lang.Ignore
 
 /**
  * @author: Szczepan Faber, created at: 5/12/11
  */
-@Ignore
-//TODO SF
-//This is ignored because I'm having trouble running it from the gradle build (java.lang.VerifyError)
-//so far I figured that the offending dependency is maven-ant-tasks pulled as a transitive dependency of :core
-//However, excluding maven-ant-tasks is:
-// - impossible (e.g. I wasn't able to do it in a non-hacky way :)
-// - troublesome because when I exclude it then I face the ClassNotFound errors.
-//One of the duplicate classes in multiple jars: org.apache.maven.model.Model in maven-ant-tasks.jar and in maven-model.jar
 class DefaultMavenPublisherTest extends Specification {
 
     @Rule def dir = new TemporaryFolder()

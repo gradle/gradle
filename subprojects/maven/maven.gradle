@@ -46,3 +46,20 @@ dependencies {
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
+
+test.doFirst {
+
+//Below uber hack is to avoid the (java.lang.VerifyError) which is caused by duplicate classes with different version
+//One of the duplicate classes in multiple jars: org.apache.maven.model.Model in maven-ant-tasks.jar and in maven-model.jar
+//maven-ant-tasks is pulled as a transitive dependency of :core
+//To resolve the problem I'm placing the maven-ant-tasks at the end of the classpath
+//The solution is hacky but we'll getting rid of maven-ant-tasks dependency soon so I figured the impact is low.
+//Also, the problem occurs only for integration tests, not for production code
+//We cannot simply remove maven-ant-tasks from the classpath because it is needed by some internal classes unrelated (?) to maven plugin.
+
+    def mvnAntTasksJar = classpath.find { it.name.startsWith('maven-ant-tasks-') }
+    //remove mvnAntTasks jar
+    classpath -= files(mvnAntTasksJar)
+    //append it at the end so that the old version of classes is at the end of the classpath :)
+    classpath += files(mvnAntTasksJar)
+}

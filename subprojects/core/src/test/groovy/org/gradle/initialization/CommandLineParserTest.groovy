@@ -15,8 +15,8 @@
  */
 package org.gradle.initialization
 
-import spock.lang.Specification
 import org.gradle.CommandLineArgumentException
+import spock.lang.Specification
 
 class CommandLineParserTest extends Specification {
     private final CommandLineParser parser = new CommandLineParser()
@@ -353,6 +353,26 @@ class CommandLineParserTest extends Specification {
                 '-b',
                 '-y, -z, --end-option, --last-option  this is the last option'
         ]
+    }
+
+    def showsDeprecationWarning() {
+        def parser = new CommandLineParser()
+        parser.option("foo").hasDescription("usless option, just for testing").deprecated("deprecated. Please use --bar instead.")
+        parser.option("x").hasDescription("I'm not deprecated")
+
+        when:
+        parser.deprecationPrinter = new ByteArrayOutputStream()
+        parser.parse(["-x"])
+
+        then:
+        parser.deprecationPrinter.toString() == ''
+
+        when:
+        parser.deprecationPrinter = new ByteArrayOutputStream()
+        parser.parse(["--foo"])
+
+        then:
+        parser.deprecationPrinter.toString().contains("deprecated. Please use --bar instead.")
     }
 
     def parseFailsWhenCommandLineContainsUnknownShortOption() {

@@ -21,27 +21,30 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion4;
 
 public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
-    private final ModelBuilder builder;
+    private ModelBuildingAdapter modelBuildingAdapter;
 
     public BuildModelAction(Class<? extends ProjectVersion3> type) {
-        if (!type.isAssignableFrom(EclipseProjectVersion3.class)) {
+        if (!type.isAssignableFrom(EclipseProjectVersion3.class) && !type.isAssignableFrom(EclipseProjectVersion4.class)) {
             throw new UnsupportedOperationException(String.format("Do not know how to build a model of type '%s'.", type.getSimpleName()));
         }
 
-        boolean projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
+        boolean projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type) && !EclipseProjectVersion4.class.isAssignableFrom(type);
         boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
-        builder = new ModelBuilder(includeTasks, projectDependenciesOnly);
+
+        ModelBuilder defaultBuilder = new ModelBuilder(includeTasks, projectDependenciesOnly, VersionedTypes.forType(type));
+
+        modelBuildingAdapter = new ModelBuildingAdapter(defaultBuilder);
     }
 
     public BuildResult run(GradleLauncher launcher) {
-        ModelBuildingAdapter adapter = new ModelBuildingAdapter(builder);
-        launcher.addListener(adapter);
+        launcher.addListener(modelBuildingAdapter);
         return launcher.getBuildAnalysis();
     }
 
     public ProjectVersion3 getResult() {
-        return builder.getProject();
+        return (ProjectVersion3) modelBuildingAdapter.getProject();
     }
 }

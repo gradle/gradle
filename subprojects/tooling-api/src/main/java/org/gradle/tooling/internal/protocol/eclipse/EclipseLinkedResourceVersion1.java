@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publication.maven.internal
 
-import org.gradle.api.publication.maven.MavenPublication
-import org.gradle.api.publication.maven.MavenArtifact
-import org.gradle.api.publication.maven.MavenDependency
-import org.gradle.api.publication.maven.MavenPomCustomizer
+package org.gradle.tooling.internal.protocol.eclipse;
 
-class DefaultMavenPublication implements MavenPublication {
-    String modelVersion
-    String groupId
-    String artifactId
-    String version
-    String packaging
-    String description
-    MavenArtifact mainArtifact
-    Set<MavenArtifact> subArtifacts = []
-    Set<MavenDependency> dependencies = []
-    MavenPomCustomizer pom
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @author: Szczepan Faber, created at: 6/11/11
+ */
+public interface EclipseLinkedResourceVersion1 {
+
+    String getName();
+
+    String getType();
+
+    String getLocation();
+
+    String getLocationUri();
 }

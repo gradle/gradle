@@ -19,8 +19,8 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.HierarchicalProjectVersion1;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion4;
+import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion2;
 import org.gradle.tooling.model.BuildableProject;
 import org.gradle.tooling.model.HierarchicalProject;
 import org.gradle.tooling.model.Project;
@@ -43,8 +43,8 @@ class DefaultProjectConnection implements ProjectConnection {
         modelTypeMap.put(Project.class, ProjectVersion3.class);
         modelTypeMap.put(BuildableProject.class, BuildableProjectVersion1.class);
         modelTypeMap.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
-        modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
-        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion3.class);
+        modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion2.class);
+        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion4.class);
     }
 
     public void close() {
@@ -74,5 +74,4 @@ class DefaultProjectConnection implements ProjectConnection {
         }
         return protocolViewType;
     }
-
 }

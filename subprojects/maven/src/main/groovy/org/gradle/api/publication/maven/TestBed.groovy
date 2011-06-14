@@ -15,10 +15,10 @@
  */
 package org.gradle.api.publication.maven
 
-import org.gradle.api.publication.maven.internal.DefaultMavenArtifact
 import org.gradle.api.publication.maven.internal.DefaultMavenPublisher
-import org.gradle.api.publication.maven.internal.DefaultMavenPublication
-import org.gradle.api.publication.maven.internal.DefaultMavenRepository
+import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
+import org.gradle.api.publication.maven.internal.model.DefaultMavenPublication
+import org.gradle.api.publication.maven.internal.model.DefaultMavenRepository
 
 def publisher = new DefaultMavenPublisher()
 def repo = new DefaultMavenRepository(url: "file:///swd/tmp/m2remoteRepo")

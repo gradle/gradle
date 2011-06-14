@@ -39,7 +39,7 @@ class IdeaPluginTest extends Specification {
         GenerateIdeaProject ideaProjectTask = project.ideaProject
         ideaProjectTask instanceof GenerateIdeaProject
         ideaProjectTask.outputFile == new File(project.projectDir, project.name + ".ipr")
-        ideaProjectTask.ideaProject.modules == [project.convention.plugins.idea.module, childProject.convention.plugins.idea.module]
+        ideaProjectTask.ideaProject.modules == [project.idea.module, childProject.idea.module]
         ideaProjectTask.javaVersion == JavaVersion.VERSION_1_6.toString()
         ideaProjectTask.wildcards == ['!?*.java', '!?*.groovy'] as Set
 

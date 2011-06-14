@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import org.gradle.api.Project
+import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 /**
@@ -22,38 +24,26 @@ import spock.lang.Specification
  */
 class ProjectDependencyBuilderTest extends Specification {
 
+    def Project project = HelperUtil.createRootProject()
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder()
 
-    static class ProjectStub {
-        String name
-        String path
-        GenerateEclipseProjectStub eclipseProject
-    }
-
-    static class GenerateEclipseProjectStub {
-        String projectName
-    }
-
     def "should create dependency using project name"() {
-        given:
-        def project = new ProjectStub(name: 'coolProject')
-
         when:
         def dependency = builder.build(project, true)
 
         then:
-        dependency.path == '/coolProject'
+        dependency.path == "/$project.name"
     }
 
     def "should create dependency using eclipse projectName"() {
         given:
-        def eclipseProject = new GenerateEclipseProjectStub(projectName: 'eclipse-project')
-        def project = new ProjectStub(eclipseProject: eclipseProject)
+        project.apply(plugin: 'eclipse')
+        project.eclipse.project.name = 'foo'
 
         when:
         def dependency = builder.build(project, true)
 
         then:
-        dependency.path == '/eclipse-project'
+        dependency.path == '/foo'
     }
 }

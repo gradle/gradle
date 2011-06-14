@@ -25,7 +25,8 @@ import org.gradle.api.invocation.Gradle;
  */
 public class ModelBuildingAdapter extends BuildAdapter {
 
-    ModelBuilder builder;
+    private final ModelBuilder builder;
+    private Object eclipseProject;
 
     public ModelBuildingAdapter(ModelBuilder builder) {
         this.builder = builder;
@@ -33,6 +34,10 @@ public class ModelBuildingAdapter extends BuildAdapter {
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
-        builder.buildAll((GradleInternal) gradle);
+        eclipseProject = builder.buildAll((GradleInternal) gradle);
+    }
+
+    public Object getProject() {
+        return eclipseProject;
     }
 }

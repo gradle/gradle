@@ -17,15 +17,11 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.tooling.internal.DefaultEclipseProject;
-import org.gradle.tooling.internal.DefaultTask;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static java.util.Collections.emptySet;
 
 public class TasksFactory {
     Map<Project, Set<Task>> allTasks;
@@ -35,21 +31,16 @@ public class TasksFactory {
         this.includeTasks = includeTasks;
     }
 
-    DefaultTask createDefaultTask(EclipseProjectVersion3 eclipseProject, Task task) {
-        return new DefaultTask(eclipseProject, task.getPath(), task.getName(), task.getDescription());
-    }
-
     public void collectTasks(Project root) {
         allTasks = root.getAllTasks(true);
     }
 
-    public void populate(Project project, DefaultEclipseProject eclipseProject) {
+    public Set<Task> getTasks(Project project) {
         if (includeTasks) {
-            List<EclipseTaskVersion1> tasks = new ArrayList<EclipseTaskVersion1>();
-            for (final Task task : allTasks.get(project)) {
-                tasks.add(createDefaultTask(eclipseProject, task));
-            }
-            eclipseProject.setTasks(tasks);
+            return allTasks.get(project);
+        } else {
+            return emptySet();
         }
     }
+
 }

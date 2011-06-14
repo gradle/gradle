@@ -26,40 +26,27 @@ class TasksFactoryTest extends Specification {
     final org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3 eclipseProject = new DefaultEclipseProject(null, null, null, null, [])
     final task = HelperUtil.createTask(AbstractTask)
 
-    def "creates task"() {
-        task.description = "foo"
-        TasksFactory factory = new TasksFactory(true)
-
-        when:
-        def createdTask = factory.createDefaultTask(eclipseProject, task);
-
-        then:
-        createdTask.name == task.name
-        createdTask.description == task.description
-        createdTask.path == task.path
-    }
-
-    def "does not create tasks"() {
+    def "does not return tasks"() {
         TasksFactory factory = new TasksFactory(false)
 
         when:
         factory.allTasks = [:]
         factory.allTasks.put(project, [task] as Set)
-        factory.populate(project, eclipseProject)
+        def tasks = factory.getTasks(project)
 
         then:
-        eclipseProject.tasks == []
+        tasks.empty
     }
 
-    def "populates tasks"() {
+    def "returns tasks"() {
         TasksFactory factory = new TasksFactory(true)
 
         when:
         factory.allTasks = [:]
         factory.allTasks.put(project, [task] as Set)
-        factory.populate(project, eclipseProject)
+        def tasks = factory.getTasks(project)
 
         then:
-        eclipseProject.tasks.size() == 1
+        tasks.size() == 1
     }
 }

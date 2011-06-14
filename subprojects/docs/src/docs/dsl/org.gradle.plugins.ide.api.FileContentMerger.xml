@@ -23,8 +23,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>component</td></tr>
-            <tr><td>facet</td></tr>
         </table>
     </section>
     <section>
@@ -35,8 +33,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>component</td></tr>
-            <tr><td>facet</td></tr>
+            <tr>
+                <td>beforeMerged</td>
+            </tr>
+            <tr>
+                <td>whenMerged</td>
+            </tr>
         </table>
     </section>
 </section>

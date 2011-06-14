@@ -94,19 +94,13 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     }
 
     /**
-     * Deprecated. Please use #idea.project.outputFile. See examples in {@link IdeaProject}.
-     * <p>
      * output *.ipr file
      */
-    @Deprecated
     File getOutputFile() {
-        DeprecationLogger.nagUser("ideaProject.outputFile", "idea.project.outputFile")
         return ideaProject.outputFile
     }
 
-    @Deprecated
     void setOutputFile(File newOutputFile) {
-        DeprecationLogger.nagUser("ideaProject.outputFile", "idea.project.outputFile")
         ideaProject.outputFile = newOutputFile
     }
 }

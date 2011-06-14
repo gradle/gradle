@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-
-import org.gradle.api.publication.maven.internal.DefaultMavenArtifact
 import org.gradle.api.publication.maven.internal.DefaultMavenPublisher
-import org.gradle.api.publication.maven.internal.DefaultMavenPublication
-import org.gradle.api.publication.maven.internal.DefaultMavenRepository
+import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
+import org.gradle.api.publication.maven.internal.model.DefaultMavenAuthentication
+import org.gradle.api.publication.maven.internal.model.DefaultMavenPublication
+import org.gradle.api.publication.maven.internal.model.DefaultMavenRepository
 import org.sonatype.aether.repository.LocalRepository
-import org.gradle.api.publication.maven.internal.DefaultMavenAuthentication
 
 def dir = "/Users/szczepan/gradle/sf-tests/maven-hacks"
 

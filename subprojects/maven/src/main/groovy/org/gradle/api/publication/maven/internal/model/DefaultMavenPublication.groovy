@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.eclipse.model.internal
+package org.gradle.api.publication.maven.internal.model
 
-import org.gradle.api.Project
-import org.gradle.plugins.ide.eclipse.EclipsePlugin
-import org.gradle.plugins.ide.eclipse.model.ProjectDependency
+import org.gradle.api.publication.maven.MavenArtifact
+import org.gradle.api.publication.maven.MavenDependency
+import org.gradle.api.publication.maven.MavenPomCustomizer
+import org.gradle.api.publication.maven.MavenPublication
 
-/**
- * @author Szczepan Faber, @date: 11.03.11
- */
-class ProjectDependencyBuilder {
-    ProjectDependency build(Project project, exported) {
-        def name
-        if (project.plugins.hasPlugin(EclipsePlugin)) {
-            name = project.eclipse.project.name
-        } else {
-            name = project.name
-        }
-        new ProjectDependency('/' + name, exported, null, [] as Set, project.path)
-    }
+class DefaultMavenPublication implements MavenPublication {
+    String modelVersion
+    String groupId
+    String artifactId
+    String version
+    String packaging
+    String description
+    MavenArtifact mainArtifact
+    Set<MavenArtifact> subArtifacts = []
+    Set<MavenDependency> dependencies = []
+    MavenPomCustomizer pom
 }

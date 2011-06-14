@@ -144,10 +144,12 @@
                     <classname>org.gradle.api.enterprise.archives.DeploymentDescriptor</classname>
                 </td>
                 <td>
-                    A deployment descriptor named <literal>application.xml</literal>
+                    A deployment descriptor with sensible defaults named <literal>application.xml</literal>
                 </td>
                 <td>
-                    Metadata to generate a deployment descriptor file, e.g. <literal>application.xml</literal> with sensible defaults.
+                    Metadata to generate a deployment descriptor file, e.g. <literal>application.xml</literal>.
+                    If this file already exists in the <literal>appDirName/META-INF</literal> then the existing file contents will be used and
+                    the explicit configuration in the <literal>ear.deploymentDescriptor</literal> will be ignored.
                 </td>
             </tr>
         </table>
@@ -182,5 +184,13 @@
         <sample id="earCustomizedWithJarEnabled" dir="ear/earCustomized/ear" title="Generation of JAR archive in addition to EAR archive">
             <sourcefile file="build.gradle" snippet="enable-jar"/>
         </sample>
+    </section>
+    <section id='sec:using_custom_app_xml'>
+        <title>Using custom descriptor file</title>
+        <para>
+            Let's say you already have the <literal>application.xml</literal> and want to use it instead of configuring the <literal>ear.deploymentDescriptor</literal> section.
+            To accommodate that place the <literal>META-INF/application.xml</literal> in the right place inside your source folders (see the <literal>appDirName</literal> property).
+            The existing file contents will be used and the explicit configuration in the <literal>ear.deploymentDescriptor</literal> will be ignored.
+        </para>
     </section>
 </chapter>
