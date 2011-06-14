@@ -25,6 +25,7 @@ public class CommandLineOption {
     private Class<?> argumentType = Void.TYPE;
     private String description;
     private String subcommand;
+    private String deprecationWarning;
 
     public CommandLineOption(Iterable<String> options) {
         this.options = GUtil.addSets(options);
@@ -54,7 +55,10 @@ public class CommandLineOption {
     }
 
     public String getDescription() {
-        return description;
+        if (deprecationWarning == null) {
+            return description;
+        }
+        return description + " [" + deprecationWarning + "].";
     }
 
     public CommandLineOption hasDescription(String description) {
@@ -68,5 +72,14 @@ public class CommandLineOption {
 
     public boolean getAllowsMultipleArguments() {
         return argumentType == List.class;
+    }
+
+    public CommandLineOption deprecated(String deprecationWarning) {
+        this.deprecationWarning = deprecationWarning;
+        return this;
+    }
+
+    public String getDeprecationWarning() {
+        return deprecationWarning;
     }
 }
