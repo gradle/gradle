@@ -119,7 +119,6 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
 
         AbstractClasspathEntry that = (AbstractClasspathEntry) o;
 
-        if (exported != that.exported) { return false }
         if (accessRules != that.accessRules) { return false }
         if (nativeLibraryLocation != that.nativeLibraryLocation) { return false }
         if (path != that.path) { return false }
@@ -132,7 +131,6 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
 
         result = path.hashCode();
         result = 31 * result + (nativeLibraryLocation != null ? nativeLibraryLocation.hashCode() : 0);
-        result = 31 * result + (exported ? 1 : 0);
         result = 31 * result + accessRules.hashCode();
         return result;
     }

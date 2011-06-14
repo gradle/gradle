@@ -39,7 +39,7 @@ class ProjectDependencyBuilderTest extends Specification {
         def project = new ProjectStub(name: 'coolProject')
 
         when:
-        def dependency = builder.build(project)
+        def dependency = builder.build(project, true)
 
         then:
         dependency.path == '/coolProject'
@@ -51,7 +51,7 @@ class ProjectDependencyBuilderTest extends Specification {
         def project = new ProjectStub(eclipseProject: eclipseProject)
 
         when:
-        def dependency = builder.build(project)
+        def dependency = builder.build(project, true)
 
         then:
         dependency.path == '/eclipse-project'

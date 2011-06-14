@@ -27,7 +27,6 @@ import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.internal.XmlFileContentMerger
 import org.gradle.api.plugins.*
 import org.gradle.plugins.ide.eclipse.model.*
-import org.gradle.plugins.ide.eclipse.model.Facet.FacetType;
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -156,6 +155,7 @@ class EclipsePlugin extends IdePlugin {
 
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]
+                    classpath.nonExportedConfigurations += [project.configurations.testCompile, project.configurations.testRuntime]
                     classpath.conventionMapping.classFolders = {
                         def dirs = project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
                         dirs.collect { project.relativePath(it)} .findAll { !it.contains('..') }

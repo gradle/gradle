@@ -69,7 +69,6 @@ class SourceFolder extends AbstractClasspathEntry {
 
         SourceFolder that = (SourceFolder) o;
 
-        if (exported != that.exported) { return false }
         if (accessRules != that.accessRules) { return false }
         if (excludes != that.excludes) { return false }
         if (includes != that.includes) { return false }
@@ -86,7 +85,6 @@ class SourceFolder extends AbstractClasspathEntry {
 
         result = path.hashCode();
         result = 31 * result + (nativeLibraryLocation != null ? nativeLibraryLocation.hashCode() : 0);
-        result = 31 * result + (exported ? 1 : 0);
         result = 31 * result + accessRules.hashCode();
         result = 31 * result + (output != null ? output.hashCode() : 0);
         result = 31 * result + excludes.hashCode();
