@@ -56,7 +56,7 @@ class ClasspathFactory {
         for (configuration in classpath.plusConfigurations) {
             result.addAll(createClasspathEntries(configuration, classpath.minusConfigurations,
                 { it instanceof org.gradle.api.artifacts.ProjectDependency },
-                { dependency -> new ProjectDependencyBuilder().build(dependency.dependencyProject, isExported(dependency, configuration)) }))
+                { dependency -> new ProjectDependencyBuilder().build(dependency.dependencyProject, isExported(dependency, configuration, classpath)) }))
         }
         result
     }
@@ -82,14 +82,14 @@ class ClasspathFactory {
                     configuration.files(dependency).collect { File binaryFile ->
                         File sourceFile = sourceFiles[binaryFile.name]
                         File javadocFile = javadocFiles[binaryFile.name]
-                        createLibraryEntry(binaryFile, sourceFile, javadocFile, classpath.pathVariables, isExported(dependency, configuration))
+                        createLibraryEntry(binaryFile, sourceFile, javadocFile, classpath.pathVariables, isExported(dependency, configuration, classpath))
                     }
                 }))
             moduleLibraries.addAll(createClasspathEntries(configuration, classpath.minusConfigurations,
                 { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)},
                 { SelfResolvingDependency dependency ->
                     dependency.resolve().collect { File file ->
-                        createLibraryEntry(file, null, null, classpath.pathVariables, isExported(dependency, configuration))
+                        createLibraryEntry(file, null, null, classpath.pathVariables, isExported(dependency, configuration, classpath))
                     }
                 }))
         }
