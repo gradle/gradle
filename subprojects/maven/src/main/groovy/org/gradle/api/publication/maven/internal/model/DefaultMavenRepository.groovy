@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publication.maven.internal
+package org.gradle.api.publication.maven.internal.model
 
-import org.gradle.api.publication.maven.MavenArtifact
+import org.gradle.api.publication.maven.MavenAuthentication
+import org.gradle.api.publication.maven.MavenRepository
 
-class DefaultMavenArtifact implements MavenArtifact {
-    String classifier
-    String extension
-    File file
+class DefaultMavenRepository implements MavenRepository {
+    String url
+    MavenAuthentication authentication
 }

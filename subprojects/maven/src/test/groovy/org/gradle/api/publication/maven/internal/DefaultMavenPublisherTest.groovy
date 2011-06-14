@@ -16,6 +16,10 @@
 
 package org.gradle.api.publication.maven.internal
 
+import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
+import org.gradle.api.publication.maven.internal.model.DefaultMavenAuthentication
+import org.gradle.api.publication.maven.internal.model.DefaultMavenPublication
+import org.gradle.api.publication.maven.internal.model.DefaultMavenRepository
 import org.gradle.util.Resources
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile

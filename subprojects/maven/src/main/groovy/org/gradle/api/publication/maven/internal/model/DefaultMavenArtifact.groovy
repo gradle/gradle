@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publication.maven.internal
+package org.gradle.api.publication.maven.internal.model
 
-import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.MavenArtifact
-import org.gradle.api.publication.maven.MavenDependency
-import org.gradle.api.publication.maven.MavenPomCustomizer
 
-class DefaultMavenPublication implements MavenPublication {
-    String modelVersion
-    String groupId
-    String artifactId
-    String version
-    String packaging
-    String description
-    MavenArtifact mainArtifact
-    Set<MavenArtifact> subArtifacts = []
-    Set<MavenDependency> dependencies = []
-    MavenPomCustomizer pom
+class DefaultMavenArtifact implements MavenArtifact {
+    String classifier
+    String extension
+    File file
 }

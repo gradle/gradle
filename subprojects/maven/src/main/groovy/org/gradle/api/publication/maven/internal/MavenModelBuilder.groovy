@@ -20,6 +20,8 @@ import org.gradle.api.Project
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publication.maven.MavenPublication
+import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
+import org.gradle.api.publication.maven.internal.model.DefaultMavenPublication
 import org.gradle.api.tasks.bundling.Jar
 
 /**
