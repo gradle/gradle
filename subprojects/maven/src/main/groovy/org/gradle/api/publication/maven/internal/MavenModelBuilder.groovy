@@ -63,37 +63,37 @@ class MavenModelBuilder {
                 publication.mainArtifact.extension = project.jar.extension
                 publication.mainArtifact.file = project.jar.archivePath
             }
-        }
 
-        //TODO SF:
-        //should project dependencies be transformed into entries in the pom?
-        //flat file dependencies should not break things
-        //how to approach the case when the ExternalDependency has multiple artifcts? Don't know when it happens
-        //we could check if war plugin was applied and deal with providedCompile and providedRuntime?
+            //TODO SF:
+            //should project dependencies be transformed into entries in the pom?
+            //flat file dependencies should not break things
+            //how to approach the case when the ExternalDependency has multiple artifcts? Don't know when it happens
+            //we could check if war plugin was applied and deal with providedCompile and providedRuntime?
+            //should we make sure that there are no duplicate entries e.g. the same library in both compile scope and test scope
 
-        publication.conventionMapping.dependencies = {
-            //TODO SF: I absolutely hate it
-            //1. It suffers from the fundamental convention mapping issue
-            //2. It is hard to reconfigure by the user (Imagine the user typing all this code what I did below)
-            //3. I don't want to pass Configurations to the maven model. We went down that path with ide plugins and it bites us hard
-            //4. Consider making dependencies a map with keys as maven scopes
-            def out = new LinkedList()
-            project.configurations['compile'].getDependencies(ExternalDependency).each {
-                out << new DefaultMavenDependency(it, MavenScope.COMPILE);
+            publication.conventionMapping.dependencies = {
+                //TODO SF: I absolutely hate it
+                //1. It suffers from the fundamental convention mapping issue - non mutable collections
+                //2. It is hard to reconfigure by the user (Imagine the user typing all this code what I did below if he needs to put a dependency from a different configuration)
+                //3. I don't want to pass Configurations to the maven model. We went down that path with ide plugins and it bites us hard. We need the DependencySet!
+                def out = new LinkedList()
+                project.configurations['compile'].getDependencies(ExternalDependency).each {
+                    out << new DefaultMavenDependency(it, MavenScope.COMPILE);
+                }
+
+                project.configurations['testCompile'].getDependencies(ExternalDependency).each {
+                    out << new DefaultMavenDependency(it, MavenScope.TEST);
+                }
+
+                project.configurations['runtime'].getDependencies(ExternalDependency).each {
+                    out << new DefaultMavenDependency(it, MavenScope.RUNTIME);
+                }
+
+                project.configurations['testRuntime'].getDependencies(ExternalDependency).each {
+                    out << new DefaultMavenDependency(it, MavenScope.TEST);
+                }
+                return out
             }
-
-            project.configurations['testCompile'].getDependencies(ExternalDependency).each {
-                out << new DefaultMavenDependency(it, MavenScope.TEST);
-            }
-
-            project.configurations['runtime'].getDependencies(ExternalDependency).each {
-                out << new DefaultMavenDependency(it, MavenScope.RUNTIME);
-            }
-
-            project.configurations['testRuntime'].getDependencies(ExternalDependency).each {
-                out << new DefaultMavenDependency(it, MavenScope.TEST);
-            }
-            return out
         }
 
         return publication

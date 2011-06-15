@@ -177,4 +177,25 @@ class MavenModelBuilderTest extends Specification {
         publication.dependencies[0].version == '1.0'
         publication.dependencies[0].scope == MavenScope.TEST
     }
+
+    def "does not break when java plugin not applied"() {
+        given:
+        def publication = builder.build(project)
+
+        when:
+        publication.artifactId
+        publication.dependencies
+        publication.description
+        publication.groupId
+        publication.mainArtifact
+        publication.modelVersion
+        publication.packaging
+        publication.pom
+        publication.properties
+        publication.subArtifacts
+        publication.version
+
+        then:
+        noExceptionThrown()
+    }
 }
