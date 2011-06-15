@@ -157,4 +157,24 @@ class MavenModelBuilderTest extends Specification {
         publication.dependencies[1].version == '1.8.5'
         publication.dependencies[1].scope == MavenScope.TEST
     }
+
+    def "populates model with dependency with a classifier"() {
+        project.apply(plugin: 'java')
+        project.dependencies {
+           testCompile 'org.foo:bar:1.0:testUtil'
+        }
+
+        when:
+        MavenPublication publication = builder.build(project)
+
+        then:
+        publication.dependencies.size() == 1
+
+        publication.dependencies[0].artifactId == 'bar'
+        publication.dependencies[0].groupId == 'org.foo'
+        publication.dependencies[0].classifier == 'testUtil'
+        publication.dependencies[0].optional == false
+        publication.dependencies[0].version == '1.0'
+        publication.dependencies[0].scope == MavenScope.TEST
+    }
 }

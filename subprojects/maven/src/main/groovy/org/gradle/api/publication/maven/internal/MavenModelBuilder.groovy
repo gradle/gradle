@@ -68,23 +68,32 @@ class MavenModelBuilder {
         //TODO SF:
         //should project dependencies be transformed into entries in the pom?
         //flat file dependencies should not break things
-        //how to approach the case when the ExternalDependency has multiple artifcts?
+        //how to approach the case when the ExternalDependency has multiple artifcts? Don't know when it happens
+        //we could check if war plugin was applied and deal with providedCompile and providedRuntime?
 
-        //dependencies
-        project.configurations['compile'].getDependencies(ExternalDependency).each {
-            publication.dependencies << new DefaultMavenDependency(it, MavenScope.COMPILE);
-        }
+        publication.conventionMapping.dependencies = {
+            //TODO SF: I absolutely hate it
+            //1. It suffers from the fundamental convention mapping issue
+            //2. It is hard to reconfigure by the user (Imagine the user typing all this code what I did below)
+            //3. I don't want to pass Configurations to the maven model. We went down that path with ide plugins and it bites us hard
+            //4. Consider making dependencies a map with keys as maven scopes
+            def out = new LinkedList()
+            project.configurations['compile'].getDependencies(ExternalDependency).each {
+                out << new DefaultMavenDependency(it, MavenScope.COMPILE);
+            }
 
-        project.configurations['testCompile'].getDependencies(ExternalDependency).each {
-            publication.dependencies << new DefaultMavenDependency(it, MavenScope.TEST);
-        }
+            project.configurations['testCompile'].getDependencies(ExternalDependency).each {
+                out << new DefaultMavenDependency(it, MavenScope.TEST);
+            }
 
-        project.configurations['runtime'].getDependencies(ExternalDependency).each {
-            publication.dependencies << new DefaultMavenDependency(it, MavenScope.RUNTIME);
-        }
+            project.configurations['runtime'].getDependencies(ExternalDependency).each {
+                out << new DefaultMavenDependency(it, MavenScope.RUNTIME);
+            }
 
-        project.configurations['testRuntime'].getDependencies(ExternalDependency).each {
-            publication.dependencies << new DefaultMavenDependency(it, MavenScope.TEST);
+            project.configurations['testRuntime'].getDependencies(ExternalDependency).each {
+                out << new DefaultMavenDependency(it, MavenScope.TEST);
+            }
+            return out
         }
 
         return publication

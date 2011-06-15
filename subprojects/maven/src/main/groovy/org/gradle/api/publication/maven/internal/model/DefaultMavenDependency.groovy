@@ -31,7 +31,14 @@ class DefaultMavenDependency implements MavenDependency {
         this.artifactId = externalDependency.name
         this.groupId = externalDependency.group
         this.version = externalDependency.version
-        this.classifier = null
+        //Taking the classifier from the first artifact if exists
+        //This is huge simplification however I don't yet understand why would I have more than 1 artifact in a dependency
+        if (!externalDependency.artifacts.empty) {
+            this.classifier = externalDependency.artifacts.iterator().next().classifier
+        } else {
+            this.classifier = null
+        }
+
         this.scope = scope
         this.optional = false
     }
