@@ -66,13 +66,12 @@ class MavenModelBuilder {
 
             //TODO SF:
             //should project dependencies be transformed into entries in the pom?
-            //flat file dependencies should not break things
-            //how to approach the case when the ExternalDependency has multiple artifcts? Don't know when it happens
+            //how to approach the case when the ExternalDependency has multiple artifcts? Don't know when it happens, though
             //we could check if war plugin was applied and deal with providedCompile and providedRuntime?
             //should we make sure that there are no duplicate entries e.g. the same library in both compile scope and test scope
 
             publication.conventionMapping.dependencies = {
-                //TODO SF: I absolutely hate it
+                //TODO SF: I absolutely hate it but the goal today is not to make the DSL perfect but to have working pre-population of the model
                 //1. It suffers from the fundamental convention mapping issue - non mutable collections
                 //2. It is hard to reconfigure by the user (Imagine the user typing all this code what I did below if he needs to put a dependency from a different configuration)
                 //3. I don't want to pass Configurations to the maven model. We went down that path with ide plugins and it bites us hard. We need the DependencySet!

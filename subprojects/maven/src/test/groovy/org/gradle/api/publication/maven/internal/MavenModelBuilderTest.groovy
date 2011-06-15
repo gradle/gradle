@@ -198,4 +198,17 @@ class MavenModelBuilderTest extends Specification {
         then:
         noExceptionThrown()
     }
+
+    def "does not break when file dependencies are configured"() {
+        project.apply(plugin: 'java')
+        project.dependencies {
+           compile project.files('sample.jar')
+        }
+
+        when:
+        MavenPublication publication = builder.build(project)
+
+        then:
+        publication.dependencies.size() == 0
+    }
 }
