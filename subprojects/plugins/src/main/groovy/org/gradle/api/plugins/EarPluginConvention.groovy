@@ -23,6 +23,22 @@ import org.gradle.util.ConfigureUtil
 public class EarPluginConvention {
 
     /**
+     * Whether the ear contains "skinny" deploy modules, i.e. modules whose dependencies should be placed in the
+     * ear's lib directory. Default is <code>false</code>.
+     */
+    boolean skinnyDeploy
+
+    /**
+     * Allows changing whether the ear contains "skinny" deploy modules, i.e. modules whose dependencies should be
+     * placed in the ear's lib directory. Default is <code>false</code>.
+     * 
+     * @param skinnyDeploy
+     */
+    void skinnyDeploy(boolean skinnyDeploy) {
+        this.skinnyDeploy = skinnyDeploy
+    }
+
+    /**
      * The name of the application directory, relative to the project directory. Default is "src/main/application".
      */
     String appDirName
