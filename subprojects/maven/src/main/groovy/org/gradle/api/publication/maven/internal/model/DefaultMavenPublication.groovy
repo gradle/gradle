@@ -28,7 +28,7 @@ class DefaultMavenPublication implements MavenPublication {
     String packaging
     String description
     MavenArtifact mainArtifact
-    Set<MavenArtifact> subArtifacts = []
-    Set<MavenDependency> dependencies = []
+    List<MavenArtifact> subArtifacts = []
+    List<MavenDependency> dependencies = []
     MavenPomCustomizer pom
 }

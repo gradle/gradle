@@ -23,7 +23,7 @@ interface MavenPublication {
     String getPackaging()
     String getDescription()
     MavenArtifact getMainArtifact()
-    Set<MavenArtifact> getSubArtifacts()
-    Set<MavenDependency> getDependencies()
+    List<MavenArtifact> getSubArtifacts()
+    List<MavenDependency> getDependencies()
     MavenPomCustomizer getPom()
 }

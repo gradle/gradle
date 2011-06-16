@@ -604,16 +604,16 @@ def pluginProjects() {
     }
 }
 
-switch (System.getProperty("user.name")) {
-    case "pniederw":
-        allprojects {
-            tasks.withType(Test) {
-                maxParallelForks = 1
-                forkEvery = 0
-            }
-        }
-        break
-    default:
-        break
-}
+//switch (System.getProperty("user.name")) {
+//    case "pniederw":
+//        allprojects {
+//            tasks.withType(Test) {
+//                maxParallelForks = 1
+//                forkEvery = 0
+//            }
+//        }
+//        break
+//    default:
+//        break
+//}
 

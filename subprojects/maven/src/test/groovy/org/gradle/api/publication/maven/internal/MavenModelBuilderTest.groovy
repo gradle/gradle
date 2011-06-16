@@ -17,10 +17,11 @@
 package org.gradle.api.publication.maven.internal
 
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.HelperUtil
-import spock.lang.Specification
 import org.gradle.api.publication.maven.MavenPublication
+import org.gradle.api.publication.maven.MavenScope
+import org.gradle.util.HelperUtil
 import spock.lang.Ignore
+import spock.lang.Specification
 
 /**
  * @author: Szczepan Faber, created at: 5/13/11
@@ -93,5 +94,121 @@ class MavenModelBuilderTest extends Specification {
 
         publication.mainArtifact.file != null
         publication.mainArtifact.file == project.jar.archivePath
+    }
+
+    def "populates model with compile dependencies"() {
+        project.apply(plugin: 'java')
+        project.repositories {
+            mavenCentral()
+        }
+        project.dependencies {
+           compile 'commons-lang:commons-lang:2.6'
+           testCompile 'org.mockito:mockito-all:1.8.5'
+        }
+
+        when:
+        MavenPublication publication = builder.build(project)
+
+        then:
+        publication.dependencies.size() == 2
+
+        publication.dependencies[0].artifactId == 'commons-lang'
+        publication.dependencies[0].groupId == 'commons-lang'
+        publication.dependencies[0].classifier == null
+        publication.dependencies[0].optional == false
+        publication.dependencies[0].version == '2.6'
+        publication.dependencies[0].scope == MavenScope.COMPILE
+
+        publication.dependencies[1].artifactId == 'mockito-all'
+        publication.dependencies[1].groupId == 'org.mockito'
+        publication.dependencies[1].classifier == null
+        publication.dependencies[1].optional == false
+        publication.dependencies[1].version == '1.8.5'
+        publication.dependencies[1].scope == MavenScope.TEST
+    }
+
+    def "populates model with runtime dependencies"() {
+        project.apply(plugin: 'java')
+        project.repositories {
+            mavenCentral()
+        }
+        project.dependencies {
+           runtime 'commons-lang:commons-lang:2.6'
+           testRuntime 'org.mockito:mockito-all:1.8.5'
+        }
+
+        when:
+        MavenPublication publication = builder.build(project)
+
+        then:
+        publication.dependencies.size() == 2
+
+        publication.dependencies[0].artifactId == 'commons-lang'
+        publication.dependencies[0].groupId == 'commons-lang'
+        publication.dependencies[0].classifier == null
+        publication.dependencies[0].optional == false
+        publication.dependencies[0].version == '2.6'
+        publication.dependencies[0].scope == MavenScope.RUNTIME
+
+        publication.dependencies[1].artifactId == 'mockito-all'
+        publication.dependencies[1].groupId == 'org.mockito'
+        publication.dependencies[1].classifier == null
+        publication.dependencies[1].optional == false
+        publication.dependencies[1].version == '1.8.5'
+        publication.dependencies[1].scope == MavenScope.TEST
+    }
+
+    def "populates model with dependency with a classifier"() {
+        project.apply(plugin: 'java')
+        project.dependencies {
+           testCompile 'org.foo:bar:1.0:testUtil'
+        }
+
+        when:
+        MavenPublication publication = builder.build(project)
+
+        then:
+        publication.dependencies.size() == 1
+
+        publication.dependencies[0].artifactId == 'bar'
+        publication.dependencies[0].groupId == 'org.foo'
+        publication.dependencies[0].classifier == 'testUtil'
+        publication.dependencies[0].optional == false
+        publication.dependencies[0].version == '1.0'
+        publication.dependencies[0].scope == MavenScope.TEST
+    }
+
+    def "does not break when java plugin not applied"() {
+        given:
+        def publication = builder.build(project)
+
+        when:
+        publication.artifactId
+        publication.dependencies
+        publication.description
+        publication.groupId
+        publication.mainArtifact
+        publication.modelVersion
+        publication.packaging
+        publication.pom
+        publication.properties
+        publication.subArtifacts
+        publication.version
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "does not break when file dependencies are configured"() {
+        project.apply(plugin: 'java')
+        project.dependencies {
+           compile project.files('sample.jar')
+        }
+
+        when:
+        MavenPublication publication = builder.build(project)
+
+        then:
+        publication.dependencies.size() == 0
     }
 }
