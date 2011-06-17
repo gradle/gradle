@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publication.maven.internal.model
 
+package org.gradle.api.publication
+
+import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.publication.maven.*
 
-class DefaultMavenPublication implements MavenPublication {
-    String modelVersion
-    String groupId
-    String artifactId
-    String version
-    String packaging
-    String description
-    MavenArtifact mainArtifact
-    List<MavenArtifact> subArtifacts = []
-    List<MavenDependency> dependencies = []
-    MavenPomCustomizer pom
-    MavenRepository repository = new DefaultMavenRepository()
+/**
+ * @author: Szczepan Faber, created at: 6/16/11
+ */
+class Publications {
 
-    void repository(Closure c) {
-        ConfigureUtil.configure(c, getRepository())
+    Publications publications = this
+
+    void publications(Closure c) {
+        ConfigureUtil.configure(c, this)
     }
+
+    void maven(Closure c) {
+        ConfigureUtil.configure(c, getMaven())
+    }
+
+    MavenPublication maven
 }
