@@ -60,9 +60,9 @@ class MavenModelBuilder {
                 //or: publication.conventionMapping.version = { project.version.toString() }
 
                 //again it feels natural to get it from the 'jar' section of the build.
-                publication.mainArtifact.classifier = project.jar.classifier
-                publication.mainArtifact.extension = project.jar.extension
-                publication.mainArtifact.file = project.jar.archivePath
+                publication.mainArtifact.conventionMapping.classifier = { project.jar.classifier }
+                publication.mainArtifact.conventionMapping.extension = { project.jar.extension }
+                publication.mainArtifact.conventionMapping.file = { project.jar.archivePath }
             }
 
             //TODO SF:
