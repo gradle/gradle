@@ -43,6 +43,10 @@ class MavenModelBuilder {
         publication.conventionMapping.groupId = { project.group.toString() }
         publication.modelVersion = '4.0.0'
 
+        //let's give some reasonable defaults if java plugin not applied
+        publication.conventionMapping.version = { 'version-not-configured' }
+        publication.conventionMapping.groupId = { 'group.not.configured' }
+
         project.plugins.withType(JavaPlugin) {
             publication.packaging = 'jar'
             //I like the simple way of setting the packaging above. There're other theoretical ways of getting the packaging, but they're ugly:

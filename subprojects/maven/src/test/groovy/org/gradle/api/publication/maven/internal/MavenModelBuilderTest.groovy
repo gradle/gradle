@@ -181,22 +181,19 @@ class MavenModelBuilderTest extends Specification {
         publication.dependencies[0].scope == MavenScope.TEST
     }
 
-    def "does not break when java plugin not applied"() {
-        when:
-        publication.artifactId
-        publication.dependencies
-        publication.description
+    def "does not break when java plugin not applied and has reasonable defaults"() {
+        expect:
+        !publication.artifactId
+        !publication.dependencies
+        !publication.description
         publication.groupId
         publication.mainArtifact
         publication.modelVersion
-        publication.packaging
-        publication.pom
+        !publication.packaging
+        !publication.pom
         publication.properties
-        publication.subArtifacts
+        !publication.subArtifacts
         publication.version
-
-        then:
-        noExceptionThrown()
     }
 
     def "does not break when file dependencies are configured"() {
