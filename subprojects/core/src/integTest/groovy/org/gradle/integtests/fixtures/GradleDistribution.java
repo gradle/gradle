@@ -84,8 +84,8 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     private static TestFile file(String propertyName, String defaultFile) {
         String path = System.getProperty(propertyName, defaultFile);
         if (path == null) {
-            throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests.",
-                    propertyName));
+            throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests. The default passed was: '%s'",
+                    propertyName, defaultFile));
         }
         return new TestFile(new File(path));
     }
