@@ -112,7 +112,7 @@ class ClasspathFactory {
     private boolean isExported(Dependency dependency, Configuration configuration, EclipseClasspath classpath) {
         // a dependency is exported if it is introduced by an exported configuration
         for (Configuration superConfig : configuration.hierarchy) {
-            if (classpath.nonExportedConfigurations.contains(superConfig)) {
+            if (classpath.nonExportedConfigNames.contains(superConfig.name)) {
                 continue
             }
             if (superConfig.allDependencies.contains(dependency)) {

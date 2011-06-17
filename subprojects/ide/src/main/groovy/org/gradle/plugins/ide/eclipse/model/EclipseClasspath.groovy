@@ -49,7 +49,7 @@ import org.gradle.util.ConfigureUtil
  *     minusConfigurations += configurations.someBoringConfig
  *
  *     //you can make some classpath entries not be exported by Eclipse by choosing configurations:
- *     nonExportedConfigurations += configurations.provided
+ *     nonExportedConfigNames += 'provided'
  *
  *     //if you want to append extra containers:
  *     containers 'someFriendlyContainer', 'andYetAnotherContainer'
@@ -127,13 +127,13 @@ class EclipseClasspath {
     Collection<Configuration> minusConfigurations = []
 
     /**
-     * The configurations whose classpath entries should not be exported to other Eclipse projects.
-     * If a class path entry comes from two or more configurations, any of which is exported, then
-     * the entry is exported.
+     * The names of configurations whose classpath entries should not be exported to other Eclipse
+     * projects. However, if a class path entry comes from two or more configurations, any of which
+     * is exported, then the entry is exported.
      * <p>
      * For example see docs for {@link EclipseClasspath}
      */
-    Collection<Configuration> nonExportedConfigurations = []
+    Collection<String> nonExportedConfigNames = []
 
    /**
      * Containers to be added to the classpath
