@@ -40,7 +40,7 @@ class MavenModelBuilder {
 
         //basic values can be easily extracted from the project:
         publication.conventionMapping.description = { project.description }
-        publication.conventionMapping.groupId = { project.group.toString() }
+        publication.conventionMapping.groupId = { project.group.toString()? project.group.toString() : 'unspecified.group'}
         publication.conventionMapping.version = { project.version.toString() }
         publication.modelVersion = '4.0.0'
 
