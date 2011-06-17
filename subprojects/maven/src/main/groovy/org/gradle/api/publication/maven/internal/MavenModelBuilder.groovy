@@ -41,11 +41,8 @@ class MavenModelBuilder {
         //basic values can be easily extracted from the project:
         publication.conventionMapping.description = { project.description }
         publication.conventionMapping.groupId = { project.group.toString() }
+        publication.conventionMapping.version = { project.version.toString() }
         publication.modelVersion = '4.0.0'
-
-        //let's give some reasonable defaults if java plugin not applied
-        publication.conventionMapping.version = { 'version-not-configured' }
-        publication.conventionMapping.groupId = { 'group.not.configured' }
 
         project.plugins.withType(JavaPlugin) {
             publication.packaging = 'jar'
