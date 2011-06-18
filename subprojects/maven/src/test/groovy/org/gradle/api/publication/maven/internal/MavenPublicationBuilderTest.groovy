@@ -26,13 +26,13 @@ import spock.lang.Specification
 /**
  * @author: Szczepan Faber, created at: 5/13/11
  */
-class MavenModelBuilderTest extends Specification {
+class MavenPublicationBuilderTest extends Specification {
 
     DefaultProject project = HelperUtil.createRootProject()
 
     //building the publication early, before the plugins and configurations are applied
     //to make sure that the conventionMappings are tied correctly and lazily evaluated
-    MavenPublication publication = new MavenModelBuilder().build(project)
+    MavenPublication publication = new MavenPublicationBuilder().build(project)
 
     def "populates model with basic information"() {
         when:

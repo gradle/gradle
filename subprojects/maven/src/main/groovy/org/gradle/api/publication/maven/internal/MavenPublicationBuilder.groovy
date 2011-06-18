@@ -30,8 +30,7 @@ import org.gradle.api.tasks.bundling.Jar
 /**
  * @author: Szczepan Faber, created at: 5/13/11
  */
-//TODO SF - rename to MavenPublicationBuilder
-class MavenModelBuilder {
+class MavenPublicationBuilder {
 
     MavenPublication build(Project project) {
         DefaultMavenPublication publication = project.services.get(ClassGenerator).newInstance(DefaultMavenPublication)

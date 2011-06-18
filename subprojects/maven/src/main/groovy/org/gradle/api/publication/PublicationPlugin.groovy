@@ -19,7 +19,7 @@ package org.gradle.api.publication
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.MavenPlugin
-import org.gradle.api.publication.maven.internal.MavenModelBuilder
+import org.gradle.api.publication.maven.internal.MavenPublicationBuilder
 
 /**
  * This is only temporary plugin :) When we're happy with what it does we can move that to the core dsl?
@@ -33,7 +33,7 @@ class PublicationPlugin implements Plugin<Project> {
         project.convention.plugins.publications = newPublications
 
         project.plugins.withType(MavenPlugin) {
-            newPublications.maven = new MavenModelBuilder().build(project)
+            newPublications.maven = new MavenPublicationBuilder().build(project)
             project.task("publishArchives", dependsOn: 'assemble', type: PublishPublications.class) {
                 publications = newPublications
             }
