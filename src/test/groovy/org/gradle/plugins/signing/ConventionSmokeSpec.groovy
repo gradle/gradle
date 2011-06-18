@@ -48,7 +48,7 @@ class ConventionSmokeSpec extends SigningProjectSpec {
 	
 	def "default signatory with no properties"() {
 		expect:
-		signing.defaultSignatory == null
+		signing.signatory == null
 	}
 	
 	def "default type"() {

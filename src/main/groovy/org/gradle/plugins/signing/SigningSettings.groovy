@@ -61,7 +61,7 @@ class SigningSettings {
 		signatories
 	}
 	
-	Signatory getDefaultSignatory() {
+	Signatory getSignatory() {
 		new SignatoryFactory().createSignatory(project)
 	}
 	

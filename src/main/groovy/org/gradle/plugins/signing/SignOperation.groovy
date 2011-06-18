@@ -126,7 +126,7 @@ class SignOperation {
 	}
 	
 	Signatory getSignatory() {
-		signatory ?: settings.defaultSignatory
+		signatory ?: settings.signatory
 	}
 	
 	SignOperation signatory(Signatory signatory) {
