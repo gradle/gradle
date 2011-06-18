@@ -268,6 +268,11 @@ class IdeaModule {
     }
 
     /**
+     * See {@link #iml(Closure) }
+     */
+    IdeaModuleIml iml
+
+    /**
      * Enables advanced configuration like tinkering with the output xml
      * or affecting the way existing *.iml content is merged with gradle build information
      * <p>
@@ -293,52 +298,26 @@ class IdeaModule {
         iml.generateTo = newOutputFile.parentFile
     }
 
-    /**
-     * See {@link #iml(Closure) }
-     */
-    IdeaModuleIml iml
-
     org.gradle.api.Project project
     PathFactory pathFactory
 
     Map<String, Collection<File>> singleEntryLibraries
 
-    Set<Path> getSourcePaths() {
-        getSourceDirs().findAll { it.exists() }.collect { path(it) }
-    }
-
-    Set<Dependency> getDependencies() {
-        new IdeaDependenciesProvider().provide(this, getPathFactory());
-    }
-
-    Set<Path> getTestSourcePaths() {
-        getTestSourceDirs().findAll { it.exists() }.collect { getPathFactory().path(it) }
-    }
-
-    Set<Path> getExcludePaths() {
-        getExcludeDirs().collect { path(it) }
-    }
-
-    Path getOutputPath() {
-        getOutputDir() ? path(getOutputDir()) : null
-    }
-
-    Path getTestOutputPath() {
-        getTestOutputDir() ? path(getTestOutputDir()) : null
-    }
-
     void mergeXmlModule(Module xmlModule) {
         iml.beforeMerged.execute(xmlModule)
-        xmlModule.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(),
-                getInheritOutputDirs(), getOutputPath(), getTestOutputPath(), getDependencies(), getJavaVersion())
+
+        def path = { getPathFactory().path(it) }
+        def contentRoot = path(getContentRoot())
+        Set sourceFolders = getSourceDirs().findAll { it.exists() }.collect { path(it) }
+        Set testSourceFolders = getTestSourceDirs().findAll { it.exists() }.collect { path(it) }
+        Set excludeFolders = getExcludeDirs().collect { path(it) }
+        def outputDir = getOutputDir() ? path(getOutputDir()) : null
+        def testOutputDir = getTestOutputDir() ? path(getTestOutputDir()) : null
+        Set dependencies = new IdeaDependenciesProvider().provide(this, getPathFactory())
+
+        xmlModule.configure(contentRoot, sourceFolders, testSourceFolders, excludeFolders,
+                getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJavaVersion())
+
         iml.whenMerged.execute(xmlModule)
-    }
-
-    Path getContentPath() {
-        path(getContentRoot())
-    }
-
-    Path path(File dir) {
-        getPathFactory().path(dir)
     }
 }
