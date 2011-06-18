@@ -33,7 +33,7 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private Map<String, Object> suites = new HashMap<String, Object>();
-    private Map<String, Object> tests = new HashMap<String, Object>();
+    private Map<ITestResult, Object> tests = new HashMap<ITestResult, Object>();
     private Map<ITestNGMethod, Object> testMethodToSuiteMapping = new HashMap<ITestNGMethod, Object>();
 
     public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator) {
@@ -69,8 +69,11 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
         Object parentId;
         synchronized (lock) {
             testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), iTestResult.getName());
-            Object oldTestId = tests.put(testInternal.getName(), testInternal.getId());
-            assert oldTestId == null;
+            Object oldTestId = tests.put(iTestResult, testInternal.getId());
+            assert oldTestId == null : "Apparently some other test has started but it hasn't finished. "
+                    + "Expect the resultProcessor to break. "
+                    + "Don't expect to see this assertion stack trace due to the current architecture";
+
             parentId = testMethodToSuiteMapping.get(iTestResult.getMethod());
             assert parentId != null;
         }
@@ -97,7 +100,7 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
         Object testId;
         TestStartEvent startEvent = null;
         synchronized (lock) {
-            testId = tests.remove(iTestResult.getName());
+            testId = tests.remove(iTestResult);
             if (testId == null) {
                 // This can happen when a method fails which this method depends on 
                 testId = idGenerator.generateId();
