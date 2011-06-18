@@ -19,8 +19,6 @@ package org.gradle.api.publication
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.publication.maven.internal.DefaultMavenPublisher
 import org.gradle.api.tasks.TaskAction
-import org.gradle.util.SystemProperties
-import org.sonatype.aether.repository.LocalRepository
 
 /**
  * @author: Szczepan Faber, created at: 6/16/11
@@ -31,8 +29,7 @@ class InstallPublications extends ConventionTask {
 
     @TaskAction
     void publish() {
-        def localRepo = new LocalRepository("$SystemProperties.userHome/.m2/repository")
-        DefaultMavenPublisher publisher = new DefaultMavenPublisher(localRepo)
+        DefaultMavenPublisher publisher = new DefaultMavenPublisher()
         publisher.install(publications.maven)
     }
 }

@@ -15,32 +15,33 @@
  */
 package org.gradle.api.publication.maven.internal
 
+import org.apache.maven.repository.internal.DefaultServiceLocator
 import org.apache.maven.repository.internal.MavenRepositorySystemSession
+import org.gradle.api.publication.maven.MavenPublication
+import org.gradle.api.publication.maven.MavenPublisher
+import org.gradle.api.publication.maven.MavenRepository
+import org.gradle.util.SystemProperties
 import org.sonatype.aether.RepositorySystem
-import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory
-import org.sonatype.aether.spi.connector.RepositoryConnectorFactory
 import org.sonatype.aether.RepositorySystemSession
-import org.sonatype.aether.repository.LocalRepository
-import org.sonatype.aether.installation.InstallRequest
 import org.sonatype.aether.artifact.Artifact
+import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory
+import org.sonatype.aether.connector.wagon.WagonProvider
+import org.sonatype.aether.connector.wagon.WagonRepositoryConnectorFactory
+import org.sonatype.aether.deployment.DeployRequest
+import org.sonatype.aether.installation.InstallRequest
+import org.sonatype.aether.repository.Authentication
+import org.sonatype.aether.repository.LocalRepository
+import org.sonatype.aether.repository.RemoteRepository
+import org.sonatype.aether.spi.connector.RepositoryConnectorFactory
 import org.sonatype.aether.util.artifact.DefaultArtifact
 import org.sonatype.aether.util.artifact.SubArtifact
-import org.sonatype.aether.deployment.DeployRequest
-import org.sonatype.aether.repository.RemoteRepository
-import org.sonatype.aether.connector.wagon.WagonRepositoryConnectorFactory
-import org.apache.maven.repository.internal.DefaultServiceLocator
-import org.gradle.api.publication.maven.MavenPublisher
-import org.gradle.api.publication.maven.MavenPublication
-import org.gradle.api.publication.maven.MavenRepository
-import org.sonatype.aether.connector.wagon.WagonProvider
-import org.sonatype.aether.repository.Authentication
 
 class DefaultMavenPublisher implements MavenPublisher {
     private final RepositorySystem repositorySystem
     private final RepositorySystemSession session
 
     DefaultMavenPublisher() {
-        this(new LocalRepository(new File("/swd/tmp/m2repo")))
+        this(new LocalRepository("$SystemProperties.userHome/.m2/repository"))
     }
 
     DefaultMavenPublisher(LocalRepository localRepository) {
