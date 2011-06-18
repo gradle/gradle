@@ -36,6 +36,7 @@ class SigningSettings {
 	private Map<String, Signatory> signatories = [:]
 	private Configuration configuration
 	private SignatureTypeHandler typeHandler
+	private boolean required = false
 	
 	SigningSettings(Project project) {
 		this.project = project
@@ -71,6 +72,18 @@ class SigningSettings {
 	
 	Configuration getConfiguration() {
 		configuration
+	}
+	
+	boolean getRequired() {
+		required
+	}
+	
+	void setRequired(boolean required) {
+		this.required = required
+	}
+	
+	void required(boolean required) {
+		setRequired(required)
 	}
 	
 	Sign sign(Task task) {

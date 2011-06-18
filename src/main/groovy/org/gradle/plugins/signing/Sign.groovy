@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.InvalidUserDataException
 
 import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.type.SignatureType
@@ -33,12 +34,17 @@ import org.gradle.plugins.signing.type.SignatureType
 class Sign extends DefaultTask {
 	
 	final SigningSettings settings
-	final private SignOperation operation
+	final protected SignOperation operation
+	
+	private Boolean required
 	
 	Sign() {
 		super()
 		settings = project.signing
 		operation = new SignOperation(settings)
+		onlyIf {
+			getRequired() || getSignatory() != null
+		}
 	}
 	
 	void sign(AbstractArchiveTask... toSign) {
@@ -96,6 +102,18 @@ class Sign extends DefaultTask {
 		operation.type
 	}
 	
+	boolean getRequired() {
+		required != null ? required : settings.required
+	}
+	
+	void setRequired(boolean required) {
+		this.required = required
+	}
+	
+	void required(boolean required) {
+		setRequired(required)
+	}
+	
 	@InputFile
 	FileCollection getSigned() {
 		operation.signed
@@ -119,7 +137,10 @@ class Sign extends DefaultTask {
 	}
 	
 	@TaskAction
-	void execute() {
+	void signIt() {
+		if (getSignatory() == null) {
+			throw new InvalidUserDataException("Cannot perform signing task '${getName()}' because it has no configured signatory. This task was marked as required.")
+		}
 		operation.execute()
 	}
 }

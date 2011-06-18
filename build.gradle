@@ -18,7 +18,7 @@ archivesBaseName = 'gradle-signing-plugin'
 group = 'org.gradle.plugins'
 version = '0.0.1-SNAPSHOT'
 
-doSign = !project.hasProperty('noSign') && project.hasProperty("signing.keyId")
+doSign = !project.hasProperty('noSign')
 
 buildscript {
 	repositories {
@@ -92,11 +92,13 @@ uploadPublished {
 				
 				if (doSign) {
 					beforeDeployment { MavenDeployment deployment ->
-						def signedPomArtifact = sign(deployment.pomArtifact).singleArtifact
-						// Have to alter the “type” of the artifact to match what is published
-						// See http://issues.gradle.org/browse/GRADLE-1589
-						signedPomArtifact.type = "pom." + signing.type.fileExtension
-						deployment.addArtifact(signedPomArtifact)
+						if (signing.signatory) {
+							def signedPomArtifact = sign(deployment.pomArtifact).singleArtifact
+							// Have to alter the “type” of the artifact to match what is published
+							// See http://issues.gradle.org/browse/GRADLE-1589
+							signedPomArtifact.type = "pom." + signing.type.fileExtension
+							deployment.addArtifact(signedPomArtifact)
+						}
 					}
 				}
 				
