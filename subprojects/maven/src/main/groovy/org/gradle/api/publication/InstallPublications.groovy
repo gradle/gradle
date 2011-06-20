@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publication.maven.internal.model
 
-import org.gradle.util.ConfigureUtil
-import org.gradle.api.publication.maven.*
+package org.gradle.api.publication
 
-class DefaultMavenPublication implements MavenPublication {
-    String modelVersion
-    String groupId
-    String artifactId
-    String version
-    String packaging
-    String description
-    MavenArtifact mainArtifact
-    List<MavenArtifact> subArtifacts = []
-    List<MavenDependency> dependencies = []
-    MavenPomCustomizer pom
-    MavenRepository repository = new DefaultMavenRepository()
+import org.gradle.api.internal.ConventionTask
+import org.gradle.api.publication.maven.internal.DefaultMavenPublisher
+import org.gradle.api.tasks.TaskAction
 
-    void repository(Closure c) {
-        ConfigureUtil.configure(c, getRepository())
+/**
+ * @author: Szczepan Faber, created at: 6/16/11
+ */
+class InstallPublications extends ConventionTask {
+
+    Publications publications
+
+    @TaskAction
+    void publish() {
+        DefaultMavenPublisher publisher = new DefaultMavenPublisher()
+        publisher.install(publications.maven)
     }
 }

@@ -284,6 +284,15 @@
                 <sourcefile file="build.gradle" snippet="gradle-api-dependencies"/>
             </sample>
         </section>
+        <section>
+            <title>Gradle's Groovy Dependency</title>
+            <para>You can declare a dependency on the Groovy that is distributed with Gradle by using the
+                <apilink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="localGroovy"/> method. This is
+                useful when you are developing custom Gradle tasks or plugins in Groovy.</para>
+            <sample id="local-groovy-dependencies" dir="groovy/multiproject/buildSrc" title="Gradle's Groovy dependencies">
+                <sourcefile file="build.gradle" snippet="local-groovy-dependencies"/>
+            </sample>
+        </section>
         <section id='sub:exclude_transitive_dependencies'>
             <title>Excluding transitive dependencies</title>
             <para>You can exclude a <emphasis>transitive</emphasis> dependency either by configuration or by dependency:

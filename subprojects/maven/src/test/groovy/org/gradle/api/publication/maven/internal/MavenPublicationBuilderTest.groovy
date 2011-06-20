@@ -26,12 +26,16 @@ import spock.lang.Specification
 /**
  * @author: Szczepan Faber, created at: 5/13/11
  */
-class MavenModelBuilderTest extends Specification {
+class MavenPublicationBuilderTest extends Specification {
 
-    def builder = new MavenModelBuilder()
     DefaultProject project = HelperUtil.createRootProject()
 
+    //building the publication early, before the plugins and configurations are applied
+    //to make sure that the conventionMappings are tied correctly and lazily evaluated
+    MavenPublication publication = new MavenPublicationBuilder().build(project)
+
     def "populates model with basic information"() {
+        when:
         project.apply(plugin: 'java')
         project.apply(plugin: 'maven')
 
@@ -42,9 +46,6 @@ class MavenModelBuilderTest extends Specification {
             version = 1.8
             baseName = 'someJar'
         }
-
-        when:
-        MavenPublication publication = builder.build(project)
 
         then:
         publication.artifactId == 'someJar'
@@ -57,10 +58,23 @@ class MavenModelBuilderTest extends Specification {
         publication.modelVersion == '4.0.0'
     }
 
+    def "honors archivesBaseName"() {
+        when:
+        project.apply(plugin: 'java')
+        project.apply(plugin: 'maven')
+
+        project.archivesBaseName = 'foobar'
+
+        then:
+        publication.artifactId == 'foobar'
+        publication.mainArtifact.file.name == 'foobar.jar'
+    }
+
     @Ignore
     //I don't think we want to support that...
     //the idea should be that the new publication dsl works when you configure the installation/deployment using the new DSL, not the old one
     def "populates model with info from installer configuration"() {
+        when:
         project.apply(plugin: 'java')
         project.apply(plugin: 'maven')
 
@@ -70,22 +84,17 @@ class MavenModelBuilderTest extends Specification {
             }
         }
 
-        when:
-        MavenPublication publication = builder.build(project)
-
         then:
         publication.groupId == 'com.gradleware2'
     }
 
     def "populates model with main artifact"() {
+        when:
         project.apply(plugin: 'java')
         project.jar {
             classifier = 'jdk15'
             extension  = 'rambo'
         }
-
-        when:
-        MavenPublication publication = builder.build(project)
 
         then:
         publication.mainArtifact != null
@@ -97,6 +106,7 @@ class MavenModelBuilderTest extends Specification {
     }
 
     def "populates model with compile dependencies"() {
+        when:
         project.apply(plugin: 'java')
         project.repositories {
             mavenCentral()
@@ -105,9 +115,6 @@ class MavenModelBuilderTest extends Specification {
            compile 'commons-lang:commons-lang:2.6'
            testCompile 'org.mockito:mockito-all:1.8.5'
         }
-
-        when:
-        MavenPublication publication = builder.build(project)
 
         then:
         publication.dependencies.size() == 2
@@ -128,6 +135,7 @@ class MavenModelBuilderTest extends Specification {
     }
 
     def "populates model with runtime dependencies"() {
+        when:
         project.apply(plugin: 'java')
         project.repositories {
             mavenCentral()
@@ -136,9 +144,6 @@ class MavenModelBuilderTest extends Specification {
            runtime 'commons-lang:commons-lang:2.6'
            testRuntime 'org.mockito:mockito-all:1.8.5'
         }
-
-        when:
-        MavenPublication publication = builder.build(project)
 
         then:
         publication.dependencies.size() == 2
@@ -159,13 +164,11 @@ class MavenModelBuilderTest extends Specification {
     }
 
     def "populates model with dependency with a classifier"() {
+        when:
         project.apply(plugin: 'java')
         project.dependencies {
            testCompile 'org.foo:bar:1.0:testUtil'
         }
-
-        when:
-        MavenPublication publication = builder.build(project)
 
         then:
         publication.dependencies.size() == 1
@@ -178,35 +181,27 @@ class MavenModelBuilderTest extends Specification {
         publication.dependencies[0].scope == MavenScope.TEST
     }
 
-    def "does not break when java plugin not applied"() {
-        given:
-        def publication = builder.build(project)
-
-        when:
-        publication.artifactId
-        publication.dependencies
-        publication.description
+    def "does not break when java plugin not applied and has reasonable defaults"() {
+        expect:
+        !publication.artifactId
+        !publication.dependencies
+        !publication.description
         publication.groupId
         publication.mainArtifact
         publication.modelVersion
-        publication.packaging
-        publication.pom
+        !publication.packaging
+        !publication.pom
         publication.properties
-        publication.subArtifacts
+        !publication.subArtifacts
         publication.version
-
-        then:
-        noExceptionThrown()
     }
 
     def "does not break when file dependencies are configured"() {
+        when:
         project.apply(plugin: 'java')
         project.dependencies {
            compile project.files('sample.jar')
         }
-
-        when:
-        MavenPublication publication = builder.build(project)
 
         then:
         publication.dependencies.size() == 0

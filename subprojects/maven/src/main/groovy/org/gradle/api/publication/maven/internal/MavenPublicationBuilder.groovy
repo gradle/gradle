@@ -30,7 +30,7 @@ import org.gradle.api.tasks.bundling.Jar
 /**
  * @author: Szczepan Faber, created at: 5/13/11
  */
-class MavenModelBuilder {
+class MavenPublicationBuilder {
 
     MavenPublication build(Project project) {
         DefaultMavenPublication publication = project.services.get(ClassGenerator).newInstance(DefaultMavenPublication)
@@ -39,7 +39,8 @@ class MavenModelBuilder {
 
         //basic values can be easily extracted from the project:
         publication.conventionMapping.description = { project.description }
-        publication.conventionMapping.groupId = { project.group.toString() }
+        publication.conventionMapping.groupId = { project.group.toString()? project.group.toString() : 'unspecified.group'}
+        publication.conventionMapping.version = { project.version.toString() }
         publication.modelVersion = '4.0.0'
 
         project.plugins.withType(JavaPlugin) {
@@ -59,9 +60,9 @@ class MavenModelBuilder {
                 //or: publication.conventionMapping.version = { project.version.toString() }
 
                 //again it feels natural to get it from the 'jar' section of the build.
-                publication.mainArtifact.classifier = project.jar.classifier
-                publication.mainArtifact.extension = project.jar.extension
-                publication.mainArtifact.file = project.jar.archivePath
+                publication.mainArtifact.conventionMapping.classifier = { project.jar.classifier }
+                publication.mainArtifact.conventionMapping.extension = { project.jar.extension }
+                publication.mainArtifact.conventionMapping.file = { project.jar.archivePath }
             }
 
             //TODO SF:

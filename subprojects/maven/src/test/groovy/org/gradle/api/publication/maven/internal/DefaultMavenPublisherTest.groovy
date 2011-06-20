@@ -83,6 +83,27 @@ class DefaultMavenPublisherTest extends Specification {
         deployed.bytes == sampleJar().bytes
     }
 
+    def "deploys snapshot along with maven stuff"() {
+        def fakeRemoteRepo = new DefaultMavenRepository(url: new File("$dir.testDir/remote-repository").toURI())
+
+        def publication = new DefaultMavenPublication(groupId: "gradleware.test", artifactId: "fooArtifact", version: "1.1-SNAPSHOT")
+        def artifact = new DefaultMavenArtifact(classifier: "", extension: "jar", file: sampleJar())
+        publication.mainArtifact = artifact
+
+        when:
+        publisher.deploy(publication, fakeRemoteRepo)
+
+        then:
+        def deployedDir = new File("$dir.testDir/remote-repository/gradleware/test/fooArtifact/1.1-SNAPSHOT")
+        def files = deployedDir.list() as List
+        ['maven-metadata.xml', 'maven-metadata.xml.md5', 'maven-metadata.xml.sha1'].each {
+            assert files.contains(it)
+        }
+        assert files.any { it =~ /fooArtifact-1.1-.*\.jar/ }
+        assert files.any { it =~ /fooArtifact-1.1-.*\.jar.sha1/ }
+        assert files.any { it =~ /fooArtifact-1.1-.*\.jar.md5/ }
+    }
+
     def "deploys artifact with classifier"() {
         def fakeRemoteRepo = new DefaultMavenRepository(url: new File("$dir.testDir/remote-repository").toURI())
 

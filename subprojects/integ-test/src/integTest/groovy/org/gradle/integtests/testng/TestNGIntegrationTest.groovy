@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
@@ -108,5 +109,40 @@ public class TestNGIntegrationTest {
         assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenSetup FAILED'))
         assertThat(execution.error, containsString('Test org.gradle.BrokenAfterSuite FAILED'))
         assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenMethodDependency FAILED'))
+    }
+
+    @Issue("GRADLE-1532")
+    @Test
+    void supportsThreadPoolSize() {
+        dist.testDir.file('src/test/java/SomeTest.java') << """
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+public class SomeTest {
+	@Test(invocationCount = 2, threadPoolSize = 2)
+	public void someTest() {
+		Assert.assertTrue(true);
+	}
+}
+"""
+
+        dist.testDir.file("build.gradle") << """
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+	testCompile 'org.testng:testng:5.14'
+}
+
+test {
+ 	useTestNG()
+}
+
+"""
+        executer.withTasks("test").run()
     }
 }

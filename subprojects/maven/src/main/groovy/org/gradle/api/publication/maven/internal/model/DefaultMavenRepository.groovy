@@ -17,8 +17,13 @@ package org.gradle.api.publication.maven.internal.model
 
 import org.gradle.api.publication.maven.MavenAuthentication
 import org.gradle.api.publication.maven.MavenRepository
+import org.gradle.util.ConfigureUtil
 
 class DefaultMavenRepository implements MavenRepository {
     String url
-    MavenAuthentication authentication
+    MavenAuthentication authentication = new DefaultMavenAuthentication()
+
+    void authentication(Closure c) {
+        ConfigureUtil.configure(c, getAuthentication())
+    }
 }

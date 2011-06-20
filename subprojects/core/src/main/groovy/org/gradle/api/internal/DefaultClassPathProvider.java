@@ -19,16 +19,20 @@ package org.gradle.api.internal;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.*;
+
 public class DefaultClassPathProvider extends AbstractClassPathProvider {
     public DefaultClassPathProvider() {
         List<Pattern> groovyPatterns = toPatterns("groovy-all");
 
-        add("LOCAL_GROOVY", groovyPatterns);
+        add(LOCAL_GROOVY.name(), groovyPatterns);
         List<Pattern> gradleApiPatterns = toPatterns("gradle-\\w+", "ivy", "slf4j", "ant");
         gradleApiPatterns.addAll(groovyPatterns);
         // Add the test fixture runtime, too
         gradleApiPatterns.addAll(toPatterns("commons-io", "asm", "commons-lang", "commons-collections", "maven-ant-tasks"));
-        add("GRADLE_API", gradleApiPatterns);
+        // Add the runtime dependencies of GrailsLauncher
+        gradleApiPatterns.addAll(toPatterns("jna-posix", "jna", "guava", "logback-\\w+", "jul-to-slf4j"));
+        add(GRADLE_API.name(), gradleApiPatterns);
         add("GRADLE_CORE", toPatterns("gradle-core"));
         add("ANT", toPatterns("ant", "ant-launcher"));
         add("COMMONS_CLI", toPatterns("commons-cli"));
