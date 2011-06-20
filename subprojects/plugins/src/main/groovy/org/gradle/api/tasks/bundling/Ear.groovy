@@ -69,7 +69,7 @@ class Ear extends Jar {
             MapFileTree descriptorSource = new MapFileTree(temporaryDir)
             final DeploymentDescriptor descriptor = earModel.deploymentDescriptor
             if (descriptor) {
-                if (!descriptor.libraryDirectory && earModel.libDirName != 'lib') {
+                if (!descriptor.libraryDirectory) {
                     descriptor.libraryDirectory = earModel.libDirName
                 }
                 descriptorSource.add(descriptor.fileName) {OutputStream outstr ->

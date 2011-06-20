@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import java.util.concurrent.Callable;
-
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -34,6 +32,8 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Ear;
 import org.gradle.api.tasks.bundling.Jar;
 
+import java.util.concurrent.Callable;
+
 /**
  * <p>
  * A {@link Plugin} with tasks which assemble a web application into a EAR file.
@@ -47,7 +47,6 @@ public class EarPlugin implements Plugin<AbstractProject> {
 
     public static final String DEPLOY_CONFIGURATION_NAME = "deploy";
     public static final String EARLIB_CONFIGURATION_NAME = "earlib";
-    private static final String TRANSITIVE_DEPLOY_CONFIGURATION_NAME = "transitiveDeploy";
 
     public void apply(final AbstractProject project) {
         project.getPlugins().apply(BasePlugin.class);
@@ -56,7 +55,6 @@ public class EarPlugin implements Plugin<AbstractProject> {
         project.getConvention().getPlugins().put("ear", pluginConvention);
         pluginConvention.setLibDirName("lib");
         pluginConvention.setAppDirName("src/main/application");
-        pluginConvention.setSkinnyDeploy(false);
 
         configureConfigurations(project);
 
@@ -64,8 +62,8 @@ public class EarPlugin implements Plugin<AbstractProject> {
         final JavaPluginConvention javaPlugin = project.getConvention().findPlugin(JavaPluginConvention.class);
         if (javaPlugin != null) {
             SourceSet sourceSet = javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            sourceSet.getResources().srcDir(new Callable<String>() {
-                public String call() throws Exception {
+            sourceSet.getResources().srcDir(new Callable() {
+                public Object call() throws Exception {
                     return pluginConvention.getAppDirName();
                 }
             });
@@ -105,14 +103,7 @@ public class EarPlugin implements Plugin<AbstractProject> {
 
                     public FileCollection call() throws Exception {
 
-                        ConfigurationContainer configurations = project.getConfigurations();
-                        if (pluginConvention.isSkinnyDeploy()) {
-                            return configurations.getByName(EARLIB_CONFIGURATION_NAME).plus(
-                                    configurations.getByName(TRANSITIVE_DEPLOY_CONFIGURATION_NAME).minus(
-                                            configurations.getByName(DEPLOY_CONFIGURATION_NAME)));
-                        } else {
-                            return configurations.getByName(EARLIB_CONFIGURATION_NAME);
-                        }
+                        return project.getConfigurations().getByName(EARLIB_CONFIGURATION_NAME);
                     }
                 });
             }
@@ -144,13 +135,9 @@ public class EarPlugin implements Plugin<AbstractProject> {
                 .setTransitive(false).setDescription("Classpath for deployable modules, not transitive.");
         Configuration earlibConfiguration = configurations.add(EARLIB_CONFIGURATION_NAME).setVisible(false)
                 .setDescription("Classpath for module dependencies.");
-        Configuration transModuleConfiguration = configurations.add(TRANSITIVE_DEPLOY_CONFIGURATION_NAME).setVisible(false)
-                .setTransitive(true)
-                .setDescription("Classpath for deployable modules; internally used to calculate transitive dependencies")
-                .extendsFrom(moduleConfiguration);
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-                .extendsFrom(transModuleConfiguration, earlibConfiguration);
+                .extendsFrom(moduleConfiguration, earlibConfiguration);
     }
 
     //TODO SF hack duplicated with War plugin

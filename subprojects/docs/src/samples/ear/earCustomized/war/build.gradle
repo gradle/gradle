@@ -21,5 +21,5 @@ repositories {
 }
 
 dependencies {
-    providedCompile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
+    compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
 }
