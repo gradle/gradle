@@ -48,8 +48,8 @@ import org.gradle.util.ConfigureUtil
  *     //you can also remove configurations from the classpath:
  *     minusConfigurations += configurations.someBoringConfig
  *
- *     //you can make some classpath entries not be exported by Eclipse by choosing configurations:
- *     nonExportedConfigNames += 'provided'
+ *     //you can make some classpath entries not be exported by Eclipse by choosing configuration names:
+ *     noExportConfigNames += 'provided'
  *
  *     //if you want to append extra containers:
  *     containers 'someFriendlyContainer', 'andYetAnotherContainer'
@@ -128,12 +128,14 @@ class EclipseClasspath {
 
     /**
      * The names of configurations whose classpath entries should not be exported to other Eclipse
-     * projects. However, if a class path entry comes from two or more configurations, any of which
-     * is exported, then the entry is exported.
+     * projects. By default this collection contains 'testCompile' and 'testRuntime'.
+     * <p>
+     * Note that if a class path entry comes from two or more configurations, any of which is
+     * exported, then the entry is exported.
      * <p>
      * For example see docs for {@link EclipseClasspath}
      */
-    Collection<String> nonExportedConfigNames = []
+    Collection<String> noExportConfigNames = []
 
    /**
      * Containers to be added to the classpath

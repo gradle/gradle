@@ -155,7 +155,7 @@ class EclipsePlugin extends IdePlugin {
 
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]
-                    classpath.nonExportedConfigNames += [project.configurations.testCompile.name, project.configurations.testRuntime.name]
+                    classpath.noExportConfigNames += [project.configurations.testCompile.name, project.configurations.testRuntime.name]
                     classpath.conventionMapping.classFolders = {
                         def dirs = project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
                         dirs.collect { project.relativePath(it)} .findAll { !it.contains('..') }

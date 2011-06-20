@@ -52,13 +52,8 @@ class ClasspathFactory {
     }
 
     protected List getModules(EclipseClasspath classpath) {
-        def result = []
-        for (configuration in classpath.plusConfigurations) {
-            result.addAll(createClasspathEntries(configuration, classpath.minusConfigurations,
-                { it instanceof org.gradle.api.artifacts.ProjectDependency },
-                { dependency -> new ProjectDependencyBuilder().build(dependency.dependencyProject, isExported(dependency, configuration, classpath)) }))
-        }
-        result
+        return getDependencies(classpath.plusConfigurations, classpath.minusConfigurations, { it instanceof org.gradle.api.artifacts.ProjectDependency })
+                .collect { projectDependency -> new ProjectDependencyBuilder().build(projectDependency.dependencyProject, isExported(projectDependency, classpath)) }
     }
 
     protected Set getLibraries(EclipseClasspath classpath) {
@@ -74,26 +69,22 @@ class ClasspathFactory {
         }
         Map javadocFiles = classpath.downloadJavadoc ? getFiles(classpath.project, javadocDependencies, "javadoc") : [:]
 
-        def moduleLibraries = new LinkedHashSet()
-        for (configuration in classpath.plusConfigurations) {
-            moduleLibraries.addAll(createClasspathEntries(configuration, classpath.minusConfigurations,
-                { it instanceof ExternalDependency },
-                { ExternalDependency dependency ->
-                    configuration.files(dependency).collect { File binaryFile ->
-                        File sourceFile = sourceFiles[binaryFile.name]
-                        File javadocFile = javadocFiles[binaryFile.name]
-                        createLibraryEntry(binaryFile, sourceFile, javadocFile, classpath.pathVariables, isExported(dependency, configuration, classpath))
-                    }
-                }))
-            moduleLibraries.addAll(createClasspathEntries(configuration, classpath.minusConfigurations,
-                { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)},
-                { SelfResolvingDependency dependency ->
-                    dependency.resolve().collect { File file ->
-                        createLibraryEntry(file, null, null, classpath.pathVariables, isExported(dependency, configuration, classpath))
-                    }
-                }))
-        }
+        Set moduleLibraries = resolveFromFiles(classpath.plusConfigurations, classpath.minusConfigurations, { File binaryFile, Dependency dependency ->
+            File sourceFile = sourceFiles[binaryFile.name]
+            File javadocFile = javadocFiles[binaryFile.name]
+            createLibraryEntry(binaryFile, sourceFile, javadocFile, classpath.pathVariables, isExported(dependency, classpath))
+        })
+        moduleLibraries.addAll(getSelfResolvingFiles(getDependencies(classpath.plusConfigurations, classpath.minusConfigurations,
+                { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}), classpath))
         moduleLibraries
+    }
+
+    private getSelfResolvingFiles(Collection dependencies, EclipseClasspath classpath) {
+        dependencies.collect { SelfResolvingDependency dependency ->
+            dependency.resolve().collect { File file ->
+                createLibraryEntry(file, null, null, classpath.pathVariables, isExported(dependency, classpath))
+            }
+        }.flatten()
     }
 
     AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map<String, File> pathVariables, boolean exported) {
@@ -109,38 +100,55 @@ class ClasspathFactory {
         new Library(binary.canonicalPath, exported, null, [] as Set, source ? source.canonicalPath : null, javadoc ? javadoc.canonicalPath : null)
     }
 
-    private boolean isExported(Dependency dependency, Configuration configuration, EclipseClasspath classpath) {
-        // a dependency is exported if it is introduced by an exported configuration
-        for (Configuration superConfig : configuration.hierarchy) {
-            if (classpath.nonExportedConfigNames.contains(superConfig.name)) {
-                continue
-            }
-            if (superConfig.allDependencies.contains(dependency)) {
-                return true
-            }
-        }
-        false
-    }
-
-    protected List createClasspathEntries(Configuration configuration, Collection<Configuration> minusConfigurations, Closure depFilter, Closure entryGenerator) {
+    private Set<Dependency> getDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure filter) {
         def result = new LinkedHashSet()
-        def deps = configuration.allDependencies.findAll(depFilter)
-        for (minusConfiguration in minusConfigurations) {
-            deps.removeAll(minusConfiguration.allDependencies.findAll(depFilter))
+        for (plusConfiguration in plusConfigurations) {
+            result.addAll(plusConfiguration.allDependencies.findAll(filter))
         }
-        result.addAll(deps.collect(entryGenerator))
-        result.flatten() as List
+        for (minusConfiguration in minusConfigurations) {
+            result.removeAll(minusConfiguration.allDependencies.findAll(filter))
+        }
+        result
     }
 
     private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
         def result = new LinkedHashSet()
-        for (configuration in plusConfigurations) {
-            result.addAll(getAllDeps(configuration.resolvedConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
+        for (plusConfiguration in plusConfigurations) {
+            result.addAll(getAllDeps(plusConfiguration.resolvedConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
         }
         for (minusConfiguration in minusConfigurations) {
             result.removeAll(getAllDeps(minusConfiguration.resolvedConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
         }
         result
+    }
+
+    private Set<AbstractLibrary> resolveFromFiles(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure generator) {
+        def result = new LinkedHashSet()
+        def dependencies = getDependencies(plusConfigurations, minusConfigurations, { it instanceof ExternalDependency })
+        for (plusConfiguration in plusConfigurations) {
+            for (dependency in dependencies) {
+                def files = plusConfiguration.files(dependency)
+                for (file in files) {
+                    result.add(generator(file, dependency))
+                }
+            }
+        }
+        result
+    }
+
+    private boolean isExported(Dependency dependency, EclipseClasspath classpath) {
+        // a dependency is exported if it is introduced by an exported configuration
+        for (Configuration plusConfiguration : classpath.plusConfigurations) {
+            for (Configuration config : plusConfiguration.hierarchy) {
+                if (classpath.noExportConfigNames.contains(config.name)) {
+                    continue
+                }
+                if (config.allDependencies.contains(dependency)) {
+                    return true
+                }
+            }
+        }
+        false
     }
 
     private getFiles(org.gradle.api.Project project, Set dependencies, String classifier) {
