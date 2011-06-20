@@ -42,9 +42,14 @@ class Sign extends DefaultTask {
 		super()
 		settings = project.signing
 		operation = new SignOperation(settings)
+
+		// If we aren't required and don't have a signatory then we just don't run
 		onlyIf {
 			getRequired() || getSignatory() != null
 		}
+
+		// Have to include this in the up-to-date checks because the signatory may have changed
+		inputs.property("signatory") { getSignatory()?.keyId?.asHex }
 	}
 	
 	void sign(AbstractArchiveTask... toSign) {
@@ -80,10 +85,8 @@ class Sign extends DefaultTask {
 	
 	private addSignature(Object source, File toSign, String classifier = null) {
 		def signature = operation.addSignature(source, toSign, classifier, this)
-		
-		// Not using @InputFiles because there is no @OutputFiles, better to be consistent
-/*		inputs.file(toSign)*/
-/*		outputs.file(signature.file)*/
+		inputs.file(toSign)
+		outputs.file(signature.file)
 	}
 	
 	void signatory(Signatory signatory) {
@@ -114,12 +117,10 @@ class Sign extends DefaultTask {
 		setRequired(required)
 	}
 	
-	@InputFile
 	FileCollection getSigned() {
 		operation.signed
 	}
 	
-	@OutputFile
 	FileCollection getFiles() {
 		operation.files
 	}
