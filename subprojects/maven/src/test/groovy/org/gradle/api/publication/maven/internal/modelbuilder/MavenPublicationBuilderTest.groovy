@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal
+package org.gradle.api.publication.maven.internal.modelbuilder
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.publication.maven.MavenPublication
@@ -22,6 +22,7 @@ import org.gradle.api.publication.maven.MavenScope
 import org.gradle.util.HelperUtil
 import spock.lang.Ignore
 import spock.lang.Specification
+import org.gradle.api.publication.maven.internal.modelbuilder.MavenPublicationBuilder
 
 /**
  * @author: Szczepan Faber, created at: 5/13/11
