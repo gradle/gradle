@@ -599,7 +599,7 @@ def runtimeProjects() {
 }
 
 def pluginProjects() {
-    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'ide', 'announce', 'scala', 'sonar'].collect {
+    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'ide', 'announce', 'scala', 'sonar', 'signing'].collect {
         project(it)
     }
 }

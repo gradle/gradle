@@ -32,6 +32,7 @@ include 'toolingApi'
 include 'docs'
 include 'integTest'
 include 'sonar'
+include 'signing'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
