@@ -33,13 +33,13 @@ import java.util.Map;
  * Executes a command line process. Example:
  * <pre autoTested=''>
  * task stopTomcat(type:Exec) {
- *   workingDir = file('../tomcat/bin')
+ *   workingDir '../tomcat/bin'
  *
  *   //on windows:
- *   commandLine = ['cmd', '/c', 'stop.bat']
+ *   commandLine 'cmd', '/c', 'stop.bat'
  *
  *   //on linux (oh yeah!!!)
- *   commandLine = ['./stop.sh']
+ *   commandLine './stop.sh'
  * }
  * </pre>
  * 

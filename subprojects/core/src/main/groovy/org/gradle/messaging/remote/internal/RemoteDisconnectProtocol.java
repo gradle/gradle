@@ -19,35 +19,48 @@ import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConnectionDisconnectProtocol implements Protocol<Message> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionDisconnectProtocol.class);
+public class RemoteDisconnectProtocol implements Protocol<Message> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDisconnectProtocol.class);
     private ProtocolContext<Message> context;
     private boolean stopping;
+    private boolean outgoingStopped;
+    private boolean finished;
 
     public void start(ProtocolContext<Message> context) {
         this.context = context;
     }
 
     public void handleIncoming(Message message) {
-        if (message instanceof EndOfStreamEvent) {
-            LOGGER.debug("Received incoming EOS. Stopping");
-            assert stopping;
-            context.stopped();
-        } else if (stopping) {
-            LOGGER.debug("Discarding message received while stopping: {}", message);
-        } else {
-            context.dispatchIncoming(message);
-        }
+        context.dispatchIncoming(message);
     }
 
     public void handleOutgoing(Message message) {
-        context.dispatchOutgoing(message);
+        if (message instanceof EndOfStreamEvent) {
+            if (stopping) {
+                context.stopped();
+                return;
+            }
+            context.dispatchOutgoing(message);
+            outgoingStopped = true;
+            finished = true;
+        } else if (!outgoingStopped) {
+            context.dispatchOutgoing(message);
+        } else {
+            LOGGER.debug("Discarding outgoing message {} as output has been finished.", message);
+        }
     }
 
     public void stopRequested() {
-        stopping = true;
-        LOGGER.debug("Sending outgoing EOS.");
-        context.dispatchOutgoing(new EndOfStreamEvent());
+        if (finished) {
+            context.stopped();
+            return;
+        }
+
+        if (!outgoingStopped) {
+            context.dispatchOutgoing(new EndOfStreamEvent());
+            outgoingStopped = true;
+        }
         context.stopLater();
+        stopping = true;
     }
 }

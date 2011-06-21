@@ -45,21 +45,21 @@ public class AsyncConnectionAdapter<T> implements AsyncConnection<T>, Stoppable 
         StoppableExecutor dispatchExecutor = executor.create(String.format("%s dispatch", connection));
         executors.add(dispatchExecutor);
         stack = new ProtocolStack<T>(dispatchExecutor, dispatchFailureHandler, dispatchFailureHandler, protocols);
-        stack.getTop().dispatchTo(outgoing);
+        stack.getBottom().dispatchTo(outgoing);
 
         StoppableExecutor incomingExecutor = executor.create(String.format("%s receive", connection));
         executors.add(incomingExecutor);
         incoming = new AsyncReceive<T>(incomingExecutor);
-        incoming.dispatchTo(stack.getTop());
+        incoming.dispatchTo(stack.getBottom());
         incoming.receiveFrom(new ConnectionReceive<T>(connection));
     }
 
     public void dispatch(T message) {
-        stack.getBottom().dispatch(message);
+        stack.getTop().dispatch(message);
     }
 
     public void dispatchTo(Dispatch<? super T> handler) {
-        stack.getBottom().dispatchTo(handler);
+        stack.getTop().dispatchTo(handler);
     }
 
     public void stop() {

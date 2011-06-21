@@ -26,6 +26,7 @@ import org.gradle.messaging.remote.internal.MessageSerializer;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -137,7 +138,11 @@ public class SocketConnection<T> implements Connection<T> {
             }
 
             if (buffer.remaining() == 0) {
-                selector.select();
+                try {
+                    selector.select();
+                } catch (ClosedSelectorException e) {
+                    return -1;
+                }
                 if (!selector.isOpen()) {
                     return -1;
                 }

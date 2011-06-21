@@ -111,7 +111,7 @@ class RouterTest extends ConcurrentSpecification {
         1 * localReceiver.dispatch(remoteMessage) >> { forwarded.done() }
     }
 
-    def "does not forward route available messages to local route which does not accept new route"() {
+    def "does not forward remote route available messages to local route which does not accept new route"() {
         TestRouteAvailableMessage localMessage = routeAvailable("local", [])
         TestRouteAvailableMessage remoteMessage = routeAvailable("remote", [])
         Dispatch<Message> localReceiver = Mock()
@@ -214,7 +214,7 @@ class RouterTest extends ConcurrentSpecification {
         0 * localIncoming._
     }
 
-    def "does not route messages to local connection once EOS received from it"() {
+    def "does not route messages to local connection once end-of-stream received from it"() {
         Dispatch<Message> localIncoming = Mock()
         def connected = startsAsyncAction()
         def local = router.createLocalConnection()
@@ -233,12 +233,29 @@ class RouterTest extends ConcurrentSpecification {
 
         when:
         local.dispatch(new EndOfStreamEvent())
-        remote.dispatch(new EndOfStreamEvent())
+        remote.dispatch(routeUnavailable("remote"))
         router.stop()
 
         then:
         1 * localIncoming.dispatch(new EndOfStreamEvent())
         0 * localIncoming._
+    }
+
+    def "does not route messages to remote connection once end-of-stream received from it"() {
+        Dispatch<Message> remoteIncoming = Mock()
+        def local = router.createLocalConnection()
+        def remote = router.createRemoteConnection()
+
+        remote.dispatchTo(remoteIncoming)
+
+        when:
+        remote.dispatch(new EndOfStreamEvent())
+        local.dispatch(routeAvailable("local", []))
+        router.stop()
+
+        then:
+        1 * remoteIncoming.dispatch(new EndOfStreamEvent())
+        0 * remoteIncoming._
     }
 
     def routeAvailable(Object id, List<Object> accepts) {

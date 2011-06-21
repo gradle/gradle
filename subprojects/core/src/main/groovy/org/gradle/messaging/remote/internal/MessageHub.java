@@ -69,7 +69,7 @@ public class MessageHub implements AsyncStoppable {
     public void addConnection(Connection<Message> connection) {
         lock.lock();
         try {
-            AsyncConnectionAdapter<Message> asyncConnection = new AsyncConnectionAdapter<Message>(connection, failureHandler, executorFactory, new ConnectionDisconnectProtocol());
+            AsyncConnectionAdapter<Message> asyncConnection = new AsyncConnectionAdapter<Message>(connection, failureHandler, executorFactory, new RemoteDisconnectProtocol());
             connections.add(asyncConnection);
 
             AsyncConnection<Message> incomingEndpoint = router.createRemoteConnection();
@@ -89,7 +89,7 @@ public class MessageHub implements AsyncStoppable {
                 Protocol<Message> sendProtocol = new SendProtocol(idGenerator.generateId(), nodeName, channel);
                 StoppableExecutor executor = executorFactory.create(displayName + " outgoing " + channel);
                 executors.add(executor);
-                outgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, unicastSendProtocol, sendProtocol, new ConnectionDisconnectProtocol());
+                outgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, unicastSendProtocol, sendProtocol);
                 outgoingUnicasts.put(channel, outgoing);
 
                 AsyncConnection<Message> outgoingEndpoint = router.createLocalConnection();
@@ -111,7 +111,7 @@ public class MessageHub implements AsyncStoppable {
                 Protocol<Message> sendProtocol = new SendProtocol(idGenerator.generateId(), nodeName, channel);
                 StoppableExecutor executor = executorFactory.create(displayName + " outgoing broadcast " + channel);
                 executors.add(executor);
-                outgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, broadcastProtocol, sendProtocol, new ConnectionDisconnectProtocol());
+                outgoing = new ProtocolStack<Message>(executor, failureHandler, failureHandler, broadcastProtocol, sendProtocol);
                 outgoingBroadcasts.put(channel, outgoing);
 
                 AsyncConnection<Message> outgoingEndpoint = router.createLocalConnection();
@@ -131,7 +131,7 @@ public class MessageHub implements AsyncStoppable {
             Protocol<Message> workerProtocol = new WorkerProtocol(dispatch);
             Protocol<Message> receiveProtocol = new ReceiveProtocol(id, nodeName, channel);
 
-            ProtocolStack<Message> stack = new ProtocolStack<Message>(incomingExecutor, failureHandler, failureHandler, workerProtocol, receiveProtocol, new ConnectionDisconnectProtocol());
+            ProtocolStack<Message> stack = new ProtocolStack<Message>(incomingExecutor, failureHandler, failureHandler, workerProtocol, receiveProtocol);
             handlers.add(stack);
 
             AsyncConnection<Message> incomingEndpoint = router.createLocalConnection();
