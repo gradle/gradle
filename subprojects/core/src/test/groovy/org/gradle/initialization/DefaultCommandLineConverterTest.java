@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static java.util.Arrays.asList;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -101,7 +102,7 @@ public class DefaultCommandLineConverterTest {
     private void checkConversion(final boolean embedded, String... args) {
         actualStartParameter = new StartParameter();
         actualStartParameter.setCurrentDir(currentDir);
-        commandLineConverter.convert(Arrays.asList(args), actualStartParameter);
+        commandLineConverter.convert(asList(args), actualStartParameter);
         // We check the params passed to the build factory
         checkStartParameter(actualStartParameter);
         if (embedded) {
@@ -118,6 +119,13 @@ public class DefaultCommandLineConverterTest {
 
         expectedGradleUserHome = currentDir.file("home");
         checkConversion("-g", "home");
+    }
+
+    @Test
+    public void withSpecifiedProjectCacheDir() {
+        actualStartParameter = new StartParameter();
+        commandLineConverter.convert(asList("--project-cache-dir", ".foo"), actualStartParameter);
+        assertEquals(".foo", actualStartParameter.getProjectCacheDir());
     }
 
     @Test
