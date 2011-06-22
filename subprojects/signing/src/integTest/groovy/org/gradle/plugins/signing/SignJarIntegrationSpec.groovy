@@ -13,16 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.signing
 
-apply from: "$rootDir/gradle/integTest.gradle"
+import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.internal.*
 
-dependencies {
-    groovy libraries.groovy_depends
-    compile project(':core')
-    compile "org.bouncycastle:bcpg-jdk15:1.45"
-    compile project(":plugins")
+class SignJarIntegrationSpec extends AbstractIntegrationSpec {
     
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
-    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    def "sign jar with no default signatory available"() {
+        when:
+        buildScript """
+            apply plugin: 'java'
+            apply plugin: 'signing'
+
+            signing {
+                sign jar
+            }
+        """
+        
+        then:
+        succeeds "signJar"
+        
+        and:
+        ":jar" in executedTasks
+        ":signJar" in skippedTasks
+    }
+    
 }
