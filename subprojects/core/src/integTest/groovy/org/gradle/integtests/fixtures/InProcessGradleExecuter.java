@@ -262,14 +262,14 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     public static class InProcessExecutionResult extends AbstractExecutionResult {
-        private final List<String> plannedTasks;
+        private final List<String> executedTasks;
         private final Set<String> skippedTasks;
         private final String output;
         private final String error;
 
-        public InProcessExecutionResult(List<String> plannedTasks, Set<String> skippedTasks, String output,
+        public InProcessExecutionResult(List<String> executedTasks, Set<String> skippedTasks, String output,
                                         String error) {
-            this.plannedTasks = plannedTasks;
+            this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
             this.output = output;
             this.error = error;
@@ -285,7 +285,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
             List<String> expected = Arrays.asList(taskPaths);
-            assertThat(plannedTasks, equalTo(expected));
+            assertThat(executedTasks, equalTo(expected));
             return this;
         }
 
@@ -302,20 +302,14 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
             Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
-            Set<String> notSkipped = getExecutedTasks();
+            Set<String> notSkipped = new HashSet<String>(executedTasks);
             assertThat(notSkipped, equalTo(expected));
             return this;
         }
 
         public ExecutionResult assertTaskNotSkipped(String taskPath) {
-            assertThat(getExecutedTasks(), hasItem(taskPath));
+            assertThat(executedTasks, hasItem(taskPath));
             return this;
-        }
-
-        private Set<String> getExecutedTasks() {
-            Set<String> notSkipped = new HashSet<String>(plannedTasks);
-            notSkipped.removeAll(skippedTasks);
-            return notSkipped;
         }
     }
 
