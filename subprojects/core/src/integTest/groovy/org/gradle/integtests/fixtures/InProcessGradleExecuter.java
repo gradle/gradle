@@ -283,12 +283,20 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return error;
         }
 
+        public List<String> getExecutedTasks() {
+            return new ArrayList(executedTasks);
+        }
+        
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
             List<String> expected = Arrays.asList(taskPaths);
             assertThat(executedTasks, equalTo(expected));
             return this;
         }
 
+        public Set<String> getSkippedTasks() {
+            return new HashSet(skippedTasks);
+        }
+        
         public ExecutionResult assertTasksSkipped(String... taskPaths) {
             Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
             assertThat(skippedTasks, equalTo(expected));

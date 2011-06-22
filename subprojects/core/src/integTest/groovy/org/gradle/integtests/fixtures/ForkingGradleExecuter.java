@@ -170,22 +170,28 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             return result.get("error").toString();
         }
 
+        public List<String> getExecutedTasks() {
+            return grepTasks(taskPattern);
+        }
+        
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
-            List<String> tasks = grepTasks(taskPattern);
             List<String> expectedTasks = Arrays.asList(taskPaths);
-            assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
+            assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), equalTo(expectedTasks));
             return this;
         }
 
+        public Set<String> getSkippedTasks() {
+            return new HashSet(grepTasks(skippedTaskPattern));
+        }
+        
         public ExecutionResult assertTasksSkipped(String... taskPaths) {
-            Set<String> tasks = new HashSet<String>(grepTasks(skippedTaskPattern));
             Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
-            assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
+            assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getSkippedTasks(), equalTo(expectedTasks));
             return this;
         }
 
         public ExecutionResult assertTaskSkipped(String taskPath) {
-            Set<String> tasks = new HashSet<String>(grepTasks(skippedTaskPattern));
+            Set<String> tasks = new HashSet<String>(getSkippedTasks());
             assertThat(String.format("Expected skipped task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
             return this;
         }
