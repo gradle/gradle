@@ -15,67 +15,34 @@
  */
 package org.gradle.plugins.signing.signatory
 
-import org.bouncycastle.openpgp.PGPUtil
-import org.bouncycastle.openpgp.PGPSecretKey
-import org.bouncycastle.openpgp.PGPPrivateKey
-import org.bouncycastle.openpgp.PGPSignature
-import org.bouncycastle.openpgp.PGPSignatureGenerator
-import org.bouncycastle.bcpg.BCPGOutputStream
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-
-import java.security.Security
-
-class Signatory {
+/**
+ * A signatory is an object capable of providing a signature for an arbitrary stream of bytes.
+ */
+interface Signatory {
     
-    final private String password
-    final private PGPSecretKey secretKey
-    final private PGPPrivateKey privateKey
-    
-    Signatory(PGPSecretKey secretKey, String password) {
-        // ok to call multiple times, will be ignored
-        Security.addProvider(new BouncyCastleProvider())
-        
-        this.password = password
-        this.secretKey = secretKey
-        this.privateKey = secretKey.extractPrivateKey(password.toCharArray(), BouncyCastleProvider.PROVIDER_NAME)
-    }
-    
-    PGPSignatureGenerator createSignatureGenerator() {
-        def generator = new PGPSignatureGenerator(secretKey.publicKey.algorithm, PGPUtil.SHA1, BouncyCastleProvider.PROVIDER_NAME)
-        generator.initSign(PGPSignature.BINARY_DOCUMENT, privateKey)
-        generator
-    }
+    /**
+     * <p>An identifying name for this signatory.</p>
+     * 
+     * <p>The name must be constant for the life of the signatory and should uniquely identify it
+     * within a project.</p>
+     */
+    String getName()
     
     /**
      * Exhausts {@code toSign}, and writes the signature to {@code signatureDestination}.
-     * 
      * The caller is responsible for closing the streams, though the output WILL be flushed.
+     * 
+     * @param toSign The source of the data to be signed
+     * @param destination Where the signature will be written to
      */
-    void sign(InputStream toSign, OutputStream signatureDestination) {
-        def generator = createSignatureGenerator()
-        
-        def buffer = new byte[1024]
-        def read = toSign.read(buffer)
-        while (read > 0) {
-            generator.update(buffer, 0, read)
-            read = toSign.read(buffer)
-        }
-
-        // BCPGOutputStream seems to do some internal buffering, it's unclear whether it's stricly required here though
-        def bufferedOutput = new BCPGOutputStream(signatureDestination)
-        def signature = generator.generate()
-        signature.encode(bufferedOutput)
-        bufferedOutput.flush()
-    }
+    void sign(InputStream toSign, OutputStream destination)
     
-    byte[] sign(InputStream toSign) {
-        def signature = new ByteArrayOutputStream()
-        sign(toSign, signature)
-        signature.toByteArray()
-    }
+    /**
+     * Exhausts {@code toSign}, and returns the raw signature bytes.
+     * 
+     * @param toSign The source of the data to be signed
+     * @return The raw bytes of the signature
+     */
+    byte[] sign(InputStream toSign)
     
-    KeyId getKeyId() {
-        new KeyId(secretKey.keyID)
-    }
 }

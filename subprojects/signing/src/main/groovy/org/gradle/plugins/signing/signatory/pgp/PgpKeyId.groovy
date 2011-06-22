@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.signatory
+package org.gradle.plugins.signing.signatory.pgp
 
 import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPSignature
@@ -21,25 +21,25 @@ import org.bouncycastle.openpgp.PGPSignature
 /**
  * A normalised form for keys, which are friendliest for users as hex strings but used internally as longs.
  */
-class KeyId implements Comparable<KeyId> {
+class PgpKeyId implements Comparable<PgpKeyId> {
     
     final String asHex
     final long asLong
 
-    KeyId(long keyId) {
+    PgpKeyId(long keyId) {
         asLong = keyId
         asHex = toHex(keyId)
     }
 
-    KeyId(PGPPublicKey keyId) {
+    PgpKeyId(PGPPublicKey keyId) {
         this(keyId.keyID)
     }
 
-    KeyId(PGPSignature signature) {
+    PgpKeyId(PGPSignature signature) {
         this(signature.keyID)
     }
 
-    public KeyId(String keyId) {
+    public PgpKeyId(String keyId) {
         asLong = toLong(keyId)
         asHex = toHex(asLong)
     }
@@ -80,7 +80,7 @@ class KeyId implements Comparable<KeyId> {
 
     @Override
     boolean equals(Object other) {
-        other instanceof KeyId && other.asHex == this.asHex
+        other instanceof PgpKeyId && other.asHex == this.asHex
     }
 
     @Override
@@ -93,7 +93,7 @@ class KeyId implements Comparable<KeyId> {
         asHex
     }
 
-    int compareTo(KeyId other) {
+    int compareTo(PgpKeyId other) {
         other == null ? -1 : this.asHex.compareTo(other.asHex)
     }
 

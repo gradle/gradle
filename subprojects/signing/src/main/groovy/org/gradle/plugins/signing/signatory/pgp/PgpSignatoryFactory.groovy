@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.signatory
+package org.gradle.plugins.signing.signatory.pgp
 
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
@@ -21,19 +21,23 @@ import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
 import org.gradle.api.Project
 import org.gradle.api.InvalidUserDataException
 
-class SignatoryFactory {
+class PgpSignatoryFactory {
     
     static private final PROPERTIES = ["keyId", "secretKeyRingFile", "password"]
     
-    Signatory createSignatory(Project project, boolean required = false) {
-        readProperties(project, null, required)
+    PgpSignatory createSignatory(Project project, boolean required = false) {
+        readProperties(project, null, "default", required)
     }
     
-    Signatory createSignatory(Project project, String propertyPrefix, boolean required = false) {
-        readProperties(project, propertyPrefix, required)
+    PgpSignatory createSignatory(Project project, String propertyPrefix, boolean required = false) {
+        readProperties(project, propertyPrefix, propertyPrefix, required)
+    }
+
+    PgpSignatory createSignatory(Project project, String propertyPrefix, String name, boolean required = false) {
+        readProperties(project, propertyPrefix, name, required)
     }
     
-    protected Signatory readProperties(Project project, String prefix, boolean required = false) {
+    protected PgpSignatory readProperties(Project project, String prefix, String name, boolean required = false) {
         def qualifiedProperties = PROPERTIES.collect { getQualifiedPropertyName(prefix, it) }
         def values = []
         for (property in qualifiedProperties) {
@@ -52,19 +56,19 @@ class SignatoryFactory {
         def keyRing = project.file(values[1].toString())
         def password = values[2].toString()
         
-        createSignatory(keyId, keyRing, password)
+        createSignatory(name, keyId, keyRing, password)
     }
     
     protected getQualifiedPropertyName(String propertyPrefix, String name) {
         "signing.${propertyPrefix ? propertyPrefix + '.' : ''}${name}"
     }
     
-    Signatory createSignatory(String keyId, File keyRing, String password) {
-        createSignatory(readSecretKey(keyId, keyRing), password)
+    PgpSignatory createSignatory(String name, String keyId, File keyRing, String password) {
+        createSignatory(name, readSecretKey(keyId, keyRing), password)
     }
     
-    Signatory createSignatory(PGPSecretKey secretKey, String password) {
-        new Signatory(secretKey, password)
+    PgpSignatory createSignatory(String name, PGPSecretKey secretKey, String password) {
+        new PgpSignatory(name, secretKey, password)
     }
         
     PGPSecretKey readSecretKey(String keyId, File file) {
@@ -75,8 +79,8 @@ class SignatoryFactory {
         readSecretKey(new PGPSecretKeyRingCollection(input), normalizeKeyId(keyId), sourceDescription)
     }
     
-    protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, KeyId keyId, String sourceDescription) {
-        def key = keyRings.keyRings.find { new KeyId(it.secretKey.keyID) == keyId }?.secretKey
+    protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, PgpKeyId keyId, String sourceDescription) {
+        def key = keyRings.keyRings.find { new PgpKeyId(it.secretKey.keyID) == keyId }?.secretKey
         if (key == null) {
             throw new InvalidUserDataException("did not find secret key for id '$keyId' in key source '$sourceDescription'")
         }
@@ -84,9 +88,9 @@ class SignatoryFactory {
     }
     
     // TODO - move out to DSL adapter layer (i.e. signatories container)
-    protected KeyId normalizeKeyId(String keyId) {
+    protected PgpKeyId normalizeKeyId(String keyId) {
         try {
-            new KeyId(keyId)
+            new PgpKeyId(keyId)
         } catch (IllegalArgumentException e) {
             throw new InvalidUserDataException(e.message)
         }

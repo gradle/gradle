@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.type.handler
+package org.gradle.plugins.signing.type.pgp
 
-import org.gradle.plugins.signing.type.BinarySignatureType
-import org.gradle.plugins.signing.type.pgp.ArmoredSignatureType
+import org.bouncycastle.bcpg.ArmoredOutputStream
+import org.gradle.plugins.signing.signatory.Signatory
+import org.gradle.plugins.signing.type.AbstractSignatureType
 
-class DefaultSignatureTypeHandler extends AbstractSignatureTypeHandler {
-    
-    DefaultSignatureTypeHandler() {
-        register(new BinarySignatureType())
-        def armored = new ArmoredSignatureType()
-        register(armored)
-        setDefaultType(armored.extension)
+class ArmoredSignatureType extends AbstractSignatureType {
+
+    String getExtension() {
+        "asc"
     }
     
+    void sign(Signatory signatory, InputStream toSign, OutputStream destination) {
+        def armoredOutputStream = new ArmoredOutputStream(destination)
+        super.sign(signatory, toSign, armoredOutputStream)
+        armoredOutputStream.close()
+    }
+
 }

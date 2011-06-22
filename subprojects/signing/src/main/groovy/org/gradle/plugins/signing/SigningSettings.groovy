@@ -20,12 +20,15 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.InvalidUserDataException
 
 import org.gradle.plugins.signing.signatory.*
 
 import org.gradle.plugins.signing.type.SignatureType
 import org.gradle.plugins.signing.type.handler.SignatureTypeHandler
 import org.gradle.plugins.signing.type.handler.DefaultSignatureTypeHandler
+
+import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 
 class SigningSettings {
     
@@ -35,12 +38,14 @@ class SigningSettings {
     private Map<String, Signatory> signatories = [:]
     private Configuration configuration
     private SignatureTypeHandler typeHandler
+    private SignatoryProvider signatoryProvider
     private boolean required = false
     
     SigningSettings(Project project) {
         this.project = project
         this.configuration = getDefaultConfiguration()
         this.typeHandler = createSignatureTypeHandler()
+        this.signatoryProvider = createSignatoryProvider()
     }
     
     protected Configuration getDefaultConfiguration() {
@@ -56,13 +61,47 @@ class SigningSettings {
         new DefaultSignatureTypeHandler()
     }
     
+    protected SignatoryProvider createSignatoryProvider() {
+        new PgpSignatoryProvider()
+    }
+    
     Map<String, Signatory> signatories(Closure block) {
-        ConfigureUtil.configure(block, new SignatoriesConfigurer(this))
+        signatoryProvider.configure(this, block)
         signatories
     }
     
+    /**
+     * Registers the given signatory with the settings.
+     * 
+     * @param signatory The signatory to register
+     * @throws org.grails.api.InvalidUserDataException if there is already a signatory registered with this name
+     */
+    void addSignatory(Signatory signatory) {
+        if (hasSignatory(signatory.name)) {
+            throw new InvalidUserDataException("cannot add signatory with name '$signatory.name' as there is already a signatory registered with this name")
+        }
+        
+        signatories[signatory.name] = signatory
+    }
+    
+    /**
+     * <p>Checks whether there is already a signatory registered with the <strong>same name</strong> as the argument.</p>
+     * 
+     * <p>Note that the name is used rather than {@code equals()}</p>
+     */
+    boolean hasSignatory(Signatory signatory) {
+        hasSignatory(signatory.name)
+    }
+    
+    /**
+     * Checks whether there is a signatory registered with this name.
+     */
+    boolean hasSignatory(String name) {
+        signatories.containsKey(name)
+    }
+    
     Signatory getSignatory() {
-        new SignatoryFactory().createSignatory(project)
+        signatoryProvider.getDefaultSignatory(project)
     }
     
     SignatureType getType() {

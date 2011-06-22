@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.signing.signatory
+package org.gradle.plugins.signing.signatory.pgp
 
 import spock.lang.*
 
-class KeyIdSpec extends Specification  {
+class PgpKeyIdSpec extends Specification  {
     
     protected key(arg) {
-        new KeyId(arg)
+        new PgpKeyId(arg)
     }
     
     def "conversion is symmetrical"() {
