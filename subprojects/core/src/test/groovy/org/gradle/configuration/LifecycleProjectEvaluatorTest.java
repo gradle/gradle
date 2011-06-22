@@ -31,13 +31,13 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
-public class DefaultProjectEvaluatorTest {
+public class LifecycleProjectEvaluatorTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener.class);
     private final ProjectEvaluator delegate = context.mock(ProjectEvaluator.class, "delegate");
     private final ProjectStateInternal state = context.mock(ProjectStateInternal.class);
-    private final DefaultProjectEvaluator evaluator = new DefaultProjectEvaluator(delegate);
+    private final LifecycleProjectEvaluator evaluator = new LifecycleProjectEvaluator(delegate);
 
     @Before
     public void setUp() {

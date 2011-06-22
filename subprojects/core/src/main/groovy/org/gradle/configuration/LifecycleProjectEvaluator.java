@@ -19,10 +19,15 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
 
-public class DefaultProjectEvaluator implements ProjectEvaluator {
+/**
+ * Manages lifecycle concerns while delegating actual evaluation to another evaluator
+ * 
+ * @see org.gradle.api.internal.project.TopLevelBuildServiceRegistry#createProjectEvaluator()
+ */
+public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private final ProjectEvaluator evaluator;
 
-    public DefaultProjectEvaluator(ProjectEvaluator evaluator) {
+    public LifecycleProjectEvaluator(ProjectEvaluator evaluator) {
         this.evaluator = evaluator;
     }
 
