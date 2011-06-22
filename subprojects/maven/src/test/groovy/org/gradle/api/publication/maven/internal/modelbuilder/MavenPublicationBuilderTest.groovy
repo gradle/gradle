@@ -22,7 +22,6 @@ import org.gradle.api.publication.maven.MavenScope
 import org.gradle.util.HelperUtil
 import spock.lang.Ignore
 import spock.lang.Specification
-import org.gradle.api.publication.maven.internal.modelbuilder.MavenPublicationBuilder
 
 /**
  * @author: Szczepan Faber, created at: 5/13/11
