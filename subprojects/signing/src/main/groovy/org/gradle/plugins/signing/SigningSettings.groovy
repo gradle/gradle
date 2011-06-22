@@ -19,7 +19,6 @@ import org.gradle.api.Task
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.util.ConfigureUtil
 import org.gradle.api.InvalidUserDataException
 
 import org.gradle.plugins.signing.signatory.*
