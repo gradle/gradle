@@ -13,24 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.dispatch;
+package org.gradle.messaging.remote.internal;
 
-public class FailureHandlingReceive<T> implements Receive<T> {
-    private final Receive<? extends T> receive;
-    private final ReceiveFailureHandler handler;
+public class DelegatingConnection<T> implements Connection<T> {
+    private final Connection<T> delegate;
 
-    public FailureHandlingReceive(Receive<? extends T> receive, ReceiveFailureHandler handler) {
-        this.receive = receive;
-        this.handler = handler;
+    public DelegatingConnection(Connection<T> delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
     }
 
     public T receive() {
-        while (true) {
-            try {
-                return receive.receive();
-            } catch (Throwable t) {
-                handler.receiveFailed(t);
-            }
-        }
+        return delegate.receive();
+    }
+
+    public void dispatch(T message) {
+        delegate.dispatch(message);
+    }
+
+    public void requestStop() {
+        delegate.requestStop();
+    }
+
+    public void stop() {
+        delegate.stop();
     }
 }

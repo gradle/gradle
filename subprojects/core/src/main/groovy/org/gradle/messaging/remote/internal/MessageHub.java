@@ -22,6 +22,7 @@ import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchFailureHandler;
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
 import org.gradle.util.IdGenerator;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +71,8 @@ public class MessageHub implements AsyncStoppable {
     public void addConnection(Connection<Message> connection) {
         lock.lock();
         try {
-            AsyncConnectionAdapter<Message> asyncConnection = new AsyncConnectionAdapter<Message>(connection, failureHandler, executorFactory, new RemoteDisconnectProtocol());
+            Connection<Message> wrapper = new EndOfStreamConnection(connection);
+            AsyncConnectionAdapter<Message> asyncConnection = new AsyncConnectionAdapter<Message>(wrapper, failureHandler, executorFactory, new RemoteDisconnectProtocol());
             connections.add(asyncConnection);
 
             AsyncConnection<Message> incomingEndpoint = router.createRemoteConnection();
@@ -187,5 +189,28 @@ public class MessageHub implements AsyncStoppable {
         }
 
         stoppable.stop();
+    }
+
+    private static class EndOfStreamConnection extends DelegatingConnection<Message> {
+        boolean incomingFinished;
+
+        private EndOfStreamConnection(Connection<Message> connection) {
+            super(connection);
+        }
+
+        @Override
+        public Message receive() {
+            if (incomingFinished) {
+                return null;
+            }
+            Message result = super.receive();
+            if (result instanceof EndOfStreamEvent) {
+                incomingFinished = true;
+            } else if (result == null) {
+                incomingFinished = true;
+                result = new EndOfStreamEvent();
+            }
+            return result;
+        }
     }
 }

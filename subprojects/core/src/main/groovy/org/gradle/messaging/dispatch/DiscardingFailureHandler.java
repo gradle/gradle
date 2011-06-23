@@ -17,15 +17,11 @@ package org.gradle.messaging.dispatch;
 
 import org.slf4j.Logger;
 
-public class DiscardingFailureHandler<T> implements DispatchFailureHandler<T>, ReceiveFailureHandler {
+public class DiscardingFailureHandler<T> implements DispatchFailureHandler<T> {
     private final Logger logger;
 
     public DiscardingFailureHandler(Logger logger) {
         this.logger = logger;
-    }
-
-    public void receiveFailed(Throwable failure) {
-        logger.error("Could not receive message. Ignoring.", failure);
     }
 
     public void dispatchFailed(T message, Throwable failure) {
