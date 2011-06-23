@@ -28,7 +28,7 @@ public interface ExecutionResult {
     void assertErrorHasNoStackTraces();
 
     /**
-     * Returns the tasks have been executed in order. Note: ignores buildSrc tasks.
+     * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.
      */
     List<String> getExecutedTasks();
     
