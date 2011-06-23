@@ -16,10 +16,11 @@
 package org.gradle.messaging.remote.internal
 
 import org.gradle.messaging.dispatch.Dispatch
-import spock.lang.Specification
-import org.gradle.messaging.remote.internal.protocol.WorkerStopping
-import org.gradle.messaging.remote.internal.protocol.WorkerStopped
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent
 import org.gradle.messaging.remote.internal.protocol.Request
+import org.gradle.messaging.remote.internal.protocol.WorkerStopping
+import spock.lang.Specification
+import org.gradle.messaging.remote.internal.protocol.MessageCredits
 
 class WorkerProtocolTest extends Specification {
     final ProtocolContext<Message> context = Mock()
@@ -30,12 +31,37 @@ class WorkerProtocolTest extends Specification {
         protocol.start(context)
     }
 
-    def "dispatches incoming message to worker"() {
+    def "dispatches outgoing request credit on start"() {
+        when:
+        protocol.start(context)
+
+        then:
+        1 * context.dispatchOutgoing(new MessageCredits(1))
+        0 * context._
+    }
+
+    def "dispatches incoming request to worker and outgoing response when complete"() {
         when:
         protocol.handleIncoming(new Request("id", "message"))
 
         then:
         1 * worker.dispatch("message")
+        1 * context.dispatchOutgoing(new MessageCredits(1))
+        0 * context._
+    }
+
+    def "dispatches response when dispatch to worker fails"() {
+        def failure = new RuntimeException()
+
+        when:
+        protocol.handleIncoming(new Request("id", "message"))
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+        1 * worker.dispatch("message") >> { throw failure }
+        1 * context.dispatchOutgoing(new MessageCredits(1))
+        0 * context._
     }
 
     def "dispatches outgoing worker stopping on stop and waits for acknowledgement"() {
@@ -48,14 +74,14 @@ class WorkerProtocolTest extends Specification {
         0 * context._
 
         when:
-        protocol.handleIncoming(new WorkerStopped())
+        protocol.handleIncoming(new EndOfStreamEvent())
 
         then:
         1 * context.stopped()
         0 * context._
     }
 
-    def "continues to dispatch incoming messages while waiting for stop acknowledgement"() {
+    def "continues to dispatch incoming requests while waiting for stop acknowledgement"() {
         given:
         protocol.stopRequested()
 
@@ -64,6 +90,7 @@ class WorkerProtocolTest extends Specification {
 
         then:
         1 * worker.dispatch("message")
+        1 * context.dispatchOutgoing(new MessageCredits(1))
         0 * context._
     }
 }

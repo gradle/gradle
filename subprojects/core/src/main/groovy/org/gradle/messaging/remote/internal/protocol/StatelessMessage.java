@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,43 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
-public class ChannelMetaInfo extends Message {
-    private final Object channelKey;
-    private final int channelId;
-
-    public ChannelMetaInfo(Object channelKey, int channelId) {
-        this.channelKey = channelKey;
-        this.channelId = channelId;
-    }
-
-    public int getChannelId() {
-        return channelId;
-    }
-
-    public Object getChannelKey() {
-        return channelKey;
-    }
-
+public class StatelessMessage extends Message {
     @Override
     public boolean equals(Object o) {
         if (o == this) {
             return true;
         }
-        if (o == null || !getClass().equals(o.getClass())) {
+        if (o == null || o.getClass() != getClass()) {
             return false;
         }
 
-        ChannelMetaInfo other = (ChannelMetaInfo) o;
-        return other.channelKey.equals(channelKey) && other.channelId == channelId;
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return channelKey.hashCode();
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s]", getClass().getSimpleName());
     }
 }

@@ -16,8 +16,9 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
+import org.gradle.messaging.remote.internal.protocol.MessageCredits;
 import org.gradle.messaging.remote.internal.protocol.Request;
-import org.gradle.messaging.remote.internal.protocol.WorkerStopped;
 import org.gradle.messaging.remote.internal.protocol.WorkerStopping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,16 +39,21 @@ public class WorkerProtocol implements Protocol<Message> {
 
     public void start(ProtocolContext<Message> context) {
         this.context = context;
+        context.dispatchOutgoing(new MessageCredits(1));
     }
 
     public void handleIncoming(Message message) {
-        if (message instanceof WorkerStopped) {
+        if (message instanceof EndOfStreamEvent) {
             LOGGER.debug("Received worker stopped: {}", message);
             context.stopped();
         } else if (message instanceof Request) {
             Request request = (Request) message;
             LOGGER.debug("Dispatching request to worker: {}", message);
-            worker.dispatch(request.getPayload());
+            try {
+                worker.dispatch(request.getPayload());
+            } finally {
+                context.dispatchOutgoing(new MessageCredits(1));
+            }
         } else {
             throw new IllegalArgumentException(String.format("Unexpected incoming message received: %s", message));
         }

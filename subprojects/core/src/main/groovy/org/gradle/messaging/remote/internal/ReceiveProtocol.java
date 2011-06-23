@@ -79,6 +79,8 @@ public class ReceiveProtocol implements Protocol<Message> {
     public void handleOutgoing(Message message) {
         if (message instanceof WorkerStopping) {
             workerStopped();
+        } else if (message instanceof MessageCredits) {
+            LOGGER.debug("Discarding {}.", message);
         } else {
             throw new IllegalArgumentException(String.format("Unexpected outgoing message dispatched: %s", message));
         }
@@ -100,7 +102,7 @@ public class ReceiveProtocol implements Protocol<Message> {
 
     private void allProducersFinished() {
         context.dispatchOutgoing(new ConsumerUnavailable(id));
-        context.dispatchIncoming(new WorkerStopped());
+        context.dispatchIncoming(new EndOfStreamEvent());
     }
 
     public void stopRequested() {

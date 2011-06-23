@@ -15,23 +15,5 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
-import org.gradle.messaging.remote.internal.Message;
-
-public class WorkerStopping extends Message {
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o == null || o.getClass() != getClass()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return 7;
-    }
+public class WorkerStopping extends StatelessMessage {
 }
