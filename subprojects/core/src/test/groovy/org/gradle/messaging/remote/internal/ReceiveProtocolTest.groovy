@@ -15,18 +15,8 @@
  */
 package org.gradle.messaging.remote.internal
 
-import org.gradle.messaging.remote.internal.protocol.ConsumerAvailable
-import org.gradle.messaging.remote.internal.protocol.ConsumerReady
-import org.gradle.messaging.remote.internal.protocol.ConsumerStopping
-import org.gradle.messaging.remote.internal.protocol.ProducerReady
 import spock.lang.Specification
-import org.gradle.messaging.remote.internal.protocol.ProducerStopped
-import org.gradle.messaging.remote.internal.protocol.ConsumerUnavailable
-import org.gradle.messaging.remote.internal.protocol.ConsumerStopped
-import org.gradle.messaging.remote.internal.protocol.Request
-import org.gradle.messaging.remote.internal.protocol.ProducerUnavailable
-import org.gradle.messaging.remote.internal.protocol.WorkerStopping
-import org.gradle.messaging.remote.internal.protocol.WorkerStopped
+import org.gradle.messaging.remote.internal.protocol.*
 
 class ReceiveProtocolTest extends Specification {
     final ProtocolContext<Message> context = Mock()
@@ -92,7 +82,7 @@ class ReceiveProtocolTest extends Specification {
         then:
         1 * context.dispatchOutgoing(new ConsumerStopped("id", "producer2"))
         1 * context.dispatchOutgoing(new ConsumerUnavailable("id"))
-        1 * context.dispatchIncoming(new WorkerStopped())
+        1 * context.dispatchIncoming(new EndOfStreamEvent())
         0 * context._
     }
 
@@ -118,7 +108,7 @@ class ReceiveProtocolTest extends Specification {
 
         then:
         1 * context.dispatchOutgoing(new ConsumerUnavailable("id"))
-        1 * context.dispatchIncoming(new WorkerStopped())
+        1 * context.dispatchIncoming(new EndOfStreamEvent())
         0 * context._
     }
 
@@ -132,7 +122,7 @@ class ReceiveProtocolTest extends Specification {
 
         then:
         1 * context.dispatchOutgoing(new ConsumerUnavailable("id"))
-        1 * context.dispatchIncoming(new WorkerStopped())
+        1 * context.dispatchIncoming(new EndOfStreamEvent())
         0 * context._
     }
 
@@ -146,7 +136,7 @@ class ReceiveProtocolTest extends Specification {
 
         then:
         1 * context.dispatchOutgoing(new ConsumerUnavailable("id"))
-        1 * context.dispatchIncoming(new WorkerStopped())
+        1 * context.dispatchIncoming(new EndOfStreamEvent())
         0 * context._
     }
 }

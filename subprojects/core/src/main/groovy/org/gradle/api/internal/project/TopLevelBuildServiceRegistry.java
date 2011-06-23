@@ -139,7 +139,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected CacheRepository createCacheRepository() {
-        return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(),
+        return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), get(CacheFactory.class));
     }
 

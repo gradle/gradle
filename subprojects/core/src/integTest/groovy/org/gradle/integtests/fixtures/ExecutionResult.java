@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests.fixtures;
 
+import java.util.List;
+import java.util.Set;
+
 public interface ExecutionResult {
     String getOutput();
 
@@ -25,10 +28,20 @@ public interface ExecutionResult {
     void assertErrorHasNoStackTraces();
 
     /**
+     * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.
+     */
+    List<String> getExecutedTasks();
+    
+    /**
      * Asserts that exactly the given set of tasks have been executed in the given order. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTasksExecuted(String... taskPaths);
 
+    /**
+     * Returns the tasks that were skipped, in an undefined order. Note: ignores buildSrc tasks.
+     */
+    Set<String> getSkippedTasks();
+    
     /**
      * Asserts that exactly the given set of tasks have been skipped. Note: ignores buildSrc tasks.
      */

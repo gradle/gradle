@@ -13,24 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.dispatch;
+package org.gradle.messaging.remote.internal.protocol;
 
-public class FailureHandlingReceive<T> implements Receive<T> {
-    private final Receive<? extends T> receive;
-    private final ReceiveFailureHandler handler;
+import org.gradle.messaging.remote.internal.Message;
 
-    public FailureHandlingReceive(Receive<? extends T> receive, ReceiveFailureHandler handler) {
-        this.receive = receive;
-        this.handler = handler;
+public class StatelessMessage extends Message {
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || o.getClass() != getClass()) {
+            return false;
+        }
+
+        return true;
     }
 
-    public T receive() {
-        while (true) {
-            try {
-                return receive.receive();
-            } catch (Throwable t) {
-                handler.receiveFailed(t);
-            }
-        }
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s]", getClass().getSimpleName());
     }
 }

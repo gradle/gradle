@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal
+package org.gradle.api.publication.maven.internal.modelbuilder
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.publication.maven.MavenPublication

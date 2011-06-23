@@ -385,6 +385,31 @@ task test(overwrite: true, dependsOn: groovyProjects()*.test)
 task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
 task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
 
+task aggregateTestResults {
+    testReportDir = file("${reportsDir}/tests")
+    testResultsDir = file("${buildDir}/test-results")
+
+    doFirst {
+        assert (!testReportDir.exists() || testReportDir.deleteDir()) && testReportDir.mkdirs()
+
+        copy {
+            into testResultsDir
+            subprojects.each { subproject ->
+                subproject.tasks.withType(Test).each { task ->
+                    if (task.testResultsDir.exists()) {
+                        from (task.testResultsDir) {
+                            include "TEST-*.xml"
+                        }
+                    }
+                }
+            }
+        }
+
+        def report = new org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport(testReportDir: testReportDir, testResultsDir: testResultsDir)
+        report.generateReport()
+    }
+}
+
 zipRootFolder = "$archivesBaseName-${-> version}"
 
 binDistImage = copySpec {

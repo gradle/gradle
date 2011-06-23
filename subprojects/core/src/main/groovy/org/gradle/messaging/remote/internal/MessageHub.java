@@ -22,13 +22,14 @@ import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchFailureHandler;
+import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
 import org.gradle.util.IdGenerator;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -36,7 +37,8 @@ public class MessageHub implements AsyncStoppable {
     private final Lock lock = new ReentrantLock();
     private final CompositeStoppable executors = new CompositeStoppable();
     private final CompositeStoppable connections = new CompositeStoppable();
-    private final Set<ProtocolStack<Message>> handlers = new HashSet<ProtocolStack<Message>>();
+    private final Collection<ProtocolStack<Message>> handlers = new ArrayList<ProtocolStack<Message>>();
+    private final Collection<ProtocolStack<Message>> workers = new ArrayList<ProtocolStack<Message>>();
     private final Map<String, ProtocolStack<Message>> outgoingUnicasts = new HashMap<String, ProtocolStack<Message>>();
     private final Map<String, ProtocolStack<Message>> outgoingBroadcasts = new HashMap<String, ProtocolStack<Message>>();
     private final DispatchFailureHandler<Object> failureHandler;
@@ -69,7 +71,8 @@ public class MessageHub implements AsyncStoppable {
     public void addConnection(Connection<Message> connection) {
         lock.lock();
         try {
-            AsyncConnectionAdapter<Message> asyncConnection = new AsyncConnectionAdapter<Message>(connection, failureHandler, executorFactory, new RemoteDisconnectProtocol());
+            Connection<Message> wrapper = new EndOfStreamConnection(connection);
+            AsyncConnectionAdapter<Message> asyncConnection = new AsyncConnectionAdapter<Message>(wrapper, failureHandler, executorFactory, new RemoteDisconnectProtocol());
             connections.add(asyncConnection);
 
             AsyncConnection<Message> incomingEndpoint = router.createRemoteConnection();
@@ -131,8 +134,13 @@ public class MessageHub implements AsyncStoppable {
             Protocol<Message> workerProtocol = new WorkerProtocol(dispatch);
             Protocol<Message> receiveProtocol = new ReceiveProtocol(id, nodeName, channel);
 
-            ProtocolStack<Message> stack = new ProtocolStack<Message>(incomingExecutor, failureHandler, failureHandler, workerProtocol, receiveProtocol);
+            ProtocolStack<Message> workerStack = new ProtocolStack<Message>(incomingExecutor, failureHandler, failureHandler, workerProtocol);
+            workers.add(workerStack);
+            ProtocolStack<Message> stack = new ProtocolStack<Message>(incomingExecutor, failureHandler, failureHandler, new BufferingProtocol(200), receiveProtocol);
             handlers.add(stack);
+
+            workerStack.getBottom().dispatchTo(stack.getTop());
+            stack.getTop().dispatchTo(workerStack.getBottom());
 
             AsyncConnection<Message> incomingEndpoint = router.createLocalConnection();
             stack.getBottom().dispatchTo(incomingEndpoint);
@@ -151,8 +159,8 @@ public class MessageHub implements AsyncStoppable {
             for (ProtocolStack<Message> stack : outgoingBroadcasts.values()) {
                 stack.requestStop();
             }
-            for (ProtocolStack<?> handler : handlers) {
-                handler.requestStop();
+            for (ProtocolStack<?> worker : workers) {
+                worker.requestStop();
             }
         } finally {
             lock.unlock();
@@ -167,6 +175,7 @@ public class MessageHub implements AsyncStoppable {
         try {
             stoppable.add(outgoingUnicasts.values());
             stoppable.add(outgoingBroadcasts.values());
+            stoppable.add(workers);
             stoppable.add(handlers);
             stoppable.add(connections);
             stoppable.add(router);
@@ -174,10 +183,34 @@ public class MessageHub implements AsyncStoppable {
         } finally {
             outgoingUnicasts.clear();
             outgoingBroadcasts.clear();
+            workers.clear();
             handlers.clear();
             lock.unlock();
         }
 
         stoppable.stop();
+    }
+
+    private static class EndOfStreamConnection extends DelegatingConnection<Message> {
+        boolean incomingFinished;
+
+        private EndOfStreamConnection(Connection<Message> connection) {
+            super(connection);
+        }
+
+        @Override
+        public Message receive() {
+            if (incomingFinished) {
+                return null;
+            }
+            Message result = super.receive();
+            if (result instanceof EndOfStreamEvent) {
+                incomingFinished = true;
+            } else if (result == null) {
+                incomingFinished = true;
+                result = new EndOfStreamEvent();
+            }
+            return result;
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.Message;
 
-public class ChannelMetaInfo extends Message {
-    private final Object channelKey;
-    private final int channelId;
+public class MessageCredits extends Message {
+    private final int credits;
 
-    public ChannelMetaInfo(Object channelKey, int channelId) {
-        this.channelKey = channelKey;
-        this.channelId = channelId;
+    public MessageCredits(int credits) {
+        this.credits = credits;
     }
 
-    public int getChannelId() {
-        return channelId;
-    }
-
-    public Object getChannelKey() {
-        return channelKey;
+    public int getCredits() {
+        return credits;
     }
 
     @Override
@@ -40,16 +33,21 @@ public class ChannelMetaInfo extends Message {
         if (o == this) {
             return true;
         }
-        if (o == null || !getClass().equals(o.getClass())) {
+        if (o == null || o.getClass() != getClass()) {
             return false;
         }
 
-        ChannelMetaInfo other = (ChannelMetaInfo) o;
-        return other.channelKey.equals(channelKey) && other.channelId == channelId;
+        MessageCredits other = (MessageCredits) o;
+        return credits == other.credits;
     }
 
     @Override
     public int hashCode() {
-        return channelKey.hashCode();
+        return credits;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[MessageCredits credits: %d]", credits);
     }
 }

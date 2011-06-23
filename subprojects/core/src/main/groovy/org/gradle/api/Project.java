@@ -18,12 +18,14 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.artifacts.dsl.*;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
@@ -182,8 +184,6 @@ public interface Project extends Comparable<Project> {
     public static final String GRADLE_PROPERTIES = "gradle.properties";
 
     public static final String SYSTEM_PROP_PREFIX = "systemProp";
-
-    public static final String TMP_DIR_NAME = ".gradle";
 
     public static final String DEFAULT_VERSION = "unspecified";
 

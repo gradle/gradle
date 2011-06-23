@@ -262,14 +262,14 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     public static class InProcessExecutionResult extends AbstractExecutionResult {
-        private final List<String> executedTasks;
+        private final List<String> plannedTasks;
         private final Set<String> skippedTasks;
         private final String output;
         private final String error;
 
-        public InProcessExecutionResult(List<String> executedTasks, Set<String> skippedTasks, String output,
+        public InProcessExecutionResult(List<String> plannedTasks, Set<String> skippedTasks, String output,
                                         String error) {
-            this.executedTasks = executedTasks;
+            this.plannedTasks = plannedTasks;
             this.skippedTasks = skippedTasks;
             this.output = output;
             this.error = error;
@@ -283,12 +283,20 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return error;
         }
 
+        public List<String> getExecutedTasks() {
+            return new ArrayList(plannedTasks);
+        }
+        
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
             List<String> expected = Arrays.asList(taskPaths);
-            assertThat(executedTasks, equalTo(expected));
+            assertThat(plannedTasks, equalTo(expected));
             return this;
         }
 
+        public Set<String> getSkippedTasks() {
+            return new HashSet(skippedTasks);
+        }
+        
         public ExecutionResult assertTasksSkipped(String... taskPaths) {
             Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
             assertThat(skippedTasks, equalTo(expected));
@@ -302,14 +310,20 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
             Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
-            Set<String> notSkipped = new HashSet<String>(executedTasks);
+            Set<String> notSkipped = getNotSkippedTasks();
             assertThat(notSkipped, equalTo(expected));
             return this;
         }
 
         public ExecutionResult assertTaskNotSkipped(String taskPath) {
-            assertThat(executedTasks, hasItem(taskPath));
+            assertThat(getNotSkippedTasks(), hasItem(taskPath));
             return this;
+        }
+
+        private Set<String> getNotSkippedTasks() {
+            Set<String> notSkipped = new HashSet<String>(plannedTasks);
+            notSkipped.removeAll(skippedTasks);
+            return notSkipped;
         }
     }
 

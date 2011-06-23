@@ -22,6 +22,8 @@ import org.gradle.util.TestFile
 import org.junit.Ignore
 import org.junit.Test
 
+import org.apache.commons.lang.StringEscapeUtils
+
 /**
  * @author: Szczepan Faber, created at: 6/16/11
  */
@@ -45,7 +47,7 @@ repositories {
     mavenCentral()
 }
 
-publications.maven.repository.url = 'file://$repo.absolutePath'
+publications.maven.repository.url = '${StringEscapeUtils.escapeJava(repo.toURL().toString())}'
 """
         //when
         executer.withTasks('publishArchives').run()

@@ -33,8 +33,8 @@ import org.junit.runner.RunWith;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class DefaultCacheRepositoryTest {
@@ -49,7 +49,7 @@ public class DefaultCacheRepositoryTest {
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
     private final PersistentCache cache = context.mock(PersistentCache.class);
     private final Gradle gradle = context.mock(Gradle.class);
-    private final DefaultCacheRepository repository = new DefaultCacheRepository(homeDir, CacheUsage.ON, cacheFactory);
+    private final DefaultCacheRepository repository = new DefaultCacheRepository(homeDir, ".gradle", CacheUsage.ON, cacheFactory);
 
     @Before
     public void setup() {

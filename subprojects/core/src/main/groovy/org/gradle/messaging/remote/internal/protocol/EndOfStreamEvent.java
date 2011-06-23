@@ -16,16 +16,5 @@
 
 package org.gradle.messaging.remote.internal.protocol;
 
-import org.gradle.messaging.remote.internal.Message;
-
-public class EndOfStreamEvent extends Message {
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof EndOfStreamEvent;
-    }
-
-    @Override
-    public int hashCode() {
-        return 0;
-    }
+public class EndOfStreamEvent extends StatelessMessage {
 }

@@ -13,11 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.dispatch;
+package org.gradle.plugins.signing
 
-public interface ReceiveFailureHandler {
-    /**
-     * Called when a message could not be received. This method may throw an exception to abort further receiving.
-     */
-    void receiveFailed(Throwable failure);
+import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.internal.*
+
+class SignJarIntegrationSpec extends AbstractIntegrationSpec {
+    
+    def "sign jar with no default signatory available"() {
+        when:
+        buildScript """
+            apply plugin: 'java'
+            apply plugin: 'signing'
+
+            signing {
+                sign jar
+            }
+        """
+        
+        then:
+        succeeds "signJar"
+        
+        and:
+        ":jar" in executedTasks
+        ":signJar" in skippedTasks
+    }
+    
 }

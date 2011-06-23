@@ -13,7 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.remote.internal.protocol;
+package org.gradle.messaging.remote.internal;
 
-public class WorkerStopping extends StatelessMessage {
+public class DelegatingConnection<T> implements Connection<T> {
+    private final Connection<T> delegate;
+
+    public DelegatingConnection(Connection<T> delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
+
+    public T receive() {
+        return delegate.receive();
+    }
+
+    public void dispatch(T message) {
+        delegate.dispatch(message);
+    }
+
+    public void requestStop() {
+        delegate.requestStop();
+    }
+
+    public void stop() {
+        delegate.stop();
+    }
 }
