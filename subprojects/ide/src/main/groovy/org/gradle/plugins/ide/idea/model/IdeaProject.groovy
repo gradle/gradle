@@ -39,7 +39,7 @@ import org.gradle.util.ConfigureUtil
  *     wildcards += '!?*.ruby'
  *
  *     //you can change the modules of the the *.ipr
- *     //modules = project(':someProject').convention.plugins.idea.module
+ *     //modules = project(':someProject').idea.module
  *
  *     //you can change the output file
  *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
