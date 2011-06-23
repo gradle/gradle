@@ -43,9 +43,10 @@ integTestTasks.all {
     testSrcDirs = []
     jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
 
+    testResultsDir = file("${project.testResultsDir}/$name")
+    testReportDir = file("${project.testReportDir}/$name")
+    
     doFirst {
-        testResultsDir = file("${project.testResultsDir}/$name")
-        testReportDir = file("${project.testReportDir}/$name")
         systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
         systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
     }
