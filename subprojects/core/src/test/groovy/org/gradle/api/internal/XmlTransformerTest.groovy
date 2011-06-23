@@ -189,7 +189,7 @@ class XmlTransformerTest extends Specification {
         def result = transformer.transform("<root></root>")
 
         then:
-        result == "<?xml version=\"1.0\"?>\n<!DOCTYPE application PUBLIC \"-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN\" \"http://java.sun.com/dtd/application_1_3.dtd\">\n<root>\n  <someChild/>\n</root>\n"
+        result == TextUtil.toPlatformLineSeparators("<?xml version=\"1.0\"?>\n<!DOCTYPE application PUBLIC \"-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN\" \"http://java.sun.com/dtd/application_1_3.dtd\">\n<root>\n  <someChild/>\n</root>\n")
     }
 
     def "indentation correct when writing out DOM element (only) if indenting with spaces"() {
