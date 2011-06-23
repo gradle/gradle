@@ -15,10 +15,7 @@
  */
 package org.gradle.integtests.fixtures.internal
 
-import org.gradle.CacheUsage
-import org.gradle.StartParameter
 import org.gradle.integtests.fixtures.*
-import org.gradle.util.TestFile
 import org.junit.Rule
 
 import spock.lang.*
