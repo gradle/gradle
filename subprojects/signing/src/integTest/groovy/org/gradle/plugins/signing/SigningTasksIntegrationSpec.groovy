@@ -15,17 +15,20 @@
  */
 package org.gradle.plugins.signing
 
-class SignJarIntegrationSpec extends SigningIntegrationSpec {
-    
-    def "sign jar with default signatory"() {
-        given:
+class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
+
+    def setup() {
         buildScript """
             apply plugin: 'java'
             apply plugin: 'signing'
-
-            ${keyInfo.addAsPropertiesScript()}
-            
             archivesBaseName = 'sign'
+        """
+    }
+    
+    def "sign jar with default signatory"() {
+        given:
+        buildScript += """
+            ${keyInfo.addAsPropertiesScript()}
             
             signing {
                 sign jar
@@ -46,6 +49,35 @@ class SignJarIntegrationSpec extends SigningIntegrationSpec {
         
         then:
         ":signJar" in skippedTasks
+    }
+    
+    def "sign multiple jars with default signatory"() {
+        given:
+        buildScript += """
+            ${keyInfo.addAsPropertiesScript()}
+            ${javadocAndSourceJarsScript}
+            
+            signing {
+                sign jar, javadocJar, sourcesJar
+            }
+        """
+        
+        when:
+        run "signJar", "signJavadocJar", "signSourcesJar"
+        
+        then:
+        [":signJar", ":signJavadocJar", ":signSourcesJar"].every { it in nonSkippedTasks }
+        
+        and:
+        file("build", "libs", "sign.jar.asc").text
+        file("build", "libs", "sign-javadoc.jar.asc").text
+        file("build", "libs", "sign-sources.jar.asc").text
+        
+        when:
+        run "signJar", "signJavadocJar", "signSourcesJar"
+        
+        then:
+        [":signJar", ":signJavadocJar", ":signSourcesJar"].every { it in skippedTasks }
     }
     
 }
