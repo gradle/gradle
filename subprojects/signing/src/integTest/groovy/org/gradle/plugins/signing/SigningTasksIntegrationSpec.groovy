@@ -80,4 +80,19 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         [":signJar", ":signJavadocJar", ":signSourcesJar"].every { it in skippedTasks }
     }
     
+    def "trying to sign a task that isn't an archive task gives nice enough message"() {
+        given:
+        buildScript += """
+            signing {
+                sign clean
+            }
+        """
+        
+        when:
+        runAndFail "signClean"
+        
+        then:
+        failure.assertHasCause "You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign task ':clean')"
+    }
+    
 }

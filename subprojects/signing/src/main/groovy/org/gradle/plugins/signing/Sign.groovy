@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.api.Task
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.artifacts.PublishArtifact
@@ -50,8 +51,12 @@ class Sign extends DefaultTask {
         inputs.property("signatory") { getSignatory()?.keyId?.asHex }
     }
     
-    void sign(AbstractArchiveTask... toSign) {
-        for (it in toSign) {
+    void sign(Task... tasks) {
+        for (it in tasks) {
+            if (!(it instanceof AbstractArchiveTask)) {
+                throw new InvalidUserDataException("You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign $it)")
+            }
+            
             dependsOn(it)
             addSignature(it, it.archivePath, it.classifier)
         }

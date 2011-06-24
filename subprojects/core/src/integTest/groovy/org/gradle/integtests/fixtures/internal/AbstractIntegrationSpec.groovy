@@ -57,6 +57,14 @@ class AbstractIntegrationSpec extends Specification {
     protected ExecutionResult succeeds(String... tasks) {
         result = primedExecutor.withTasks(*tasks).run()
     }
+
+    protected ExecutionFailure runAndFail(String... tasks) {
+        fails(*tasks)
+    }
+    
+    protected ExecutionFailure fails(String... tasks) {
+        failure = primedExecutor.withTasks(*tasks).runWithFailure()
+    }
     
     protected getPrimedExecutor() {
         executer.with {
