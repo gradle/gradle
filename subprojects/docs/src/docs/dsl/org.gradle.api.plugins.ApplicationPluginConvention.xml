@@ -17,7 +17,7 @@
             </tr>
             <tr>
                 <td>distResourceDirName</td>
-                <td><filename>src/main/dist</filename></td>
+                <td><filename>src/dist</filename></td>
             </tr>
         </table>
     </section>

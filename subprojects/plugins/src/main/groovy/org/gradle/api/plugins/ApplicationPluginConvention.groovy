@@ -42,7 +42,7 @@ class ApplicationPluginConvention {
 
     def ApplicationPluginConvention(Project project) {
         this.project = project
-        distResourceDirName = 'src/main/dist'
+        distResourceDirName = 'src/dist'
     }
 
     /**

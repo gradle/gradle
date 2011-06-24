@@ -39,7 +39,7 @@ class ApplicationPluginTest extends Specification {
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
-        project.distResourceDirName == "src/main/dist"
+        project.distResourceDirName == "src/dist"
     }
 
     def "adds run task to project"() {
