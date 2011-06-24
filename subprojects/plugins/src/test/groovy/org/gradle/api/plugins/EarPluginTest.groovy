@@ -28,6 +28,7 @@ import org.junit.Test
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 /**
  * @author David Gileadi
@@ -38,7 +39,7 @@ class EarPluginTest {
     private static final String TEST_APP_XML
 
     static {
-        TEST_APP_XML = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        TEST_APP_XML = toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n' +
             '<application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:application="http://java.sun.com/xml/ns/javaee/application_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_5.xsd" version="5">\n' +
             '  <display-name>Application</display-name>\n' +
             '  <module>\n' +
@@ -50,7 +51,7 @@ class EarPluginTest {
             '  <module>\n' +
             '    <ejb>jrules-bres-session-wl100-6.7.3.jar</ejb>\n' +
             '  </module>\n' +
-            '</application>'
+            '</application>')
     }
 
     @Before

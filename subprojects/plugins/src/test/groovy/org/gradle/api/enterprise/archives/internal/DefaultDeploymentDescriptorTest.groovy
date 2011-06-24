@@ -17,6 +17,7 @@
 package org.gradle.api.enterprise.archives.internal
 
 import spock.lang.Specification
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 /**
  * @author: Szczepan Faber, created at: 6/3/11
@@ -31,9 +32,9 @@ class DefaultDeploymentDescriptorTest extends Specification {
         descriptor.writeTo(out)
 
         then:
-        out.toString() == """<?xml version="1.0"?>
+        out.toString() == toPlatformLineSeparators("""<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6"/>
-"""
+""")
     }
 
     def "writes values"() {
@@ -54,7 +55,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
         descriptor.writeTo(out)
 
         then:
-        out.toString() == """<?xml version="1.0"?>
+        out.toString() == toPlatformLineSeparators("""<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_5.xsd" version="5">
   <application-name>myapp</application-name>
   <description>My Application</description>
@@ -78,7 +79,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
   <library-directory>APP-INF/lib</library-directory>
   <data-source>my/data/source</data-source>
 </application>
-"""
+""")
 
         //TODO SF make sure it is also able to parse such input (plus custom xml elements)
     }
