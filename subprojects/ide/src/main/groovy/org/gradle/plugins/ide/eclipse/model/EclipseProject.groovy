@@ -134,14 +134,22 @@ class EclipseProject {
     String comment
 
     /**
-     * The referenced projects of this Eclipse project.
+     * The referenced projects of this Eclipse project (*not*: java build path project references).
+     * <p>
+     * Referencing projects does not mean adding a build path dependencies between them!
+     * If you need to configure a build path dependency use Gradle's dependencies section or
+     * eclipse.classpath.whenMerged { classpath -> ... to manipulate the classpath entries
      * <p>
      * For example see docs for {@link EclipseProject}
      */
     Set<String> referencedProjects = new LinkedHashSet<String>()
 
     /**
-     * Adds project references to the eclipse project.
+     * The referenced projects of this Eclipse project (*not*: java build path project references).
+     * <p>
+     * Referencing projects does not mean adding a build path dependencies between them!
+     * If you need to configure a build path dependency use Gradle's dependencies section or
+     * eclipse.classpath.whenMerged { classpath -> ... to manipulate the classpath entries
      *
      * @param referencedProjects The name of the project references.
      */

@@ -16,7 +16,6 @@
 package org.gradle.cache;
 
 import org.gradle.CacheUsage;
-import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.util.GradleVersion;
 
@@ -29,9 +28,11 @@ public class DefaultCacheRepository implements CacheRepository {
     private final GradleVersion version = GradleVersion.current();
     private final File globalCacheDir;
     private final CacheUsage cacheUsage;
+    private final String projectCacheDir;
     private final CacheFactory factory;
 
-    public DefaultCacheRepository(File userHomeDir, CacheUsage cacheUsage, CacheFactory factory) {
+    public DefaultCacheRepository(File userHomeDir, String projectCacheDir, CacheUsage cacheUsage, CacheFactory factory) {
+        this.projectCacheDir = projectCacheDir;
         this.factory = factory;
         this.globalCacheDir = new File(userHomeDir, "caches");
         this.cacheUsage = cacheUsage;
@@ -73,10 +74,10 @@ public class DefaultCacheRepository implements CacheRepository {
                 cacheBaseDir = globalCacheDir;
             } else if (target instanceof Gradle) {
                 Gradle gradle = (Gradle) target;
-                cacheBaseDir = new File(gradle.getRootProject().getProjectDir(), Project.TMP_DIR_NAME);
+                File rootProjectDir = gradle.getRootProject().getProjectDir();
+                cacheBaseDir = maybeProjectCacheDir(rootProjectDir);
             } else if (target instanceof File) {
-                File dir = (File) target;
-                cacheBaseDir = new File(dir, Project.TMP_DIR_NAME);
+                cacheBaseDir = maybeProjectCacheDir((File) target);
             } else {
                 throw new IllegalArgumentException(String.format("Cannot create cache for unrecognised domain object %s.", target));
             }
@@ -87,6 +88,13 @@ public class DefaultCacheRepository implements CacheRepository {
                 cacheBaseDir = new File(cacheBaseDir, version.getVersion());
             }
             return factory.open(new File(cacheBaseDir, key), cacheUsage, properties);
+        }
+
+        private File maybeProjectCacheDir(File potentialParentDir) {
+            if (new File(projectCacheDir).isAbsolute()) {
+                return new File(projectCacheDir);
+            }
+            return new File(potentialParentDir, projectCacheDir);
         }
     }
 }

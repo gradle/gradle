@@ -157,7 +157,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
             if (cacheManager != ivySettings.getDefaultRepositoryCacheManager()
                     && !(cacheManager instanceof NoOpRepositoryCacheManager)
                     && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
-                throw new IllegalStateException(String.format("Unexpected cache manager %s for repository %s (%s)", cacheManager, dependencyResolver.getName(), dependencyResolver));
+                throw new IllegalStateException(String.format(
+                        "For consistency reasons, gradle requires all remote resolver resolvers to share the same instance of the repository cache manager."
+                        + " Unexpected cache manager %s for repository %s (%s)", cacheManager, dependencyResolver.getName(), dependencyResolver));
             }
             if (dependencyResolver instanceof RepositoryResolver) {
                 Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();

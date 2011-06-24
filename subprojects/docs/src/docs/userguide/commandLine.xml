@@ -36,6 +36,12 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>--project-cache-dir</option></term>
+            <listitem><para>Specifies the project-specific cache directory. Can be absolute or relative to the project's dir. Default value is
+                <literal>.gradle</literal>. See <xref linkend="sec:caching"/>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-D</option>, <option>--system-prop</option></term>
             <listitem><para>Sets a system property of the JVM, for example <literal>-Dmyprop=myvalue</literal>.
             </para></listitem>
