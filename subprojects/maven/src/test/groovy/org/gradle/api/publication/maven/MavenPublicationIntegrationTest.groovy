@@ -22,7 +22,7 @@ import org.gradle.util.TestFile
 import org.junit.Ignore
 import org.junit.Test
 
-import org.apache.commons.lang.StringEscapeUtils
+import static org.gradle.util.TextUtil.escapeString
 
 /**
  * @author: Szczepan Faber, created at: 6/16/11
@@ -47,7 +47,7 @@ repositories {
     mavenCentral()
 }
 
-publications.maven.repository.url = '${StringEscapeUtils.escapeJava(repo.toURL().toString())}'
+publications.maven.repository.url = '${escapeString(repo.toURL())}'
 """
         //when
         executer.withTasks('publishArchives').run()

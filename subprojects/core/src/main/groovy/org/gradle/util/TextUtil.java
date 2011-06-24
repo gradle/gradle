@@ -16,6 +16,8 @@
 
 package org.gradle.util;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 public class TextUtil {
     /**
      * Returns the line separator for Windows.
@@ -50,5 +52,14 @@ public class TextUtil {
      */
     public static String toPlatformLineSeparators(String str) {
         return convertLineSeparators(str, getPlatformLineSeparator());
+    }
+    
+    /**
+     * <p>Escapes the toString() representation of {@code obj} for use in a literal string.</p>
+     * 
+     * <p>This is useful for interpolating variables into script strings, as well as in other situations.</p>
+     */
+    public static String escapeString(Object obj) {
+        return StringEscapeUtils.escapeJava(obj.toString());
     }
 }
