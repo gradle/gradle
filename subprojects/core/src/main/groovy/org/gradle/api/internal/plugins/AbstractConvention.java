@@ -34,12 +34,12 @@ public class AbstractConvention implements Convention {
         return plugins;
     }
 
-    public boolean hasProperty(String property) {
-        if (extensionsStorage.hasExtension(property)) {
+    public boolean hasProperty(String name) {
+        if (extensionsStorage.hasExtension(name)) {
             return true;
         }
         for (Object object : plugins.values()) {
-            if (new BeanDynamicObject(object).hasProperty(property)) {
+            if (new BeanDynamicObject(object).hasProperty(name)) {
                 return true;
             }
         }
@@ -74,38 +74,38 @@ public class AbstractConvention implements Convention {
         throw new MissingPropertyException(name, Convention.class);
     }
 
-    public void setProperty(String property, Object value) {
-        extensionsStorage.checkExtensionIsNotReassigned(property);
+    public void setProperty(String name, Object value) {
+        extensionsStorage.checkExtensionIsNotReassigned(name);
         for (Object object : plugins.values()) {
             BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-            if (dynamicObject.hasProperty(property)) {
-                dynamicObject.setProperty(property, value);
+            if (dynamicObject.hasProperty(name)) {
+                dynamicObject.setProperty(name, value);
                 return;
             }
         }
-        throw new MissingPropertyException(property, Convention.class);
+        throw new MissingPropertyException(name, Convention.class);
     }
 
-    public Object invokeMethod(String name, Object... arguments) {
-        if (extensionsStorage.isConfigureExtensionMethod(name, arguments)) {
-            return extensionsStorage.configureExtension(name, arguments);
+    public Object invokeMethod(String name, Object... args) {
+        if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
+            return extensionsStorage.configureExtension(name, args);
         }
         for (Object object : plugins.values()) {
             BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-            if (dynamicObject.hasMethod(name, arguments)) {
-                return dynamicObject.invokeMethod(name, arguments);
+            if (dynamicObject.hasMethod(name, args)) {
+                return dynamicObject.invokeMethod(name, args);
             }
         }
-        throw new MissingMethodException(name, Convention.class, arguments);
+        throw new MissingMethodException(name, Convention.class, args);
     }
 
-    public boolean hasMethod(String method, Object... args) {
-        if (extensionsStorage.isConfigureExtensionMethod(method, args)) {
+    public boolean hasMethod(String name, Object... args) {
+        if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
             return true;
         }
         for (Object object : plugins.values()) {
             BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-            if (dynamicObject.hasMethod(method, args)) {
+            if (dynamicObject.hasMethod(name, args)) {
                 return true;
             }
         }
