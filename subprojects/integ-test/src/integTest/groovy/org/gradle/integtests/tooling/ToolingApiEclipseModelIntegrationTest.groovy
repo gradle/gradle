@@ -158,52 +158,6 @@ dependencies {
         eclipseProject.classpath.collect { it.javadoc?.name } as Set == [null, null] as Set
     }
 
-    def "minimal Eclipse model does not attempt to resolve external dependencies"() {
-        def projectDir = dist.testDir
-        projectDir.file('settings.gradle').text = 'include "child"'
-        projectDir.file('build.gradle').text = '''
-apply plugin: 'java'
-dependencies {
-    compile project(':child')
-    compile files { throw new RuntimeException() }
-    compile 'this.lib.surely.does.not.exist:indeed:1.0'
-}
-project(':child') {
-    apply plugin: 'java'
-    dependencies {
-        compile files { throw new RuntimeException() }
-        compile 'this.lib.surely.does.not.exist:indeed:2.0'
-    }
-}
-'''
-
-        when:
-        HierarchicalEclipseProject project = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
-
-        then:
-        project.projectDependencies.size() == 1
-        project.projectDependencies[0].path == 'child'
-    }
-
-    def "minimal Eclipse model does not attempt to call any tasks"() {
-        def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = '''
-apply plugin: 'java'
-
-sourceSets.main.output.dir "$buildDir/foo", buildBy: 'generateResources'
-
-task generateResources << {
-  assert false : 'should not be called when building minimal model'
-}
-'''
-
-        when:
-        withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
-
-        then:
-        noExceptionThrown()
-    }
-
     //TODO SF: write a test that checks if minimal project has necessary project dependencies
 
     def "can build the minimal Eclipse model for a java project with the idea plugin applied"() {

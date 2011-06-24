@@ -13,20 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol.eclipse;
+package org.gradle.integtests.tooling
 
-import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
+class ToolingApiEclipseModelIntegrationVSM3Test extends ToolingApiEclipseModelIntegrationTest {
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
-public interface EclipseProjectVersion4 extends HierarchicalEclipseProjectVersion2, BuildableProjectVersion1 {
-    EclipseProjectVersion4 getParent();
-
-    Iterable<? extends EclipseTaskVersion2> getTasks();
-
-    Iterable<? extends EclipseProjectVersion4> getChildren();
-
-    Iterable<? extends ExternalDependencyVersion1> getClasspath();
+    def setup() {
+        configureTargetDist(gradle10Milestone3)
+    }
 }

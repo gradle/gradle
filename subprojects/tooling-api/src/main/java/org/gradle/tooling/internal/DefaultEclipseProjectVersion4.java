@@ -16,88 +16,22 @@
 
 package org.gradle.tooling.internal;
 
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.*;
-import org.gradle.util.GUtil;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseLinkedResourceVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author: Szczepan Faber, created at: 6/11/11
  */
-public class DefaultEclipseProjectVersion4 implements EclipseProjectVersion4, Serializable {
+//TODO SF get rid of
+public class DefaultEclipseProjectVersion4 extends DefaultEclipseProject implements Serializable {
 
-    private final String name;
-    private final String path;
-    private EclipseProjectVersion4 parent;
-    private List<ExternalDependencyVersion1> classpath;
-    private final List<EclipseProjectVersion4> children;
-    private List<EclipseSourceDirectoryVersion1> sourceDirectories;
-    private List<EclipseProjectDependencyVersion3> projectDependencies;
-    private final String description;
-    private final File projectDirectory;
-    private Iterable<? extends EclipseTaskVersion2> tasks;
     private Iterable<? extends EclipseLinkedResourceVersion1> linkedResources;
 
-    public DefaultEclipseProjectVersion4(String name, String path, String description, File projectDirectory, Iterable<? extends EclipseProjectVersion4> children) {
-        this.name = name;
-        this.path = path;
-        this.description = description;
-        this.projectDirectory = projectDirectory;
-        this.tasks = Collections.emptyList();
-        this.children = GUtil.addLists(children);
-        this.classpath = Collections.emptyList();
-        this.sourceDirectories = Collections.emptyList();
-        this.projectDependencies = Collections.emptyList();
-        this.linkedResources = Collections.emptyList();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("project '%s'", path);
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public EclipseProjectVersion4 getParent() {
-        return parent;
-    }
-
-    public File getProjectDirectory() {
-        return projectDirectory;
-    }
-
-    public void setParent(EclipseProjectVersion4 parent) {
-        this.parent = parent;
-    }
-
-    public List<EclipseProjectVersion4> getChildren() {
-        return children;
-    }
-
-    public Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories() {
-        return sourceDirectories;
-    }
-
-    public void setSourceDirectories(List<EclipseSourceDirectoryVersion1> sourceDirectories) {
-        this.sourceDirectories = sourceDirectories;
-    }
-
-    public Iterable<? extends EclipseProjectDependencyVersion3> getProjectDependencies() {
-        return projectDependencies;
+    public DefaultEclipseProjectVersion4(String name, String path, String description, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children) {
+        super(name, path, description, projectDirectory, children);
     }
 
     public Iterable<? extends EclipseLinkedResourceVersion1> getLinkedResources() {
@@ -106,24 +40,5 @@ public class DefaultEclipseProjectVersion4 implements EclipseProjectVersion4, Se
 
     public void setLinkedResources(Iterable<? extends EclipseLinkedResourceVersion1> linkedResources) {
         this.linkedResources = linkedResources;
-    }
-
-    public void setProjectDependencies(List<EclipseProjectDependencyVersion3> projectDependencies) {
-        this.projectDependencies = projectDependencies;
-    }
-
-    public List<ExternalDependencyVersion1> getClasspath() {
-        return classpath;
-    }
-    public void setClasspath(List<ExternalDependencyVersion1> classpath) {
-        this.classpath = classpath;
-    }
-
-    public Iterable<? extends EclipseTaskVersion2> getTasks() {
-        return tasks;
-    }
-
-    public void setTasks(Iterable<? extends EclipseTaskVersion2> tasks) {
-        this.tasks = tasks;
     }
 }

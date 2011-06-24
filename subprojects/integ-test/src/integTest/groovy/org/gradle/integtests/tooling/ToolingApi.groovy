@@ -15,30 +15,25 @@
  */
 package org.gradle.integtests.tooling
 
+import java.util.concurrent.TimeUnit
+import org.gradle.integtests.fixtures.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.RuleHelper
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.internal.IntegrationTestHint
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
-import org.junit.rules.MethodRule
-import org.junit.runners.model.FrameworkMethod
-import org.junit.runners.model.Statement
-import java.util.concurrent.TimeUnit
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.slf4j.LoggerFactory
 import org.slf4j.Logger
-import org.gradle.integtests.fixtures.DaemonGradleExecuter
+import org.slf4j.LoggerFactory
 
-class ToolingApi implements MethodRule {
+class ToolingApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
     File projectDir
     private GradleDistribution dist
     private final List<Closure> connectorConfigurers = []
 
-    Statement apply(Statement base, FrameworkMethod method, Object target) {
-        dist = RuleHelper.getField(target, GradleDistribution.class)
-        return base
+    ToolingApi(GradleDistribution dist) {
+        this.dist = dist
     }
 
     def withConnector(Closure cl) {

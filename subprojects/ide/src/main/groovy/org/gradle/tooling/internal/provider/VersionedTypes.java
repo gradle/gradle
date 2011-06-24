@@ -16,19 +16,23 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.tooling.internal.*;
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion2;
+import org.gradle.tooling.internal.DefaultEclipseProject;
+import org.gradle.tooling.internal.DefaultEclipseProjectDependency;
+import org.gradle.tooling.internal.DefaultEclipseProjectVersion4;
+import org.gradle.tooling.internal.DefaultEclipseTask;
+import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 
 /**
  * @author: Szczepan Faber, created at: 6/11/11
  */
 public class VersionedTypes {
 
+    //TODO SF: get rid of
     private static final VersionedTypes DEFAULT_VERSION = new VersionedTypes(
             DefaultEclipseProject.class, DefaultEclipseTask.class, DefaultEclipseProjectDependency.class);
 
     private static final VersionedTypes LINKED_RESOURCES = new VersionedTypes(
-            DefaultEclipseProjectVersion4.class, DefaultEclipseTaskVersion2.class, DefaultEclipseProjectDependencyVersion3.class);
+            DefaultEclipseProjectVersion4.class, DefaultEclipseTask.class, DefaultEclipseProjectDependency.class);
 
     final public Class forProject;
     final public Class forTask;
@@ -41,7 +45,7 @@ public class VersionedTypes {
     }
 
     public static VersionedTypes forType(Class type) {
-        if (HierarchicalEclipseProjectVersion2.class.isAssignableFrom(type)) {
+        if (HierarchicalEclipseProjectVersion1.class.isAssignableFrom(type)) {
             return LINKED_RESOURCES;
         }
         return DEFAULT_VERSION;

@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -23,7 +24,24 @@ import spock.lang.Specification
 abstract class ToolingApiSpecification extends Specification {
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final ToolingApi toolingApi = new ToolingApi()
+    public final ToolingApi toolingApi = new ToolingApi(dist)
+
+    BasicGradleDistribution gradle10Milestone3 = dist.previousVersion('1.0-milestone-3')
+    BasicGradleDistribution optionalTargetDist
+
+    void setup() {
+        if (optionalTargetDist) {
+            toolingApi.withConnector {
+                it.useInstallation(new File(optionalTargetDist.gradleHomeDir.absolutePath))
+                it.embedded(false)
+            }
+        }
+    }
+
+    void configureTargetDist(BasicGradleDistribution targetDist) {
+        optionalTargetDist = targetDist
+        setup()
+    }
 
     def withConnection(Closure cl) {
         toolingApi.withConnection(cl)
