@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * @author Hans Dockter
  */
-public interface Convention extends DynamicObject {
+public interface Convention extends DynamicObject, ExtensionContainer {
 
     /**
      * Returns the plugin convention objects contained in this convention.

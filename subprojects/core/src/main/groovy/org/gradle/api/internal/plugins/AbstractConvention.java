@@ -16,13 +16,15 @@
  
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.plugins.Convention;
+import groovy.lang.Closure;
+import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.BeanDynamicObject;
+import org.gradle.api.plugins.Convention;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.*;
-
-import groovy.lang.MissingPropertyException;
-import groovy.lang.MissingMethodException;
 
 /**
  * @author Hans Dockter
@@ -36,6 +38,9 @@ public class AbstractConvention implements Convention {
     }
 
     public boolean hasProperty(String property) {
+        if (extensions.containsKey(property)) {
+            return true;
+        }
         for (Object object : plugins.values()) {
             if (new BeanDynamicObject(object).hasProperty(property)) {
                 return true;
@@ -51,10 +56,14 @@ public class AbstractConvention implements Convention {
         for (Object object : reverseOrder) {
             properties.putAll(new BeanDynamicObject(object).getProperties());
         }
+        properties.putAll(extensions);
         return properties;
     }
 
     public Object getProperty(String name) throws MissingPropertyException {
+        if (extensions.containsKey(name)) {
+            return extensions.get(name);
+        }
         BeanDynamicObject dynamicObject = new BeanDynamicObject(this);
         if (dynamicObject.hasProperty(name)) {
             return dynamicObject.getProperty(name);
@@ -69,6 +78,9 @@ public class AbstractConvention implements Convention {
     }
 
     public void setProperty(String property, Object value) {
+        if (extensions.containsKey(property)) {
+            throw new GradleException("There's an extension registered with name '%s'. You should not reassign it via a property setter.");
+        }
         for (Object object : plugins.values()) {
             BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
             if (dynamicObject.hasProperty(property)) {
@@ -80,6 +92,9 @@ public class AbstractConvention implements Convention {
     }
 
     public Object invokeMethod(String name, Object... arguments) {
+        if (extensions.containsKey(name) && arguments.length == 1 && arguments[0] instanceof Closure) {
+            return ConfigureUtil.configure((Closure) arguments[0], extensions.get(name));
+        }
         for (Object object : plugins.values()) {
             BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
             if (dynamicObject.hasMethod(name, arguments)) {
@@ -90,6 +105,9 @@ public class AbstractConvention implements Convention {
     }
 
     public boolean hasMethod(String method, Object... args) {
+        if (extensions.containsKey(method) && args.length == 1 && args[0] instanceof Closure) {
+            return true;
+        }
         for (Object object : plugins.values()) {
             BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
             if (dynamicObject.hasMethod(method, args)) {
@@ -123,5 +141,11 @@ public class AbstractConvention implements Convention {
                     type.getSimpleName()));
         }
         return values.get(0);
+    }
+
+    Map<String, Object> extensions = new LinkedHashMap<String, Object>();
+
+    public void add(String name, Object extension) {
+        extensions.put(name, extension);
     }
 }
