@@ -16,14 +16,6 @@
 package org.gradle.plugins.signing
 
 class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
-
-    def setup() {
-        buildScript """
-            apply plugin: 'java'
-            apply plugin: 'signing'
-            archivesBaseName = 'sign'
-        """
-    }
     
     def "sign jar with default signatory"() {
         given:

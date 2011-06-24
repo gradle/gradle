@@ -90,6 +90,13 @@ class AbstractIntegrationSpec extends Specification {
         executedTasks - skippedTasks
     }
     
+    protected void executedAndNotSkipped(String... tasks) {
+        tasks.each {
+            assert it in executedTasks
+            assert !skippedTasks.contains(it)
+        }
+    }
+    
     private assertHasResult() {
         assert result != null : "result is null, you haven't run succeeds()"
     }

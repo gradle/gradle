@@ -25,6 +25,14 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     
     @Rule public final TestResources resources = new TestResources("keys")
 
+    def setup() {
+        buildScript """
+            apply plugin: 'java'
+            apply plugin: 'signing'
+            archivesBaseName = 'sign'
+        """
+    }
+
     static class KeyInfo {
         String keyId
         String password
@@ -71,6 +79,10 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             tasks
         } else {
             tasks + """
+                configurations {
+                    $configurationName
+                }
+                
                 artifacts {
                     $configurationName sourcesJar, javadocJar
                 }
