@@ -69,6 +69,9 @@ task integTest(type: Test) {
     }
 }
 
+
+tasks.findByName("check")?.dependsOn(integTest)
+
 class IntegTestPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.convention.plugins.integTest = new IntegTestConvention(project)
