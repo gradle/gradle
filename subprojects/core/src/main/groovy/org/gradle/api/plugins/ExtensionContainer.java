@@ -20,8 +20,6 @@ package org.gradle.api.plugins;
  * Allows adding 'namespaced' DSL extensions to the object.
  *
  * //TODO SF - should be called 'Extendable'?
- *
- * @author: Szczepan Faber, created at: 6/23/11
  */
 public interface ExtensionContainer {
 
