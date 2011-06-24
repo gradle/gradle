@@ -68,8 +68,9 @@ eclipse.project {
 
         then:
         def e = thrown(Exception)
-        //TODO SF - improve the error message
-        e.message.contains "Cannot map method HierarchicalEclipseProject.getLinkedResources()"
+        e.printStackTrace()
+        e.message.contains "HierarchicalEclipseProject.getLinkedResources()"
+        e.message.contains "Method not found"
     }
 
     def "keeps backwards compatibility"() {
