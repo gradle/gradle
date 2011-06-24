@@ -49,12 +49,6 @@ class IdeaModel {
      */
     IdeaWorkspace workspace = new IdeaWorkspace()
 
-    IdeaModel idea = this
-
-    void idea(Closure closure) {
-        ConfigureUtil.configure(closure, this)
-    }
-
     /**
      * Configures idea module information
      * <p>

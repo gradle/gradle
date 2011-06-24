@@ -44,7 +44,7 @@ class IdeaPlugin extends IdePlugin {
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
 
         model = new IdeaModel()
-        project.convention.plugins.idea = model
+        project.extensions.add('idea', model)
 
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
@@ -111,7 +111,7 @@ class IdeaPlugin extends IdePlugin {
                 ideaProject.javaVersion = JavaVersion.VERSION_1_6
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.conventionMapping.modules = {
-                    project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.convention.plugins.idea.module }
+                    project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.idea.module }
                 }
 
                 ideaProject.conventionMapping.pathFactory = {
