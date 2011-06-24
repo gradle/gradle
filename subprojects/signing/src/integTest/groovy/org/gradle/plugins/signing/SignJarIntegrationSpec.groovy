@@ -15,27 +15,36 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
-
-class SignJarIntegrationSpec extends AbstractIntegrationSpec {
+class SignJarIntegrationSpec extends SigningIntegrationSpec {
     
-    def "sign jar with no default signatory available"() {
-        when:
+    def "sign jar with default signatory"() {
+        given:
         buildScript """
             apply plugin: 'java'
             apply plugin: 'signing'
 
+            ${keyInfo.addAsPropertiesScript()}
+            
+            archivesBaseName = 'sign'
+            
             signing {
                 sign jar
             }
         """
         
+        when:
+        run "signJar"
+        
         then:
-        succeeds "signJar"
+        ":signJar" in nonSkippedTasks
         
         and:
-        ":jar" in executedTasks
+        file("build", "libs", "sign.jar.asc").text
+        
+        when:
+        run "signJar"
+        
+        then:
         ":signJar" in skippedTasks
     }
     

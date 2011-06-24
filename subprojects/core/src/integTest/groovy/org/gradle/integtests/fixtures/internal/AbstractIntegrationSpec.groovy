@@ -16,8 +16,9 @@
 package org.gradle.integtests.fixtures.internal
 
 import org.gradle.integtests.fixtures.*
-import org.junit.Rule
+import org.gradle.util.TestFile
 
+import org.junit.Rule
 import spock.lang.*
 
 /**
@@ -33,12 +34,38 @@ class AbstractIntegrationSpec extends Specification {
     ExecutionResult result
     ExecutionFailure failure
 
-    protected GradleExecuter buildScript(String script) {
-        executer.usingBuildScript(script)
+    String buildScript = null
+    protected String buildScript(String script) {
+        buildScript = script
     }
 
+    protected TestFile getTestDir() {
+        return distribution.getTestDir();
+    }
+
+    protected TestFile file(Object... path) {
+        return getTestDir().file(path);
+    }
+
+    /**
+     * Synonym for succeeds()
+     */
+    protected ExecutionResult run(String... tasks) {
+        succeeds(*tasks)
+    }
+    
     protected ExecutionResult succeeds(String... tasks) {
-        result = executer.withTasks(*tasks).run()
+        result = primedExecutor.withTasks(*tasks).run()
+    }
+    
+    protected getPrimedExecutor() {
+        executer.with {
+            if (buildScript != null) {
+                usingBuildScript(buildScript)
+            }
+        }
+        
+        executer
     }
     
     protected List<String> getExecutedTasks() {
@@ -49,6 +76,10 @@ class AbstractIntegrationSpec extends Specification {
     protected Set<String> getSkippedTasks() {
         assertHasResult()
         result.skippedTasks
+    }
+    
+    protected List<String> getNonSkippedTasks() {
+        executedTasks - skippedTasks
     }
     
     private assertHasResult() {
