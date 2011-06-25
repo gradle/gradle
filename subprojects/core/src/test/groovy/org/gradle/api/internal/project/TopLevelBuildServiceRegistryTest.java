@@ -17,16 +17,14 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
@@ -43,6 +41,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -73,9 +72,10 @@ public class TopLevelBuildServiceRegistryTest {
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
     private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
-    private final ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
+    private final ClassLoaderRegistry classLoaderRegistry = context.mock(ClassLoaderRegistry.class);
     private final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
     private final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory.class);
+    private final MessagingServer messagingServer = context.mock(MessagingServer.class);
 
     @Before
     public void setUp() {
@@ -85,8 +85,8 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(cacheFactory));
             allowing(parent).get(ClassPathRegistry.class);
             will(returnValue(classPathRegistry));
-            allowing(parent).get(ClassLoaderFactory.class);
-            will(returnValue(classLoaderFactory));
+            allowing(parent).get(ClassLoaderRegistry.class);
+            will(returnValue(classLoaderRegistry));
             allowing(parent).getFactory(LoggingManagerInternal.class);
             will(returnValue(loggingManagerFactory));
             allowing(parent).get(ProgressLoggerFactory.class);
@@ -136,17 +136,11 @@ public class TopLevelBuildServiceRegistryTest {
     @Test
     public void providesATaskExecuter() {
         expectListenerManagerCreated();
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(cacheFactory).open(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)));
         }});
         assertThat(factory.get(TaskExecuter.class), instanceOf(ExecuteAtMostOnceTaskExecuter.class));
         assertThat(factory.get(TaskExecuter.class), sameInstance(factory.get(TaskExecuter.class)));
-    }
-
-    @Test
-    public void providesARepositoryHandlerFactory() {
-        allowGetCoreImplClassLoader();
-        assertThat(factory.getFactory(RepositoryHandler.class), instanceOf(DefaultRepositoryHandlerFactory.class));
     }
 
     @Test
@@ -198,7 +192,10 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAWorkerProcessFactory() {
-        allowGetRootClassLoader();
+        context.checking(new Expectations(){{
+            allowing(parent).get(MessagingServer.class);
+            will(returnValue(messagingServer));
+        }});
         assertThat(factory.getFactory(WorkerProcessBuilder.class), instanceOf(DefaultWorkerProcessFactory.class));
     }
 
@@ -234,22 +231,14 @@ public class TopLevelBuildServiceRegistryTest {
 
     private void expectScriptClassLoaderCreated() {
         context.checking(new Expectations() {{
-            one(classLoaderFactory).createScriptClassLoader();
+            one(classLoaderRegistry).createScriptClassLoader();
             will(returnValue(new MultiParentClassLoader()));
-        }});
-    }
-
-    private void allowGetRootClassLoader() {
-        context.checking(new Expectations() {{
-            allowing(classLoaderFactory).getRootClassLoader();
-            will(returnValue(new ClassLoader() {
-            }));
         }});
     }
 
     private void allowGetCoreImplClassLoader() {
         context.checking(new Expectations() {{
-            allowing(classLoaderFactory).getCoreImplClassLoader();
+            allowing(classLoaderRegistry).getCoreImplClassLoader();
             will(returnValue(new ClassLoader() {
             }));
         }});

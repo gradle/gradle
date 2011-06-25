@@ -19,22 +19,17 @@ import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.ExtractDslMetaDataTask
+import org.gradle.build.GenerateReleasesXml
 
 apply plugin: 'base'
+apply from: "${rootDir}/gradle/ssh.gradle"
 
 configurations {
-    ftpAntTask
     userGuideStyleSheets
     userGuideTask
 }
 
 dependencies {
-    ftpAntTask module("org.apache.ant:ant-commons-net:1.8.2") {
-        module("commons-net:commons-net:1.4.1") {
-            dependencies("oro:oro:2.0.8@jar")
-        }
-    }
-
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.9.1'
     userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
         dependency 'itext:itext:2.0.8@jar'
@@ -172,7 +167,7 @@ task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
-    doFirst {
+    gradle.taskGraph.whenReady {
         javadocUrl = remoteLocations.javadocUrl
         groovydocUrl = remoteLocations.groovydocUrl
         dsldocUrl = remoteLocations.dsldocUrl
@@ -233,7 +228,7 @@ task javadoc(type: Javadoc) {
     group = 'documentation'
     source groovyProjects().collect {project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(groovyProjects().collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.classes] })
+    classpath = files(groovyProjects().collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
     include 'org/gradle/api/**'
     include 'org/gradle/*'
     include 'org/gradle/external/javadoc/**'
@@ -242,7 +237,7 @@ task javadoc(type: Javadoc) {
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/tooling/**'
     exclude '**/internal/**'
-    options.links("http://java.sun.com/j2se/1.5.0/docs/api", "http://groovy.codehaus.org/gapi/", "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
+    options.links("http://download.oracle.com/javase/1.5.0/docs/api", "http://groovy.codehaus.org/gapi/", "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
     doFirst {
         title = "Gradle API $version"
@@ -273,7 +268,7 @@ task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideSty
     tags << 'standalone'
     sourceFile = new File(userguideSrcDir, 'installation.xml')
     destFile = new File(docbookSrc, 'installation.xml')
-    doFirst {
+    gradle.taskGraph.whenReady {
         javadocUrl = remoteLocations.javadocUrl
         groovydocUrl = remoteLocations.groovydocUrl
         dsldocUrl = remoteLocations.dsldocUrl
@@ -293,7 +288,7 @@ task websiteUserguideSrc(type: UserGuideTransformTask, dependsOn: [userguideStyl
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'website.xml')
     tags << 'website'
-    doFirst {
+    gradle.taskGraph.whenReady {
         javadocUrl = remoteLocations.javadocUrl
         groovydocUrl = remoteLocations.groovydocUrl
         dsldocUrl = remoteLocations.dsldocUrl
@@ -315,20 +310,12 @@ task websiteUserguide(type: Docbook2Xhtml, dependsOn: websiteUserguideSrc) {
     }
 }
 
-task websiteProperties {
-    def propertiesFile = new File(websiteDocs, 'version.properties')
-    inputs.property 'version', { version.toString() }
-    outputs.files propertiesFile
-    doLast {
-        def properties = new Properties()
-        properties.version = version.toString()
-        propertiesFile.parentFile.mkdirs()
-        propertiesFile.withOutputStream { outputStream -> properties.store(outputStream, 'documentation version properties') }
-    }
+task websiteReleasesXml(type: GenerateReleasesXml) {
+    destFile = new File(websiteDocs, 'releases.xml')
 }
 
 task websiteDocs {
-    dependsOn websiteUserguide, websiteProperties
+    dependsOn websiteUserguide, websiteReleasesXml
 }
 
 task userguide {
@@ -343,39 +330,20 @@ task docs {
     group = 'documentation'
 }
 
-task uploadDocs(dependsOn: docs) << {
-    ftp(action: 'mkdir', remotedir: remoteLocations.docsRemoteDir)
-    ftp(action: 'delete', remotedir: remoteLocations.docsRemoteDir) {
-        fileset() {
-            include(name: '**/*')
-        }
+task uploadDocs(dependsOn: docs, type: Scp) {
+    sourceDir = docsDir
+    host = 'gradle01.managed.contegix.com'
+    gradle.taskGraph.whenReady {
+        destinationDir = remoteLocations.docsUploadDir
     }
-    ftp(action: 'send', remotedir: remoteLocations.docsRemoteDir) {
-        fileset(dir: docsDir)
-    }
+    userName = project.hasProperty('websiteScpUserName') ? project.websiteScpUserName : null
+    password = project.hasProperty('websiteScpUserPassword') ? project.websiteScpUserPassword : null
 }
 gradle.taskGraph.whenReady { graph ->
     if (graph.hasTask(uploadDocs)) {
         // fail early
-        project.websiteFtpUserName
-        project.websiteFtpUserPassword
-    }
-}
-
-void ftp(Map args, Closure antFileset = {}) {
-    ant {
-        taskdef(name: 'ftp',
-                classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: configurations.ftpAntTask.asPath)
-        Map ftpArgs = args + [
-                server: 'ftp.gradle.org',
-                userid: websiteFtpUserName,
-                password: websiteFtpUserPassword
-        ]
-        delegate.ftp(ftpArgs) {
-            antFileset.delegate = delegate
-            antFileset()
-        }
+        project.websiteScpUserName
+        project.websiteScpUserPassword
     }
 }
 
@@ -388,8 +356,12 @@ class RemoteLocations {
         version.isRelease() ? 'https://dav.codehaus.org/dist/gradle' : 'https://dav.codehaus.org/snapshots.dist/gradle'
     }
 
+    String getDocsUploadDir() {
+        '/var/www/domains/gradle.org/www/htdocs/' + docsRemoteDir
+    }
+
     String getDocsRemoteDir() {
-        (version.isRelease() ? version.toString() : 'latest') + '/docs'
+        'releases/' + (version.isRelease() ? version.toString() : 'latest') + '/docs'
     }
 
     String getJavadocUrl() {

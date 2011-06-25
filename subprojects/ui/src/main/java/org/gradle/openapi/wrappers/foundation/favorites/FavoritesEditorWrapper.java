@@ -98,13 +98,13 @@ public class FavoritesEditorWrapper implements FavoritesEditorVersion1 {
     }
 
     public FavoriteTaskVersion1 promptUserToAddFavorite(Window parent) {
-        FavoriteTask favoriteTask = favoritesEditor.addFavorite(new SwingEditFavoriteInteraction(parent, "Add Favorite", true));
+        FavoriteTask favoriteTask = favoritesEditor.addFavorite(new SwingEditFavoriteInteraction(parent, "Add Favorite", SwingEditFavoriteInteraction.SynchronizeType.OnlyIfAlreadySynchronized));
         return convertFavoriteTask(favoriteTask);
     }
 
     public boolean promptUserToEditFavorite(Window parent, FavoriteTaskVersion1 favorite) {
         FavoriteTask favoriteTask = getFavoriteTask(favorite);
-        return favoritesEditor.editFavorite(favoriteTask, new SwingEditFavoriteInteraction(parent, "Edit Favorite", true));
+        return favoritesEditor.editFavorite(favoriteTask, new SwingEditFavoriteInteraction(parent, "Edit Favorite", SwingEditFavoriteInteraction.SynchronizeType.OnlyIfAlreadySynchronized));
     }
 
     public void removeFavorites(List<FavoriteTaskVersion1> favoritesToRemove) {

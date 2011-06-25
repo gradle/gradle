@@ -19,13 +19,11 @@ dependencies {
 integTestTasks.all {
     dependsOn ':publishLocalArchives', ':binZip', ':allZip', ':srcZip', ':docs:userguideDocbook'
 
-    jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m'
 
     doFirst {
         systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
         systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
-        systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
         systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
         systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
         forkEvery = 15
@@ -35,25 +33,4 @@ integTestTasks.all {
             exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
         }
     }
-}
-
-task integTest(type: Test) {
-    onlyIf {
-        // Disable for dev and commit builds, but only for non-windows machines
-        (!isDevBuild() && !isCommitBuild()) || OperatingSystem.current().isWindows()
-    }
-    systemProperties['org.gradle.integtest.executer'] = 'forking'
-}
-
-task embeddedIntegTest(type: Test) {
-    onlyIf {
-        // Disable for CI builds and builds on windows machines
-        !isCIBuild() && !OperatingSystem.current().isWindows()
-    }
-    systemProperties['org.gradle.integtest.executer'] = 'embedded'
-    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
-}
-
-task daemonIntegTest(type: Test) {
-    systemProperties['org.gradle.integtest.executer'] = 'daemon'
 }

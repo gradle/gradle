@@ -15,56 +15,55 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.internal.IntegrationTestHint
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.integtests.fixtures.*
 
 class SamplesToolingApiIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('toolingApi')
+    @Rule public final Sample sample = new Sample()
 
+    @UsesSample('toolingApi/model')
     def canUseToolingApiToDetermineProjectClasspath() {
-        def projectDir = sample.dir.file('model')
+        def projectDir = sample.dir
         Properties props = new Properties()
         props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
         props['gradleDistribution'] = distribution.gradleHomeDir.toString()
         projectDir.file('gradle.properties').withOutputStream {outstr ->
             props.store(outstr, 'props')
         }
+        projectDir.file('settings.gradle').text = '// to stop search upwards'
 
         when:
-        def result = run(projectDir, 'run')
+        def result = run(projectDir)
 
         then:
-        result.output.contains("gradle-tooling-api-${distribution.version}.jar")
-        result.output.contains("gradle-core-${distribution.version}.jar")
-        result.output.contains("gradle-wrapper-${distribution.version}.jar")
+        result.output.contains("gradle-tooling-api-")
+        result.output.contains("src/main/java")
     }
 
+    @UsesSample('toolingApi/build')
     def canUseToolingApiToRunABuild() {
-        def projectDir = sample.dir.file('build')
+        def projectDir = sample.dir
         Properties props = new Properties()
         props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
         props['gradleDistribution'] = distribution.gradleHomeDir.toString()
         projectDir.file('gradle.properties').withOutputStream {outstr ->
             props.store(outstr, 'props')
         }
+        projectDir.file('settings.gradle').text = '// to stop search upwards'
 
         when:
-        def result = run(projectDir, 'run')
+        def result = run(projectDir)
 
         then:
-        result.output.contains("Welcome to Gradle ${distribution.version}.")
+        result.output.contains("Welcome to Gradle")
     }
 
-    private ExecutionResult run(dir, task) {
+    private ExecutionResult run(dir) {
         try {
-            return executer.inDirectory(dir).withTasks(task).run()
+            return new GradleDistributionExecuter(distribution).inDirectory(dir).withTasks('run').run()
         } catch (Exception e) {
             throw new IntegrationTestHint(e);
         }

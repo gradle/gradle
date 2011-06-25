@@ -23,14 +23,14 @@ import org.gradle.api.Project
  */
 class ProjectDeduper {
 
-    ModuleNameDeduper moduleNameDeduper = new ModuleNameDeduper()
+    def moduleNameDeduper = new ModuleNameDeduper()
 
-    void dedupe(Collection<Project> projects, Closure deduplicationTargetCreator) {
+    void dedupe(Collection<Project> projects, Closure createDeduplicationTarget) {
         //Deduper acts on first-come first-served basis.
         //Therefore it's better if the inputs are sorted that first items are least wanted to be prefixed
         //Hence I'm sorting by nesting level:
         def sorted = projects.sort { (it.parent == null)? 0 : it.path.count(":") }
-        def deduplicationTargets = sorted.collect({ deduplicationTargetCreator.call(it) })
+        def deduplicationTargets = sorted.collect({ createDeduplicationTarget(it) })
         moduleNameDeduper.dedupe(deduplicationTargets)
     }
 }

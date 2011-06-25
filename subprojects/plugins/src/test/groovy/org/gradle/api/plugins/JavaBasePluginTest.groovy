@@ -61,14 +61,14 @@ class JavaBasePluginTest extends Specification {
         def set = project.sourceSets.custom
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
-        set.classesDir == new File(project.buildDir, 'classes/custom')
-        Matchers.builtBy('customClasses').matches(set.classes)
+        set.output.classesDir == new File(project.buildDir, 'classes/custom')
+        Matchers.builtBy('customClasses').matches(set.output)
 
         def processResources = project.tasks['processCustomResources']
         processResources.description == 'Processes the custom resources.'
         processResources instanceof Copy
         Matchers.dependsOn().matches(processResources)
-        processResources.destinationDir == project.sourceSets.custom.classesDir
+        processResources.destinationDir == project.sourceSets.custom.output.resourcesDir
         processResources.defaultSource == project.sourceSets.custom.resources
 
         def compileJava = project.tasks['compileCustomJava']
@@ -77,12 +77,13 @@ class JavaBasePluginTest extends Specification {
         Matchers.dependsOn().matches(compileJava)
         compileJava.defaultSource == project.sourceSets.custom.java
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
-        compileJava.destinationDir == project.sourceSets.custom.classesDir
+        compileJava.destinationDir == project.sourceSets.custom.output.classesDir
 
         def classes = project.tasks['customClasses']
         classes.description == 'Assembles the custom classes.'
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
+        classes.dependsOn.contains project.sourceSets.custom.output.dirs
     }
 
     void appliesMappingsToTasksDefinedByBuildScript() {

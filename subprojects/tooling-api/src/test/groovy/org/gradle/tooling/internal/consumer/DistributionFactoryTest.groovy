@@ -15,14 +15,39 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.logging.ProgressLogger
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.util.DistributionLocator
+import org.gradle.util.GradleVersion
 
 class DistributionFactoryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
-    final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'))
+    final ProgressLoggerFactory progressLoggerFactory = Mock()
+    final ProgressLogger progressLogger = Mock()
+    final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'), progressLoggerFactory)
+
+    def setup() {
+        _ * progressLoggerFactory.newOperation(!null) >> progressLogger
+    }
+
+    def usesTheWrapperPropertiesToDetermineTheDefaultDistribution() {
+        def zipFile = createZip { }
+        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
+
+        expect:
+        factory.getDefaultDistribution(tmpDir.dir).displayName == "Gradle distribution '${zipFile.toURI()}'"
+    }
+
+    def usesTheCurrentVersionAsTheDefaultDistributionWhenNoWrapperPropertiesFilePresent() {
+        def uri = new DistributionLocator().getDistributionFor(GradleVersion.current())
+
+        expect:
+        factory.getDefaultDistribution(tmpDir.dir).displayName == "Gradle distribution '${uri}'"
+    }
 
     def createsADisplayNameForAnInstallation() {
         expect:
@@ -40,9 +65,9 @@ class DistributionFactoryTest extends Specification {
 
     def failsWhenInstallationDirectoryDoesNotExist() {
         TestFile distDir = tmpDir.file('unknown')
+        def dist = factory.getDistribution(distDir)
 
         when:
-        def dist = factory.getDistribution(distDir)
         dist.toolingImplementationClasspath
 
         then:
@@ -52,9 +77,9 @@ class DistributionFactoryTest extends Specification {
 
     def failsWhenInstallationDirectoryIsAFile() {
         TestFile distDir = tmpDir.createFile('dist')
+        def dist = factory.getDistribution(distDir)
 
         when:
-        def dist = factory.getDistribution(distDir)
         dist.toolingImplementationClasspath
 
         then:
@@ -64,9 +89,9 @@ class DistributionFactoryTest extends Specification {
 
     def failsWhenInstallationDirectoryDoesNotContainALibDirectory() {
         TestFile distDir = tmpDir.createDir('dist')
+        def dist = factory.getDistribution(distDir)
 
         when:
-        def dist = factory.getDistribution(distDir)
         dist.toolingImplementationClasspath
 
         then:
@@ -88,17 +113,48 @@ class DistributionFactoryTest extends Specification {
                 file("b.jar")
             }
         }
+        def dist = factory.getDistribution(zipFile.toURI())
 
         expect:
-        def dist = factory.getDistribution(zipFile.toURI())
         dist.toolingImplementationClasspath.collect { it.name } as Set == ['a.jar', 'b.jar'] as Set
+    }
+
+    def reportsZipDownload() {
+        def zipFile = createZip {
+            lib {
+                file("a.jar")
+            }
+        }
+        def dist = factory.getDistribution(zipFile.toURI())
+
+        when:
+        dist.toolingImplementationClasspath
+
+        then:
+        1 * progressLoggerFactory.newOperation(DistributionFactory.class) >> progressLogger
+        1 * progressLogger.setDescription("Download ${zipFile.toURI()}")
+        1 * progressLogger.started()
+        1 * progressLogger.completed()
+        0 * _._
+    }
+
+    def failsWhenDistributionZipDoesNotExist() {
+        URI zipFile = new URI("http://gradle.org/does-not-exist/gradle-1.0.zip")
+        def dist = factory.getDistribution(zipFile)
+
+        when:
+        dist.toolingImplementationClasspath
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "The specified Gradle distribution '${zipFile}' does not exist."
     }
 
     def failsWhenDistributionZipDoesNotContainALibDirectory() {
         TestFile zipFile = createZip { file("other") }
+        def dist = factory.getDistribution(zipFile.toURI())
 
         when:
-        def dist = factory.getDistribution(zipFile.toURI())
         dist.toolingImplementationClasspath
 
         then:

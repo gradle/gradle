@@ -59,6 +59,17 @@ public interface ResolvedConfiguration {
     Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException;
 
     /**
+     * Returns the {@link ResolvedDependency} instances for each direct dependency of the configuration that matches
+     * the given spec. Via those you have access to all {@link ResolvedDependency} instances, including the transitive
+     * dependencies of the configuration.
+     *
+     * @param dependencySpec A filter for the dependencies to be resolved.
+     * @return A {@code ResolvedDependency} instance for each direct dependency.
+     * @throws ResolveException when the resolve was not successful.
+     */
+    Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException;
+
+    /**
      * Returns the set of artifact meta-data for this configuration.
      *
      * @return The set of artifacts.

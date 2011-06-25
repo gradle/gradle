@@ -59,7 +59,18 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     }
 
     public boolean worksWith(Jvm jvm) {
+        // Works with anything >= Java 5
         return jvm.isJava5Compatible();
+    }
+
+    public boolean daemonSupported() {
+        // More or less
+        return true;
+    }
+
+    public boolean wrapperCanExecute(String version) {
+        // Current wrapper works with anything > 0.8
+        return GradleVersion.version(version).compareTo(GradleVersion.version("0.8")) > 0;
     }
 
     public void requireOwnUserHomeDir() {
@@ -73,8 +84,8 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     private static TestFile file(String propertyName, String defaultFile) {
         String path = System.getProperty(propertyName, defaultFile);
         if (path == null) {
-            throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests.",
-                    propertyName));
+            throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests. The default passed was: '%s'",
+                    propertyName, defaultFile));
         }
         return new TestFile(new File(path));
     }

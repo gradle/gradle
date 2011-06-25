@@ -15,6 +15,7 @@
  */
 package org.gradle.process.internal;
 
+import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
@@ -40,8 +41,8 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
     public AbstractExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);
-        standardOutput = System.out;
-        errorOutput = System.err;
+        standardOutput = new CloseShieldOutputStream(System.out);
+        errorOutput = new CloseShieldOutputStream(System.err);
     }
 
     public abstract List<String> getAllArguments();

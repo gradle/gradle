@@ -16,7 +16,12 @@
 
 package org.gradle.util;
 
+import org.gradle.api.GradleException;
+
+import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -48,5 +53,47 @@ public class ClasspathUtil {
             }
         }
         return implementationClassPath;
+    }
+
+    public static File getClasspathForClass(Class<?> targetClass) {
+        URI location;
+        try {
+            location = targetClass.getProtectionDomain().getCodeSource().getLocation().toURI();
+        } catch (URISyntaxException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+        if (!location.getScheme().equals("file")) {
+            throw new GradleException(String.format("Cannot determine classpath for %s from codebase '%s'.", targetClass.getName(), location));
+        }
+        return new File(location.getPath());
+    }
+
+    public static File getClasspathForResource(ClassLoader classLoader, String name) {
+        URI location;
+        try {
+            if (classLoader == null) {
+                location = ClassLoader.getSystemResource(name).toURI();
+            } else {
+                location = classLoader.getResource(name).toURI();
+            }
+            String path = location.getPath();
+            if (location.getScheme().equals("file")) {
+                assert path.endsWith("/" + name);
+                return new File(path.substring(0, path.length() - (name.length() + 1)));
+            } else if (location.getScheme().equals("jar")) {
+                String schemeSpecificPart = location.getRawSchemeSpecificPart();
+                int pos = schemeSpecificPart.indexOf("!");
+                if (pos > 0) {
+                    assert schemeSpecificPart.substring(pos + 1).equals("/" + name);
+                    URI jarFile = new URI(schemeSpecificPart.substring(0, pos));
+                    if (jarFile.getScheme().equals("file")) {
+                        return new File(jarFile.getPath());
+                    }
+                }
+            }
+        } catch (URISyntaxException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+        throw new GradleException(String.format("Cannot determine classpath for resource '%s' from location '%s'.", name, location));
     }
 }

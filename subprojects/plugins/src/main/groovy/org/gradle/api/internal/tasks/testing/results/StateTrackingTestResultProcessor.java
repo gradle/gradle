@@ -46,7 +46,8 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
         TestState testState = executing.remove(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
-                    "Received a completed event for test with unknown id '%s'.", testId));
+                    "Received a completed event for test with unknown id '%s'. Registered test ids: '%s'",
+                    testId, executing.keySet()));
         }
 
         testState.completed(event);
@@ -56,8 +57,9 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
     public void failure(Object testId, Throwable result) {
         TestState testState = executing.get(testId);
         if (testState == null) {
-            throw new IllegalArgumentException(String.format("Received a failure event for test with unknown id '%s'.",
-                    testId));
+            throw new IllegalArgumentException(String.format(
+                    "Received a failure event for test with unknown id '%s'. Registered test ids: '%s'",
+                    testId, executing.keySet()));
         }
         testState.failures.add(result);
     }

@@ -40,12 +40,16 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private boolean workingDirSet;
     private boolean userHomeSet;
 
-    private enum Executer {
+    public enum Executer {
         forking, embedded, daemon
     }
 
     static {
         EXECUTER = Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()).toLowerCase());
+    }
+
+    public static Executer getExecuter() {
+        return EXECUTER;
     }
 
     public GradleDistributionExecuter(GradleDistribution dist) {

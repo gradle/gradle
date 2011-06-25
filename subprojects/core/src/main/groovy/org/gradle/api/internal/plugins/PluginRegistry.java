@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginInstantiationException;
+import org.gradle.api.plugins.UnknownPluginException;
 
 /**
  * @author Hans Dockter
@@ -25,7 +26,7 @@ import org.gradle.api.plugins.PluginInstantiationException;
 public interface PluginRegistry {
     <T extends Plugin> T loadPlugin(Class<T> pluginClass) throws PluginInstantiationException;
 
-    Class<? extends Plugin> getTypeForId(String pluginId);
+    Class<? extends Plugin> getTypeForId(String pluginId) throws UnknownPluginException, PluginInstantiationException;
 
     PluginRegistry createChild(ClassLoader childClassPath);
 }

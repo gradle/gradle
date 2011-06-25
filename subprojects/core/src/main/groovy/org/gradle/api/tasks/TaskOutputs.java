@@ -30,7 +30,7 @@ public interface TaskOutputs {
     /**
      * <p>Adds a predicate to determine whether the outputs of this task are up-to-date. The given closure is executed
      * at task execution time. The closure is passed the task as a parameter. If the closure returns false, the task
-     * outputs are considered out-of-date and the task will be executed executed.</p>
+     * outputs are considered out-of-date and the task will be executed.</p>
      *
      * <p>You can add multiple such predicates. The task outputs are considered out-of-date when any predicate returns
      * false.<p>

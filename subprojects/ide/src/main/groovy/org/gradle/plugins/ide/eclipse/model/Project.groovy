@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.plugins.ide.eclipse.EclipseProject
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**
@@ -53,9 +52,27 @@ class Project extends XmlPersistableConfigurationObject {
     List buildCommands = []
 
     /**
-     * The links to be added to this Eclipse project.
+     * The linkedResources to be added to this Eclipse project.
      */
-    Set<Link> links = new LinkedHashSet<Link>()
+    Set<Link> linkedResources = new LinkedHashSet<Link>()
+
+    /**
+     * The links to be added to this Eclipse project.
+     * <p>
+     * @deprecated Please use linkedResources
+     */
+    @Deprecated
+    Set<Link> getLinks() {
+        this.linkedResources
+    }
+
+    /**
+     * @deprecated Please use linkedResources
+     */
+    @Deprecated
+    void setLinks(Set<Link> links) {
+        this.linkedResources(links)
+    }
 
     def Project(XmlTransformer xmlTransformer) {
         super(xmlTransformer)
@@ -71,7 +88,7 @@ class Project extends XmlPersistableConfigurationObject {
         readReferencedProjects()
         readNatures()
         readBuildCommands()
-        readLinks()
+        readLinkedResources()
     }
 
     private def readReferencedProjects() {
@@ -94,29 +111,29 @@ class Project extends XmlPersistableConfigurationObject {
         }
     }
 
-    private def readLinks() {
-        return xml.links.link.each { link ->
-            this.links.add(new Link(link.name?.text(), link.type?.text(), link.location?.text(), link.locationURI?.text()))
+    private def readLinkedResources() {
+        return xml.linkedResources.link.each { link ->
+            this.linkedResources.add(new Link(link.name?.text(), link.type?.text(), link.location?.text(), link.locationURI?.text()))
         }
     }
 
-    def configure(EclipseProject eclipseProjectTask) {
-        if (eclipseProjectTask.projectName) {
-            this.name = eclipseProjectTask.projectName
+    def configure(EclipseProject eclipseProject) {
+        if (eclipseProject.name) {
+            this.name = eclipseProject.name
         }
-        if (eclipseProjectTask.comment) {
-            this.comment = eclipseProjectTask.comment
+        if (eclipseProject.comment) {
+            this.comment = eclipseProject.comment
         }
-        this.referencedProjects.addAll(eclipseProjectTask.referencedProjects)
-        this.natures.addAll(eclipseProjectTask.natures)
+        this.referencedProjects.addAll(eclipseProject.referencedProjects)
+        this.natures.addAll(eclipseProject.natures)
         this.natures.unique()
-        this.buildCommands.addAll(eclipseProjectTask.buildCommands)
+        this.buildCommands.addAll(eclipseProject.buildCommands)
         this.buildCommands.unique()
-        this.links.addAll(eclipseProjectTask.links);
+        this.linkedResources.addAll(eclipseProject.linkedResources);
     }
 
     @Override protected void store(Node xml) {
-        ['name', 'comment', 'projects', 'natures', 'buildSpec', 'links'].each { childNodeName ->
+        ['name', 'comment', 'projects', 'natures', 'buildSpec', 'linkedResources'].each { childNodeName ->
             Node childNode = xml.children().find { it.name() == childNodeName }
             if (childNode) {
                 xml.remove(childNode)
@@ -127,7 +144,7 @@ class Project extends XmlPersistableConfigurationObject {
         addReferencedProjectsToXml()
         addNaturesToXml()
         addBuildSpecToXml()
-        addLinksToXml()
+        addLinkedResourcesToXml()
     }
 
     private def addReferencedProjectsToXml() {
@@ -158,10 +175,10 @@ class Project extends XmlPersistableConfigurationObject {
         }
     }
 
-    private def addLinksToXml() {
-        def linksNode = xml.appendNode('links')
-        this.links.each { link ->
-            def linkNode = linksNode.appendNode('link')
+    private def addLinkedResourcesToXml() {
+        def parent = xml.appendNode('linkedResources')
+        this.linkedResources.each { link ->
+            def linkNode = parent.appendNode('link')
             linkNode.appendNode('name', link.name)
             linkNode.appendNode('type', link.type)
             if (link.location) {
@@ -182,7 +199,7 @@ class Project extends XmlPersistableConfigurationObject {
 
         if (buildCommands != project.buildCommands) { return false }
         if (comment != project.comment) { return false }
-        if (links != project.links) { return false }
+        if (linkedResources != project.linkedResources) { return false }
         if (name != project.name) { return false }
         if (natures != project.natures) { return false }
         if (referencedProjects != project.referencedProjects) { return false }
@@ -198,7 +215,7 @@ class Project extends XmlPersistableConfigurationObject {
         result = 31 * result + (referencedProjects != null ? referencedProjects.hashCode() : 0);
         result = 31 * result + (natures != null ? natures.hashCode() : 0);
         result = 31 * result + (buildCommands != null ? buildCommands.hashCode() : 0);
-        result = 31 * result + (links != null ? links.hashCode() : 0);
+        result = 31 * result + (linkedResources != null ? linkedResources.hashCode() : 0);
         return result;
     }
 
@@ -210,7 +227,7 @@ class Project extends XmlPersistableConfigurationObject {
                 ", referencedProjects=" + referencedProjects +
                 ", natures=" + natures +
                 ", buildCommands=" + buildCommands +
-                ", links=" + links +
+                ", linkedResources=" + linkedResources +
                 '}';
     }
 }

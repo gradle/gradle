@@ -112,9 +112,15 @@ public class UriScriptSourceTest {
     }
     
     @Test
-    public void generatesClassNameFromFileNameByRemovingExtensionAndAddingHashOfURL() {
+    public void generatesClassNameFromFileNameByRemovingExtensionAndAddingHashOfFileURL() {
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
         assertThat(source.getClassName(), matchesRegexp("build_[0-9a-z]{24,26}"));
+    }
+
+    @Test
+    public void generatesClassNameFromFileNameByRemovingExtensionAndAddingHashOfJarURL() throws Exception {
+        UriScriptSource source = new UriScriptSource("<file-type>", createJar());
+        assertThat(source.getClassName(), matchesRegexp("build_[0-9a-z]{25,26}"));
     }
 
     @Test

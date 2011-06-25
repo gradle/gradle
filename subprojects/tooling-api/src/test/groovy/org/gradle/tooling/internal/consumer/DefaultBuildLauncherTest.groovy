@@ -15,15 +15,15 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.model.Task
 import org.gradle.util.ConcurrentSpecification
-import org.gradle.tooling.GradleConnectionException
 
 class DefaultBuildLauncherTest extends ConcurrentSpecification {
-    final ConnectionVersion4 protocolConnection = Mock()
-    final DefaultBuildLauncher launcher = new DefaultBuildLauncher(protocolConnection)
+    final AsyncConnection protocolConnection = Mock()
+    final ConnectionParameters parameters = Mock()
+    final DefaultBuildLauncher launcher = new DefaultBuildLauncher(protocolConnection, parameters)
 
     def buildDelegatesToProtocolConnection() {
         Task task1 = task(':task1')
@@ -34,12 +34,14 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         launcher.forTasks(task1, task2).run(handler)
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def params = args[0]
-            assert params.tasks == [':task1', ':task2']
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def buildParams = args[0]
+            assert buildParams.tasks == [':task1', ':task2']
+            def params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
-            def wrappedHandler = args[1]
+            assert params.progressListener != null
+            def wrappedHandler = args[2]
             wrappedHandler.onComplete(null)
         }
         1 * handler.onComplete(null)
@@ -58,11 +60,11 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         launcher.run(handler)
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def params = args[0]
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def params = args[1]
             assert params.standardOutput == stdout
             assert params.standardError == stderr
-            def wrappedHandler = args[1]
+            def wrappedHandler = args[2]
             wrappedHandler.onComplete(null)
         }
     }
@@ -75,8 +77,8 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
         launcher.run(handler)
 
         then:
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def wrappedHandler = args[1]
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def wrappedHandler = args[2]
             wrappedHandler.onFailure(failure)
         }
         1 * handler.onFailure(!null) >> { args ->
@@ -90,47 +92,42 @@ class DefaultBuildLauncherTest extends ConcurrentSpecification {
     }
 
     def buildBlocksUntilResultReceived() {
-        def supplyResult = later()
+        def supplyResult = waitsForAsyncCallback()
         Task task = Mock()
 
         when:
-        def action = start {
+        supplyResult.start {
             launcher.forTasks(task).run()
         }
 
         then:
-        action.waitsFor(supplyResult)
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def handler = args[1]
-            supplyResult.activate {
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def handler = args[2]
+            supplyResult.callbackLater {
                 handler.onComplete(null)
             }
         }
     }
 
     def buildBlocksUntilFailureReceived() {
-        def supplyResult = later()
+        def supplyResult = waitsForAsyncCallback()
+        def failure = new RuntimeException()
         Task task = Mock()
 
         when:
-        def action = start {
+        supplyResult.start {
             launcher.forTasks(task).run()
         }
 
         then:
-        action.waitsFor(supplyResult)
-        1 * protocolConnection.executeBuild(!null, !null) >> { args ->
-            def handler = args[1]
-            supplyResult.activate {
-                handler.onFailure(new RuntimeException())
+        GradleConnectionException e = thrown()
+        e.cause == failure
+        1 * protocolConnection.executeBuild(!null, !null, !null) >> { args ->
+            def handler = args[2]
+            supplyResult.callbackLater {
+                handler.onFailure(failure)
             }
         }
-
-        when:
-        finished()
-
-        then:
-        GradleConnectionException e = thrown()
     }
 
     def task(String path) {

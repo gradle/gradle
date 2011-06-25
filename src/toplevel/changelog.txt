@@ -1,4 +1,3 @@
-
 Release Notes - Gradle - Version ${version}
 
-See http://docs.codehaus.org/display/GRADLE/Gradle+${version}+Release+Notes
+See http://wiki.gradle.org/display/GRADLE/Gradle+${version}+Release+Notes

@@ -15,15 +15,17 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.internal.provider.DefaultConnectionFactory
+import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleVersion
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Specification
 
 class DefaultToolingImplementationLoaderTest extends Specification {
+    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
     final Distribution distribution = Mock()
 
     def usesMetaInfServiceToDetermineFactoryImplementation() {
@@ -31,25 +33,28 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
         distribution.toolingImplementationClasspath >> ([
                 getToolingApiResourcesDir(),
-                AbstractClassPathProvider.getClasspathForClass(DefaultConnectionFactory.class),
-                AbstractClassPathProvider.getClasspathForClass(ActorFactory.class),
-                AbstractClassPathProvider.getClasspathForClass(Logger.class)
+                ClasspathUtil.getClasspathForClass(TestConnection.class),
+                ClasspathUtil.getClasspathForClass(ActorFactory.class),
+                ClasspathUtil.getClasspathForClass(Logger.class),
+                getVersionResourcesDir(),
+                ClasspathUtil.getClasspathForClass(GradleVersion.class)
         ] as Set)
 
         when:
         def factory = loader.create(distribution)
 
         then:
-        factory.class != DefaultConnectionFactory.class
-        factory.class.name == DefaultConnectionFactory.class.name
+        factory.class != TestConnection.class
+        factory.class.name == TestConnection.class.name
     }
 
     private getToolingApiResourcesDir() {
-        def resource = getClass().classLoader.getResource("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4")
-        assert resource
-        assert resource.protocol == 'file'
-        def dir = resource.path.replaceFirst(/META-INF.*/, '')
-        return new File(dir)
+        tmpDir.file("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4") << TestConnection.name
+        return tmpDir.dir;
+    }
+
+    private getVersionResourcesDir() {
+        return ClasspathUtil.getClasspathForResource(getClass().classLoader, "org/gradle/releases.xml")
     }
 
     def failsWhenNoImplementationDeclared() {

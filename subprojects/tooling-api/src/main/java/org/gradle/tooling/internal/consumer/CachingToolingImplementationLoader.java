@@ -15,27 +15,30 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4;
+import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class CachingToolingImplementationLoader implements ToolingImplementationLoader {
     private final ToolingImplementationLoader loader;
-    private final Map<Set<File>, ConnectionFactoryVersion4> connections = new HashMap<Set<File>, ConnectionFactoryVersion4>();
+    private final Map<Set<File>, ConnectionVersion4> connections = new HashMap<Set<File>, ConnectionVersion4>();
 
     public CachingToolingImplementationLoader(ToolingImplementationLoader loader) {
         this.loader = loader;
     }
 
-    public ConnectionFactoryVersion4 create(Distribution distribution) {
+    public ConnectionVersion4 create(Distribution distribution) {
         Set<File> classpath = new LinkedHashSet<File>(distribution.getToolingImplementationClasspath());
-        ConnectionFactoryVersion4 factory = connections.get(classpath);
-        if (factory == null) {
-            factory = loader.create(distribution);
-            connections.put(classpath, factory);
+        ConnectionVersion4 connection = connections.get(classpath);
+        if (connection == null) {
+            connection = loader.create(distribution);
+            connections.put(classpath, connection);
         }
 
-        return factory;
+        return connection;
     }
 }

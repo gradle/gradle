@@ -16,7 +16,11 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * <p>Represents a connection to a particular Gradle implementation.
+ *
+ * <p>Implementations must be thread-safe.
+ *
+ * <p>DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.</p>
  */
 public interface ConnectionVersion4 {
     /**
@@ -25,31 +29,24 @@ public interface ConnectionVersion4 {
     void stop();
 
     /**
-     * Returns a display name for this connection, which can be used in logging and error reporting. The implementation of this method should be fast and
-     * side-effect free.
-     *
-     * @return The display name.
+     * Returns the meta-data for this connection. The implementation of this method should be fast, and should continue to work after the connection has been stopped.
+     * @return The meta-data.
      */
-    String getDisplayName();
+    ConnectionMetaDataVersion1 getMetaData();
 
     /**
-     * Starts fetching a snapshot of the model for the project. This method returns immediately, and the given result handler is notified when the model
-     * is available.
+     * Fetches a snapshot of the model for the project.
      *
-     * @param type The type of model to fetch.
-     * @param handler The handler to pass the model to.
-     * @param <T> The type of model to fetch.
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    <T extends ProjectVersion3> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException;
+    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
 
     /**
-     * Starts the execution of a build. This method returns immediately, and the given result handler is notified when the build is complete.
+     * Executes a build.
      *
      * @param buildParameters The parameters for the build.
-     * @param handler The handler to notify of the build result.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    void executeBuild(BuildParametersVersion1 buildParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException;
+    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws IllegalStateException;
 }

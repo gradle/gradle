@@ -99,6 +99,14 @@ public class ErrorHandlingIvyService implements IvyService {
             }
         }
 
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException {
+            try {
+                return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
+        }
+
         public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
             try {
                 return resolvedConfiguration.getResolvedArtifacts();
@@ -130,6 +138,10 @@ public class ErrorHandlingIvyService implements IvyService {
         }
 
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
+            throw wrapException(e, configuration);
+        }
+
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException {
             throw wrapException(e, configuration);
         }
 

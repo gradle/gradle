@@ -1,0 +1,38 @@
+apply plugin: 'ear'
+apply plugin: 'java'
+
+repositories { mavenCentral() }
+
+dependencies {
+    //following dependencies will become the ear modules and placed in the ear root
+    deploy project(':war')
+
+    //following dependencies will become ear libs and placed in a dir configured via libDirName property
+    earlib group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
+}
+
+ear {
+    appDirName 'src/main/app'  // use application metadata found in this folder
+    libDirName 'APP-INF/lib'  // put dependency libraries into APP-INF/lib inside the generated EAR;
+                                // also modify the generated deployment descriptor accordingly
+    deploymentDescriptor {  // custom entries for application.xml:
+//      fileName = "application.xml"  // same as the default value
+//      version = "6"  // same as the default value
+        applicationName = "customear"
+        initializeInOrder = true
+        displayName = "Custom Ear"  // defaults to project.name
+        description = "My customized EAR for the Gradle documentation"  // defaults to project.description
+//      libraryDirectory = "APP-INF/lib"  // not needed, because setting libDirName above did this for us
+//      module("my.jar", "java")  // wouldn't deploy since my.jar isn't a deploy depencency
+//      webModule("my.war", "/")  // wouldn't deploy since my.war isn't a deploy depencency
+        securityRole "admin"
+        securityRole "superadmin"
+        withXml { provider -> // add a custom node to the XML
+            provider.asNode().appendNode("data-source", "my/data/source")
+        }
+    }
+}
+
+// START SNIPPET enable-jar
+jar.enabled = true
+// END SNIPPET enable-jar

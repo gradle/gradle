@@ -21,11 +21,10 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.specs.Specs
+import org.gradle.api.specs.Spec
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
 import org.gradle.plugins.ide.idea.model.Path
@@ -33,31 +32,42 @@ import org.gradle.plugins.ide.idea.model.PathFactory
 
 /**
  * All code was refactored from the GenerateIdeaModule class.
- * TODO SF: This class should be refactored so that we can reuse it in Eclipse plugin also.
+ * TODO: This class should be refactored so that we can reuse it in Eclipse plugin also.
  *
- * Author: Szczepan Faber, created at: 4/1/11
+ * @author Szczepan Faber, created at: 4/1/11
  */
 class IdeaDependenciesProvider {
 
     Project project
-    Map<String, Map<String, Configuration>> scopes
+    Map<String, Map<String, Collection<Configuration>>> scopes
     boolean downloadSources
     boolean downloadJavadoc
     PathFactory pathFactory
 
     Set<org.gradle.plugins.ide.idea.model.Dependency> provide(IdeaModule ideaModule, PathFactory pathFactory) {
-        //TODO SF: below assignments are funky but I wanted to make little changes to the code refactored from GenerateIdeaModule
+        //(SF) below assignments are funky but I wanted to make little changes to the code refactored from GenerateIdeaModule
         this.project = ideaModule.project
         this.scopes = ideaModule.scopes
         this.downloadSources = ideaModule.downloadSources
         this.downloadJavadoc = ideaModule.downloadJavadoc
         this.pathFactory = pathFactory
 
-        scopes.keySet().inject([] as LinkedHashSet) { result, scope ->
+        Set result = new LinkedHashSet()
+        ideaModule.singleEntryLibraries.each { scope, files ->
+            files.each {
+                if (it && it.isDirectory()) {
+                    result << new ModuleLibrary([getPath(it)] as Set, [] as Set, [] as Set, [] as Set, scope)
+                }
+            }
+        }
+
+        scopes.keySet().each { scope ->
             result.addAll(getModuleLibraries(scope))
             result.addAll(getModules(scope))
             result
         }
+
+        return result
     }
 
     protected Set getModules(String scope) {
@@ -71,32 +81,28 @@ class IdeaDependenciesProvider {
     }
 
     protected Set getModuleLibraries(String scope) {
-        if (scopes[scope]) {
-            Set firstLevelDependencies = getScopeDependencies(scopes[scope], { it instanceof ExternalDependency })
+        if (!scopes[scope]) { return [] }
 
-            ResolvedConfiguration resolvedConfiguration = project.configurations.detachedConfiguration((firstLevelDependencies as Dependency[])).resolvedConfiguration
-            def allResolvedDependencies = getAllDeps(resolvedConfiguration.firstLevelModuleDependencies)
+        def allResolvedDependencies = resolveDependencies(scopes[scope].plus, scopes[scope].minus)
 
-            Set sourceDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-                addSourceArtifact(dependency)
-            }
-            Map sourceFiles = downloadSources ? getFiles(sourceDependencies, "sources") : [:]
-
-            Set javadocDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-                addJavadocArtifact(dependency)
-            }
-            Map javadocFiles = downloadJavadoc ? getFiles(javadocDependencies, "javadoc") : [:]
-
-            List moduleLibraries = resolvedConfiguration.getFiles(Specs.SATISFIES_ALL).collect { File binaryFile ->
-                File sourceFile = sourceFiles[binaryFile.name]
-                File javadocFile = javadocFiles[binaryFile.name]
-                new ModuleLibrary([getPath(binaryFile)] as Set, javadocFile ? [getPath(javadocFile)] as Set : [] as Set, sourceFile ? [getPath(sourceFile)] as Set : [] as Set, [] as Set, scope)
-            }
-            moduleLibraries.addAll(getSelfResolvingFiles(getScopeDependencies(scopes[scope],
-                    { it instanceof SelfResolvingDependency && !(it instanceof ProjectDependency)}), scope))
-            return moduleLibraries as LinkedHashSet
+        Set sourceDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
+            addSourceArtifact(dependency)
         }
-        return []
+        Map sourceFiles = downloadSources ? getFiles(sourceDependencies, "sources") : [:]
+
+        Set javadocDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
+            addJavadocArtifact(dependency)
+        }
+        Map javadocFiles = downloadJavadoc ? getFiles(javadocDependencies, "javadoc") : [:]
+
+        List moduleLibraries = resolveFiles(scopes[scope].plus, scopes[scope].minus).collect { File binaryFile ->
+            File sourceFile = sourceFiles[binaryFile.name]
+            File javadocFile = javadocFiles[binaryFile.name]
+            new ModuleLibrary([getPath(binaryFile)] as Set, javadocFile ? [getPath(javadocFile)] as Set : [] as Set, sourceFile ? [getPath(sourceFile)] as Set : [] as Set, [] as Set, scope)
+        }
+        moduleLibraries.addAll(getSelfResolvingFiles(getScopeDependencies(scopes[scope],
+                { it instanceof SelfResolvingDependency && !(it instanceof ProjectDependency)}), scope))
+        return moduleLibraries as LinkedHashSet
     }
 
     private def getSelfResolvingFiles(Collection dependencies, String scope) {
@@ -108,7 +114,7 @@ class IdeaDependenciesProvider {
         }
     }
 
-    private Set getScopeDependencies(Map<String, Configuration> configurations, Closure filter) {
+    private Set getScopeDependencies(Map<String, Collection<Configuration>> configurations, Closure filter) {
         Set firstLevelDependencies = new LinkedHashSet()
         configurations.plus.each { Configuration configuration ->
             firstLevelDependencies.addAll(configuration.getAllDependencies().findAll(filter))
@@ -131,6 +137,28 @@ class IdeaDependenciesProvider {
         return firstLevelDependencies
     }
 
+    private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        def result = new LinkedHashSet()
+        for (plusConfiguration in plusConfigurations) {
+            result.addAll(getAllDeps(plusConfiguration.resolvedConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
+        }
+        for (minusConfiguration in minusConfigurations) {
+            result.removeAll(getAllDeps(minusConfiguration.resolvedConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
+        }
+        result
+    }
+
+    private Set<File> resolveFiles(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        def result = new LinkedHashSet()
+        for (plusConfiguration in plusConfigurations) {
+            result.addAll(plusConfiguration.files { it instanceof ExternalDependency })
+        }
+        for (minusConfiguration in minusConfigurations) {
+            result.removeAll(minusConfiguration.files { it instanceof ExternalDependency })
+        }
+        result
+    }
+
     private getFiles(Set dependencies, String classifier) {
         return project.configurations.detachedConfiguration((dependencies as Dependency[])).files.inject([:]) { result, sourceFile ->
             String key = sourceFile.name.replace("-${classifier}.jar", '.jar')
@@ -149,7 +177,7 @@ class IdeaDependenciesProvider {
         }
     }
 
-    protected Set getAllDeps(Set deps, Set allDeps = []) {
+    protected Set getAllDeps(Collection deps, Set allDeps = []) {
         deps.each { ResolvedDependency resolvedDependency ->
             def notSeenBefore = allDeps.add(resolvedDependency)
             if (notSeenBefore) { // defend against circular dependencies

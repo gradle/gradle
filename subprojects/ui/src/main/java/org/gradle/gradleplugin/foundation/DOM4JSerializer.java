@@ -63,7 +63,7 @@ public class DOM4JSerializer {
          * @param file the file in question
          * @return true to overwrite it, false not to.
          */
-        boolean confirmOverwritingExisingFile(File file);
+        boolean confirmOverwritingExistingFile(File file);
     }
 
     /**
@@ -155,7 +155,7 @@ public class DOM4JSerializer {
                 file = ensureFileHasCorrectExtensionAndCase(file, fileFilter.getExtension());
 
                 if (file.exists()) {
-                    promptAgain = !exportInteraction.confirmOverwritingExisingFile(file);
+                    promptAgain = !exportInteraction.confirmOverwritingExistingFile(file);
                 }
             }
 

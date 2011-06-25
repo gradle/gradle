@@ -46,7 +46,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable {
     SourceDirectorySet srcDirs(Object... srcPaths);
 
     /**
-     * Returns the source directories which make up this set.
+     * Returns the source directories which make up this set. Does not filter source directories which do not exist.
      *
      * @return The source directories. Returns an empty set when this set contains no source directories.
      */
@@ -59,6 +59,21 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable {
      * @return this
      */
     SourceDirectorySet setSrcDirs(Iterable<Object> srcPaths);
+
+    /**
+     * Adds the given source to this set.
+     *
+     * @param source The source to add.
+     * @return this
+     */
+    SourceDirectorySet source(SourceDirectorySet source);
+    
+    /**
+     * Returns the source directory trees which make up this set. Does not filter source directories which do not exist.
+     *
+     * @return The source directory trees. Returns an empty set when this set contains no source directories.
+     */
+    Set<DirectoryTree> getSrcDirTrees();
 
     /**
      * Returns the filter used to select the source from the source directories. These filter patterns are applied after

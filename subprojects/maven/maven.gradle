@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+aetherVersion = "1.11"
+mavenVersion = "3.0.3"
+wagonVersion = "1.0-beta-7"
+
+configurations {
+    compile.exclude module: "netty"
+}
+
 dependencies {
     groovy libraries.groovy_depends
 
@@ -20,6 +29,43 @@ dependencies {
     compile project(':plugins')
     compile libraries.slf4j_api
 
+    compile "org.sonatype.aether:aether-api:$aetherVersion"
+    compile "org.sonatype.aether:aether-util:$aetherVersion"
+    compile "org.sonatype.aether:aether-impl:$aetherVersion"
+    compile "org.sonatype.aether:aether-connector-file:$aetherVersion"
+    compile "org.sonatype.aether:aether-connector-asynchttpclient:$aetherVersion"
+    compile "org.sonatype.aether:aether-connector-wagon:$aetherVersion"
+    compile "org.apache.maven:maven-aether-provider:$mavenVersion"
+    compile "org.apache.maven.wagon:wagon-ssh:$wagonVersion"
+    compile "org.apache.maven.wagon:wagon-http-lightweight:$wagonVersion"
+    compile "org.apache.maven:maven-settings-builder:$mavenVersion"
+    compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
+    compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
+    compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
+
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+    testCompile project(path: ':core', configuration: 'integTestFixturesRuntime')
+}
+
+test {
+    dependsOn ":intTestImage"
+    systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir
+    systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir')
+
+    doFirst {
+        //Below uber hack is to avoid the (java.lang.VerifyError) which is caused by duplicate classes with different version
+        //One of the duplicate classes in multiple jars: org.apache.maven.model.Model in maven-ant-tasks.jar and in maven-model.jar
+        //maven-ant-tasks is pulled as a transitive dependency of :core
+        //To resolve the problem I'm placing the maven-ant-tasks at the end of the classpath
+        //The solution is hacky but we'll getting rid of maven-ant-tasks dependency soon so I figured the impact is low.
+        //Also, the problem occurs only for integration tests, not for production code
+        //We cannot simply remove maven-ant-tasks from the classpath because it is needed by some internal classes unrelated (?) to maven plugin.
+
+        def mvnAntTasksJar = classpath.find { it.name.startsWith('maven-ant-tasks-') }
+        //remove mvnAntTasks jar
+        classpath -= files(mvnAntTasksJar)
+        //append it at the end so that the old version of classes is at the end of the classpath :)
+        classpath += files(mvnAntTasksJar)
+    }
 }

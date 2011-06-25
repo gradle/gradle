@@ -56,5 +56,10 @@ public class MethodInvocation {
     public int hashCode() {
         return method.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return String.format("[MethodInvocation method: %s()]", method.getName());
+    }
 }
 

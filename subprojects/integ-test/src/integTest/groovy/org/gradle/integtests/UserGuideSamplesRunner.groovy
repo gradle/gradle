@@ -246,8 +246,7 @@ class UserGuideSamplesRunner extends Runner {
 
     static void assertSamplesGenerated(boolean assertion) {
         assert assertion : """Couldn't find any samples. Most likely, samples.xml was not generated.
-Please run 'gradle check devBuild' first (you can skip tests in this case)
-Probably some other task can help you as well, please try: 'gradle docs intTestImage'"""
+Please run 'gradle docs:userguideDocbook' first"""
     }
 }
 

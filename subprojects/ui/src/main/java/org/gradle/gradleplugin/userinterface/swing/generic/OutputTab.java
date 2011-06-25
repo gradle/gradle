@@ -17,16 +17,21 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.ImageIcon;
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 
 /**
  * This just wraps up an OutputPanel so it has a tab header that can be dynamic. The current (rather awkward) JTabbedPane implementation is to separate the tab contents from its component. This only
@@ -45,15 +50,21 @@ public class OutputTab extends OutputPanel {
 
     private static ImageIcon closeIcon;
     private static ImageIcon closeHighlightIcon;
+    private static ImageIcon pinnedIcon;
 
-    public OutputTab(OutputPanelParent parent, String header, AlternateUIInteraction alternateUIInteraction) {
-        super(parent, alternateUIInteraction);
+    public OutputTab(GradlePluginLord gradlePluginLord, OutputPanelParent parent, String header, AlternateUIInteraction alternateUIInteraction) {
+        super(gradlePluginLord, parent, alternateUIInteraction);
         mainPanel = new JPanel();
         mainPanel.setOpaque(false);
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
 
         mainTextLabel = new JLabel(header);
-        pinnedLabel = new JLabel("(Pinned) ");
+
+        if (pinnedIcon == null) {
+            pinnedIcon = getImageIconResource("/org/gradle/gradleplugin/userinterface/swing/generic/pin.png");
+        }
+
+        pinnedLabel = new JLabel(pinnedIcon);
         pinnedLabel.setVisible(isPinned());
 
         setupCloseLabel();
@@ -66,16 +77,8 @@ public class OutputTab extends OutputPanel {
 
     private void setupCloseLabel() {
         if (closeIcon == null) {
-            BufferedImage closeImage = getImageResource("close.png");
-            BufferedImage closeHighlightImage = getImageResource("close-highlight.png");
-
-            if (closeImage != null) {
-                closeIcon = new ImageIcon(closeImage);
-            }
-
-            if (closeHighlightImage != null) {
-                closeHighlightIcon = new ImageIcon(closeHighlightImage);
-            }
+            closeIcon = getImageIconResource("close.png");
+            closeHighlightIcon = getImageIconResource("close-highlight.png");
         }
 
         closeLabel = new JLabel(closeIcon);
@@ -110,8 +113,16 @@ public class OutputTab extends OutputPanel {
         return null;
     }
 
+    private ImageIcon getImageIconResource(String imageIconResourceName) {
+        BufferedImage image = getImageResource(imageIconResourceName);
+        if (image != null) {
+            return new ImageIcon(image);
+        }
+        return null;
+    }
+
     /**
-     * Call this if you're going to reuse this. it resets its output.
+     * Call this before you use this tab. It resets its output as well as enabling buttons appropriately.
      *
      * @author mhunsicker
      */

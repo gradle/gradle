@@ -15,26 +15,35 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
 
-import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
-public class DefaultMessagingClient implements MessagingClient {
-    private final ObjectConnection connection;
+public class DefaultMessagingClient implements MessagingClient, Stoppable {
+    private final Set<ObjectConnection> connections = new HashSet<ObjectConnection>();
+    private final MultiChannelConnector connector;
+    private final ClassLoader classLoader;
 
-    public DefaultMessagingClient(MultiChannelConnector connector, ClassLoader classLoader, URI serverAddress) {
-        MultiChannelConnection<Object> connection = connector.connect(serverAddress);
-        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, connection);
-        OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(connection);
-        this.connection = new DefaultObjectConnection(connection, connection, outgoing, incoming);
+    public DefaultMessagingClient(MultiChannelConnector connector, ClassLoader classLoader) {
+        this.connector = connector;
+        this.classLoader = classLoader;
     }
 
-    public ObjectConnection getConnection() {
-        return connection;
+    public ObjectConnection getConnection(Address address) {
+        MultiChannelConnection<Object> connection = connector.connect(address);
+        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(connection);
+        OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(connection);
+        ObjectConnection objectConnection = new DefaultObjectConnection(connection, connection, outgoing, incoming);
+        connections.add(objectConnection);
+        return objectConnection;
     }
 
     public void stop() {
-        connection.stop();
+        new CompositeStoppable(connections).stop();
     }
 }

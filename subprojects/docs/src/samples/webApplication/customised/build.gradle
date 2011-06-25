@@ -1,6 +1,3 @@
-import org.apache.commons.httpclient.HttpClient
-import org.apache.commons.httpclient.methods.GetMethod
-
 group = 'gradle'
 version = '1.0'
 apply plugin: 'war'
@@ -56,10 +53,7 @@ task runWarTest(dependsOn: jettyRunWar) << {
 }
 
 private void callServlet() {
-    HttpClient client = new HttpClient()
-    GetMethod method = new GetMethod("http://localhost:$httpPort/customised/hello")
-    client.executeMethod(method)
-    new File(buildDir, "servlet-out.txt").write(method.getResponseBodyAsString())
+    URL url = new URL("http://localhost:$httpPort/customised/hello")
+    new File(buildDir, "servlet-out.txt").write(url.text)
     jettyStop.execute()
 }
-

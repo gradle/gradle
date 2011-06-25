@@ -30,8 +30,6 @@ dependencies {
     provided "org.codehaus.sonar:sonar-batch:2.6"
 
     testCompile project(path: ':core', configuration: 'testFixtures')
-
-    testRuntime project(":coreImpl")
 }
 
 sourceSets {
@@ -40,11 +38,8 @@ sourceSets {
     }
 }
 
-ideaModule {
-    // TODO: remove everything but then-part after Gradle build has been updated to 1.0-milestone-2
-    if (scopes.PROVIDED) {
+idea {
+    module {
         scopes.PROVIDED.plus += configurations.provided
-    } else {
-        scopes.COMPILE.plus += configurations.provided
     }
 }

@@ -20,8 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.logging.ProgressLogger;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
 /**
@@ -37,16 +37,16 @@ public class TaskExecutionLogger implements TaskExecutionListener {
 
     public void beforeExecute(Task task) {
         assert currentTask == null;
-        currentTask = progressLoggerFactory.start(TaskExecutionLogger.class.getName(), getDisplayName(task));
-        currentTask.progress(getDisplayName(task));
+        currentTask = progressLoggerFactory.newOperation(TaskExecutionLogger.class);
+        String displayName = getDisplayName(task);
+        currentTask.setDescription(String.format("Execute %s", displayName));
+        currentTask.setShortDescription(displayName);
+        currentTask.setLoggingHeader(displayName);
+        currentTask.started();
     }
 
     public void afterExecute(Task task, TaskState state) {
-        if (state.getSkipMessage() != null) {
-            currentTask.completed(state.getSkipMessage());
-        } else {
-            currentTask.completed();
-        }
+        currentTask.completed(state.getSkipMessage());
         currentTask = null;
     }
 

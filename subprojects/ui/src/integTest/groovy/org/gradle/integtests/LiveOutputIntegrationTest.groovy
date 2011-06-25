@@ -15,6 +15,10 @@
 */
 package org.gradle.integtests
 
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 import org.gradle.foundation.TestUtility
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol
 import org.gradle.gradleplugin.foundation.GradlePluginLord
@@ -26,10 +30,9 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
-import java.util.concurrent.locks.Condition
+import org.gradle.foundation.output.LiveOutputParser
+import org.gradle.foundation.output.FileLinkDefinitionLord
+import org.gradle.foundation.output.FileLink
 
 /**
 This tests the that live output is gathered while executing a task.
@@ -65,10 +68,6 @@ that's likely to change over time. This version executes the command via GradleP
 
     @Test
     public void liveOutputObtainedViaGradlePlugin() {
-       System.out.println("project dir: " + javaprojectDir );
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('assemble').run();
-
         File multiProjectDirectory = sample.getDir();
         Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
 
@@ -95,9 +94,6 @@ that's likely to change over time. This version executes the command via GradleR
 */
     @Test
     public void liveOutputObtainedViaGradleRunner() {
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('assemble').run();
-
         File multiProjectDirectory = sample.getDir();
         Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
 
@@ -139,6 +135,101 @@ that's likely to change over time. This version executes the command via GradleR
       //live output. As such, we won't verify they're equal.
       Assert.assertTrue( "Verifying the final output message was received", executionInteraction.finalMessage.length() > 30 )
    }
+
+
+
+     /**
+      Tests that navigating to the next file link works correctly. It should circle back around if we
+      search passed the end.
+      */
+     @Test
+     public void testNextFileLinks()
+     {
+       LiveOutputParser parser = new LiveOutputParser( new FileLinkDefinitionLord(), false );  //we don't really need/want real live output for this test
+
+       //should not find a match. There's absolutely no text present.
+       Assert.assertNull( parser.getNextFileLink( 0 ) );
+
+       parser.appendText( "Beginning\n");
+
+       //should not find a match. There's no links present.
+       Assert.assertNull( parser.getNextFileLink( 0 ) );
+
+       parser.appendText( "first.java:1\n");    //file link
+       parser.appendText( "middle 1\n");
+       parser.appendText( "second.java:2\n");   //file link
+       parser.appendText( "middle 2\n");
+       parser.appendText( "next.java:3\n");    //file link
+       parser.appendText( "last\n");
+
+       List<FileLink> links = parser.getFileLinks();
+       Assert.assertEquals( 3, links.size() );
+
+       Assert.assertEquals( new File( "first.java" ), links.get( 0 ).getFile() );
+       Assert.assertEquals( new File( "second.java" ), links.get( 1 ).getFile() );
+       Assert.assertEquals( new File( "next.java" ), links.get( 2 ).getFile() );
+
+       //now do a series of searching next.
+       FileLink link1 = parser.getNextFileLink( 0 );
+       Assert.assertEquals( links.get( 0 ), link1 );
+
+       FileLink link2 = parser.getNextFileLink( link1.getEndingIndex() );
+       Assert.assertEquals( links.get( 1 ), link2 );
+
+       FileLink link3 = parser.getNextFileLink( link2.getEndingIndex() );
+       Assert.assertEquals( links.get( 2 ), link3 );
+
+       //search once more. This should go back to the beginning
+       FileLink link4 = parser.getNextFileLink( link3.getEndingIndex() );
+       Assert.assertEquals( link1, link4 );
+}
+
+     /**
+      Tests that navigating to the previous file link works correctly. It should circle back around if we
+      search passed the beginning.
+      */
+     @Test
+     public void testPreviousFileLinks()
+     {
+       LiveOutputParser parser = new LiveOutputParser( new FileLinkDefinitionLord(), false );  //we don't really need/want real live output for this test
+
+       //should not find a match. There's absolutely no text present.
+       Assert.assertNull( parser.getPreviousFileLink( 0 ) );
+
+       parser.appendText( "Beginning\n");
+
+       //should not find a match. There's no links present.
+       Assert.assertNull( parser.getPreviousFileLink( 0 ) );
+
+       parser.appendText( "first.java:1\n");    //file link
+       parser.appendText( "middle 1\n");
+       parser.appendText( "second.java:2\n");   //file link
+       parser.appendText( "middle 2\n");
+       parser.appendText( "next.java:3\n");    //file link
+       parser.appendText( "last\n");
+
+       List<FileLink> links = parser.getFileLinks();
+       Assert.assertEquals( 3, links.size() );
+
+       Assert.assertEquals( new File( "first.java" ), links.get( 0 ).getFile() );
+       Assert.assertEquals( new File( "second.java" ), links.get( 1 ).getFile() );
+       Assert.assertEquals( new File( "next.java" ), links.get( 2 ).getFile() );
+
+       //now do a series of searching previous starting at the end.
+       FileLink link3 = parser.getPreviousFileLink( parser.getText().length() - 1 );
+       Assert.assertEquals( links.get( 2 ), link3  );
+
+       FileLink link2 = parser.getPreviousFileLink( link3.getStartingIndex() );
+       Assert.assertEquals( links.get( 1 ), link2 );
+
+       FileLink link1 = parser.getPreviousFileLink( link2.getStartingIndex() );
+       Assert.assertEquals( links.get( 0 ), link1 );
+
+       //search once more. This should go back to the ending
+       FileLink link4 = parser.getPreviousFileLink( link1.getStartingIndex() );
+       Assert.assertEquals( link3, link4 );
+     }
+
 }
 
 //this class just holds onto our liveOutput and also tracks whether or not we've finished.

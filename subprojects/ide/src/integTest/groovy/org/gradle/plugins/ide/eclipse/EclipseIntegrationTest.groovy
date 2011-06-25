@@ -163,7 +163,7 @@ eclipseJdt {
     whenConfigured { whenConfiguredObjects++ }
 }
 
-eclipse << {
+tasks.eclipse << {
     assert beforeConfiguredObjects == 5 : "beforeConfigured() hooks shoold be fired for domain model objects"
     assert whenConfiguredObjects == 5 : "whenConfigured() hooks shoold be fired for domain model objects"
 }
@@ -171,10 +171,140 @@ eclipse << {
 
     }
 
+    @Test
+    void respectsPerConfigurationExcludes() {
+        def repoDir = file("repo")
+        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
+        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenRepo urls: "${repoDir.toURI()}"
+}
+
+configurations {
+    compile.exclude module: 'myArtifact2'
+}
+
+dependencies {
+    compile "myGroup:myArtifact1:1.0"
+}
+        """
+
+        libEntriesInClasspathFileHaveFilenames(artifact1.name)
+    }
+
+    @Test
+    void respectsPerDependencyExcludes() {
+        def repoDir = file("repo")
+        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
+        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenRepo urls: "${repoDir.toURI()}"
+}
+
+dependencies {
+    compile("myGroup:myArtifact1:1.0") {
+        exclude module: "myArtifact2"
+    }
+}
+        """
+
+        libEntriesInClasspathFileHaveFilenames(artifact1.name)
+    }
+
     private void checkIsWrittenWithUtf8Encoding(File file) {
         def text = file.getText("UTF-8")
         assert text.contains('encoding="UTF-8"')
         String expectedNonAsciiChars = "\u7777\u8888\u9999"
         assert text.contains(expectedNonAsciiChars)
+    }
+
+    @Test
+    void addsLinkToTheOutputFile() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipseProject {
+    link name: 'one', type: '2', location: '/xyz'
+    link name: 'two', type: '3', locationUri: 'file://xyz'
+}
+'''
+
+        def xml = parseProjectFile()
+        assert xml.linkedResources.link[0].name.text() == 'one'
+        assert xml.linkedResources.link[0].type.text() == '2'
+        assert xml.linkedResources.link[0].location.text() == '/xyz'
+
+        assert xml.linkedResources.link[1].name.text() == 'two'
+        assert xml.linkedResources.link[1].type.text() == '3'
+        assert xml.linkedResources.link[1].locationURI.text() == 'file://xyz'
+    }
+
+    @Test
+    void allowsConfiguringJavaVersionWithSimpleTypes() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipseJdt {
+    sourceCompatibility = '1.4'
+    targetCompatibility = 1.3
+}
+'''
+
+        def jdt = parseJdtFile()
+        assert jdt.contains('source=1.4')
+        assert jdt.contains('targetPlatform=1.3')
+    }
+
+    @Test
+    void dslAllowsShortFormsForProject() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse.project.name = 'x'
+assert eclipse.project.name == 'x'
+
+eclipse {
+    project.name += 'x'
+    assert project.name == 'xx'
+}
+
+eclipse.project {
+    name += 'x'
+    assert name == 'xxx'
+}
+
+'''
+    }
+
+    @Test
+    void dslAllowsShortForms() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse.classpath.downloadSources = false
+assert eclipse.classpath.downloadSources == false
+
+eclipse.classpath.file.withXml {}
+eclipse.classpath {
+    file.withXml {}
+}
+eclipse {
+    classpath.file.withXml {}
+}
+'''
     }
 }

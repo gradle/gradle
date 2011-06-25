@@ -16,21 +16,19 @@
 
 package org.gradle.initialization;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.*;
-import org.gradle.api.Project;
+import org.gradle.BuildAdapter;
+import org.gradle.GradleLauncher;
+import org.gradle.StartParameter;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -43,14 +41,14 @@ public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
 
     private final GradleLauncherFactory gradleLauncherFactory;
-    private final ClassLoaderFactory classLoaderFactory;
+    private final ClassLoaderRegistry classLoaderRegistry;
     private final CacheRepository cacheRepository;
 
     private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
-    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderFactory classLoaderFactory, CacheRepository cacheRepository) {
+    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderRegistry classLoaderRegistry, CacheRepository cacheRepository) {
         this.gradleLauncherFactory = gradleLauncherFactory;
-        this.classLoaderFactory = classLoaderFactory;
+        this.classLoaderRegistry = classLoaderRegistry;
         this.cacheRepository = cacheRepository;
     }
 
@@ -65,7 +63,7 @@ public class BuildSourceBuilder {
                 throw new UncheckedIOException(e);
             }
         }
-        return new URLClassLoader(urls, classLoaderFactory.getRootClassLoader());
+        return new URLClassLoader(urls, classLoaderRegistry.getRootClassLoader());
     }
 
     public Set<File> createBuildSourceClasspath(StartParameter startParameter) {
@@ -87,12 +85,6 @@ public class BuildSourceBuilder {
         PersistentStateCache<Boolean> stateCache = cacheRepository.cache("buildSrc").forObject(startParameter.getCurrentDir()).invalidateOnVersionChange().open().openStateCache();
         boolean rebuild = stateCache.get() == null;
 
-        if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
-            LOGGER.debug("Gradle script file does not exist. Using default one.");
-            ScriptSource source = new StringScriptSource("default buildSrc build script", getDefaultScript());
-            startParameterArg.setBuildScriptSource(source);
-        }
-
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameterArg);
         BuildSrcBuildListener listener = new BuildSrcBuildListener(rebuild);
         gradleLauncher.addListener(listener);
@@ -108,12 +100,8 @@ public class BuildSourceBuilder {
         return buildSourceClasspath;
     }
 
-    static String getDefaultScript() {
-        try {
-            return IOUtils.toString(BuildSourceBuilder.class.getResourceAsStream(DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    static URL getDefaultScript() {
+        return BuildSourceBuilder.class.getResource(DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE);
     }
 
     private static class BuildSrcBuildListener extends BuildAdapter {
@@ -123,6 +111,11 @@ public class BuildSourceBuilder {
 
         public BuildSrcBuildListener(boolean rebuild) {
             this.rebuild = rebuild;
+        }
+
+        @Override
+        public void projectsLoaded(Gradle gradle) {
+            gradle.getRootProject().apply(WrapUtil.toMap("from", getDefaultScript()));
         }
 
         @Override

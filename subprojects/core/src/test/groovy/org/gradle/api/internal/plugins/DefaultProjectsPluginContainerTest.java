@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -38,7 +38,7 @@ public class DefaultProjectsPluginContainerTest {
     private final DefaultProject project = HelperUtil.createRootProject();
 
     private PluginRegistry pluginRegistryStub = context.mock(PluginRegistry.class);
-    private DefaultProjectsPluginContainer projectsPluginHandler = new DefaultProjectsPluginContainer(pluginRegistryStub, project);
+    private DefaultProjectsPluginContainer container = new DefaultProjectsPluginContainer(pluginRegistryStub, project);
 
     private TestPlugin1 pluginWithIdMock = new TestPlugin1();
     private TestPlugin2 pluginWithoutIdMock = new TestPlugin2();
@@ -54,68 +54,78 @@ public class DefaultProjectsPluginContainerTest {
 
     @Test
     public void usePluginById() {
-        Plugin addedPlugin = projectsPluginHandler.apply(pluginId);
+        Plugin addedPlugin = container.apply(pluginId);
         assertThat(pluginWithIdMock, sameInstance(addedPlugin));
-        assertThat(projectsPluginHandler.apply(pluginId), sameInstance(addedPlugin));
+        assertThat(container.apply(pluginId), sameInstance(addedPlugin));
 
-        assertThat(projectsPluginHandler.findPlugin(addedPlugin.getClass()), sameInstance(addedPlugin));
-        assertThat(projectsPluginHandler.findPlugin(pluginId), sameInstance(addedPlugin));
+        assertThat(container.findPlugin(addedPlugin.getClass()), sameInstance(addedPlugin));
+        assertThat(container.findPlugin(pluginId), sameInstance(addedPlugin));
     }
 
     @Test
     public void usePluginWithIdByType() {
         Class<? extends Plugin> type = pluginWithIdMock.getClass();
 
-        Plugin addedPlugin = projectsPluginHandler.apply(type);
+        Plugin addedPlugin = container.apply(type);
         assertThat(pluginWithIdMock, sameInstance(addedPlugin));
-        assertThat(projectsPluginHandler.apply(type), sameInstance(addedPlugin));
-        assertThat(projectsPluginHandler.apply(pluginId), sameInstance(addedPlugin));
+        assertThat(container.apply(type), sameInstance(addedPlugin));
+        assertThat(container.apply(pluginId), sameInstance(addedPlugin));
 
-        assertThat(projectsPluginHandler.findPlugin(type), sameInstance(addedPlugin));
-        assertThat(projectsPluginHandler.findPlugin(pluginId), sameInstance(addedPlugin));
+        assertThat(container.findPlugin(type), sameInstance(addedPlugin));
+        assertThat(container.findPlugin(pluginId), sameInstance(addedPlugin));
     }
 
     @Test
     public void usePluginWithoutId() {
         Class<? extends Plugin> type = pluginWithoutIdMock.getClass();
-        Plugin addedPlugin = projectsPluginHandler.apply(type);
+        Plugin addedPlugin = container.apply(type);
         assertThat(pluginWithoutIdMock, sameInstance(addedPlugin));
-        assertThat(projectsPluginHandler.apply(type), sameInstance(addedPlugin));
+        assertThat(container.apply(type), sameInstance(addedPlugin));
 
-        assertThat(projectsPluginHandler.findPlugin(type), sameInstance(addedPlugin));
+        assertThat(container.findPlugin(type), sameInstance(addedPlugin));
     }
 
     @Test
     public void hasAndFindForPluginWithId() {
-        projectsPluginHandler.apply(pluginId);
-        assertThat(projectsPluginHandler.hasPlugin(pluginId), equalTo(true));
-        assertThat(projectsPluginHandler.hasPlugin(pluginWithIdMock.getClass()), equalTo(true));
-        assertThat(projectsPluginHandler.findPlugin(pluginId), sameInstance((Plugin) pluginWithIdMock));
-        assertThat(projectsPluginHandler.findPlugin(pluginWithIdMock.getClass()), sameInstance((Plugin) pluginWithIdMock));
+        container.apply(pluginId);
+        assertThat(container.hasPlugin(pluginId), equalTo(true));
+        assertThat(container.hasPlugin(pluginWithIdMock.getClass()), equalTo(true));
+        assertThat(container.findPlugin(pluginId), sameInstance((Plugin) pluginWithIdMock));
+        assertThat(container.findPlugin(pluginWithIdMock.getClass()), sameInstance((Plugin) pluginWithIdMock));
+    }
+
+    @Test
+    public void hasAndFindForUnknownPluginId() {
+        context.checking(new Expectations() {{
+            allowing(pluginRegistryStub).getTypeForId("unknown"); will(throwException(new UnknownPluginException("unknown")));
+        }});
+
+        assertThat(container.hasPlugin("unknown"), equalTo(false));
+        assertThat(container.findPlugin("unknown"), nullValue());
     }
 
     @Test
     public void hasAndFindForPluginWithoutId() {
         Plugin plugin = pluginWithoutIdMock;
         Class<? extends Plugin> pluginType = plugin.getClass();
-        projectsPluginHandler.apply(pluginType);
-        assertThat(projectsPluginHandler.hasPlugin(pluginType), equalTo(true));
-        assertThat(projectsPluginHandler.findPlugin(pluginType), sameInstance(plugin));
+        container.apply(pluginType);
+        assertThat(container.hasPlugin(pluginType), equalTo(true));
+        assertThat(container.findPlugin(pluginType), sameInstance(plugin));
     }
 
     @Test
     public void hasAndFindPluginByTypeWithUnknownPlugin() {
-        assertThat(projectsPluginHandler.hasPlugin(TestPlugin2.class), equalTo(false));
-        assertThat(projectsPluginHandler.findPlugin(TestPlugin2.class), nullValue());
+        assertThat(container.hasPlugin(TestPlugin2.class), equalTo(false));
+        assertThat(container.findPlugin(TestPlugin2.class), nullValue());
     }
 
     @Test(expected = UnknownPluginException.class)
     public void getNonUsedPluginById() {
-        projectsPluginHandler.getPlugin(pluginId);
+        container.getPlugin(pluginId);
     }
 
     @Test(expected = UnknownPluginException.class)
     public void getNonUsedPluginByType() {
-        projectsPluginHandler.getPlugin(TestPlugin1.class);
+        container.getPlugin(TestPlugin1.class);
     }
 }

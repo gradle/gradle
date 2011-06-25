@@ -34,8 +34,8 @@ class BuildExceptionReporterTest extends Specification {
     final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, startParameter, clientMetaData)
 
     def setup() {
-        _ * factory.create(BuildExceptionReporter.class, LogLevel.ERROR) >> output
-        _ * clientMetaData.describeCommand(!null, !null) >> { args -> args[0].append("[gradle ${args[1].join(' ')}]")}
+        factory.create(BuildExceptionReporter.class, LogLevel.ERROR) >> output
+        clientMetaData.describeCommand(!null, !null) >> { args -> args[0].append("[gradle ${args[1].join(' ')}]")}
     }
 
     def doesNothingWheBuildIsSuccessful() {
@@ -264,16 +264,16 @@ org.gradle.api.GradleException: <message>
 
     def result(Throwable failure) {
         BuildResult result = Mock()
-        _ * result.failure >> failure
+        result.failure >> failure
         result
     }
 
     def exception(final String location, final String message, final Throwable... causes) {
         TestException exception = Mock()
-        _ * exception.location >> location
-        _ * exception.originalMessage >> message
-        _ * exception.reportableCauses >> (causes as List)
-        _ * exception.cause >> causes[0]
+        exception.location >> location
+        exception.originalMessage >> message
+        exception.reportableCauses >> (causes as List)
+        exception.cause >> causes[0]
         exception
     }
 }

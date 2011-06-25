@@ -34,31 +34,42 @@ class BuildProgressLoggerTest extends Specification {
     private final BuildProgressLogger logger = new BuildProgressLogger(progressLoggerFactory)
 
     def logsBuildStages() {
-        _ * gradle.getTaskGraph() >> graph
-        _ * result.getGradle() >> gradle
+        given:
+        gradle.getTaskGraph() >> graph
+        result.getGradle() >> gradle
 
         when:
         logger.buildStarted(gradle)
 
         then:
-        1 * progressLoggerFactory.start(BuildProgressLogger.name) >> progressLogger
-        1 * progressLogger.progress('Loading')
+        1 * progressLoggerFactory.newOperation(BuildProgressLogger) >> progressLogger
+        1 * progressLogger.setDescription('Configure projects')
+        1 * progressLogger.setShortDescription('Loading')
+        1 * progressLogger.started()
+        0 * progressLogger._
 
         when:
         logger.graphPopulated(graph)
 
         then:
-        1 * progressLogger.progress('Building')
+        1 * progressLogger.completed()
+        1 * progressLoggerFactory.newOperation(BuildProgressLogger) >> progressLogger
+        1 * progressLogger.setDescription('Execute tasks')
+        1 * progressLogger.setShortDescription('Building')
+        1 * progressLogger.started()
+        0 * progressLogger._
 
         when:
         logger.buildFinished(result)
 
         then:
         1 * progressLogger.completed()
+        0 * progressLogger._
     }
 
     def ignoresNestedBuilds() {
-        _ * gradle.getParent() >> Mock(Gradle)
+        given:
+        gradle.getParent() >> Mock(Gradle)
         
         when:
         logger.buildStarted(gradle)

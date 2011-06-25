@@ -17,9 +17,11 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 
 import org.gradle.gradleplugin.foundation.DOM4JSerializer;
 
-import javax.swing.*;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
-import java.awt.*;
+import java.awt.Window;
 import java.io.File;
 
 /**
@@ -65,8 +67,9 @@ public class SwingExportInteraction implements DOM4JSerializer.ExportInteraction
      * @param file the file in question
      * @return true to overwrite it, false not to.
      */
-    public boolean confirmOverwritingExisingFile(File file) {
-        int result = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(parent), "The file '" + file.getAbsolutePath() + "' already exists. Overwrite?", "Confirm Overwriting File",
+    public boolean confirmOverwritingExistingFile(File file) {
+        int result = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(parent),
+                "The file '" + file.getAbsolutePath() + "' already exists. Overwrite?", "Confirm Overwriting File",
                 JOptionPane.YES_NO_OPTION);
         return result == JOptionPane.YES_OPTION;
     }

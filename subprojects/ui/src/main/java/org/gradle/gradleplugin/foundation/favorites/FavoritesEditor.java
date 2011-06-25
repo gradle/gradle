@@ -254,6 +254,24 @@ public class FavoritesEditor implements SettingsSerializable {
             this.displayName = displayName;
             this.alwaysShowOutput = alwaysShowOutput;
         }
+
+        /**
+         * Determines if the display name and full command are equal. This is useful when editing a favorite to know if they should be kept synchronized.
+         *
+         * @return true if they are, false if not.
+         */
+        public boolean isDisplayNameAndFullCommandSynchronized() {
+            if (displayName == null) {
+                return fullCommandLine == null;
+            }
+
+            return displayName.equals(fullCommandLine);
+        }
+
+        @Override
+        public String toString() {
+            return displayName + " " + fullCommandLine;
+        }
     }
 
     public interface EditFavoriteInteraction extends ValidationInteraction {
@@ -428,7 +446,7 @@ public class FavoritesEditor implements SettingsSerializable {
      *
      * @param tasksToCopy the tasks to copy
      */
-    public void duplicateFavorites(List<FavoriteTask> tasksToCopy) {
+    public void duplicateFavorites(List<FavoriteTask> tasksToCopy, EditFavoriteInteraction editFavoriteInteraction) {
         if (tasksToCopy == null || tasksToCopy.isEmpty()) {
             return;
         }
@@ -437,6 +455,10 @@ public class FavoritesEditor implements SettingsSerializable {
         while (iterator.hasNext()) {
             FavoriteTask taskToCopy = iterator.next();
             FavoriteTask newFavoriteTask = new FavoriteTask(taskToCopy.getFullCommandLine(), taskToCopy.getDisplayName(), taskToCopy.alwaysShowOutput());
+
+            if (!editInternal(newFavoriteTask, editFavoriteInteraction)) {
+                return;
+            }
             favoriteTasks.add(newFavoriteTask);
         }
 
@@ -448,13 +470,16 @@ public class FavoritesEditor implements SettingsSerializable {
      *
      * @param taskToCopy the task to copy
      */
-    public FavoriteTask duplicateFavorite(FavoriteTask taskToCopy) {
+    public FavoriteTask duplicateFavorite(FavoriteTask taskToCopy, EditFavoriteInteraction editFavoriteInteraction) {
 
         if (taskToCopy == null) {
             return null;
         }
 
         FavoriteTask newFavoriteTask = new FavoriteTask(taskToCopy.getFullCommandLine(), taskToCopy.getDisplayName(), taskToCopy.alwaysShowOutput());
+        if (!editInternal(newFavoriteTask, editFavoriteInteraction)) {
+            return null;
+        }
         favoriteTasks.add(newFavoriteTask);
         notifyFavoritesChanged();
         return newFavoriteTask;

@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model.internal
 
+import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 /**
@@ -23,28 +24,28 @@ import spock.lang.Specification
  */
 class ModuleDependencyBuilderTest extends Specification {
 
+    def project = HelperUtil.createRootProject()
     def builder = new ModuleDependencyBuilder()
-
-    static class ProjectStub {
-        String name
-        IdeaModuleStub ideaModule
-    }
-
-    static class IdeaModuleStub { String moduleName }
-
-    def "builds dependency for project"() {
-        when:
-        def dependency = builder.create(new ProjectStub(ideaModule: new IdeaModuleStub(moduleName: 'services')), 'compile')
-        then:
-        dependency.scope == 'compile'
-        dependency.name == 'services'
-    }
 
     def "builds dependency for nonIdea project"() {
         when:
-        def dependency = builder.create(new ProjectStub(name: 'api'), 'compile')
+        def dependency = builder.create(project, 'compile')
+
         then:
         dependency.scope == 'compile'
-        dependency.name == 'api'
+        dependency.name == project.name
+    }
+
+    def "builds dependency for project"() {
+        given:
+        project.apply(plugin: 'idea')
+        project.idea.module.name = 'foo'
+
+        when:
+        def dependency = builder.create(project, 'compile')
+
+        then:
+        dependency.scope == 'compile'
+        dependency.name == 'foo'
     }
 }

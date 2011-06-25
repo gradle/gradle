@@ -81,8 +81,7 @@
         <para>If you use the Java plugin
             for example, there are a <literal>compileJava</literal> and a <literal>processResources</literal> task for
             your production code (the same is true for your test
-            code). The default location for the output of those tasks is the directory <literal>build/classes/main</literal>.
-            What if you want to change this? Let's try:
+            code). What if you want to change the default configuration? Let's try:
         </para>
         <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig" title="Configuring a plugin task">
             <sourcefile file="build.gradle"/>
@@ -102,9 +101,8 @@
             <output args="-q show"/>
         </sample>
         <para>The Java plugin has added a convention object with a <literal>sourceSets</literal>
-            property, which we use to set the classes directory. Notice that setting this has changed the <literal>destinationDir</literal>
-            property of both the <literal>processResources</literal> and
-            <literal>compileJava</literal> tasks.</para>
+            property, which we use to set the classes directory.
+        </para>
         <para>By setting a task attribute explicitly (as we have done in the first example) you overwrite the convention
             value for this particular task.
         </para>

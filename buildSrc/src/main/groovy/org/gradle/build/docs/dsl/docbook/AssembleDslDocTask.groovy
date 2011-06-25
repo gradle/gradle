@@ -121,6 +121,8 @@ class AssembleDslDocTask extends DefaultTask {
     def mergeContent(Element typeTable, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
         def title = typeTable.title[0].text()
 
+        //TODO below checks makes it harder to add new sections
+        //because the new section will work correctly only when the section title ends with 'types' :)
         if (title.matches('(?i).* types')) {
             mergeTypes(typeTable, model, linkRepository)
         } else if (title.matches('(?i).* blocks')) {

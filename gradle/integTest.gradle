@@ -1,4 +1,5 @@
 apply plugin: 'java'
+rootProject.apply plugin: IntegTestPlugin
 
 configurations {
     integTestCompile {
@@ -11,35 +12,98 @@ configurations {
 
 sourceSets {
     integTest {
-        compileClasspath = sourceSets.main.classes + sourceSets.test.classes + configurations.integTestCompile
-        runtimeClasspath = classes + compileClasspath + configurations.integTestRuntime
+        compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.integTestCompile
+        runtimeClasspath = output + compileClasspath + configurations.integTestRuntime
     }
 }
 
-ideaModule {
-    testSourceDirs += sourceSets.integTest.groovy.srcDirs
-    testSourceDirs += sourceSets.integTest.resources.srcDirs
-    scopes.TEST.plus.add(configurations.integTestCompile)
-    scopes.TEST.plus.add(configurations.integTestRuntime)
+idea {
+    module {
+        testSourceDirs += sourceSets.integTest.groovy.srcDirs
+        testSourceDirs += sourceSets.integTest.resources.srcDirs
+        scopes.TEST.plus.add(configurations.integTestCompile)
+        scopes.TEST.plus.add(configurations.integTestRuntime)
+    }
 }
 
-eclipseClasspath {
-    plusConfigurations.add(configurations.integTestCompile)
-    plusConfigurations.add(configurations.integTestRuntime)
+eclipse {
+    classpath {
+        plusConfigurations.add(configurations.integTestCompile)
+        plusConfigurations.add(configurations.integTestRuntime)
+    }
 }
-
-integTestUserDir = rootProject.file('intTestHomeDir')
 
 integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
+rootProject.integTests << integTestTasks
 
 integTestTasks.all {
     dependsOn ':intTestImage'
-    testClassesDir = sourceSets.integTest.classesDir
+    testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
+    jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
 
+    testResultsDir = file("${project.testResultsDir}/$name")
+    testReportDir = file("${project.testReportDir}/$name")
+    
     doFirst {
-        testResultsDir = file("${project.testResultsDir}/$name")
-        testReportDir = file("${project.testReportDir}/$name")
+        systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
+        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
+    }
+}
+
+['embedded', 'forking', 'daemon'].each {
+    def mode = it
+    def taskName = "${it}IntegTest"
+    tasks.addRule(taskName) { name ->
+        if (name != taskName) { return }
+        tasks.add(taskName, Test).configure {
+            systemProperties['org.gradle.integtest.executer'] = mode
+        }
+    }
+}
+
+task integTest(type: Test) {
+    doFirst {
+        systemProperties['org.gradle.integtest.executer'] = integTestMode
+    }
+}
+
+
+tasks.findByName("check")?.dependsOn(integTest)
+
+class IntegTestPlugin implements Plugin<Project> {
+    public void apply(Project project) {
+        project.convention.plugins.integTest = new IntegTestConvention(project)
+    }
+}
+
+class IntegTestConvention {
+    private final Project project
+    final List integTests = []
+
+    IntegTestConvention(Project project) {
+        this.project = project
+    }
+
+    String getIntegTestMode() {
+        if (!project.tasks.findByName('ciBuild') || !project.gradle.taskGraph.populated) {
+            return null
+        }
+        if (project.isCIBuild() || OperatingSystem.current().isWindows()) {
+            return 'forking'
+        }
+        return 'embedded'
+    }
+
+    File getIntegTestUserDir() {
+        return project.file('intTestHomeDir')
+    }
+
+    File getIntegTestImageDir() {
+        if (!project.tasks.findByName('intTestImage')) {
+            return null
+        }
+        return project.intTestImage.destinationDir
     }
 }

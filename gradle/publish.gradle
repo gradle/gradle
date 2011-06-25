@@ -51,10 +51,13 @@ uploadArchives {
     uploadDescriptor = true
 /*
     doFirst {
-        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'repo.gradle.org', artifactoryUserName, artifactoryUserPassword)
-        repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
-            name = 'gradleReleases'
-            addArtifactPattern("${version.libsUrl}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]" as String)
+        repositories {
+            ivy {
+                name = 'gradleLibs'
+                artifactPattern "${version.libsUrl}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+                userName = artifactoryUserName
+                password = artifactoryUserPassword
+            }
         }
     }
 */

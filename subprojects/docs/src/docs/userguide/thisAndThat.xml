@@ -127,7 +127,7 @@ systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
             <ulink url='http://svn.apache.org/viewvc/ant/core/trunk/src/main/org/apache/tools/ant/util/ProxySetup.java?view=markup&amp;pathrev=556977'>
                 link
             </ulink> to the svn view. The other is a
-            <ulink url='http://java.sun.com/javase/6/docs/technotes/guides/net/properties.html'>
+            <ulink url='http://download.oracle.com/javase/6/docs/technotes/guides/net/properties.html'>
                 Networking Properties page
             </ulink> from the JDK docs. If anyone knows a better overview please let us know via the mailing list.
         </para>

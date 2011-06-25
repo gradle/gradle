@@ -19,29 +19,34 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.dsl.ArtifactRepository;
+import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.DefaultResolverContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.HashUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultRepositoryHandler extends DefaultResolverContainer implements RepositoryHandler {
-    public DefaultRepositoryHandler(ResolverFactory resolverFactory, ClassGenerator classGenerator) {
-        super(resolverFactory, classGenerator);
+    private final Set<String> repositoryNames = new HashSet<String>();
+
+    public DefaultRepositoryHandler(ResolverFactory resolverFactory, FileResolver fileResolver, ClassGenerator classGenerator) {
+        super(resolverFactory, fileResolver, classGenerator);
     }
 
     public FileSystemResolver flatDir(Map args) {
@@ -171,5 +176,53 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
                 mavenInstaller);
         mavenInstaller.setName(getNameFromMap(args, defaultName));
         return mavenInstaller;
+    }
+
+    public IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action) {
+        return addRepository(getResolverFactory().createIvyRepository(getFileResolver()), action, "ivy");
+    }
+
+    public IvyArtifactRepository ivy(Closure closure) {
+        return addRepository(getResolverFactory().createIvyRepository(getFileResolver()), closure, "ivy");
+    }
+
+    private <T extends ArtifactRepository> T addRepository(T repository, Action<? super T> action, String defaultName) {
+        action.execute(repository);
+        addRepository(repository, defaultName);
+        return repository;
+    }
+
+    private <T extends ArtifactRepository> T addRepository(T repository, Closure closure, String defaultName) {
+        ConfigureUtil.configure(closure, repository);
+        addRepository(repository, defaultName);
+        return repository;
+    }
+
+    private void addRepository(ArtifactRepository repository, String defaultName) {
+        String repositoryName = repository.getName();
+        if (!GUtil.isTrue(repositoryName)) {
+            repositoryName = findName(defaultName);
+            repository.setName(repositoryName);
+        }
+        repositoryNames.add(repositoryName);
+
+        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
+        ArtifactRepositoryInternal internalRepository = (ArtifactRepositoryInternal) repository;
+        internalRepository.createResolvers(resolvers);
+        for (DependencyResolver resolver : resolvers) {
+            add(resolver);
+        }
+    }
+
+    private String findName(String defaultName) {
+        if (!repositoryNames.contains(defaultName)) {
+            return defaultName;
+        }
+        for (int index = 2; true; index++) {
+            String candidate = String.format("%s%d", defaultName, index);
+            if (!repositoryNames.contains(candidate)) {
+                return candidate;
+            }
+        }
     }
 }

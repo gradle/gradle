@@ -54,11 +54,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
     private DefaultGradleLauncherFactory(GlobalServicesRegistry globalServices) {
         sharedServices = globalServices;
-
-        // Start logging system
-//        sharedServices.newInstance(LoggingManagerInternal.class).setLevel(LogLevel.LIFECYCLE).start();
-
-        commandLineConverter = sharedServices.get(CommandLineConverter.class);
         tracker = new NestedBuildTracker();
 
         // Register default loggers 
@@ -77,6 +72,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     public StartParameter createStartParameter(String... commandLineArgs) {
+        if (commandLineConverter == null) {
+            commandLineConverter = sharedServices.get(CommandLineConverter.class);
+        }
         return commandLineConverter.convert(Arrays.asList(commandLineArgs));
     }
 
@@ -134,7 +132,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
-                                serviceRegistry.get(ClassLoaderFactory.class),
+                                serviceRegistry.get(ClassLoaderRegistry.class),
                                 serviceRegistry.get(CacheRepository.class))),
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(

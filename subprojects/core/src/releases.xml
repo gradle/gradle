@@ -1,0 +1,15 @@
+<releases>
+    <next version="1.0-milestone-4"/>
+    <current version="${version}" build-time="${buildTime}"/>
+    <release version="1.0-milestone-3" build-time="20110425174011+1000"/>
+    <release version="1.0-milestone-2" build-time="20110407163255+1000"/>
+    <release version="1.0-milestone-1" build-time="20110227141320+1100"/>
+    <release version="0.9.2" build-time="20110123133421+1100"/>
+    <release version="0.9.1" build-time="20110102114057+1100"/>
+    <release version="0.9" build-time="20101219125006+1100"/>
+    <release version="0.9-rc-3"/>
+    <release version="0.9-rc-2"/>
+    <release version="0.9-rc-3"/>
+    <release version="0.8"/>
+    <release version="0.7"/>
+</releases>

@@ -16,12 +16,10 @@
 
 package org.gradle.util
 
-import org.codehaus.groovy.runtime.InvokerHelper
-import static org.junit.Assert.*
-
-import org.apache.tools.ant.Main
 import org.apache.ivy.Ivy
-import spock.lang.Specification;
+import org.apache.tools.ant.Main
+import org.codehaus.groovy.runtime.InvokerHelper
+import spock.lang.Specification
 
 /**
  * @author Hans Dockter
@@ -29,10 +27,33 @@ import spock.lang.Specification;
 class GradleVersionTest extends Specification {
     final GradleVersion version = GradleVersion.current()
 
+    def currentVersionHasNonNullVersionAndBuildTime() {
+        expect:
+        version.version
+        version.buildTime
+    }
+
     def equalsAndHashCode() {
         expect:
         Matchers.strictlyEquals(GradleVersion.version('0.9'), GradleVersion.version('0.9'))
         GradleVersion.version('0.9') != GradleVersion.version('1.0')
+    }
+
+    def canConstructPatchVersion() {
+        when:
+        def version = GradleVersion.version('1.0-milestone-2')
+        def patch = GradleVersion.version('1.0-milestone-2a')
+        def nextPatch = GradleVersion.version('1.0-milestone-2b')
+        def nextMilestone = GradleVersion.version('1.0-milestone-3')
+
+        then:
+        version < patch
+        patch < nextPatch
+        nextPatch < nextMilestone
+
+        patch > version
+        nextPatch > patch
+        nextMilestone > nextPatch
     }
 
     def canConstructSnapshotVersion() {

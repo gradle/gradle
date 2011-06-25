@@ -19,42 +19,47 @@
 package org.gradle.messaging.remote.internal
 
 import spock.lang.Specification
+import org.gradle.messaging.remote.Address
+import org.gradle.messaging.remote.internal.protocol.ConnectRequest
 
 class HandshakeOutgoingConnectorTest extends Specification {
-    private final OutgoingConnector target = Mock()
+    private final Address targetAddress = Mock()
+    private final OutgoingConnector<Message> target = Mock()
     private final Connection<Message> connection = Mock()
     private final HandshakeOutgoingConnector connector = new HandshakeOutgoingConnector(target)
 
     def createsConnectionAndPerformsHandshake() {
+        def remoteAddress = new CompositeAddress(targetAddress, 0)
+
         when:
-        def connection = connector.connect(new URI("channel:test:dest!0"))
+        def connection = connector.connect(remoteAddress)
 
         then:
         connection == this.connection
-        1 * target.connect(new URI("test:dest")) >> connection
-        1 * connection.dispatch({it instanceof ConnectRequest && it.destinationAddress == new URI("channel:test:dest!0")})
+        1 * target.connect(targetAddress) >> connection
+        1 * connection.dispatch({it instanceof ConnectRequest && it.destinationAddress == remoteAddress})
     }
 
     def stopsConnectionOnFailureToPerformHandshake() {
         RuntimeException failure = new RuntimeException()
 
         when:
-        connector.connect(new URI("channel:test:dest!0"))
+        connector.connect(new CompositeAddress(targetAddress, 0))
 
         then:
         def e = thrown(RuntimeException)
         e == failure
-        1 * target.connect(new URI("test:dest")) >> connection
+        1 * target.connect(targetAddress) >> connection
         1 * connection.dispatch({it instanceof ConnectRequest}) >> { throw failure }
         1 * connection.stop()
     }
-    
+
     def failsWhenURIHasUnknownScheme() {
         when:
-        connector.connect(new URI("unknown:dest"))
+        connector.connect(targetAddress)
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot create a connection to destination URI with unknown scheme: unknown:dest.'
+        e.message == "Cannot create a connection to address of unknown type: ${targetAddress}."
     }
 }

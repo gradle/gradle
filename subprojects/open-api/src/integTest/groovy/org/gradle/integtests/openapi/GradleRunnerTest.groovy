@@ -25,6 +25,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.apache.commons.lang.builder.ReflectionToStringBuilder
 
 class GradleRunnerTest {
 
@@ -88,32 +89,32 @@ class GradleRunnerTest {
     }
 
     if( totalWaitTime > maximumWaitTime ) {
-      throw new AssertionFailedError( "Waited " + totalWaitTime + " seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\nCurrent project directory: '" + interaction.getWorkingDirectory() + "'\nOutput:\n" + interaction.output.toString() )
+      throw new AssertionFailedError( "Waited $totalWaitTime seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\n. Interaction: $interaction" )
     }
 
     //now make sure we were notified of things correctly:
 
     //it should have fired a message that execution has started
-    Assert.assertTrue( "Execution did not report started", interaction.executionStarted )
+    Assert.assertTrue( "Execution did not report started. Interaction: $interaction", interaction.executionStarted )
     
     //it should have finished
-    Assert.assertTrue( "Execution did not report finished", interaction.executionFinished )
+    Assert.assertTrue( "Execution did not report finished. Interaction: $interaction", interaction.executionFinished )
 
     //it should have been successful
-    Assert.assertTrue( "Did not execute command successfully", interaction.wasSuccessful )
+    Assert.assertTrue( "Did not execute command successfully. Interaction: $interaction", interaction.wasSuccessful )
 
     //we should have output
-    Assert.assertTrue( "Missing output", interaction.output.length() > 0 )
+    Assert.assertTrue( "Missing output. Interaction: $interaction", interaction.output.length() > 0 )
 
     //we should have a message when we finished (basically the full output)
-    Assert.assertTrue( "Missing finish message", interaction.finishMessage != null )
+    Assert.assertTrue( "Missing finish message. Interaction: $interaction", interaction.finishMessage != null )
 
     //there should have been multiple tasks to execute
-    Assert.assertTrue( "Not enough tasks executed. Expected multiple. Found " + interaction.numberOfTasksToExecute, interaction.numberOfTasksToExecute > 1 )
+    Assert.assertTrue( "Not enough tasks executed. Expected multiple. Found $interaction.numberOfTasksToExecute. Interaction: $interaction", interaction.numberOfTasksToExecute > 1 )
 
     //we should have been notified that tasks started and completed (we're not interested in tracking how many times or specific tasks as that might change too often with releases of gradle.
-    Assert.assertTrue( "No tasks reported started", interaction.taskStarted )
-    Assert.assertTrue( "No tasks reported completed", interaction.taskCompleted )
+    Assert.assertTrue( "No tasks reported started. Interaction: $interaction", interaction.taskStarted )
+    Assert.assertTrue( "No tasks reported completed. Interaction: $interaction", interaction.taskCompleted )
   }
 
   /**
@@ -149,22 +150,22 @@ class GradleRunnerTest {
     }
 
     if( totalWaitTime > maximumWaitTime ) {
-      throw new AssertionFailedError( "Waited " + totalWaitTime + " seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\nCurrent project directory: '" + interaction.getWorkingDirectory() + "'\nOutput:\n" + interaction.output.toString() )
+      throw new AssertionFailedError( "Waited $totalWaitTime seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\nInteraction: $interaction")
     }
 
     //make sure we tried to kill the task
-    Assert.assertTrue( "Did not attempt to kill execution", interaction.killedTask )
+    Assert.assertTrue( "Did not attempt to kill execution. Interaction: $interaction", interaction.killedTask )
 
     //now make sure we were notified of things correctly:
 
     //it should NOT have been successful
-    Assert.assertFalse( "Erroneously executed successfully (was not killed)", interaction.wasSuccessful )
+    Assert.assertFalse( "Erroneously executed successfully (was not killed). Interaction: $interaction", interaction.wasSuccessful )
 
     //it should have fired a message that execution has started
-    Assert.assertTrue( "Execution did not report started", interaction.executionStarted )
+    Assert.assertTrue( "Execution did not report started. Interaction: $interaction", interaction.executionStarted )
 
     //it should have finished
-    Assert.assertTrue( "Execution did not report finished", interaction.executionFinished )
+    Assert.assertTrue( "Execution did not report finished. Interaction: $interaction", interaction.executionFinished )
   }
 }
 
@@ -193,7 +194,7 @@ class GradleRunnerTest {
 
     GradleRunnerInteractionVersion1.LogLevel getLogLevel() { return GradleRunnerInteractionVersion1.LogLevel.Lifecycle }
 
-    GradleRunnerInteractionVersion1.StackTraceLevel getStackTraceLevel() { return GradleRunnerInteractionVersion1.StackTraceLevel.InternalExceptions }
+    GradleRunnerInteractionVersion1.StackTraceLevel getStackTraceLevel() { return GradleRunnerInteractionVersion1.StackTraceLevel.AlwaysFull }
 
     void reportExecutionStarted() { executionStarted = true }
     void reportNumberOfTasksToExecute(int size) { numberOfTasksToExecute = size }
@@ -211,6 +212,10 @@ class GradleRunnerTest {
     }
 
     File getCustomGradleExecutable() { return null; }
+
+    String toString() {
+      return ReflectionToStringBuilder.toString(this);
+    }
   }
 
 
@@ -255,5 +260,9 @@ class GradleRunnerTest {
     void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
       this.executionFinished = true;
       this.wasSuccessful = wasSuccessful
+    }
+
+    String toString() {
+      return ReflectionToStringBuilder.toString(this);
     }
   }

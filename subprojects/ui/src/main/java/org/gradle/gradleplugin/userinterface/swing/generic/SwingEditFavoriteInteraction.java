@@ -18,10 +18,12 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
-import java.awt.*;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Window;
 import java.awt.event.*;
 
 /**
@@ -30,17 +32,27 @@ import java.awt.event.*;
  * @author mhunsicker
  */
 public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavoriteInteraction {
+
+    public enum SynchronizeType {
+        OnlyIfAlreadySynchronized,   //the the display name in synch with the command only if they are already synchronized (and it can be overridden by the user if they change the display name manually)
+        Never                        //Do not attempt to keep them in synch
+    };
+
     private JDialog dialog;
     private JTextField fullCommandLineTextField;
     private JTextField displayNameTextField;
     private JCheckBox alwaysShowOutputCheckBox;
     private boolean saveResults;
-    private boolean synchronizeDisplayNameWithCommand;
+
+    private SynchronizeType synchronizeType;
+
+    private DocumentListener synchronizationDocumentListener;
+    private KeyAdapter synchronizationKeyAdapter;
 
     //pass in true to synchronizeDisplayNameWithCommand for new favorites.
 
-    public SwingEditFavoriteInteraction(Window parent, String title, boolean synchronizeDisplayNameWithCommand) {
-        this.synchronizeDisplayNameWithCommand = synchronizeDisplayNameWithCommand;
+    public SwingEditFavoriteInteraction(Window parent, String title, SynchronizeType synchronizeType) {
+        this.synchronizeType = synchronizeType;
         setupUI(parent, title);
     }
 
@@ -82,21 +94,9 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
         panel.add(Utility.addLeftJustifiedComponent(alwaysShowOutputCheckBox));
         panel.add(Box.createVerticalGlue());
 
-        synchronizeDisplayNameWithCommand();
 
-        return panel;
-    }
-
-    /**
-     * This synchronizes the display name with the command line. This is so when you're adding a new favorite, the display name is automatic. If you type anything in the display name, we'll cancel
-     * synchronization.
-     */
-    private void synchronizeDisplayNameWithCommand() {
-        if (!synchronizeDisplayNameWithCommand) {
-            return;
-        }
-
-        final DocumentListener documentListener = new DocumentListener() {
+        //create some listeners that we can use for synchronization purposes.
+        synchronizationDocumentListener = new DocumentListener() {
             public void insertUpdate(DocumentEvent documentEvent) {
                 setDisplayNameTextToCommandLineText();
             }
@@ -110,18 +110,38 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
             }
         };
 
-        fullCommandLineTextField.getDocument().addDocumentListener(documentListener);
-        displayNameTextField.addKeyListener(new KeyAdapter() {
+        synchronizationKeyAdapter = new KeyAdapter() {
             @Override
-            public void keyPressed(KeyEvent keyEvent) {  //the user typed someting. Remove the document listener
-                fullCommandLineTextField.getDocument().removeDocumentListener(documentListener);
+            public void keyPressed(KeyEvent keyEvent) {  //the user typed something. Remove the document listener
+                fullCommandLineTextField.getDocument().removeDocumentListener(synchronizationDocumentListener);
+                displayNameTextField.removeKeyListener(synchronizationKeyAdapter); //and we don't need this anymore either
             }
-        });
+        };
+
+        return panel;
+    }
+
+    /**
+     * This synchronizes the display name with the command line (based on whether or not we should synchronize). This is so when you're adding a new favorite, the display name is automatic. If you
+     * type anything in the display name, we'll cancel synchronization. This can be called repeatedly for this dialog so it resets it rather than just sets it up once.
+     *
+     * @param favoriteTask the task currently being edited.
+     */
+    private void synchronizeDisplayNameWithCommand(FavoritesEditor.EditibleFavoriteTask favoriteTask) {
+
+        if (synchronizeType == SynchronizeType.Never || !favoriteTask.isDisplayNameAndFullCommandSynchronized()) {
+            fullCommandLineTextField.getDocument().removeDocumentListener(synchronizationDocumentListener);
+            displayNameTextField.removeKeyListener(synchronizationKeyAdapter);
+        } else {
+            fullCommandLineTextField.getDocument().addDocumentListener(synchronizationDocumentListener);
+            displayNameTextField.addKeyListener(synchronizationKeyAdapter);
+        }
     }
 
     private void setDisplayNameTextToCommandLineText() {
         try {
-            String text = fullCommandLineTextField.getDocument().getText(0, fullCommandLineTextField.getDocument().getLength());
+            String text = fullCommandLineTextField.getDocument().getText(0,
+                    fullCommandLineTextField.getDocument().getLength());
             displayNameTextField.setText(text);
         } catch (BadLocationException e) {
             e.printStackTrace();
@@ -176,6 +196,8 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
         fullCommandLineTextField.setText(favoriteTask.fullCommandLine);
         displayNameTextField.setText(favoriteTask.displayName);
         alwaysShowOutputCheckBox.setSelected(favoriteTask.alwaysShowOutput);
+
+        synchronizeDisplayNameWithCommand(favoriteTask);
 
         dialog.pack();
         dialog.setLocationRelativeTo(dialog.getParent());

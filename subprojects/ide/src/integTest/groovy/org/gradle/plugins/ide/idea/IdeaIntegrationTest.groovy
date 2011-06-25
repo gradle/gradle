@@ -31,6 +31,25 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources()
 
     @Test
+    void mergesImlCorrectly() {
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'idea'
+"""
+
+        //given
+        executer.usingBuildScript(buildFile).withTasks('idea').run()
+        def fileContent = getFile([:], 'master/master.iml').text
+
+        executer.usingBuildScript(buildFile).withTasks('idea').run()
+        def contentAfterMerge = getFile([:], 'master/master.iml').text
+
+        //then
+        assert fileContent == contentAfterMerge
+    }
+
+    @Test
     void canCreateAndDeleteMetaData() {
         executer.withTasks('idea').run()
 
@@ -144,10 +163,126 @@ ideaModule {
     withXml { hookActivated++ }
 }
 
-idea << {
+tasks.idea << {
     assert hookActivated == 1 : "withXml() hook shoold be fired"
 }
 '''
+    }
+
+    @Test
+    void respectsPerConfigurationExcludes() {
+        def repoDir = file("repo")
+        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
+        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenRepo urls: "${repoDir.toURI()}"
+}
+
+configurations {
+    compile.exclude module: 'myArtifact2'
+}
+
+dependencies {
+    compile "myGroup:myArtifact1:1.0"
+}
+        """
+
+        def module = parseImlFile("root")
+        def libs = module.component.orderEntry.library
+        assert libs.size() == 1
+    }
+
+    @Test
+    void respectsPerDependencyExcludes() {
+        def repoDir = file("repo")
+        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
+        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenRepo urls: "${repoDir.toURI()}"
+}
+
+dependencies {
+    compile("myGroup:myArtifact1:1.0") {
+        exclude module: "myArtifact2"
+    }
+}
+        """
+
+        def module = parseImlFile("root")
+        def libs = module.component.orderEntry.library
+        assert libs.size() == 1
+    }
+
+    @Test
+    void allowsCustomOutputFolders() {
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+ideaModule {
+    inheritOutputDirs = false
+    outputDir = file('foo-out')
+    testOutputDir = file('foo-out-test')
+}
+"""
+
+        //then
+        def iml = getFile([:], 'root.iml').text
+        assert iml.contains('inherit-compiler-output="false"')
+        assert iml.contains('foo-out')
+        assert iml.contains('foo-out-test')
+    }
+
+    @Test
+    void dslSupportsShortFormsForModule() {
+        runTask('idea', """
+apply plugin: 'idea'
+
+idea.module.name = 'X'
+assert idea.module.name == 'X'
+
+idea {
+    module.name += 'X'
+    assert module.name == 'XX'
+}
+
+idea.module {
+    name += 'X'
+    assert name == 'XXX'
+}
+
+""")
+    }
+
+    @Test
+    void dslSupportsShortFormsForProject() {
+        runTask('idea', """
+apply plugin: 'idea'
+
+idea.project.wildcards = ['1'] as Set
+assert idea.project.wildcards == ['1'] as Set
+
+idea {
+    project.wildcards += '2'
+    assert project.wildcards == ['1', '2'] as Set
+}
+
+idea.project {
+    wildcards += '3'
+    assert wildcards == ['1', '2', '3'] as Set
+}
+
+""")
     }
 
     private void assertHasExpectedContents(String path) {

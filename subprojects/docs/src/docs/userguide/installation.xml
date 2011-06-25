@@ -52,7 +52,7 @@
     </listitem>
     <listitem>
         <para>The binary sources. This is for reference only. If you want to build Gradle you need to download the source distribution
-            or checkout the sources from the source repository. See the <ulink url="website:build.html">Gradle web site</ulink> for details).
+            or checkout the sources from the source repository. See the <ulink url="website:build.html">Gradle web site</ulink> for details.
         </para>
     </listitem>
 </itemizedlist>
@@ -83,15 +83,15 @@ some zip front ends for Mac OS X don't restore the file permissions properly.
 
 <screen>
 ------------------------------------------------------------
-Gradle 1.0-milestone-1
+Gradle 1.0-milestone-3
 ------------------------------------------------------------
 
-Gradle build time: Sunday, 27 February 2011 11:20:57 AM EST
-Groovy: 1.7.8
+Gradle build time: Monday, 25 April 2011 5:24:40 PM EST
+Groovy: 1.7.10
 Ant: Apache Ant(TM) version 1.8.2 compiled on December 20 2010
 Ivy: 2.2.0
 JVM: 1.6.0_22 (Sun Microsystems Inc. 17.1-b03)
-OS: Linux 2.6.35-23-generic amd64
+OS: Linux 2.6.35-28-generic amd64
 </screen>
 
 </section>

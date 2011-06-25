@@ -25,6 +25,7 @@ import org.gradle.gradleplugin.userinterface.swing.generic.OutputUILord;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
+import org.gradle.util.SystemProperties;
 
 import javax.swing.*;
 import java.awt.*;
@@ -494,7 +495,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
      * Call this to browse for a custom gradle executor.
      */
     private void browseForCustomGradleExecutor() {
-        File startingDirectory = new File(System.getProperty("user.home"));
+        File startingDirectory = new File(SystemProperties.getUserHome());
         File currentFile = gradlePluginLord.getCustomGradleExecutor();
         if (currentFile != null) {
             startingDirectory = currentFile.getAbsoluteFile();

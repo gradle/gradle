@@ -16,8 +16,8 @@
 package org.gradle.tooling.internal.consumer
 
 import org.gradle.tooling.model.DomainObjectSet
-import spock.lang.Specification
 import org.gradle.util.Matchers
+import spock.lang.Specification
 
 class ProtocolToModelAdapterTest extends Specification {
     final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter()
@@ -107,7 +107,8 @@ class ProtocolToModelAdapterTest extends Specification {
 
         then:
         UnsupportedOperationException e = thrown()
-        e.message == "Cannot map method TestModel.getProject() to target object of type ${protocolModel.class.simpleName}."
+        e.message.contains "TestModel.getProject()"
+        e.message.contains "Method not found"
     }
 
     def propagatesExceptionThrownByProtocolObject() {

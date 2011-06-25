@@ -17,7 +17,6 @@
 package org.gradle.messaging.concurrent;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.GUtil;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +35,11 @@ public class CompositeStoppable implements Stoppable {
     }
 
     public CompositeStoppable(Stoppable... elements) {
-        this(Arrays.asList(elements));
+        add(elements);
     }
 
     public CompositeStoppable(Iterable<? extends Stoppable> elements) {
-        GUtil.addToCollection(this.elements, elements);
+        add(elements);
     }
 
     public CompositeStoppable(Closeable... elements) {
@@ -50,12 +49,16 @@ public class CompositeStoppable implements Stoppable {
     }
 
     public CompositeStoppable add(Iterable<? extends Stoppable> elements) {
-        GUtil.addToCollection(this.elements, elements);
+        for (Stoppable element : elements) {
+            if (element != null) {
+                this.elements.add(element);
+            }
+        }
         return this;
     }
 
-    public CompositeStoppable add(Stoppable stoppable) {
-        elements.add(stoppable);
+    public CompositeStoppable add(Stoppable... stoppable) {
+        add(Arrays.asList(stoppable));
         return this;
     }
 

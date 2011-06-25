@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'groovy' //needed so that resources are excluded from compilation (see how ideaProject task is configured in root project)
+apply plugin: 'groovy' //needed so that resources are excluded from compilation (see how idea project is configured in root project)
 apply from: "$rootDir/gradle/integTest.gradle"
 
 dependencies {
@@ -22,6 +22,7 @@ dependencies {
     compile project(':scala')
     compile project(':core')
     compile project(':plugins')
+    compile project(':toolingApi')
     compile libraries.commons_io
     compile libraries.slf4j_api, libraries.jaxen
     compile 'dom4j:dom4j:1.6.1@jar'
@@ -30,16 +31,5 @@ dependencies {
     testCompile libraries.xmlunit
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 
-    //needed?
-    integTestCompile libraries.slf4j_api
     integTestCompile project(path: ':core', configuration: 'integTestFixtures')
-    integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
-
-task integTest(type: Test) {
-    doFirst {
-        systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-    }
-}
-

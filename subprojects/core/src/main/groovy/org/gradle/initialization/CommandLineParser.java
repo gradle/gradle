@@ -19,6 +19,7 @@ import org.gradle.CommandLineArgumentException;
 import org.gradle.util.GUtil;
 
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.*;
 
 /**
@@ -56,6 +57,7 @@ import java.util.*;
 public class CommandLineParser {
     private Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();
     private boolean allowMixedOptions;
+    OutputStream deprecationPrinter = System.out;
 
     /**
      * Parses the given command-line.
@@ -334,7 +336,7 @@ public class CommandLineParser {
         public abstract ParserState onComplete();
     }
 
-    private static class KnownOptionParserState extends OptionParserState {
+    private class KnownOptionParserState extends OptionParserState {
         private final OptionString optionString;
         private final CommandLineOption option;
         private final ParsedCommandLine commandLine;
@@ -386,9 +388,13 @@ public class CommandLineParser {
             for (String value : values) {
                 parsedOption.addArgument(value);
             }
+            if (option.getDeprecationWarning() != null) {
+                new PrintStream(CommandLineParser.this.deprecationPrinter).println("'gradle " + optionString + "' is " + option.getDeprecationWarning());
+            }
             if (option.getSubcommand() != null) {
                 return state.onNonOption(option.getSubcommand());
             }
+
             return state;
         }
     }

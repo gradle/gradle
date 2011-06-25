@@ -17,7 +17,7 @@ subprojects {
             java.srcDir "$projectDir/java"
             resources.srcDir "$projectDir/java"
             compileClasspath = configurations.compile
-            runtimeClasspath = compileClasspath + classes
+            runtimeClasspath = compileClasspath + output
         }
     }
 }

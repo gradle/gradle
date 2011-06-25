@@ -22,4 +22,6 @@ import java.io.File;
  */
 public interface ExternalDependencyVersion1 extends DependencyVersion1 {
     File getFile();
+    File getSource();
+    File getJavadoc();
 }

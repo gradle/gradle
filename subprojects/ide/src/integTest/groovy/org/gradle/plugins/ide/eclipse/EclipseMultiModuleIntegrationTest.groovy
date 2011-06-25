@@ -84,7 +84,6 @@ project(':services:utilities') {
 
         //when
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
-//        println(getTestDir())
 
         //then
         assertApiProjectContainsCorrectDependencies()

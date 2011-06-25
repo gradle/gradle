@@ -24,14 +24,13 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Upload;
-import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
-import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows project artifacts to be deployed to a Maven repository, or installed
@@ -51,8 +50,9 @@ public class MavenPlugin implements Plugin<Project> {
     public static final String INSTALL_TASK_NAME = "install";
 
     public void apply(final Project project) {
-        setConventionMapping(project);
-        addConventionObject(project);
+        project.getPlugins().apply(BasePlugin.class);
+        MavenPluginConvention pluginConvention = addConventionObject(project);
+        setConventionMapping(project, pluginConvention);
         PluginContainer plugins = project.getPlugins();
         plugins.withType(JavaPlugin.class, new Action<JavaPlugin>() {
             public void execute(JavaPlugin javaPlugin) {
@@ -67,35 +67,25 @@ public class MavenPlugin implements Plugin<Project> {
         });
     }
 
-    private void setConventionMapping(final Project project) {
-        Map mapping = GUtil.map(
-                "mavenPomDir", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(MavenPluginConvention.class).getPomDir();
-                    }
-                },
-                "configurationContainer", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return project.getConfigurations();
-                    }
-                },
-                "fileResolver", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return ((ProjectInternal) project).getFileResolver();
-                    }
-                },
-                "mavenScopeMappings", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(MavenPluginConvention.class).getConf2ScopeMappings();
+    private void setConventionMapping(final Project project, final MavenPluginConvention pluginConvention) {
+        ConventionMapping conventionMapping = ((IConventionAware) project.getRepositories()).getConventionMapping();
+        conventionMapping.map("mavenPomDir", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return pluginConvention.getPomDir();
                     }
                 });
-        ((IConventionAware) project.getRepositories()).getConventionMapping().map(mapping);
+        conventionMapping.map("mavenScopeMappings", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return pluginConvention.getConf2ScopeMappings();
+                    }
+                });
     }
 
-    private void addConventionObject(Project project) {
+    private MavenPluginConvention addConventionObject(Project project) {
         MavenPluginConvention mavenConvention = new MavenPluginConvention((ProjectInternal) project);
         Convention convention = project.getConvention();
         convention.getPlugins().put("maven", mavenConvention);
+        return mavenConvention;
     }
 
     private void configureJavaScopeMappings(ResolverContainer resolverFactory, ConfigurationContainer configurations) {

@@ -15,62 +15,112 @@
  */
 package org.gradle.util
 
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
+import org.gradle.messaging.concurrent.ExecutorFactory
+import org.gradle.messaging.concurrent.StoppableExecutor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * <p>A base class for writing specifications which exercise concurrent code.
  *
  * <p>See {@link ConcurrentSpecificationTest} for some examples.
+ *
+ * <p>Provides {@link Executor} and {@link ExecutorFactory} implementations for use during the test. These provide real concurrency.
+ * The test threads are cleaned up at the end of the test, and any exceptions thrown by those tests are propagated.
+ *
+ * <p>Provides some fixtures for testing:</p>
+ *
+ * <ul>
+ * <li>An action starts another action asynchronously without waiting for the result.</li>
+ * <li>An action starts another action asynchronously and waits for the result.</li>
+ * </ul>
  */
 class ConcurrentSpecification extends Specification {
     private static final Logger LOG = LoggerFactory.getLogger(ConcurrentSpecification.class)
     private final Lock lock = new ReentrantLock()
     private final Condition threadsChanged = lock.newCondition()
-    private final Set<DeferredActionImpl> mocks = [] as Set
     private final Set<TestThread> threads = [] as Set
+    private Closure failureHandler
     private final List<Throwable> failures = []
+    private long timeout = 5000
 
     def cleanup() {
         finished()
     }
 
-    /**
-     * Creates an action which will be used by a mock object to synchronise with the SUT.
-     *
-     * @return The action.
-     */
-    DeferredAction later() {
+    void setShortTimeout(int millis) {
+        this.timeout = millis
+    }
+
+    ExecutorFactory getExecutorFactory() {
+        return new ExecutorFactory() {
+            StoppableExecutor create(String displayName) {
+                return new StoppableExecutorStub(ConcurrentSpecification.this)
+            }
+        }
+    }
+
+    Executor getExecutor() {
+        return new Executor() {
+            void execute(Runnable runnable) {
+                startThread(runnable)
+            }
+        }
+    }
+
+    TestThread startThread(Runnable cl) {
         lock.lock()
         try {
-            DeferredActionImpl mock = new DeferredActionImpl(this, lock)
-            mocks << mock
-            return mock
+            TestThread thread = new TestThread(this, lock, cl)
+            thread.start()
+            return thread
         } finally {
             lock.unlock()
         }
     }
 
     /**
-     * Starts a thread which executes the given closure. Blocks until all deferred actions are activated. Does not wait for the thread to complete.
+     * Starts a thread which executes the given action/closure. Does not wait for the thread to complete.
      *
      * @return A handle to the test thread.
      */
-    TestParticipant start(Closure cl) {
+    TestParticipant start(Runnable cl) {
         lock.lock()
         try {
             TestThread thread = new TestThread(this, lock, cl)
             thread.start()
-            waitForAllMocks()
             return new TestParticipantImpl(this, thread)
         } finally {
             lock.unlock()
         }
+    }
+
+    /**
+     * Creates a new asynchronous action.
+     */
+    StartAsyncAction startsAsyncAction() {
+        return new StartAsyncAction(this)
+    }
+
+    /**
+     * Creates a new blocking action.
+     */
+    WaitForAsyncCallback waitsForAsyncCallback() {
+        return new WaitForAsyncCallback(this)
+    }
+
+    /**
+     * Creates a new action which waits until an async. action is complete.
+     */
+    WaitForAsyncAction waitsForAsyncActionToComplete() {
+        return new WaitForAsyncAction(this)
     }
 
     /**
@@ -82,30 +132,39 @@ class ConcurrentSpecification extends Specification {
         return new CompositeTestParticipant(this, lock, participants as List)
     }
 
-    private void waitForAllMocks() {
-        LOG.info("Waiting for all mocks to block.")
-        Date timeout = shortTimeout()
-        mocks.each { mock ->
-            mock.waitUntilActivated(timeout)
+    void onFailure(Closure cl) {
+        lock.lock()
+        try {
+            failureHandler = cl
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    private void onFailure(Throwable t) {
+        lock.lock()
+        try {
+            if (failureHandler != null) {
+                failureHandler.call(t)
+            } else {
+                failures << t
+            }
+        } finally {
+            lock.unlock()
         }
     }
 
     /**
-     * Activates and executes all deferred actions and waits for all threads to complete. Asserts that the threads complete in a 'short' time. Rethrows any exceptions thrown by test threads.
+     * Waits for all threads to complete. Asserts that the threads complete in a 'short' time. Rethrows any exceptions thrown by test threads.
      */
     void finished() {
         Date timeout = shortTimeout()
         lock.lock()
         try {
-            LOG.info("Waiting for actions to complete.")
-            mocks.each { mock ->
-                mock.run(timeout)
-            }
-
             LOG.info("Waiting for test threads to complete.")
             while (!threads.isEmpty()) {
                 if (!threadsChanged.awaitUntil(timeout)) {
-                    failures << new IllegalStateException("Timeout waiting for test threads to complete.")
+                    onFailure(new IllegalStateException("Timeout waiting for test threads to complete."))
                     break;
                 }
             }
@@ -118,16 +177,16 @@ class ConcurrentSpecification extends Specification {
                 throw failures[0]
             }
         } finally {
+            failureHandler = null
             threads.clear()
-            mocks.clear()
             failures.clear()
             lock.unlock()
         }
 
     }
 
-    static Date shortTimeout() {
-        return new Date(System.currentTimeMillis() + 5000)
+    Date shortTimeout() {
+        return new Date(System.currentTimeMillis() + timeout)
     }
 
     void run(Closure cl, Date timeout) {
@@ -151,7 +210,7 @@ class ConcurrentSpecification extends Specification {
         try {
             threads.remove(thread)
             if (failure) {
-                failures << failure
+                onFailure(failure)
             }
             threadsChanged.signalAll()
         } finally {
@@ -207,6 +266,7 @@ class TestThread extends Thread {
             LOG.info("Waiting for $this to complete.")
             while (!complete) {
                 if (!stateChanged.awaitUntil(timeout)) {
+                    interrupt()
                     throw new IllegalStateException("Timeout waiting for $this to complete.")
                 }
             }
@@ -257,49 +317,11 @@ interface LongRunningAction {
     void completesBefore(Date timeout)
 }
 
-/**
- * An action which runs at some point in the future. A {@code DeferredAction} must be activated before it can run, by calling {@link DeferredAction#activate(Closure)}.
- */
-interface DeferredAction extends LongRunningAction {
-    /**
-     * Registers that the target sync point has been reached, and this action is ready to execute. This method does not block.
-     *
-     * This action is started once this method has been called, and one of the following have been executed:
-     *
-     * <ul>
-     * <li>{@link TestParticipant#waitsFor(LongRunningAction)}</li>
-     * <li>{@link TestParticipant#doesNotWaitFor(LongRunningAction)}</li>
-     * <li>{@link ConcurrentSpecification#finished}</li>
-     * </ul>
-     */
-    void activate(Closure action)
-}
-
 interface TestParticipant extends LongRunningAction {
     /**
      * Asserts that this test participant is running.
      */
     void running()
-    /**
-     * Asserts that this test participant blocks until the given actions complete. If any action is a {@link DeferredAction}, the action is started.
-     *
-     * This method blocks until both this participant and the actions have completed, and asserts that everything completes in a 'short' time.
-     */
-    void waitsFor(LongRunningAction... targets)
-
-    /**
-     * Asserts that this test participant blocks until the given action completes.
-     *
-     * This method blocks until both this participant and the action have completed, and asserts that everything completes in a 'short' time.
-     */
-    void waitsFor(Closure action)
-
-    /**
-     * Asserts that this test participant does not block while the given actions are executing. If any action is a {@link DeferredAction}, it must be activated first.
-     *
-     * This method blocks until this participant has completed, and asserts that it completes in a 'short' time.
-     */
-    void doesNotWaitFor(LongRunningAction... targets)
 }
 
 abstract class AbstractAction implements LongRunningAction {
@@ -316,115 +338,11 @@ abstract class AbstractAction implements LongRunningAction {
     abstract void completesBefore(Date timeout)
 }
 
-class DeferredActionImpl extends AbstractAction implements DeferredAction {
-    private static final Logger LOG = LoggerFactory.getLogger(DeferredActionImpl.class)
-    private final ConcurrentSpecification owner
-    private final Lock lock
-    private final Condition stateChange = lock.newCondition()
-    private Closure action
-    private boolean activated
-    private boolean complete
-
-    DeferredActionImpl(ConcurrentSpecification owner, Lock lock) {
-        this.owner = owner
-        this.lock = lock
-    }
-
-    void activated() {
-        lock.lock()
-        try {
-            if (!activated) {
-                throw new IllegalStateException("Action has not been activated.")
-            }
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    @Override
-    void completesBefore(Date timeout) {
-        activated()
-        run(timeout)
-    }
-
-    void run(Date timeout) {
-        lock.lock()
-        try {
-            if (!activated || complete) {
-                return
-            }
-        } finally {
-            lock.unlock()
-        }
-
-        LOG.info("Running deferred action")
-        owner.run(action, timeout)
-        LOG.info("Deferred action complete")
-
-        lock.lock()
-        try {
-            complete = true
-            action = null
-            stateChange.signalAll()
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    void waitUntilActivated(Date timeout) {
-        lock.lock()
-        try {
-            while (!activated) {
-                if (!stateChange.awaitUntil(timeout)) {
-                    throw new IllegalStateException("Timeout waiting for action to be activated.")
-                }
-            }
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    void activate(Closure action) {
-        lock.lock()
-        try {
-            if (activated) {
-                throw new IllegalStateException("This action has already been activated.")
-            }
-
-            activated = true
-            this.action = action
-            stateChange.signalAll()
-        } finally {
-            lock.unlock()
-        }
-    }
-}
-
 abstract class AbstractTestParticipant extends AbstractAction implements TestParticipant {
     private final ConcurrentSpecification owner
 
     AbstractTestParticipant(ConcurrentSpecification owner) {
         this.owner = owner
-    }
-
-    void doesNotWaitFor(LongRunningAction... targets) {
-        targets*.activated()
-        completed()
-    }
-
-    void waitsFor(LongRunningAction... targets) {
-        targets*.activated()
-        Thread.sleep(500)
-        running()
-        targets*.completed()
-        completed()
-    }
-
-    void waitsFor(Closure action) {
-        Thread.sleep(500)
-        running()
-        owner.run(action, owner.shortTimeout())
-        completed()
     }
 }
 
@@ -472,6 +390,347 @@ class CompositeTestParticipant extends AbstractTestParticipant {
             participants*.completesBefore(timeout)
         } finally {
             lock.unlock()
+        }
+    }
+}
+
+class StoppableExecutorStub implements StoppableExecutor {
+    final ConcurrentSpecification owner
+    final Set<TestThread> threads = new CopyOnWriteArraySet<TestThread>()
+
+    StoppableExecutorStub(ConcurrentSpecification owner) {
+        this.owner = owner
+    }
+
+    void stop() {
+        def timeout = owner.shortTimeout()
+        threads.each { it.completesBefore(timeout) }
+    }
+
+    void stop(int timeoutValue, TimeUnit timeoutUnits) {
+        throw new UnsupportedOperationException()
+    }
+
+    void requestStop() {
+        throw new UnsupportedOperationException()
+    }
+
+    void execute(Runnable runnable) {
+        threads.add(owner.startThread(runnable))
+    }
+}
+
+class AbstractAsyncAction {
+    protected final ConcurrentSpecification owner
+    private final Lock lock = new ReentrantLock()
+    protected final Condition condition = lock.newCondition()
+    protected Throwable failure
+
+    AbstractAsyncAction(ConcurrentSpecification owner) {
+        this.owner = owner
+    }
+
+    protected Date shortTimeout() {
+        return owner.shortTimeout()
+    }
+
+    protected void onFailure(Throwable throwable) {
+        withLock {
+            failure = throwable
+            condition.signalAll()
+        }
+    }
+
+    protected def withLock(Closure cl) {
+        lock.lock()
+        try {
+            return cl.call()
+        } finally {
+            lock.unlock()
+        }
+    }
+}
+
+class StartAsyncAction extends AbstractAsyncAction {
+    private boolean started
+    private boolean completed
+    private Thread startThread
+
+    StartAsyncAction(ConcurrentSpecification owner) {
+        super(owner)
+    }
+
+    /**
+     * Runs the given action, and then waits until another another thread calls {@link #done()}.  Asserts that the start action does not block waiting for
+     * the async action to complete.
+     *
+     * @param action The start action
+     * @return this
+     */
+    StartAsyncAction started(Runnable action) {
+        owner.onFailure this.&onFailure
+        doStart(action)
+        waitForStartToComplete()
+        waitForFinish()
+        return this
+    }
+
+    /**
+     * Marks that the async. action is now finished.
+     */
+    void done() {
+        waitForStartToComplete()
+        doFinish()
+    }
+
+
+    private void doStart(Runnable action) {
+        owner.startThread {
+            withLock {
+                if (startThread != null) {
+                    throw new IllegalStateException("Cannot start action multiple times.")
+                }
+                startThread = Thread.currentThread()
+                condition.signalAll()
+            }
+
+            action.run()
+
+            withLock {
+                started = true
+                condition.signalAll()
+            }
+        }
+
+        withLock {
+            while (startThread == null) {
+                condition.await()
+            }
+        }
+    }
+
+    private void doFinish() {
+        withLock {
+            if (completed) {
+                throw new IllegalStateException("Cannot run async action multiple times.")
+            }
+            completed = true
+            condition.signalAll()
+        }
+    }
+
+    private void waitForStartToComplete() {
+        Date timeout = shortTimeout()
+        withLock {
+            if (startThread == null) {
+                throw new IllegalStateException("Action has not been started.")
+            }
+            if (Thread.currentThread() == startThread) {
+                throw new IllegalStateException("Cannot wait for action to complete from the thread that is executing it.")
+            }
+            while (!started && !failure) {
+                if (!condition.awaitUntil(timeout)) {
+                    throw new IllegalStateException("Expected action to complete quickly, but it did not.")
+                }
+            }
+            if (failure) {
+                throw failure
+            }
+        }
+    }
+
+    private void waitForFinish() {
+        Date timeout = shortTimeout()
+        withLock {
+            while (!completed && !failure) {
+                if (!condition.awaitUntil(timeout)) {
+                    throw new IllegalStateException("Expected async action to complete, but it did not.")
+                }
+            }
+            if (failure) {
+                throw failure
+            }
+        }
+    }
+}
+
+abstract class AbstractWaitAction extends AbstractAsyncAction {
+    protected boolean started
+    protected boolean completed
+
+    AbstractWaitAction(ConcurrentSpecification owner) {
+        super(owner)
+    }
+
+    protected void waitForBlockingActionToComplete() {
+        Date expiry = shortTimeout()
+        withLock {
+            while (!completed && !failure) {
+                if (!condition.awaitUntil(expiry)) {
+                    throw new IllegalStateException("Expected action to unblock, but it did not.")
+                }
+            }
+            if (failure) {
+                throw failure
+            }
+        }
+    }
+
+    protected void startBlockingAction(Runnable action) {
+        owner.startThread {
+            withLock {
+                started = true
+                condition.signalAll()
+            }
+
+            action.run()
+
+            withLock {
+                completed = true
+                condition.signalAll()
+            }
+        }
+
+        withLock {
+            while (!started) {
+                condition.await()
+            }
+        }
+    }
+
+    protected void assertBlocked() {
+        withLock {
+            if (completed) {
+                throw new IllegalStateException("Expected action to block, but it did not.")
+            }
+        }
+    }
+}
+
+class WaitForAsyncCallback extends AbstractWaitAction {
+    private boolean callbackCompleted
+    private Runnable callback
+
+    WaitForAsyncCallback(ConcurrentSpecification owner) {
+        super(owner)
+    }
+
+    /**
+     * Runs the given action. Asserts that it blocks until after asynchronous callback is made. The action must register the callback using {@link #callbackLater(Runnable)}.
+     */
+    WaitForAsyncCallback start(Runnable action) {
+        owner.onFailure this.&onFailure
+
+        startBlockingAction(action)
+        waitForCallbackToBeRegistered()
+
+        Thread.sleep(500)
+
+        assertBlocked()
+        runCallbackAction()
+        waitForBlockingActionToComplete()
+
+        return this
+    }
+
+    /**
+     * Registers the callback which will unblock the action.
+     */
+    public void callbackLater(Runnable action) {
+        withLock {
+            if (callback) {
+                throw new IllegalStateException("Cannot register callback action multiple times.")
+            }
+            if (!started) {
+                throw new IllegalStateException("Action has not been started.")
+            }
+            callback = action
+            condition.signalAll()
+        }
+    }
+
+    private def runCallbackAction() {
+        owner.startThread {
+            callback.run()
+
+            withLock {
+                callbackCompleted = true
+                condition.signalAll()
+            }
+        }
+
+        Date timeout = shortTimeout()
+        withLock {
+            while (!callbackCompleted && !failure) {
+                if (!condition.awaitUntil(timeout)) {
+                    throw new IllegalStateException("Expected callback action to complete, but it did not.")
+                }
+            }
+            if (failure) {
+                throw failure
+            }
+        }
+    }
+
+    private void waitForCallbackToBeRegistered() {
+        Date expiry = shortTimeout()
+        withLock {
+            while (!callback && !failure && !completed) {
+                if (!condition.awaitUntil(expiry)) {
+                    throw new IllegalStateException("Expected action to register a callback action, but it did not.")
+                }
+            }
+            if (failure) {
+                throw failure
+            }
+            if (completed) {
+                throw new IllegalStateException("Expected action to block, but it did not.")
+            }
+        }
+    }
+}
+
+class WaitForAsyncAction extends AbstractWaitAction {
+    boolean asyncActionComplete
+
+    WaitForAsyncAction(ConcurrentSpecification owner) {
+        super(owner)
+    }
+
+    WaitForAsyncAction start(Runnable action) {
+        owner.onFailure this.&onFailure
+        startBlockingAction(action)
+        waitForAsyncAction()
+        waitForBlockingActionToComplete()
+        return this
+    }
+
+    WaitForAsyncAction done() {
+        Thread.sleep(500)
+        assertBlocked()
+
+        withLock {
+            asyncActionComplete = true
+            condition.signalAll()
+        }
+
+        return this
+    }
+
+    def waitForAsyncAction() {
+        Date expiry = shortTimeout()
+        withLock {
+            while (!asyncActionComplete && !completed && !failure) {
+                if (!condition.awaitUntil(expiry)) {
+                    throw new IllegalStateException("Expected async action to be started, but it was not.")
+                }
+            }
+            if (failure) {
+                throw failure
+            }
+            if (!asyncActionComplete && completed) {
+                throw new IllegalStateException("Expected action to block, but it did not.")
+            }
         }
     }
 }

@@ -15,127 +15,33 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
-import org.gradle.tooling.internal.protocol.ProjectVersion3
-import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.Project
-import org.gradle.tooling.model.Task
-import org.gradle.util.ConcurrentSpecification
+import spock.lang.Specification
 
-class DefaultProjectConnectionTest extends ConcurrentSpecification {
-    final ConnectionVersion4 protocolConnection = Mock()
+class DefaultProjectConnectionTest extends Specification {
+    final AsyncConnection protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
-    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, adapter)
+    final ConnectionParameters parameters = Mock()
+    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, adapter, parameters)
 
-    def getModelDelegatesToProtocolConnectionToFetchModel() {
-        ResultHandler<Project> handler = Mock()
-        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
-        ProjectVersion3 result = Mock()
-        Project adaptedResult = Mock()
-
-        when:
-        connection.getModel(Project.class, handler)
-
-        then:
-        1 * protocolConnection.getModel(ProjectVersion3.class, !null) >> {args -> adaptedHandler = args[1]}
-
-        when:
-        adaptedHandler.onComplete(result)
-
-        then:
-        1 * adapter.adapt(Project.class, result) >> adaptedResult
-        1 * handler.onComplete(adaptedResult)
-        0 * _._
+    def canCreateAModelBuilder() {
+        expect:
+        connection.model(Project.class) instanceof DefaultModelBuilder
     }
 
-    def getModelWrapsFailureToFetchModel() {
-        ResultHandler<Project> handler = Mock()
-        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
-        RuntimeException failure = new RuntimeException()
-        GradleConnectionException wrappedFailure
-
-        when:
-        connection.getModel(Project.class, handler)
-
-        then:
-        1 * protocolConnection.getModel(ProjectVersion3.class, !null) >> {args -> adaptedHandler = args[1]}
-
-        when:
-        adaptedHandler.onFailure(failure)
-
-        then:
-        1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
-        _ * protocolConnection.displayName >> '[connection]'
-        wrappedFailure.message == 'Could not fetch model of type \'Project\' from [connection].'
-        wrappedFailure.cause.is(failure)
-        0 * _._
+    def canCreateABuildLauncher() {
+        expect:
+        connection.newBuild() instanceof DefaultBuildLauncher
     }
-
-    def getModelFailsForUnknownModelType() {
+    
+    def modelFailsForUnknownModelType() {
         when:
-        connection.getModel(TestBuild.class)
+        connection.model(TestBuild.class)
 
         then:
         UnsupportedVersionException e = thrown()
         e.message == 'Model of type \'TestBuild\' is not supported.'
-    }
-
-    def getModelBlocksUntilResultReceivedFromProtocolConnection() {
-        def supplyResult = later()
-        ProjectVersion3 result = Mock()
-        Project adaptedResult = Mock()
-        _ * adapter.adapt(Project.class, result) >> adaptedResult
-
-        when:
-        def model
-        def action = start {
-            model = connection.getModel(Project.class)
-        }
-
-        then:
-        action.waitsFor(supplyResult)
-        1 * protocolConnection.getModel(ProjectVersion3.class, !null) >> { args ->
-            def handler = args[1]
-            supplyResult.activate {
-                handler.onComplete(result)
-            }
-        }
-
-        when:
-        finished()
-
-        then:
-        model == adaptedResult
-    }
-
-    def getModelBlocksUntilFailureReceivedFromProtocolConnectionAndRethrowsFailure() {
-        def supplyResult = later()
-        RuntimeException failure = new RuntimeException()
-
-        when:
-        def model
-        def action = start {
-            model = connection.getModel(Project.class)
-        }
-
-        then:
-        action.waitsFor(supplyResult)
-        1 * protocolConnection.getModel(ProjectVersion3.class, !null) >> { args ->
-            def handler = args[1]
-            supplyResult.activate {
-                handler.onFailure(failure)
-            }
-        }
-
-        when:
-        finished()
-
-        then:
-        GradleConnectionException e = thrown()
-        e.cause.is(failure)
     }
 
     def closeStopsBackingConnection() {
@@ -144,37 +50,6 @@ class DefaultProjectConnectionTest extends ConcurrentSpecification {
 
         then:
         1 * protocolConnection.stop()
-    }
-
-    def getModelFailsWhenConnectionHasBeenStopped() {
-        when:
-        connection.close()
-        connection.getModel(Project.class)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'This connection has been closed.'
-        1 * protocolConnection.stop()
-        0 * _._
-    }
-
-    def buildFailsWhenConnectionHasBeenStopped() {
-        when:
-        def build = connection.newBuild()
-        connection.close()
-        build.run()
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'This connection has been closed.'
-        1 * protocolConnection.stop()
-        0 * _._
-    }
-
-    def task(String path) {
-        Task task = Mock()
-        _ * task.path >> path
-        return task
     }
 }
 

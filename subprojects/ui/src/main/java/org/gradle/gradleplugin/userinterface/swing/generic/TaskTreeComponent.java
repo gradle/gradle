@@ -594,7 +594,7 @@ public class TaskTreeComponent {
     }
 
     /**
-     * This returns a list of selected tasks. This ignores selected projects.
+     * This returns a list of selected tasks. This ignores selected projects. Note: the tasks are ordered according to the order in which they were selected.
      *
      * @return the selected tasks. Will return an empty list if no tasks are selected.
      */

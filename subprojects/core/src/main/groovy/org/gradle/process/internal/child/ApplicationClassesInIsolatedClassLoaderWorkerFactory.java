@@ -17,11 +17,11 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.messaging.remote.Address;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -54,11 +54,11 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
     private final Collection<URL> implementationClassPath;
-    private final URI serverAddress;
+    private final Address serverAddress;
     private final ClassPathRegistry classPathRegistry;
 
     public ApplicationClassesInIsolatedClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
-                                            Collection<URL> implementationClassPath, URI serverAddress,
+                                            Collection<URL> implementationClassPath, Address serverAddress,
                                             ClassPathRegistry classPathRegistry) {
         this.workerId = workerId;
         this.displayName = displayName;

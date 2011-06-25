@@ -16,9 +16,9 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 
 /**
  * @author Szczepan Faber, @date 03.03.11
@@ -26,6 +26,54 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
+
+    @Test
+    void buildsCorrectModuleDependencies() {
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << """
+include 'api'
+include 'shared:api', 'shared:model'
+include 'util'
+        """
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+
+project(':api') {
+    dependencies {
+        compile project(':shared:api')
+        testCompile project(':shared:model')
+    }
+}
+
+project(':shared:model') {
+    configurations {
+        utilities { extendsFrom testCompile }
+    }
+    dependencies {
+        utilities project(':util')
+    }
+    idea {
+        module {
+            scopes.TEST.plus.add(configurations.utilities)
+        }
+    }
+}
+"""
+
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+
+        //then
+        def apiDeps = parseImlDependencies(project: 'master/api', "api.iml")
+        ['shared-api', 'model'].each { assert apiDeps.contains(it) }
+        def modelDeps = parseImlDependencies(project: 'master/shared/model', "model.iml")
+        ['util'].each { assert modelDeps.contains(it) }
+    }
 
     @Test
     void dealsWithDuplicatedModuleNames() {
@@ -67,8 +115,10 @@ project(':api') {
 }
 
 project(':shared:model') {
-    ideaModule {
-        moduleName = 'very-cool-model'
+    idea {
+        module {
+            name = 'very-cool-model'
+        }
     }
 }
 
@@ -76,15 +126,16 @@ project(':services:utilities') {
     dependencies {
         compile project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
     }
-    ideaModule {
-        moduleName = 'util'
+    idea {
+        module {
+            name = 'util'
+        }
     }
 }
 """
 
         //when
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
-//        println(getTestDir())
 
         //then
         assertIprContainsCorrectModules()
@@ -211,8 +262,11 @@ project(':contrib') {
 
         def buildFile = file("master/build.gradle")
         buildFile << """
+subprojects {
+  apply plugin: 'java'
+}
+
 project(':api') {
-    apply plugin: 'java'
     apply plugin: 'idea'
 
     dependencies {
@@ -226,5 +280,26 @@ project(':api') {
 
         //then
         assert getFile(project: 'master/api', 'api.iml').exists()
+    }
+
+    @Test
+    void doesNotCreateDuplicateEntriesInIpr() {
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << "include 'api', 'iml'"
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+"""
+
+        //when
+        2.times { executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaProject").run() }
+
+        //then
+        String content = getFile(project: 'master', 'master.ipr').text
+        assert content.count('filepath="$PROJECT_DIR$/api/api.iml"') == 1
     }
 }

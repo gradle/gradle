@@ -24,7 +24,7 @@ class Version {
     Boolean release = null
 
     def Version(project) {
-        this.versionNumber = project.nextVersion
+        this.versionNumber = project.releases.nextVersion
         File timestampFile = new File(project.buildDir, 'timestamp.txt')
         if (timestampFile.isFile()) {
             boolean uptodate = true
@@ -71,17 +71,17 @@ class Version {
 
     String getDistributionUrl() {
         if (release) {
-            'https://repo.gradle.org/gradle/distributions'
+            'https://gradle.artifactoryonline.com/gradle/distributions'
         } else {
-            'https://repo.gradle.org/gradle/distributions/gradle-snapshots'
+            'https://gradle.artifactoryonline.com/gradle/distributions-snapshots'
         }
     }
 
     String getLibsUrl() {
         if (release) {
-            'https://repo.gradle.org/gradle/libs-releases-local'
+            'https://gradle.artifactoryonline.com/gradle/libs-releases-local'
         } else {
-            'https://repo.gradle.org/gradle/libs-snapshots-local'
+            'https://gradle.artifactoryonline.com/gradle/libs-snapshots-local'
         }
     }
 }

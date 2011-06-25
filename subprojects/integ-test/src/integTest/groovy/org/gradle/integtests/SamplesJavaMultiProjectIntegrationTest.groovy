@@ -72,14 +72,16 @@ class SamplesJavaMultiProjectIntegrationTest {
     private void assertEverythingBuilt() {
         String packagePrefix = 'build/classes/main/org/gradle'
         String testPackagePrefix = 'build/classes/test/org/gradle'
+        String resPackagePrefix = 'build/resources/main/org/gradle'
+        String testResPackagePrefix = 'build/resources/test/org/gradle'
 
         // Check classes and resources
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
-        assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
+        assertExists(javaprojectDir, SHARED_NAME, resPackagePrefix, SHARED_NAME, 'main.properties')
 
         // Check test classes and resources
         assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
-        assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'test.properties')
+        assertExists(javaprojectDir, SHARED_NAME, testResPackagePrefix, SHARED_NAME, 'test.properties')
         assertExists(javaprojectDir, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
         assertExists(javaprojectDir, WEBAPP_PATH, packagePrefix, WEBAPP_NAME, 'TestTest.class')
 
@@ -163,6 +165,10 @@ class SamplesJavaMultiProjectIntegrationTest {
         executer.inDirectory(javaprojectDir.file("$SERVICES_NAME/$WEBAPP_NAME")).withTasks('buildNeeded').run()
         checkPartialWebAppBuild(packagePrefix, javaprojectDir, testPackagePrefix)
 
+        // check resources
+        assertExists(javaprojectDir, SHARED_NAME, 'build/resources/main/org/gradle', SHARED_NAME, 'main.properties')
+        assertExists(javaprojectDir, SHARED_NAME, 'build/resources/test/org/gradle', SHARED_NAME, 'test.properties')
+
         // Partial build using task path
         executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:classes".toString()).run()
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
@@ -201,9 +207,7 @@ class SamplesJavaMultiProjectIntegrationTest {
            
     private static def checkPartialWebAppBuild(String packagePrefix, TestFile javaprojectDir, String testPackagePrefix) {
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
-        assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
         assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
-        assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'test.properties')
         assertExists(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME" as String, packagePrefix, WEBAPP_NAME, 'TestTest.class')
         assertExists(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'libs', 'webservice-2.5.war')
         assertDoesNotExist(javaprojectDir, false, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'libs', 'webservice-2.5.jar')

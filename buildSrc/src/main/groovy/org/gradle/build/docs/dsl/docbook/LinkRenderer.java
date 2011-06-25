@@ -97,7 +97,10 @@ public class LinkRenderer {
             return linkElement;
         }
 
-        listener.warning(String.format("Could not generate link for unknown class '%s'", className));
+        //this if is a bit cheesy but 1-letter classname surely means a generic type and the warning will be useless
+        if (className.length() > 1) {
+            listener.warning(String.format("Could not generate link for unknown class '%s'", className));
+        }
         Element element = document.createElement("classname");
         element.appendChild(document.createTextNode(className));
         return element;

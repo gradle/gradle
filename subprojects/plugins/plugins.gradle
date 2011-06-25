@@ -1,5 +1,3 @@
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -38,33 +36,18 @@ dependencies {
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
-    testFixtures sourceSets.test.classes
+    testFixtures sourceSets.test.output
 }
+
+def generatedResourcesDir = "$buildDir/generated-resources/main"
+sourceSets.main.output.dir generatedResourcesDir, buildBy: 'reportResources'
+
 
 task reportResources << {
     copy {
         from(configurations.reports)
-        into "${sourceSets.main.classesDir}/org/gradle/api/internal/tasks/testing/junit/report"
+        into "$generatedResourcesDir/org/gradle/api/internal/tasks/testing/junit/report"
     }
-}
-
-classes.dependsOn reportResources
-
-task ideResources(type: Copy) {
-    from(configurations.reports)
-    into "${ideDir}/resources/test/org/gradle/api/internal/tasks/testing/junit/report"
-}
-
-ide.dependsOn ideResources
-
-ideaModule {
-    dependsOn ideResources
-    scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
-}
-
-eclipseClasspath {
-    dependsOn ideResources
-    plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
 }
 
 test {

@@ -31,7 +31,7 @@ public class TerminalDetector implements Spec<FileDescriptor> {
         // Some hackery to prevent JNA from creating a shared lib in the tmp dir, as it does not clean things up
         File tmpDir = new File(libCacheDir, "jna");
         tmpDir.mkdirs();
-        String libName = System.mapLibraryName("jnidispatch");
+        String libName = OperatingSystem.current() instanceof OperatingSystem.MacOs ? "libjnidispatch.jnilib" : System.mapLibraryName("jnidispatch");
         File libFile = new File(tmpDir, libName);
         if (!libFile.exists()) {
             String resourceName = "/com/sun/jna/" + OperatingSystem.current().getNativePrefix() + "/" + libName;
@@ -54,12 +54,10 @@ public class TerminalDetector implements Spec<FileDescriptor> {
                 throw new UncheckedIOException(e);
             }
         }
-//        System.load(libFile.getAbsolutePath());
         System.setProperty("jna.boot.library.path", tmpDir.getAbsolutePath());
     }
 
     public boolean isSatisfiedBy(FileDescriptor element) {
-
         if (OperatingSystem.current().isWindows()) {
             // Use Jansi's detection mechanism
             try {

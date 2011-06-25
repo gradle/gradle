@@ -17,15 +17,15 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.messaging.remote.internal.TcpMessagingClient;
+import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.net.URI;
 
 /**
  * <p>The final stage of worker start-up. Takes care of executing the worker action.</p>
@@ -37,10 +37,10 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
     private final Action<WorkerProcessContext> action;
     private final Object workerId;
     private final String displayName;
-    private final URI serverAddress;
+    private final Address serverAddress;
 
     public ActionExecutionWorker(Action<WorkerProcessContext> action, Object workerId, String displayName,
-                                 URI serverAddress) {
+                                 Address serverAddress) {
         this.action = action;
         this.workerId = workerId;
         this.displayName = displayName;
@@ -48,12 +48,14 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
     }
 
     public void execute(final WorkerContext workerContext) {
-        final MessagingClient client = createClient();
+        MessagingServices messagingServices = createClient();
+        final MessagingClient client = messagingServices.get(MessagingClient.class);
+        final ObjectConnection clientConnection = client.getConnection(serverAddress);
         try {
             LOGGER.debug("Starting {}.", displayName);
             WorkerProcessContext context = new WorkerProcessContext() {
                 public ObjectConnection getServerConnection() {
-                    return client.getConnection();
+                    return clientConnection;
                 }
 
                 public ClassLoader getApplicationClassLoader() {
@@ -79,11 +81,11 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
             LOGGER.debug("Completed {}.", displayName);
         } finally {
             LOGGER.debug("Stopping client connection.");
-            client.stop();
+            messagingServices.stop();
         }
     }
 
-    MessagingClient createClient() {
-        return new TcpMessagingClient(getClass().getClassLoader(), serverAddress);
+    MessagingServices createClient() {
+        return new MessagingServices(getClass().getClassLoader());
     }
 }

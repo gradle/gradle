@@ -50,7 +50,7 @@ class SonarPlugin implements Plugin<Project> {
         sonarTask.conventionMapping.buildDir = { project.buildDir }
         sonarTask.conventionMapping.projectMainSourceDirs = { getSourceDirs(main) }
         sonarTask.conventionMapping.projectTestSourceDirs = { getSourceDirs(test) }
-        sonarTask.conventionMapping.projectClassesDirs = { [main.classesDir] as Set }
+        sonarTask.conventionMapping.projectClassesDirs = { [main.output.classesDir] as Set }
         sonarTask.conventionMapping.projectDependencies = { project.configurations.compile.resolve() }
         sonarTask.conventionMapping.projectKey = { "$project.group:$project.name" as String }
         sonarTask.conventionMapping.projectName = { project.name }
@@ -65,6 +65,6 @@ class SonarPlugin implements Plugin<Project> {
     }
 
     private Set<File> getSourceDirs(SourceSet sourceSet) {
-        sourceSet.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet
+        sourceSet.allSource.srcDirs as LinkedHashSet
     }
 }

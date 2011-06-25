@@ -1,22 +1,2 @@
-println 'nestedBuild/buildSrc quiet'
-logger.info 'nestedBuild/buildSrc info'
-
-task classes << { }
-
-convention.plugins.java = new ProjectInfo(project: project);
-
-class ProjectInfo implements org.gradle.api.internal.plugins.EmbeddableJavaProject {
-    def Project project
-
-    Collection<String> getRebuildTasks() {
-        return ['classes']
-    }
-
-    Collection<String> getBuildTasks() {
-        return ['classes']
-    }
-
-    FileCollection getRuntimeClasspath() {
-        return project.files()
-    }
-}
+println 'nestedBuild buildSrc quiet'
+logger.info 'nestedBuild buildSrc info'

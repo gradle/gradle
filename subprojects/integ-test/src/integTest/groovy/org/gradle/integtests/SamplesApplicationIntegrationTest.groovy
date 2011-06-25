@@ -35,7 +35,7 @@ class SamplesApplicationIntegrationTest extends Specification {
 
     def canBuildAndRunTheInstalledApplication() {
         when:
-        executer.inDirectory(sample.dir).withTasks('install').run()
+        executer.inDirectory(sample.dir).withTasks('installApp').run()
 
         then:
         def installDir = sample.dir.file('build/install/application')

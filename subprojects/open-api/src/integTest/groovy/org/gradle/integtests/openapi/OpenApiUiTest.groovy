@@ -693,9 +693,9 @@ public class OpenApiUiTest {
 
     Assert.assertTrue( "Has no '.jar' extension", indexOfExtension != -1 )          //it had better have an extension
 
-    String name = gradleJar.getName().substring( 0, indexOfExtension )              //get its name minus the extension
+    String jarName = gradleJar.getName().substring( 0, indexOfExtension )              //get its name minus the extension
 
-    Assert.assertTrue( "Jar name doesn't end with version", name.endsWith( version ) )  //the name (minus extension) should end with the version
+    assert jarName.endsWith(version)  //the name (minus extension) should end with the version
   }
 
   /**

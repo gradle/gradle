@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultGradleConnector extends GradleConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleConnector.class);
@@ -33,6 +34,9 @@ public class DefaultGradleConnector extends GradleConnector {
     private File gradleUserHomeDir;
     private Distribution distribution;
     private Boolean searchUpwards;
+    private Boolean embedded;
+    private Integer daemonMaxIdleTimeValue;
+    private TimeUnit daemonMaxIdleTimeUnits;
 
     public DefaultGradleConnector(ConnectionFactory connectionFactory, DistributionFactory distributionFactory) {
         this.connectionFactory = connectionFactory;
@@ -54,6 +58,11 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    public GradleConnector useClasspathDistribution() {
+        distribution = distributionFactory.getClasspathDistribution();
+        return this;
+    }
+
     public GradleConnector forProjectDirectory(File projectDir) {
         this.projectDir = projectDir;
         return this;
@@ -69,6 +78,17 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    public GradleConnector embedded(boolean embedded) {
+        this.embedded = embedded;
+        return this;
+    }
+
+    public GradleConnector daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits) {
+        this.daemonMaxIdleTimeValue = timeoutValue;
+        this.daemonMaxIdleTimeUnits = timeoutUnits;
+        return this;
+    }
+
     public ProjectConnection connect() throws GradleConnectionException {
         LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
 
@@ -76,9 +96,9 @@ public class DefaultGradleConnector extends GradleConnector {
             throw new IllegalStateException("A project directory must be specified before creating a connection.");
         }
         if (distribution == null) {
-            distribution = distributionFactory.getCurrentDistribution();
+            distribution = distributionFactory.getDefaultDistribution(projectDir);
         }
-        return connectionFactory.create(distribution, new DefaultConnectionParametersVersion1(projectDir, gradleUserHomeDir, searchUpwards));
+        return connectionFactory.create(distribution, new DefaultConnectionParameters(projectDir, gradleUserHomeDir, searchUpwards, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits));
     }
 
 }

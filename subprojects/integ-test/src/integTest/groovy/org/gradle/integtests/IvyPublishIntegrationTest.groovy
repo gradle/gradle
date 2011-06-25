@@ -18,41 +18,120 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.HttpServer
-import org.junit.After
+import org.hamcrest.Matchers
 import org.junit.Rule
 import org.junit.Test
-import org.hamcrest.Matchers
 
 public class IvyPublishIntegrationTest {
     @Rule
     public final GradleDistribution dist = new GradleDistribution()
     @Rule
     public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    final HttpServer server = new HttpServer()
+    @Rule
+    public final HttpServer server = new HttpServer()
 
-    @After
-    public void tearDown() {
-        server.stop()
+    @Test
+    public void canPublishToLocalFileRepository() {
+        dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
+        dist.testFile("build.gradle") << '''
+apply plugin: 'java'
+version = '2'
+group = 'org.gradle'
+uploadArchives {
+    repositories {
+        ivy {
+            artifactPattern "build/repo/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        }
+    }
+}
+'''
+        executer.withTasks("uploadArchives").run()
+
+        def uploadedJar = dist.testFile('build/repo/org.gradle/publish/2/publish-2.jar')
+        def uploadedIvy = dist.testFile('build/repo/org.gradle/publish/2/ivy-2.xml')
+        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
+        uploadedIvy.assertIsFile()
     }
 
     @Test
-    public void testFailedPublish() {
+    public void canPublishToUnauthenticatedHttpRepository() {
+        server.start()
+
+        dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
+        dist.testFile("build.gradle") << """
+apply plugin: 'java'
+version = '2'
+group = 'org.gradle'
+uploadArchives {
+    repositories {
+        ivy {
+            artifactPattern "http://localhost:${server.port}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        }
+    }
+}
+"""
+        def uploadedJar = dist.testFile('uploaded.jar')
+        def uploadedIvy = dist.testFile('uploaded.xml')
+        server.expectPut('/org.gradle/publish/2/publish-2.jar', uploadedJar)
+        server.expectPut('/org.gradle/publish/2/ivy-2.xml', uploadedIvy)
+
+        executer.withTasks("uploadArchives").run()
+
+        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
+        uploadedIvy.assertIsFile()
+    }
+
+    @Test
+    public void canPublishToAuthenticatedHttpRepository() {
+        server.start()
+
+        dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
+        dist.testFile("build.gradle") << """
+apply plugin: 'java'
+version = '2'
+group = 'org.gradle'
+uploadArchives {
+    repositories {
+        ivy {
+            userName = 'user'
+            password = 'password'
+            realm = 'test'
+            artifactPattern "http://localhost:${server.port}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        }
+    }
+}
+"""
+
+        def uploadedJar = dist.testFile('uploaded.jar')
+        def uploadedIvy = dist.testFile('uploaded.xml')
+        server.expectPut('/org.gradle/publish/2/publish-2.jar', 'user', 'password', uploadedJar)
+        server.expectPut('/org.gradle/publish/2/ivy-2.xml', 'user', 'password', uploadedIvy)
+
+        executer.withTasks("uploadArchives").run()
+
+        uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
+        uploadedIvy.assertIsFile()
+    }
+
+    @Test
+    public void reportsFailedPublishToHttpRepository() {
         server.start()
 
         dist.testFile("build.gradle") << """
 apply plugin: 'java'
 uploadArchives {
-        repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
-            name = 'gradleReleases'
-            addArtifactPattern("http://localhost:${server.port}/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]" as String)
+    repositories {
+        ivy {
+            artifactPattern "http://localhost:${server.port}/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
         }
+    }
 }
 """
 
         def result = executer.withTasks("uploadArchives").runWithFailure()
         result.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         result.assertHasCause('Could not publish configurations [configuration \':archives\'].')
-        result.assertThatCause(Matchers.containsString('failed with status code 404'))
+        result.assertThatCause(Matchers.containsString('Received status code 404 from server: Not Found'))
 
         server.stop()
 

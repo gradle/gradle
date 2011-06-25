@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,10 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.plugins.ide.idea.model.IdeaModel
-import org.gradle.plugins.ide.idea.model.IdeaModule
-import org.gradle.plugins.ide.idea.model.IdeaModuleIml
-import org.gradle.plugins.ide.idea.model.IdeaProject
-import org.gradle.plugins.ide.idea.model.IdeaProjectIpr
-import org.gradle.plugins.ide.idea.model.PathFactory
+import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.internal.IdePlugin
+import org.gradle.plugins.ide.idea.model.*
 
 /**
  * @author Hans Dockter
@@ -46,48 +43,53 @@ class IdeaPlugin extends IdePlugin {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
 
-        model = project.services.get(ClassGenerator).newInstance(IdeaModel)
-        project.convention.plugins.idea = model
+        model = new IdeaModel()
+        project.extensions.add('idea', model)
 
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
         configureIdeaModule(project)
         configureForJavaPlugin(project)
 
-        project.afterEvaluate {
-            //TODO don't do stuff related to whenConfigured
-            //
-            new IdeaConfigurer().configure(project)
+        hookDeduplicationToTheRoot(project)
+    }
+
+    void hookDeduplicationToTheRoot(Project project) {
+        if (isRoot(project)) {
+            project.gradle.projectsEvaluated {
+                new IdeaNameDeduper().configureRoot(project)
+            }
         }
     }
 
     private configureIdeaWorkspace(Project project) {
         if (isRoot(project)) {
             def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: GenerateIdeaWorkspace) {
+                workspace = new IdeaWorkspace(iws: new XmlFileContentMerger(xmlTransformer))
+                model.workspace = workspace
                 outputFile = new File(project.projectDir, project.name + ".iws")
             }
-            addWorker(task)
+            addWorker(task, false)
         }
     }
 
     private configureIdeaModule(Project project) {
         def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) {
-            def iml = new IdeaModuleIml(xmlTransformer: xmlTransformer, generateTo: project.projectDir)
+            def iml = new IdeaModuleIml(xmlTransformer, project.projectDir)
             module = services.get(ClassGenerator).newInstance(IdeaModule, [project: project, iml: iml])
 
             model.module = module
 
             module.conventionMapping.sourceDirs = { [] as LinkedHashSet }
             module.conventionMapping.name = { project.name }
-            module.conventionMapping.moduleDir = { project.projectDir }
+            module.conventionMapping.contentRoot = { project.projectDir }
             module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
             module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
 
             module.conventionMapping.pathFactory = {
-                PathFactory factory = new PathFactory().
-                        setCacheDir(project.gradle).
-                        addPathVariable('MODULE_DIR', outputFile.parentFile)
-                variables.each { key, value ->
+                PathFactory factory = new PathFactory()
+                factory.setCacheDir(project.gradle).addPathVariable('MODULE_DIR', outputFile.parentFile)
+                module.pathVariables.each { key, value ->
                     factory.addPathVariable(key, value)
                 }
                 factory
@@ -100,15 +102,18 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaProject(Project project) {
         if (isRoot(project)) {
             def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
-                def ipr = new IdeaProjectIpr(xmlTransformer: xmlTransformer)
+                def ipr = new XmlFileContentMerger(xmlTransformer)
                 ideaProject = services.get(ClassGenerator).newInstance(IdeaProject, [ipr: ipr])
 
                 model.project = ideaProject
 
-                ideaProject.conventionMapping.outputFile = { new File(project.projectDir, project.name + ".ipr") }
-                ideaProject.conventionMapping.javaVersion = { JavaVersion.VERSION_1_6.toString() }
-                ideaProject.conventionMapping.wildcards = { ['!?*.java', '!?*.groovy'] as Set }
-                ideaProject.conventionMapping.subprojects = { project.rootProject.allprojects }
+                ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
+                ideaProject.javaVersion = JavaVersion.VERSION_1_6
+                ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
+                ideaProject.conventionMapping.modules = {
+                    project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.idea.module }
+                }
+
                 ideaProject.conventionMapping.pathFactory = {
                     new PathFactory().setCacheDir(project.gradle).addPathVariable('PROJECT_DIR', outputFile.parentFile)
                 }
@@ -126,7 +131,7 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaProjectForJava(Project project) {
         if (isRoot(project)) {
-            project.ideaProject {
+            project.idea.project {
                 javaVersion = project.sourceCompatibility
             }
         }
@@ -134,15 +139,22 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaModuleForJava(Project project) {
         project.ideaModule {
-            module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
-            module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
+            module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
+            module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.srcDirs as LinkedHashSet }
             def configurations = project.configurations
-            module.conventionMapping.scopes = {[
+            module.scopes = [
                     PROVIDED: [plus: [], minus: []],
                     COMPILE: [plus: [configurations.compile], minus: []],
                     RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
                     TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
-            ]}
+            ]
+            module.conventionMapping.singleEntryLibraries = { [
+                    RUNTIME: project.sourceSets.main.output.dirs,
+                    TEST: project.sourceSets.test.output.dirs
+            ] }
+            dependsOn {
+                project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
+            }
         }
     }
 

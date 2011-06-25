@@ -18,10 +18,11 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 
 class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
-    protected runEclipseTask(settingsScript = "rootProject.name = 'root'", buildScript) {
+    protected ExecutionResult runEclipseTask(settingsScript = "rootProject.name = 'root'", buildScript) {
         runTask("eclipse", settingsScript, buildScript)
     }
 
@@ -57,6 +58,10 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
         parseFile(options, ".settings/org.eclipse.wst.common.project.facet.core.xml")
     }
 
+    protected String parseJdtFile() {
+        return getFile([:], '.settings/org.eclipse.jdt.core.prefs').text
+    }
+
     protected findEntries(classpath, kind) {
         classpath.classpathentry.findAll { it.@kind == kind }
     }
@@ -64,7 +69,6 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
     protected libEntriesInClasspathFileHaveFilenames(String... filenames) {
         def classpath = parseClasspathFile()
         def libs = findEntries(classpath, "lib")
-        assert libs.size() == filenames.size()
         assert libs*.@path*.text().collect { new File(it).name } as Set == filenames as Set
     }
 }

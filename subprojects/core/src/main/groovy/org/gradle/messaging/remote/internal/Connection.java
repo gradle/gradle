@@ -20,5 +20,10 @@ import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.Receive;
 
+/**
+ * <p>A messaging endpoint which allows push-style dispatch and pull-style receive.
+ *
+ * <p>Implementations must be thread-safe.
+ */
 public interface Connection<T> extends Dispatch<T>, Receive<T>, AsyncStoppable {
 }

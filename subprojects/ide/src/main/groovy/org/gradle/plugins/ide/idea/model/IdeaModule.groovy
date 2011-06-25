@@ -16,15 +16,17 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.util.ConfigureUtil
 
 /**
- * Model for idea module.
+ * Enables fine-tuning module details (*.iml file) of the Idea plugin
  * <p>
  * Example of use with a blend of all possible properties.
- * Bear in mind that usually you don't have configure idea module directly because Gradle configures it for free!
+ * Bear in mind that usually you don't have configure this model directly because Gradle configures it for free!
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
@@ -41,6 +43,10 @@ import org.gradle.util.ConfigureUtil
  * }
  *
  * idea {
+ *
+ *   //if you want parts of paths in resulting files (*.iml, etc.) to be replaced by variables (Files)
+ *   pathVariables GRADLE_HOME: file('~/cool-software/gradle')
+ *
  *   module {
  *     //if for some reason you want to add an extra sourceDirs
  *     sourceDirs += file('some-extra-source-folder')
@@ -63,23 +69,34 @@ import org.gradle.util.ConfigureUtil
  *     javaVersion = '1.6'
  *
  *     //if you need to put provided dependencies on the classpath
- *     scopes.COMPILE.plus += configurations.provided
+ *     scopes.PROVIDED.plus += configurations.provided
  *
  *     //if 'content root' (as IDEA calls it) of the module is different
- *     moduleDir = file('my-module-content-root')
- *     //TODO SF: contentRoot
+ *     contentRoot = file('my-module-content-root')
  *
  *     //if you love browsing javadocs
  *     downloadJavadoc = true
  *
  *     //and hate reading sources :)
  *     downloadSources = false
+ *   }
+ * }
+ * </pre>
  *
- *     //if you want parts of paths in resulting *.iml to be replaced by variables (files)
- *     variables = [GRADLE_HOME: file('~/cool-software/gradle')]
- *     //pathVariables
- *     //TODO SF: think about moving the pathVariables to the upper level
+ * For tackling edge cases users can perform advanced configuration on resulting xml file.
+ * It is also possible to affect the way idea plugin merges the existing configuration
+ * via beforeMerged and whenMerged closures.
+ * <p>
+ * beforeMerged and whenMerged closures receive {@link Module} object
+ * <p>
+ * Examples of advanced configuration:
  *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * apply plugin: 'idea'
+ *
+ * idea {
+ *   module {
  *     iml {
  *       //if you like to keep *.iml in a secret folder
  *       generateTo = file('secret-modules-folder')
@@ -91,9 +108,6 @@ import org.gradle.util.ConfigureUtil
  *         node.appendNode('butAlso', 'I find increasing pleasure tinkering with output *.iml contents. Yeah!!!')
  *       }
  *
- *       //beforeMerged and whenMerged closures are the highest voodoo
- *       //and probably should be used only to solve tricky edge cases:
- *
  *       //closure executed after *.iml content is loaded from existing file
  *       //but before gradle build information is merged
  *       beforeMerged { module ->
@@ -104,10 +118,7 @@ import org.gradle.util.ConfigureUtil
  *       //closure executed after *.iml content is loaded from existing file
  *       //and after gradle build information is merged
  *       whenMerged { module ->
- *         //If you really want to update the javaVersion
- *         module.javaVersion = '1.6'
- *         //but you don't want to do it here...
- *         //because you can do it much easier in idea.module configuration!
+ *         //you can tinker with {@link Module}
  *       }
  *     }
  *   }
@@ -115,12 +126,29 @@ import org.gradle.util.ConfigureUtil
  *
  * </pre>
  *
- * Author: Szczepan Faber, created at: 3/31/11
+ * @author Szczepan Faber, created at: 3/31/11
  */
 class IdeaModule {
 
    /**
-     * Idea module name; controls the name of the *.iml file
+     * Configures module name, that is the name of the *.iml file.
+     * <p>
+     * It's <b>optional</b> because the task should configure it correctly for you.
+     * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b>
+     * to make sure the module name is unique in the scope of a multi-module build.
+     * The 'uniqeness' of a module name is required for correct import
+     * into IntelliJ IDEA and the task will make sure the name is unique.
+     * <p>
+     * <b>since</b> 1.0-milestone-2
+     * <p>
+     * If your project has problems with unique names it is recommended to always run gradle idea from the root, e.g. for all subprojects.
+     * If you run the generation of the idea module only for a single subproject then you may have different results
+     * because the unique names are calculated based on idea modules that are involved in the specific build run.
+     * <p>
+     * If you update the module names then make sure you run gradle idea from the root, e.g. for all subprojects, including generation of idea project.
+     * The reason is that there may be subprojects that depend on the subproject with amended module name.
+     * So you want them to be generated as well because the module dependencies need to refer to the amended project name.
+     * Basically, for non-trivial projects it is recommended to always run gradle idea from the root.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
@@ -134,8 +162,8 @@ class IdeaModule {
     Set<File> sourceDirs
 
     /**
-     * The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
-     * The values of those keys are sets of  {@link org.gradle.api.artifacts.Configuration}  objects. The files of the
+     * The keys of this map are the IDEA scopes. Each key points to another map that has two keys, plus and minus.
+     * The values of those keys are collections of {@link org.gradle.api.artifacts.Configuration} objects. The files of the
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
@@ -154,12 +182,12 @@ class IdeaModule {
      *
      * idea {
      *   module {
-     *     scopes.COMPILE.plus += configurations.provided
+     *     scopes.PROVIDED.plus += configurations.provided
      *   }
      * }
      * </pre>
      */
-    Map<String, Map<String, Configuration>> scopes = [:]
+    Map<String, Map<String, Collection<Configuration>>> scopes = [:]
 
     /**
      * Whether to download and add sources associated with the dependency jars.
@@ -180,7 +208,7 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    File moduleDir
+    File contentRoot
 
     /**
      * The directories containing the test sources.
@@ -190,7 +218,7 @@ class IdeaModule {
     Set<File> testSourceDirs
 
     /**
-     * The directories to be excluded.
+     * {@link ConventionProperty} for the directories to be excluded.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
@@ -198,7 +226,7 @@ class IdeaModule {
 
     /**
      * If true, output directories for this module will be located below the output directory for the project;
-     * otherwise, they will be set to the directories specified by {@link #outputDir} and {@link #testOutputDir}.
+     * otherwise, they will be set to the directories specified by #outputDir and #testOutputDir.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
@@ -224,7 +252,7 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    Map<String, File> variables = [:]
+    Map<String, File> pathVariables = [:]
 
     /**
      * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (inherited)
@@ -233,7 +261,16 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    String javaVersion = Module.INHERITED
+    JavaVersion javaVersion
+
+    void setJavaVersion(Object javaVersion) {
+        this.javaVersion = JavaVersion.toVersion(javaVersion)
+    }
+
+    /**
+     * See {@link #iml(Closure) }
+     */
+    IdeaModuleIml iml
 
     /**
      * Enables advanced configuration like tinkering with the output xml
@@ -241,70 +278,46 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    public void iml(Closure closure) {
+    void iml(Closure closure) {
         ConfigureUtil.configure(closure, getIml())
     }
 
-    //TODO SF: most likely what's above should be a part of an interface and what's below should not be exposed. For now, below methods are protected
-
-    org.gradle.api.Project project
-    Module xmlModule
-    PathFactory pathFactory
-    IdeaModuleIml iml
-
-    protected File getOutputFile() {
+    /**
+     * Configures output *.iml file. It's <b>optional</b> because the task should configure it correctly for you
+     * (including making sure it is unique in the multi-module build).
+     * If you really need to change the output file name (or the module name) it is much easier to do it via the <b>moduleName</b> property!
+     * <p>
+     * Please refer to documentation on <b>moduleName</b> property. In IntelliJ IDEA the module name is the same as the name of the *.iml file.
+     */
+    File getOutputFile() {
         new File((File) iml.getGenerateTo(), getName() + ".iml")
     }
 
-    protected void setOutputFile(File newOutputFile) {
+    void setOutputFile(File newOutputFile) {
         name = newOutputFile.name.replaceFirst(/\.iml$/,"");
         iml.generateTo = newOutputFile.parentFile
     }
 
-    protected Set<Path> getSourcePaths() {
-        getSourceDirs().findAll { it.exists() }.collect { path(it) }
-    }
+    org.gradle.api.Project project
+    PathFactory pathFactory
 
-    protected Set getDependencies() {
-        new IdeaDependenciesProvider().provide(this, getPathFactory());
-    }
+    Map<String, Collection<File>> singleEntryLibraries
 
-    protected Set<Path> getTestSourcePaths() {
-        getTestSourceDirs().findAll { it.exists() }.collect { getPathFactory().path(it) }
-    }
-
-    protected Set<Path> getExcludePaths() {
-        getExcludeDirs().collect { path(it) }
-    }
-
-    protected Path getOutputPath() {
-        getOutputDir() ? path(getOutputDir()) : null
-    }
-
-    protected Path getTestOutputPath() {
-        getTestOutputDir() ? path(getTestOutputDir()) : null
-    }
-
-    protected void mergeXmlModule(Module xmlModule) {
-        xmlModule.pathFactory = pathFactory
-
+    void mergeXmlModule(Module xmlModule) {
         iml.beforeMerged.execute(xmlModule)
-        xmlModule.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(),
-                getInheritOutputDirs(), getOutputPath(), getTestOutputPath(), getDependencies(), getJavaVersion())
+
+        def path = { getPathFactory().path(it) }
+        def contentRoot = path(getContentRoot())
+        Set sourceFolders = getSourceDirs().findAll { it.exists() }.collect { path(it) }
+        Set testSourceFolders = getTestSourceDirs().findAll { it.exists() }.collect { path(it) }
+        Set excludeFolders = getExcludeDirs().collect { path(it) }
+        def outputDir = getOutputDir() ? path(getOutputDir()) : null
+        def testOutputDir = getTestOutputDir() ? path(getTestOutputDir()) : null
+        Set dependencies = new IdeaDependenciesProvider().provide(this, getPathFactory())
+
+        xmlModule.configure(contentRoot, sourceFolders, testSourceFolders, excludeFolders,
+                getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJavaVersion())
+
         iml.whenMerged.execute(xmlModule)
-
-        this.xmlModule = xmlModule
-    }
-
-    protected void generate() {
-        xmlModule.store(getOutputFile())
-    }
-
-    protected Path getContentPath() {
-        path(getModuleDir())
-    }
-
-    protected def path(File dir) {
-        getPathFactory().path(dir)
     }
 }

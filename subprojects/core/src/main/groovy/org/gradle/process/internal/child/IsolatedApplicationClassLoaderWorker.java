@@ -17,7 +17,7 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
-import org.gradle.util.ObservableUrlClassLoader;
+import org.gradle.util.DefaultClassLoaderFactory;
 
 import java.io.Serializable;
 import java.net.URL;
@@ -37,7 +37,7 @@ public class IsolatedApplicationClassLoaderWorker implements Callable<Void>, Ser
     }
 
     public Void call() throws Exception {
-        final ObservableUrlClassLoader applicationClassLoader = createApplicationClassLoader();
+        final ClassLoader applicationClassLoader = createApplicationClassLoader();
 
         WorkerContext context = new WorkerContext() {
             public ClassLoader getApplicationClassLoader() {
@@ -50,7 +50,7 @@ public class IsolatedApplicationClassLoaderWorker implements Callable<Void>, Ser
         return null;
     }
 
-    private ObservableUrlClassLoader createApplicationClassLoader() {
-        return new ObservableUrlClassLoader(ClassLoader.getSystemClassLoader().getParent(), applicationClassPath);
+    private ClassLoader createApplicationClassLoader() {
+        return new DefaultClassLoaderFactory().createIsolatedClassLoader(applicationClassPath);
     }
 }

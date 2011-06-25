@@ -17,37 +17,46 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.remote.internal.protocol.MethodMetaInfo;
+import org.gradle.messaging.remote.internal.protocol.PayloadMessage;
+import org.gradle.messaging.remote.internal.protocol.RemoteMethodInvocation;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MethodInvocationUnmarshallingDispatch implements Dispatch<Object> {
-    private final Dispatch<? super MethodInvocation> dispatch;
+public class MethodInvocationUnmarshallingDispatch implements Dispatch<Message> {
+    private final Dispatch<? super Message> dispatch;
     private final ClassLoader classLoader;
     private final Map<Object, Method> methods = new HashMap<Object, Method>();
 
-    public MethodInvocationUnmarshallingDispatch(Dispatch<? super MethodInvocation> dispatch, ClassLoader classLoader) {
+    public MethodInvocationUnmarshallingDispatch(Dispatch<? super Message> dispatch, ClassLoader classLoader) {
         this.dispatch = dispatch;
         this.classLoader = classLoader;
     }
 
-    public void dispatch(Object message) {
+    public void dispatch(Message message) {
         if (message instanceof MethodMetaInfo) {
             MethodMetaInfo methodMetaInfo = (MethodMetaInfo) message;
             Method method = methodMetaInfo.findMethod(classLoader);
             methods.put(methodMetaInfo.getKey(), method);
-        } else if (message instanceof RemoteMethodInvocation) {
-            RemoteMethodInvocation remoteMethodInvocation = (RemoteMethodInvocation) message;
-            Method method = methods.get(remoteMethodInvocation.getKey());
-            if (method == null) {
-                throw new IllegalStateException("Received a method invocation message for an unknown method.");
-            }
-            MethodInvocation methodInvocation = new MethodInvocation(method,
-                    remoteMethodInvocation.getArguments());
-            dispatch.dispatch(methodInvocation);
-        } else {
-            throw new IllegalStateException(String.format("Received an unknown message %s.", message));
+            return;
         }
+        if (message instanceof PayloadMessage) {
+            PayloadMessage payloadMessage = (PayloadMessage) message;
+            if (payloadMessage.getNestedPayload() instanceof RemoteMethodInvocation) {
+                RemoteMethodInvocation remoteMethodInvocation = (RemoteMethodInvocation) payloadMessage.getNestedPayload();
+                Method method = methods.get(remoteMethodInvocation.getKey());
+                if (method == null) {
+                    throw new IllegalStateException("Received a method invocation message for an unknown method.");
+                }
+                MethodInvocation methodInvocation = new MethodInvocation(method,
+                        remoteMethodInvocation.getArguments());
+                dispatch.dispatch(payloadMessage.withNestedPayload(methodInvocation));
+                return;
+            }
+        }
+
+        dispatch.dispatch(message);
     }
 }

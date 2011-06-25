@@ -43,7 +43,9 @@ public class UIFactory {
      * @param gradleHomeDirectory the root directory of a gradle installation
      * @param showDebugInfo true to show some additional information that may be helpful diagnosing problems is this fails
      * @return the UI object.
+     * @deprecated Use the tooling API instead.
      */
+    @Deprecated
     public static SinglePaneUIVersion1 createSinglePaneUI(ClassLoader parentClassLoader, File gradleHomeDirectory, final SinglePaneUIInteractionVersion1 interaction, boolean showDebugInfo)
             throws Exception {
         //much of this function is exception handling so if we can't obtain it via the newer factory method, then
@@ -145,7 +147,9 @@ public class UIFactory {
      * @param showDebugInfo true to show some additional information that may be helpful diagnosing problems is this fails
      * @return the UI object.
      * @author mhunsicker
+     * @deprecated Use the tooling API instead.
      */
+    @Deprecated
     public static DualPaneUIVersion1 createDualPaneUI(ClassLoader parentClassLoader, File gradleHomeDirectory, final DualPaneUIInteractionVersion1 interaction, boolean showDebugInfo)
             throws Exception {
         //much of this function is exception handling so if we can't obtain it via the newer factory method, then
@@ -179,7 +183,9 @@ public class UIFactory {
     /**
      * This function uses a factory to instantiate the UI. The factory is located with the version of gradle pointed to by gradleHomeDirectory and thus allows the version of gradle being loaded to make
      * decisions about how to instantiate the UI. This is needed as multiple versions of the UI are being used.
+     * @deprecated Use the tooling API instead.
      */
+    @Deprecated
     public static DualPaneUIVersion1 createDualPaneUIViaFactory(ClassLoader parentClassLoader, File gradleHomeDirectory, final DualPaneUIInteractionVersion1 interaction, boolean showDebugInfo)
             throws Exception {
         //load the class in gradle that wraps our return interface and handles versioning issues.

@@ -19,17 +19,78 @@ package org.gradle.plugins.ide.idea.model
 import org.gradle.util.ConfigureUtil
 
 /**
- * Author: Szczepan Faber, created at: 3/31/11
+ * DSL-friendly model of the IDEA project information.
+ * First point of entry when it comes to customizing the idea generation
+ * <p>
+ * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}
+ * <p>
+ * @author Szczepan Faber, created at: 3/31/11
  */
 class IdeaModel {
+
+    /**
+     * Configures idea module information
+     * <p>
+     * For examples see docs for {@link IdeaModule}
+     */
     IdeaModule module
+
+    /**
+     * Configures idea project information
+     * <p>
+     * For examples see docs for {@link IdeaProject}
+     */
     IdeaProject project
 
+    /**
+     * Configures idea workspace information
+     * <p>
+     * For examples see docs for {@link IdeaWorkspace}
+     */
+    IdeaWorkspace workspace = new IdeaWorkspace()
+
+    /**
+     * Configures idea module information
+     * <p>
+     * For examples see docs for {@link IdeaModule}
+     *
+     * @param closure
+     */
     void module(Closure closure) {
         ConfigureUtil.configure(closure, getModule())
     }
 
+    /**
+     * Configures idea project information
+     * <p>
+     * For examples see docs for {@link IdeaProject}
+     *
+     * @param closure
+     */
     void project(Closure closure) {
         ConfigureUtil.configure(closure, getProject())
+    }
+
+    /**
+     * Configures idea workspace information
+     * <p>
+     * For examples see docs for {@link IdeaWorkspace}
+     *
+     * @param closure
+     */
+    void workspace(Closure closure) {
+        ConfigureUtil.configure(closure, getWorkspace())
+    }
+
+    /**
+     * Adds path variables to be used for replacing absolute paths in resulting files (*.iml, etc.)
+     * <p>
+     * For example see docs for {@link IdeaModule}
+     *
+     * @param pathVariables A map with String->File pairs.
+     */
+    void pathVariables(Map<String, File> pathVariables) {
+        assert pathVariables != null
+        module.pathVariables.putAll pathVariables
     }
 }

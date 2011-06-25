@@ -42,6 +42,10 @@ public class ShortcircuitEmptyConfigsIvyService implements IvyService {
             return Collections.emptySet();
         }
 
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException {
+            return Collections.emptySet();
+        }
+
         public Set<ResolvedArtifact> getResolvedArtifacts() {
             return Collections.emptySet();
         }

@@ -82,7 +82,7 @@ public class MultithreadedTestCase {
         return new DefaultExecutorFactory() {
             @Override
             protected ExecutorService createExecutor(String displayName) {
-                return getExecutor();
+                return new ExecutorImpl();
             }
         };
     }

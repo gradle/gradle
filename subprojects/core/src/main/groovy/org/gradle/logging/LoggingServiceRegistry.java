@@ -35,16 +35,34 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     private TextStreamOutputEventListener stdoutListener;
     private final boolean detectConsole;
 
-    public LoggingServiceRegistry() {
+    LoggingServiceRegistry() {
         this(true);
     }
 
-    /**
-     * @param detectConsole If true, attempts to detect if stdout/stderr are attached to a console. If false, assumes they are not.
-     */
-    public LoggingServiceRegistry(boolean detectConsole) {
+    LoggingServiceRegistry(boolean detectConsole) {
         this.detectConsole = detectConsole;
         stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
+    }
+
+    /**
+     * Creates a set of logging services which are suitable to use in a command-line process.
+     */
+    public static LoggingServiceRegistry newCommandLineProcessLogging() {
+        return new LoggingServiceRegistry(true);
+    }
+
+    /**
+     * Creates a set of logging services which are suitable to use in a child process. Does not attempt to use any terminal trickery.
+     */
+    public static LoggingServiceRegistry newChildProcessLogging() {
+        return new LoggingServiceRegistry(false);
+    }
+
+    /**
+     * Creates a set of logging services which are suitable to use embedded in another application. Does not attempt to use any terminal trickery.
+     */
+    public static LoggingServiceRegistry newEmbeddableLogging() {
+        return new LoggingServiceRegistry(false);
     }
 
     protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter() {
@@ -54,7 +72,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected TimeProvider createTimeProvider() {
         return new TrueTimeProvider();
     }
-    
+
     protected StdOutLoggingSystem createStdOutLoggingSystem() {
         return new StdOutLoggingSystem(stdoutListener, get(TimeProvider.class));
     }
@@ -70,18 +88,27 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected ProgressLoggerFactory createProgressLoggerFactory() {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(TimeProvider.class));
     }
-    
+
     protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
         Slf4jLoggingConfigurer slf4jConfigurer = new Slf4jLoggingConfigurer(renderer);
         LoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer, slf4jConfigurer, new JavaUtilLoggingConfigurer());
-        return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, get(StdOutLoggingSystem.class), get(StdErrLoggingSystem.class));
+        return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
     }
-    
+
+    private LoggingSystem getStdErrLoggingSystem() {
+        return get(StdErrLoggingSystem.class);
+    }
+
+    private LoggingSystem getStdOutLoggingSystem() {
+        return get(StdOutLoggingSystem.class);
+    }
+
     protected OutputEventRenderer createOutputEventRenderer() {
         Spec<FileDescriptor> terminalDetector;
         if (detectConsole) {
-            terminalDetector = new TerminalDetector(StartParameter.DEFAULT_GRADLE_USER_HOME);
+            StartParameter startParameter = new StartParameter();
+            terminalDetector = new TerminalDetector(startParameter.getGradleUserHomeDir());
         } else {
             terminalDetector = Specs.satisfyNone();
         }

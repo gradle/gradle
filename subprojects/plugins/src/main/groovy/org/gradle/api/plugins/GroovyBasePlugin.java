@@ -79,8 +79,8 @@ public class GroovyBasePlugin implements Plugin<Project> {
                         return groovySourceSet.getGroovy().contains(element.getFile());
                     }
                 });
-                sourceSet.getAllJava().add(groovySourceSet.getGroovy().matching(sourceSet.getJava().getFilter()));
-                sourceSet.getAllSource().add(groovySourceSet.getGroovy());
+                sourceSet.getAllJava().source(groovySourceSet.getGroovy());
+                sourceSet.getAllSource().source(groovySourceSet.getGroovy());
 
                 String compileTaskName = sourceSet.getCompileTaskName("groovy");
                 GroovyCompile compile = project.getTasks().add(compileTaskName, GroovyCompile.class);

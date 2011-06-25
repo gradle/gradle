@@ -139,7 +139,7 @@ class JavadocScanner {
             BufferedReader reader = new BufferedReader(new StringReader(rawCommentText));
             String line;
             while ((line = reader.readLine()) != null) {
-                line = line.replaceFirst("\\s*\\*\\s*", "");
+                line = line.replaceFirst("\\s*\\* ?", "");
                 if (line.startsWith("@")) {
                     // Ignore the tag section of the comment
                     break;

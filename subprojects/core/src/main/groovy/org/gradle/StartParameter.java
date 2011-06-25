@@ -20,13 +20,19 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.*;
-import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.DefaultBuildExecuter;
+import org.gradle.execution.DryRunBuildExecuter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.initialization.*;
+import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.initialization.BuildFileProjectSpec;
+import org.gradle.initialization.DefaultProjectSpec;
+import org.gradle.initialization.ProjectDirectoryProjectSpec;
+import org.gradle.initialization.ProjectSpec;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
+import org.gradle.util.SystemProperties;
 
 import java.io.File;
 import java.util.*;
@@ -48,7 +54,7 @@ public class StartParameter {
     /**
      * The default user home directory.
      */
-    public static final File DEFAULT_GRADLE_USER_HOME = new File(System.getProperty("user.home") + "/.gradle");
+    public static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getUserHome() + "/.gradle");
 
     /**
      * Specifies the detail to include in stacktraces.
@@ -79,6 +85,25 @@ public class StartParameter {
     private boolean noOpt;
     private boolean colorOutput = true;
     private boolean profile;
+    private String projectCacheDir = ".gradle";
+
+    /**
+     * Sets the project's cache location.
+     *
+     * @param projectCacheDir
+     */
+    public void setProjectCacheDir(String projectCacheDir) {
+        this.projectCacheDir = projectCacheDir;
+    }
+
+    /**
+     * Returns the project's cache dir.
+     *
+     * @return project's cache dir
+     */
+    public String getProjectCacheDir() {
+        return projectCacheDir;
+    }
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -124,6 +149,7 @@ public class StartParameter {
         startParameter.dryRun = dryRun;
         startParameter.noOpt = noOpt;
         startParameter.profile = profile;
+        startParameter.projectCacheDir = projectCacheDir;
         return startParameter;
     }
 

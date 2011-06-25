@@ -15,26 +15,29 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4
-import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import spock.lang.Specification
+import org.gradle.listener.ListenerManager
+import org.gradle.logging.ProgressLoggerFactory
 
 class ConnectionFactoryTest extends Specification {
     final ToolingImplementationLoader implementationLoader = Mock()
+    final ListenerManager listenerManager = Mock()
+    final ProgressLoggerFactory progressLoggerFactory = Mock()
     final Distribution distribution = Mock()
-    final ConnectionFactoryVersion4 connectionImplFactory = Mock()
     final ConnectionVersion4 connectionImpl = Mock()
-    final ConnectionParametersVersion1 parameters = Mock()
-    final ConnectionFactory factory = new ConnectionFactory(implementationLoader)
+    final ConnectionParameters parameters = Mock()
+    final ConnectionFactory factory = new ConnectionFactory(implementationLoader, listenerManager, progressLoggerFactory)
 
     def usesImplementationLoaderToLoadConnectionFactory() {
         when:
-        factory.create(distribution, parameters)
+        def result = factory.create(distribution, parameters)
 
         then:
-        1 * implementationLoader.create(distribution) >> connectionImplFactory
-        1 * connectionImplFactory.create(parameters) >> connectionImpl
+        result instanceof DefaultProjectConnection
+        result.connection instanceof DefaultAsyncConnection
+        result.connection.connection instanceof ProgressLoggingConnection
+        result.connection.connection.connection instanceof LazyConnection
         0 * _._
     }
 }

@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.messaging.dispatch
 
 import org.gradle.util.JUnit4GroovyMockery
@@ -206,7 +204,7 @@ public class AsyncDispatchTest extends MultithreadedTestCase {
             dispatch.dispatch('message')
             fail()
         } catch (IllegalStateException e) {
-            assertThat(e.message, equalTo('This message dispatch has been stopped.'))
+            assertThat(e.message, equalTo('Cannot dispatch message, as this message dispatch has been stopped. Message: message'))
         }
     }
 }

@@ -1,7 +1,7 @@
+import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
-import junit.framework.AssertionFailedError
 import org.junit.ComparisonFailure
 
 buildscript {
@@ -9,7 +9,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'xmlunit:xmlunit:1.3'
+        classpath 'xmlunit:xmlunit:1.3', 'junit:junit:4.8.1'
     }
 }
 
@@ -37,8 +37,12 @@ allprojects {
             }
 
             if (p.hasProperty('eclipseClasspath')) {
+                eclipse {
+                    classpath {
+                        downloadJavadoc = true
+                    }
+                }
                 eclipseClasspath {
-                    downloadJavadoc = true
                     doLast {
                         compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Classpath.xml")),
                                 file(".classpath").text)
@@ -94,6 +98,8 @@ void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
     try {
         XMLAssert.assertXMLEqual(diff, true)
     } catch (AssertionFailedError error) {
+        println "EXPECTED:\n${expectedXml}"
+        println "ACTUAL:\n${actualXml}"
         throw new ComparisonFailure("Unexpected content for generated file: ${error.message}", expectedXml, actualXml).initCause(error)
     }
 }

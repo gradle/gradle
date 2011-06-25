@@ -29,7 +29,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
     @Override
     protected Map doRun(boolean expectFailure) {
-        addShutdownHook(getUserHomeDir());
+        registerDaemon(getUserHomeDir());
         Map result = super.doRun(expectFailure);
         String output = (String) result.get("output");
         output = output.replace(String.format("Note: the Gradle build daemon is an experimental feature.%n"), "");
@@ -38,13 +38,19 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         return result;
     }
 
-    private void addShutdownHook(final File userHomeDir) {
+    public static void registerDaemon(final File userHomeDir) {
+        assert userHomeDir != null;
         if (!DAEMONS.add(userHomeDir)) {
             return;
         }
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
-                new ForkingGradleExecuter(getGradleHomeDir()).withUserHomeDir(userHomeDir).withArguments("--stop").run();
+//                ExecHandleBuilder builder = new ExecHandleBuilder();
+//                builder.workingDir(new File(".").getAbsolutePath());
+//                builder.executable(Jvm.current().getJpsExecutable());
+//                builder.args("-lm");
+//                builder.setStandardOutput(new ByteArrayOutputStream());
+//                builder.build().start().waitForFinish();
             }
         }));
     }

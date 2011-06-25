@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.artifacts.publish.maven.ExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.publish.maven.PomDependenciesConverter;
 
 import java.util.*;
 

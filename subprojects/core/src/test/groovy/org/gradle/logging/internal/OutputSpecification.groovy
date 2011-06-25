@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat
 
 class OutputSpecification extends Specification {
     protected String toNative(String value) {
-        return TextUtil.toNativeLineSeparators(value)
+        return TextUtil.toPlatformLineSeparators(value)
     }
 
     /**
@@ -58,7 +58,11 @@ class OutputSpecification extends Specification {
     }
 
     ProgressStartEvent start(String description) {
-        return new ProgressStartEvent(tenAm, 'category', description)
+        return new ProgressStartEvent(tenAm, 'category', description, null, null, null)
+    }
+
+    ProgressStartEvent start(Map args) {
+        return new ProgressStartEvent(tenAm, 'category', args.description, args.shortDescription, args.loggingHeader, args.status)
     }
 
     ProgressEvent progress(String status) {

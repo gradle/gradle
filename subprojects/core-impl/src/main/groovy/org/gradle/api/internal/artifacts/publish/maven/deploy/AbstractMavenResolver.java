@@ -41,6 +41,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.EmptyMavenSettingsSupplier;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.MavenSettingsSupplier;
 import org.gradle.api.logging.LogLevel;

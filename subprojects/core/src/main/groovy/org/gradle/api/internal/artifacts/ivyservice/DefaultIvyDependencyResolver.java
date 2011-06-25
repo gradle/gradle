@@ -102,18 +102,11 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         public Set<File> getFiles(Spec<Dependency> dependencySpec) {
-            rethrowFailure();
-            Set<ModuleDependency> allDependencies = configuration.getAllDependencies(ModuleDependency.class);
-            Set<ModuleDependency> selectedDependencies = Specs.filterIterable(allDependencies, dependencySpec);
-
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
 
-            for (ModuleDependency moduleDependency : selectedDependencies) {
-                Set<ResolvedDependency> resolvedDependencies = conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
-                for (ResolvedDependency resolvedDependency : resolvedDependencies) {
-                    artifacts.addAll(resolvedDependency.getParentArtifacts(conversionResult.getRoot()));
-                    walker.add(resolvedDependency);
-                }
+            for (ResolvedDependency resolvedDependency : getFirstLevelModuleDependencies(dependencySpec)) {
+                artifacts.addAll(resolvedDependency.getParentArtifacts(conversionResult.getRoot()));
+                walker.add(resolvedDependency);
             }
 
             artifacts.addAll(walker.findValues());
@@ -133,6 +126,19 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
             rethrowFailure();
             return conversionResult.getRoot().getChildren();
+        }
+
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) {
+            rethrowFailure();
+            Set<ModuleDependency> allDependencies = configuration.getAllDependencies(ModuleDependency.class);
+            Set<ModuleDependency> selectedDependencies = Specs.filterIterable(allDependencies, dependencySpec);
+
+            Set<ResolvedDependency> result = new LinkedHashSet<ResolvedDependency>();
+            for (ModuleDependency moduleDependency : selectedDependencies) {
+                result.addAll(conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency));
+            }
+
+            return result;
         }
 
         public Set<ResolvedArtifact> getResolvedArtifacts() {

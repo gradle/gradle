@@ -25,15 +25,15 @@ dependencies {
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
 
+def generatedResourcesDir = "$buildDir/generated-resources/main"
+sourceSets.main.output.dir generatedResourcesDir, buildBy: 'wrapperJar'
+
 task wrapperJar(type: Jar) {
     dependsOn compileJava, processResources
-    from sourceSets.main.classesDir
+    from sourceSets.main.output.classesDir
     include 'org/gradle/wrapper/**'
-    archiveName = 'gradle-wrapper.jar'
-    destinationDir = sourceSets.main.classesDir
-    manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.GradleWrapperMain')
-}
 
-classes {
-    dependsOn wrapperJar
+    archiveName = 'gradle-wrapper.jar'
+    destinationDir = new File(generatedResourcesDir)
+    manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.GradleWrapperMain')
 }

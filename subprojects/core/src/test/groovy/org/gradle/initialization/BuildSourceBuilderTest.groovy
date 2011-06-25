@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.initialization
-
-import static org.junit.Assert.*
 
 import org.gradle.BuildResult
 import org.gradle.GradleLauncher
-
 import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -33,7 +27,6 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentStateCache
-import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
@@ -43,6 +36,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -67,7 +61,7 @@ class BuildSourceBuilderTest {
     EmbeddableJavaProject projectMetaInfo = context.mock(EmbeddableJavaProject.class)
 
     @Before public void setUp() {
-        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, context.mock(ClassLoaderFactory.class), cacheRepository)
+        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, context.mock(ClassLoaderRegistry.class), cacheRepository)
         expectedStartParameter = new StartParameter(currentDir: testBuildSrcDir)
         testDependencies = ['dep1' as File, 'dep2' as File]
         Convention convention = context.mock(Convention)
@@ -83,7 +77,7 @@ class BuildSourceBuilderTest {
         expectedBuildResult = new BuildResult(build, null)
     }
 
-    @Test public void testCreateClasspathWhenBuildSrcDirExistsAndContainsBuildScript() {
+    @Test public void testCreateClasspathWhenBuildSrcDirExistsAndHasNotBeenBuiltBefore() {
         expectValueFetchedFromCache(null)
         context.checking {
             one(projectMetaInfo).getRebuildTasks(); will(returnValue(['clean', 'build']))
@@ -99,37 +93,12 @@ class BuildSourceBuilderTest {
         assertEquals(testDependencies, actualClasspath)
     }
 
-    @Test public void testCreateClasspathWhenBuildSrcDirExistsAndDoesNotContainBuildScript() {
-        expectValueFetchedFromCache(null)
-        context.checking {
-            one(projectMetaInfo).getRebuildTasks(); will(returnValue(['clean', 'build']))
-            one(gradleFactoryMock).newInstance((StartParameter) withParam(notNullValue()))
-            will { StartParameter param ->
-                assertThat(param.buildScriptSource, instanceOf(StringScriptSource.class))
-                assertThat(param.buildScriptSource.displayName, equalTo('default buildSrc build script'))
-                assertThat(param.buildScriptSource.resource.text, equalTo(BuildSourceBuilder.defaultScript))
-                return gradleMock
-            }
-            one(gradleMock).addListener(withParam(not(nullValue()))); will(notifyProjectsEvaluated())
-            one(gradleMock).run(); will(returnValue(expectedBuildResult))
-        }
-        expectValueWrittenToCache()
-
-        Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
-        assertEquals(testDependencies, actualClasspath)
-    }
-
     @Test public void testCreateClasspathWhenBuildSrcDirExistsAndHasBeenBuiltBefore() {
         expectValueFetchedFromCache(true)
         context.checking {
             one(projectMetaInfo).getBuildTasks(); will(returnValue(['build']))
             one(gradleFactoryMock).newInstance((StartParameter) withParam(notNullValue()))
-            will { StartParameter param ->
-                assertThat(param.buildScriptSource, instanceOf(StringScriptSource.class))
-                assertThat(param.buildScriptSource.displayName, equalTo('default buildSrc build script'))
-                assertThat(param.buildScriptSource.resource.text, equalTo(BuildSourceBuilder.defaultScript))
-                return gradleMock
-            }
+            will(returnValue(gradleMock))
             one(gradleMock).addListener(withParam(not(nullValue()))); will(notifyProjectsEvaluated())
             one(gradleMock).run(); will(returnValue(expectedBuildResult))
         }

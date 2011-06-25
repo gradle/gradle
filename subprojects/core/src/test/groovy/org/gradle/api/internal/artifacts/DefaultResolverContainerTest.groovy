@@ -27,21 +27,21 @@ import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Before
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.ClassGenerator
 
 /**
  * @author Hans Dockter
  */
 class DefaultResolverContainerTest {
     static final String TEST_REPO_NAME = 'reponame'
-    
+
     DefaultResolverContainer resolverContainer
 
     RepositoryCacheManager dummyCacheManager = new DefaultRepositoryCacheManager()
@@ -59,9 +59,10 @@ class DefaultResolverContainerTest {
     ResolverFactory resolverFactoryMock;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    FileResolver fileResolver = context.mock(FileResolver.class)
 
     ResolverContainer createResolverContainer() {
-        return new DefaultResolverContainer(resolverFactoryMock, context.mock(ClassGenerator.class))
+        return new DefaultResolverContainer(resolverFactoryMock, fileResolver, context.mock(ClassGenerator.class))
     }
 
     @Before public void setUp() {
@@ -126,27 +127,27 @@ class DefaultResolverContainerTest {
         assertEquals([expectedResolver, expectedResolver3, expectedResolver2], resolverContainer.resolvers)
     }
 
-    @Test (expected = InvalidUserDataException) public void testAddWithNullUserDescription() {
+    @Test(expected = InvalidUserDataException) public void testAddWithNullUserDescription() {
         resolverContainer.add(null)
     }
 
-    @Test (expected = InvalidUserDataException) public void testAddFirstWithNullUserDescription() {
+    @Test(expected = InvalidUserDataException) public void testAddFirstWithNullUserDescription() {
         resolverContainer.addFirst(null)
     }
 
-    @Test (expected = InvalidUserDataException) public void testAddBeforeWithNullUserDescription() {
+    @Test(expected = InvalidUserDataException) public void testAddBeforeWithNullUserDescription() {
         resolverContainer.addBefore(null, expectedName)
     }
 
-    @Test (expected = InvalidUserDataException) public void testAddBeforeWithUnknownResolver() {
+    @Test(expected = InvalidUserDataException) public void testAddBeforeWithUnknownResolver() {
         resolverContainer.addBefore(expectedUserDescription2, 'unknownName')
     }
 
-    @Test (expected = InvalidUserDataException) public void testAddAfterWithNullUserDescription() {
+    @Test(expected = InvalidUserDataException) public void testAddAfterWithNullUserDescription() {
         resolverContainer.addAfter(null, expectedName)
     }
 
-    @Test (expected = InvalidUserDataException) public void testAddAfterWithUnknownResolver() {
+    @Test(expected = InvalidUserDataException) public void testAddAfterWithUnknownResolver() {
         resolverContainer.addBefore(expectedUserDescription2, 'unknownName')
     }
 
@@ -156,7 +157,7 @@ class DefaultResolverContainerTest {
         assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolvers)
     }
 
-    @Test(expected =  InvalidUserDataException)
+    @Test(expected = InvalidUserDataException)
     public void testAddWithUnnamedResolver() {
         expectedResolver.name = null
         resolverContainer.add(expectedUserDescription).is(expectedResolver)
@@ -171,10 +172,9 @@ class DefaultResolverContainerTest {
             assertThat(e.message, equalTo("Repository with name 'unknown' not found."))
         }
     }
-    
+
     @Test
     public void createMavenUploader() {
-        // todo we have to specify the class name, as this class is extended. This is a Groovy bug. As soon as we switch to a new Groovy version, we can refactor this. 
         assertSame(prepareMavenDeployerTests(), resolverContainer.createMavenDeployer(DefaultResolverContainerTest.TEST_REPO_NAME));
     }
 
@@ -193,13 +193,11 @@ class DefaultResolverContainerTest {
 
     protected DependencyResolver prepareMavenResolverTests(Class resolverType, String createMethod) {
         File testPomDir = new File("pomdir");
-        ConfigurationContainer configurationContainer = [:] as ConfigurationContainer
-        Conf2ScopeMappingContainer conf2ScopeMappingContainer = [:] as Conf2ScopeMappingContainer
-        FileResolver fileResolver = [:] as FileResolver
+        ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
+        Conf2ScopeMappingContainer conf2ScopeMappingContainer = context.mock(Conf2ScopeMappingContainer.class)
         resolverContainer.setMavenPomDir(testPomDir)
         resolverContainer.setConfigurationContainer(configurationContainer)
         resolverContainer.setMavenScopeMappings(conf2ScopeMappingContainer)
-        resolverContainer.setFileResolver(fileResolver)
         DependencyResolver expectedResolver = context.mock(resolverType)
         context.checking {
             allowing(expectedResolver).getName(); will(returnValue(DefaultResolverContainerTest.TEST_REPO_NAME))
@@ -210,7 +208,7 @@ class DefaultResolverContainerTest {
                     withParam(same(conf2ScopeMappingContainer)),
                     withParam(same(fileResolver)));
             will(returnValue(expectedResolver))
-            one(resolverFactoryMock).createResolver(expectedResolver);
+            allowing(resolverFactoryMock).createResolver(expectedResolver);
             will(returnValue(expectedResolver))
         }
         expectedResolver

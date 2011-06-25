@@ -17,11 +17,10 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
 import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.HierarchicalProjectVersion1;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion4;
+import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion2;
 import org.gradle.tooling.model.BuildableProject;
 import org.gradle.tooling.model.HierarchicalProject;
 import org.gradle.tooling.model.Project;
@@ -32,18 +31,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 class DefaultProjectConnection implements ProjectConnection {
-    private final ConnectionVersion4 connection;
+    private final AsyncConnection connection;
     private final Map<Class<? extends Project>, Class<? extends ProjectVersion3>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion3>>();
     private ProtocolToModelAdapter adapter;
+    private final ConnectionParameters parameters;
 
-    public DefaultProjectConnection(ConnectionVersion4 connection, ProtocolToModelAdapter adapter) {
-        this.connection = new CloseableConnection(connection);
+    public DefaultProjectConnection(AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+        this.connection = connection;
+        this.parameters = parameters;
         this.adapter = adapter;
         modelTypeMap.put(Project.class, ProjectVersion3.class);
         modelTypeMap.put(BuildableProject.class, BuildableProjectVersion1.class);
         modelTypeMap.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
-        modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
-        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion3.class);
+        modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion2.class);
+        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion4.class);
     }
 
     public void close() {
@@ -51,33 +52,19 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public <T extends Project> T getModel(Class<T> viewType) {
-        BlockingResultHandler<T> handler = new BlockingResultHandler<T>(viewType);
-        getModel(viewType, handler);
-
-        return handler.getResult();
+        return model(viewType).get();
     }
 
     public <T extends Project> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
-        final ResultHandler<ProjectVersion3> adaptingHandler = new ResultHandler<ProjectVersion3>() {
-            public void onComplete(ProjectVersion3 result) {
-                handler.onComplete(adapter.adapt(viewType, result));
-
-            }
-
-            public void onFailure(GradleConnectionException failure) {
-                handler.onFailure(failure);
-            }
-        };
-        connection.getModel(mapToProtocol(viewType), new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler) {
-            @Override
-            protected String connectionFailureMessage(Throwable failure) {
-                return String.format("Could not fetch model of type '%s' from %s.", viewType.getSimpleName(), connection.getDisplayName());
-            }
-        });
+        model(viewType).get(handler);
     }
 
     public BuildLauncher newBuild() {
-        return new DefaultBuildLauncher(connection);
+        return new DefaultBuildLauncher(connection, parameters);
+    }
+
+    public <T extends Project> ModelBuilder<T> model(Class<T> modelType) {
+        return new DefaultModelBuilder<T>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
     }
 
     private Class<? extends ProjectVersion3> mapToProtocol(Class<? extends Project> viewType) {
@@ -87,5 +74,4 @@ class DefaultProjectConnection implements ProjectConnection {
         }
         return protocolViewType;
     }
-
 }

@@ -84,4 +84,16 @@ class CompositeStoppableTest extends Specification {
         1 * a.close()
         1 * b.stop()
     }
+
+    def ignoresNullElements() {
+        Stoppable a = Mock()
+        stoppable.add([null])
+        stoppable.add(a)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.stop()
+    }
 }

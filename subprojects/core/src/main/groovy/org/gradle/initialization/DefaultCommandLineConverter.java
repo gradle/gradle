@@ -76,12 +76,13 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
         parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
+        parser.option("project-cache-dir").hasArgument().hasDescription("Specifies the project-specific cache directory. Can be absolute or relative to the project's dir. The default is '.gradle'.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
         parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
         parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
-        parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks [deprecated - use 'gradle tasks' instead].");
-        parser.option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties [deprecated - use 'gradle properties' instead].");
-        parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies [deprecated - use 'gradle dependencies' instead].");
+        parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks").deprecated("deprecated - use 'gradle tasks' instead");
+        parser.option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties").deprecated("deprecated - use 'gradle properties' instead");
+        parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies").deprecated("deprecated - use 'gradle dependencies' instead");
         parser.option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
         parser.option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
@@ -144,6 +145,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             } catch (InvalidUserDataException e) {
                 throw new CommandLineArgumentException(e.getMessage());
             }
+        }
+
+        if (options.hasOption("project-cache-dir")) {
+            startParameter.setProjectCacheDir(options.option("project-cache-dir").getValue());
         }
 
         if (options.hasOption(EMBEDDED_SCRIPT)) {

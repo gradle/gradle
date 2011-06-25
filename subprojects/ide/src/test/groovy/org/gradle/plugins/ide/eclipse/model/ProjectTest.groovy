@@ -17,8 +17,6 @@ package org.gradle.plugins.ide.eclipse.model;
 
 
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.plugins.ide.eclipse.EclipseProject
-import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,7 +28,7 @@ public class ProjectTest extends Specification {
     def static final CUSTOM_REFERENCED_PROJECTS = ['refProject'] as LinkedHashSet
     def static final CUSTOM_BUILD_COMMANDS = [new BuildCommand('org.eclipse.jdt.core.scalabuilder', [climate: 'cold'])]
     def static final CUSTOM_NATURES = ['org.eclipse.jdt.core.scalanature'] 
-    def static final CUSTOM_LINKS = [new Link('somename', 'sometype', 'somelocation', '')] as Set
+    def static final CUSTOM_LINKED_RESOURCES = [new Link('somename', 'sometype', 'somelocation', '')] as Set
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -46,29 +44,29 @@ public class ProjectTest extends Specification {
         project.referencedProjects == CUSTOM_REFERENCED_PROJECTS
         project.buildCommands == CUSTOM_BUILD_COMMANDS
         project.natures == CUSTOM_NATURES
-        project.links == CUSTOM_LINKS
+        project.linkedResources == CUSTOM_LINKED_RESOURCES
     }
 
     def configureMergesValues() {
-        EclipseProject task = HelperUtil.createTask(EclipseProject)
-        task.projectName = 'constructorName'
-        task.comment = 'constructorComment'
-        task.referencedProjects = ['constructorRefProject'] as LinkedHashSet
-        task.buildCommands = [new BuildCommand('constructorbuilder')]
-        task.natures = ['constructorNature']
-        task.links = [new Link('constructorName', 'constructorType', 'constructorLocation', '')] as Set
+        EclipseProject eclipseProject = new EclipseProject()
+        eclipseProject.name = 'constructorName'
+        eclipseProject.comment = 'constructorComment'
+        eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet
+        eclipseProject.buildCommands = [new BuildCommand('constructorbuilder')]
+        eclipseProject.natures = ['constructorNature']
+        eclipseProject.linkedResources = [new Link('constructorName', 'constructorType', 'constructorLocation', '')] as Set
 
         when:
         project.load(customProjectReader)
-        project.configure(task)
+        project.configure(eclipseProject)
 
         then:
-        project.name == task.projectName
-        project.comment == task.comment
-        project.referencedProjects == task.referencedProjects + CUSTOM_REFERENCED_PROJECTS
-        project.buildCommands == CUSTOM_BUILD_COMMANDS + task.buildCommands
-        project.natures == CUSTOM_NATURES + task.natures
-        project.links == task.links + CUSTOM_LINKS
+        project.name == eclipseProject.name
+        project.comment == eclipseProject.comment
+        project.referencedProjects == eclipseProject.referencedProjects + CUSTOM_REFERENCED_PROJECTS
+        project.buildCommands == CUSTOM_BUILD_COMMANDS + eclipseProject.buildCommands
+        project.natures == CUSTOM_NATURES + eclipseProject.natures
+        project.linkedResources == eclipseProject.linkedResources + CUSTOM_LINKED_RESOURCES
     }
 
     def loadDefaults() {
@@ -81,18 +79,18 @@ public class ProjectTest extends Specification {
         project.referencedProjects == [] as Set
         project.buildCommands == []
         project.natures == []
-        project.links == [] as Set
+        project.linkedResources == [] as Set
     }
 
     def toXml_shouldContainCustomValues() {
-        EclipseProject task = HelperUtil.createTask(EclipseProject)
-        task.projectName = 'constructorName'
-        task.comment = 'constructorComment'
-        task.referencedProjects = ['constructorRefProject'] as LinkedHashSet
+        EclipseProject eclipseProject = new EclipseProject()
+        eclipseProject.name = 'constructorName'
+        eclipseProject.comment = 'constructorComment'
+        eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet
 
         when:
         project.load(customProjectReader)
-        project.configure(task)
+        project.configure(eclipseProject)
         def xml = getToXmlReader()
         def other = new Project(new XmlTransformer())
         other.load(xml)

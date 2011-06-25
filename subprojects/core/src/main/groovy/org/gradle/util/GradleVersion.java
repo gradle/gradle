@@ -19,11 +19,20 @@ package org.gradle.util;
 import groovy.lang.GroovySystem;
 import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.InputStream;
+import java.net.URL;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Properties;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,35 +41,52 @@ import java.util.regex.Pattern;
  * @author Russel Winder
  */
 public class GradleVersion implements Comparable<GradleVersion> {
-    private final static String BUILD_TIME = "buildTime";
-    private final static String VERSION = "version";
-    private final static String FILE_NAME = "/org/gradle/version.properties";
     public final static String URL = "http://www.gradle.org";
-    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+))?(-(\\d{14}[-+]\\d{4}))?");
+    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}[-+]\\d{4}))?");
 
     private final String version;
     private final String buildTime;
     private final Long snapshot;
     private final String versionPart;
     private final Stage stage;
+    private static final GradleVersion CURRENT;
+
+    public static final String RESOURCE_NAME = "/org/gradle/releases.xml";
+
+    static {
+        URL resource = GradleVersion.class.getResource(RESOURCE_NAME);
+        Document document;
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            InputStream inputStream = resource.openStream();
+            try {
+                document = builder.parse(inputStream);
+            } finally {
+                inputStream.close();
+            }
+            NodeList currentElements = document.getDocumentElement().getElementsByTagName("current");
+            if (currentElements.getLength() != 1) {
+                throw new GradleException(String.format("Expected to find 1 <current> element, found %s.", currentElements.getLength()));
+            }
+            Element currentRelease = (Element) currentElements.item(0);
+            CURRENT = new GradleVersion(currentRelease.getAttribute("version"), new SimpleDateFormat("yyyyMMddHHmmssZ").parse(currentRelease.getAttribute("build-time")));
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not load version details from resource '%s'.", resource), e);
+        }
+    }
 
     public static GradleVersion current() {
-        return new GradleVersion(GUtil.loadProperties(GradleVersion.class.getResourceAsStream(FILE_NAME)));
+        return CURRENT;
     }
 
     public static GradleVersion version(String version) {
-        return new GradleVersion(properties(version));
+        return new GradleVersion(version, null);
     }
 
-    private static Properties properties(String version) {
-        Properties properties = new Properties();
-        properties.setProperty(VERSION, version);
-        return properties;
-    }
-
-    private GradleVersion(Properties properties) {
-        version = properties.getProperty(VERSION);
-        buildTime = properties.getProperty(BUILD_TIME);
+    private GradleVersion(String version, Date buildTime) {
+        this.version = version;
+        this.buildTime = buildTime == null ? null : DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime);
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
             throw new InvalidUserDataException(String.format("Unexpected Gradle version '%s'.", version));
@@ -76,7 +102,8 @@ public class GradleVersion implements Comparable<GradleVersion> {
             } else if (matcher.group(4).equals("rc")) {
                 stageNumber = 3;
             }
-            stage = new Stage(stageNumber, Integer.parseInt(matcher.group(5)));
+            String stageString = matcher.group(5);
+            stage = new Stage(stageNumber, stageString);
         } else {
             stage = null;
         }
@@ -192,13 +219,26 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return sb.toString();
     }
 
-    private static final class Stage implements Comparable<Stage> {
+    static final class Stage implements Comparable<Stage> {
         final int stage;
         final int number;
+        final Character patchNo;
 
-        private Stage(int stage, int number) {
+        Stage(int stage, String number) {
             this.stage = stage;
-            this.number = number;
+            Matcher m = Pattern.compile("(\\d+)([a-z])?").matcher(number);
+            try {
+                m.matches();
+                this.number = Integer.parseInt(m.group(1));
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid stage small number: " + number, e);
+            }
+
+            if (m.groupCount() == 2 && m.group(2) != null) {
+                this.patchNo = m.group(2).charAt(0);
+            } else {
+                this.patchNo = '_';
+            }
         }
 
         public int compareTo(Stage other) {
@@ -212,6 +252,12 @@ public class GradleVersion implements Comparable<GradleVersion> {
                 return 1;
             }
             if (number < other.number) {
+                return -1;
+            }
+            if (patchNo > other.patchNo) {
+                return 1;
+            }
+            if (patchNo < other.patchNo) {
                 return -1;
             }
             return 0;

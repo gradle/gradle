@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.openapi
 
-import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
@@ -25,6 +24,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.util.ClasspathUtil
+import org.gradle.util.DefaultClassLoaderFactory
 
 class CrossVersionCompatibilityIntegrationTest {
     private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
@@ -36,17 +37,19 @@ class CrossVersionCompatibilityIntegrationTest {
     private final BasicGradleDistribution gradle091 = dist.previousVersion('0.9.1')
     private final BasicGradleDistribution gradle092 = dist.previousVersion('0.9.2')
     private final BasicGradleDistribution gradle10Milestone1 = dist.previousVersion('1.0-milestone-1')
+    private final BasicGradleDistribution gradle10Milestone2 = dist.previousVersion('1.0-milestone-2')
+    private final BasicGradleDistribution gradle10Milestone3 = dist.previousVersion('1.0-milestone-3')
 
     @Test
     public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
-        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1].each {
+        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3].each {
             checkCanBuildUsing(dist, it)
         }
     }
 
     @Test
     public void canUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
-        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1].each {
+        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3].each {
             checkCanBuildUsing(it, dist)
         }
     }
@@ -61,11 +64,11 @@ class CrossVersionCompatibilityIntegrationTest {
                 System.out.println("skipping $openApiVersion as it does not work with ${Jvm.current()}.")
                 return
             }
-            def testClasses = AbstractClassPathProvider.getClasspathForClass(CrossVersionBuilder.class)
-            def junitJar = AbstractClassPathProvider.getClasspathForClass(Assert.class)
+            def testClasses = ClasspathUtil.getClasspathForClass(CrossVersionBuilder.class)
+            def junitJar = ClasspathUtil.getClasspathForClass(Assert.class)
             def classpath = [testClasses, junitJar] + openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
             logger.info('Using Open API classpath {}', classpath)
-            def classloader = new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
+            def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI().toURL() })
             def builder = classloader.loadClass(CrossVersionBuilder.class.name).newInstance()
             builder.targetGradleHomeDir = buildVersion.gradleHomeDir
             builder.currentDir = dist.testDir

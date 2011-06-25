@@ -20,6 +20,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
@@ -32,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -74,7 +74,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             }
 
             final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
-            URI localAddress = server.accept(workerProcess.getConnectAction());
+            Address localAddress = server.accept(workerProcess.getConnectAction());
 
             // Build configuration for GradleWorkerMain
             List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());

@@ -197,6 +197,8 @@ class LinkImpl implements Link {
             }
         } catch (java.net.UnknownHostException e) {
             throw new PageNotFoundException("Page $target not found for link on page $referent", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load $target link on page $referent", e)
         }
     }
 

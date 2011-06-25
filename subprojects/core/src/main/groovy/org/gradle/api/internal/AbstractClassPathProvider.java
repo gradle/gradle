@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.ClasspathUtil;
 
 import java.io.File;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
@@ -36,7 +34,7 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
     private final File gradleHome;
 
     protected AbstractClassPathProvider() {
-        File codeSource = getClasspathForClass(DefaultClassPathProvider.class);
+        File codeSource = ClasspathUtil.getClasspathForClass(DefaultClassPathProvider.class);
         if (codeSource.isFile()) {
             // Loaded from a JAR - assume we're running from the distribution
             gradleHome = codeSource.getParentFile().getParentFile();
@@ -90,19 +88,6 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
             return matches;
         }
         return null;
-    }
-
-    public static File getClasspathForClass(Class<?> targetClass) {
-        URI location;
-        try {
-            location = targetClass.getProtectionDomain().getCodeSource().getLocation().toURI();
-        } catch (URISyntaxException e) {
-            throw new UncheckedIOException(e);
-        }
-        if (!location.getScheme().equals("file")) {
-            throw new GradleException(String.format("Cannot determine Gradle home using codebase '%s'.", location));
-        }
-        return new File(location.getPath());
     }
 
     private static boolean matches(Iterable<Pattern> patterns, String name) {

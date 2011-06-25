@@ -26,14 +26,14 @@ class TaskDetailsFactoryTest extends TaskModelSpecification {
     TaskDetailsFactory factory
 
     def setup() {
-        _ * project.allprojects >> ([project, subproject] as Set)
+        project.allprojects >> [project, subproject]
         factory = new TaskDetailsFactory(project)
     }
     
     def createsDetailsForTaskInMainProject() {
-        _ * task.project >> project
-        _ * task.path >> ':path'
-        _ * project.relativeProjectPath(':path') >> 'task'
+        task.project >> project
+        task.path >> ':path'
+        project.relativeProjectPath(':path') >> 'task'
 
         expect:
         def details = factory.create(task)
@@ -41,9 +41,9 @@ class TaskDetailsFactoryTest extends TaskModelSpecification {
     }
 
     def createsDetailsForTaskInSubProject() {
-        _ * task.project >> subproject
-        _ * task.path >> ':sub:path'
-        _ * project.relativeProjectPath(':sub:path') >> 'sub:task'
+        task.project >> subproject
+        task.path >> ':sub:path'
+        project.relativeProjectPath(':sub:path') >> 'sub:task'
 
         expect:
         def details = factory.create(task)
@@ -52,8 +52,8 @@ class TaskDetailsFactoryTest extends TaskModelSpecification {
 
     def createsDetailsForTaskInOtherProject() {
         Project other = Mock()
-        _ * task.project >> other
-        _ * task.path >> ':other:task'
+        task.project >> other
+        task.path >> ':other:task'
 
         expect:
         def details = factory.create(task)
@@ -61,9 +61,9 @@ class TaskDetailsFactoryTest extends TaskModelSpecification {
     }
 
     def providesValuesForOtherProperties() {
-        _ * task.project >> project
-        _ * task.name >> 'task'
-        _ * task.description >> 'description'
+        task.project >> project
+        task.name >> 'task'
+        task.description >> 'description'
 
         expect:
         def details = factory.create(task)

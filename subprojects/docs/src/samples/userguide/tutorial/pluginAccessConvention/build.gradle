@@ -2,10 +2,10 @@ apply plugin: 'java'
 
 task show << {
     // Access the convention property as a project property
-    println relativePath(sourceSets.main.classesDir)
-    println relativePath(project.sourceSets.main.classesDir)
+    println relativePath(sourceSets.main.output.classesDir)
+    println relativePath(project.sourceSets.main.output.classesDir)
 
     // Access the convention property via the convention object
-    println relativePath(project.convention.sourceSets.main.classesDir)
-    println relativePath(project.convention.plugins.java.sourceSets.main.classesDir)
+    println relativePath(project.convention.sourceSets.main.output.classesDir)
+    println relativePath(project.convention.plugins.java.sourceSets.main.output.classesDir)
 }

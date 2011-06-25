@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.protocol;
 
-import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -23,18 +22,4 @@ import java.util.List;
  */
 public interface BuildParametersVersion1 {
     List<String> getTasks();
-
-    /**
-     * Returns the output stream to write stdout logging to.
-     *
-     * @return The output stream. May be null.
-     */
-    OutputStream getStandardOutput();
-
-    /**
-     * Returns the output stream to write stderr logging to.
-     *
-     * @return The output stream. May be null.
-     */
-    OutputStream getStandardError();
 }

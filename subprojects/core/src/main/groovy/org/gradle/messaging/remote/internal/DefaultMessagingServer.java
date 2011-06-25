@@ -19,16 +19,17 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.Action;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
 
-import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DefaultMessagingServer implements MessagingServer {
+public class DefaultMessagingServer implements MessagingServer, Stoppable {
     private final MultiChannelConnector connector;
     private final ClassLoader classLoader;
     private final Set<ObjectConnection> connections = new CopyOnWriteArraySet<ObjectConnection>();
@@ -38,7 +39,7 @@ public class DefaultMessagingServer implements MessagingServer {
         this.classLoader = classLoader;
     }
 
-    public URI accept(final Action<ConnectEvent<ObjectConnection>> action) {
+    public Address accept(final Action<ConnectEvent<ObjectConnection>> action) {
         return connector.accept(new Action<ConnectEvent<MultiChannelConnection<Object>>>() {
             public void execute(ConnectEvent<MultiChannelConnection<Object>> connectEvent) {
                 finishConnect(connectEvent, action);
@@ -49,7 +50,7 @@ public class DefaultMessagingServer implements MessagingServer {
     private void finishConnect(ConnectEvent<MultiChannelConnection<Object>> connectEvent,
                                Action<ConnectEvent<ObjectConnection>> action) {
         MultiChannelConnection<Object> messageConnection = connectEvent.getConnection();
-        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, messageConnection);
+        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(messageConnection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(messageConnection);
         AtomicReference<ObjectConnection> connectionRef = new AtomicReference<ObjectConnection>();
         AsyncStoppable stopControl = new ConnectionAsyncStoppable(messageConnection, connectionRef);

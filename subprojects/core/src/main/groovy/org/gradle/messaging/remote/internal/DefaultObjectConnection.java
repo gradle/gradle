@@ -16,12 +16,11 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.dispatch.Addressable;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.Addressable;
 import org.gradle.messaging.remote.ObjectConnection;
-
-import java.net.URI;
 
 public class DefaultObjectConnection implements ObjectConnection {
     private final Addressable addressable;
@@ -37,11 +36,11 @@ public class DefaultObjectConnection implements ObjectConnection {
         this.incoming = incoming;
     }
 
-    public URI getRemoteAddress() {
+    public Address getRemoteAddress() {
         return addressable.getRemoteAddress();
     }
 
-    public URI getLocalAddress() {
+    public Address getLocalAddress() {
         return addressable.getLocalAddress();
     }
 

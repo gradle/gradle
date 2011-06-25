@@ -15,32 +15,14 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.api.Action;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.launcher.protocol.Stop;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.remote.internal.Connection;
+public class StopDaemonAction implements Runnable {
+    private final DaemonClient client;
 
-public class StopDaemonAction extends DaemonClientAction implements Action<ExecutionListener> {
-    private static final Logger LOGGER = Logging.getLogger(StopDaemonAction.class);
-    private final DaemonConnector connector;
-    private final BuildClientMetaData clientMetaData;
-
-    public StopDaemonAction(DaemonConnector connector, OutputEventListener outputEventListener, BuildClientMetaData clientMetaData) {
-        super(outputEventListener);
-        this.connector = connector;
-        this.clientMetaData = clientMetaData;
+    public StopDaemonAction(DaemonClient client) {
+        this.client = client;
     }
 
-    public void execute(ExecutionListener executionListener) {
-        Connection<Object> connection = connector.maybeConnect();
-        if (connection == null) {
-            LOGGER.lifecycle("Gradle daemon is not running.");
-            return;
-        }
-        run(new Stop(clientMetaData), connection, executionListener);
-        LOGGER.lifecycle("Gradle daemon stopped.");
+    public void run() {
+        client.stop();
     }
 }

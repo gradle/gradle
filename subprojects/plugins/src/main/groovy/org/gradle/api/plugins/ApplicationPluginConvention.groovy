@@ -13,48 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins;
-
-
-import org.gradle.api.Project
-import org.gradle.api.tasks.JavaExec
+package org.gradle.api.plugins
 
  /**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
  *
  * @author Rene Groeschke
  */
-public class ApplicationPluginConvention {
+class ApplicationPluginConvention {
     /**
      * The name of the application.
      */
-    String applicationName;
+    String applicationName
 
     /**
-     * The full qualified name of the main class.
+     * The fully qualified name of the application's main class.
      */
-    String mainClassName;
-
-    private String installDir;
-
-    private final Project project;
-
-    public ApplicationPluginConvention(final Project project) {
-        this.project = project;
-    }
-
-    /**
-     * Sets the full qualified name of the main class of an application.
-     */
-    public void setMainClassName(String mainClassName) {
-        this.mainClassName = mainClassName;
-        JavaExec runTask = project.getTasks().withType(JavaExec.class).find {task ->
-            task.name == ApplicationPlugin.TASK_RUN_NAME
-        };
-        runTask.main = mainClassName;
-    }
-
-    public String getApplicationPrefix() {
-        return "${applicationName}${project.version == Project.DEFAULT_VERSION ? '' : '-' + project.version }"
-    }
+    String mainClassName
 }

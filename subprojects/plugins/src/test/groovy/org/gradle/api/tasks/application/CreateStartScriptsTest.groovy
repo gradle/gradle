@@ -28,8 +28,8 @@ class CreateStartScriptsTest extends Specification {
         task.applicationName = "myApp"
 
         then:
-        task.bashScript == new File(task.outputDir, 'myApp')
-        task.batScript == new File(task.outputDir, 'myApp.bat')
+        task.unixScript == new File(task.outputDir, 'myApp')
+        task.windowsScript == new File(task.outputDir, 'myApp.bat')
     }
     
     def optsEnvironmentVariableNameDefaultsToApplicationName() {

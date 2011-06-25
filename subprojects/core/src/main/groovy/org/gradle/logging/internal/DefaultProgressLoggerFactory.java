@@ -18,6 +18,7 @@ package org.gradle.logging.internal;
 
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.util.GUtil;
 import org.gradle.util.TimeProvider;
 
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
@@ -29,27 +30,26 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         this.timeProvider = timeProvider;
     }
 
-    public ProgressLogger start(String loggerCategory) {
-        return start(loggerCategory, "");
+    public ProgressLogger newOperation(Class loggerCategory) {
+        return newOperation(loggerCategory.getName());
     }
 
-    public ProgressLogger start(String loggerCategory, String description) {
-        ProgressLoggerImpl logger = new ProgressLoggerImpl(loggerCategory, description, progressListener, timeProvider);
-        logger.started();
-        return logger;
+    public ProgressLogger newOperation(String loggerCategory) {
+        return new ProgressLoggerImpl(loggerCategory, progressListener, timeProvider);
     }
 
     private static class ProgressLoggerImpl implements ProgressLogger {
+        private enum State { idle, started, completed }
         private final String category;
-        private final String description;
         private final ProgressListener listener;
         private final TimeProvider timeProvider;
-        private String status = "";
-        private boolean completed;
+        private String description;
+        private String shortDescription;
+        private String loggingHeader;
+        private State state = State.idle;
 
-        public ProgressLoggerImpl(String category, String description, ProgressListener listener, TimeProvider timeProvider) {
+        public ProgressLoggerImpl(String category, ProgressListener listener, TimeProvider timeProvider) {
             this.category = category;
-            this.description = description;
             this.listener = listener;
             this.timeProvider = timeProvider;
         }
@@ -58,33 +58,81 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             return description;
         }
 
-        public String getStatus() {
-            return status;
+        public void setDescription(String description) {
+            assertCanConfigure();
+            this.description = description;
+        }
+
+        public String getShortDescription() {
+            return shortDescription;
+        }
+
+        public void setShortDescription(String shortDescription) {
+            assertCanConfigure();
+            this.shortDescription = shortDescription;
+        }
+
+        public String getLoggingHeader() {
+            return loggingHeader;
+        }
+
+        public void setLoggingHeader(String loggingHeader) {
+            assertCanConfigure();
+            this.loggingHeader = loggingHeader;
         }
 
         public void started() {
-            listener.started(new ProgressStartEvent(timeProvider.getCurrentTime(), category, description));
+            started(null);
+        }
+
+        public void started(String status) {
+            if (!GUtil.isTrue(description)) {
+                throw new IllegalStateException("A description must be specified before this operation is started.");
+            }
+            if (state == State.started) {
+                throw new IllegalStateException("This operation has already been started.");
+            }
+            assertNotCompleted();
+            state = State.started;
+            listener.started(new ProgressStartEvent(timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
         }
 
         public void progress(String status) {
+            assertStarted();
             assertNotCompleted();
-            this.status = status;
-            listener.progress(new ProgressEvent(timeProvider.getCurrentTime(), category, status));
+            listener.progress(new ProgressEvent(timeProvider.getCurrentTime(), category, toStatus(status)));
         }
 
         public void completed() {
-            completed("");
+            completed(null);
         }
 
         public void completed(String status) {
-            this.status = status;
-            completed = true;
-            listener.completed(new ProgressCompleteEvent(timeProvider.getCurrentTime(), category, status));
+            assertStarted();
+            assertNotCompleted();
+            state = State.completed;
+            listener.completed(new ProgressCompleteEvent(timeProvider.getCurrentTime(), category, toStatus(status)));
+        }
+
+        private String toStatus(String status) {
+            return status == null ? "" : status;
         }
 
         private void assertNotCompleted() {
-            if (completed) {
-                throw new IllegalStateException("This ProgressLogger has been completed.");
+            if (state == ProgressLoggerImpl.State.completed) {
+                throw new IllegalStateException("This operation has completed.");
+            }
+        }
+
+        private void assertStarted() {
+            if (state == ProgressLoggerImpl.State.idle) {
+                throw new IllegalStateException("This operation has not been started.");
+            }
+        }
+
+        private void assertCanConfigure() {
+            if (state != State.idle) {
+                throw new IllegalStateException("Cannot configure this operation once it has started.");
             }
         }
     }

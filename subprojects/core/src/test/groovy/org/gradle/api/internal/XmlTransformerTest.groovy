@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal
 
-import spock.lang.Specification
-import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.api.Action
+import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.util.TextUtil
+import spock.lang.Specification
 
 class XmlTransformerTest extends Specification {
     final XmlTransformer transformer = new XmlTransformer()
@@ -178,6 +178,20 @@ class XmlTransformerTest extends Specification {
         looksLike "<root>\n\t<child>\n\t\t<grandchild/>\n\t</child>\n</root>\n", result
     }
 
+    def "allows adding DOCTYPE along with nodes"() {
+        transformer.addAction { it.asNode().appendNode('someChild') }
+        transformer.addAction {
+            def s = it.asString()
+            s.insert(s.indexOf("?>") + 2, '\n<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">')
+        }
+
+        when:
+        def result = transformer.transform("<root></root>")
+
+        then:
+        result == TextUtil.toPlatformLineSeparators("<?xml version=\"1.0\"?>\n<!DOCTYPE application PUBLIC \"-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN\" \"http://java.sun.com/dtd/application_1_3.dtd\">\n<root>\n  <someChild/>\n</root>\n")
+    }
+
     def "indentation correct when writing out DOM element (only) if indenting with spaces"() {
         transformer.indentation = expected
         transformer.addAction { XmlProvider provider ->
@@ -198,7 +212,7 @@ class XmlTransformerTest extends Specification {
     }
 
     private void looksLike(String expected, String actual) {
-        assert actual == TextUtil.toNativeLineSeparators(addXmlDeclaration(expected))
+        assert actual == TextUtil.toPlatformLineSeparators(addXmlDeclaration(expected))
     }
 
     private String addXmlDeclaration(String value) {

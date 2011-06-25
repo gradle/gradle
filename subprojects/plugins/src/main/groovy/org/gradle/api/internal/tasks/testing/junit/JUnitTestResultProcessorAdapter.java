@@ -26,6 +26,8 @@ import org.junit.runner.notification.RunListener;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JUnitTestResultProcessorAdapter extends RunListener {
     private final TestResultProcessor resultProcessor;
@@ -35,7 +37,7 @@ public class JUnitTestResultProcessorAdapter extends RunListener {
     private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
 
     public JUnitTestResultProcessorAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
-                                 IdGenerator<?> idGenerator) {
+                                           IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.timeProvider = timeProvider;
         this.idGenerator = idGenerator;
@@ -72,7 +74,7 @@ public class JUnitTestResultProcessorAdapter extends RunListener {
 
     @Override
     public void testIgnored(Description description) throws Exception {
-        if (description.getMethodName() == null) {
+        if (methodName(description) == null) {
             // An @Ignored class, ignore the event. We don't get testIgnored events for each method, which would be kind of nice
             return;
         }
@@ -102,15 +104,35 @@ public class JUnitTestResultProcessorAdapter extends RunListener {
     }
 
     private TestDescriptorInternal descriptor(Object id, Description description) {
-        return new DefaultTestDescriptor(id, description.getClassName(), description.getMethodName());
+        return new DefaultTestDescriptor(id, className(description), methodName(description));
     }
 
     private TestDescriptorInternal failureDescriptor(Object id, Description description) {
-        if (description.getMethodName() != null) {
-            return new DefaultTestDescriptor(id, description.getClassName(), description.getMethodName());
+        if (methodName(description) != null) {
+            return new DefaultTestDescriptor(id, className(description), methodName(description));
         } else {
-            return new DefaultTestDescriptor(id, description.getClassName(), "classMethod");
+            return new DefaultTestDescriptor(id, className(description), "classMethod");
         }
     }
+
+    // Use this instead of Description.getMethodName(), it is not available in JUnit <= 4.5
+    private String methodName(Description description) {
+        Matcher matcher = methodStringMatcher(description);
+        if (matcher.matches()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
+    // Use this instead of Description.getClassName(), it is not available in JUnit <= 4.5
+    private String className(Description description) {
+        Matcher matcher = methodStringMatcher(description);
+        return matcher.matches() ? matcher.group(2) : description.toString();
+    }
+
+    private Matcher methodStringMatcher(Description description) {
+        return Pattern.compile("(.*)\\((.*)\\)").matcher(description.toString());
+    }
+
 }
 

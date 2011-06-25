@@ -50,6 +50,10 @@ public class Jvm {
         return new File(JavaEnvUtils.getJdkExecutable("javadoc"));
     }
 
+    public File getJpsExecutable() {
+        return new File(JavaEnvUtils.getJdkExecutable("jps"));
+    }
+
     public boolean isJava5Compatible() {
         return System.getProperty("java.version").startsWith("1.5") || isJava6Compatible();
     }

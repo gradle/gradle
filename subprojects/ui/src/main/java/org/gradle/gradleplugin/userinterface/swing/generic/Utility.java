@@ -21,8 +21,22 @@ import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageButton;
 import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageToggleButton;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JToggleButton;
+import javax.swing.JMenuItem;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+import java.awt.Component;
+import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -97,6 +111,7 @@ public class Utility {
      * This creates a button with the specified action, image, and tooltip text. The main issue here is that it doesn't crash if the image is missing (which is just something that happens in real life
      * from time to time). You probably should specify a name on the action just in case.
      *
+     * @param resourceClass the calling class. Useful when multiple classloaders are used.
      * @param imageResourceName the image resource
      * @param tooltip the tooltip to display
      * @param action the action to perform
@@ -182,5 +197,22 @@ public class Utility {
         }
 
         return null;
+    }
+
+    /**
+     * Scrolls the specified text component so the text between the starting and ending index are visible.
+     */
+    public static void scrollToText(JTextComponent textComponent, int startingIndex, int endingIndex) {
+        try {
+            Rectangle startingRectangle = textComponent.modelToView(startingIndex);
+            Rectangle endDingRectangle = textComponent.modelToView(endingIndex);
+
+            Rectangle totalBounds = startingRectangle.union(endDingRectangle);
+
+            textComponent.scrollRectToVisible(totalBounds);
+            textComponent.repaint();
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
     }
 }

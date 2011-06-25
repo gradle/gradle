@@ -17,20 +17,20 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.dispatch.Addressable;
+import org.gradle.messaging.remote.Addressable;
 import org.gradle.messaging.dispatch.Dispatch;
 
 public interface MultiChannelConnection<T> extends Addressable, AsyncStoppable {
     /**
      * Adds a destination for outgoing messages on the given channel. The returned value is thread-safe.
      */
-    Dispatch<T> addOutgoingChannel(Object channelKey);
+    Dispatch<T> addOutgoingChannel(String channelKey);
 
     /**
      * Adds a handler for incoming messages on the given channel. The given dispatch is only ever used by a single
      * thread at any given time.
      */
-    void addIncomingChannel(Object channelKey, Dispatch<T> dispatch);
+    void addIncomingChannel(String channelKey, Dispatch<T> dispatch);
 
     /**
      * Commences graceful stop of this connection. Stops accepting any more outgoing messages, and requests that the

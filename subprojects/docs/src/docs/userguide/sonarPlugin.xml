@@ -45,7 +45,7 @@
         </sample>
         <para>For a complete documentation of all Sonar-specific configuration properties, see the
             <ulink url= "http://docs.codehaus.org/display/SONAR/Advanced+parameters">Sonar documentation</ulink>.
-        </para>.
+        </para>
     </section>
 
     <section>

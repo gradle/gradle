@@ -18,13 +18,13 @@ package org.gradle.tooling;
 import org.gradle.tooling.model.Project;
 
 /**
- * Represents a long-lived connection to a Gradle project.
+ * Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.
  *
  * <h2>Thread safety</h2>
  *
- * <p>All implementations of {@code GradleConnection} are thread-safe, and may be shared by any number of threads.</p>
+ * <p>All implementations of {@code ProjectConnection} are thread-safe, and may be shared by any number of threads.</p>
  *
- * <p>All notifications from a given {@code GradleConnection} instance are delivered by a single thread at a time. Note, however, that the delivery thread may change over time.</p>
+ * <p>All notifications from a given {@code ProjectConnection} instance are delivered by a single thread at a time. Note, however, that the delivery thread may change over time.</p>
  */
 public interface ProjectConnection {
     /**
@@ -58,6 +58,15 @@ public interface ProjectConnection {
      * @return The launcher.
      */
     BuildLauncher newBuild();
+
+    /**
+     * Creates a builder which can be used to build the model of the given type.
+     *
+     * @param modelType The model type
+     * @param <T> The model type.
+     * @return The builder.
+     */
+    <T extends Project> ModelBuilder<T> model(Class<T> modelType);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

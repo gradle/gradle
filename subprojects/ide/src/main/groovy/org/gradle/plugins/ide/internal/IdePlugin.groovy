@@ -49,15 +49,17 @@ public abstract class IdePlugin implements Plugin<Project> {
         return project.getTasks().getByName(cleanName(worker.getName()));
     }
 
-    private String cleanName(String taskName) {
+    protected String cleanName(String taskName) {
         return String.format("clean%s", StringUtils.capitalize(taskName));
     }
 
-    protected void addWorker(Task worker) {
-        lifecycleTask.dependsOn(worker);
-        Delete cleanWorker = project.getTasks().add(cleanName(worker.getName()), Delete.class);
-        cleanWorker.delete(worker.getOutputs().getFiles());
-        cleanTask.dependsOn(cleanWorker);
+    protected void addWorker(Task worker, boolean includeInClean = true) {
+        lifecycleTask.dependsOn(worker)
+        Delete cleanWorker = project.getTasks().add(cleanName(worker.getName()), Delete.class)
+        cleanWorker.delete(worker.getOutputs().getFiles())
+        if (includeInClean) {
+            cleanTask.dependsOn(cleanWorker)
+        }
     }
     
     protected void onApply(Project target) {

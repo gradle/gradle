@@ -19,6 +19,7 @@ import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
@@ -44,4 +45,6 @@ public interface ResolverFactory {
 
     MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
                                        Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);
+
+    IvyArtifactRepository createIvyRepository(FileResolver resolver);
 }

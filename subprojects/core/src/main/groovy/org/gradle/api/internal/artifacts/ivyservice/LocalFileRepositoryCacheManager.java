@@ -34,7 +34,7 @@ import java.text.ParseException;
 /**
  * A cache manager for local repositories. Doesn't cache anything, and uses artifacts from their origin.
  */
-class LocalFileRepositoryCacheManager implements RepositoryCacheManager {
+public class LocalFileRepositoryCacheManager implements RepositoryCacheManager {
     private final String name;
 
     public LocalFileRepositoryCacheManager(String name) {

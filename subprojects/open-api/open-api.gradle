@@ -7,15 +7,11 @@ dependencies {
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 
-    integTestCompile libraries.slf4j_api
+    integTestCompile libraries.slf4j_api, libraries.commons_lang
     integTestCompile project(path: ':core', configuration: 'integTestFixtures')
     integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
 
-//create a task for running the integration tests
-task integTest(type: Test) {
-    doFirst {
-        systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-    }
+integTestTasks.all {
+    jvmArgs '-XX:MaxPermSize=256m'
 }

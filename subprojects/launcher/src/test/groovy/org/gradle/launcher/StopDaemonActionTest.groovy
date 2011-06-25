@@ -16,55 +16,17 @@
 package org.gradle.launcher
 
 import spock.lang.Specification
-import org.gradle.logging.internal.OutputEventListener
-import org.gradle.messaging.remote.internal.Connection
-import org.gradle.launcher.protocol.Stop
-import org.gradle.launcher.protocol.CommandComplete
-import org.gradle.initialization.BuildClientMetaData
 
 class StopDaemonActionTest extends Specification {
-    final DaemonConnector connector = Mock()
-    final OutputEventListener outputListener = Mock()
-    final ExecutionListener executionListener = Mock()
-    final BuildClientMetaData clientMetaData = Mock()
-    final StopDaemonAction action = new StopDaemonAction(connector, outputListener, clientMetaData)
+    final DaemonClient client = Mock()
+    final StopDaemonAction action = new StopDaemonAction(client)
 
     def executesStopCommand() {
-        Connection<Object> connection = Mock()
-
         when:
-        action.execute(executionListener)
+        action.run()
 
         then:
-        1 * connector.maybeConnect() >> connection
-        1 * connection.dispatch({it instanceof Stop})
-        1 * connection.receive() >> new CommandComplete(null)
-        1 * connection.stop()
-        0 * _._
-    }
-
-    def doesNothingWhenDaemonIsNotRunning() {
-        when:
-        action.execute(executionListener)
-
-        then:
-        1 * connector.maybeConnect() >> null
-        0 * _._
-    }
-
-    def reportsFailureToStop() {
-        Connection<Object> connection = Mock()
-        RuntimeException failure = new RuntimeException()
-
-        when:
-        action.execute(executionListener)
-
-        then:
-        1 * connector.maybeConnect() >> connection
-        1 * connection.dispatch({it instanceof Stop})
-        1 * connection.receive() >> new CommandComplete(failure)
-        1 * connection.stop()
-        1 * executionListener.onFailure(failure)
+        1 * client.stop()
         0 * _._
     }
 }

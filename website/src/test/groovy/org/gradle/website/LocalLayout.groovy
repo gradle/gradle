@@ -29,7 +29,7 @@ class LocalLayout implements Layout {
 
     LocalLayout() {
         docPatterns = docPaths.collect { String path ->
-            Pattern.compile(".*/[^/]+/${path}(/.+)")
+            Pattern.compile(".+/${path}(/.+)")
         }
     }
 

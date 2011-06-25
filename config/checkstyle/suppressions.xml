@@ -14,4 +14,8 @@
               files=".*[/\\]subprojects[/\\]plugins[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]scala[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+
+    <!-- Use windows C naming scheme for these -->
+    <suppress checks="MethodName"
+              files=".*[/\\]subprojects[/\\]launcher[/\\]src[/\\]main[/\\]java[/\\].+[/\\]DaemonStartAction.java"/>
 </suppressions>

@@ -17,8 +17,36 @@ package org.gradle.integtests.tooling
 
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.Project
+import org.gradle.tooling.ProgressListener
 
 class ToolingApiModelIntegrationTest extends ToolingApiSpecification {
+    def "receives progress and logging while the model is building"() {
+        dist.testFile('build.gradle') << '''
+System.out.println 'this is stdout'
+System.err.println 'this is stderr'
+'''
+
+        def stdout = new ByteArrayOutputStream()
+        def stderr = new ByteArrayOutputStream()
+        def progressMessages = []
+
+        when:
+        withConnection { connection ->
+            def model = connection.model(Project.class)
+            model.standardOutput = stdout
+            model.standardError = stderr
+            model.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
+            return model.get()
+        }
+
+        then:
+        stdout.toString().contains('this is stdout')
+        stderr.toString().contains('this is stderr')
+        progressMessages.size() >= 2
+        progressMessages.pop() == ''
+        progressMessages.every { it }
+    }
+
     def "tooling api reports failure to build model"() {
         dist.testFile('build.gradle') << 'broken'
 
@@ -29,7 +57,7 @@ class ToolingApiModelIntegrationTest extends ToolingApiSpecification {
 
         then:
         BuildException e = thrown()
-        e.message == 'Could not fetch model of type \'Project\' from Gradle connection.'
+        e.message.startsWith('Could not fetch model of type \'Project\' using Gradle')
         e.cause.message.contains('A problem occurred evaluating root project')
     }
 }

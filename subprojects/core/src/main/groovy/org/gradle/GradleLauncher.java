@@ -139,10 +139,15 @@ public abstract class GradleLauncher {
     public abstract void addStandardOutputListener(StandardOutputListener listener);
 
     /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
-     * standard error by Gradle's logging system
+     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard error by Gradle's logging system
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
     public abstract void addStandardErrorListener(StandardOutputListener listener);
+
+    /**
+     * Returns the {@link StartParameter} used by this build instance.
+     * @return The parameter. Never null.
+     */
+    public abstract StartParameter getStartParameter();
 }

@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.XmlProvider;
 import org.gradle.api.internal.XmlTransformer;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
 import org.gradle.api.internal.artifacts.publish.maven.pombuilder.CustomModelBuilder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.listener.ActionBroadcast;

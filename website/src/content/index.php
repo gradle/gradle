@@ -30,6 +30,10 @@
     <h2>Recent news</h2>
     <ul>${php.indexNews}</ul>
     <div class="more"><a href="news.php">more news</a></div>
+    <br>
+    <a href="http://vote.jax-awards.com/">
+	<img src="img/jaxawards.png" alt="JAXAwards" />
+	</a>
 </div>
 </div>
 
@@ -38,12 +42,20 @@
 <div id="training" class="homeList">
     <h2>Upcoming training</h2>
     <ul>
-        <li><a href="http://gradleware.com/home/training">July  21-23, 2011, M&uuml;nchen, DE</li>
-        <li><a href="http://gradleware.com/home/training">July  25-27, 2011, London, UK</li>
-        <li><a href="http://gradleware.com/home/training">September 20-22, 2011, Frankfurt, DE</li>
-        <li><a href="http://gradleware.com/home/training">October 11-13, 2011, Stuttgart, DE</li>
-        <li><a href="http://gradleware.com/home/training">November 1-3, 2011, Berlin, DE</li>
-        <li>2011 U.S. DATES SOON TO COME</li>
+        <li><a href="http://gradleware.com/training.html">July  18-20, 2011, Reston, VA, US</li>
+        <li><a href="http://gradleware.com/training.html">July  19-21, 2011, M&uuml;nchen, DE</li>
+        <li><a href="http://gradleware.com/training.html">July  25-27, 2011, London, UK</li>
+	    <li><a href="http://gradleware.com/training.html">August 17-19, Minneapolis, MN, US</li>
+	    <li><a href="http://gradleware.com/training.html">September 14-15, 2011, Stockholm, SE</li>
+		<li><a href="http://gradleware.com/training.html">September 20-22, 2011, Frankfurt, DE</li>
+		<li><a href="http://gradleware.com/training.html">September 26-28, 2011, Denver, CO, US</li>
+        <li><a href="http://gradleware.com/training.html">October 11-13, 2011, Stuttgart, DE</li>
+	    <li><a href="http://gradleware.com/training.html">October 17-19, 2011, London, UK</li>
+		<li><a href="http://gradleware.com/training.html">October 18-20, 2011, Chicago, IL, US</li>
+        <li><a href="http://gradleware.com/training.html">November 1-3, 2011, Berlin, DE</li>
+	    <li><a href="http://gradleware.com/training.html">November 14-17, 2011, San Jose, CA, US</li>
+	    <li><a href="http://gradleware.com/training.html">November 21-22, 2011, Oslo, NO</li>
+	    <li><a href="http://gradleware.com/training.html">December 6-8, 2011, D&uuml;&uuml;ldorf, DE</li>
     </ul>
     <div class="more"><a href="http://gradleware.com/home/training">learn more</a></div>
 </div>

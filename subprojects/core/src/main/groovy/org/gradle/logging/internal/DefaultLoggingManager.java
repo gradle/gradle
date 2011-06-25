@@ -36,6 +36,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
     private final LoggingOutputInternal loggingOutput;
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
+    private final Set<OutputEventListener> outputEventListeners = new LinkedHashSet<OutputEventListener>();
 
     public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem,
                                  LoggingSystem stdErrLoggingSystem, LoggingOutputInternal loggingOutput) {
@@ -53,6 +54,9 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
         for (StandardOutputListener stderrListener : stderrListeners) {
             loggingOutput.addStandardErrorListener(stderrListener);
         }
+        for (OutputEventListener outputEventListener : outputEventListeners) {
+            loggingOutput.addOutputEventListener(outputEventListener);
+        }
         loggingSystem.start();
         stdOutLoggingSystem.start();
         stdErrLoggingSystem.start();
@@ -68,6 +72,9 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
             }
             for (StandardOutputListener stderrListener : stderrListeners) {
                 loggingOutput.removeStandardErrorListener(stderrListener);
+            }
+            for (OutputEventListener listener : outputEventListeners) {
+                loggingOutput.removeOutputEventListener(listener);
             }
         } finally {
             started = false;
@@ -137,11 +144,15 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
     }
 
     public void addOutputEventListener(OutputEventListener listener) {
-        loggingOutput.addOutputEventListener(listener);
+        if (outputEventListeners.add(listener) && started) {
+            loggingOutput.addOutputEventListener(listener);
+        }
     }
 
     public void removeOutputEventListener(OutputEventListener listener) {
-        loggingOutput.removeOutputEventListener(listener);
+        if (outputEventListeners.remove(listener) && started) {
+            loggingOutput.removeOutputEventListener(listener);
+        }
     }
 
     public void colorStdOutAndStdErr(boolean colorOutput) {

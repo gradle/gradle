@@ -16,114 +16,326 @@
 package org.gradle.util
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.TimeUnit
-import spock.lang.Ignore
+import org.spockframework.mock.TooManyInvocationsError
+import spock.lang.FailsWith
 
 class ConcurrentSpecificationTest extends ConcurrentSpecification {
-    def canCheckThatMethodCallWaitsUntilAsyncActionIsComplete() {
-        SomeAsyncWorker worker = Mock()
-        SomeSyncClass target = new SomeSyncClass(worker: worker)
+    def setup() {
+        shortTimeout = 1000
+    }
 
-        def notifyListener = later()
+    def "can check that an action calls a mock method asynchronously"() {
+        Runnable action = Mock()
+        def executed = startsAsyncAction()
 
         when:
-        def result
-        def action = start {
-            result = target.doWork('value')
+        executed.started {
+            executor.execute { action.run() }
         }
 
         then:
-        action.waitsFor(notifyListener)
-        1 * worker.doLater(!null) >> { args -> notifyListener.activate { args[0].call('result') } }
+        1 * action.run() >> { executed.done() }
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected async action to complete, but it did not.')
+    def "async action fails when expected mock method is never called"() {
+        Runnable action = Mock()
+        def executed = startsAsyncAction()
 
         when:
+        executed.started {}
+
+        then:
+        1 * action.run() >> { executed.done() }
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Cannot wait for action to complete from the thread that is executing it.')
+    def "async action fails when expected mock method is called from start action thread"() {
+        Runnable action = Mock()
+        def executed = startsAsyncAction()
+
+        when:
+        executed.started {
+            action.run()
+        }
+
+        then:
+        1 * action.run() >> { executed.done() }
+    }
+
+    @FailsWith(TooManyInvocationsError)
+    def "async action fails when start action throws an exception"() {
+        Runnable action = Mock()
+        def executed = startsAsyncAction()
+
+        when:
+        executed.started {
+            action.run()
+        }
+
+        then:
+        0 * action.run()
+    }
+
+    @FailsWith(TooManyInvocationsError)
+    def "async action fails when async action throws an exception"() {
+        Runnable action = Mock()
+
+        when:
+        startsAsyncAction().started {
+            executor.execute { action.run() }
+        }
+
+        then:
+        0 * action.run()
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected action to complete quickly, but it did not.')
+    def "async action fails when start action never finishes"() {
+        def latch = new CountDownLatch(1)
+        Runnable action = Mock()
+
+        when:
+        startsAsyncAction().started {
+            latch.await()
+        }
+
+        then:
+        1 * action.run()
+
+        cleanup:
+        latch.countDown()
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected action to complete quickly, but it did not.')
+    def "async action fails when start action blocks waiting for async action to complete"() {
+        def latch = new CountDownLatch(1)
+        def executed = startsAsyncAction()
+        Runnable action = Mock()
+
+        when:
+        executed.started {
+            start { action.run() }
+            latch.await()
+        }
+
+        then:
+        1 * action.run() >> { executed.done(); latch.countDown() }
+
+        cleanup:
+        latch.countDown()
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Action has not been started.')
+    def "async action fails when done called before start action is called"() {
+        expect:
+        startsAsyncAction().done()
+    }
+
+    def "can check that an action blocks until an asynchronous callback is made"() {
+        Runnable action = Mock()
+        def latch = new CountDownLatch(1)
+        def operation = waitsForAsyncCallback()
+
+        when:
+        operation.start {
+            action.run()
+            latch.await()
+        }
+
+        then:
+        1 * action.run() >> { operation.callbackLater { latch.countDown() } }
+    }
+
+    @FailsWith(TooManyInvocationsError)
+    def "blocking action fails when blocking action throws exception"() {
+        Runnable action = Mock()
+
+        when:
+        waitsForAsyncCallback().start {
+            action.run()
+        }
+
+        then:
+        0 * action.run()
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected action to block, but it did not.')
+    def "blocking action fails when blocking action finishes without waiting for callback action"() {
+        Runnable action = Mock()
+        def operation = waitsForAsyncCallback()
+
+        when:
+        operation.start {
+            action.run()
+        }
+
+        then:
+        1 * action.run() >> { operation.callbackLater { } }
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected action to unblock, but it did not.')
+    def "blocking action fails when blocking action never finishes"() {
+        Runnable action = Mock()
+        def latch = new CountDownLatch(1)
+        def operation = waitsForAsyncCallback()
+
+        when:
+        operation.start {
+            action.run()
+            latch.await()
+        }
+
+        then:
+        1 * action.run() >> { operation.callbackLater {} }
+
+        cleanup:
+        latch.countDown()
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected action to register a callback action, but it did not.')
+    def "blocking action fails when blocking action never registers callback action"() {
+        Runnable action = Mock()
+        def latch = new CountDownLatch(1)
+        def operation = waitsForAsyncCallback()
+
+        when:
+        operation.start {
+            latch.await()
+        }
+
+        then:
+        1 * action.run() >> { operation.callbackLater {} }
+
+        cleanup:
+        latch.countDown()
+    }
+
+    @FailsWith(TooManyInvocationsError)
+    def "blocking action fails when action throws exception"() {
+        Runnable action = Mock()
+
+        when:
+        waitsForAsyncCallback().start {
+            action.run()
+        }
+
+        then:
+        0 * action.run()
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected callback action to complete, but it did not.')
+    def "blocking action fails when callback action never finishes"() {
+        def operation = waitsForAsyncCallback()
+        def latch = new CountDownLatch(1)
+        Runnable action = Mock()
+
+        when:
+        operation.start {
+            action.run()
+            latch.await()
+        }
+
+        then:
+        1 * action.run() >> { operation.callbackLater { latch.await() } }
+
+        cleanup:
+        latch.countDown()
+    }
+
+    @FailsWith(TooManyInvocationsError)
+    def "blocking action fails when callback action method throws exception"() {
+        def operation = waitsForAsyncCallback()
+        def latch = new CountDownLatch(1)
+        Runnable action = Mock()
+
+        when:
+        operation.start {
+            action.run()
+            latch.await()
+        }
+
+        then:
+        1 * action.run() >> { operation.callbackLater { action.run() } }
+
+        cleanup:
+        latch.countDown()
+    }
+
+    @FailsWithMessage(type = IllegalStateException, message = 'Action has not been started.')
+    def "blocking action fails when callback made before blocking action started"() {
+        expect:
+        waitsForAsyncCallback().callbackLater { }
+    }
+
+    def "can check that an action blocks until an asynchronous action is finished"() {
+        Runnable action = Mock()
+        def operation = waitsForAsyncActionToComplete()
+        def latch = new CountDownLatch(1)
+
+        when:
+        operation.start {
+            start { action.run() }
+            latch.await()
+        }
         finished()
 
         then:
-        result == 'result'
+        1 * action.run() >> { args -> operation.done(); latch.countDown() }
+
+        cleanup:
+        latch.countDown()
     }
 
-    def canCheckThatMethodCallDoesNotWaitUntilAsyncActionIsComplete() {
-        SomeAsyncWorker worker = Mock()
-        Closure handler = Mock()
-        SomeSyncClass target = new SomeSyncClass(worker: worker)
-
-        def notifyListener = later()
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected action to block, but it did not.')
+    def "blocking action fails when action does not wait for async action to start"() {
+        Runnable action = Mock()
+        def operation = waitsForAsyncActionToComplete()
 
         when:
-        def action = start {
-            target.startWork(handler)
+        operation.start {
+            start { action.run() }
         }
-
-        then:
-        action.doesNotWaitFor(notifyListener)
-        1 * worker.doLater(!null) >> { args -> notifyListener.activate { args[0].call('result') } }
-
-        when:
         finished()
 
         then:
-        1 * handler.call('[result]')
+        _ * action.run() >> { operation.done() }
     }
 
-    def canHaveMultipleAsyncActions() {
-        SomeAsyncWorker worker = Mock()
-        Closure handler = Mock()
-        SomeSyncClass target = new SomeSyncClass(worker: worker)
-
-        Closure listener
-        def notifyListener = later()
-        def notifyListenerAgain = later()
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected action to block, but it did not.')
+    def "blocking action fails when action does not wait for async action to complete"() {
+        Runnable action = Mock()
+        def started = new CountDownLatch(1)
+        def operation = waitsForAsyncActionToComplete()
 
         when:
-        def action = start {
-            target.startWork(handler)
-            target.startWork(handler)
+        operation.start {
+            start { action.run() }
+            started.await()
         }
-
-        then:
-        action.doesNotWaitFor(notifyListener, notifyListenerAgain)
-        2 * worker.doLater(!null) >> { args ->
-            if (!listener) {
-                listener = args[0];
-                notifyListener.activate { args[0].call('result1') }
-            } else {
-                notifyListenerAgain.activate { args[0].call('result2') }
-            }
-        }
-
-        when:
-        notifyListener.completed()
-
-        then:
-        1 * handler.call('[result1]')
-
-        when:
         finished()
 
         then:
-        1 * handler.call('[result2]')
+        1 * action.run() >> { started.countDown(); operation.done() }
+
+        cleanup:
+        started.countDown()
     }
 
-    def canCheckThatMethodCallsBlockUntilAnotherMethodIsCalled() {
-        SomeConditionClass condition = new SomeConditionClass()
+    @FailsWithMessage(type = IllegalStateException, message = 'Expected action to block, but it did not.')
+    def "blocking action fails when action does not start async action"() {
+        Runnable action = Mock()
+        def operation = waitsForAsyncActionToComplete()
 
         when:
-        def action1 = start {
-            condition.waitUntilComplete()
-        }
-        def action2 = start {
-            condition.waitUntilComplete()
-        }
+        operation.start { }
 
         then:
-        all(action1, action2).waitsFor {
-            condition.complete()
-        }
+        1 * action.run() >> { operation.done() }
     }
 
-    def canCheckThatMethodCompletesInSpecifiedTime() {
+    def "can check that some method completes in expected time"() {
         SomeConditionClass condition = new SomeConditionClass()
 
         when:
@@ -131,67 +343,28 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
         def action = start {
             timedOut = condition.waitUntilComplete(200)
         }
-
-        then:
         action.completesWithin(200, TimeUnit.MILLISECONDS)
-
-        when:
-        finished()
 
         then:
         timedOut
     }
 
-    def finishRethrowsExceptionThrownByTestThread() {
-        RuntimeException failure = new RuntimeException()
+    @FailsWith(TestException)
+    def "finish rethrows exception thrown by test thread"() {
+        Runnable action = Mock()
 
         when:
         start {
-            failure.fillInStackTrace()
-            throw failure
+            throw new TestException()
         }
         finished()
 
         then:
-        RuntimeException e = thrown()
-        e.is(failure)
-    }
-
-    @Ignore
-    def completeRethrowsExceptionThrownByTestThread() {
-        RuntimeException failure = new RuntimeException()
-
-        when:
-        def action = start {
-            failure.fillInStackTrace()
-            throw failure
-        }
-        action.completed()
-
-        then:
-        RuntimeException e = thrown()
-        e.is(failure)
+        1 * action.run()
     }
 }
 
-interface SomeAsyncWorker {
-    void doLater(Closure cl)
-}
-
-class SomeSyncClass {
-    SomeAsyncWorker worker
-
-    def doWork(Object value) {
-        SynchronousQueue queue = new SynchronousQueue()
-        worker.doLater { arg ->
-            queue.put(arg)
-        }
-        return queue.take()
-    }
-
-    def startWork(Closure handler) {
-        worker.doLater { result -> handler.call("[$result]" as String) }
-    }
+class TestException extends RuntimeException {
 }
 
 class SomeConditionClass {

@@ -66,6 +66,6 @@ class XmlPersistableConfigurationObjectTest extends Specification {
         object.store(outputFile)
 
         then:
-        outputFile.text == TextUtil.toNativeLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n<modified-xml/>\n')
+        outputFile.text == TextUtil.toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n<modified-xml/>\n')
     }
 }

@@ -18,18 +18,21 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.artifacts.dsl.*;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -182,8 +185,6 @@ public interface Project extends Comparable<Project> {
     public static final String GRADLE_PROPERTIES = "gradle.properties";
 
     public static final String SYSTEM_PROP_PREFIX = "systemProp";
-
-    public static final String TMP_DIR_NAME = ".gradle";
 
     public static final String DEFAULT_VERSION = "unspecified";
 
@@ -1486,4 +1487,11 @@ public interface Project extends Comparable<Project> {
      * @return The container.
      */
     <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure);
+
+    /**
+     * Allows adding DSL extensions to the project. Useful for plugin authors.
+     *
+     * @return Returned instance allows adding DSL extensions to the project
+     */
+    ExtensionContainer getExtensions();
 }

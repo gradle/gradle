@@ -1,0 +1,196 @@
+<!--
+  ~ Copyright 2011 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='ear_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Ear Plugin</title>
+    <para>The Ear plugin adds support for assembling web application EAR files. It adds a default EAR archive task.
+        It doesn't require the Java plugin, but for projects that also use the Java plugin it disables the default
+        JAR archive generation.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the Ear plugin, include in your build script:</para>
+        <sample id="earWithWar" dir="ear/earWithWar" title="Using the Ear plugin">
+            <sourcefile file="build.gradle" snippet="use-ear-plugin"/>
+            <test args="assemble"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The Ear plugin adds the following tasks to the project.</para>
+        <table>
+            <title>Ear plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>ear</literal>
+                </td>
+                <td>
+                    <literal>compile</literal> (only if the Java plugin is also applied)
+                </td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Ear"/></td>
+                <td>Assembles the application EAR file.</td>
+            </tr>
+        </table>
+        <para>The Ear plugin adds the following dependencies to tasks added by the base plugin.</para>
+        <table>
+            <title>Ear plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td>assemble</td>
+                <td>ear</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Project layout</title>
+        <table>
+            <title>Ear plugin - project layout</title>
+            <thead>
+                <tr>
+                    <td>Directory</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <filename>src/main/application</filename>
+                </td>
+                <td>Ear resources, such as a META-INF directory</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Dependency management</title>
+        <para>The Ear plugin adds two dependency configurations: <literal>deploy</literal> and
+            <literal>earlib</literal>. All dependencies in the <literal>deploy</literal> configuration are
+            placed in the root of the EAR archive, and are <em>not</em> transitive. All dependencies in the
+            <literal>earlib</literal> configuration are placed in the 'lib' directory in the EAR archive and
+            <em>are</em> transitive.
+        </para>
+    </section>
+
+    <section>
+        <title>Convention properties</title>
+        <table>
+            <title>Ear plugin - directory properties</title>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Type</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>appDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <filename>src/main/application</filename>
+                </td>
+                <td>
+                    The name of the application source directory, relative to the project directory.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>libDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <filename>lib</filename>
+                </td>
+                <td>
+                    The name of the lib directory inside the generated EAR.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>deploymentDescriptor</literal>
+                </td>
+                <td>
+                    <classname>org.gradle.api.enterprise.archives.DeploymentDescriptor</classname>
+                </td>
+                <td>
+                    A deployment descriptor with sensible defaults named <literal>application.xml</literal>
+                </td>
+                <td>
+                    Metadata to generate a deployment descriptor file, e.g. <literal>application.xml</literal>.
+                    If this file already exists in the <literal>appDirName/META-INF</literal> then the existing file contents will be used and
+                    the explicit configuration in the <literal>ear.deploymentDescriptor</literal> will be ignored.
+                </td>
+            </tr>
+        </table>
+
+        <para>These properties are provided by a <apilink class="org.gradle.api.plugins.EarPluginConvention"/>
+            convention object.
+        </para>
+    </section>
+
+    <section id='sec:default_settings'>
+        <title>Ear</title>
+
+        <para>The default behavior of the Ear task is to copy the content of <literal>src/main/application</literal>
+            to the root of the archive. If your <literal>application</literal> directory doesn't contain a
+            <literal>META-INF/application.xml</literal> deployment descriptor then one will be generated for you.
+		</para>
+        <para>Also have a look at <apilink class="org.gradle.api.tasks.bundling.Ear"/>.</para>
+    </section>
+    <section id='sec:customizing'>
+        <title>Customizing</title>
+        <para>Here is an example with the most important customization options:
+        </para>
+        <sample id="earCustomized" dir="ear/earCustomized/ear" title="Customization of ear plugin">
+            <sourcefile file="build.gradle"/>
+            <test args="assemble"/>
+        </sample>
+        <para>You can also use customization options that the <apilink class="org.gradle.api.tasks.bundling.Jar"/>
+        	task provides, such as <literal>from</literal> and <literal>metaInf</literal>.
+        </para>
+        <para>If you want to enable the generation of the default jar archive additional to the EAR archive just type:
+        </para>
+        <sample id="earCustomizedWithJarEnabled" dir="ear/earCustomized/ear" title="Generation of JAR archive in addition to EAR archive">
+            <sourcefile file="build.gradle" snippet="enable-jar"/>
+        </sample>
+    </section>
+    <section id='sec:using_custom_app_xml'>
+        <title>Using custom descriptor file</title>
+        <para>
+            Let's say you already have the <literal>application.xml</literal> and want to use it instead of configuring the <literal>ear.deploymentDescriptor</literal> section.
+            To accommodate that place the <literal>META-INF/application.xml</literal> in the right place inside your source folders (see the <literal>appDirName</literal> property).
+            The existing file contents will be used and the explicit configuration in the <literal>ear.deploymentDescriptor</literal> will be ignored.
+        </para>
+    </section>
+</chapter>

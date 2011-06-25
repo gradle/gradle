@@ -26,53 +26,216 @@ class DefaultProgressLoggerFactoryTest extends Specification {
 
     def progressLoggerBroadcastsEvents() {
         when:
-        def logger = factory.start('logger', 'description')
+        def logger = factory.newOperation('logger')
+        logger.description = 'description'
+        logger.started('started')
 
         then:
         logger != null
         1 * timeProvider.getCurrentTime() >> 100L
-        1 * progressListener.started({it.timestamp == 100L && it.category == 'logger' && it.description == 'description'})
+        1 * progressListener.started(!null) >> { args ->
+            def event = args[0]
+            assert event.timestamp == 100L
+            assert event.category == 'logger'
+            assert event.description == 'description'
+            assert event.shortDescription == null
+            assert event.loggingHeader == null
+            assert event.status == 'started'
+        }
 
         when:
         logger.progress('progress')
 
         then:
         1 * timeProvider.getCurrentTime() >> 200L
-        1 * progressListener.progress({it.timestamp == 200L && it.category == 'logger' && it.status == 'progress'})
+        1 * progressListener.progress(!null) >> { args ->
+            def event = args[0]
+            assert event.timestamp == 200L
+            assert event.category == 'logger'
+            assert event.status == 'progress'
+        }
 
         when:
         logger.completed('completed')
 
         then:
         1 * timeProvider.getCurrentTime() >> 300L
-        1 * progressListener.completed({it.timestamp == 300L && it.category == 'logger' && it.status == 'completed'})
+        1 * progressListener.completed(!null) >> { args ->
+            def event = args[0]
+            assert event.timestamp == 300L
+            assert event.category == 'logger'
+            assert event.status == 'completed'
+        }
     }
 
-    def hasEmptyStatusOnStart() {
+    def canSpecifyShortDescription() {
         when:
-        def logger = factory.start('logger', 'description')
+        def logger = factory.newOperation('logger')
+        logger.description = 'description'
+        logger.shortDescription = 'short'
+        logger.started()
 
         then:
-        logger.description == 'description'
-        logger.status == ''
+        1 * progressListener.started(!null) >> { args ->
+            def event = args[0]
+            assert event.shortDescription == 'short'
+        }
     }
 
-    def hasMostRecentStatusOnProgress() {
+    def canSpecifyLoggingHeader() {
         when:
-        def logger = factory.start('logger', 'description')
-        logger.progress('status')
+        def logger = factory.newOperation('logger')
+        logger.description = 'description'
+        logger.loggingHeader = 'header'
+        logger.started()
 
         then:
-        logger.status == 'status'
+        1 * progressListener.started(!null) >> { args ->
+            def event = args[0]
+            assert event.loggingHeader == 'header'
+        }
     }
-    
-    def hasMostRecentStatusOnComplete() {
+
+    def canSpecifyNullStatus() {
+        def logger = factory.newOperation('logger')
+        logger.description = 'not empty'
+
         when:
-        def logger = factory.start('logger', 'description')
-        logger.completed('done')
+        logger.started(null)
+        logger.progress(null)
+        logger.completed(null)
 
         then:
-        logger.status == 'done'
+        1 * progressListener.started({it.status == ''})
+        1 * progressListener.progress({it.status == ''})
+        1 * progressListener.completed({it.status == ''})
+    }
+
+    def mustSpecifyDescriptionBeforeStart() {
+        def logger = factory.newOperation('logger')
+
+        when:
+        logger.started()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'A description must be specified before this operation is started.'
+    }
+
+    def cannotChangeDescriptionAfterStart() {
+        def logger = factory.newOperation('logger')
+        logger.description = 'old'
+        logger.started()
+
+        when:
+        logger.description = 'new'
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot configure this operation once it has started.'
+    }
+
+    def cannotChangeShortDescriptionAfterStart() {
+        def logger = factory.newOperation('logger')
+        logger.description = 'old'
+        logger.started()
+
+        when:
+        logger.shortDescription = 'new'
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot configure this operation once it has started.'
+    }
+
+    def cannotChangeLoggingHeaderAfterStart() {
+        def logger = factory.newOperation('logger')
+        logger.description = 'old'
+        logger.started()
+
+        when:
+        logger.loggingHeader = 'new'
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot configure this operation once it has started.'
+    }
+
+    def cannotMakeProgressBeforeStart() {
+        def logger = factory.newOperation('logger')
+
+        when:
+        logger.progress('new')
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'This operation has not been started.'
+    }
+
+    def cannotMakeProgressAfterCompletion() {
+        def logger = factory.newOperation('logger')
+        logger.description = 'not empty'
+        logger.started()
+        logger.completed()
+
+        when:
+        logger.progress('new')
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'This operation has completed.'
+    }
+
+    def cannotCompleteBeforeStart() {
+        def logger = factory.newOperation('logger')
+
+        when:
+        logger.completed('finished')
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'This operation has not been started.'
+    }
+
+    def cannotStartMultipleTimes() {
+        def logger = factory.newOperation('logger')
+        logger.description = 'not empty'
+        logger.started()
+
+        when:
+        logger.started()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'This operation has already been started.'
+    }
+
+    def cannotStartAfterComplete() {
+        def logger = factory.newOperation('logger')
+        logger.description = 'not empty'
+        logger.started()
+        logger.completed()
+
+        when:
+        logger.started()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'This operation has completed.'
+    }
+
+    def cannotCompleteMultipleTimes() {
+        def logger = factory.newOperation('logger')
+        logger.description = 'not empty'
+        logger.started()
+        logger.completed()
+
+        when:
+        logger.completed()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'This operation has completed.'
     }
 }
 

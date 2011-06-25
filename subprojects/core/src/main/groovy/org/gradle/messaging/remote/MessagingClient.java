@@ -15,19 +15,14 @@
  */
 package org.gradle.messaging.remote;
 
-import org.gradle.messaging.concurrent.Stoppable;
-
 /**
  * A {@code MessagingClient} maintains a single bi-directional uni-cast object connection with some peer.
  */
-public interface MessagingClient extends Stoppable {
+public interface MessagingClient {
     /**
      * Returns the connection for this client.
+     *
+     * @param address The address to connect to.
      */
-    ObjectConnection getConnection();
-
-    /**
-     * Performs a graceful stop of this client. Stops the client's connection.
-     */
-    void stop();
+    ObjectConnection getConnection(Address address);
 }

@@ -30,7 +30,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Executes a command line process.
+ * Executes a command line process. Example:
+ * <pre autoTested=''>
+ * task stopTomcat(type:Exec) {
+ *   workingDir '../tomcat/bin'
+ *
+ *   //on windows:
+ *   commandLine 'cmd', '/c', 'stop.bat'
+ *
+ *   //on linux (oh yeah!!!)
+ *   commandLine './stop.sh'
+ * }
+ * </pre>
  * 
  * @author Hans Dockter
  */

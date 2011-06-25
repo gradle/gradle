@@ -57,9 +57,12 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(gradle).getParent();
             will(returnValue(null));
-            one(progressLoggerFactory).start(TaskExecutionLogger.class.getName(), ":path");
+            one(progressLoggerFactory).newOperation(TaskExecutionLogger.class);
             will(returnValue(progressLogger));
-            one(progressLogger).progress(":path");
+            one(progressLogger).setDescription("Execute :path");
+            one(progressLogger).setShortDescription(":path");
+            one(progressLogger).setLoggingHeader(":path");
+            one(progressLogger).started();
         }});
 
         executionLogger.beforeExecute(task);
@@ -67,7 +70,7 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(state).getSkipMessage();
             will(returnValue(null));
-            one(progressLogger).completed();
+            one(progressLogger).completed(null);
         }});
 
         executionLogger.afterExecute(task, state);
@@ -85,9 +88,12 @@ public class TaskExecutionLoggerTest {
             allowing(rootProject).getName();
             will(returnValue("build"));
 
-            one(progressLoggerFactory).start(TaskExecutionLogger.class.getName(), ":build:path");
+            one(progressLoggerFactory).newOperation(TaskExecutionLogger.class);
             will(returnValue(progressLogger));
-            one(progressLogger).progress(":build:path");
+            one(progressLogger).setDescription("Execute :build:path");
+            one(progressLogger).setShortDescription(":build:path");
+            one(progressLogger).setLoggingHeader(":build:path");
+            one(progressLogger).started();
         }});
 
         executionLogger.beforeExecute(task);
@@ -95,7 +101,7 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(state).getSkipMessage();
             will(returnValue(null));
-            one(progressLogger).completed();
+            one(progressLogger).completed(null);
         }});
 
         executionLogger.afterExecute(task, state);
@@ -106,19 +112,17 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(gradle).getParent();
             will(returnValue(null));
-            one(progressLoggerFactory).start(TaskExecutionLogger.class.getName(), ":path");
+
+            one(progressLoggerFactory).newOperation(TaskExecutionLogger.class);
             will(returnValue(progressLogger));
-            one(progressLogger).progress(":path");
-        }});
-
-        executionLogger.beforeExecute(task);
-
-        context.checking(new Expectations() {{
             allowing(state).getSkipMessage();
             will(returnValue("skipped"));
             one(progressLogger).completed("skipped");
+
+            ignoring(progressLogger);
         }});
 
+        executionLogger.beforeExecute(task);
         executionLogger.afterExecute(task, state);
     }
 }

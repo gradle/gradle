@@ -299,6 +299,7 @@ public class TestFile extends File implements TestFileContext {
     public TestFile assertIsCopyOf(TestFile other) {
         assertIsFile();
         other.assertIsFile();
+        assertEquals(other.length(), this.length());
         assertTrue(Arrays.equals(HashUtil.createHash(this), HashUtil.createHash(other)));
         return this;
     }
@@ -368,6 +369,10 @@ public class TestFile extends File implements TestFileContext {
     public TestFile createDir() {
         assertTrue(isDirectory() || mkdirs());
         return this;
+    }
+
+    public TestFile createDir(Object path) {
+        return new TestFile(this, path).createDir();
     }
 
     public TestFile deleteDir() {

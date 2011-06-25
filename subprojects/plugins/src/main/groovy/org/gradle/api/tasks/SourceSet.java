@@ -17,13 +17,27 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 
 import java.io.File;
 
 /**
- * <p>A {@code SourceSet} represents a logical group of Java source and resources.</p>
+ * A {@code SourceSet} represents a logical group of Java source and resources.
+ * <p>
+ * See the example below how {@link SourceSet} 'main' is accessed and how the {@link SourceDirectorySet} 'java'
+ * is configured to exclude some package from compilation.
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ *
+ * sourceSets {
+ *   main {
+ *     java {
+ *       exclude 'some/unwanted/package/**'
+ *     }
+ *   }
+ * }
+ * </pre>
  */
 public interface SourceSet {
     /**
@@ -72,25 +86,47 @@ public interface SourceSet {
     void setRuntimeClasspath(FileCollection classpath);
 
     /**
+     * DEPRECATED: Please use #output.classesDir instead.
+     * We needed to deprecate it to keep the DSL consistent.
+     * <p>
      * Returns the directory to assemble the compiled classes into.
      *
      * @return The classes dir. Never returns null.
      */
+    @Deprecated
     File getClassesDir();
 
     /**
+     * DEPRECATED: Please use #output.resourcesDir instead.
+     * We needed to deprecate it to keep the DSL consistent.
+     * <p>
      * Sets the directory to assemble the compiled classes into.
      *
      * @param classesDir the classes dir. Should not be null.
      */
+    @Deprecated
     void setClassesDir(File classesDir);
 
     /**
-     * Returns the compiled classes directory for this source set.
+     * DEPRECATED: Please use #output property.
+     * We needed to deprecate this method because its name was confusing as actually means all output dirs, not only classes dir.
+     * <p>
+     * Returns {@link SourceSetOutput} that extends {@link FileCollection} which means that it provides all output directories (compiled classes, processed resources, etc.)
+     * <p>
+     * Provides a way to configure the default output dirs and specify additional output dirs - see {@link SourceSetOutput}
      *
-     * @return The classes dir, as a {@link FileCollection}.
+     * @return The output dirs, as a {@link SourceSetOutput}.
      */
-    FileCollection getClasses();
+    @Deprecated
+    SourceSetOutput getClasses();
+
+   /**
+     * {@link SourceSetOutput} is a {@link FileCollection} of all output directories (compiled classes, processed resources, etc.)
+     *  and it provides means configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
+     *
+     * @return The output dirs, as a {@link SourceSetOutput}.
+     */
+    SourceSetOutput getOutput();
 
     /**
      * Registers a set of tasks which are responsible for compiling this source set into the classes directory. The
@@ -141,14 +177,14 @@ public interface SourceSet {
      *
      * @return the Java source. Never returns null.
      */
-    FileTree getAllJava();
+    SourceDirectorySet getAllJava();
 
     /**
      * All source files for this source set.
      *
      * @return the source. Never returns null.
      */
-    FileTree getAllSource();
+    SourceDirectorySet getAllSource();
 
     /**
      * Returns the name of the classes task for this source set.

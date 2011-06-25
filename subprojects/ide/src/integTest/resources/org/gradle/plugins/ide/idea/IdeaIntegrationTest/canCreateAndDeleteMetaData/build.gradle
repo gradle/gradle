@@ -7,8 +7,10 @@ allprojects {
 subprojects {
     apply plugin: 'java'
 
-    ideaModule {
-        downloadJavadoc = true
+    idea {
+        module {
+            downloadJavadoc = true
+        }
     }
 
     repositories {
@@ -26,5 +28,5 @@ subprojects {
 cleanIdea.doLast {
     assert !file("${project.name}.iml").isFile()
     assert !file("${project.name}.ipr").isFile()
-    assert !file("${project.name}.iws").isFile()
+    assert file("${project.name}.iws").isFile() //we don't rid the iws file
 }

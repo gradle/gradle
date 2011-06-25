@@ -16,25 +16,23 @@
 
 package org.gradle.messaging.remote.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.protocol.ConnectRequest;
 import org.gradle.util.UncheckedException;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+public class HandshakeOutgoingConnector implements OutgoingConnector<Message> {
+    private final OutgoingConnector<Message> connector;
 
-public class HandshakeOutgoingConnector implements OutgoingConnector {
-    private final OutgoingConnector connector;
-
-    public HandshakeOutgoingConnector(OutgoingConnector connector) {
+    public HandshakeOutgoingConnector(OutgoingConnector<Message> connector) {
         this.connector = connector;
     }
 
-    public Connection<Message> connect(URI destinationAddress) {
-        if (!destinationAddress.getScheme().equals("channel")) {
-            throw new IllegalArgumentException(String.format("Cannot create a connection to destination URI with unknown scheme: %s.",
-                    destinationAddress));
+    public Connection<Message> connect(Address destinationAddress) {
+        if (!(destinationAddress instanceof CompositeAddress)) {
+            throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
-        URI connectionAddress = toConnectionAddress(destinationAddress);
+        CompositeAddress compositeAddress = (CompositeAddress) destinationAddress;
+        Address connectionAddress = compositeAddress.getAddress();
         Connection<Message> connection = connector.connect(connectionAddress);
         try {
             connection.dispatch(new ConnectRequest(destinationAddress));
@@ -44,16 +42,5 @@ public class HandshakeOutgoingConnector implements OutgoingConnector {
         }
 
         return connection;
-    }
-
-    private URI toConnectionAddress(URI destinationAddress) {
-        String content = destinationAddress.getSchemeSpecificPart();
-        URI connectionAddress;
-        try {
-            connectionAddress = new URI(StringUtils.substringBeforeLast(content, "!"));
-        } catch (URISyntaxException e) {
-            throw new UncheckedException(e);
-        }
-        return connectionAddress;
     }
 }

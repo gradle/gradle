@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.application;
-
+package org.gradle.api.tasks.application
 
 import groovy.text.SimpleTemplateEngine
 import org.gradle.api.file.FileCollection
@@ -24,9 +23,10 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GUtil
+import org.gradle.util.TextUtil
 
 /**
- * <p>A {@link org.gradle.api.Task} for creating OS dependent startScripts.</p>
+ * <p>A {@link org.gradle.api.Task} for creating OS dependent start scripts.</p>
  *
  * @author Rene Groeschke
  */
@@ -38,13 +38,13 @@ class CreateStartScripts extends ConventionTask {
     File outputDir
 
     /**
-     * The application's main class
+     * The application's main class.
      */
     @Input
     String mainClassName
 
     /**
-     * The application's name
+     * The application's name.
      */
     @Input
     String applicationName
@@ -54,10 +54,10 @@ class CreateStartScripts extends ConventionTask {
     String exitEnvironmentVar
 
     /**
-     * The classpath for the application.
+     * The class path for the application.
      */
     @InputFiles
-    FileCollection classpath;
+    FileCollection classpath
 
     /**
      * Returns the name of the application's OPTS environment variable.
@@ -85,76 +85,57 @@ class CreateStartScripts extends ConventionTask {
     }
 
     @OutputFile
-    public File getBatScript() {
-        return new File(getOutputDir(), "${getApplicationName()}.bat")
-    }
-
-    @OutputFile
-    public File getBashScript() {
+    File getUnixScript() {
         return new File(getOutputDir(), getApplicationName())
     }
 
+    @OutputFile
+    File getWindowsScript() {
+        return new File(getOutputDir(), "${getApplicationName()}.bat")
+    }
+
     @TaskAction
-    public void generate() {
-        getOutputDir().mkdirs();
+    void generate() {
+        getOutputDir().mkdirs()
 
         //ref all files in classpath
         def unixLibPath = "\$APP_HOME/lib/"
-        StringBuffer unixClasspath = new StringBuffer();
+        def unixClassPath = new StringBuffer()
 
         def windowsLibPath = "%APP_HOME%\\lib\\"
-        StringBuffer windowsClasspath = new StringBuffer();
+        def windowsClassPath = new StringBuffer()
 
         classpath.each {
-            unixClasspath << "$unixLibPath${it.name}:"
-            windowsClasspath << "$windowsLibPath${it.name};"
+            unixClassPath << "$unixLibPath${it.name}:"
+            windowsClassPath << "$windowsLibPath${it.name};"
         }
 
-        generateLinuxStartScript([
+        generateUnixScript(
                 applicationName: getApplicationName(),
                 optsEnvironmentVar: getOptsEnvironmentVar(),
                 mainClassName: getMainClassName(),
-                classpath: unixClasspath])
-        generateWindowsStartScript([
+                classpath: unixClassPath)
+        generateWindowsScript(
                 applicationName: getApplicationName(),
                 optsEnvironmentVar: getOptsEnvironmentVar(),
                 exitEnvironmentVar: getExitEnvironmentVar(),
                 mainClassName: getMainClassName(),
-                classpath: windowsClasspath])
+                classpath: windowsClassPath)
     }
 
-    void generateWindowsStartScript(def binding) {
-        def engine = new SimpleTemplateEngine();
-        String windowsTemplate = CreateStartScripts.getResourceAsStream('windowsStartScript.txt').text
-        String windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
-
-        def windowsScript = getBatScript()
-        windowsScript.withWriter {writer ->
-            writer.write(transformIntoWindowsNewLines(windowsOutput))
-        }
+    private void generateUnixScript(Map binding) {
+        generateScript('unixStartScript.txt', binding, TextUtil.unixLineSeparator, getUnixScript())
     }
 
-    void generateLinuxStartScript(def binding) {
-        def engine = new SimpleTemplateEngine();
-        String unixTemplate = CreateStartScripts.getResourceAsStream('unixStartScript.txt').text
-        def linuxOutput = engine.createTemplate(unixTemplate).make(binding)
-
-        def unixScript = getBashScript();
-        unixScript.withWriter {writer ->
-            writer.write(linuxOutput)
-        }
+    private void generateWindowsScript(Map binding) {
+        generateScript('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator, getWindowsScript())
     }
 
-    static String transformIntoWindowsNewLines(String s) {
-        StringWriter writer = new StringWriter()
-        s.toCharArray().each {c ->
-            if (c == '\n') {
-                writer.write('\r')
-                writer.write('\n')
-            } else if (c != '\r') {
-                writer.write(c)
-            }
-        }
-        writer.toString()
+    private void generateScript(String templateName, Map binding, String lineSeparator, File outputFile) {
+        def engine = new SimpleTemplateEngine()
+        def templateText = CreateStartScripts.getResourceAsStream(templateName).text
+        def output = engine.createTemplate(templateText).make(binding)
+        def nativeOutput = TextUtil.convertLineSeparators(output as String, lineSeparator)
+        outputFile.write(nativeOutput)
     }
 }

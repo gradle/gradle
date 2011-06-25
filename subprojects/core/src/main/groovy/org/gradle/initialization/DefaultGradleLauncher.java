@@ -18,6 +18,7 @@ package org.gradle.initialization;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
+import org.gradle.StartParameter;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -62,6 +63,10 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
         this.loggingManager = loggingManager;
+    }
+
+    public GradleInternal getGradle() {
+        return gradle;
     }
 
     /**
@@ -199,5 +204,10 @@ public class DefaultGradleLauncher extends GradleLauncher {
     @Override
     public void addStandardErrorListener(StandardOutputListener listener) {
         loggingManager.addStandardErrorListener(listener);
+    }
+
+    @Override
+    public StartParameter getStartParameter() {
+        return gradle.getStartParameter();
     }
 }

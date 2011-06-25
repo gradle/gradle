@@ -163,9 +163,9 @@ public class TestTest extends AbstractConventionTaskTest {
         FileTreeAdapter adapter = (FileTreeAdapter) contents.get(0);
         assertThat(adapter.getTree(), instanceOf(DirectoryFileTree.class));
         DirectoryFileTree directoryFileTree = (DirectoryFileTree) adapter.getTree();
-        assertThat(directoryFileTree.getRoot(), equalTo(classesDir));
-        assertThat(directoryFileTree.getPatternSet().getIncludes(), equalTo(includes));
-        assertThat(directoryFileTree.getPatternSet().getExcludes(), equalTo(excludes));
+        assertThat(directoryFileTree.getDir(), equalTo(classesDir));
+        assertThat(directoryFileTree.getPatterns().getIncludes(), equalTo(includes));
+        assertThat(directoryFileTree.getPatterns().getExcludes(), equalTo(excludes));
     }
 
     @org.junit.Test

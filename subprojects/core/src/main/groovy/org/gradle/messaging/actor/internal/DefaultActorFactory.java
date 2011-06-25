@@ -37,6 +37,9 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
         this.executorFactory = executorFactory;
     }
 
+    /**
+     * Stops all actors.
+     */
     public void stop() {
         synchronized (lock) {
             try {
@@ -70,13 +73,15 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
     private class ActorImpl implements Actor {
         private final StoppableDispatch<MethodInvocation> dispatch;
         private final StoppableExecutor executor;
-        private final ExceptionTrackingListener exceptionListener;
+        private final ExceptionTrackingFailureHandler failureHandler;
 
         public ActorImpl(Object targetObject) {
             executor = executorFactory.create(String.format("Dispatch %s", targetObject));
-            exceptionListener = new ExceptionTrackingListener(Logging.getLogger(ActorImpl.class));
-            dispatch = new AsyncDispatch<MethodInvocation>(executor, new ExceptionTrackingDispatch<MethodInvocation>(
-                    new ReflectionDispatch(targetObject), exceptionListener));
+            failureHandler = new ExceptionTrackingFailureHandler(Logging.getLogger(ActorImpl.class));
+            dispatch = new AsyncDispatch<MethodInvocation>(executor,
+                    new FailureHandlingDispatch<MethodInvocation>(
+                            new ReflectionDispatch(targetObject),
+                            failureHandler));
         }
 
         public <T> T getProxy(Class<T> type) {
@@ -85,7 +90,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
 
         public void stop() {
             try {
-                new CompositeStoppable(dispatch, executor, exceptionListener).stop();
+                new CompositeStoppable(dispatch, executor, failureHandler).stop();
             } finally {
                 stopped(this);
             }

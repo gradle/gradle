@@ -24,7 +24,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Author: Szczepan Faber, created at: 3/29/11
+ * @author Szczepan Faber, created at: 3/29/11
  */
 public class EmptyMavenSettingsSupplier implements MavenSettingsSupplier {
 

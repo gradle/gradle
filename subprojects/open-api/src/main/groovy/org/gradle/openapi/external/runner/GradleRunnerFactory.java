@@ -40,7 +40,9 @@ public class GradleRunnerFactory {
      * @param showDebugInfo true to show some additional information that may be helpful diagnosing problems is this fails
      * @return a gradle runner
      * @author mhunsicker
+     * @deprecated Use the tooling API instead.
      */
+    @Deprecated
     public static GradleRunnerVersion1 createGradleRunner(ClassLoader parentClassLoader, File gradleHomeDirectory, GradleRunnerInteractionVersion1 interaction, boolean showDebugInfo)
             throws Exception {
         //much of this function is exception handling so if we can't obtain it via the newer factory method, then

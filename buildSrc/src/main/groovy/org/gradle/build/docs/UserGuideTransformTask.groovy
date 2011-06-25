@@ -200,7 +200,7 @@ public class UserGuideTransformTask extends DefaultTask {
                     exampleElement.appendChild(sourcefileTitle);
 
                     Element programListingElement = doc.createElement('programlisting')
-                    if (file.endsWith('.gradle') || file.endsWith('.groovy')) {
+                    if (file.endsWith('.gradle') || file.endsWith('.groovy') || file.endsWith('.java')) {
                         programListingElement.setAttribute('language', 'java')
                     }
                     else if (file.endsWith('.xml')) {

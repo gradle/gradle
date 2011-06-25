@@ -1,5 +1,3 @@
-import static org.junit.Assert.*
-
 configurations {
     compile
 }
@@ -23,11 +21,11 @@ task listJars << {
     def compile = configurations.compile
 
     Set jars = compile.collect { it.name } as Set
-    assertEquals(['projectA-1.2.jar', 'projectB-1.5.jar'] as Set, jars)
+    assert ['projectA-1.2.jar', 'projectB-1.5.jar'] as Set == jars
 
     def projectA = compile.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectA' }
-    assertEquals('1.2', projectA.moduleVersion)
+    assert '1.2'  == projectA.moduleVersion
 
     def projectB = projectA.children.find { it.moduleName == 'projectB' }
-    assertEquals('1.5', projectB.moduleVersion)
+    assert '1.5' == projectB.moduleVersion
 }

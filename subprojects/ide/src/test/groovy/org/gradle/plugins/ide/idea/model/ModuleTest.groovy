@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.XmlTransformer
 import spock.lang.Specification
 
@@ -35,7 +36,7 @@ class ModuleTest extends Specification {
                     [new JarDirectory(path('file://$MODULE_DIR$/ant/lib'), false)] as Set, "RUNTIME"),
             new ModuleDependency('someModule', null)]
 
-    Module module = new Module(xmlTransformer)
+    Module module = new Module(xmlTransformer, pathFactory)
 
     def loadFromReader() {
         when:
@@ -57,7 +58,7 @@ class ModuleTest extends Specification {
         def constructorExcludeFolders = [path('c')] as Set
         def constructorInheritOutputDirs = false
         def constructorOutputDir = path('someOut')
-        def constructorJavaVersion = '1.6'
+        def constructorJavaVersion = JavaVersion.VERSION_1_6
         def constructorTestOutputDir = path('someTestOut')
         def constructorModuleDependencies = [
                 customDependencies[0],
@@ -74,8 +75,17 @@ class ModuleTest extends Specification {
         module.excludeFolders == customExcludeFolders + constructorExcludeFolders
         module.outputDir == constructorOutputDir
         module.testOutputDir == constructorTestOutputDir
-        module.javaVersion == constructorJavaVersion
+        module.javaVersion == constructorJavaVersion.toString()
         module.dependencies == constructorModuleDependencies
+    }
+
+    def "configures default java version"() {
+        when:
+        module.configure(null, [] as Set, [] as Set, [] as Set,
+                true, null, null, [] as Set, null)
+
+        then:
+        module.javaVersion == Module.INHERITED
     }
 
     def loadDefaults() {
@@ -98,7 +108,7 @@ class ModuleTest extends Specification {
         module.loadDefaults()
         module.configure(null, constructorSourceFolders, [] as Set, [] as Set, false, constructorOutputDir, constructorTestOutputDir, [] as Set, null)
         def xml = toXmlReader
-        def newModule = new Module(xmlTransformer)
+        def newModule = new Module(xmlTransformer, pathFactory)
         newModule.load(xml)
 
         then:

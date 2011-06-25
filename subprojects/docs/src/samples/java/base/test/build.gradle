@@ -3,7 +3,7 @@ dependencies {
 }
 
 task test(type: Test) {
-    testClassesDir = sourceSets.main.classesDir
+    testClassesDir = sourceSets.main.output.classesDir
     classpath = sourceSets.main.runtimeClasspath
 }
 

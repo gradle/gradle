@@ -1,5 +1,3 @@
-import static org.junit.Assert.*
-
 allprojects {
     configurations {
         evictedTransitive
@@ -47,11 +45,11 @@ defaultTasks 'check'
 
 task check << {
     def jars = configurations.evictedTransitive.collect { it.name }
-    assertEquals(['projectA-1.2.jar', 'projectB-2.1.5.jar'] as Set, jars as Set)
+    assert ['projectA-1.2.jar', 'projectB-2.1.5.jar'] as Set == jars as Set
 
     jars = configurations.evictedDirect.collect { it.name }
-    assertEquals(['projectA-2.0.jar', 'projectB-2.1.5.jar'] as Set, jars as Set)
+    assert ['projectA-2.0.jar', 'projectB-2.1.5.jar'] as Set == jars as Set
 
     jars = configurations.multiProject.collect { it.name }
-    assertEquals(['projectA-2.0.jar', 'projectB-2.1.5.jar'] as Set, jars as Set)
+    assert ['projectA-2.0.jar', 'projectB-2.1.5.jar'] as Set == jars as Set
 }

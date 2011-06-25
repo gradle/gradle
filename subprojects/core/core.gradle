@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import java.text.DateFormat
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+import org.gradle.build.GenerateReleasesXml
 
 apply plugin: 'groovy'
 apply from: "$rootDir/gradle/integTest.gradle"
@@ -57,12 +56,13 @@ dependencies {
             'org.jruby.ext.posix:jna-posix:1.0.3',
             'org.jfrog.wharf:wharf-core:1.0-rc-4'
 
-            runtime 'net.java.dev.jna:jna:3.2.2'
+    runtime libraries.jna
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 
     // tried with scope 'runtime' but this gives a cyclic task dependency
     testRuntime project(":coreImpl")
+    testRuntime 'xerces:xercesImpl:2.9.1'
 
     testCompile libraries.xmlunit
 
@@ -70,59 +70,18 @@ dependencies {
 
     integTestCompile libraries.jetty_depends
 
-    testFixtures sourceSets.test.classes, sourceSets.main.classes
-    integTestFixtures sourceSets.integTest.classes
+    testFixtures sourceSets.test.output, sourceSets.main.output, project(':coreImpl')
+    integTestFixtures sourceSets.integTest.output
 }
 
-task versionProperties(type: WriteVersionProperties) {
-    propertiesFile = new File(sourceSets.main.classesDir, GradleVersion.FILE_NAME)
+def generatedResourcesDir = "$buildDir/generated-resources/main"
+task releasesResource(type: GenerateReleasesXml) {
+    destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
 }
-
-classes.dependsOn(versionProperties)
-
-task ideVersionProperties(type: WriteVersionProperties) {
-    propertiesFile = new File(ideDir, "resources/test/$GradleVersion.FILE_NAME")
-}
-
-ide.dependsOn ideVersionProperties
-
-ideaModule {
-    dependsOn ideVersionProperties
-    scopes.COMPILE.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
-}
-
-eclipseClasspath {
-    dependsOn ideVersionProperties
-    plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
-}
+sourceSets.main.output.dir generatedResourcesDir, buildBy: 'releasesResource'
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 test {
     jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
-}
-
-class WriteVersionProperties extends DefaultTask {
-    @Input
-    String getVersion() { return project.version.toString() }
-
-    @Input
-    Date getBuildTime() { return project.version.buildTime }
-
-    @OutputFile
-    File propertiesFile
-
-    @TaskAction
-    def void generate() {
-        logger.info('Write version properties to: {}', propertiesFile)
-        Properties versionProperties = new Properties()
-        versionProperties.putAll([
-                (GradleVersion.VERSION): version,
-                (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime)
-        ])
-        propertiesFile.withOutputStream {
-            versionProperties.store(it, '')
-        }
-
-    }
 }

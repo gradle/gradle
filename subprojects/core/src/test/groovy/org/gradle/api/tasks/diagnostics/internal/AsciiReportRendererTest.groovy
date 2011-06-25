@@ -43,10 +43,10 @@ class AsciiReportRendererTest extends Specification {
 
     def writesConfigurationHeader() {
         Configuration configuration1 = Mock()
-        _ * configuration1.getName() >> 'config1'
-        _ * configuration1.getDescription() >> 'description'
+        configuration1.getName() >> 'config1'
+        configuration1.getDescription() >> 'description'
         Configuration configuration2 = Mock()
-        _ * configuration2.getName() >> 'config2'
+        configuration2.getName() >> 'config2'
 
         when:
         renderer.startConfiguration(configuration1);
@@ -70,23 +70,23 @@ class AsciiReportRendererTest extends Specification {
         ResolvedDependency dep2 = Mock()
         ResolvedDependency dep21 = Mock()
         ResolvedDependency dep22 = Mock()
-        _ * configuration.name >> 'config'
-        _ * resolvedConfig.getFirstLevelModuleDependencies() >> {[dep1, dep2] as LinkedHashSet}
-        _ * dep1.getChildren() >> {[dep11] as LinkedHashSet}
-        _ * dep1.getName() >> 'dep1'
-        _ * dep1.getConfiguration() >> 'config1'
-        _ * dep11.getChildren() >> {[] as LinkedHashSet}
-        _ * dep11.getName() >> 'dep1.1'
-        _ * dep11.getConfiguration() >> 'config1.1'
-        _ * dep2.getChildren() >> {[dep21, dep22] as LinkedHashSet}
-        _ * dep2.getName() >> 'dep2'
-        _ * dep2.getConfiguration() >> 'config2'
-        _ * dep21.getChildren() >> {[] as LinkedHashSet}
-        _ * dep21.getName() >> 'dep2.1'
-        _ * dep21.getConfiguration() >> 'config2.1'
-        _ * dep22.getChildren() >> {[] as LinkedHashSet}
-        _ * dep22.getName() >> 'dep2.2'
-        _ * dep22.getConfiguration() >> 'config2.2'
+        configuration.name >> 'config'
+        resolvedConfig.getFirstLevelModuleDependencies() >> {[dep1, dep2] as LinkedHashSet}
+        dep1.getChildren() >> {[dep11] as LinkedHashSet}
+        dep1.getName() >> 'dep1'
+        dep1.getConfiguration() >> 'config1'
+        dep11.getChildren() >> {[] as LinkedHashSet}
+        dep11.getName() >> 'dep1.1'
+        dep11.getConfiguration() >> 'config1.1'
+        dep2.getChildren() >> {[dep21, dep22] as LinkedHashSet}
+        dep2.getName() >> 'dep2'
+        dep2.getConfiguration() >> 'config2'
+        dep21.getChildren() >> {[] as LinkedHashSet}
+        dep21.getName() >> 'dep2.1'
+        dep21.getConfiguration() >> 'config2.1'
+        dep22.getChildren() >> {[] as LinkedHashSet}
+        dep22.getName() >> 'dep2.2'
+        dep22.getConfiguration() >> 'config2.2'
 
         when:
         renderer.startConfiguration(configuration)
@@ -105,7 +105,7 @@ class AsciiReportRendererTest extends Specification {
 
     def rendersDependencyTreeForEmptyConfiguration() {
         ResolvedConfiguration configuration = Mock()
-        _ * configuration.getFirstLevelModuleDependencies() >> {[] as Set}
+        configuration.getFirstLevelModuleDependencies() >> {[] as Set}
 
         when:
         renderer.render(configuration)

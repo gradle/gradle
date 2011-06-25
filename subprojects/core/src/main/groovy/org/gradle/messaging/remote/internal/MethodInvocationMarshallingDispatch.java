@@ -17,12 +17,15 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.remote.internal.protocol.MethodMetaInfo;
+import org.gradle.messaging.remote.internal.protocol.PayloadMessage;
+import org.gradle.messaging.remote.internal.protocol.RemoteMethodInvocation;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MethodInvocationMarshallingDispatch implements Dispatch<MethodInvocation> {
+public class MethodInvocationMarshallingDispatch implements Dispatch<Message> {
     private final Dispatch<? super Message> dispatch;
     private final Map<Method, Integer> methods = new HashMap<Method, Integer>();
     private int nextKey;
@@ -31,7 +34,19 @@ public class MethodInvocationMarshallingDispatch implements Dispatch<MethodInvoc
         this.dispatch = dispatch;
     }
 
-    public void dispatch(MethodInvocation methodInvocation) {
+    public void dispatch(Message message) {
+        if (!(message instanceof PayloadMessage)) {
+            dispatch.dispatch(message);
+            return;
+        }
+
+        PayloadMessage payloadMessage = (PayloadMessage) message;
+        if (!(payloadMessage.getNestedPayload() instanceof MethodInvocation)) {
+            dispatch.dispatch(message);
+            return;
+        }
+
+        MethodInvocation methodInvocation = (MethodInvocation) payloadMessage.getNestedPayload();
         Method method = methodInvocation.getMethod();
         Integer key = methods.get(method);
         if (key == null) {
@@ -39,6 +54,7 @@ public class MethodInvocationMarshallingDispatch implements Dispatch<MethodInvoc
             methods.put(method, key);
             dispatch.dispatch(new MethodMetaInfo(key, method));
         }
-        dispatch.dispatch(new RemoteMethodInvocation(key, methodInvocation.getArguments()));
+        Message transformedMessage = payloadMessage.withNestedPayload(new RemoteMethodInvocation(key, methodInvocation.getArguments()));
+        dispatch.dispatch(transformedMessage);
     }
 }

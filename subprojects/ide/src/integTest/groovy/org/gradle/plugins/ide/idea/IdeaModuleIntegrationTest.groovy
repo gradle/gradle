@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -49,18 +50,18 @@ configurations {
   provided.extendsFrom(compile)
 }
 
-dependencies { provided "junit:junit:4.8.2" }
-
 idea {
+    pathVariables CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile
+
     module {
         name = 'foo'
-        moduleDir = file('customModuleContentRoot')
+        contentRoot = file('customModuleContentRoot')
 
         sourceDirs += file('additionalCustomSources')
         testSourceDirs += file('additionalCustomTestSources')
         excludeDirs += file('excludeMePlease')
 
-        scopes.PROVIDED.plus += configurations.provided
+        scopes.PROVIDED.plus += configurations.compile
         downloadJavadoc = true
         downloadSources = false
 
@@ -69,7 +70,6 @@ idea {
         testOutputDir = file('muchBetterTestOutputDir')
 
         javaVersion = '1.6'
-        variables = [CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile]
 
         iml {
             generateTo = file('customImlFolder')
@@ -98,6 +98,39 @@ idea {
         assert iml.component."output-test".@url.text().endsWith('muchBetterTestOutputDir')
         assert iml.component.orderEntry.any { it.@type.text() == 'jdk' && it.@jdkName.text() == '1.6' }
         assert iml.someInterestingConfiguration.text() == 'hey!'
+    }
+
+    @Test
+    void plusMinusConfigurationsAreCorrectlyApplied() {
+        file('foo.jar', 'bar.jar')
+        //when
+        runTask 'idea', '''
+apply plugin: "java"
+apply plugin: "idea"
+
+configurations {
+  bar
+  foo
+  foo.extendsFrom(bar)
+}
+
+dependencies {
+  bar files('bar.jar')
+  foo files('foo.jar')
+}
+
+idea {
+    module {
+        scopes.COMPILE.plus += configurations.foo
+        scopes.COMPILE.minus += configurations.bar
+    }
+}
+'''
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        assert content.contains('foo.jar')
+        assert !content.contains('bar.jar')
     }
 
     @Test
@@ -137,5 +170,46 @@ idea {
         assert iml.contains('folderThatIsExcludedNow')
         assert !iml.contains('folderThatWasExcludedEarlier')
         assert iml.contains('1.33')
+    }
+
+    @Issue("GRADLE-1504")
+    @Test
+    void "should put sourceSet's output dir on classpath"() {
+        testFile('build/generated/main/foo.resource').createFile()
+        testFile('build/ws/test/service.xml').createFile()
+
+        //when
+        runTask 'idea', '''
+apply plugin: "java"
+apply plugin: "idea"
+
+sourceSets.main.output.dir "$buildDir/generated/main"
+sourceSets.test.output.dir "$buildDir/ws/test"
+'''
+        def iml = parseFile(print: true, 'root.iml')
+
+        //then
+        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
+
+        def classesDirs = iml.component.orderEntry.library.CLASSES.root.@url.collect { it.text() }
+        assert classesDirs.any { it.contains ('generated/main') }
+        assert classesDirs.any { it.contains ('ws/test') }
+    }
+
+    @Test
+    void "the 'buildBy' task be executed"() {
+        //when
+        def result = runIdeaTask('''
+apply plugin: "java"
+apply plugin: "idea"
+
+sourceSets.main.output.dir "$buildDir/generated/main", buildBy: 'generateForMain'
+sourceSets.test.output.dir "$buildDir/generated/test", buildBy: 'generateForTest'
+
+task generateForMain << {}
+task generateForTest << {}
+''')
+        //then
+        result.assertTasksExecuted(':generateForMain', ':generateForTest', ':ideaModule', ':ideaProject', ':ideaWorkspace', ':idea')
     }
 }

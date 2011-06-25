@@ -25,32 +25,45 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.junit.Rule
 
 public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
+    @Rule
+    public final HttpServer server = new HttpServer()
+
     @Test
     public void executesExternalScriptAgainstAProjectWithCorrectEnvironment() {
         createExternalJar()
         createBuildSrc()
 
+        def implClassName = 'com.google.common.collect.Multimap'
         TestFile externalScript = testFile('external.gradle')
         externalScript << """
-            buildscript {
-                dependencies { classpath files('repo/test-1.3.jar') }
-            }
-            new org.gradle.test.BuildClass()
-            new BuildSrcClass()
-            println 'quiet message'
-            captureStandardOutput(LogLevel.ERROR)
-            println 'error message'
-            assert project != null
-            assert "${externalScript.absolutePath.replace("\\", "\\\\")}" == buildscript.sourceFile as String
-            assert "${externalScript.toURI()}" == buildscript.sourceURI as String
-            assert buildscript.classLoader == getClass().classLoader.parent
-            assert buildscript.classLoader == Thread.currentThread().contextClassLoader
-            assert gradle.scriptClassLoader == buildscript.classLoader.parent
-            assert project.buildscript.classLoader != buildscript.classLoader
-            task doStuff
-            someProp = 'value'
+buildscript {
+    dependencies { classpath files('repo/test-1.3.jar') }
+}
+new org.gradle.test.BuildClass()
+new BuildSrcClass()
+println 'quiet message'
+logging.captureStandardOutput(LogLevel.ERROR)
+println 'error message'
+assert project != null
+assert "${externalScript.absolutePath.replace("\\", "\\\\")}" == buildscript.sourceFile as String
+assert "${externalScript.toURI()}" == buildscript.sourceURI as String
+assert buildscript.classLoader == getClass().classLoader.parent
+assert buildscript.classLoader == Thread.currentThread().contextClassLoader
+assert gradle.scriptClassLoader == buildscript.classLoader.parent
+assert project.buildscript.classLoader != buildscript.classLoader
+Gradle.class.classLoader.loadClass('${implClassName}')
+try {
+    buildscript.classLoader.loadClass('${implClassName}')
+    assert false: 'should fail'
+} catch (ClassNotFoundException e) {
+    // expected
+}
+
+task doStuff
+someProp = 'value'
 """
         testFile('build.gradle') << '''
 apply { from 'external.gradle' }
@@ -132,8 +145,7 @@ class ListenerImpl extends BuildAdapter {
     public void canFetchScriptViaHttp() {
         TestFile script = testFile('external.gradle')
 
-        HttpServer server = new HttpServer()
-        server.add('/external.gradle', script)
+        server.expectGet('/external.gradle', script)
         server.start()
 
         script << """
@@ -148,8 +160,6 @@ class ListenerImpl extends BuildAdapter {
 """
 
         inTestDirectory().run()
-
-        server.stop()
     }
 
     @Test

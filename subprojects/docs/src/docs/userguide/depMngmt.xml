@@ -280,8 +280,17 @@
             <para>You can declare a dependency on the API of the current version of Gradle by using the
                 <apilink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="gradleApi"/> method. This is
                 useful when you are developing custom Gradle tasks or plugins.</para>
-            <sample id="gradle-api-dependencies" dir="java/multiproject/buildSrc" title="Gradle API dependencies">
+            <sample id="gradle-api-dependencies" dir="customPlugin" title="Gradle API dependencies">
                 <sourcefile file="build.gradle" snippet="gradle-api-dependencies"/>
+            </sample>
+        </section>
+        <section>
+            <title>Gradle's Groovy Dependency</title>
+            <para>You can declare a dependency on the Groovy that is distributed with Gradle by using the
+                <apilink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="localGroovy"/> method. This is
+                useful when you are developing custom Gradle tasks or plugins in Groovy.</para>
+            <sample id="local-groovy-dependencies" dir="customPlugin" title="Gradle's Groovy dependencies">
+                <sourcefile file="build.gradle" snippet="local-groovy-dependencies"/>
             </sample>
         </section>
         <section id='sub:exclude_transitive_dependencies'>
@@ -472,6 +481,22 @@
             </para>
         </section>
         <section>
+            <title>Ivy repositories</title>
+            <para>To use an Ivy repository:</para>
+            <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
+                <sourcefile file="build.gradle" snippet="ivy-repo"/>
+            </sample>
+            <para>See <apilink class="org.gradle.api.artifacts.dsl.IvyArtifactRepository"/> for details.</para>
+            <section>
+                <title>Accessing password protected Ivy repositories</title>
+                <para>To access an Ivy repository which uses basic authentication, you specify the username and password to use when you define the repository:
+                </para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
+                    <sourcefile file="build.gradle" snippet="authenticated-ivy-repo"/>
+                </sample>
+            </section>
+        </section>
+        <section>
             <title>More about preconfigured repositories</title>
             <para>The methods above for creating preconfigured repositories share some common behavior. For all of them, defining
                 a name for the repository is optional. If no name is defined a default name is calculated, depending on the
@@ -485,10 +510,9 @@
         </section>
         <section id='sub:cache'>
             <title>Cache</title>
-            <para>When Gradle downloads dependencies from remote repositories it stores them in a local cache located at
-                <literal>USER_HOME/.gradle/cache</literal>. When Gradle downloads dependencies from one of its
-                predefined local resolvers (e.g. Flat Directory resolver), the cache is not used as an intermediate
-                storage for dependency artifacts. The cache is always used for caching module descriptors.
+            <para>When Gradle downloads artifacts from remote repositories it stores them in a local cache located at
+                <literal>USER_HOME/.gradle/cache</literal>. When Gradle downloads artifacts from one of its
+                predefined local resolvers (e.g. flat directory resolver), the cache is not used.
             </para>
         </section>
         <section id='sub:more_about_ivy_resolvers'>

@@ -27,10 +27,10 @@ class AntFileSetBuilder implements AntBuilderAware {
 
     def addToAntBuilder(def node, String nodeName) {
         trees.each { tree ->
-            if (!tree.root.exists()) {
+            if (!tree.dir.exists()) {
                 return
             }
-            node."${nodeName ?: 'fileset'}"(dir: tree.root) {
+            node."${nodeName ?: 'fileset'}"(dir: tree.dir) {
                 tree.patternSet.addToAntBuilder(node, null)
             }
         }

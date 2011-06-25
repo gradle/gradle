@@ -64,7 +64,7 @@ public interface BuildLauncher {
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
 
     /**
-     * Sets the {@link OutputStream} which should receive standard output logging from this build. The default is to discard the output.
+     * Sets the {@link OutputStream} that should receive standard output logging from this build. The default is to discard the output.
      *
      * @param outputStream The output stream.
      * @return this
@@ -72,12 +72,20 @@ public interface BuildLauncher {
     BuildLauncher setStandardOutput(OutputStream outputStream);
 
     /**
-     * Sets the {@link OutputStream} which should receive standard error logging from this build. The default is to discard the output.
+     * Sets the {@link OutputStream} that should receive standard error logging from this build. The default is to discard the output.
      *
      * @param outputStream The output stream.
      * @return this
      */
     BuildLauncher setStandardError(OutputStream outputStream);
+
+    /**
+     * Adds a progress listener which will receive progress events as the build executes.
+     *
+     * @param listener The listener
+     * @return this
+     */
+    BuildLauncher addProgressListener(ProgressListener listener);
 
     /**
      * Execute the build, blocking until it is complete.

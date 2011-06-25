@@ -16,7 +16,6 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
@@ -47,5 +46,5 @@ public interface ScalaSourceSet {
      *
      * @return the Scala source. Never returns null.
      */
-    FileTree getAllScala();
+    SourceDirectorySet getAllScala();
 }

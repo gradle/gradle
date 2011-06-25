@@ -22,16 +22,15 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolverContainer;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.MavenFactory;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
+import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.*;
@@ -39,11 +38,15 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.changedetection.*;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.project.taskfactory.*;
-import org.gradle.api.internal.tasks.*;
+import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
+import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
@@ -60,7 +63,6 @@ import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.internal.TcpMessagingServer;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
@@ -137,15 +139,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                                                         get(TaskArtifactStateRepository.class)))))));
     }
 
-    protected Factory<RepositoryHandler> createRepositoryHandlerFactory() {
-        return new DefaultRepositoryHandlerFactory(
-                new DefaultResolverFactory(
-                        getFactory(LoggingManagerInternal.class), get(MavenFactory.class)),
-                get(ClassGenerator.class));
-    }
-
     protected CacheRepository createCacheRepository() {
-        return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(),
+        return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), get(CacheFactory.class));
     }
 
@@ -237,7 +232,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected ProjectEvaluator createProjectEvaluator() {
-        return new DefaultProjectEvaluator(
+        return new LifecycleProjectEvaluator(
                 new BuildScriptProcessor(
                         get(ScriptPluginFactory.class)));
     }
@@ -286,7 +281,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected MultiParentClassLoader createRootClassLoader() {
-        return get(ClassLoaderFactory.class).createScriptClassLoader();
+        return get(ClassLoaderRegistry.class).createScriptClassLoader();
     }
     
     protected InitScriptHandler createInitScriptHandler() {
@@ -312,20 +307,19 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected ScriptHandlerFactory createScriptHandlerFactory() {
         return new DefaultScriptHandlerFactory(
-                getFactory(RepositoryHandler.class),
-                get(ConfigurationContainerFactory.class),
-                new DependencyMetaDataProviderImpl(), 
-                get(DependencyFactory.class));
+                get(DependencyManagementServices.class),
+                get(FileResolver.class),
+                new DependencyMetaDataProviderImpl());
+    }
+
+    protected FileResolver createFileResolver() {
+        return new IdentityFileResolver();
     }
 
     protected Factory<WorkerProcessBuilder> createWorkerProcessFactory() {
         ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
         return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry,
                 new IdentityFileResolver(), new LongIdGenerator());
-    }
-    
-    protected MessagingServer createMessagingServer() {
-        return new TcpMessagingServer(get(ClassLoaderFactory.class).getRootClassLoader());
     }
 
     protected BuildConfigurer createBuildConfigurer() {
@@ -336,9 +330,14 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected MavenFactory createMavenFactory() {
-        ClassLoader coreImplClassLoader = get(ClassLoaderFactory.class).getCoreImplClassLoader();
+        return get(DependencyManagementServices.class).get(MavenFactory.class);
+    }
+
+    protected DependencyManagementServices createDependencyManagementServices() {
+        ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
         try {
-            return (MavenFactory) coreImplClassLoader.loadClass("org.gradle.api.internal.artifacts.publish.maven.DefaultMavenFactory").newInstance();
+            Class<?> implClass = coreImplClassLoader.loadClass("org.gradle.api.internal.artifacts.DefaultDependencyManagementServices");
+            return (DependencyManagementServices) implClass.getConstructor(ServiceRegistry.class).newInstance(this);
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         }

@@ -17,48 +17,43 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
-import org.gradle.util.UncheckedException;
+import org.gradle.messaging.remote.internal.protocol.ConnectRequest;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-public class HandshakeIncomingConnector implements IncomingConnector {
-    private final IncomingConnector connector;
+public class HandshakeIncomingConnector implements IncomingConnector<Message> {
+    private final IncomingConnector<Message> connector;
     private final Executor executor;
     private final Object lock = new Object();
-    private URI localAddress;
+    private Address localAddress;
     private long nextId;
-    private final Map<URI, Action<ConnectEvent<Connection<Object>>>> pendingActions = new HashMap<URI, Action<ConnectEvent<Connection<Object>>>>();
+    private final Map<Address, Action<ConnectEvent<Connection<Message>>>> pendingActions = new HashMap<Address, Action<ConnectEvent<Connection<Message>>>>();
 
-    public HandshakeIncomingConnector(IncomingConnector connector, Executor executor) {
+    public HandshakeIncomingConnector(IncomingConnector<Message> connector, Executor executor) {
         this.connector = connector;
         this.executor = executor;
     }
 
-    public URI accept(Action<ConnectEvent<Connection<Object>>> action) {
+    public Address accept(Action<ConnectEvent<Connection<Message>>> action, boolean allowRemote) {
+        assert !allowRemote;
         synchronized (lock) {
             if (localAddress == null) {
-                localAddress = connector.accept(handShakeAction());
+                localAddress = connector.accept(handShakeAction(), false);
             }
-            
-            URI localAddress;
-            try {
-                localAddress = new URI(String.format("channel:%s!%d", this.localAddress, nextId++));
-            } catch (URISyntaxException e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
+
+            Address localAddress = new CompositeAddress(this.localAddress, nextId++);
             pendingActions.put(localAddress, action);
             return localAddress;
         }
     }
 
-    private Action<ConnectEvent<Connection<Object>>> handShakeAction() {
-        return new Action<ConnectEvent<Connection<Object>>>() {
-            public void execute(final ConnectEvent<Connection<Object>> connectEvent) {
+    private Action<ConnectEvent<Connection<Message>>> handShakeAction() {
+        return new Action<ConnectEvent<Connection<Message>>>() {
+            public void execute(final ConnectEvent<Connection<Message>> connectEvent) {
                 executor.execute(new Runnable() {
                     public void run() {
                         handshake(connectEvent);
@@ -68,11 +63,11 @@ public class HandshakeIncomingConnector implements IncomingConnector {
         };
     }
 
-    private void handshake(ConnectEvent<Connection<Object>> connectEvent) {
-        Connection<Object> connection = connectEvent.getConnection();
+    private void handshake(ConnectEvent<Connection<Message>> connectEvent) {
+        Connection<Message> connection = connectEvent.getConnection();
         ConnectRequest request = (ConnectRequest) connection.receive();
-        URI localAddress = request.getDestinationAddress();
-        Action<ConnectEvent<Connection<Object>>> channelConnection;
+        Address localAddress = request.getDestinationAddress();
+        Action<ConnectEvent<Connection<Message>>> channelConnection;
         synchronized (lock) {
             channelConnection = pendingActions.remove(localAddress);
         }
@@ -80,6 +75,6 @@ public class HandshakeIncomingConnector implements IncomingConnector {
             throw new IllegalStateException(String.format(
                     "Request to connect received for unknown address '%s'.", localAddress));
         }
-        channelConnection.execute(new ConnectEvent<Connection<Object>>(connection, localAddress, connectEvent.getRemoteAddress()));
+        channelConnection.execute(new ConnectEvent<Connection<Message>>(connection, localAddress, connectEvent.getRemoteAddress()));
     }
 }

@@ -13,110 +13,130 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.messaging.dispatch
 
-import static org.hamcrest.Matchers.*
+import org.gradle.util.ConcurrentSpecification
 
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.MultithreadedTestCase
-import org.jmock.Sequence
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.junit.Assert.*
+public class AsyncReceiveTest extends ConcurrentSpecification {
+    private final Dispatch<String> target1 = Mock()
+    private final Dispatch<String> target2 = Mock()
+    private final Receive<String> source1 = Mock()
+    private final Receive<String> source2 = Mock()
+    private final AsyncReceive<String> dispatch = new AsyncReceive<String>(executor)
 
-@RunWith(JMock.class)
-public class AsyncReceiveTest extends MultithreadedTestCase {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final Dispatch<String> target1 = context.mock(Dispatch.class, "target1")
-    private final Dispatch<String> target2 = context.mock(Dispatch.class, "target2")
-    private final Receive<String> source1 = context.mock(Receive.class, "source1")
-    private final AsyncReceive<String> dispatch = new AsyncReceive<String>(executor, target1)
+    def cleanup() {
+        dispatch?.stop()
+    }
 
-    @Test
-    public void dispatchesReceivedMessagesToTargetUntilEndOfStreamReached() {
-        clockTick(1).hasParticipants(2)
+    def "dispatches message to target until end of stream reached"() {
+        def endOfStream = startsAsyncAction()
 
-        context.checking {
-            Sequence receive = context.sequence('receive')
-            Sequence dispatch = context.sequence('dispatch')
+        when:
+        endOfStream.started {
+            dispatch.dispatchTo(target1)
+            dispatch.receiveFrom(source1)
+        }
+        finished()
 
-            one(source1).receive()
-            will(returnValue('message1'))
-            inSequence(receive)
+        then:
+        3 * source1.receive() >>> ['message1', 'message2', null]
+        1 * target1.dispatch('message1')
+        1 * target1.dispatch('message2') >> { endOfStream.done() }
+    }
 
-            one(source1).receive()
-            will(returnValue('message2'))
-            inSequence(receive)
+    def "can receive from multiple sources"() {
+        def endOfStream = startsAsyncAction()
 
-            one(source1).receive()
-            inSequence(receive)
-            will {
-                syncAt(1)
-                return null
-            }
+        when:
+        endOfStream.started {
+            dispatch.dispatchTo(target1)
+            dispatch.receiveFrom(source1)
+            dispatch.receiveFrom(source2)
+        }
+        finished()
 
-            one(target1).dispatch('message1')
-            inSequence(dispatch)
+        then:
+        2 * source1.receive() >>> ['message1', null]
+        2 * source2.receive() >>> ['message2', null]
+        1 * target1.dispatch('message1')
+        1 * target1.dispatch('message2') >> { endOfStream.done() }
+    }
 
-            one(target1).dispatch('message2')
-            inSequence(dispatch)
+    def "receive waits until dispatch available"() {
+        def received = startsAsyncAction()
+
+        when:
+        received.started {
+            dispatch.receiveFrom(source1)
+            dispatch.dispatchTo(target1)
+        }
+        finished()
+
+        then:
+        3 * source1.receive() >>> ['message1', 'message2', null]
+        1 * target1.dispatch('message1')
+        1 * target1.dispatch('message2') >> { received.done() }
+    }
+
+    def "can dispatch to multiple targets"() {
+        def received = startsAsyncAction()
+
+        when:
+        received.started {
+            dispatch.receiveFrom(source1)
+            dispatch.dispatchTo(target1)
+            dispatch.dispatchTo(target2)
+        }
+        finished()
+
+        then:
+        3 * source1.receive() >>> ['message1', 'message2', null]
+        1 * _.dispatch('message1')
+        1 * _.dispatch('message2') >> { received.done() }
+        0 * target1._
+        0 * target2._
+    }
+
+    def "stop blocks until all receive calls have completed"() {
+        def receiving = startsAsyncAction()
+        def stopped = waitsForAsyncActionToComplete()
+
+        when:
+        receiving.started {
+            dispatch.dispatchTo(target1)
+            dispatch.receiveFrom(source1)
+        }
+        stopped.start {
+            dispatch.stop()
         }
 
+        then:
+        1 * source1.receive() >> { receiving.done(); stopped.done(); return null }
+    }
+
+    def "stop blocks until all dispatch calls have completed"() {
+        def receiving = startsAsyncAction()
+        def stopped = waitsForAsyncActionToComplete()
+
+        when:
+        receiving.started {
+            dispatch.dispatchTo(target1)
+            dispatch.receiveFrom(source1)
+        }
+        stopped.start {
+            dispatch.stop()
+        }
+
+        then:
+        1 * source1.receive() >>> ['message', null]
+        1 * target1.dispatch('message') >> { receiving.done(); stopped.done() }
+    }
+
+    def "can stop when no dispatch provided"() {
+        given:
         dispatch.receiveFrom(source1)
 
-        run {
-            syncAt(1)
-        }
-        
-        dispatch.stop()
-    }
-
-    @Test
-    public void stopBlocksUntilAllReceiveCallsHaveReturned() {
-        context.checking {
-            one(source1).receive()
-            will {
-                syncAt(1)
-                return 'message'
-            }
-            one(target1).dispatch('message')
-            will {
-                syncAt(2)
-            }
-        }
-
-        run {
-            dispatch.receiveFrom(source1)
-            syncAt(1)
-            expectBlocksUntil(2) {
-                dispatch.stop()
-            }
-        }
-    }
-
-    @Test
-    public void requestStopDoesNotBlock() {
-        context.checking {
-            one(source1).receive()
-            will {
-                syncAt(1)
-                syncAt(2)
-                return 'message'
-            }
-            one(target1).dispatch('message')
-        }
-
-        run {
-            dispatch.receiveFrom(source1)
-            syncAt(1)
-            dispatch.requestStop()
-            syncAt(2)
-        }
-
+        expect:
         dispatch.stop()
     }
 }

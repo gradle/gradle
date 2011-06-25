@@ -32,7 +32,7 @@ class IncrementalGroovyProjectBuildIntegrationTest {
             apply plugin: 'groovy'
             dependencies { groovy localGroovy() }
             groovydoc {
-                link('http://java.sun.com/j2se/1.5.0/docs/api', 'java.,org.xml.,javax.,org.xml.')
+                link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.,org.xml.,javax.,org.xml.')
             }
 '''
 
@@ -46,7 +46,7 @@ class IncrementalGroovyProjectBuildIntegrationTest {
 
         indexFile.assertHasNotChangedSince(snapshot);
 
-        distribution.testFile("build.gradle").append("groovydoc.link('http://java.sun.com/j2se/1.5.0/docs/api', 'java.')")
+        distribution.testFile("build.gradle").append("groovydoc.link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.')")
 
         executer.withTasks("groovydoc").run().assertTaskNotSkipped(':groovydoc');
 

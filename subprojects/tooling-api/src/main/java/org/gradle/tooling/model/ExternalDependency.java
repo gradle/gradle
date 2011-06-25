@@ -27,4 +27,18 @@ public interface ExternalDependency extends Dependency {
      * @return The file. Never null.
      */
     File getFile();
+
+    /**
+     * Returns the source directory/archive for this dependency.
+     *
+     * @return The source file. Returns null when the source is not available for this dependency.
+     */
+    File getSource();
+
+    /**
+     * Returns the Javadoc directory/archive for this dependency.
+     *
+     * @return The Javadoc file. Returns null when the Javadoc is not available for this dependency.
+     */
+    File getJavadoc();
 }

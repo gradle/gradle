@@ -42,6 +42,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
@@ -62,8 +63,9 @@ import java.io.File;
 import java.net.URI;
 import java.util.*;
 
-import static java.util.Collections.*;
-import static org.gradle.util.GUtil.*;
+import static java.util.Collections.singletonMap;
+import static org.gradle.util.GUtil.addMaps;
+import static org.gradle.util.GUtil.isTrue;
 
 /**
  * @author Hans Dockter
@@ -175,7 +177,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         fileOperations = services.get(FileOperations.class);
         repositoryHandlerFactory = services.getFactory(RepositoryHandler.class);
         projectEvaluator = services.get(ProjectEvaluator.class);
-        repositoryHandler = repositoryHandlerFactory.create();
+        repositoryHandler = services.get(RepositoryHandler.class);
         configurationContainer = services.get(ConfigurationContainer.class);
         pluginContainer = services.get(PluginContainer.class);
         artifactHandler = services.get(ArtifactHandler.class);
@@ -953,5 +955,9 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
         return classGenerator.newInstance(DefaultAutoCreateDomainObjectContainer.class, type, classGenerator, factoryClosure);
+    }
+
+    public ExtensionContainer getExtensions() {
+        return getConvention();
     }
 }

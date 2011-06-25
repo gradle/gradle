@@ -15,9 +15,9 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
-import org.gradle.foundation.common.ObserverLord;
 import org.gradle.foundation.output.FileLinkDefinitionLord;
 import org.gradle.foundation.queue.ExecutionQueue;
+import org.gradle.foundation.common.ObserverLord;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
@@ -25,7 +25,9 @@ import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Point;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -173,9 +175,10 @@ public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestOb
             outputPanel.setTabHeaderText(description);
             outputPanel.reset();
         } else {  //we don't have an existing tab. Create a new one.
-            outputPanel = new OutputTab(this, description, alternateUIInteraction);
+            outputPanel = new OutputTab(gradlePluginLord, this, description, alternateUIInteraction);
             outputPanel.setFont(font);
             outputPanel.initialize();
+            outputPanel.reset();
             tabbedPane.addTab(description, outputPanel);
             if (selectOutputPanel) {
                 tabbedPane.setSelectedComponent(outputPanel);

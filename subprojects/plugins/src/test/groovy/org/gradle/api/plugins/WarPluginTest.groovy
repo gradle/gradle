@@ -114,7 +114,7 @@ class WarPluginTest {
         }
 
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
-        assertThat(task.classpath.files as List, equalTo([project.sourceSets.main.classesDir, runtimeJar, compileJar]))
+        assertThat(task.classpath.files as List, equalTo([project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir, runtimeJar, compileJar]))
     }
 
     @Test public void appliesMappingsToArchiveTasks() {

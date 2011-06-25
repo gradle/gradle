@@ -15,9 +15,10 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.listener.ListenerManager;
+import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion4;
-import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 /**
@@ -28,18 +29,19 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 public class ConnectionFactory {
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
     private final ToolingImplementationLoader toolingImplementationLoader;
+    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
+    private final ListenerManager listenerManager;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public ConnectionFactory() {
-        this(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
-    }
-
-    ConnectionFactory(ToolingImplementationLoader toolingImplementationLoader) {
+    public ConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory) {
         this.toolingImplementationLoader = toolingImplementationLoader;
+        this.listenerManager = listenerManager;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    public ProjectConnection create(Distribution distribution, ConnectionParametersVersion1 parameters) {
-        ConnectionFactoryVersion4 factory = toolingImplementationLoader.create(distribution);
-        final ConnectionVersion4 connection = factory.create(parameters);
-        return new DefaultProjectConnection(connection, adapter);
+    public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
+        ConnectionVersion4 connection = new ProgressLoggingConnection(new LazyConnection(distribution, toolingImplementationLoader), progressLoggerFactory, listenerManager);
+        AsyncConnection asyncConnection = new DefaultAsyncConnection(connection, executorFactory);
+        return new DefaultProjectConnection(asyncConnection, adapter, parameters);
     }
 }

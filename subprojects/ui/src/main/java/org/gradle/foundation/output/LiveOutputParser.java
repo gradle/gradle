@@ -112,4 +112,42 @@ public class LiveOutputParser {
     public String getText() {
         return totalTextToParse.toString();
     }
+
+    /**
+     * Returns the previous file link relative to the caret location. This will cycle around and get the last one if you're before the first link.
+     */
+    public FileLink getPreviousFileLink(int caretLocation) {
+        if (fileLinks.isEmpty()) {
+            return null;
+        }
+
+        //walk them in reverse order
+        for (int index = fileLinks.size() - 1; index >= 0; index--) {
+            FileLink fileLink = fileLinks.get(index);
+            if (fileLink.getEndingIndex() < caretLocation) {
+                return fileLink;
+            }
+        }
+
+        return fileLinks.get(fileLinks.size() - 1);
+    }
+
+    /**
+     * Returns the next file link relative to the caret location. This will cycle around and get the first one if you're after the last link.
+     */
+    public FileLink getNextFileLink(int caretLocation) {
+        if (fileLinks.isEmpty()) {
+            return null;
+        }
+
+        Iterator<FileLink> iterator = fileLinks.iterator();
+        while (iterator.hasNext()) {
+            FileLink fileLink = iterator.next();
+            if (fileLink.getStartingIndex() > caretLocation) {
+                return fileLink;
+            }
+        }
+
+        return fileLinks.get(0);
+    }
 }
