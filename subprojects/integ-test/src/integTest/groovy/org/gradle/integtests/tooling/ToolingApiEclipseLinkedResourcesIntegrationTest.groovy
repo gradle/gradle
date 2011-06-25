@@ -50,20 +50,4 @@ eclipse.project {
         minimalProject.linkedResources[1].location == null
         minimalProject.linkedResources[1].locationUri == 'file://..'
     }
-
-    def "cannot build linked resources for previous version"() {
-        configureTargetDist(gradle10Milestone3)
-        def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = "apply plugin: 'java'"
-
-        when:
-        def minimalProject = withConnection { it.getModel(HierarchicalEclipseProject.class) }
-
-        minimalProject.linkedResources
-
-        then:
-        def e = thrown(Exception)
-        e.message.contains "HierarchicalEclipseProject.getLinkedResources()"
-        e.message.contains "Method not found"
-    }
 }

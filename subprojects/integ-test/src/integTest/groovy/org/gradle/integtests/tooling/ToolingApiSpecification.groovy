@@ -17,6 +17,7 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.tooling.gradle10Milestone3.TargetDistSelector
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,21 +27,21 @@ abstract class ToolingApiSpecification extends Specification {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     public final ToolingApi toolingApi = new ToolingApi(dist)
 
-    BasicGradleDistribution gradle10Milestone3 = dist.previousVersion('1.0-milestone-3')
-    BasicGradleDistribution optionalTargetDist
+    String optionalTargetDist = null
 
-    void setup() {
-        if (optionalTargetDist) {
-            toolingApi.withConnector {
-                it.useInstallation(new File(optionalTargetDist.gradleHomeDir.absolutePath))
-                it.embedded(false)
-            }
-        }
+    BasicGradleDistribution getTargetDist() {
+        optionalTargetDist? dist.previousVersion(optionalTargetDist) : dist
     }
 
-    void configureTargetDist(BasicGradleDistribution targetDist) {
-        optionalTargetDist = targetDist
-        setup()
+    @Rule public final targetDistSelector = new TargetDistSelector()
+
+    void setup() {
+        toolingApi.withConnector {
+            it.useInstallation(new File(targetDist.gradleHomeDir.absolutePath))
+            if (!(targetDist instanceof GradleDistribution)) {
+                it.embedded = false
+            }
+        }
     }
 
     def withConnection(Closure cl) {
