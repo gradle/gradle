@@ -73,7 +73,7 @@ class Version {
         if (release) {
             'https://gradle.artifactoryonline.com/gradle/distributions'
         } else {
-            'https://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots'
+            'https://gradle.artifactoryonline.com/gradle/distributions-snapshots'
         }
     }
 
