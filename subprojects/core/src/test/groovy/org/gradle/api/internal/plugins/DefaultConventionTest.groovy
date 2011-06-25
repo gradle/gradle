@@ -21,8 +21,8 @@ import org.gradle.api.plugins.TestPluginConvention1
 import org.gradle.api.plugins.TestPluginConvention2
 import org.junit.Before
 import org.junit.Test
+import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -127,5 +127,40 @@ class DefaultConventionTest {
     
     @Test public void testFindPluginReturnsNullWhenNoConventionObjectsWithCompatibleType() {
         assertNull(convention.findPlugin(String))
+    }
+
+    static class FooExtension {
+        String message = "Hello world!";
+    }
+
+    static class FooPluginExtension {
+        String foo = "foo"
+        void foo(Closure closure) {
+            fail("should not be called");
+        }
+    }
+
+    @Test public void knowsExtensions() {
+        //when
+        convention = new DefaultConvention()
+        def ext = new FooExtension()
+        convention.add("foo", ext)
+
+        //then
+        assertTrue(convention.hasProperty("foo"))
+        assertTrue(convention.hasMethod("foo", {}))
+        assertEquals(convention.getProperties().get("foo"), ext);
+    }
+
+    @Test public void extensionsTakePrecendenceOverPluginConventions() {
+        convention = new DefaultConvention()
+        convention.plugins.foo = new FooPluginExtension()
+        convention.add("foo", new FooExtension())
+
+        assertTrue(convention.getProperties().get("foo") instanceof FooExtension);
+        assertTrue(convention.foo instanceof FooExtension);
+        convention.foo {
+            assertEquals("Hello world!", message);
+        }
     }
 }

@@ -112,7 +112,9 @@ public class ProtocolToModelAdapter {
             try {
                 match = delegate.getClass().getMethod(method.getName(), method.getParameterTypes());
             } catch (NoSuchMethodException e) {
-                throw new UnsupportedOperationException(String.format("Cannot map method %s.%s() to target object of type %s.", method.getDeclaringClass().getSimpleName(), method.getName(), delegate.getClass().getSimpleName()), e);
+                throw new UnsupportedOperationException(String.format(
+                        "Method not found. Please verify that the version of Gradle you connect to contains method: %s.%s()"
+                        , method.getDeclaringClass().getSimpleName(), method.getName(), delegate.getClass().getSimpleName()), e);
             }
 
             LinkedList<Class<?>> queue = new LinkedList<Class<?>>();

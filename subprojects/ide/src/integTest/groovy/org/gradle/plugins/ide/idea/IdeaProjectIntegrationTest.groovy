@@ -40,7 +40,7 @@ idea {
         wildcards += '!?*.ruby'
 
         //let's remove one of the subprojects from generation:
-        modules -= project(':someProjectThatWillBeExcluded').convention.plugins.idea.module
+        modules -= project(':someProjectThatWillBeExcluded').idea.module
 
         outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
 

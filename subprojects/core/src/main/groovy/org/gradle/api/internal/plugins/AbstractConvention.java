@@ -16,13 +16,12 @@
  
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.plugins.Convention;
+import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.BeanDynamicObject;
+import org.gradle.api.plugins.Convention;
 
 import java.util.*;
-
-import groovy.lang.MissingPropertyException;
-import groovy.lang.MissingMethodException;
 
 /**
  * @author Hans Dockter
@@ -35,9 +34,12 @@ public class AbstractConvention implements Convention {
         return plugins;
     }
 
-    public boolean hasProperty(String property) {
+    public boolean hasProperty(String name) {
+        if (extensionsStorage.hasExtension(name)) {
+            return true;
+        }
         for (Object object : plugins.values()) {
-            if (new BeanDynamicObject(object).hasProperty(property)) {
+            if (new BeanDynamicObject(object).hasProperty(name)) {
                 return true;
             }
         }
@@ -51,10 +53,14 @@ public class AbstractConvention implements Convention {
         for (Object object : reverseOrder) {
             properties.putAll(new BeanDynamicObject(object).getProperties());
         }
+        properties.putAll(extensionsStorage.getAsMap());
         return properties;
     }
 
     public Object getProperty(String name) throws MissingPropertyException {
+        if (extensionsStorage.hasExtension(name)) {
+            return extensionsStorage.getExtension(name);
+        }
         BeanDynamicObject dynamicObject = new BeanDynamicObject(this);
         if (dynamicObject.hasProperty(name)) {
             return dynamicObject.getProperty(name);
@@ -68,31 +74,38 @@ public class AbstractConvention implements Convention {
         throw new MissingPropertyException(name, Convention.class);
     }
 
-    public void setProperty(String property, Object value) {
+    public void setProperty(String name, Object value) {
+        extensionsStorage.checkExtensionIsNotReassigned(name);
         for (Object object : plugins.values()) {
             BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-            if (dynamicObject.hasProperty(property)) {
-                dynamicObject.setProperty(property, value);
+            if (dynamicObject.hasProperty(name)) {
+                dynamicObject.setProperty(name, value);
                 return;
             }
         }
-        throw new MissingPropertyException(property, Convention.class);
+        throw new MissingPropertyException(name, Convention.class);
     }
 
-    public Object invokeMethod(String name, Object... arguments) {
+    public Object invokeMethod(String name, Object... args) {
+        if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
+            return extensionsStorage.configureExtension(name, args);
+        }
         for (Object object : plugins.values()) {
             BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-            if (dynamicObject.hasMethod(name, arguments)) {
-                return dynamicObject.invokeMethod(name, arguments);
+            if (dynamicObject.hasMethod(name, args)) {
+                return dynamicObject.invokeMethod(name, args);
             }
         }
-        throw new MissingMethodException(name, Convention.class, arguments);
+        throw new MissingMethodException(name, Convention.class, args);
     }
 
-    public boolean hasMethod(String method, Object... args) {
+    public boolean hasMethod(String name, Object... args) {
+        if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
+            return true;
+        }
         for (Object object : plugins.values()) {
             BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-            if (dynamicObject.hasMethod(method, args)) {
+            if (dynamicObject.hasMethod(name, args)) {
                 return true;
             }
         }
@@ -123,5 +136,11 @@ public class AbstractConvention implements Convention {
                     type.getSimpleName()));
         }
         return values.get(0);
+    }
+
+    ExtensionsStorage extensionsStorage = new ExtensionsStorage();
+
+    public void add(String name, Object extension) {
+        extensionsStorage.add(name, extension);
     }
 }

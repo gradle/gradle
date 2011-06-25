@@ -32,6 +32,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -1486,4 +1487,11 @@ public interface Project extends Comparable<Project> {
      * @return The container.
      */
     <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure);
+
+    /**
+     * Allows adding DSL extensions to the project. Useful for plugin authors.
+     *
+     * @return Returned instance allows adding DSL extensions to the project
+     */
+    ExtensionContainer getExtensions();
 }
