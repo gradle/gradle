@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.ivyservice.GradleIBiblioResolver;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.publish.maven.*;

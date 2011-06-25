@@ -20,13 +20,17 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.maven.MavenFactory
 import org.gradle.api.internal.Factory
-import org.gradle.api.internal.artifacts.ivyservice.GradleIBiblioResolver
 import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.plugins.resolver.IBiblioResolver
+import org.apache.ivy.plugins.resolver.DualResolver
+import org.apache.ivy.plugins.resolver.URLResolver
+import org.apache.ivy.plugins.resolver.FileSystemResolver
 
 /**
  * @author Hans Dockter
@@ -35,7 +39,7 @@ import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
 class DefaultResolverFactoryTest {
     static final String RESOLVER_URL = 'http://a.b.c/'
     static final Map RESOLVER_MAP = [name: 'mapresolver', url: 'http://x.y.z/']
-    static final IBiblioResolver TEST_RESOLVER = new IBiblioResolver()
+    static final IBiblioWharfResolver TEST_RESOLVER = new IBiblioWharfResolver()
     static {
         TEST_RESOLVER.name = 'ivyResolver'
     }
