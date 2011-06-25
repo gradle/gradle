@@ -55,7 +55,7 @@ class JavaPluginTest {
         assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(EmbeddableJavaProject))
         assertThat(project.convention.plugins.embeddedJavaProject.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]))
         assertThat(project.convention.plugins.embeddedJavaProject.buildTasks, equalTo([JavaBasePlugin.BUILD_TASK_NAME]))
-        assertThat(project.convention.plugins.embeddedJavaProject.runtimeClasspath, sameInstance(project.sourceSets.main.runtimeClasspath))
+        assertThat(project.convention.plugins.embeddedJavaProject.runtimeClasspath, notNullValue())
     }
 
     @Test public void addsConfigurationsToTheProject() {

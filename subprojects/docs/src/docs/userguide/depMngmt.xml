@@ -280,7 +280,7 @@
             <para>You can declare a dependency on the API of the current version of Gradle by using the
                 <apilink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="gradleApi"/> method. This is
                 useful when you are developing custom Gradle tasks or plugins.</para>
-            <sample id="gradle-api-dependencies" dir="java/multiproject/buildSrc" title="Gradle API dependencies">
+            <sample id="gradle-api-dependencies" dir="customPlugin" title="Gradle API dependencies">
                 <sourcefile file="build.gradle" snippet="gradle-api-dependencies"/>
             </sample>
         </section>
@@ -289,7 +289,7 @@
             <para>You can declare a dependency on the Groovy that is distributed with Gradle by using the
                 <apilink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="localGroovy"/> method. This is
                 useful when you are developing custom Gradle tasks or plugins in Groovy.</para>
-            <sample id="local-groovy-dependencies" dir="groovy/multiproject/buildSrc" title="Gradle's Groovy dependencies">
+            <sample id="local-groovy-dependencies" dir="customPlugin" title="Gradle's Groovy dependencies">
                 <sourcefile file="build.gradle" snippet="local-groovy-dependencies"/>
             </sample>
         </section>

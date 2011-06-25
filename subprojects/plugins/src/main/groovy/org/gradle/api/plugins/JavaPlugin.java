@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -207,7 +208,10 @@ public class JavaPlugin implements Plugin<Project> {
         }
 
         public FileCollection getRuntimeClasspath() {
-            return convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+            FileCollection runtimeClasspath = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+            ProjectInternal project = convention.getProject();
+            FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
+            return runtimeClasspath.minus(gradleApi);
         }
     }
 }

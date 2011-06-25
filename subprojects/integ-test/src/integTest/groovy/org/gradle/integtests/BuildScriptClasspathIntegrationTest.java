@@ -32,6 +32,23 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
+    public void canExtendTheDefaultBuildForBuildSrcProject() {
+        ArtifactBuilder builder = artifactBuilder();
+        builder.sourceFile("org/gradle/test/DepClass.java").writelns(
+                "package org.gradle.test;",
+                "public class DepClass { }"
+        );
+        builder.buildJar(testFile("repo/test-1.3.jar"));
+
+        testFile("buildSrc/build.gradle").writelns(
+                "repositories { flatDir dirs: file('../repo') }",
+                "dependencies { compile name: 'test', version: '1.3' }");
+        testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass extends org.gradle.test.DepClass { }");
+        testFile("build.gradle").writelns("new BuildClass()");
+        inTestDirectory().withTaskList().run();
+    }
+
+    @Test
     public void buildSrcProjectCanReferToSourceOutsideBuildSrcDir() {
         testFile("gradle/src/BuildClass.java").writelns("public class BuildClass { }");
         testFile("buildSrc/build.gradle").writelns(
@@ -48,6 +65,20 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
 
         ExecutionFailure failure = inTestDirectory().withTasks("test").runWithFailure();
         failure.assertHasCause("broken");
+    }
+
+    @Test
+    public void gradleImplementationClassesDoNotLeakOntoBuildScriptClassPathWhenUsingBuildSrc() {
+        testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
+
+        testFile("build.gradle").writelns(
+                "try {",
+                "    buildscript.classLoader.loadClass('com.google.common.collect.Multimap')",
+                "    assert false: 'should break'",
+                "} catch(ClassNotFoundException e) { /* expected */ }",
+                "gradle.class.classLoader.loadClass('com.google.common.collect.Multimap')");
+
+        inTestDirectory().withTaskList().run();
     }
 
     @Test
