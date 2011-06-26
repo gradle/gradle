@@ -15,9 +15,10 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.model.Project
 import org.gradle.tooling.ProgressListener
+import org.gradle.tooling.model.Project
 
 class ToolingApiModelIntegrationTest extends ToolingApiSpecification {
     def "receives progress and logging while the model is building"() {

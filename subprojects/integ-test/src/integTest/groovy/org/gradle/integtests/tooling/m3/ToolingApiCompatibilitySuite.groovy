@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.m3
 import org.gradle.integtests.tooling.ToolingApiEclipseModelIntegrationTest
 import org.gradle.integtests.tooling.ToolingApiHonorsProjectCustomizationsIntegrationTest
 import org.gradle.integtests.tooling.ToolingApiModelIntegrationTest
+import org.gradle.integtests.tooling.fixture.TargetDistSelector
 import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.junit.runner.Runner

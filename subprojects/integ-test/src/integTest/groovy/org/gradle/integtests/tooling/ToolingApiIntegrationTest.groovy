@@ -16,10 +16,11 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Project
 import org.gradle.util.GradleVersion
-import org.gradle.tooling.GradleConnector
 
 class ToolingApiIntegrationTest extends ToolingApiSpecification {
     final BasicGradleDistribution otherVersion = dist.previousVersion('1.0-milestone-3')

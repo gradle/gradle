@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.tooling
+package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.tooling.m3.TargetDistSelector
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification

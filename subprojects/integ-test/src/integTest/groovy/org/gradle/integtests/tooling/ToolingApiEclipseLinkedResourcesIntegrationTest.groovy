@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling
 
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
 /**

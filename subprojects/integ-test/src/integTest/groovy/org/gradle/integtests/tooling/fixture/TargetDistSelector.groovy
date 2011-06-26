@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.m3
+package org.gradle.integtests.tooling.fixture
 
-import org.gradle.integtests.tooling.ToolingApiSpecification
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
