@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.gradle10Milestone3
 
 import org.gradle.integtests.tooling.ToolingApiEclipseModelIntegrationTest
 import org.gradle.integtests.tooling.ToolingApiHonorsProjectCustomizationsIntegrationTest
+import org.gradle.integtests.tooling.ToolingApiModelIntegrationTest
 import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.junit.runner.Runner
@@ -32,7 +33,11 @@ import org.junit.runners.model.RunnerBuilder
  * @author: Szczepan Faber, created at: 6/24/11
  */
 @RunWith(Gradle_10_M3)
-@SuiteClasses([ToolingApiHonorsProjectCustomizationsIntegrationTest, ToolingApiEclipseModelIntegrationTest])
+@SuiteClasses([
+    ToolingApiHonorsProjectCustomizationsIntegrationTest,
+    ToolingApiEclipseModelIntegrationTest,
+    ToolingApiModelIntegrationTest,
+    ToolingApiHonorsProjectCustomizationsIntegrationTest])
 class ToolingApiCompatibilitySuite {
     static class Gradle_10_M3 extends Suite {
 
