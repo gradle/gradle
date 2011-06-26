@@ -26,21 +26,21 @@ import org.junit.runners.model.Statement
  */
 class TargetDistSelector implements MethodRule {
 
-    private static String version = null
+    private static ThreadLocal<String> version = new ThreadLocal<String>()
 
     static void select(String version) {
-        TargetDistSelector.version = version
+        TargetDistSelector.version.set(version)
     }
 
     static void unselect() {
-        version = null
+        version.remove()
     }
 
     Statement apply(Statement base, FrameworkMethod method, Object target) {
         assert target instanceof ToolingApiSpecification
 
         ToolingApiSpecification spec = target
-        spec.optionalTargetDist = version
+        spec.optionalTargetDist = version.get()
 
         return base
     }
