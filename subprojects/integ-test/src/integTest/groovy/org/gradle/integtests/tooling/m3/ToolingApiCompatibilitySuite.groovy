@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.gradle10Milestone3
+package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.ToolingApiEclipseModelIntegrationTest
 import org.gradle.integtests.tooling.ToolingApiHonorsProjectCustomizationsIntegrationTest
@@ -32,16 +32,16 @@ import org.junit.runners.model.RunnerBuilder
 /**
  * @author: Szczepan Faber, created at: 6/24/11
  */
-@RunWith(Gradle_10_M3)
+@RunWith(Gradle10M3)
 @SuiteClasses([
     ToolingApiHonorsProjectCustomizationsIntegrationTest,
     ToolingApiEclipseModelIntegrationTest,
     ToolingApiModelIntegrationTest,
     ToolingApiHonorsProjectCustomizationsIntegrationTest])
 class ToolingApiCompatibilitySuite {
-    static class Gradle_10_M3 extends Suite {
+    static class Gradle10M3 extends Suite {
 
-        Gradle_10_M3(Class<?> klass, RunnerBuilder builder) {
+        Gradle10M3(Class<?> klass, RunnerBuilder builder) {
             super(klass, builder)
         }
 

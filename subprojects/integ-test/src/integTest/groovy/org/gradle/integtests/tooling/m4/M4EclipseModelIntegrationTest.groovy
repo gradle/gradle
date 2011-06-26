@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.tooling.gradle10Milestone4
+package org.gradle.integtests.tooling.m4
 
 import org.gradle.integtests.tooling.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject

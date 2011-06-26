@@ -17,7 +17,7 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.tooling.gradle10Milestone3.TargetDistSelector
+import org.gradle.integtests.tooling.m3.TargetDistSelector
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
