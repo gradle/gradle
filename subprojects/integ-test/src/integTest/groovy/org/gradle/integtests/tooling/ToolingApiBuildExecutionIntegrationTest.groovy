@@ -21,7 +21,6 @@ import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.BuildableProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
-import spock.lang.Issue
 
 class ToolingApiBuildExecutionIntegrationTest extends ToolingApiSpecification {
     def "can build the set of tasks for a project"() {
@@ -44,53 +43,6 @@ task c
         taskA.project == project
         project.tasks.find { it.name == 'b' }
         project.tasks.find { it.name == 'c' }
-    }
-
-    @Issue("GRADLE-1529")
-    //this is just one of the ways of fixing the problem. See the issue for details
-    def "should not show not executable tasks"() {
-        dist.testFile('build.gradle') << '''
-task a
-task b
-'''
-        when:
-        def project = withConnection { connection -> connection.getModel(BuildableProject.class) }
-
-        then:
-        def tasks = project.tasks.collect { it.name }
-        assert tasks == ['a', 'b'] : "temp tasks like 'cleanEclipse', 'eclipse', e.g. should not show on this list: " + tasks
-    }
-
-    @Issue("GRADLE-1529")
-    //this is just one of the ways of fixing the problem. See the issue for details
-    def "should hide not executable tasks when necessary for a multi module build"() {
-        def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = '''
-project(':api') {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
-}
-'''
-        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
-
-        when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-
-        then:
-        def rootTasks = eclipseProject.tasks.collect { it.name }
-
-        EclipseProject api = eclipseProject.children[1]
-        def apiTasks = api.tasks.collect { it.name }
-
-        EclipseProject impl = eclipseProject.children[0]
-        def implTasks = impl.tasks.collect { it.name }
-
-        ['eclipse', 'cleanEclipse', 'eclipseProject', 'cleanEclipseProject'].each {
-            assert !rootTasks.contains(it)
-            assert !implTasks.contains(it)
-
-            assert apiTasks.contains(it)
-        }
     }
 
     def "can execute a build for a project"() {

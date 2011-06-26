@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.m4
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-class M4EclipseModelIntegrationTest extends ToolingApiSpecification {
+class ToolingApiMinimalModelFixesTest extends ToolingApiSpecification {
 
     def "minimal Eclipse model does not attempt to resolve external dependencies"() {
         def projectDir = dist.testDir
