@@ -204,6 +204,11 @@ class EclipseWtpComponent {
     String contextPath
 
     /**
+     * The cache directory for all resolved library.
+     */
+    File cacheDir
+
+    /**
      * The deploy path for classes.
      * <p>
      * For examples see docs for {@link EclipseWtp}

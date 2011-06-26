@@ -32,7 +32,7 @@ class WtpComponentFactory {
     void configure(EclipseWtpComponent wtp, WtpComponent component) {
         def entries = getEntriesFromSourceDirs(wtp)
         // TODO: Actually fetch the value from the Resolver service
-        component.cacheDir = new File(component.getProject().gradle.gradleUserHomeDir, ResolverContainer.DEFAULT_CACHE_DIR_NAME)
+        wtp.cacheDir = new File(wtp.getProject().gradle.gradleUserHomeDir, ResolverContainer.DEFAULT_CACHE_DIR_NAME)
         entries.addAll(wtp.resources)
         entries.addAll(wtp.properties)
         // for ear files root deps are NOT transitive; wars don't use root deps so this doesn't hurt them
@@ -113,7 +113,8 @@ class WtpComponentFactory {
     }
 
     private WbDependentModule createWbDependentModuleEntry(File file, EclipseWtpComponent wtpComponent, String deployPath) {
-        def usedVariableEntry = variables.find { name, value -> file.canonicalPath.startsWith(value.canonicalPath) }
+        def filePath = canonicalPath(file, wtpComponent)
+        def usedVariableEntry = wtpComponent.pathVariables.find { name, value -> filePath.startsWith(canonicalPath(value, wtpComponent)) }
         def handleSnippet
         if (usedVariableEntry) {
             handleSnippet = "var/$usedVariableEntry.key/${filePath.substring(canonicalPath(usedVariableEntry.value, wtpComponent).length())}"

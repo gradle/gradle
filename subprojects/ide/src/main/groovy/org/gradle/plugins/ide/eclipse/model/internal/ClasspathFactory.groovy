@@ -31,7 +31,7 @@ class ClasspathFactory {
     List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
         def entries = []
         // TODO: Actually fetch the value from the Resolver service
-        eclipseClasspath.cacheDir = new File(eclipseClasspath.getProject().gradle.gradleUserHomeDir, ResolverContainer.DEFAULT_CACHE_DIR_NAME)
+        classpath.cacheDir = new File(classpath.getProject().gradle.gradleUserHomeDir, ResolverContainer.DEFAULT_CACHE_DIR_NAME)
         entries.add(new Output(classpath.project.relativePath(classpath.defaultOutputDir)))
         sourceFoldersCreator.populateForClasspath(entries, classpath)
         entries.addAll(getEntriesFromContainers(classpath.getContainers()))
@@ -100,7 +100,7 @@ class ClasspathFactory {
 
     AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath eclipseClasspath) {
         String binPath = canonicalPath(binary, eclipseClasspath)
-        def usedVariableEntry = eclipseClasspath.variables.find { String name, File value -> binPath.startsWith(canonicalPath(value, eclipseClasspath)) }
+        def usedVariableEntry = eclipseClasspath.pathVariables.find { String name, File value -> binPath.startsWith(canonicalPath(value, eclipseClasspath)) }
         if (usedVariableEntry) {
             String name = usedVariableEntry.key
             String value = canonicalPath(usedVariableEntry.value, eclipseClasspath)
