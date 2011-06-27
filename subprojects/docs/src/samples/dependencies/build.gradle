@@ -1,4 +1,4 @@
-import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.jfrog.wharf.ivy.resolver.FileSystemWharfResolver
 
 group = 'sealife'
 
@@ -23,7 +23,7 @@ project(':northSea') {
 }
 
 repositories {
-    add(new FileSystemResolver()) {
+    add(new FileSystemWharfResolver()) {
         name = "repo"
         addArtifactPattern("$rootDir/repo/[organization]/[module]-[revision].[ext]")
         addIvyPattern("$rootDir/repo/[organization]/ivy-[module]-[revision].xml")

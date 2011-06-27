@@ -22,6 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
@@ -88,8 +89,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
-        assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
-        assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
+        assertEquals(GFileUtils.canonicalise(expectedGradleUserHome), startParameter.getGradleUserHomeDir());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedColorOutput, startParameter.isColorOutput());
         assertEquals(expectedDryRun, startParameter.isDryRun());

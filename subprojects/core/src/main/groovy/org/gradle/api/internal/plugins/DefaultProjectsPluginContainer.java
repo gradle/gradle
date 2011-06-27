@@ -42,7 +42,11 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
     }
 
     public boolean hasPlugin(String id) {
-        return findPlugin(id) != null;
+        try {
+            return findPlugin(id) != null;
+        } catch (UnknownPluginException e) {
+            return false;
+        }
     }
 
     public boolean hasPlugin(Class<? extends Plugin> type) {

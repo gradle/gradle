@@ -88,7 +88,7 @@ class IdeaPlugin extends IdePlugin {
 
             module.conventionMapping.pathFactory = {
                 PathFactory factory = new PathFactory()
-                factory.addPathVariable('MODULE_DIR', outputFile.parentFile)
+                factory.setCacheDir(project.gradle).addPathVariable('MODULE_DIR', outputFile.parentFile)
                 module.pathVariables.each { key, value ->
                     factory.addPathVariable(key, value)
                 }
@@ -115,7 +115,7 @@ class IdeaPlugin extends IdePlugin {
                 }
 
                 ideaProject.conventionMapping.pathFactory = {
-                    new PathFactory().addPathVariable('PROJECT_DIR', outputFile.parentFile)
+                    new PathFactory().setCacheDir(project.gradle).addPathVariable('PROJECT_DIR', outputFile.parentFile)
                 }
             }
             addWorker(task)

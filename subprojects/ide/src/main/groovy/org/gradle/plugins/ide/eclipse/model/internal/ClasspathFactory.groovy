@@ -30,6 +30,8 @@ class ClasspathFactory {
 
     List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
         def entries = []
+        // TODO: Actually fetch the value from the Resolver service
+        classpath.cacheDir = new File(classpath.getProject().gradle.gradleUserHomeDir, ResolverContainer.DEFAULT_CACHE_DIR_NAME)
         entries.add(new Output(classpath.project.relativePath(classpath.defaultOutputDir)))
         sourceFoldersCreator.populateForClasspath(entries, classpath)
         entries.addAll(getEntriesFromContainers(classpath.getContainers()))
@@ -72,32 +74,42 @@ class ClasspathFactory {
         List moduleLibraries = resolveFiles(classpath.plusConfigurations, classpath.minusConfigurations).collect { File binaryFile ->
             File sourceFile = sourceFiles[binaryFile.name]
             File javadocFile = javadocFiles[binaryFile.name]
-            createLibraryEntry(binaryFile, sourceFile, javadocFile, classpath.pathVariables)
+            createLibraryEntry(binaryFile, sourceFile, javadocFile, classpath)
         }
         moduleLibraries.addAll(getSelfResolvingFiles(getDependencies(classpath.plusConfigurations, classpath.minusConfigurations,
-                { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}), classpath.pathVariables))
+                { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}), classpath))
         moduleLibraries
     }
 
-    private getSelfResolvingFiles(Collection dependencies, Map<String, File> pathVariables) {
+    private getSelfResolvingFiles(Collection dependencies, EclipseClasspath classpath) {
         dependencies.collect { SelfResolvingDependency dependency ->
             dependency.resolve().collect { File file ->
-                createLibraryEntry(file, null, null, pathVariables)
+                createLibraryEntry(file, null, null, classpath)
             }
         }.flatten()
     }
 
-    AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map<String, File> pathVariables) {
-        def usedVariableEntry = pathVariables.find { String name, File value -> binary.canonicalPath.startsWith(value.canonicalPath) }
+    private String canonicalPath(File file, EclipseClasspath eclipseClasspath) {
+        // When file in cache, use absolute path
+        String absPath = file.absolutePath
+        if (absPath.startsWith(eclipseClasspath.cacheDir.absolutePath)) {
+            return absPath
+        }
+        return file.canonicalPath
+    }
+
+    AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath eclipseClasspath) {
+        String binPath = canonicalPath(binary, eclipseClasspath)
+        def usedVariableEntry = eclipseClasspath.pathVariables.find { String name, File value -> binPath.startsWith(canonicalPath(value, eclipseClasspath)) }
         if (usedVariableEntry) {
             String name = usedVariableEntry.key
-            String value = usedVariableEntry.value.canonicalPath
-            String binaryPath = name + binary.canonicalPath.substring(value.length())
-            String sourcePath = source ? name + source.canonicalPath.substring(value.length()) : null
-            String javadocPath = javadoc ? name + javadoc.canonicalPath.substring(value.length()) : null
+            String value = canonicalPath(usedVariableEntry.value, eclipseClasspath)
+            String binaryPath = name + binPath.substring(value.length())
+            String sourcePath = source ? name + canonicalPath(source, eclipseClasspath).substring(value.length()) : null
+            String javadocPath = javadoc ? name + canonicalPath(javadoc, eclipseClasspath).substring(value.length()) : null
             return new Variable(binaryPath, true, null, [] as Set, sourcePath, javadocPath)
         }
-        new Library(binary.canonicalPath, true, null, [] as Set, source ? source.canonicalPath : null, javadoc ? javadoc.canonicalPath : null)
+        new Library(binPath, true, null, [] as Set, source ? canonicalPath(source, eclipseClasspath) : null, javadoc ? canonicalPath(javadoc, eclipseClasspath) : null)
     }
 
     private Set<Dependency> getDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure filter) {

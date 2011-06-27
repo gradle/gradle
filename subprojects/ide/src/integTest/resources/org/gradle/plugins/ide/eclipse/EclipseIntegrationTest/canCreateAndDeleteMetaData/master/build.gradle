@@ -105,7 +105,7 @@ void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
 }
 
 String getExpectedXml(File file) {
-    def cache = new File(gradle.gradleUserHomeDir, "/cache").absolutePath.replace(File.separator, '/')
-    return file.text.replace('@CACHE_DIR@', cache)
+    def cache = new File(gradle.gradleUserHomeDir, "cache").absolutePath.replace(File.separator, '/')
+    return file.text.replace('@CACHE_DIR@', cache).replace('@RESOLVER_ID@', 'abad2d3f6ce1e83c75e1e977ba10f6e1')
 }
 

@@ -150,6 +150,11 @@ class EclipseClasspath {
     File defaultOutputDir
 
     /**
+     * The cache directory for all resolved library.
+     */
+    File cacheDir
+
+    /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.
      * <p>
      * For example see docs for {@link EclipseClasspath}

@@ -48,7 +48,8 @@ artifacts {
 uploadArchives {
     configuration = configurations.publishRuntime
     dependsOn generatePom
-    uploadDescriptor = false
+    uploadDescriptor = true
+/*
     doFirst {
         repositories {
             ivy {
@@ -59,6 +60,7 @@ uploadArchives {
             }
         }
     }
+*/
 }
 
 task publishLocalArchives(type: Upload) {

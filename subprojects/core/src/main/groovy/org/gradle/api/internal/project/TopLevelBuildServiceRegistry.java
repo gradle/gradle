@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.maven.MavenFactory;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
@@ -365,5 +366,9 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     private static class EmptyInternalRepository extends ChainResolver implements InternalRepository {
+        public EmptyInternalRepository() {
+            super();
+            setName(ResolverContainer.INTERNAL_REPOSITORY_NAME);
+        }
     }
 }

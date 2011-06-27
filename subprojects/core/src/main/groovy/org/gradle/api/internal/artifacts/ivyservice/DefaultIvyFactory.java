@@ -22,7 +22,13 @@ import org.apache.ivy.core.settings.IvySettings;
  * @author Hans Dockter
  */
 public class DefaultIvyFactory implements IvyFactory {
+    private Ivy cached;
+
     public Ivy createIvy(IvySettings ivySettings) {
-        return Ivy.newInstance(ivySettings);
+        if (cached != null && cached.getSettings() == ivySettings) {
+            return cached;
+        }
+        cached = Ivy.newInstance(ivySettings);
+        return cached;
     }
 }

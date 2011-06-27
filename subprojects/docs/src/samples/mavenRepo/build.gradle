@@ -80,8 +80,8 @@ configurations {
 }
 
 repositories {
-    mavenRepo(urls: ['http://gradle.sourceforge.net/repository/', 'http://gradle.sourceforge.net/otherrepo/']).allownomd = false
-    mavenRepo(urls: 'http://gradle.sourceforge.net/otherrepo/')
+    mavenRepo(urls: ['http://repo.gradle.org/gradle/repotest/', 'http://repo.gradle.org/gradle/otherrepo/']).allownomd = false
+    mavenRepo(urls: 'http://repo.gradle.org/gradle/otherrepo/')
     mavenCentral()
 }
 

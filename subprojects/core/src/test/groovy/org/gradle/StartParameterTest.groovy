@@ -68,7 +68,7 @@ class StartParameterTest {
 
     @Test public void testDefaultValues() {
         StartParameter parameter = new StartParameter();
-        assertThat(parameter.gradleUserHomeDir, equalTo(StartParameter.DEFAULT_GRADLE_USER_HOME))
+        assertThat(parameter.gradleUserHomeDir, equalTo(StartParameter.DEFAULT_GRADLE_USER_HOME.getCanonicalFile()))
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
 
         assertThat(parameter.buildFile, nullValue())

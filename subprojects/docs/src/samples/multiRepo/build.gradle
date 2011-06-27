@@ -1,0 +1,7 @@
+// Clean cache before calling other retrieve
+
+task parentRetrieve << {
+    delete buildDir
+    delete new File(gradle.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/repotest")
+    delete new File(gradle.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/testdep")
+}

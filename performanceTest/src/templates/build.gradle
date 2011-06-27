@@ -16,18 +16,35 @@
 <% if (subprojects.empty ) { %>
 apply plugin: 'java'
 
+<% if (projectName.contains("2")) { %>
 repositories {
-    mavenCentral()
+    mavenRepo(urls: 'http://repo.jfrog.org/artifactory/repo1').setChecksums('sha1')
 }
+<% } else if (projectName.contains("3")) { %>
+repositories {
+    mavenCentral().setChecksums('sha1')
+}
+<% } else { %>
+repositories {
+    mavenRepo(urls: 'http://repo.gradle.org/repo1').setChecksums('sha1')
+}
+<% } %>
 
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
     testCompile 'junit:junit:4.8.2'
+
 }
 test {
     jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
 //    testReport = false
 }
+
+<% if (projectName.contains("2")) { %>
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.6.1'
+}
+<% } %>
 
 <% if (groovyProject) { %>
 apply plugin: 'groovy'

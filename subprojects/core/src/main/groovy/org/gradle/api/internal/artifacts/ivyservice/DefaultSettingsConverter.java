@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.IvySettingsAware;
+import org.apache.ivy.plugins.lock.NoLockStrategy;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
@@ -35,9 +35,12 @@ import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
+import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
 import java.util.*;
+
+import static org.gradle.api.artifacts.ResolverContainer.INTERNAL_REPOSITORY_NAME;
 
 /**
  * @author Hans Dockter
@@ -45,7 +48,7 @@ import java.util.*;
 public class DefaultSettingsConverter implements SettingsConverter {
     private static Logger logger = Logging.getLogger(DefaultSettingsConverter.class);
 
-    private RepositoryCacheManager repositoryCacheManager = new DefaultRepositoryCacheManager();
+    private RepositoryCacheManager repositoryCacheManager;
     private IvySettings ivySettings;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
@@ -71,8 +74,18 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
     }
 
+    // TODO: Internal repository is never used here!
     public IvySettings convertForPublish(List<DependencyResolver> publishResolvers, File gradleUserHome, DependencyResolver internalRepository) {
         if (ivySettings != null) {
+            // Add all publisher to root since they are never used for resolution
+            for (DependencyResolver publishResolver : publishResolvers) {
+                DependencyResolver pubResolverInSettings = ivySettings.getResolver(publishResolver.getName());
+                if (pubResolverInSettings == null) {
+                    internalAddResolver(ivySettings, publishResolver);
+                } else if (pubResolverInSettings != publishResolver) {
+                    throw new IllegalStateException(String.format("Unexpected publisher resolver in ivy settings %s instead of %s", pubResolverInSettings, publishResolver));
+                }
+            }
             return ivySettings;
         }
         Clock clock = new Clock();
@@ -84,8 +97,26 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers,
-                               File gradleUserHome, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
-        if (ivySettings != null) {
+                                         File gradleUserHome, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
+        // If Ivy settings correctly initialized, check resolver list
+        if (ivySettings != null && ivySettings.getResolver(INTERNAL_REPOSITORY_NAME) != null) {
+            DependencyResolver internalRepositoryFromSettings = ivySettings.getResolver(INTERNAL_REPOSITORY_NAME);
+            if (internalRepositoryFromSettings != internalRepository) {
+                throw new IllegalStateException(String.format("Unexpected internal repository in ivy settings %s instead of %s", internalRepositoryFromSettings, internalRepository));
+            }
+            // Add all resolvers to main chain resolver
+            ChainResolver chainResolver = (ChainResolver) ivySettings.getResolver(CHAIN_RESOLVER_NAME);
+            List resolvers = chainResolver.getResolvers();
+            Collection ivySettingsResolvers = ivySettings.getResolvers();
+            Set<DependencyResolver> depSet = new HashSet<DependencyResolver>(resolvers);
+            resolvers.clear();
+            for (DependencyResolver dependencyResolver : depSet) {
+                ivySettingsResolvers.remove(dependencyResolver);
+            }
+            for (DependencyResolver dependencyResolver : dependencyResolvers) {
+                internalAddResolver(ivySettings, dependencyResolver);
+                chainResolver.add(dependencyResolver);
+            }
             return ivySettings;
         }
         Clock clock = new Clock();
@@ -93,7 +124,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
         DependencyResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
         DependencyResolver outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
 
-        IvySettings ivySettings = createIvySettings(gradleUserHome);
+        if (ivySettings == null) {
+            ivySettings = createIvySettings(gradleUserHome);
+        }
         initializeResolvers(ivySettings, getAllResolvers(dependencyResolvers, Collections.<DependencyResolver>emptyList(), internalRepository, userResolverChain, clientModuleResolver, outerChain));
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
         logger.debug("Timing: Ivy convert for resolve took {}", clock.getTime());
@@ -144,28 +177,40 @@ public class DefaultSettingsConverter implements SettingsConverter {
         ivySettings.setDefaultCacheIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
-        ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
-        ((IvySettingsAware)repositoryCacheManager).setSettings(ivySettings);
+        setRepositoryCacheManager(ivySettings);
         return ivySettings;
+    }
+
+    private void setRepositoryCacheManager(IvySettings ivySettings) {
+        if (repositoryCacheManager == null) {
+            repositoryCacheManager = WharfCacheManager.newInstance(ivySettings);
+            // Locking is slowing down too much, and failing the UserGuideSamplesIntegrationTest.dependencyListReport test
+            ((WharfCacheManager) repositoryCacheManager).getMetadataHandler().setLockStrategy(new NoLockStrategy());
+        }
+        ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
-            ivySettings.addResolver(dependencyResolver);
-            RepositoryCacheManager cacheManager = dependencyResolver.getRepositoryCacheManager();
-            // Validate that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
-            if (cacheManager != ivySettings.getDefaultRepositoryCacheManager()
-                    && !(cacheManager instanceof NoOpRepositoryCacheManager)
-                    && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
-                throw new IllegalStateException(String.format(
-                        "For consistency reasons, gradle requires all remote resolver resolvers to share the same instance of the repository cache manager."
-                        + " Unexpected cache manager %s for repository %s (%s)", cacheManager, dependencyResolver.getName(), dependencyResolver));
-            }
-            if (dependencyResolver instanceof RepositoryResolver) {
-                Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
-                if (!repository.hasTransferListener(transferListener)) {
-                    repository.addTransferListener(transferListener);
-                }
+            internalAddResolver(ivySettings, dependencyResolver);
+        }
+    }
+
+    private void internalAddResolver(IvySettings ivySettings, DependencyResolver dependencyResolver) {
+        ivySettings.addResolver(dependencyResolver);
+        RepositoryCacheManager cacheManager = dependencyResolver.getRepositoryCacheManager();
+        // Validate that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
+        if (cacheManager != ivySettings.getDefaultRepositoryCacheManager()
+                && !(cacheManager instanceof NoOpRepositoryCacheManager)
+                && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
+            throw new IllegalStateException(String.format(
+                    "For consistency reasons, gradle requires all remote resolver resolvers to share the same instance of the repository cache manager."
+                    + " Unexpected cache manager %s for repository %s (%s)", cacheManager, dependencyResolver.getName(), dependencyResolver));
+        }
+        if (dependencyResolver instanceof RepositoryResolver) {
+            Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
+            if (!repository.hasTransferListener(transferListener)) {
+                repository.addTransferListener(transferListener);
             }
         }
     }

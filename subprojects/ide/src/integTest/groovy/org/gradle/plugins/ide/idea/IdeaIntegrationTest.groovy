@@ -291,7 +291,7 @@ idea.project {
 
         def cache = distribution.userHomeDir.file("cache")
         def cachePath = cache.absolutePath.replace(File.separator, '/')
-        def expectedXml = expectedFile.text.replace('@CACHE_DIR@', cachePath)
+        def expectedXml = expectedFile.text.replace('@CACHE_DIR@', cachePath).replace('@RESOLVER_ID@', 'abad2d3f6ce1e83c75e1e977ba10f6e1')
 
         Diff diff = new Diff(expectedXml, file.text)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())

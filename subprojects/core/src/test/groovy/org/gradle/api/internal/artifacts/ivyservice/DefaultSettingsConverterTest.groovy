@@ -28,6 +28,7 @@ import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
 import static org.junit.Assert.assertSame
+import org.jfrog.wharf.ivy.cache.WharfCacheManager
 
 /**
  * @author Hans Dockter
@@ -73,7 +74,8 @@ class DefaultSettingsConverterTest {
 
         [testBuildResolver.name, testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
-            assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
+            assert settings.getResolver(it).getRepositoryCacheManager() instanceof WharfCacheManager
+            assert settings.getResolver(it).getRepositoryCacheManager() == settings.defaultRepositoryCacheManager
         }
         [DefaultSettingsConverter.CLIENT_MODULE_NAME, DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME, DefaultSettingsConverter.CHAIN_RESOLVER_NAME].each {
             assert settings.getResolver(it)
@@ -91,7 +93,8 @@ class DefaultSettingsConverterTest {
 
         [testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
-            assert settings.getResolver(it).getRepositoryCacheManager().settings == settings
+            assert settings.getResolver(it).getRepositoryCacheManager() instanceof WharfCacheManager
+            assert settings.getResolver(it).getRepositoryCacheManager() == settings.defaultRepositoryCacheManager
         }
 
         assert settings.getResolver(testResolver.name).is(testResolver)
