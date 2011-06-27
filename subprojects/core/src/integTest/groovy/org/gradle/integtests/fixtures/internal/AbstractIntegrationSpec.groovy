@@ -34,17 +34,24 @@ class AbstractIntegrationSpec extends Specification {
     ExecutionResult result
     ExecutionFailure failure
 
-    String buildScript = null
-    protected String buildScript(String script) {
-        buildScript = script
+    protected TestFile getBuildFile() {
+        testDir.file('build.gradle')
     }
 
     protected TestFile getTestDir() {
-        return distribution.getTestDir();
+        distribution.getTestDir();
     }
 
     protected TestFile file(Object... path) {
-        return getTestDir().file(path);
+        getTestDir().file(path);
+    }
+
+    protected GradleExecuter sample(Sample sample) {
+        inDirectory(sample.dir)
+    }
+    
+    protected GradleExecuter inDirectory(File directory) {
+        executer.inDirectory(directory);
     }
 
     /**
@@ -55,7 +62,7 @@ class AbstractIntegrationSpec extends Specification {
     }
     
     protected ExecutionResult succeeds(String... tasks) {
-        result = primedExecutor.withTasks(*tasks).run()
+        result = executer.withTasks(*tasks).run()
     }
 
     protected ExecutionFailure runAndFail(String... tasks) {
@@ -63,17 +70,7 @@ class AbstractIntegrationSpec extends Specification {
     }
     
     protected ExecutionFailure fails(String... tasks) {
-        failure = primedExecutor.withTasks(*tasks).runWithFailure()
-    }
-    
-    protected getPrimedExecutor() {
-        executer.with {
-            if (buildScript != null) {
-                usingBuildScript(buildScript)
-            }
-        }
-        
-        executer
+        failure = executer.withTasks(*tasks).runWithFailure()
     }
     
     protected List<String> getExecutedTasks() {

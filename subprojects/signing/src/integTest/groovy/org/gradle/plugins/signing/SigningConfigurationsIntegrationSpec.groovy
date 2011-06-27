@@ -19,7 +19,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
     
     def "signing configurations"() {
         given:
-        buildScript += """
+        buildFile << """
             ${keyInfo.addAsPropertiesScript()}
             ${getJavadocAndSourceJarsScript("meta")}
             

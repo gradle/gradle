@@ -26,7 +26,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     @Rule public final TestResources resources = new TestResources("keys")
 
     def setup() {
-        buildScript """
+        buildFile << """
             apply plugin: 'java'
             apply plugin: 'signing'
             archivesBaseName = 'sign'

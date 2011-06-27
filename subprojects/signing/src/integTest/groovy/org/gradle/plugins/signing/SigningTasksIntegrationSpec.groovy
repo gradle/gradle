@@ -19,7 +19,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
     
     def "sign jar with default signatory"() {
         given:
-        buildScript += """
+        buildFile << """
             ${keyInfo.addAsPropertiesScript()}
             
             signing {
@@ -45,7 +45,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
     
     def "sign multiple jars with default signatory"() {
         given:
-        buildScript += """
+        buildFile << """
             ${keyInfo.addAsPropertiesScript()}
             ${javadocAndSourceJarsScript}
             
@@ -74,7 +74,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
     
     def "trying to sign a task that isn't an archive task gives nice enough message"() {
         given:
-        buildScript += """
+        buildFile << """
             signing {
                 sign clean
             }
