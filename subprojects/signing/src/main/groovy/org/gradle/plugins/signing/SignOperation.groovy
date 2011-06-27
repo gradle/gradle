@@ -26,17 +26,12 @@ import org.gradle.util.ConfigureUtil
 import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.type.SignatureType
 
-class SignOperation {
+class SignOperation implements SignatureSpec {
 
     SignatureType type
     Signatory signatory
-    private final SigningSettings settings
     final private List<Signature> signatures = []
-    
-    SignOperation(SigningSettings settings) {
-        this.settings = settings
-    }
-    
+        
     String getDisplayName() {
         "SignOperation"
     }
@@ -119,17 +114,8 @@ class SignOperation {
         this.type = type
     }
     
-    SignatureType getType() {
-        type ?: settings.type
-    }
-    
-    Signatory getSignatory() {
-        signatory ?: settings.signatory
-    }
-    
-    SignOperation signatory(Signatory signatory) {
+    void signatory(Signatory signatory) {
         this.signatory = signatory
-        this
     }
     
     SignOperation configure(Closure closure) {

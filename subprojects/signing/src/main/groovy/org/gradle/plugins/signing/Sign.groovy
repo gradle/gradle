@@ -23,28 +23,34 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.ClassGenerator
 
 import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.type.SignatureType
 
 /**
- * Creates a file containing a digital signature alongside an input file.
+ * <p>A task for signing one or more; tasks, files or configurations.</p>
+ * 
+ * <p></p>
  */
-class Sign extends DefaultTask {
+class Sign extends DefaultTask implements SignatureSpec {
     
-    final SigningSettings settings
+    SignatureType type
+    Signatory signatory
+    
     final protected SignOperation operation
     
-    private Boolean required
+    boolean required = true
     
     Sign() {
         super()
-        settings = project.signing
-        operation = new SignOperation(settings)
+        operation = project.services.get(ClassGenerator).newInstance(SignOperation)
+        operation.conventionMapping.map("type") { this.getType() }
+        operation.conventionMapping.map("signatory") { this.getSignatory() }
 
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf {
-            getRequired() || getSignatory() != null
+            isRequired() || getSignatory() != null
         }
 
         // Have to include this in the up-to-date checks because the signatory may have changed
@@ -92,28 +98,12 @@ class Sign extends DefaultTask {
         outputs.file(signature.file)
     }
     
-    void signatory(Signatory signatory) {
-        operation.signatory(signatory)
-    }
-        
-    Signatory getSignatory() {
-        operation.signatory
-    }
-
     void type(SignatureType type) {
-        operation.type(type)
-    }
-
-    SignatureType getType() {
-        operation.type
+        this.type = type
     }
     
-    boolean getRequired() {
-        required != null ? required : settings.required
-    }
-    
-    void setRequired(boolean required) {
-        this.required = required
+    void signatory(Signatory signatory) {
+        this.signatory = signatory
     }
     
     void required(boolean required) {
@@ -145,6 +135,7 @@ class Sign extends DefaultTask {
         if (getSignatory() == null) {
             throw new InvalidUserDataException("Cannot perform signing task '${getPath()}' because it has no configured signatory")
         }
+        
         operation.execute()
     }
 }

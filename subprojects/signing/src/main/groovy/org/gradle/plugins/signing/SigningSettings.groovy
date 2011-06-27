@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.IConventionAware
 
 import org.gradle.plugins.signing.signatory.*
 
@@ -121,6 +122,15 @@ class SigningSettings {
     
     void required(boolean required) {
         setRequired(required)
+    }
+    
+    void addSignatureSpecConventions(SignatureSpec spec) {
+        if (!(spec instanceof IConventionAware)) {
+            throw new InvalidUserDataException("Cannot add conventions to signature spec '$spec' as it is not convention aware")
+        }
+        
+        spec.conventionMapping.map('signatory') { getSignatory() }
+        spec.conventionMapping.map('type') { getType() }
     }
     
     Sign sign(Task task) {

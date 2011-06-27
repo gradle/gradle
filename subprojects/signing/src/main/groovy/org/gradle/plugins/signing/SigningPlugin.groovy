@@ -18,11 +18,6 @@ package org.gradle.plugins.signing
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.PublishArtifact
-
-import org.gradle.util.ConfigureUtil
-
-import org.gradle.plugins.signing.signatory.*
 
 class SigningPlugin implements Plugin<Project> {
     
@@ -30,55 +25,9 @@ class SigningPlugin implements Plugin<Project> {
         def settings = new SigningSettings(project)
         def convention = new SigningConvention(settings)
         project.convention.plugins.signing = convention
-    }
-    
-    /**
-     * The top level interface mixed in to the project
-     */
-    static class SigningConvention {
-        private SigningSettings settings
         
-        SigningConvention(SigningSettings settings) {
-            this.settings = settings
-        }
-        
-        SigningSettings signing(Closure block) {
-            ConfigureUtil.configure(block, settings)
-            settings
-        }
-        
-        SigningSettings getSigning() {
-            settings
-        }
-        
-        SignOperation sign(PublishArtifact... toSign) {
-            createSignOperation {
-                sign(*toSign)
-                execute()
-            }
-        }
-        
-        SignOperation sign(File... toSign) {
-            createSignOperation {
-                sign(*toSign)
-                execute()
-            }
-        }
-        
-        SignOperation sign(String classifier, File... toSign) {
-            createSignOperation {
-                sign(classifier, *toSign)
-                execute()
-            }
-        }
-        
-        SignOperation sign(Closure closure) {
-            createSignOperation(closure)
-        }
-        
-        protected createSignOperation(Closure setup) {
-            ConfigureUtil.configure(setup, new SignOperation(settings))
+        project.tasks.withType(Sign) { task ->
+            project.settings.addSignatureSpecConventions(task)
         }
     }
-    
 }
