@@ -170,7 +170,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
     @Test public void canCreateATarArchive() {
         createDir('test') {
             dir1 {
-                file('file1.txt') << 'abc'
+                file('file1.txt').write 'abc'
             }
             file 'file1.txt'
             dir2 {

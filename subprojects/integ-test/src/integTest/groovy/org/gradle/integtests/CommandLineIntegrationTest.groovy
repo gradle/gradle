@@ -131,7 +131,7 @@ public class CommandLineIntegrationTest {
     @Test
     public void allowsReconfiguringProjectCacheDirWithRelativeDir() {
         //given
-        dist.testFile("build.gradle") << "task foo << { println 'foo' }"
+        dist.testFile("build.gradle").write "task foo << { println 'foo' }"
 
         //when
         executer.withTasks("foo").withArguments("--project-cache-dir", ".foo").run()
@@ -143,7 +143,7 @@ public class CommandLineIntegrationTest {
     @Test
     public void allowsReconfiguringProjectCacheDirWithAbsoluteDir() {
         //given
-        dist.testFile("build.gradle") << "task foo << { println 'foo' }"
+        dist.testFile("build.gradle").write "task foo << { println 'foo' }"
         File someAbsoluteDir = dist.testFile("foo/bar/baz").absoluteFile
         someAbsoluteDir.mkdirs()
         assert someAbsoluteDir.absolute
