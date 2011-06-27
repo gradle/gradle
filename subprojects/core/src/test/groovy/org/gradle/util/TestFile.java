@@ -34,6 +34,8 @@ import java.util.*;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+
 import static org.junit.Assert.*;
 
 public class TestFile extends File implements TestFileContext {
@@ -111,7 +113,12 @@ public class TestFile extends File implements TestFileContext {
 
     public TestFile leftShift(Object content) {
         getParentFile().mkdirs();
-        return write(content);
+        try {
+            DefaultGroovyMethods.leftShift(this, content);
+            return this;
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not append to test file '%s'", this), e);
+        }
     }
 
     public String getText() {
