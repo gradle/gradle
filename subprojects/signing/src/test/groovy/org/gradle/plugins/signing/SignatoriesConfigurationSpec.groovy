@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.api.InvalidUserDataException
+
 class SignatoriesConfigurationSpec extends SigningProjectSpec {
     
     def setup() {
@@ -64,6 +66,32 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
         then:
         signing.signatories.custom != null
         signing.signatories.custom.keyId.asHex == properties.keyId
+    }
+ 
+    def "trying to read non existent file produces reasonable error message"() {
+        when:
+        setProperty("signing.keyId", "aaaaaaaa")
+        setProperty("signing.secretKeyRingFile", "i/dont/exist")
+        setProperty("signing.password", "anything")
+        
+        and:
+        signing.signatory
+        
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains "it does not exist"
+    }
+    
+    def "trying to use an invalid key ring file produces a reasonable error message"() {
+        given:
+        addSigningProperties(set: "invalid-key-ring")
+        
+        when:
+        signing.signatory
+        
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains "Unable to read secret key from"
     }
     
 }

@@ -72,11 +72,22 @@ class PgpSignatoryFactory {
     }
         
     PGPSecretKey readSecretKey(String keyId, File file) {
+        if (!file.exists()) {
+            throw new InvalidUserDataException("Unable to retrieve secret key from key ring file '$file' as it does not exist")
+        }
+        
         file.withInputStream { readSecretKey(it, keyId, "file: $file.absolutePath") }
     }
     
     protected PGPSecretKey readSecretKey(InputStream input, String keyId, String sourceDescription) {
-        readSecretKey(new PGPSecretKeyRingCollection(input), normalizeKeyId(keyId), sourceDescription)
+        def keyRingCollection
+        try {
+            keyRingCollection = new PGPSecretKeyRingCollection(input)
+        } catch (Exception e) {
+            throw new InvalidUserDataException("Unable to read secret key from $sourceDescription (it may not be a PGP secret key ring)", e)
+        }
+        
+        readSecretKey(keyRingCollection, normalizeKeyId(keyId), sourceDescription)
     }
     
     protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, PgpKeyId keyId, String sourceDescription) {
