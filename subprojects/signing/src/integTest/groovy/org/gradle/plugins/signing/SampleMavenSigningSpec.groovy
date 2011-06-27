@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/integTest.gradle"
+package org.gradle.plugins.signing
 
-dependencies {
-    groovy libraries.groovy_depends
-    compile project(':core')
-    compile "org.bouncycastle:bcpg-jdk15:1.45"
-    compile project(":plugins")
+import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.internal.*
+import org.junit.*
+
+class SampleMavenSigningSpec extends AbstractIntegrationSpec {
     
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime'), project(":maven")
-    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    @Rule public final Sample signingSample = new Sample('mavenSigning')
+    
+    def "upload attaches signatures"() {
+        given:
+        sample signingSample
+        
+        expect:
+        succeeds "uploadPublished"
+    }
+    
+    
 }
