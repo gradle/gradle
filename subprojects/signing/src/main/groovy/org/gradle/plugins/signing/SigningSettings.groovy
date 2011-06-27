@@ -38,7 +38,7 @@ class SigningSettings {
     private Configuration configuration
     private SignatureTypeHandler typeHandler
     private SignatoryProvider signatoryProvider
-    private boolean required = false
+    private boolean required = true
     
     SigningSettings(Project project) {
         this.project = project

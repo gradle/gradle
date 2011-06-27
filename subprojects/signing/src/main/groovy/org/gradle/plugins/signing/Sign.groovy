@@ -143,7 +143,7 @@ class Sign extends DefaultTask {
     @TaskAction
     void signIt() {
         if (getSignatory() == null) {
-            throw new InvalidUserDataException("Cannot perform signing task '${getName()}' because it has no configured signatory. This task was marked as required.")
+            throw new InvalidUserDataException("Cannot perform signing task '${getPath()}' because it has no configured signatory")
         }
         operation.execute()
     }
