@@ -84,7 +84,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         runAndFail "signClean"
         
         then:
-        failure.assertHasCause "You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign task ':clean')"
+        failureHasCause "You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign task ':clean')"
     }
     
 }
