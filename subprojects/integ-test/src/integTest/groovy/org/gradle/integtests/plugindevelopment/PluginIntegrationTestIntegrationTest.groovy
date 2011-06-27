@@ -32,6 +32,6 @@ class PluginIntegrationTestIntegrationTest extends AbstractIntegrationTest {
     @Issue("GRADLE-1619")
     @Test
     void canUseGradleLauncher() {
-        executer.withTasks('test').run();
+        executer.withTasks('test').withArguments("--debug").run();
     }
 }
