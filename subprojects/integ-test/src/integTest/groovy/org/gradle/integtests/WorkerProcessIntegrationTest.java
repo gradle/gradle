@@ -39,7 +39,10 @@ import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.ObjectInputStream;
@@ -118,7 +121,7 @@ public class WorkerProcessIntegrationTest {
         execute(worker(new RemoteProcess()), worker(new OtherRemoteProcess()));
     }
 
-    @Test @Ignore
+    @Test
     public void handlesWorkerProcessWhichCrashes() throws Throwable {
         context.checking(new Expectations() {{
             atMost(1).of(listenerMock).send("message 1", 1);

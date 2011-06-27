@@ -24,6 +24,7 @@ import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchFailureHandler;
 import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent;
 import org.gradle.util.IdGenerator;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -192,6 +193,7 @@ public class MessageHub implements AsyncStoppable {
     }
 
     private static class EndOfStreamConnection extends DelegatingConnection<Message> {
+        private static final Logger LOGGER = LoggerFactory.getLogger(EndOfStreamConnection.class);
         boolean incomingFinished;
 
         private EndOfStreamConnection(Connection<Message> connection) {
@@ -203,7 +205,13 @@ public class MessageHub implements AsyncStoppable {
             if (incomingFinished) {
                 return null;
             }
-            Message result = super.receive();
+            Message result;
+            try {
+                result = super.receive();
+            } catch (Throwable e) {
+                LOGGER.error("Could not receive message from connection. Discarding connection.", e);
+                result = null;
+            }
             if (result instanceof EndOfStreamEvent) {
                 incomingFinished = true;
             } else if (result == null) {

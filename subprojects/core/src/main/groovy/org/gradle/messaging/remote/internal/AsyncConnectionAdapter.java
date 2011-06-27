@@ -40,7 +40,7 @@ public class AsyncConnectionAdapter<T> implements AsyncConnection<T>, Stoppable 
         StoppableExecutor outgoingExecutor = executor.create(String.format("%s send", connection));
         executors.add(outgoingExecutor);
         outgoing = new AsyncDispatch<T>(outgoingExecutor);
-        outgoing.dispatchTo(connection);
+        outgoing.dispatchTo(new FailureHandlingDispatch<T>(connection, dispatchFailureHandler));
 
         StoppableExecutor dispatchExecutor = executor.create(String.format("%s dispatch", connection));
         executors.add(dispatchExecutor);

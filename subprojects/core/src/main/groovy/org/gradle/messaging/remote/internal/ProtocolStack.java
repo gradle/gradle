@@ -146,10 +146,11 @@ public class ProtocolStack<T> implements AsyncStoppable {
         }
     }
 
+    private enum StageState { Init, StopRequested, StopPending, Stopped }
+
     private class ProtocolStage extends Stage implements ProtocolContext<T> {
         private final Protocol<T> protocol;
-        private boolean stopped;
-        private boolean stopPending;
+        private StageState state = StageState.Init;
 
         private ProtocolStage(Protocol<T> protocol) {
             this.protocol = protocol;
@@ -201,9 +202,11 @@ public class ProtocolStack<T> implements AsyncStoppable {
         }
 
         public void stopped() {
-            stopPending = false;
-            if (!stopped) {
-                stopped = true;
+            if (state == StageState.Init) {
+                throw new IllegalStateException(String.format("Cannot stop when in %s state.", state));
+            }
+            if (state != StageState.Stopped) {
+                state = StageState.Stopped;
                 protocolsStopped.countDown();
                 contextQueue.add(new Runnable() {
                     public void run() {
@@ -214,13 +217,18 @@ public class ProtocolStack<T> implements AsyncStoppable {
         }
 
         public void stopLater() {
-            stopPending = true;
+            if (state == StageState.Init || state == StageState.Stopped) {
+                throw new IllegalStateException(String.format("Cannot stop later when in %s state.", state));
+            }
+            state = StageState.StopPending;
         }
 
         @Override
         public void requestStop() {
+            assert state == StageState.Init;
+            state = StageState.StopRequested;
             protocol.stopRequested();
-            if (!stopPending) {
+            if (state == StageState.StopRequested) {
                 stopped();
             }
         }
@@ -239,7 +247,7 @@ public class ProtocolStack<T> implements AsyncStoppable {
             }
 
             public void run() {
-                if (!cancelled && !stopped) {
+                if (!cancelled && state != StageState.Stopped) {
                     action.run();
                 }
             }
