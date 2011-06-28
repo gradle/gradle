@@ -32,4 +32,5 @@ public interface ExtensionContainer {
      * @param extension Any object whose methods and properties will extend the target object
      */
     void add(String name, Object extension);
+    //TODO SF the method name is wrong. It should be 'put' or 'setExtension'
 }
