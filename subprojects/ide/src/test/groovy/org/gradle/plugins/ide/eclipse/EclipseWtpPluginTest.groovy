@@ -41,6 +41,12 @@ class EclipseWtpPluginTest extends Specification {
         wtpPlugin.cleanTask.description
     }
 
+    def "does not break when eclipse and eclipseWtp applied"() {
+        expect:
+        project.apply plugin: 'eclipse'
+        project.apply plugin: 'eclipseWtp'
+    }
+
      def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         project.apply(plugin: 'war')

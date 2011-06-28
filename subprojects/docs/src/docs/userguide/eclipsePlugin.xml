@@ -21,6 +21,12 @@
         making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>).
         Both external dependencies (including associated source and javadoc files) and project dependencies are considered.</para>
 
+    <para>Since 1.0-milestone-4 WTP-generating code was refactored into a separate plugin called <literal>eclipseWtp</literal>.
+        So if you are interested in WTP integration then only apply the <literal>eclipseWtp</literal> plugin. Otherwise applying <literal>eclipse</literal> plugin is enough.
+        This change was requested by eclipse users who take advantage of <literal>war</literal> or <literal>ear</literal> plugin
+        but they don't use eclipse WTP. Internally, <literal>eclipseWtp</literal> also applies the <literal>eclipse</literal> plugin so you should not apply both of those plugins.
+    </para>
+
     <para>What exactly the Eclipse plugin generates depends on which other plugins are used:</para>
     <table>
         <title>Eclipse plugin behavior</title>
@@ -42,11 +48,11 @@
         </tr>
         <tr>
             <td><link linkend="war_plugin">War</link></td><td>Adds web application support to <filename>.project</filename> file.
-            Generates WTP settings files.</td>
+            Generates WTP settings files only if <literal>eclipseWtp</literal> plugin was applied.</td>
         </tr>
         <tr>
             <td><link linkend="ear_plugin">Ear</link></td><td>Adds ear application support to <filename>.project</filename> file.
-            Generates WTP settings files.</td>
+            Generates WTP settings files only if <literal>eclipseWtp</literal> plugin was applied.</td>
         </tr>
     </table>
 
@@ -190,7 +196,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent"/></td>
-                <td>Generates the <filename>.settings/org.eclipse.wst.common.component</filename> file.</td>
+                <td>Generates the <filename>.settings/org.eclipse.wst.common.component</filename> file only if <literal>eclipseWtp</literal> plugin was applied.</td>
             </tr>
             <tr>
                 <td>
@@ -202,7 +208,7 @@
                 <td>
                     <apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet"/>
                 </td>
-                <td>Generates the <filename>.settings/org.eclipse.wst.common.project.facet.core.xml</filename> file.</td>
+                <td>Generates the <filename>.settings/org.eclipse.wst.common.project.facet.core.xml</filename> file only if <literal>eclipseWtp</literal> plugin was applied.</td>
             </tr>
         </table>
     </section>
@@ -251,14 +257,14 @@
                     <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent"/>
                 </td>
                 <td><literal>eclipse.wtp.component</literal></td>
-                <td>Allows configuring wtp component information</td>
+                <td>Allows configuring wtp component information only if <literal>eclipseWtp</literal> plugin was applied.</td>
             </tr>
             <tr>
                 <td>
                     <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet"/>
                 </td>
                 <td><literal>eclipse.wtp.facet</literal></td>
-                <td>Allows configuring wtp facet information</td>
+                <td>Allows configuring wtp facet information only if <literal>eclipseWtp</literal> plugin was applied.</td>
             </tr>
         </table>
     </section>

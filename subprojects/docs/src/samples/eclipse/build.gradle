@@ -26,6 +26,8 @@ eclipse.project.file.beforeMerged { project ->
 // END SNIPPET project-before-merged
 
 // START SNIPPET wtp-with-xml
+apply plugin: 'eclipseWtp'
+
 eclipse.wtp.facet.file.withXml { provider ->
     provider.asNode().fixed.find { it.@facet == 'jst.java' }.@facet = 'jst2.java'
 }

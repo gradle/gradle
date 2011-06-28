@@ -43,7 +43,6 @@ class EclipseWtpPlugin extends IdePlugin {
     EclipseWtp eclipseWtpModel
 
     @Override protected void onApply(Project project) {
-        //TODO SF - apply conditionally or fail fast
         EclipsePlugin delegatePlugin = project.getPlugins().apply(EclipsePlugin.class);
         eclipseWtpModel = delegatePlugin.model.wtp
 
