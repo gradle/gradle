@@ -1,7 +1,7 @@
 // START SNIPPET configuration-injection
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'eclipse'
+    apply plugin: 'eclipseWtp'
 
     repositories {
        mavenCentral()
