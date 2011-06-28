@@ -100,31 +100,6 @@ class EclipsePlugin extends IdePlugin {
                         new BuildCommand("org.scala-ide.sdt.core.scalabuilder"))
                 projectModel.natures.add(projectModel.natures.indexOf("org.eclipse.jdt.core.javanature"), "org.scala-ide.sdt.core.scalanature")
             }
-
-            configureEclipseProjectWithType(project, WarPlugin)
-            configureEclipseProjectWithType(project, EarPlugin)
-        }
-    }
-
-    private void configureEclipseProjectWithType(Project project, Class<?> type) {
-        project.plugins.withType(type) {
-            configureTask(project, ECLIPSE_PROJECT_TASK_NAME) {
-                projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
-                projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
-            }
-
-            doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                configureTask(otherProject, ECLIPSE_PROJECT_TASK_NAME) {
-                    projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                    projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                    projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
-                    projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                    projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
-                }
-            }
         }
     }
 

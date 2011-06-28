@@ -16,7 +16,7 @@ buildscript {
 defaultTasks 'eclipse', 'cleanEclipse'
 
 allprojects {
-    apply plugin: 'eclipse'
+    apply plugin: 'eclipseWtp'
 }
 
 subprojects {

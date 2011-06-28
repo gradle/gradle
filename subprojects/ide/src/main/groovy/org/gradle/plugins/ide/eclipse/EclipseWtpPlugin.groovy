@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.EarPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
+import org.gradle.plugins.ide.eclipse.model.EclipseWtp
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.eclipse.model.WbResource
@@ -39,11 +40,12 @@ class EclipseWtpPlugin extends IdePlugin {
         return "eclipseWtp"
     }
 
-    EclipsePlugin delegatePlugin
+    EclipseWtp eclipseWtpModel
 
     @Override protected void onApply(Project project) {
         //TODO SF - apply conditionally or fail fast
-        delegatePlugin = project.getPlugins().apply(EclipsePlugin.class);
+        EclipsePlugin delegatePlugin = project.getPlugins().apply(EclipsePlugin.class);
+        eclipseWtpModel = delegatePlugin.model.wtp
 
         lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
         cleanTask.description = 'Cleans Eclipse wtp configuration files.'
@@ -51,6 +53,9 @@ class EclipseWtpPlugin extends IdePlugin {
         //TODO SF - test
         delegatePlugin.getLifecycleTask().dependsOn(getLifecycleTask())
         delegatePlugin.getCleanTask().dependsOn(getCleanTask())
+
+        configureEclipseProjectWithType(project, WarPlugin)
+        configureEclipseProjectWithType(project, EarPlugin)
 
         configureEclipseWtpComponent(project)
         configureEclipseWtpFacet(project)
@@ -70,7 +75,7 @@ class EclipseWtpPlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.wst.common.component')
 
                 //model properties:
-                delegatePlugin.model.wtp.component = component
+                eclipseWtpModel.component = component
 
                 component.deployName = project.name
 
@@ -93,18 +98,18 @@ class EclipseWtpPlugin extends IdePlugin {
             }
 
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                def eclipsePlugin = otherProject.plugins.getPlugin(EclipsePlugin)
+                def eclipseWtpPlugin = otherProject.plugins.getPlugin(EclipseWtpPlugin)
                 // require Java plugin because we need source set 'main'
                 // (in the absence of 'main', it probably makes no sense to write the file)
                 otherProject.plugins.withType(JavaPlugin) {
-                    maybeAddTask(otherProject, eclipsePlugin, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
+                    maybeAddTask(otherProject, eclipseWtpPlugin, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
                         //task properties:
                         description = 'Generates the Eclipse WTP component settings file.'
                         inputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
                         outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
 
                         //model properties:
-                        eclipsePlugin.model.wtp.component = component
+                        eclipseWtpPlugin.eclipseWtpModel.component = component
 
                         component.deployName = otherProject.name
                         component.conventionMapping.resources = {
@@ -130,7 +135,7 @@ class EclipseWtpPlugin extends IdePlugin {
                 outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                 //model properties:
-                delegatePlugin.model.wtp.facet = facet
+                eclipseWtpModel.facet = facet
                 if (WarPlugin.isAssignableFrom(type)) {
                     facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
                         new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
@@ -140,15 +145,15 @@ class EclipseWtpPlugin extends IdePlugin {
             }
 
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                def eclipsePlugin = otherProject.plugins.getPlugin(EclipsePlugin)
-                maybeAddTask(otherProject, eclipsePlugin, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
+                def eclipseWtpPlugin = otherProject.plugins.getPlugin(EclipseWtpPlugin)
+                maybeAddTask(otherProject, eclipseWtpPlugin, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
                     //task properties:
                     description = 'Generates the Eclipse WTP facet settings file.'
                     inputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
                     outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
                     //model properties:
-                    eclipsePlugin.model.wtp.facet = facet
+                    eclipseWtpPlugin.eclipseWtpModel.facet = facet
 
                     facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
                         new Facet(FacetType.installed, "jst.utility", "1.0")] }
@@ -183,12 +188,34 @@ class EclipseWtpPlugin extends IdePlugin {
             def projectDeps = runtimeConfig.getAllDependencies(ProjectDependency)
             def dependedUponProjects = projectDeps*.dependencyProject
             for (dependedUponProject in dependedUponProjects) {
-                dependedUponProject.plugins.withType(EclipsePlugin) { action(dependedUponProject) }
+                dependedUponProject.plugins.withType(EclipseWtpPlugin) { action(dependedUponProject) }
                 eachDependedUponEclipseProject(dependedUponProject, action)
             }
         }
     }
     //TODO SF - end
+
+    private void configureEclipseProjectWithType(Project project, Class<?> type) {
+        project.plugins.withType(type) {
+            project.tasks.withType(GenerateEclipseProject) {
+                projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
+
+                doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
+                    otherProject.tasks.withType(GenerateEclipseProject) {
+                        projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                        projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                        projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
+                        projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+                        projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
+                    }
+                }
+            }
+        }
+    }
 
     private Set<File> getMainSourceDirs(Project project) {
         project.sourceSets.main.allSource.srcDirs as LinkedHashSet
