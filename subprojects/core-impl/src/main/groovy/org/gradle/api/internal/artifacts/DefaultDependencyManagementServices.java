@@ -105,15 +105,41 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return dependencyHandler;
         }
 
-        public Factory<RepositoryHandler> getPublishRepositoryHandlerFactory() {
-            final IConventionAware prototype = (IConventionAware) getResolveRepositoryHandler();
-            return new Factory<RepositoryHandler>() {
-                public RepositoryHandler create() {
-                    RepositoryHandler handler = initialiseRepositoryHandler(createRepositoryHandler());
-                    ((IConventionAware)handler).setConventionMapping(prototype.getConventionMapping());
-                    return handler;
+        RepositoryHandler createRepositoryHandlerWithSharedConventionMapping() {
+            IConventionAware prototype = (IConventionAware) getResolveRepositoryHandler();
+            RepositoryHandler handler = initialiseRepositoryHandler(createRepositoryHandler());
+            ((IConventionAware)handler).setConventionMapping(prototype.getConventionMapping());
+            return handler;
+        }
+
+        public Factory<ArtifactPublicationServices> getPublishServicesFactory() {
+            return new Factory<ArtifactPublicationServices>() {
+                public ArtifactPublicationServices create() {
+                    return new DefaultArtifactPublicationServices(parent, DefaultDependencyResolutionServices.this);
                 }
             };
+        }
+    }
+
+    private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
+        private final DefaultDependencyResolutionServices dependencyResolutionServices;
+        private final ServiceRegistry parent;
+        private RepositoryHandler repositoryHandler;
+
+        public DefaultArtifactPublicationServices(ServiceRegistry parent, DefaultDependencyResolutionServices dependencyResolutionServices) {
+            this.parent = parent;
+            this.dependencyResolutionServices = dependencyResolutionServices;
+        }
+
+        public IvyService getIvyService() {
+            return parent.get(IvyService.class);
+        }
+
+        public RepositoryHandler getRepositoryHandler() {
+            if (repositoryHandler == null) {
+                repositoryHandler = dependencyResolutionServices.createRepositoryHandlerWithSharedConventionMapping();
+            }
+            return repositoryHandler;
         }
     }
 }

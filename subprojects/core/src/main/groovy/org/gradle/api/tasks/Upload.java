@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ public class Upload extends ConventionTask {
     private RepositoryHandler repositories;
 
     public Upload() {
-        repositories = getProject().createRepositoryHandler();
+        repositories = getServices().getFactory(ArtifactPublicationServices.class).create().getRepositoryHandler();
     }
 
     @TaskAction

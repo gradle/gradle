@@ -1336,14 +1336,6 @@ public interface Project extends Comparable<Project> {
     void repositories(Closure configureClosure);
 
     /**
-     * Creates a new repository handler. <p/> Each repository handler is a factory and container for repositories. For
-     * example each instance of an upload task has its own repository handler.
-     *
-     * @return a new repository handler
-     */
-    RepositoryHandler createRepositoryHandler();
-
-    /**
      * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding
      * new dependencies. For accessing already declared dependencies, the configurations can be used.
      *

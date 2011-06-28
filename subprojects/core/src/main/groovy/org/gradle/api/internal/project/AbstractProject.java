@@ -127,8 +127,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private ArtifactHandler artifactHandler;
 
-    private Factory<RepositoryHandler> repositoryHandlerFactory;
-
     private RepositoryHandler repositoryHandler;
 
     private ScriptHandler scriptHandler;
@@ -175,7 +173,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         taskContainer = services.newInstance(TaskContainerInternal.class);
         implicitTasksContainer = services.newInstance(TaskContainerInternal.class);
         fileOperations = services.get(FileOperations.class);
-        repositoryHandlerFactory = services.getFactory(RepositoryHandler.class);
         projectEvaluator = services.get(ProjectEvaluator.class);
         repositoryHandler = services.get(RepositoryHandler.class);
         configurationContainer = services.get(ConfigurationContainer.class);
@@ -195,10 +192,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         dynamicObjectHelper.addObject(taskContainer.getAsDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
-    }
-
-    public RepositoryHandler createRepositoryHandler() {
-        return repositoryHandlerFactory.create();
     }
 
     public ProjectInternal getRootProject() {
@@ -360,10 +353,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public RepositoryHandler getRepositories() {
         return repositoryHandler;
-    }
-
-    public Factory<RepositoryHandler> getRepositoryHandlerFactory() {
-        return repositoryHandlerFactory;
     }
 
     public ConfigurationContainer getConfigurations() {

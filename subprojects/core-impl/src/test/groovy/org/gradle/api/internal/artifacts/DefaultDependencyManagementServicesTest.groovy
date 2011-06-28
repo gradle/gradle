@@ -37,13 +37,14 @@ class DefaultDependencyManagementServicesTest extends Specification {
     final DependencyMetaDataProvider dependencyMetaDataProvider = Mock()
     final ProjectFinder projectFinder = Mock()
     final ClassGenerator classGenerator = Mock()
+    final IvyService ivyService = Mock()
     final DomainObjectContext domainObjectContext = Mock()
     final TestRepositoryHandler repositoryHandler = Mock()
     final ConfigurationContainerFactory containerFactory = Mock()
     final ConfigurationContainer configurationContainer = Mock()
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 
-    def providesAResolverFactory() {
+    def "provides a ResolverFactory"() {
         given:
         _ * parent.getFactory(LoggingManagerInternal.class)
 
@@ -51,12 +52,12 @@ class DefaultDependencyManagementServicesTest extends Specification {
         services.get(ResolverFactory.class) != null
     }
 
-    def providesAMavenFactory() {
+    def "provides a MavenFactory"() {
         expect:
         services.get(MavenFactory.class) != null
     }
 
-    def createDependencyResolutionServices() {
+    def "can create dependency resolution services"() {
         given:
         1 * parent.get(ConfigurationContainerFactory.class) >> containerFactory
         1 * parent.get(ClassGenerator.class) >> classGenerator
@@ -70,10 +71,10 @@ class DefaultDependencyManagementServicesTest extends Specification {
         resolutionServices.resolveRepositoryHandler != null
         resolutionServices.configurationContainer != null
         resolutionServices.dependencyHandler != null
-        resolutionServices.publishRepositoryHandlerFactory != null
+        resolutionServices.publishServicesFactory != null
     }
 
-    def publishResolverHandlerSharesConventionMappingAndConfigurationContainerWithResolveResolverHandler() {
+    def "publish ResolverHandler shares ConventionMapping and ConfigurationContainer with resolve ResolverHandler"() {
         TestRepositoryHandler publishRepositoryHandler = Mock()
 
         given:
@@ -84,11 +85,24 @@ class DefaultDependencyManagementServicesTest extends Specification {
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def publishResolveHandler = resolutionServices.publishRepositoryHandlerFactory.create()
+        def publishResolverHandler = resolutionServices.publishServicesFactory.create().repositoryHandler
 
         then:
+        publishResolverHandler == publishRepositoryHandler
         1 * publishRepositoryHandler.setConfigurationContainer(configurationContainer)
         1 * publishRepositoryHandler.setConventionMapping({!null})
+    }
+
+    def "publish services provide an IvyService"() {
+        given:
+        _ * parent.get(IvyService.class) >> ivyService
+
+        when:
+        def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
+        def ivyService = resolutionServices.publishServicesFactory.create().ivyService
+
+        then:
+        ivyService != null
     }
 }
 

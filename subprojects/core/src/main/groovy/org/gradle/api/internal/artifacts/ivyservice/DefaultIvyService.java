@@ -47,7 +47,7 @@ public class DefaultIvyService implements IvyService {
     private IvyDependencyPublisher dependencyPublisher;
     private final DependencyMetaDataProvider metaDataProvider;
     private final ResolverProvider resolverProvider;
-    private Map clientModuleRegistry;
+    private Map<String, ModuleDescriptor> clientModuleRegistry;
 
     public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider,
                              SettingsConverter settingsConverter,
@@ -57,7 +57,7 @@ public class DefaultIvyService implements IvyService {
                              IvyFactory ivyFactory,
                              IvyDependencyResolver dependencyResolver,
                              IvyDependencyPublisher dependencyPublisher,
-                             Map clientModuleRegistry) {
+                             Map<String, ModuleDescriptor> clientModuleRegistry) {
         this.metaDataProvider = metaDataProvider;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;

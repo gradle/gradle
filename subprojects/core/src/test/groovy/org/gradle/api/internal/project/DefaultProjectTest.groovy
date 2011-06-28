@@ -61,7 +61,6 @@ import org.gradle.api.*
 import org.gradle.api.internal.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.Factory
 
 /**
  * @author Hans Dockter
@@ -100,7 +99,6 @@ class DefaultProjectTest {
     DefaultConfigurationContainer configurationContainerMock;
     InternalRepository internalRepositoryDummy = context.mock(InternalRepository)
     ResolverFactory resolverFactoryMock = context.mock(ResolverFactory.class);
-    Factory<RepositoryHandler> repositoryHandlerFactoryMock = context.mock(Factory.class);
     RepositoryHandler repositoryHandlerMock
     DependencyFactory dependencyFactoryMock
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
@@ -132,9 +130,6 @@ class DefaultProjectTest {
             assertSame(build.startParameter.projectDependenciesBuildInstruction, projectDependenciesBuildInstruction)
             configurationContainerMock}] as ConfigurationContainerFactory
         repositoryHandlerMock =  context.mock(RepositoryHandler.class);
-        context.checking {
-          allowing(repositoryHandlerFactoryMock).create(); will(returnValue(repositoryHandlerMock))
-        }
         script = context.mock(ScriptSource.class)
         context.checking {
             allowing(script).getDisplayName(); will(returnValue('[build file]'))
@@ -159,7 +154,6 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).newInstance(TaskContainerInternal); will(returnValue(taskContainerMock))
             allowing(taskContainerMock).getAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
             allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
-            allowing(serviceRegistryMock).getFactory(RepositoryHandler); will(returnValue(repositoryHandlerFactoryMock))
             allowing(serviceRegistryMock).get(ConfigurationContainer); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
@@ -197,14 +191,6 @@ class DefaultProjectTest {
             projectRegistry.addProject(it)
         }
     }
-
-  @Test void testRepositories() {
-      context.checking {
-          allowing(repositoryHandlerFactoryMock).create(); will(returnValue(repositoryHandlerMock))
-          ignoring(repositoryHandlerMock)
-      }
-      assertThat(project.createRepositoryHandler(), sameInstance(repositoryHandlerMock))
-  }
 
   @Ignore void testArtifacts() {
         boolean called = false;
@@ -265,7 +251,6 @@ class DefaultProjectTest {
         assertNotNull(project.convention)
         assertEquals([], project.getDefaultTasks())
         assert project.configurations.is(configurationContainerMock)
-        assert project.repositoryHandlerFactory.is(repositoryHandlerFactoryMock)
         assertSame(repositoryHandlerMock, project.repositories)
         assert projectRegistry.is(project.projectRegistry)
         assertFalse project.state.executed

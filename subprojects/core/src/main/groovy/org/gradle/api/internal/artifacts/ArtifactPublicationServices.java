@@ -15,17 +15,10 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.Factory;
 
-public interface DependencyResolutionServices {
-    RepositoryHandler getResolveRepositoryHandler();
+public interface ArtifactPublicationServices {
+    IvyService getIvyService();
 
-    ConfigurationContainer getConfigurationContainer();
-
-    DependencyHandler getDependencyHandler();
-
-    Factory<ArtifactPublicationServices> getPublishServicesFactory();
+    RepositoryHandler getRepositoryHandler();
 }

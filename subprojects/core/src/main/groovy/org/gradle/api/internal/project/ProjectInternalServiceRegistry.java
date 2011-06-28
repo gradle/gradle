@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -103,8 +104,8 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultConvention();
     }
 
-    protected Factory<RepositoryHandler> createRepositoryHandlerFactory() {
-        return get(DependencyResolutionServices.class).getPublishRepositoryHandlerFactory();
+    protected Factory<ArtifactPublicationServices> createRepositoryHandlerFactory() {
+        return get(DependencyResolutionServices.class).getPublishServicesFactory();
     }
 
     protected RepositoryHandler createRepositoryHandler() {

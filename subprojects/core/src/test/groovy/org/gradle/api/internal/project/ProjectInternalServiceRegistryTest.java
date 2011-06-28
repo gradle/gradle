@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -71,7 +72,7 @@ public class ProjectInternalServiceRegistryTest {
     private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private final DependencyResolutionServices dependencyResolutionServices = context.mock(DependencyResolutionServices.class);
     private final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
-    private final Factory publishRepositoryHandler = context.mock(Factory.class);
+    private final Factory publishServicesFactory = context.mock(Factory.class);
     private final DependencyHandler dependencyHandler = context.mock(DependencyHandler.class);
 
     @Before
@@ -126,11 +127,11 @@ public class ProjectInternalServiceRegistryTest {
     }
 
     @Test
-    public void providesARepositoryHandlerFactory() {
+    public void providesAnArtifactPublicationServicesFactory() {
         expectDependencyResolutionServicesCreated();
 
-        assertThat(registry.getFactory(RepositoryHandler.class), sameInstance(publishRepositoryHandler));
-        assertThat(registry.getFactory(RepositoryHandler.class), sameInstance(registry.getFactory(RepositoryHandler.class)));
+        assertThat(registry.getFactory(ArtifactPublicationServices.class), sameInstance(publishServicesFactory));
+        assertThat(registry.getFactory(ArtifactPublicationServices.class), sameInstance(registry.getFactory(ArtifactPublicationServices.class)));
     }
 
     @Test
@@ -248,8 +249,8 @@ public class ProjectInternalServiceRegistryTest {
             allowing(dependencyResolutionServices).getResolveRepositoryHandler();
             will(returnValue(repositoryHandler));
 
-            allowing(dependencyResolutionServices).getPublishRepositoryHandlerFactory();
-            will(returnValue(publishRepositoryHandler));
+            allowing(dependencyResolutionServices).getPublishServicesFactory();
+            will(returnValue(publishServicesFactory));
 
             allowing(dependencyResolutionServices).getConfigurationContainer();
             will(returnValue(configurationContainer));
