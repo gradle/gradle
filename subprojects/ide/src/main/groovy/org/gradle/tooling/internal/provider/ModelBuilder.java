@@ -22,11 +22,12 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
-import org.gradle.tooling.internal.DefaultEclipseLinkedResource;
-import org.gradle.tooling.internal.DefaultEclipseSourceDirectory;
-import org.gradle.tooling.internal.DefaultExternalDependency;
+import org.gradle.tooling.internal.*;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 import org.gradle.util.GUtil;
 import org.gradle.util.ReflectionUtil;
 
@@ -39,13 +40,11 @@ import java.util.*;
 public class ModelBuilder {
     private boolean projectDependenciesOnly;
     private Object currentProject;
-    private final Map<String, Object> projectMapping = new HashMap<String, Object>();
+    private final Map<String, EclipseProjectVersion3> projectMapping = new HashMap<String, EclipseProjectVersion3>();
     private GradleInternal gradle;
     private final TasksFactory tasksFactory;
-    private VersionedTypes versionedTypes;
 
-    public ModelBuilder(boolean includeTasks, boolean projectDependenciesOnly, VersionedTypes versionedTypes) {
-        this.versionedTypes = versionedTypes;
+    public ModelBuilder(boolean includeTasks, boolean projectDependenciesOnly) {
         this.tasksFactory = new TasksFactory(includeTasks);
         this.projectDependenciesOnly = projectDependenciesOnly;
     }
@@ -60,7 +59,7 @@ public class ModelBuilder {
         return currentProject;
     }
 
-    private void addProject(Project project, Object eclipseProject) {
+    private void addProject(Project project, EclipseProjectVersion3 eclipseProject) {
         if (project == gradle.getDefaultProject()) {
             currentProject = eclipseProject;
         }
@@ -75,7 +74,7 @@ public class ModelBuilder {
         List<ClasspathEntry> entries = classpath.resolveDependencies();
 
         final List<ExternalDependencyVersion1> externalDependencies = new LinkedList<ExternalDependencyVersion1>();
-        final List projectDependencies = new LinkedList();
+        final List<EclipseProjectDependencyVersion2> projectDependencies = new LinkedList<EclipseProjectDependencyVersion2>();
         final List<EclipseSourceDirectoryVersion1> sourceDirectories = new LinkedList<EclipseSourceDirectoryVersion1>();
 
         for (ClasspathEntry entry : entries) {
@@ -88,14 +87,14 @@ public class ModelBuilder {
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                projectDependencies.add(ReflectionUtil.newInstance(versionedTypes.forProjectDependency, path, projectMapping.get(projectDependency.getGradlePath())));
+                projectDependencies.add(new DefaultEclipseProjectDependency(path, projectMapping.get(projectDependency.getGradlePath())));
             } else if (entry instanceof SourceFolder) {
                 String path = ((SourceFolder) entry).getPath();
                 sourceDirectories.add(new DefaultEclipseSourceDirectory(path, project.file(path)));
             }
         }
 
-        final Object eclipseProject = projectMapping.get(project.getPath());
+        final EclipseProjectVersion3 eclipseProject = projectMapping.get(project.getPath());
         ReflectionUtil.setProperty(eclipseProject, "classpath", externalDependencies);
         ReflectionUtil.setProperty(eclipseProject, "projectDependencies", projectDependencies);
         ReflectionUtil.setProperty(eclipseProject, "sourceDirectories", sourceDirectories);
@@ -108,9 +107,9 @@ public class ModelBuilder {
             ReflectionUtil.setProperty(eclipseProject, "linkedResources", linkedResources);
         }
 
-        List out = new ArrayList();
+        List<EclipseTaskVersion1> out = new ArrayList<EclipseTaskVersion1>();
         for (final Task t : tasksFactory.getTasks(project)) {
-            out.add(ReflectionUtil.newInstance(versionedTypes.forTask, eclipseProject, t.getPath(), t.getName(), t.getDescription()));
+            out.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
         }
         ReflectionUtil.setProperty(eclipseProject, "tasks", out);
 
@@ -119,8 +118,8 @@ public class ModelBuilder {
         }
     }
 
-    private Object buildHierarchy(Project project) {
-        List children = new ArrayList();
+    private EclipseProjectVersion3 buildHierarchy(Project project) {
+        List<EclipseProjectVersion3> children = new ArrayList<EclipseProjectVersion3>();
         for (Project child : project.getChildProjects().values()) {
             children.add(buildHierarchy(child));
         }
@@ -129,7 +128,7 @@ public class ModelBuilder {
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
-        Object eclipseProject = ReflectionUtil.newInstance(versionedTypes.forProject, name, project.getPath(), description, project.getProjectDir(), children);
+        EclipseProjectVersion3 eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children);
         for (Object child : children) {
             ReflectionUtil.setProperty(child, "parent", eclipseProject);
         }

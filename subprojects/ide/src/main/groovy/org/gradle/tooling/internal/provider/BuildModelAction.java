@@ -33,7 +33,7 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
         boolean projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
         boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
 
-        ModelBuilder defaultBuilder = new ModelBuilder(includeTasks, projectDependenciesOnly, VersionedTypes.forType(type));
+        ModelBuilder defaultBuilder = new ModelBuilder(includeTasks, projectDependenciesOnly);
 
         modelBuildingAdapter = new ModelBuildingAdapter(defaultBuilder);
     }
