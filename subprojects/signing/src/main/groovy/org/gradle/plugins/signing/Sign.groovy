@@ -36,6 +36,10 @@ import org.gradle.plugins.signing.type.SignatureType
 class Sign extends DefaultTask implements SignatureSpec {
     
     SignatureType type
+    
+    /**
+     * The signatory
+     */
     Signatory signatory
     
     final protected SignOperation operation
@@ -57,6 +61,9 @@ class Sign extends DefaultTask implements SignatureSpec {
         inputs.property("signatory") { getSignatory()?.keyId?.asHex }
     }
     
+    /**
+     * Configures the task to sign the archive produced for each of the given tasks (which must be archive tasks)
+     */
     void sign(Task... tasks) {
         for (it in tasks) {
             if (!(it instanceof AbstractArchiveTask)) {
@@ -67,24 +74,36 @@ class Sign extends DefaultTask implements SignatureSpec {
             addSignature(it, it.archivePath, it.classifier)
         }
     }
-    
-    void sign(PublishArtifact... toSign) {
-        for (it in toSign) {
+
+    /**
+     * Configures the task to sign each of the given artifacts
+     */
+    void sign(PublishArtifact... publishArtifacts) {
+        for (it in publishArtifacts) {
             dependsOn(it.buildDependencies)
             addSignature(it, it.file, it.classifier)
         }
     }
-    
-    void sign(File... toSign) {
-        sign(null, *toSign)
+
+    /**
+     * Configures the task to sign each of the given files
+     */    
+    void sign(File... files) {
+        sign(null, *files)
     }
     
-    void sign(String classifier, File... toSign) {
-        for (it in toSign) {
+    /**
+     * Configures the task to sign each of the given artifacts, using the given classifier as the classifier for the resultant signature publish artifact.
+     */
+    void sign(String classifier, File... files) {
+        for (it in files) {
             addSignature(it, it, classifier)
         }
     }
-    
+
+    /**
+     * Configures the task to sign every artifact of the given configurations
+     */
     void sign(Configuration... configurations) {
         for (it in configurations) {
             dependsOn(it.buildArtifacts)
@@ -102,6 +121,9 @@ class Sign extends DefaultTask implements SignatureSpec {
         this.type = type
     }
     
+    /**
+     * {@inheritDoc}
+     */
     void signatory(Signatory signatory) {
         this.signatory = signatory
     }

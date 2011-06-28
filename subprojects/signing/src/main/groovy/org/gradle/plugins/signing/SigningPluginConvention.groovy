@@ -22,10 +22,10 @@ import org.gradle.api.internal.ClassGenerator
 
 import org.gradle.plugins.signing.signatory.*
 
-class SigningConvention {
+class SigningPluginConvention {
     private SigningSettings settings
     
-    SigningConvention(SigningSettings settings) {
+    SigningPluginConvention(SigningSettings settings) {
         this.settings = settings
     }
     
