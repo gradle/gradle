@@ -94,6 +94,10 @@ class AbstractIntegrationSpec extends Specification {
         }
     }
     
+    protected void failureHasCause(String cause) {
+        failure.assertHasCause(cause)
+    }
+    
     private assertHasResult() {
         assert result != null : "result is null, you haven't run succeeds()"
     }

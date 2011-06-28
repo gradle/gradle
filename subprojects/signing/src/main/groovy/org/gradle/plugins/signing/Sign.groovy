@@ -23,34 +23,47 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.ClassGenerator
 
 import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.type.SignatureType
 
 /**
- * Creates a file containing a digital signature alongside an input file.
+ * <p>A task for signing one or more; tasks, files or configurations.</p>
+ * 
+ * <p></p>
  */
-class Sign extends DefaultTask {
+class Sign extends DefaultTask implements SignatureSpec {
     
-    final SigningSettings settings
+    SignatureType type
+    
+    /**
+     * The signatory
+     */
+    Signatory signatory
+    
     final protected SignOperation operation
     
-    private Boolean required
+    boolean required = true
     
     Sign() {
         super()
-        settings = project.signing
-        operation = new SignOperation(settings)
+        operation = project.services.get(ClassGenerator).newInstance(SignOperation)
+        operation.conventionMapping.map("type") { this.getType() }
+        operation.conventionMapping.map("signatory") { this.getSignatory() }
 
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf {
-            getRequired() || getSignatory() != null
+            isRequired() || getSignatory() != null
         }
 
         // Have to include this in the up-to-date checks because the signatory may have changed
         inputs.property("signatory") { getSignatory()?.keyId?.asHex }
     }
     
+    /**
+     * Configures the task to sign the archive produced for each of the given tasks (which must be archive tasks)
+     */
     void sign(Task... tasks) {
         for (it in tasks) {
             if (!(it instanceof AbstractArchiveTask)) {
@@ -61,24 +74,36 @@ class Sign extends DefaultTask {
             addSignature(it, it.archivePath, it.classifier)
         }
     }
-    
-    void sign(PublishArtifact... toSign) {
-        for (it in toSign) {
+
+    /**
+     * Configures the task to sign each of the given artifacts
+     */
+    void sign(PublishArtifact... publishArtifacts) {
+        for (it in publishArtifacts) {
             dependsOn(it.buildDependencies)
             addSignature(it, it.file, it.classifier)
         }
     }
-    
-    void sign(File... toSign) {
-        sign(null, *toSign)
+
+    /**
+     * Configures the task to sign each of the given files
+     */    
+    void sign(File... files) {
+        sign(null, *files)
     }
     
-    void sign(String classifier, File... toSign) {
-        for (it in toSign) {
+    /**
+     * Configures the task to sign each of the given artifacts, using the given classifier as the classifier for the resultant signature publish artifact.
+     */
+    void sign(String classifier, File... files) {
+        for (it in files) {
             addSignature(it, it, classifier)
         }
     }
-    
+
+    /**
+     * Configures the task to sign every artifact of the given configurations
+     */
     void sign(Configuration... configurations) {
         for (it in configurations) {
             dependsOn(it.buildArtifacts)
@@ -92,28 +117,15 @@ class Sign extends DefaultTask {
         outputs.file(signature.file)
     }
     
-    void signatory(Signatory signatory) {
-        operation.signatory(signatory)
-    }
-        
-    Signatory getSignatory() {
-        operation.signatory
-    }
-
     void type(SignatureType type) {
-        operation.type(type)
-    }
-
-    SignatureType getType() {
-        operation.type
+        this.type = type
     }
     
-    boolean getRequired() {
-        required != null ? required : settings.required
-    }
-    
-    void setRequired(boolean required) {
-        this.required = required
+    /**
+     * {@inheritDoc}
+     */
+    void signatory(Signatory signatory) {
+        this.signatory = signatory
     }
     
     void required(boolean required) {
@@ -143,8 +155,9 @@ class Sign extends DefaultTask {
     @TaskAction
     void signIt() {
         if (getSignatory() == null) {
-            throw new InvalidUserDataException("Cannot perform signing task '${getName()}' because it has no configured signatory. This task was marked as required.")
+            throw new InvalidUserDataException("Cannot perform signing task '${getPath()}' because it has no configured signatory")
         }
+        
         operation.execute()
     }
 }

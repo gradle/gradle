@@ -18,66 +18,30 @@ package org.gradle.plugins.signing
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.PublishArtifact
 
-import org.gradle.util.ConfigureUtil
-
-import org.gradle.plugins.signing.signatory.*
-
+/**
+ * Adds the ability to digitially sign files and artifacts.
+ */
 class SigningPlugin implements Plugin<Project> {
-    
+
+    /**
+     * <p>Adds the ability to digitially sign files and artifacts.</p>
+     * 
+     * <p>Attaches a {@link org.gradle.plugins.signing.SigningPluginConvention signing convention} with the name “signing”, connected to a
+     * {@link org.gradle.plugins.signing.SigningSettings signing settings} for this project.</p>
+     * 
+     * <p>Also adds conventions to all {@link org.gradle.plugins.signing.Sign sign tasks} to use the signing setting defaults.</p>
+     * 
+     * @see org.gradle.plugins.signing.SigningPluginConvention
+     * @see org.gradle.plugins.signing.SigningSettings#addSignatureSpecConventions(SigningSpec)
+     */
     void apply(Project project) {
         def settings = new SigningSettings(project)
-        def convention = new SigningConvention(settings)
+        def convention = new SigningPluginConvention(settings)
         project.convention.plugins.signing = convention
-    }
-    
-    /**
-     * The top level interface mixed in to the project
-     */
-    static class SigningConvention {
-        private SigningSettings settings
         
-        SigningConvention(SigningSettings settings) {
-            this.settings = settings
-        }
-        
-        SigningSettings signing(Closure block) {
-            ConfigureUtil.configure(block, settings)
-            settings
-        }
-        
-        SigningSettings getSigning() {
-            settings
-        }
-        
-        SignOperation sign(PublishArtifact... toSign) {
-            createSignOperation {
-                sign(*toSign)
-                execute()
-            }
-        }
-        
-        SignOperation sign(File... toSign) {
-            createSignOperation {
-                sign(*toSign)
-                execute()
-            }
-        }
-        
-        SignOperation sign(String classifier, File... toSign) {
-            createSignOperation {
-                sign(classifier, *toSign)
-                execute()
-            }
-        }
-        
-        SignOperation sign(Closure closure) {
-            createSignOperation(closure)
-        }
-        
-        protected createSignOperation(Closure setup) {
-            ConfigureUtil.configure(setup, new SignOperation(settings))
+        project.tasks.withType(Sign) { task ->
+            project.settings.addSignatureSpecConventions(task)
         }
     }
     

@@ -26,17 +26,18 @@ import org.gradle.util.ConfigureUtil
 import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.type.SignatureType
 
-class SignOperation {
+/**
+ * A sign operation creates digital signatures for one or more files or {@link org.gradle.api.artifacts.PublishArtifact publish artifacts}.
+ * 
+ * <p>The external representation of the signature is specified by the {@link #type signature type property}, while the {@link #signatory}
+ * property specifies who is to sign.
+ */
+class SignOperation implements SignatureSpec {
 
     SignatureType type
     Signatory signatory
-    private final SigningSettings settings
     final private List<Signature> signatures = []
-    
-    SignOperation(SigningSettings settings) {
-        this.settings = settings
-    }
-    
+        
     String getDisplayName() {
         "SignOperation"
     }
@@ -119,17 +120,8 @@ class SignOperation {
         this.type = type
     }
     
-    SignatureType getType() {
-        type ?: settings.type
-    }
-    
-    Signatory getSignatory() {
-        signatory ?: settings.signatory
-    }
-    
-    SignOperation signatory(Signatory signatory) {
+    void signatory(Signatory signatory) {
         this.signatory = signatory
-        this
     }
     
     SignOperation configure(Closure closure) {

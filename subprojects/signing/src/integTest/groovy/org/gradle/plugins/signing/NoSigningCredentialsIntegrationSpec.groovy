@@ -13,16 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.signing
 
-apply from: "$rootDir/gradle/integTest.gradle"
-
-dependencies {
-    groovy libraries.groovy_depends
-    compile project(':core')
-    compile "org.bouncycastle:bcpg-jdk15:1.45"
-    compile project(":plugins")
+class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
     
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime'), project(":maven")
-    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    def "trying to perform a signing operation without a signatory produces reasonable error"() {
+        when:
+        buildFile << """
+            signing {
+                sign jar
+            }
+        """
+        
+        then:
+        fails ":signJar"
+        
+        and:
+        failureHasCause "Cannot perform signing task ':signJar' because it has no configured signatory"
+    }
+    
+    
 }
