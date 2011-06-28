@@ -36,12 +36,12 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
@@ -56,10 +56,10 @@ import java.util.Map;
  */
 public class DefaultInternalRepository extends BasicResolver implements InternalRepository {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
-    private final Gradle gradle;
+    private final ProjectFinder projectFinder;
 
-    public DefaultInternalRepository(Gradle gradle, ModuleDescriptorConverter moduleDescriptorConverter) {
-        this.gradle = gradle;
+    public DefaultInternalRepository(ProjectFinder projectFinder, ModuleDescriptorConverter moduleDescriptorConverter) {
+        this.projectFinder = projectFinder;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         setName(ResolverContainer.INTERNAL_REPOSITORY_NAME);
         setRepositoryCacheManager(new NoOpRepositoryCacheManager(getName()));
@@ -90,7 +90,7 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         if (projectPathValue == null) {
             return null;
         }
-        Project project = gradle.getRootProject().project(projectPathValue);
+        Project project = projectFinder.getProject(projectPathValue);
         Module projectModule = ((ProjectInternal) project).getModule();
         ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations().getAll(),
                 projectModule, IvyContext.getContext().getIvy().getSettings());

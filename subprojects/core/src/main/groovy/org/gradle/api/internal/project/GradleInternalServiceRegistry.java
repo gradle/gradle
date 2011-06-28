@@ -59,7 +59,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     }
 
     protected InternalRepository createInternalRepository() {
-        return new DefaultInternalRepository(gradle, get(PublishModuleDescriptorConverter.class));
+        return new DefaultInternalRepository(get(ProjectFinder.class), get(PublishModuleDescriptorConverter.class));
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

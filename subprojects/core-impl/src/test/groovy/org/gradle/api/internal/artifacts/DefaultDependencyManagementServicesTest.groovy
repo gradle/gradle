@@ -15,21 +15,20 @@
  */
 package org.gradle.api.internal.artifacts
 
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.maven.MavenFactory
+import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.DomainObjectContext
+import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
-import spock.lang.Specification
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-
-import org.gradle.api.artifacts.ConfigurationContainer
-
-import org.gradle.api.internal.IConventionAware
+import spock.lang.Specification
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -37,10 +36,10 @@ class DefaultDependencyManagementServicesTest extends Specification {
     final DependencyMetaDataProvider dependencyMetaDataProvider = Mock()
     final ProjectFinder projectFinder = Mock()
     final ClassGenerator classGenerator = Mock()
+    final IvyServiceFactory ivyServiceFactory = Mock()
     final IvyService ivyService = Mock()
     final DomainObjectContext domainObjectContext = Mock()
     final TestRepositoryHandler repositoryHandler = Mock()
-    final ConfigurationContainerFactory containerFactory = Mock()
     final ConfigurationContainer configurationContainer = Mock()
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 
@@ -59,10 +58,11 @@ class DefaultDependencyManagementServicesTest extends Specification {
 
     def "can create dependency resolution services"() {
         given:
-        1 * parent.get(ConfigurationContainerFactory.class) >> containerFactory
-        1 * parent.get(ClassGenerator.class) >> classGenerator
+        _ * parent.get(ClassGenerator.class) >> classGenerator
+        _ * parent.get(IvyServiceFactory.class) >> ivyServiceFactory
         1 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >> repositoryHandler
-        1 * containerFactory.createConfigurationContainer(_, _, _) >> configurationContainer
+        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider) >> ivyService
+        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
@@ -78,10 +78,11 @@ class DefaultDependencyManagementServicesTest extends Specification {
         TestRepositoryHandler publishRepositoryHandler = Mock()
 
         given:
-        _ * parent.get(ConfigurationContainerFactory.class) >> containerFactory
+        _ * parent.get(IvyServiceFactory.class) >> ivyServiceFactory
         _ * parent.get(ClassGenerator.class) >> classGenerator
         2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
-        1 * containerFactory.createConfigurationContainer(_, _, _) >> configurationContainer
+        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider) >> ivyService
+        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)

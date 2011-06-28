@@ -24,10 +24,10 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.maven.MavenFactory;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.DefaultIvyServiceFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
+import org.gradle.api.internal.artifacts.IvyServiceFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
@@ -188,13 +188,13 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY));
     }
 
-    protected ConfigurationContainerFactory createConfigurationContainerFactory() {
+    protected IvyServiceFactory createIvyServiceFactory() {
         DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
         PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
                 createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
                 new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
 
-        return new DefaultConfigurationContainerFactory(clientModuleRegistry,
+        return new DefaultIvyServiceFactory(clientModuleRegistry,
                 new DefaultSettingsConverter(
                         get(ProgressLoggerFactory.class)
                 ),
@@ -205,8 +205,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new SelfResolvingDependencyResolver(
                         new DefaultIvyDependencyResolver(
                                 new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))),
-                new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()),
-                get(ClassGenerator.class));
+                new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()));
     }
 
     protected DependencyFactory createDependencyFactory() {

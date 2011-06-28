@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
@@ -95,7 +94,6 @@ class DefaultProjectTest {
     Factory<AntBuilder> antBuilderFactoryMock
     AntBuilder testAntBuilder
 
-    ConfigurationContainerFactory configurationContainerFactoryMock;
     DefaultConfigurationContainer configurationContainerMock;
     InternalRepository internalRepositoryDummy = context.mock(InternalRepository)
     ResolverFactory resolverFactoryMock = context.mock(ResolverFactory.class);
@@ -125,10 +123,6 @@ class DefaultProjectTest {
             allowing(antBuilderFactoryMock).create(); will(returnValue(testAntBuilder))
         }
         configurationContainerMock = context.mock(DefaultConfigurationContainer.class)
-        configurationContainerFactoryMock = [createConfigurationContainer: {
-          resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction ->
-            assertSame(build.startParameter.projectDependenciesBuildInstruction, projectDependenciesBuildInstruction)
-            configurationContainerMock}] as ConfigurationContainerFactory
         repositoryHandlerMock =  context.mock(RepositoryHandler.class);
         script = context.mock(ScriptSource.class)
         context.checking {

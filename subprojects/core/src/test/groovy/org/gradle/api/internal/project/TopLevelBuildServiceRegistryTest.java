@@ -21,6 +21,8 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.DefaultIvyServiceFactory;
+import org.gradle.api.internal.artifacts.IvyServiceFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -215,6 +217,12 @@ public class TopLevelBuildServiceRegistryTest {
     public void providesABuildConfigurer() {
         assertThat(factory.get(BuildConfigurer.class), instanceOf(DefaultBuildConfigurer.class));
         assertThat(factory.get(BuildConfigurer.class), sameInstance(factory.get(BuildConfigurer.class)));
+    }
+
+    @Test
+    public void providesAnIvyServiceFactory() {
+        assertThat(factory.get(IvyServiceFactory.class), instanceOf(DefaultIvyServiceFactory.class));
+        assertThat(factory.get(IvyServiceFactory.class), sameInstance(factory.get(IvyServiceFactory.class)));
     }
 
     private ListenerManager expectListenerManagerCreated() {

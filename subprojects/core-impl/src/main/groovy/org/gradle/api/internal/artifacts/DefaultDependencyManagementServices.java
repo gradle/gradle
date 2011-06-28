@@ -23,6 +23,7 @@ import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
@@ -93,7 +94,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         public ConfigurationContainer getConfigurationContainer() {
             if (configurationContainer == null) {
-                configurationContainer = parent.get(ConfigurationContainerFactory.class).createConfigurationContainer(getResolveRepositoryHandler(), dependencyMetaDataProvider, domainObjectContext);
+                ClassGenerator classGenerator = parent.get(ClassGenerator.class);
+                IvyServiceFactory ivyServiceFactory = parent.get(IvyServiceFactory.class);
+                IvyService ivyService = ivyServiceFactory.newIvyService(getResolveRepositoryHandler(), dependencyMetaDataProvider);
+                configurationContainer = classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext);
             }
             return configurationContainer;
         }
