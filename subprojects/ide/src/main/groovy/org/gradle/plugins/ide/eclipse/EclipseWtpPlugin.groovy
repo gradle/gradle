@@ -22,11 +22,9 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.EarPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
-import org.gradle.plugins.ide.eclipse.model.EclipseWtp
-import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
-import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.internal.IdePlugin
+import org.gradle.plugins.ide.eclipse.model.*
 
 /**
  * @author: Szczepan Faber, created at: 6/28/11
@@ -52,11 +50,29 @@ class EclipseWtpPlugin extends IdePlugin {
         delegatePlugin.getLifecycleTask().dependsOn(getLifecycleTask())
         delegatePlugin.getCleanTask().dependsOn(getCleanTask())
 
-        configureEclipseProjectWithType(project, WarPlugin)
-        configureEclipseProjectWithType(project, EarPlugin)
+        configureEclipseProjectForPlugin(project, WarPlugin)
+        configureEclipseProjectForPlugin(project, EarPlugin)
+        configureEclipseClasspathForWarPlugin(project)
 
         configureEclipseWtpComponent(project)
         configureEclipseWtpFacet(project)
+    }
+
+    private void configureEclipseClasspathForWarPlugin(Project project) {
+        project.plugins.withType(WarPlugin) {
+            doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
+                otherProject.tasks.withType(GenerateEclipseClasspath) {
+                    classpath.file.whenMerged { Classpath classpath ->
+                        for (entry in classpath.entries) {
+                            if (entry instanceof Library) {
+                                // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
+                                entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../'
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void configureEclipseWtpComponent(Project project) {
@@ -166,7 +182,6 @@ class EclipseWtpPlugin extends IdePlugin {
         }
     }
 
-    //TODO SF - duplicated (also some duplication in the test)
     private void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class taskType, Closure action) {
         if (project.tasks.findByName(taskName)) { return }
         def task = project.tasks.add(taskName, taskType)
@@ -191,9 +206,8 @@ class EclipseWtpPlugin extends IdePlugin {
             }
         }
     }
-    //TODO SF - end
 
-    private void configureEclipseProjectWithType(Project project, Class<?> type) {
+    private void configureEclipseProjectForPlugin(Project project, Class<?> type) {
         project.plugins.withType(type) {
             project.tasks.withType(GenerateEclipseProject) {
                 projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'

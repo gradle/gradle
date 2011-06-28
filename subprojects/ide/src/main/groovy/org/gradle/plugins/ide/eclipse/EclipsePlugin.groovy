@@ -16,15 +16,19 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.plugins.EarPlugin
+import org.gradle.api.plugins.GroovyBasePlugin
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
+import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
+import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.internal.IdePlugin
-import org.gradle.api.plugins.*
-import org.gradle.plugins.ide.eclipse.model.*
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -132,21 +136,6 @@ class EclipsePlugin extends IdePlugin {
                         project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
                     }
                 }
-
-                project.plugins.withType(WarPlugin) {
-                    doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                        configureTask(otherProject, ECLIPSE_CP_TASK_NAME) {
-                            whenConfigured { Classpath classpath ->
-                                for (entry in classpath.entries) {
-                                    if (entry instanceof Library) {
-                                        // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
-                                        entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
     }
@@ -166,36 +155,7 @@ class EclipsePlugin extends IdePlugin {
         }
     }
 
-    // TODO: might have to search all class paths of all source sets for project dependendencies, not just runtime configuration
-    private void doLaterWithEachDependedUponEclipseProject(Project project, Closure action) {
-        project.gradle.projectsEvaluated {
-            eachDependedUponEclipseProject(project, action)
-        }
-    }
-
-    private void eachDependedUponEclipseProject(Project project, Closure action) {
-        def runtimeConfig = project.configurations.findByName("runtime")
-        if (runtimeConfig) {
-            def projectDeps = runtimeConfig.getAllDependencies(ProjectDependency)
-            def dependedUponProjects = projectDeps*.dependencyProject
-            for (dependedUponProject in dependedUponProjects) {
-                dependedUponProject.plugins.withType(EclipsePlugin) { action(dependedUponProject) }
-                eachDependedUponEclipseProject(dependedUponProject, action)
-            }
-        }
-    }
-
-    private void withTask(Project project, String taskName, Closure action) {
-        project.tasks.matching { it.name == taskName }.all(action)
-    }
-
-    private void configureTask(Project project, String taskName, Closure action) {
-        withTask(project, taskName) { task ->
-            project.configure(task, action)
-        }
-    }
-
-    private void maybeAddTask(Project project, EclipsePlugin plugin, String taskName, Class taskType, Closure action) {
+    private void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class taskType, Closure action) {
         if (project.tasks.findByName(taskName)) { return }
         def task = project.tasks.add(taskName, taskType)
         project.configure(task, action)
