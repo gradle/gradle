@@ -47,6 +47,15 @@ class EclipseWtpPluginTest extends Specification {
         project.apply plugin: 'eclipseWtp'
     }
 
+    def "the eclipse plugin is applied along with eclipseWtp plugin"() {
+        when:
+        wtpPlugin.apply(project)
+
+        then:
+        project.tasks.eclipse.dependsOn.contains(project.eclipseWtp)
+        project.tasks.cleanEclipse.dependsOn.contains(project.cleanEclipseWtp)
+    }
+
      def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         project.apply(plugin: 'war')
@@ -54,7 +63,7 @@ class EclipseWtpPluginTest extends Specification {
 
         then:
         [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
-            assert project.cleanEclipseWtp.taskDependencies.getDependencies(project.cleanEclipseWtp).contains(it)
+            assert project.tasks.cleanEclipseWtp.dependsOn.contains(it)
         }
 
         checkEclipseProjectTask([
@@ -82,7 +91,7 @@ class EclipseWtpPluginTest extends Specification {
 
         then:
         [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
-            assert project.cleanEclipseWtp.taskDependencies.getDependencies(project.cleanEclipseWtp).contains(it)
+            assert project.cleanEclipseWtp.dependsOn.contains(it)
         }
         checkEclipseProjectTask([
                 new BuildCommand('org.eclipse.wst.common.project.facet.core.builder'),

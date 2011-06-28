@@ -49,7 +49,6 @@ class EclipseWtpPlugin extends IdePlugin {
         lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
         cleanTask.description = 'Cleans Eclipse wtp configuration files.'
 
-        //TODO SF - test
         delegatePlugin.getLifecycleTask().dependsOn(getLifecycleTask())
         delegatePlugin.getCleanTask().dependsOn(getCleanTask())
 
