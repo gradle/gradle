@@ -154,26 +154,12 @@ class EclipseWtpPluginTest extends Specification {
 
     private void checkEclipseProjectTask(List buildCommands, List natures) {
         GenerateEclipseProject eclipseProjectTask = project.eclipseProject
-        assert eclipseProjectTask instanceof GenerateEclipseProject
-        assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseProjectTask)
         assert eclipseProjectTask.buildCommands == buildCommands
         assert eclipseProjectTask.natures == natures
-        assert eclipseProjectTask.links == [] as Set
-        assert eclipseProjectTask.referencedProjects == [] as Set
-        assert eclipseProjectTask.comment == null
-        assert eclipseProjectTask.projectName == project.name
-        assert eclipseProjectTask.outputFile == project.file('.project')
     }
 
     private void checkEclipseClasspath(def configurations) {
         GenerateEclipseClasspath eclipseClasspath = project.tasks.eclipseClasspath
-        assert eclipseClasspath instanceof GenerateEclipseClasspath
-        assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseClasspath)
-        assert eclipseClasspath.sourceSets == project.sourceSets
         assert eclipseClasspath.plusConfigurations == configurations
-        assert eclipseClasspath.minusConfigurations == []
-        assert eclipseClasspath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] as Set
-        assert eclipseClasspath.outputFile == project.file('.classpath')
-        assert eclipseClasspath.defaultOutputDir == new File(project.projectDir, 'bin')
     }
 }
