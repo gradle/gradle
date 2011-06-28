@@ -29,33 +29,102 @@ class SigningPluginConvention {
         this.settings = settings
     }
     
-    SigningSettings signing(Closure block) {
-        ConfigureUtil.configure(block, settings)
+    /**
+     * Configures the signing settings of this project.
+     *
+     * <p>The given closure is use to configure the {@link SigningSettings}. You can configure what information is used to sign
+     * and what will be signed.
+     *
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * signing {
+     *   sign configurations.archives
+     * }
+     * </pre>
+     *
+     * @param closure The closure to execute.
+     */
+    SigningSettings signing(Closure closure) {
+        ConfigureUtil.configure(closure, settings)
         settings
     }
     
+    /**
+     * The {@link SigningSettings signing settings} for the project.
+     */
     SigningSettings getSigning() {
         settings
     }
     
-    SignOperation sign(PublishArtifact... toSign) {
+    /**
+     * Digitally signs the publish artifacts, generating signature files alongside them.
+     * 
+     * <p>The project's default signatory and default signature type from the 
+     * {@link SigningSettings signing settings} will be used to generate the signature.
+     * The returned {@link SignOperation sign operation} gives access to the created signature files.
+     * <p>
+     * If there is no configured default signatory available, the sign operation will fail.
+     * 
+     * @param publishArtifacts The publish artifacts to sign
+     * @return The executed {@link SignOperation sign operation}
+     */
+    SignOperation sign(PublishArtifact... publishArtifacts) {
         doSignOperation {
-            sign(*toSign)
+            sign(*publishArtifacts)
+        }
+    }
+
+    /**
+     * Digitally signs the files, generating signature files alongside them.
+     * 
+     * <p>The project's default signatory and default signature type from the 
+     * {@link SigningSettings signing settings} will be used to generate the signature.
+     * The returned {@link SignOperation sign operation} gives access to the created signature files.
+     * <p>
+     * If there is no configured default signatory available, the sign operation will fail.
+     * 
+     * @param publishArtifacts The files to sign.
+     * @return The executed {@link SignOperation sign operation}.
+     */
+    SignOperation sign(File... files) {
+        doSignOperation {
+            sign(*files)
         }
     }
     
-    SignOperation sign(File... toSign) {
+    /**
+     * Digitally signs the files, generating signature files alongside them.
+     * 
+     * <p>The project's default signatory and default signature type from the 
+     * {@link SigningSettings signing settings} will be used to generate the signature.
+     * The returned {@link SignOperation sign operation} gives access to the created signature files.
+     * <p>
+     * If there is no configured default signatory available, the sign operation will fail.
+     * 
+     * @param classifier The classifier to assign to the created signature artifacts.
+     * @param publishArtifacts The publish artifacts to sign.
+     * @return The executed {@link SignOperation sign operation}.
+     */
+    SignOperation sign(String classifier, File... files) {
         doSignOperation {
-            sign(*toSign)
+            sign(classifier, *files)
         }
     }
     
-    SignOperation sign(String classifier, File... toSign) {
-        doSignOperation {
-            sign(classifier, *toSign)
-        }
-    }
-    
+    /**
+     * Creates a new {@link SignOperation sign operation} using the given closure to configure it before executing it.
+     * 
+     * <p>The project's default signatory and default signature type from the 
+     * {@link SigningSettings signing settings} will be used to generate the signature.
+     * The returned {@link SignOperation sign operation} gives access to the created signature files.
+     * <p>
+     * If there is no configured default signatory available (and one is not explicitly specified in this operation's configuration), 
+     * the sign operation will fail.
+     * 
+     * @param closure The configuration of the {@link SignOperation sign operation}.
+     * @return The executed {@link SignOperation sign operation}.
+     */
     SignOperation sign(Closure closure) {
         doSignOperation(closure)
     }
