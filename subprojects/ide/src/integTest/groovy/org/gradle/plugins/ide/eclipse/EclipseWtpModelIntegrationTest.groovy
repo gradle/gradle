@@ -45,7 +45,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         runEclipseTask """
 apply plugin: 'java'
 apply plugin: 'war'
-apply plugin: 'eclipse'
+apply plugin: 'eclipseWtp'
 
 configurations {
   configOne
@@ -126,7 +126,7 @@ eclipse {
         runEclipseTask """
 apply plugin: 'java'
 apply plugin: 'war'
-apply plugin: 'eclipse'
+apply plugin: 'eclipseWtp'
 
 def hooks = []
 
@@ -183,7 +183,7 @@ import org.gradle.plugins.ide.eclipse.model.Facet
 
 apply plugin: 'java'
 apply plugin: 'war'
-apply plugin: 'eclipse'
+apply plugin: 'eclipseWtp'
 
 eclipse {
   wtp {
