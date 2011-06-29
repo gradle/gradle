@@ -22,6 +22,8 @@ import org.gradle.api.internal.ClassGenerator
 
 import org.gradle.plugins.signing.signatory.*
 
+import org.gradle.api.artifacts.maven.MavenDeployment
+
 class SigningPluginConvention {
     private SigningSettings settings
     
@@ -127,6 +129,44 @@ class SigningPluginConvention {
      */
     SignOperation sign(Closure closure) {
         doSignOperation(closure)
+    }
+    
+    /**
+     * Signs the POM artifact for the given maven deployment.
+     * 
+     * <p>You can use this method to sign the generated pom when publishing to a maven repository with the maven plugin.
+     * </p>
+     * <pre autoTested=''>
+     * uploadArchives {
+     *   repositories {
+     *     mavenDeployer {
+     *       beforeDeployment { MavenDeployment deployment ->
+     *         signPom(deployment)
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
+     * <p>You can optionally provide a configuration closure to fine tune the {@link SignOperation sign operation} for the POM.</p>
+     * 
+     * @param mavenDeployment The deployment to sign the POM of
+     * @param closure the configuration of the underlying {@link SignOperation sign operation} for the pom (optional)
+     * @return the generated signature artifact
+     */
+    Signature signPom(MavenDeployment mavenDeployment, Closure closure = null) {
+        def signOperation = sign {
+            sign(mavenDeployment.pomArtifact)
+            ConfigureUtil.configure(closure, delegate)
+        }
+        
+        def pomSignature = signOperation.singleSignature
+        
+        // Have to alter the “type” of the artifact to match what is published
+        // See http://issues.gradle.org/browse/GRADLE-1589
+        pomSignature.type = "pom." + pomSignature.signatureType.extension
+        
+        mavenDeployment.addArtifact(pomSignature)
+        pomSignature
     }
     
     protected SignOperation doSignOperation(Closure setup) {

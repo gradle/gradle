@@ -22,14 +22,7 @@ uploadPublished {
     repositories {
         mavenDeployer {
             repository(url: uri("${buildDir}/repo"))
-            
-            beforeDeployment { MavenDeployment deployment ->
-                def signedPomArtifact = sign(deployment.pomArtifact).singleSignature
-                // Have to alter the “type” of the artifact to match what is published
-                // See http://issues.gradle.org/browse/GRADLE-1589
-                signedPomArtifact.type = "pom." + signing.signatureType.extension
-                deployment.addArtifact(signedPomArtifact)
-            }
+            beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
         }
     }
 }
