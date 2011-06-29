@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.Factory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.Convention
