@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
+import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,14 +48,18 @@ public class Upload extends ConventionTask {
      */
     private RepositoryHandler repositories;
 
+    private IvyService ivyService;
+
     public Upload() {
-        repositories = getServices().getFactory(ArtifactPublicationServices.class).create().getRepositoryHandler();
+        ArtifactPublicationServices publicationServices = getServices().getFactory(ArtifactPublicationServices.class).create();
+        repositories = publicationServices.getRepositoryHandler();
+        ivyService = publicationServices.getIvyService();
     }
 
     @TaskAction
     protected void upload() {
-        logger.info("Publishing configurations: " + configuration);
-        configuration.publish(repositories.getResolvers(), isUploadDescriptor() ? getDescriptorDestination() : null);
+        logger.info("Publishing configuration: " + configuration);
+        ivyService.publish(configuration, isUploadDescriptor() ? getDescriptorDestination() : null);
     }
 
     /**
@@ -86,10 +91,6 @@ public class Upload extends ConventionTask {
         return repositories;
     }
 
-    public void setRepositories(RepositoryHandler repositories) {
-        this.repositories = repositories;
-    }
-
     /**
      * Returns the configuration to upload.
      */
@@ -117,5 +118,13 @@ public class Upload extends ConventionTask {
     public FileCollection getArtifacts() {
         Configuration configuration = getConfiguration();
         return configuration == null ? null : configuration.getAllArtifactFiles();
+    }
+
+    void setRepositories(RepositoryHandler repositories) {
+        this.repositories = repositories;
+    }
+
+    void setIvyService(IvyService ivyService) {
+        this.ivyService = ivyService;
     }
 }

@@ -95,15 +95,23 @@ class DefaultDependencyManagementServicesTest extends Specification {
     }
 
     def "publish services provide an IvyService"() {
+        IvyService publishIvyService = Mock()
+        TestRepositoryHandler publishRepositoryHandler = Mock()
+
         given:
-        _ * parent.get(IvyService.class) >> ivyService
+        _ * parent.get(IvyServiceFactory.class) >> ivyServiceFactory
+        _ * parent.get(ClassGenerator.class) >> classGenerator
+        2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
+        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider) >> ivyService
+        1 * ivyServiceFactory.newIvyService(publishRepositoryHandler, dependencyMetaDataProvider) >> publishIvyService
+        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
         def ivyService = resolutionServices.publishServicesFactory.create().ivyService
 
         then:
-        ivyService != null
+        ivyService == publishIvyService
     }
 }
 

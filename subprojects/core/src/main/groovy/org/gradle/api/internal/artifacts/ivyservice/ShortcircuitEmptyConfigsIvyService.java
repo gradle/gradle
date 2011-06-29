@@ -15,15 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 
-import java.util.Set;
-import java.util.List;
-import java.util.Collections;
 import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 
 public class ShortcircuitEmptyConfigsIvyService implements IvyService {
     private final ResolvedConfiguration emptyConfig = new ResolvedConfiguration() {
@@ -60,9 +58,8 @@ public class ShortcircuitEmptyConfigsIvyService implements IvyService {
         return ivyService;
     }
 
-    public void publish(Set<Configuration> configurationsToPublish, File descriptorDestination,
-                        List<DependencyResolver> publishResolvers) {
-        ivyService.publish(configurationsToPublish, descriptorDestination, publishResolvers);
+    public void publish(Configuration configuration, File descriptorDestination) throws PublishException {
+        ivyService.publish(configuration, descriptorDestination);
     }
 
     public ResolvedConfiguration resolve(Configuration configuration) {

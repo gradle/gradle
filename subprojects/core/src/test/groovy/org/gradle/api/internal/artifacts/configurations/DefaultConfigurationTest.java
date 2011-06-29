@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
@@ -326,17 +325,6 @@ public class DefaultConfigurationTest {
     public void multipleResolvesShouldUseCachedResult() {
         prepareResolve(context.mock(ResolvedConfiguration.class), true);
         assertThat(configuration.getResolvedConfiguration(), sameInstance(configuration.getResolvedConfiguration()));
-    }
-
-    @Test
-    public void publish() {
-        final Configuration otherConfiguration = createNamedConfiguration("testConf").extendsFrom(configuration);
-        final File someDescriptorDestination = new File("somePath");
-        final List<DependencyResolver> dependencyResolvers = toList(context.mock(DependencyResolver.class, "publish"));
-        context.checking(new Expectations() {{
-            allowing(ivyServiceStub).publish(new LinkedHashSet<Configuration>(otherConfiguration.getHierarchy()), someDescriptorDestination, dependencyResolvers);
-        }});
-        otherConfiguration.publish(dependencyResolvers, someDescriptorDestination);
     }
 
     @Test

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -205,10 +204,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
             return cachedResolvedConfiguration;
         }
-    }
-
-    public void publish(List<DependencyResolver> publishResolvers, File descriptorDestination) {
-        ivyService.publish(getHierarchy(), descriptorDestination, publishResolvers);
     }
 
     public TaskDependency getBuildDependencies() {

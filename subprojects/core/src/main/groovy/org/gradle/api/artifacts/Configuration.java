@@ -16,13 +16,11 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -242,20 +240,6 @@ public interface Configuration extends FileCollection {
      * @return a task dependency object
      */
     TaskDependency getBuildArtifacts();
-
-    /**
-     * Publishes the artifacts of this configuration to the specified repositories. This
-     * method is usually used only internally as the users use the associated upload tasks to
-     * upload the artifacts.
-     *
-     * @param publishRepositories The repositories to publish the artifacts to.
-     * @param descriptorDestination The destination dir for the descriptor file (if null no descriptor file is written).
-     *
-     * @see org.gradle.api.tasks.Upload
-     * @see #getUploadTaskName()
-     * @throws PublishException On failure to publish this configuration.
-     */
-    void publish(List<DependencyResolver> publishRepositories, File descriptorDestination) throws PublishException;
 
     /**
      * Gets the set of dependencies directly contained in this configuration

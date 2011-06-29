@@ -55,11 +55,13 @@ public class DefaultIvyServicePublishTest {
     private PublishEngine publishEngineDummy = context.mock(PublishEngine.class);
     private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
+    private ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
 
     @Test
     public void testPublish() throws IOException, ParseException {
         final IvySettings ivySettingsDummy = new IvySettings();
-        final Set<Configuration> configurations = createConfigurations();
+        final Configuration configuration = context.mock(Configuration.class);
+        final Set<Configuration> configurations = createConfiguration();
         final File someDescriptorDestination = new File("somePath");
         final List<DependencyResolver> publishResolversDummy = createPublishResolversDummy();
         final Module moduleDummy = context.mock(Module.class, "moduleForResolve");
@@ -71,12 +73,16 @@ public class DefaultIvyServicePublishTest {
 
         final Set<String> expectedConfigurations = Configurations.getNames(configurations, true);
         context.checking(new Expectations() {{
+            allowing(configuration).getHierarchy();
+            will(returnValue(configurations));
+            allowing(resolverProvider).getResolvers();
+            will(returnValue(publishResolversDummy));
             one(fileModuleDescriptorMock).toIvyFile(someDescriptorDestination);
             one(ivyService.getDependencyPublisher()).publish(expectedConfigurations,
                     publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, publishEngineDummy);
         }});
 
-        ivyService.publish(configurations, someDescriptorDestination, publishResolversDummy);
+        ivyService.publish(configuration, someDescriptorDestination);
     }
 
     private DefaultIvyService createIvyService() {
@@ -85,15 +91,12 @@ public class DefaultIvyServicePublishTest {
         ModuleDescriptorConverter publishModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "publishConverter");
         ModuleDescriptorConverter fileModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "fileConverter");
         IvyDependencyPublisher ivyDependencyPublisherMock = context.mock(IvyDependencyPublisher.class);
-        ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
 
-        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
+        return new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
                 settingsConverterStub, resolveModuleDescriptorConverter, publishModuleDescriptorConverter,
                 fileModuleDescriptorConverter,
                 new DefaultIvyFactory(), context.mock(IvyDependencyResolver.class),
-                ivyDependencyPublisherMock, new HashMap());
-
-        return ivyService;
+                ivyDependencyPublisherMock, new HashMap<String, ModuleDescriptor>());
     }
 
     private File createCacheParentDirDummy() {
@@ -104,7 +107,7 @@ public class DefaultIvyServicePublishTest {
         return WrapUtil.toList(context.mock(DependencyResolver.class, "publish"));
     }
 
-    private Set<Configuration> createConfigurations() {
+    private Set<Configuration> createConfiguration() {
         final Configuration configurationStub1 = context.mock(Configuration.class, "confStub1");
         final Configuration configurationStub2 = context.mock(Configuration.class, "confStub2");
         context.checking(new Expectations() {{

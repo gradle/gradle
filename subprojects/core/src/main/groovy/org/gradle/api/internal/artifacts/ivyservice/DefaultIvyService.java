@@ -21,6 +21,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
@@ -136,7 +137,11 @@ public class DefaultIvyService implements IvyService {
         return dependencyResolver.resolve(configuration, ivy, moduleDescriptor);
     }
 
-    public void publish(Set<Configuration> configurationsToPublish, File descriptorDestination,
+    public void publish(Configuration configuration, File descriptorDestination) throws PublishException {
+        publish(configuration.getHierarchy(), descriptorDestination, resolverProvider.getResolvers());
+    }
+
+    private void publish(Set<Configuration> configurationsToPublish, File descriptorDestination,
                         List<DependencyResolver> publishResolvers) {
         Ivy ivy = ivyForPublish(publishResolvers, metaDataProvider.getGradleUserHomeDir());
         Set<String> confs = Configurations.getNames(configurationsToPublish, false);

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
@@ -43,6 +44,7 @@ public class UploadTest extends AbstractTaskTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
     private RepositoryHandler repositoriesMock;
+    private IvyService ivyServiceMock;
     private DependencyResolver repositoryDummy;
     private Configuration configurationMock;
 
@@ -51,6 +53,7 @@ public class UploadTest extends AbstractTaskTest {
         upload = createTask(Upload.class);
         repositoriesMock = context.mock(RepositoryHandler.class);
         repositoryDummy = context.mock(DependencyResolver.class);
+        ivyServiceMock = context.mock(IvyService.class);
 
         context.checking(new Expectations(){{
             allowing(repositoriesMock).getResolvers();
@@ -74,9 +77,9 @@ public class UploadTest extends AbstractTaskTest {
         upload.setUploadDescriptor(true);
         upload.setDescriptorDestination(descriptorDestination);
         upload.setConfiguration(configurationMock);
-        upload.setRepositories(repositoriesMock);
+        upload.setIvyService(ivyServiceMock);
         context.checking(new Expectations() {{
-            one(configurationMock).publish(toList(repositoryDummy), descriptorDestination);
+            one(ivyServiceMock).publish(configurationMock, descriptorDestination);
         }});
         upload.upload();
     }
@@ -85,9 +88,9 @@ public class UploadTest extends AbstractTaskTest {
         upload.setUploadDescriptor(false);
         upload.setDescriptorDestination(new File("somePath"));
         upload.setConfiguration(configurationMock);
-        upload.setRepositories(repositoriesMock);
+        upload.setIvyService(ivyServiceMock);
         context.checking(new Expectations() {{
-            one(configurationMock).publish(toList(repositoryDummy), null);
+            one(ivyServiceMock).publish(configurationMock, null);
         }});
         upload.upload();
     }

@@ -121,25 +121,25 @@ public class ErrorHandlingIvyServiceTest {
     @Test
     public void publishDelegatesToBackingService() {
         context.checking {
-            one(ivyServiceMock).publish([configurationMock] as Set, null, [])
+            one(ivyServiceMock).publish(configurationMock, null)
         }
 
-        ivyService.publish([configurationMock] as Set, null, [])
+        ivyService.publish(configurationMock, null)
     }
 
     @Test
     public void wrapsPublishException() {
         context.checking {
-            one(ivyServiceMock).publish([configurationMock] as Set, null, [])
+            one(ivyServiceMock).publish(configurationMock, null)
             will(throwException(failure))
         }
 
         try {
-            ivyService.publish([configurationMock] as Set, null, [])
+            ivyService.publish(configurationMock, null)
             fail()
         }
         catch(PublishException e) {
-            assertThat e.message, equalTo("Could not publish configurations [<config display name>].")
+            assertThat e.message, equalTo("Could not publish <config display name>.")
             assertThat(e.cause, sameInstance((Throwable) failure));
         }
     }

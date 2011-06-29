@@ -15,15 +15,12 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 
 import java.io.File;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -31,6 +28,5 @@ import java.util.Set;
 public interface IvyService {
     ResolvedConfiguration resolve(Configuration configuration) throws ResolveException;
 
-    void publish(Set<Configuration> configurationsToPublish, File descriptorDestination,
-                 List<DependencyResolver> publishResolvers) throws PublishException;
+    void publish(Configuration configuration, File descriptorDestination) throws PublishException;
 }

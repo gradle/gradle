@@ -130,14 +130,14 @@ uploadArchives {
 
         def result = executer.withTasks("uploadArchives").runWithFailure()
         result.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        result.assertHasCause('Could not publish configurations [configuration \':archives\'].')
+        result.assertHasCause('Could not publish configuration \':archives\'.')
         result.assertThatCause(Matchers.containsString('Received status code 404 from server: Not Found'))
 
         server.stop()
 
         result = executer.withTasks("uploadArchives").runWithFailure()
         result.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        result.assertHasCause('Could not publish configurations [configuration \':archives\'].')
+        result.assertHasCause('Could not publish configuration \':archives\'.')
         result.assertHasCause('java.net.ConnectException: Connection refused')
     }
 }

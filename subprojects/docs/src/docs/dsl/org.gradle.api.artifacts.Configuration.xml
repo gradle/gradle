@@ -75,9 +75,6 @@
                 <td>fileCollection</td>
             </tr>
             <tr>
-                <td>publish</td>
-            </tr>
-            <tr>
                 <td>getDependencies</td>
             </tr>
             <tr>

@@ -95,8 +95,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         public ConfigurationContainer getConfigurationContainer() {
             if (configurationContainer == null) {
                 ClassGenerator classGenerator = parent.get(ClassGenerator.class);
-                IvyServiceFactory ivyServiceFactory = parent.get(IvyServiceFactory.class);
-                IvyService ivyService = ivyServiceFactory.newIvyService(getResolveRepositoryHandler(), dependencyMetaDataProvider);
+                IvyService ivyService = createIvyService(getResolveRepositoryHandler());
                 configurationContainer = classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext);
             }
             return configurationContainer;
@@ -109,34 +108,41 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return dependencyHandler;
         }
 
+        public Factory<ArtifactPublicationServices> getPublishServicesFactory() {
+            return new Factory<ArtifactPublicationServices>() {
+                public ArtifactPublicationServices create() {
+                    return new DefaultArtifactPublicationServices(DefaultDependencyResolutionServices.this);
+                }
+            };
+        }
+
+        IvyService createIvyService(RepositoryHandler resolverProvider) {
+            IvyServiceFactory ivyServiceFactory = parent.get(IvyServiceFactory.class);
+            return ivyServiceFactory.newIvyService(resolverProvider, dependencyMetaDataProvider);
+        }
+
         RepositoryHandler createRepositoryHandlerWithSharedConventionMapping() {
             IConventionAware prototype = (IConventionAware) getResolveRepositoryHandler();
             RepositoryHandler handler = initialiseRepositoryHandler(createRepositoryHandler());
             ((IConventionAware)handler).setConventionMapping(prototype.getConventionMapping());
             return handler;
         }
-
-        public Factory<ArtifactPublicationServices> getPublishServicesFactory() {
-            return new Factory<ArtifactPublicationServices>() {
-                public ArtifactPublicationServices create() {
-                    return new DefaultArtifactPublicationServices(parent, DefaultDependencyResolutionServices.this);
-                }
-            };
-        }
     }
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
         private final DefaultDependencyResolutionServices dependencyResolutionServices;
-        private final ServiceRegistry parent;
         private RepositoryHandler repositoryHandler;
+        private IvyService ivyService;
 
-        public DefaultArtifactPublicationServices(ServiceRegistry parent, DefaultDependencyResolutionServices dependencyResolutionServices) {
-            this.parent = parent;
+        public DefaultArtifactPublicationServices(DefaultDependencyResolutionServices dependencyResolutionServices) {
             this.dependencyResolutionServices = dependencyResolutionServices;
         }
 
         public IvyService getIvyService() {
-            return parent.get(IvyService.class);
+            if (ivyService == null) {
+                ivyService = dependencyResolutionServices.createIvyService(getRepositoryHandler());
+            }
+            return ivyService;
         }
 
         public RepositoryHandler getRepositoryHandler() {
