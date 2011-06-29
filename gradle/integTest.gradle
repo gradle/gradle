@@ -37,7 +37,7 @@ integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith(
 rootProject.integTests << integTestTasks
 
 integTestTasks.all {
-    dependsOn ':intTestImage'
+    dependsOn ':intTestImage', project(":docs").samples
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
@@ -49,7 +49,7 @@ integTestTasks.all {
     doFirst {
         systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
         systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-        systemProperties['integTest.samplesdir'] = project(":docs").samplesSrcDir.absolutePath
+        systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
     }
 }
 
