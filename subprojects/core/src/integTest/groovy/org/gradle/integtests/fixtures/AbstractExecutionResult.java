@@ -27,9 +27,19 @@ public abstract class AbstractExecutionResult implements ExecutionResult {
         assertNoStackTraces(getError(), "Standard error");
     }
 
+    public void assertOutputHasNoDeprecationWarnings() {
+        assertNoDeprecationWarnings(getOutput(), "Standard Output");
+    }
+
     private void assertNoStackTraces(String output, String displayName) {
         if (Matchers.containsLine(Matchers.matchesRegexp("\\s+at [\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
             throw new RuntimeException(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
+        }
+    }
+
+    private void assertNoDeprecationWarnings(String output, String displayName) {
+        if (Matchers.containsLine(Matchers.matchesRegexp(".*deprecated.*")).matches(output)) {
+            throw new RuntimeException(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
         }
     }
 }
