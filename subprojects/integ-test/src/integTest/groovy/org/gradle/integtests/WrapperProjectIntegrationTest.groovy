@@ -16,18 +16,14 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.tasks.wrapper.Wrapper
-
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.junit.Test
-import org.junit.Before
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.junit.Before
+import org.junit.Test
+import static org.hamcrest.Matchers.containsString
+import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter

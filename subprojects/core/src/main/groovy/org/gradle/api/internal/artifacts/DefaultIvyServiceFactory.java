@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public class DefaultIvyServiceFactory implements IvyServiceFactory {
         this.dependencyPublisher = dependencyPublisher;
     }
 
-    public IvyService newIvyService(ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public IvyService newIvyService(ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider, InternalRepository internalRepository) {
         return new ErrorHandlingIvyService(
                 new ShortcircuitEmptyConfigsIvyService(
                         new DefaultIvyService(
@@ -61,6 +62,7 @@ public class DefaultIvyServiceFactory implements IvyServiceFactory {
                                 ivyFactory,
                                 dependencyResolver,
                                 dependencyPublisher,
+                                internalRepository,
                                 clientModuleRegistry)));
     }
 }

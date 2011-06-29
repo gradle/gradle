@@ -18,9 +18,6 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.execution.DefaultTaskGraphExecuter;
@@ -56,10 +53,6 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
 
     protected PluginRegistry createPluginRegistry() {
         return new DefaultPluginRegistry(gradle.getScriptClassLoader());
-    }
-
-    protected InternalRepository createInternalRepository() {
-        return new DefaultInternalRepository(get(ProjectFinder.class), get(PublishModuleDescriptorConverter.class));
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

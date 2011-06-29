@@ -20,8 +20,6 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.execution.DefaultTaskGraphExecuter;
@@ -95,11 +93,5 @@ public class GradleInternalServiceRegistryTest {
         }});
         assertThat(registry.get(TaskGraphExecuter.class), instanceOf(DefaultTaskGraphExecuter.class));
         assertThat(registry.get(TaskGraphExecuter.class), sameInstance(registry.get(TaskGraphExecuter.class)));
-    }
-
-    @Test
-    public void providesAnInternalRepository() {
-        assertThat(registry.get(InternalRepository.class), instanceOf(DefaultInternalRepository.class));
-        assertThat(registry.get(InternalRepository.class), sameInstance(registry.get(InternalRepository.class)));
     }
 }

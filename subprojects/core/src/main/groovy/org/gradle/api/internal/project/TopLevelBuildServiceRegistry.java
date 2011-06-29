@@ -16,26 +16,17 @@
 
 package org.gradle.api.internal.project;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.maven.MavenFactory;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
-import org.gradle.api.internal.artifacts.DefaultIvyServiceFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.IvyServiceFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.*;
-import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.changedetection.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -56,7 +47,6 @@ import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
@@ -68,8 +58,6 @@ import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.*;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher}
@@ -77,11 +65,11 @@ import java.util.Map;
  */
 public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final StartParameter startParameter;
-    private final Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
 
     public TopLevelBuildServiceRegistry(final ServiceRegistry parent, final StartParameter startParameter) {
         super(parent);
         this.startParameter = startParameter;
+        add(StartParameter.class, startParameter);
     }
 
     protected PublishArtifactFactory createPublishArtifactFactory() {
@@ -141,92 +129,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected CacheRepository createCacheRepository() {
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), get(CacheFactory.class));
-    }
-
-    protected ModuleDescriptorFactory createModuleDescriptorFactory() {
-        return new DefaultModuleDescriptorFactory();
-    }
-
-    protected ExcludeRuleConverter createExcludeRuleConverter() {
-        return new DefaultExcludeRuleConverter();
-    }
-
-    protected ExternalModuleDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory() {
-        return new ExternalModuleDependencyDescriptorFactory(get(ExcludeRuleConverter.class));
-    }
-
-    protected ConfigurationsToModuleDescriptorConverter createConfigurationsToModuleDescriptorConverter() {
-        return new DefaultConfigurationsToModuleDescriptorConverter();
-    }
-    
-    private ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
-        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(projectDependencyStrategy);
-        return new ResolveModuleDescriptorConverter(
-                get(ModuleDescriptorFactory.class),
-                get(ConfigurationsToModuleDescriptorConverter.class),
-                new DefaultDependenciesToModuleDescriptorConverter(
-                        dependencyDescriptorFactoryDelegate,
-                        get(ExcludeRuleConverter.class)));
-    }
-
-    private DependencyDescriptorFactory createDependencyDescriptorFactory(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
-        DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
-        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
-                new ClientModuleDependencyDescriptorFactory(
-                        get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
-                new ProjectDependencyDescriptorFactory(
-                        get(ExcludeRuleConverter.class),
-                        projectDependencyStrategy),
-                get(ExternalModuleDependencyDescriptorFactory.class));
-        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
-        return dependencyDescriptorFactoryDelegate;
-    }
-
-    protected PublishModuleDescriptorConverter createPublishModuleDescriptorConverter() {
-        return new PublishModuleDescriptorConverter(
-                createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
-                new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY));
-    }
-
-    protected IvyServiceFactory createIvyServiceFactory() {
-        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
-        PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
-                createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
-                new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
-
-        return new DefaultIvyServiceFactory(clientModuleRegistry,
-                new DefaultSettingsConverter(
-                        get(ProgressLoggerFactory.class)
-                ),
-                get(PublishModuleDescriptorConverter.class),
-                get(PublishModuleDescriptorConverter.class),
-                fileModuleDescriptorConverter,
-                new DefaultIvyFactory(),
-                new SelfResolvingDependencyResolver(
-                        new DefaultIvyDependencyResolver(
-                                new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))),
-                new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()));
-    }
-
-    protected DependencyFactory createDependencyFactory() {
-        ClassGenerator classGenerator = get(ClassGenerator.class);
-        DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(
-                startParameter.getProjectDependenciesBuildInstruction(),
-                classGenerator);
-        return new DefaultDependencyFactory(
-                WrapUtil.<IDependencyImplementationFactory>toSet(
-                        new ModuleDependencyFactory(
-                                classGenerator),
-                        new SelfResolvingDependencyFactory(
-                                classGenerator),
-                        new ClassPathDependencyFactory(
-                                classGenerator,
-                                get(ClassPathRegistry.class),
-                                new IdentityFileResolver()),
-                        projectDependencyFactory),
-                new DefaultClientModuleFactory(
-                        classGenerator),
-                projectDependencyFactory);
     }
 
     protected ProjectEvaluator createProjectEvaluator() {
@@ -350,10 +252,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        public InternalRepository getInternalRepository() {
-            return new EmptyInternalRepository();
-        }
-
         public File getGradleUserHomeDir() {
             return startParameter.getGradleUserHomeDir();
         }
@@ -361,8 +259,5 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
-    }
-
-    private static class EmptyInternalRepository extends ChainResolver implements InternalRepository {
     }
 }

@@ -21,15 +21,17 @@ import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingIvyService
 import org.gradle.api.internal.artifacts.ivyservice.ShortcircuitEmptyConfigsIvyService
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.repositories.InternalRepository
 
 class DefaultIvyServiceFactoryTest extends Specification {
     final ResolverProvider resolverProvider = Mock()
     final DependencyMetaDataProvider dependencyMetaDataProvider = Mock()
+    final InternalRepository internalRepository = Mock()
     final DefaultIvyServiceFactory factory = new DefaultIvyServiceFactory(null, null, null, null, null, null, null, null)
 
     def "creates an IvyService implementation"() {
         expect:
-        def ivyService = factory.newIvyService(resolverProvider, dependencyMetaDataProvider)
+        def ivyService = factory.newIvyService(resolverProvider, dependencyMetaDataProvider, internalRepository)
         ivyService instanceof ErrorHandlingIvyService
         ivyService.ivyService instanceof ShortcircuitEmptyConfigsIvyService
         ivyService.ivyService.ivyService instanceof DefaultIvyService

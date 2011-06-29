@@ -59,6 +59,7 @@ public class DefaultIvyServiceResolveTest {
     private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
     private ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
+    private IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
 
     // SUT
     private DefaultIvyService ivyService;
@@ -71,9 +72,6 @@ public class DefaultIvyServiceResolveTest {
         IvyDependencyResolver ivyDependencyResolverMock = context.mock(IvyDependencyResolver.class);
 
         context.checking(new Expectations() {{
-            allowing(dependencyMetaDataProviderMock).getInternalRepository();
-            will(returnValue(internalRepositoryDummy));
-
             allowing(dependencyMetaDataProviderMock).getGradleUserHomeDir();
             will(returnValue(cacheParentDirDummy));
 
@@ -87,8 +85,8 @@ public class DefaultIvyServiceResolveTest {
         ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
                 settingsConverterMock, resolveModuleDescriptorConverterStub, publishModuleDescriptorConverterDummy,
                 publishModuleDescriptorConverterDummy,
-                new DefaultIvyFactory(), ivyDependencyResolverMock, 
-                context.mock(IvyDependencyPublisher.class), clientModuleRegistryDummy);
+                ivyFactoryStub, ivyDependencyResolverMock,
+                context.mock(IvyDependencyPublisher.class), internalRepositoryDummy, clientModuleRegistryDummy);
     }
 
     @Test
@@ -97,7 +95,6 @@ public class DefaultIvyServiceResolveTest {
         final Set<Configuration> configurations = WrapUtil.toSet(configurationDummy);
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         final ModuleDescriptor moduleDescriptorDummy = HelperUtil.createModuleDescriptor(WrapUtil.toSet("someConf"));
-        final IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
         final Ivy ivyStub = context.mock(Ivy.class);
         final IvySettings ivySettingsDummy = new IvySettings();
 
@@ -123,7 +120,6 @@ public class DefaultIvyServiceResolveTest {
             will(returnValue(ivySettingsDummy));
         }});
 
-        ivyService.setIvyFactory(ivyFactoryStub);
         assertThat(ivyService.resolve(configurationDummy), sameInstance(resolvedConfiguration));
     }
 }
