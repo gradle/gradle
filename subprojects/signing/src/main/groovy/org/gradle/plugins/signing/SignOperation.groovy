@@ -50,25 +50,26 @@ class SignOperation implements SignatureSpec {
         for (artifact in artifacts) {
             signatures << new Signature(artifact, this)
         }
-        execute()
+        this
     }
     
     SignOperation sign(File... files) {
         for (file in files) {
             signatures << new Signature(file, this)
         }
-        execute()
+        this
     }
     
     SignOperation sign(String classifier, File... files) {
         for (file in files) {
             signatures << new Signature(file, classifier, this)
         }
-        execute()
+        this
     }
 
     SignOperation signatureType(SignatureType type) {
         this.type = type
+        this
     }
     
     SignOperation signatory(Signatory signatory) {
@@ -77,7 +78,7 @@ class SignOperation implements SignatureSpec {
 
     SignOperation configure(Closure closure) {
         ConfigureUtil.configure(closure, this)
-        execute()
+        this
     }
     
     SignOperation execute() {

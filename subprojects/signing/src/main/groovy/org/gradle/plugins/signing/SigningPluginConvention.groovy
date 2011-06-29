@@ -172,7 +172,7 @@ class SigningPluginConvention {
     protected SignOperation doSignOperation(Closure setup) {
         def operation = settings.project.services.get(ClassGenerator).newInstance(SignOperation)
         settings.addSignatureSpecConventions(operation)
-        ConfigureUtil.configure(setup, operation)
+        operation.configure(setup)
         operation.execute()
         operation
     }
