@@ -33,6 +33,8 @@ import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPom
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
+import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
+import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.io.File;
 import java.util.Map;
@@ -85,18 +87,18 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls) {
-        GradleIBiblioResolver iBiblioResolver = createIBiblioResolver(name, root);
+        BasicResolver iBiblioResolver = createIBiblioResolver(name, root);
         if (jarRepoUrls.length == 0) {
             iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
             return iBiblioResolver;
         }
         iBiblioResolver.setName(iBiblioResolver.getName() + "_poms");
-        URLResolver urlResolver = createUrlResolver(name, root, jarRepoUrls);
+        DependencyResolver urlResolver = createUrlResolver(name, root, jarRepoUrls);
         return createDualResolver(name, iBiblioResolver, urlResolver);
     }
 
-    private GradleIBiblioResolver createIBiblioResolver(String name, String root) {
-        GradleIBiblioResolver iBiblioResolver = new GradleIBiblioResolver();
+    private BasicResolver createIBiblioResolver(String name, String root) {
+        IBiblioWharfResolver iBiblioResolver = new IBiblioWharfResolver();
         iBiblioResolver.setUsepoms(true);
         iBiblioResolver.setName(name);
         iBiblioResolver.setRoot(root);
@@ -106,8 +108,8 @@ public class DefaultResolverFactory implements ResolverFactory {
         return iBiblioResolver;
     }
 
-    private URLResolver createUrlResolver(String name, String root, String... jarRepoUrls) {
-        URLResolver urlResolver = new URLResolver();
+    private DependencyResolver createUrlResolver(String name, String root, String... jarRepoUrls) {
+        URLResolver urlResolver = new UrlWharfResolver();
         urlResolver.setName(name + "_jars");
         urlResolver.setM2compatible(true);
         urlResolver.addArtifactPattern(root + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
@@ -117,11 +119,11 @@ public class DefaultResolverFactory implements ResolverFactory {
         return urlResolver;
     }
 
-    private DualResolver createDualResolver(String name, GradleIBiblioResolver iBiblioResolver, URLResolver urlResolver) {
+    private DualResolver createDualResolver(String name, DependencyResolver ivyResolver, DependencyResolver artifactResolver) {
         DualResolver dualResolver = new DualResolver();
         dualResolver.setName(name);
-        dualResolver.setIvyResolver(iBiblioResolver);
-        dualResolver.setArtifactResolver(urlResolver);
+        dualResolver.setIvyResolver(ivyResolver);
+        dualResolver.setArtifactResolver(artifactResolver);
         dualResolver.setDescriptor(DualResolver.DESCRIPTOR_OPTIONAL);
         return dualResolver;
     }
