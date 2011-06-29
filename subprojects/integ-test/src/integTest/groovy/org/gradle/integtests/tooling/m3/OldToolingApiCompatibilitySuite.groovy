@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.TargetDistSelector
+import org.junit.Ignore
 import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.junit.runner.Runner
@@ -38,6 +39,7 @@ import org.junit.runners.model.RunnerBuilder
     ToolingApiBuildExecutionIntegrationTest
 ])
 //TODO SF - this suite can be removed when I'm ok with new compatibility suite
+@Ignore
 class OldToolingApiCompatibilitySuite {
     static class Gradle10M3 extends Suite {
 
