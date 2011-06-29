@@ -488,8 +488,8 @@ artifacts {
 }
 
 task intTestImage(type: Sync) {
-    dependsOn allZip.taskDependencies
-    with allDistImage
+    dependsOn "launcher:startScripts"
+    with binDistImage
     integTestGradleHome = file("$buildDir/integ test")
     into integTestGradleHome
     doLast { task ->

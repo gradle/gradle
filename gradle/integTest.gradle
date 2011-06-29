@@ -49,6 +49,7 @@ integTestTasks.all {
     doFirst {
         systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
         systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
+        systemProperties['integTest.samplesdir'] = project(":docs").samplesSrcDir.absolutePath
     }
 }
 
