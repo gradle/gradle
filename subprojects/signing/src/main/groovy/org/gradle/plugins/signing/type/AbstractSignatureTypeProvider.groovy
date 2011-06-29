@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.type.handler
+package org.gradle.plugins.signing.type
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.plugins.signing.type.SignatureType
 
-abstract class AbstractSignatureTypeHandler implements SignatureTypeHandler {
+abstract class AbstractSignatureTypeProvider implements SignatureTypeProvider {
     
     private String defaultTypeExtension
     private Map<String, SignatureType> types = [:]

@@ -13,46 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.type.handler
+package org.gradle.plugins.signing.type
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.plugins.signing.type.AbstractSignatureType
 
 import spock.lang.*
 
-class AbstractSignatureTypeHandlerSpec extends Specification {
+class AbstractSignatureTypeProviderSpec extends Specification {
     
     static type1 = new AbstractSignatureType() { String getExtension() { "1" } }
     static type2 = new AbstractSignatureType() { String getExtension() { "2" } }
     static type3 = new AbstractSignatureType() { String getExtension() { "3" } }
     
-    def handler = new AbstractSignatureTypeHandler() {{ 
-        register(AbstractSignatureTypeHandlerSpec.type1)
-        register(AbstractSignatureTypeHandlerSpec.type2)
-        setDefaultType(AbstractSignatureTypeHandlerSpec.type1.extension)
+    def provider = new AbstractSignatureTypeProvider() {{ 
+        register(AbstractSignatureTypeProviderSpec.type1)
+        register(AbstractSignatureTypeProviderSpec.type2)
+        setDefaultType(AbstractSignatureTypeProviderSpec.type1.extension)
     }}
     
     def "has check"() {
         expect:
-        handler.hasTypeForExtension(type1.extension)
-        handler.hasTypeForExtension(type2.extension)
-        !handler.hasTypeForExtension(type3.extension)
+        provider.hasTypeForExtension(type1.extension)
+        provider.hasTypeForExtension(type2.extension)
+        !provider.hasTypeForExtension(type3.extension)
     }
     
     def "default type"() {
         expect:
-        handler.defaultType == type1
+        provider.defaultType == type1
         
         when:
-        handler.defaultType = type2.extension
+        provider.defaultType = type2.extension
         
         then:
-        handler.defaultType == type2
+        provider.defaultType == type2
     }
     
     def "can't set default type to unregistered type"() {
         when:
-        handler.defaultType = type3.extension
+        provider.defaultType = type3.extension
         
         then:
         thrown InvalidUserDataException

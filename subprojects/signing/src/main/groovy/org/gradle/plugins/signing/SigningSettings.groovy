@@ -25,8 +25,8 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.plugins.signing.signatory.*
 
 import org.gradle.plugins.signing.type.SignatureType
-import org.gradle.plugins.signing.type.handler.SignatureTypeHandler
-import org.gradle.plugins.signing.type.handler.DefaultSignatureTypeHandler
+import org.gradle.plugins.signing.type.SignatureTypeProvider
+import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider
 
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 
@@ -37,14 +37,14 @@ class SigningSettings {
     private Project project
     private Map<String, Signatory> signatories = [:]
     private Configuration configuration
-    private SignatureTypeHandler typeHandler
+    private SignatureTypeProvider typeProvider
     private SignatoryProvider signatoryProvider
     private boolean required = true
     
     SigningSettings(Project project) {
         this.project = project
         this.configuration = getDefaultConfiguration()
-        this.typeHandler = createSignatureTypeHandler()
+        this.typeProvider = createSignatureTypeProvider()
         this.signatoryProvider = createSignatoryProvider()
     }
     
@@ -57,8 +57,8 @@ class SigningSettings {
         configuration
     }
     
-    protected SignatureTypeHandler createSignatureTypeHandler() {
-        new DefaultSignatureTypeHandler()
+    protected SignatureTypeProvider createSignatureTypeProvider() {
+        new DefaultSignatureTypeProvider()
     }
     
     protected SignatoryProvider createSignatoryProvider() {
@@ -105,7 +105,7 @@ class SigningSettings {
     }
     
     SignatureType getSignatureType() {
-        typeHandler.defaultType
+        typeProvider.defaultType
     }
     
     Configuration getConfiguration() {

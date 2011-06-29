@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.type.handler
+package org.gradle.plugins.signing.type
 
-import org.gradle.plugins.signing.type.BinarySignatureType
-import org.gradle.plugins.signing.type.pgp.ArmoredSignatureType
-
-class DefaultSignatureTypeHandler extends AbstractSignatureTypeHandler {
+interface SignatureTypeProvider {
     
-    DefaultSignatureTypeHandler() {
-        register(new BinarySignatureType())
-        def armored = new ArmoredSignatureType()
-        register(armored)
-        setDefaultType(armored.extension)
-    }
+    SignatureType getDefaultType()
     
+    void setDefaultType(String extension)
+    
+    SignatureType getTypeForExtension(String extension)
+    
+    boolean hasTypeForExtension(String extension)
 }
