@@ -122,7 +122,7 @@ include("groovy")
         webBuildFile.parentFile.file("src/main/webapp").createDir()
 
         webBuildFile << """
-apply plugin: "eclipseWtp"
+apply plugin: "eclipse-wtp"
 apply plugin: "war"
 
 repositories {
@@ -140,7 +140,7 @@ dependencies {
         createJavaSourceDirs(java1BuildFile)
 
         java1BuildFile << """
-apply plugin: "eclipseWtp"
+apply plugin: "eclipse-wtp"
 apply plugin: "java"
 
 repositories {
@@ -157,7 +157,7 @@ dependencies {
         createJavaSourceDirs(java2BuildFile)
 
         java2BuildFile << """
-apply plugin: "eclipseWtp"
+apply plugin: "eclipse-wtp"
 apply plugin: "java"
 
 repositories {
@@ -174,7 +174,7 @@ dependencies {
         groovyBuildFile.parentFile.file("src/main/groovy").createDir()
 
         groovyBuildFile << """
-apply plugin: "eclipseWtp"
+apply plugin: "eclipse-wtp"
 apply plugin: "groovy"
         """
 

@@ -44,7 +44,7 @@ class EclipseWtpPluginTest extends Specification {
     def "does not break when eclipse and eclipseWtp applied"() {
         expect:
         project.apply plugin: 'eclipse'
-        project.apply plugin: 'eclipseWtp'
+        project.apply plugin: 'eclipse-wtp'
     }
 
     def "the eclipse plugin is applied along with eclipseWtp plugin"() {

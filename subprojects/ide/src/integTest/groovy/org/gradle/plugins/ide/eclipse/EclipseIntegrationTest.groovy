@@ -105,7 +105,7 @@ dependencies {
     void eclipseFilesAreWrittenWithUtf8Encoding() {
         runEclipseTask """
 apply plugin: "war"
-apply plugin: "eclipseWtp"
+apply plugin: "eclipse-wtp"
 
 eclipseProject {
   projectName = "$nonAscii"
@@ -137,7 +137,7 @@ eclipseWtpFacet {
         runEclipseTask('''
 apply plugin: 'java'
 apply plugin: 'war'
-apply plugin: 'eclipseWtp'
+apply plugin: 'eclipse-wtp'
 
 def beforeConfiguredObjects = 0
 def whenConfiguredObjects = 0

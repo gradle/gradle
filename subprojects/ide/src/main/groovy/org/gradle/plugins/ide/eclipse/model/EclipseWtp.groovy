@@ -26,7 +26,7 @@ import org.gradle.util.ConfigureUtil
  * <pre autoTested=''>
  * apply plugin: 'java'
  * apply plugin: 'war'
- * apply plugin: 'eclipseWtp'
+ * apply plugin: 'eclipse-wtp'
  *
  * eclipse {
  *
