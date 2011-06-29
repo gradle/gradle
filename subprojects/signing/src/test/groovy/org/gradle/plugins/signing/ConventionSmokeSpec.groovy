@@ -15,6 +15,9 @@
  */
 package org.gradle.plugins.signing
 
+
+import org.gradle.plugins.signing.signatory.SignatoryProvider
+
 class ConventionSmokeSpec extends SigningProjectSpec {
     
     def setup() {
@@ -36,7 +39,7 @@ class ConventionSmokeSpec extends SigningProjectSpec {
     def "signatories"() {
         expect:
         signing.signatories != null
-        signing.signatories instanceof Map
+        signing.signatories instanceof SignatoryProvider
     }
     
     def "signing configuration"() {

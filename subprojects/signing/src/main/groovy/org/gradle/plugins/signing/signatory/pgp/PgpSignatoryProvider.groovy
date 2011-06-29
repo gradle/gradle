@@ -23,33 +23,41 @@ import org.gradle.util.ConfigureUtil
 
 import org.gradle.api.Project
 
-class PgpSignatoryProvider implements SignatoryProvider {
+class PgpSignatoryProvider implements SignatoryProvider/*<PgpSignatory>*/ { // Groovy can't deal with this - 1.7.10
     
     private final factory = new PgpSignatoryFactory()
+    private final Map<String, PgpSignatory> signatories = [:]
     
     void configure(SigningSettings settings, Closure closure) {
-        ConfigureUtil.configure(closure, new Dsl(settings, factory))
+        ConfigureUtil.configure(closure, new Dsl(settings.project, signatories, factory))
     }
     
-    Signatory getDefaultSignatory(Project project) {
+    PgpSignatory getDefaultSignatory(Project project) {
         factory.createSignatory(project)
     }
     
+    PgpSignatory getSignatory(String name) {
+        signatories[name]
+    }
+    
+    PgpSignatory propertyMissing(String signatoryName) {
+        getSignatory(signatoryName)
+    }
 }
 
 class Dsl {
     
-    private final settings
+    private final project
+    private final signatories
     private final factory
     
-    Dsl(SigningSettings settings, PgpSignatoryFactory factory) {
-        this.settings = settings
+    Dsl(Project project, Map<String, PgpSignatory> signatories, PgpSignatoryFactory factory) {
+        this.project = project
+        this.signatories = signatories
         this.factory = factory
     }
     
     def methodMissing(String name, args) {
-        def project = settings.project
-
         def signatory
         if (args.size() == 3) {
             def keyId = args[0].toString()
@@ -63,6 +71,6 @@ class Dsl {
             throw new Exception("Invalid args ($name: $args)")
         }
         
-        settings.addSignatory(signatory)
+        signatories[signatory.name] = signatory
     }
 }

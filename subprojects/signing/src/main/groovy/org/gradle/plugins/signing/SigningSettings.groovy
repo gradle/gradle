@@ -35,17 +35,16 @@ class SigningSettings {
     static final String DEFAULT_CONFIGURATION_NAME = "signatures"
     
     private Project project
-    private Map<String, Signatory> signatories = [:]
     private Configuration configuration
     private SignatureTypeProvider typeProvider
-    private SignatoryProvider signatoryProvider
+    private SignatoryProvider signatories
     private boolean required = true
     
     SigningSettings(Project project) {
         this.project = project
         this.configuration = getDefaultConfiguration()
         this.typeProvider = createSignatureTypeProvider()
-        this.signatoryProvider = createSignatoryProvider()
+        this.signatories = createSignatoryProvider()
     }
     
     protected Configuration getDefaultConfiguration() {
@@ -65,43 +64,13 @@ class SigningSettings {
         new PgpSignatoryProvider()
     }
     
-    Map<String, Signatory> signatories(Closure block) {
-        signatoryProvider.configure(this, block)
+    SignatoryProvider signatories(Closure block) {
+        signatories.configure(this, block)
         signatories
     }
-    
-    /**
-     * Registers the given signatory with the settings.
-     * 
-     * @param signatory The signatory to register
-     * @throws org.grails.api.InvalidUserDataException if there is already a signatory registered with this name
-     */
-    void addSignatory(Signatory signatory) {
-        if (hasSignatory(signatory.name)) {
-            throw new InvalidUserDataException("cannot add signatory with name '$signatory.name' as there is already a signatory registered with this name")
-        }
         
-        signatories[signatory.name] = signatory
-    }
-    
-    /**
-     * <p>Checks whether there is already a signatory registered with the <strong>same name</strong> as the argument.</p>
-     * 
-     * <p>Note that the name is used rather than {@code equals()}</p>
-     */
-    boolean hasSignatory(Signatory signatory) {
-        hasSignatory(signatory.name)
-    }
-    
-    /**
-     * Checks whether there is a signatory registered with this name.
-     */
-    boolean hasSignatory(String name) {
-        signatories.containsKey(name)
-    }
-    
     Signatory getSignatory() {
-        signatoryProvider.getDefaultSignatory(project)
+        signatories.getDefaultSignatory(project)
     }
     
     SignatureType getSignatureType() {

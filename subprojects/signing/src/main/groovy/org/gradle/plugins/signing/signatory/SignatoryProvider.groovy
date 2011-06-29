@@ -21,12 +21,12 @@ import org.gradle.api.Project
 /**
  * <p>Provides implementations of signatory implementations for a project.</p>
  */
-interface SignatoryProvider {
+interface SignatoryProvider<T extends Signatory> {
     
     /**
-     * <p>Evaluates the given DSL-containing-closure as signatory configuration.</p>
+     * Evaluates the given DSL-containing-closure as signatory configuration.
      * 
-     * <p>Implementations will typically create signatory implemenations and register them with the settings.</p>
+     * @param settings The signing settings for the project the configure is happening for
      */
     void configure(SigningSettings settings, Closure closure)
     
@@ -40,6 +40,13 @@ interface SignatoryProvider {
      * @param project The project which the signatory is for
      * @return The signatory, or {@code null} if there is insufficient information available to create one.
      */
-    Signatory getDefaultSignatory(Project project)
+    T getDefaultSignatory(Project project)
     
+    /**
+     * Retrieves the signatory with the given name.
+     * 
+     * @param name The desired signatory's name.
+     * @return The signatory with the given name if found, or {@code null} if no signatory is found with this name.
+     */
+    T getSignatory(String name)
 }
