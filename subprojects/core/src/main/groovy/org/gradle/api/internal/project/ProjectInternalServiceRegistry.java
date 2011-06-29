@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
@@ -156,9 +155,6 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new DependencyMetaDataProvider() {
-            public InternalRepository getInternalRepository() {
-                return get(InternalRepository.class);
-            }
 
             public File getGradleUserHomeDir() {
                 return project.getGradle().getGradleUserHomeDir();

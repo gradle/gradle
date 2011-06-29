@@ -29,9 +29,11 @@ import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultLocalMavenCacheLocator;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenFactory;
+import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
@@ -118,7 +120,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         IvyService createIvyService(RepositoryHandler resolverProvider) {
             IvyServiceFactory ivyServiceFactory = parent.get(IvyServiceFactory.class);
-            return ivyServiceFactory.newIvyService(resolverProvider, dependencyMetaDataProvider);
+            return ivyServiceFactory.newIvyService(resolverProvider, dependencyMetaDataProvider, new DefaultInternalRepository(projectFinder, parent.get(ModuleDescriptorConverter.class)));
         }
 
         RepositoryHandler createRepositoryHandlerWithSharedConventionMapping() {

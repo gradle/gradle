@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
@@ -35,7 +34,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.changedetection.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -350,10 +348,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        public InternalRepository getInternalRepository() {
-            return new EmptyInternalRepository();
-        }
-
         public File getGradleUserHomeDir() {
             return startParameter.getGradleUserHomeDir();
         }
@@ -361,8 +355,5 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
-    }
-
-    private static class EmptyInternalRepository extends ChainResolver implements InternalRepository {
     }
 }

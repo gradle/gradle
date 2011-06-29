@@ -17,7 +17,8 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 
 public interface IvyServiceFactory {
-    IvyService newIvyService(ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider);
+    IvyService newIvyService(ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider, InternalRepository internalRepository);
 }

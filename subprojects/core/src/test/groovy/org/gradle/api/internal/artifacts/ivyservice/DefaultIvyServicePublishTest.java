@@ -56,6 +56,7 @@ public class DefaultIvyServicePublishTest {
     private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
     private ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
+    private IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
 
     @Test
     public void testPublish() throws IOException, ParseException {
@@ -95,8 +96,8 @@ public class DefaultIvyServicePublishTest {
         return new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
                 settingsConverterStub, resolveModuleDescriptorConverter, publishModuleDescriptorConverter,
                 fileModuleDescriptorConverter,
-                new DefaultIvyFactory(), context.mock(IvyDependencyResolver.class),
-                ivyDependencyPublisherMock, new HashMap<String, ModuleDescriptor>());
+                ivyFactoryStub, context.mock(IvyDependencyResolver.class),
+                ivyDependencyPublisherMock, internalRepositoryDummy, new HashMap<String, ModuleDescriptor>());
     }
 
     private File createCacheParentDirDummy() {
@@ -136,9 +137,6 @@ public class DefaultIvyServicePublishTest {
                                  final List<DependencyResolver> publishResolversDummy, final Module moduleDummy,
                                  final File cacheParentDirDummy, final DefaultIvyService ivyService, final IvySettings ivySettingsDummy) {
         context.checking(new Expectations() {{
-            allowing(dependencyMetaDataProviderMock).getInternalRepository();
-            will(returnValue(internalRepositoryDummy));
-
             allowing(dependencyMetaDataProviderMock).getGradleUserHomeDir();
             will(returnValue(cacheParentDirDummy));
 
@@ -163,7 +161,6 @@ public class DefaultIvyServicePublishTest {
     }
 
     private Ivy setUpIvyFactory(final IvySettings ivySettingsDummy, DefaultIvyService ivyService) {
-        final IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
         final Ivy ivyStub = context.mock(Ivy.class);
         context.checking(new Expectations() {{
             allowing(ivyFactoryStub).createIvy(ivySettingsDummy);
@@ -172,7 +169,6 @@ public class DefaultIvyServicePublishTest {
             allowing(ivyStub).getSettings();
             will(returnValue(ivySettingsDummy));
         }});
-        ivyService.setIvyFactory(ivyFactoryStub);
         return ivyStub;
     }
 }

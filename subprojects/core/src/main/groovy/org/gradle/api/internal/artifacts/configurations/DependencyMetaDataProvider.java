@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 
 import java.io.File;
 
@@ -25,8 +24,6 @@ import java.io.File;
  */
 public interface DependencyMetaDataProvider {
     File getGradleUserHomeDir();
-
-    InternalRepository getInternalRepository();
 
     Module getModule();
 }

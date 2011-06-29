@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -61,7 +62,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(ClassGenerator.class) >> classGenerator
         _ * parent.get(IvyServiceFactory.class) >> ivyServiceFactory
         1 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >> repositoryHandler
-        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider) >> ivyService
+        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider, {it instanceof DefaultInternalRepository}) >> ivyService
         1 * classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext) >> configurationContainer
 
         when:
@@ -81,7 +82,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(IvyServiceFactory.class) >> ivyServiceFactory
         _ * parent.get(ClassGenerator.class) >> classGenerator
         2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
-        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider) >> ivyService
+        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider, {it instanceof DefaultInternalRepository}) >> ivyService
         1 * classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext) >> configurationContainer
 
         when:
@@ -102,8 +103,8 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(IvyServiceFactory.class) >> ivyServiceFactory
         _ * parent.get(ClassGenerator.class) >> classGenerator
         2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
-        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider) >> ivyService
-        1 * ivyServiceFactory.newIvyService(publishRepositoryHandler, dependencyMetaDataProvider) >> publishIvyService
+        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider, {it instanceof DefaultInternalRepository}) >> ivyService
+        1 * ivyServiceFactory.newIvyService(publishRepositoryHandler, dependencyMetaDataProvider, {it instanceof DefaultInternalRepository}) >> publishIvyService
         1 * classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext) >> configurationContainer
 
         when:

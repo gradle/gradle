@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,16 +40,17 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultIvyService implements IvyService {
-    private SettingsConverter settingsConverter;
-    private ModuleDescriptorConverter resolveModuleDescriptorConverter;
-    private ModuleDescriptorConverter publishModuleDescriptorConverter;
-    private ModuleDescriptorConverter fileModuleDescriptorConverter;
-    private IvyFactory ivyFactory;
-    private IvyDependencyResolver dependencyResolver;
-    private IvyDependencyPublisher dependencyPublisher;
+    private final SettingsConverter settingsConverter;
+    private final ModuleDescriptorConverter resolveModuleDescriptorConverter;
+    private final ModuleDescriptorConverter publishModuleDescriptorConverter;
+    private final ModuleDescriptorConverter fileModuleDescriptorConverter;
+    private final IvyFactory ivyFactory;
+    private final IvyDependencyResolver dependencyResolver;
+    private final IvyDependencyPublisher dependencyPublisher;
     private final DependencyMetaDataProvider metaDataProvider;
     private final ResolverProvider resolverProvider;
-    private Map<String, ModuleDescriptor> clientModuleRegistry;
+    private final InternalRepository internalRepository;
+    private final Map<String, ModuleDescriptor> clientModuleRegistry;
 
     public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider,
                              SettingsConverter settingsConverter,
@@ -58,6 +60,7 @@ public class DefaultIvyService implements IvyService {
                              IvyFactory ivyFactory,
                              IvyDependencyResolver dependencyResolver,
                              IvyDependencyPublisher dependencyPublisher,
+                             InternalRepository internalRepository,
                              Map<String, ModuleDescriptor> clientModuleRegistry) {
         this.metaDataProvider = metaDataProvider;
         this.resolverProvider = resolverProvider;
@@ -68,6 +71,7 @@ public class DefaultIvyService implements IvyService {
         this.ivyFactory = ivyFactory;
         this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
+        this.internalRepository = internalRepository;
         this.clientModuleRegistry = clientModuleRegistry;
     }
 
@@ -77,7 +81,7 @@ public class DefaultIvyService implements IvyService {
                 settingsConverter.convertForResolve(
                         dependencyResolvers,
                         cacheParentDir,
-                        metaDataProvider.getInternalRepository(),
+                        internalRepository,
                         clientModuleRegistry
                 )
         );
@@ -88,7 +92,7 @@ public class DefaultIvyService implements IvyService {
                 settingsConverter.convertForPublish(
                         publishResolvers,
                         cacheParentDir,
-                        metaDataProvider.getInternalRepository()
+                        internalRepository
                 )
         );
     }
@@ -168,29 +172,5 @@ public class DefaultIvyService implements IvyService {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    public void setSettingsConverter(SettingsConverter settingsConverter) {
-        this.settingsConverter = settingsConverter;
-    }
-
-    public void setIvyFactory(IvyFactory ivyFactory) {
-        this.ivyFactory = ivyFactory;
-    }
-
-    public void setDependencyResolver(IvyDependencyResolver dependencyResolver) {
-        this.dependencyResolver = dependencyResolver;
-    }
-
-    public void setDependencyPublisher(IvyDependencyPublisher dependencyPublisher) {
-        this.dependencyPublisher = dependencyPublisher;
-    }
-
-    public Map getClientModuleRegistry() {
-        return clientModuleRegistry;
-    }
-
-    public void setClientModuleRegistry(Map clientModuleRegistry) {
-        this.clientModuleRegistry = clientModuleRegistry;
     }
 }
