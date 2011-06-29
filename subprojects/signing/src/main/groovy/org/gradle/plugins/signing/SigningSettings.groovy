@@ -30,23 +30,58 @@ import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider
 
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 
+/**
+ * The global signing configuration for a project.
+ */
 class SigningSettings {
     
+    /**
+     * The name of the configuration that all signature artifacts will be placed into (“signatures”)
+     */
     static final String DEFAULT_CONFIGURATION_NAME = "signatures"
     
-    private Project project
-    private Configuration configuration
-    private SignatureTypeProvider typeProvider
-    private SignatoryProvider signatories
-    private boolean required = true
+    /**
+     * The project that the settings are for
+     */
+    final Project project
     
+    /**
+     * The configuration that signature artifacts will be placed into.
+     * 
+     * <p>Changing this will not affect any signing already configured.</p>
+     */
+    Configuration configuration
+    
+    /**
+     * Whether or not this task should fail if no signatory or signature type are configured at generation time.
+     * 
+     * <p>Defaults to {@code true}.</p>
+     */
+    boolean required = true
+    
+    /**
+     * The provider of signature types.
+     */
+    SignatureTypeProvider signatureTypes
+    
+    /**
+     * The provider of signatories.
+     */
+    SignatoryProvider signatories
+    
+    /**
+     * Configures the signing settings for the given project.
+     */
     SigningSettings(Project project) {
         this.project = project
         this.configuration = getDefaultConfiguration()
-        this.typeProvider = createSignatureTypeProvider()
+        this.signatureTypes = createSignatureTypeProvider()
         this.signatories = createSignatoryProvider()
     }
     
+    /**
+     * Provides the configuration that signature artifacts are added to. Called once during construction.
+     */
     protected Configuration getDefaultConfiguration() {
         def configurations = project.configurations
         def configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME)
@@ -56,43 +91,83 @@ class SigningSettings {
         configuration
     }
     
+    /**
+     * Provides the signature type provider. Called once during construction.
+     */
     protected SignatureTypeProvider createSignatureTypeProvider() {
         new DefaultSignatureTypeProvider()
     }
     
+    /**
+     * Provides the signatory provider. Called once during construction.
+     */
     protected SignatoryProvider createSignatoryProvider() {
         new PgpSignatoryProvider()
     }
     
-    SignatoryProvider signatories(Closure block) {
-        signatories.configure(this, block)
+    /**
+     * Configures the signatory provider (delegating to its {@link SignatoryProvider#configure(SigningSettings,Closure) configure method}).
+     * 
+     * @param closure the signatory provider configuration DSL
+     * @return the configured signatory provider
+     */
+    SignatoryProvider signatories(Closure closure) {
+        signatories.configure(this, closure)
         signatories
     }
-        
+    
+    /**
+     * The signatory that will be used for signing when an explicit signatory has not been specified.
+     * 
+     * <p>Delegates to the signatory provider's default signatory.</p>
+     */
     Signatory getSignatory() {
         signatories.getDefaultSignatory(project)
     }
     
+    /**
+     * The signature type that will be used for signing files when an explicit signature type has not been specified.
+     * 
+     * <p>Delegates to the signature type provider's default type.</p>
+     */
     SignatureType getSignatureType() {
-        typeProvider.defaultType
+        signatureTypes.defaultType
     }
     
+    /**
+     * The configuration that signature artifacts are added to.
+     */
     Configuration getConfiguration() {
         configuration
     }
     
+    /**
+     * Whether or not signing tasks should fail if no signatory or signature type are configured at generation time.
+     * 
+     * <p>Defaults to {@code true}.</p>
+     */
     boolean getRequired() {
         required
     }
     
+    /**
+     * Sets whether or not signing tasks should fail if no signatory or signature type are configured at generation time.
+     */
     void setRequired(boolean required) {
         this.required = required
     }
     
+    /**
+     * Sets whether or not signing tasks should fail if no signatory or signature type are configured at generation time.
+     */
     void required(boolean required) {
         setRequired(required)
     }
     
+    /**
+     * Adds conventions to the given spec, using this settings object's default signatory and signature type as the
+     * default signatory and signature type for the spec.
+     */
     void addSignatureSpecConventions(SignatureSpec spec) {
         if (!(spec instanceof IConventionAware)) {
             throw new InvalidUserDataException("Cannot add conventions to signature spec '$spec' as it is not convention aware")
@@ -102,6 +177,20 @@ class SigningSettings {
         spec.conventionMapping.map('signatureType') { getSignatureType() }
     }
     
+    /**
+     * Creates a signing task that depends on and signs the “archive” produced by the given task.
+     * 
+     * <p>The created task will be named “sign«input task name capitalized»”. That is, given a task with the name “jar”
+     * the created task will be named “signJar”.
+     * <p>
+     * If the task is not an {@link org.gradle.api.tasks.bundling.AbstractArchiveTask}, an 
+     * {@link org.gradle.api.InvalidUserDataException} will be thrown.</p>
+     * <p>
+     * The signature artifact for the created task is added to the {@link #getConfiguration() for this settings object}.
+     * 
+     * @param task The task whose archive is to be signed
+     * @return the created task.
+     */
     Sign sign(Task task) {
         sign([task] as Task[]).first()
     }

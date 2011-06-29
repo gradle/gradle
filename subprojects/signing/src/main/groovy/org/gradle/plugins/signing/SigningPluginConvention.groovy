@@ -25,6 +25,7 @@ import org.gradle.plugins.signing.signatory.*
 import org.gradle.api.artifacts.maven.MavenDeployment
 
 class SigningPluginConvention {
+    
     private SigningSettings settings
     
     SigningPluginConvention(SigningSettings settings) {
