@@ -13,50 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.integtests.tooling.m3
 
-import org.gradle.integtests.tooling.fixture.TargetDistSelector
-import org.junit.runner.Description
-import org.junit.runner.RunWith
-import org.junit.runner.Runner
-import org.junit.runner.notification.Failure
-import org.junit.runner.notification.RunListener
-import org.junit.runner.notification.RunNotifier
-import org.junit.runners.Suite
-import org.junit.runners.Suite.SuiteClasses
-import org.junit.runners.model.RunnerBuilder
+import ch.qos.logback.core.joran.spi.JoranException
+import junit.framework.Assert
+import org.apache.commons.io.FileUtils
+import org.apache.tools.ant.Task
+import org.gradle.integtests.ClassLoaderIsolationHelper
+import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.util.ClasspathUtil
+import org.gradle.util.DefaultClassLoaderFactory
+import org.gradle.util.SetSystemProperties
+import org.junit.Test
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.slf4j.impl.StaticLoggerBinder
+import spock.lang.Specification
 
 /**
- * @author: Szczepan Faber, created at: 6/24/11
+ * @author: Szczepan Faber, created at: 6/29/11
  */
-@RunWith(Gradle10M3)
-@SuiteClasses([
-    ToolingApiHonorsProjectCustomizationsIntegrationTest,
-    ToolingApiEclipseModelIntegrationTest,
-    ToolingApiModelIntegrationTest,
-    ToolingApiHonorsProjectCustomizationsIntegrationTest,
-    ToolingApiBuildExecutionIntegrationTest])
 class ToolingApiCompatibilitySuite {
-    static class Gradle10M3 extends Suite {
 
-        Gradle10M3(Class<?> klass, RunnerBuilder builder) {
-            super(klass, builder)
-        }
+    private final Logger logger = LoggerFactory.getLogger(ToolingApiCompatibilitySuite)
 
-        protected void runChild(Runner runner, RunNotifier notifier) {
-            notifier.addFirstListener(new RunListener() {
-                void testStarted(Description description) {
-                    TargetDistSelector.select("1.0-milestone-3")
-                }
-                void testFinished(Description description) {
-                    TargetDistSelector.unselect()
-                }
-                void testFailure(Failure failure) {
-                    TargetDistSelector.unselect()
-                }
-            })
-            super.runChild(runner, notifier)
+    def dist = new GradleDistribution()
+    def m3 = dist.previousVersion("1.0-milestone-3")
+
+    @Test
+    public void "m3 ToolingApi against current Gradle" () {
+        runTests(m3, dist);
+    }
+
+    @Test
+    public void "current ToolingApi against m3 Gradle" () {
+        runTests(dist, m3);
+    }
+
+    def runTests(BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
+        def classpath = []
+
+        classpath << ClasspathUtil.getClasspathForClass(ClassLoaderIsolationHelper.class)
+        classpath << ClasspathUtil.getClasspathForClass(Assert.class)
+        classpath << ClasspathUtil.getClasspathForClass(GroovyObject.class)
+        classpath << ClasspathUtil.getClasspathForClass(Specification.class)
+        classpath << ClasspathUtil.getClasspathForClass(FileUtils.class)
+        classpath << ClasspathUtil.getClasspathForClass(StaticLoggerBinder.class)
+        classpath << ClasspathUtil.getClasspathForClass(JoranException.class)
+        classpath << ClasspathUtil.getClasspathForClass(Task.class)
+        classpath << ClasspathUtil.getClasspathForClass(LoggerFactory.class)
+        classpath << ClasspathUtil.getClasspathForClass(SetSystemProperties.class)
+        classpath << ClasspathUtil.getClasspathForClass(GradleDistribution.class)
+
+        classpath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-tooling-api.*\.jar/ }
+        classpath += gradle.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-core.*\.jar/ }
+
+        String classpathEntries = "Classpath used: "
+        classpath.each {
+            classpathEntries += " -> $it\n"
         }
+        logger.debug(classpathEntries)
+
+        def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI().toURL() })
+
+        def allTests = classloader.loadClass("org.gradle.integtests.tooling.m3.ToolingApiSuite").newInstance()
+        allTests.run(gradle.version)
     }
 }

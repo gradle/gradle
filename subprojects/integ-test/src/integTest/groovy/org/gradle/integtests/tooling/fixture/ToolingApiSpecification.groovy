@@ -19,12 +19,16 @@ import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
 abstract class ToolingApiSpecification extends Specification {
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule public final GradleDistribution dist = new GradleDistribution()
     public final ToolingApi toolingApi = new ToolingApi(dist)
+
+    static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
 
     String optionalTargetDist = null
 
@@ -36,8 +40,9 @@ abstract class ToolingApiSpecification extends Specification {
 
     void setup() {
         toolingApi.withConnector {
-            it.useInstallation(new File(targetDist.gradleHomeDir.absolutePath))
-            if (!(targetDist instanceof GradleDistribution)) {
+            if (dist.version != targetDist.version) {
+                LOGGER.info("Overriding daemon tooling API provider to use installation: " + targetDist);
+                it.useInstallation(new File(targetDist.gradleHomeDir.absolutePath))
                 it.embedded = false
             }
         }
