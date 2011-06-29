@@ -491,6 +491,9 @@ task intTestImage(type: Sync) {
     with binDistImage
     integTestGradleHome = file("$buildDir/integ test")
     into integTestGradleHome
+    doLast { task ->
+        ant.chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
+    }
 }
 
 def isDevBuild() {
