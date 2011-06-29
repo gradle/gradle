@@ -51,12 +51,22 @@ public class Wrapper {
         if (propertiesFile.exists()) {
             try {
                 loadProperties(propertiesFile, properties);
-                distribution = readDistroUrl();
+                distribution = prepareDistributionUri();
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }
         } else {
             distribution = null;
+        }
+    }
+
+    private URI prepareDistributionUri() throws URISyntaxException {
+        URI source = readDistroUrl();
+        if (source.getScheme() == null) {
+            //no scheme means someone passed a relative url. In our context only file relative urls make sense.
+            return new File(propertiesFile.getParentFile(), source.getSchemeSpecificPart()).toURI();
+        } else {
+            return source;
         }
     }
 

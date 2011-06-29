@@ -30,11 +30,12 @@ class WrapperTest extends Specification {
     final BootstrapMainStarter start = Mock()
     TestFile projectDir;
     TestFile propertiesFile;
+    Properties properties = new Properties()
 
     def setup() {
         projectDir = tmpDir.dir
         propertiesFile = tmpDir.file('gradle/wrapper/gradle-wrapper.properties')
-        def properties = new Properties()
+
         properties.distributionUrl = 'http://server/test/gradle.zip'
         properties.distributionBase = 'testDistBase'
         properties.distributionPath = 'testDistPath'
@@ -144,5 +145,19 @@ class WrapperTest extends Specification {
         then:
         Exception e = thrown()
         e.cause.message.contains "key 'distributionUrl'"
+    }
+
+    def "supports relative distribution url"() {
+        given:
+        properties.distributionUrl = 'some/relative/url/to/bin.zip'
+        propertiesFile.withOutputStream { properties.store(it, 'header') }
+
+        when:
+        Wrapper wrapper = new Wrapper(propertiesFile, new Properties())
+
+        then:
+        //distribution uri should resolve into absolute path
+        wrapper.distribution.schemeSpecificPart != 'some/relative/url/to/bin.zip'
+        wrapper.distribution.schemeSpecificPart.endsWith 'some/relative/url/to/bin.zip'
     }
 }

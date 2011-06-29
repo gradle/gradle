@@ -79,6 +79,7 @@
         <para>If you don't
             want any download to happen when your project is build via <command>gradlew</command>, simply add the Gradle
             distribution zip to your version control at the location specified by your wrapper configuration.
+            Relative url is supported - you can specify a distribution file relative to the location of <literal>gradle-wrapper.properties</literal> file.
         </para>
         <para>If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
         </para>
