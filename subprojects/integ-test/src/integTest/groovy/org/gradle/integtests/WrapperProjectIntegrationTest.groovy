@@ -21,7 +21,6 @@ import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.junit.Rule
 import org.junit.Test
 import org.junit.Before
 import static org.hamcrest.Matchers.*
