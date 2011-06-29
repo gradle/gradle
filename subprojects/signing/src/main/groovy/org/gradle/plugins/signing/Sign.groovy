@@ -21,9 +21,10 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.api.file.FileCollection
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.ClassGenerator
+
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 
 import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.type.SignatureType
@@ -35,22 +36,20 @@ import org.gradle.plugins.signing.type.SignatureType
  */
 class Sign extends DefaultTask implements SignatureSpec {
     
-    SignatureType type
+    SignatureType signatureType
     
     /**
      * The signatory
      */
     Signatory signatory
     
-    final protected SignOperation operation
     
     boolean required = true
     
+    final private List<Signature> signatures = []
+    
     Sign() {
         super()
-        operation = project.services.get(ClassGenerator).newInstance(SignOperation)
-        operation.conventionMapping.map("type") { this.getType() }
-        operation.conventionMapping.map("signatory") { this.getSignatory() }
 
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf {
@@ -65,13 +64,13 @@ class Sign extends DefaultTask implements SignatureSpec {
      * Configures the task to sign the archive produced for each of the given tasks (which must be archive tasks)
      */
     void sign(Task... tasks) {
-        for (it in tasks) {
-            if (!(it instanceof AbstractArchiveTask)) {
-                throw new InvalidUserDataException("You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign $it)")
+        for (task in tasks) {
+            if (!(task instanceof AbstractArchiveTask)) {
+                throw new InvalidUserDataException("You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign $task)")
             }
             
-            dependsOn(it)
-            addSignature(it, it.archivePath, it.classifier)
+            dependsOn(task)
+            addSignature(new Signature({ task.archivePath }, { task.classifier }, this, this))
         }
     }
 
@@ -79,9 +78,9 @@ class Sign extends DefaultTask implements SignatureSpec {
      * Configures the task to sign each of the given artifacts
      */
     void sign(PublishArtifact... publishArtifacts) {
-        for (it in publishArtifacts) {
-            dependsOn(it.buildDependencies)
-            addSignature(it, it.file, it.classifier)
+        for (publishArtifact in publishArtifacts) {
+            dependsOn(publishArtifact.buildDependencies)
+            addSignature(new Signature(publishArtifact, this, this))
         }
     }
 
@@ -96,8 +95,8 @@ class Sign extends DefaultTask implements SignatureSpec {
      * Configures the task to sign each of the given artifacts, using the given classifier as the classifier for the resultant signature publish artifact.
      */
     void sign(String classifier, File... files) {
-        for (it in files) {
-            addSignature(it, it, classifier)
+        for (file in files) {
+            addSignature(new Signature(file, classifier, this, this))
         }
     }
 
@@ -105,20 +104,20 @@ class Sign extends DefaultTask implements SignatureSpec {
      * Configures the task to sign every artifact of the given configurations
      */
     void sign(Configuration... configurations) {
-        for (it in configurations) {
-            dependsOn(it.buildArtifacts)
-            sign(*it.allArtifacts.toList())
+        for (configuration in configurations) {
+            dependsOn(configuration.buildArtifacts)
+            sign(*configuration.allArtifacts.toList())
         }
     }
     
-    private addSignature(Object source, File toSign, String classifier = null) {
-        def signature = operation.addSignature(source, toSign, classifier, this)
-        inputs.file(toSign)
-        outputs.file(signature.file)
+    private addSignature(Signature signature) {
+        signatures << signature
+        inputs.file { signature.toSign }
+        outputs.file { signature.file }
     }
     
-    void type(SignatureType type) {
-        this.type = type
+    void signatureType(SignatureType type) {
+        this.signatureType = signatureType
     }
     
     /**
@@ -132,32 +131,34 @@ class Sign extends DefaultTask implements SignatureSpec {
         setRequired(required)
     }
     
-    FileCollection getSigned() {
-        operation.signed
-    }
-    
-    FileCollection getFiles() {
-        operation.files
-    }
-
-    PublishArtifact[] getArtifacts() {
-        operation.artifacts
-    }
-
-    PublishArtifact getSingleArtifact() {
-        operation.singleArtifact
-    }
-    
-    Signature getSingleSignature() {
-        operation.singleSignature
-    }
-    
     @TaskAction
-    void signIt() {
+    void generate() {
         if (getSignatory() == null) {
             throw new InvalidUserDataException("Cannot perform signing task '${getPath()}' because it has no configured signatory")
         }
         
-        operation.execute()
+        signatures*.generate()
+    }
+    
+    List<Signature> getSignatures() {
+        new ArrayList(signatures)
+    }
+    
+    Signature getSingleSignature() {
+        if (signatures.size() == 0) {
+            throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains no signatures.")
+        } else if (signatures.size() == 1) {
+            signatures.first()
+        } else {
+            throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains no ${signature.size()} signatures.")
+        }
+    }
+    
+    FileCollection getFilesToSign() {
+        new SimpleFileCollection(*signatures*.toSign.findAll({ it != null }))
+    }
+    
+    FileCollection getSignatureFiles() {
+        new SimpleFileCollection(*signatures*.file.findAll({ it != null }))
     }
 }

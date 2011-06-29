@@ -17,23 +17,149 @@
 package org.gradle.plugins.signing
 
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact
+
+import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.type.SignatureType
 
-class Signature {
+import org.gradle.api.InvalidUserDataException
+
+class Signature extends AbstractPublishArtifact {
     
-    final Object source
-    final File signed
-    final SignatureType type
-    final PublishArtifact artifact
+    /**
+     * The specification of how to generate the signature
+     */
+    final SignatureSpec signatureSpec
     
-    Signature(Object source, File signed, SignatureType type, PublishArtifact signature) {
-        this.source = source
-        this.signed = signed
-        this.type = type
-        this.artifact = signature
+    final PublishArtifact toSignArtifact
+    
+    private final Closure toSignGenerator
+    private final Closure classifierGenerator
+    
+    // Overrides for the calculated values
+    String name
+    String extension
+    String type
+    String classifier
+    Date date
+    File file
+    
+    Signature(PublishArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
+        this({ toSign.file }, { toSign.classifier }, signatureSpec, tasks)
+        this.toSignArtifact = toSign
+    }
+
+    Signature(File toSign, SignatureSpec signatureSpec, Object... tasks) {
+        this({ toSign }, null, signatureSpec, tasks)
+    }
+    
+    Signature(File toSign, String classifier, SignatureSpec signatureSpec, Object... tasks) {
+        this({ toSign }, { classifier }, signatureSpec, tasks)
+    }
+    
+    Signature(Closure toSign, Closure classifier, SignatureSpec signatureSpec, Object... tasks) {
+        super(tasks)
+        this.toSignGenerator = toSign
+        this.classifierGenerator = classifier
+        this.signatureSpec = signatureSpec
+    }
+    
+    File getToSign() {
+        def toSign = toSignGenerator?.call()
+        if (toSign == null) {
+            null
+        } else if (toSign instanceof File) {
+            toSign
+        } else {
+            new File(toSign.toString())
+        }
+    }
+
+    String getName() {
+        name == null ? getFile()?.name : name
+    }
+    
+    String getExtension() {
+        extension == null ? getSignatureType()?.extension : extension
+    }
+
+    String getType() {
+        if (type == null) {
+            def toSign = getToSign()
+            def signatureType = getSignatureType()
+
+            if (toSign != null && signatureType != null) {
+                signatureType.combinedExtension(toSign)
+            } else {
+                null
+            }
+        } else {
+            type
+        }
+    }
+
+    String getClassifier() {
+        classifier == null ? classifierGenerator?.call()?.toString() : classifier
+    }
+
+    Date getDate() {
+        if (date == null) {
+            def file = getFile()
+            if (file == null) {
+                null
+            } else {
+                def modified = file.lastModified()
+                if (modified == 0) {
+                    null
+                } else {
+                    new Date(modified)
+                }
+            }
+        } else {
+            date
+        }
     }
     
     File getFile() {
-        artifact.file
+        if (file == null) {
+            def toSign = getToSign()
+            def signatureType = getSignatureType()
+
+            if (toSign != null && signatureType != null) {
+                signatureType.fileFor(toSign)
+            } else {
+                null
+            }
+        } else {
+            file
+        }
     }
+    
+    Signatory getSignatory() {
+        signatureSpec.getSignatory()
+    }
+    
+    SignatureType getSignatureType() {
+        signatureSpec.getSignatureType()
+    }
+    
+    void generate() {
+        def toSign = getToSign()
+        if (toSign == null) {
+            throw new InvalidUserDataException("Unable to generate signature as the file to sign has not been specified")
+        }
+        
+        def signatory = getSignatory()
+        if (signatory == null) {
+            throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signatory is available to sign")
+        }
+        
+        def signatureType = getSignatureType()
+        if (signatureType == null) {
+            throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signature type has been configured")
+        }
+        
+        signatureType.sign(signatory, toSign)
+    }
+    
 }

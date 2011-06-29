@@ -48,7 +48,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         
         and:
         configurations.signatures.artifacts.size() == 3
-        signingTasks.every { it.artifacts.every { it in configurations.signatures.artifacts } }
+        signingTasks.every { it.signatures.every { it in configurations.signatures.artifacts } }
     }
 
     def "sign configuration with inherited artifacts"() {
@@ -59,6 +59,6 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         
         then:
         configurations.signatures.artifacts.size() == 3
-        signProduced.artifacts.every { it in configurations.signatures.artifacts }
+        signProduced.signatures.every { it in configurations.signatures.artifacts }
     }
 }

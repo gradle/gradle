@@ -53,7 +53,7 @@ class ConventionSmokeSpec extends SigningProjectSpec {
     
     def "default type"() {
         expect:
-        signing.type.extension == "asc"
+        signing.signatureType.extension == "asc"
     }
     
 

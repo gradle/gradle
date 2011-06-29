@@ -16,7 +16,6 @@
 package org.gradle.plugins.signing
 
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -34,8 +33,9 @@ import org.gradle.plugins.signing.type.SignatureType
  */
 class SignOperation implements SignatureSpec {
 
-    SignatureType type
+    SignatureType signatureType
     Signatory signatory
+    
     final private List<Signature> signatures = []
         
     String getDisplayName() {
@@ -46,48 +46,47 @@ class SignOperation implements SignatureSpec {
         getDisplayName()
     }
     
-    SignOperation sign(PublishArtifact... toSign) {
-        toSign.each {
-            addSignature(it, it.file, it.classifier, it.buildDependencies)
+    SignOperation sign(PublishArtifact... artifacts) {
+        for (artifact in artifacts) {
+            signatures << new Signature(artifact, this)
         }
-        this
+        execute()
     }
     
-    SignOperation sign(File... toSign) {
-        sign(null, *toSign)
-    }
-    
-    SignOperation sign(String classifier, File... toSign) {
-        toSign.each {
-            addSignature(it, it, classifier)
+    SignOperation sign(File... files) {
+        for (file in files) {
+            signatures << new Signature(file, this)
         }
-        this
+        execute()
     }
     
-    Signature addSignature(Object source, File toSign, String classifier, Object[] dependsOn) {
-        def type = getType()
-        def file = type.fileFor(toSign)
+    SignOperation sign(String classifier, File... files) {
+        for (file in files) {
+            signatures << new Signature(file, classifier, this)
+        }
+        execute()
+    }
 
-        def artifact = new DefaultPublishArtifact(
-            file.name,
-            "Signature ($type.extension)",
-            type.combinedExtension(toSign),
-            classifier,
-            null, // no specific date, use now
-            file,
-            dependsOn == null ? [] : dependsOn
-        )
-        
-        def signature = new Signature(source, toSign, type, artifact)
-        signatures << signature
-        signature
+    SignOperation signatureType(SignatureType type) {
+        this.type = type
+    }
+    
+    SignOperation signatory(Signatory signatory) {
+        this.signatory = signatory
+    }
+
+    SignOperation configure(Closure closure) {
+        ConfigureUtil.configure(closure, this)
+        execute()
     }
     
     SignOperation execute() {
-        for (signature in signatures) {
-            signature.type.sign(getSignatory(), signature.signed)
-        }
+        signatures*.generate()
         this
+    }
+    
+    List<Signature> getSignatures() {
+        new ArrayList(signatures)
     }
     
     Signature getSingleSignature() {
@@ -100,32 +99,12 @@ class SignOperation implements SignatureSpec {
         }
     }
     
-    FileCollection getSigned() {
-        new SimpleFileCollection(*signatures*.signed)
+    FileCollection getFilesToSign() {
+        new SimpleFileCollection(*signatures*.toSign.findAll({ it != null }))
     }
     
-    FileCollection getFiles() {
-        new SimpleFileCollection(*signatures*.file)
-    }
-    
-    PublishArtifact[] getArtifacts() {
-        signatures*.artifact as PublishArtifact[]
+    FileCollection getSignatureFiles() {
+        new SimpleFileCollection(*signatures*.file.findAll({ it != null }))
     }
 
-    PublishArtifact getSingleArtifact() {
-        getSingleSignature().artifact
-    }
-    
-    void type(SignatureType type) {
-        this.type = type
-    }
-    
-    void signatory(Signatory signatory) {
-        this.signatory = signatory
-    }
-    
-    SignOperation configure(Closure closure) {
-        ConfigureUtil.configure(closure, this)
-        execute()
-    }
 }

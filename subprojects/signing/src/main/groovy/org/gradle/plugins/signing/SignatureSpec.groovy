@@ -38,31 +38,17 @@ interface SignatureSpec {
     void setSignatory(Signatory signatory)
 
     /**
-     * Sets the signatory that will be signing the input.
-     * 
-     * @param signatory The signatory
-     */
-    void signatory(Signatory signatory)
-    
-    /**
      * The signature representation that will be created.
      * 
      * @return the signature type, or {@code null} if none specified.
      */
-    SignatureType getType()
+    SignatureType getSignatureType()
     
     /**
      * Sets the signature representation that the signatures will be produced as.
      * 
      * @param type the signature type to use
      */
-    void setType(SignatureType type)
+    void setSignatureType(SignatureType type)
     
-    /**
-     * Sets the signature representation that the signatures will be produced as.
-     * 
-     * @param type the signature type to use
-     */
-    void type(SignatureType type)
-
 }

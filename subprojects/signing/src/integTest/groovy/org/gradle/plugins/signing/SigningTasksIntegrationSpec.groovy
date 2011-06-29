@@ -87,4 +87,30 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         failureHasCause "You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign task ':clean')"
     }
     
+    def "changes to task information after signing block are respected"() {
+        given:
+        buildFile << """
+            ${keyInfo.addAsPropertiesScript()}
+            
+            signing {
+                sign jar
+            }
+            
+            jar {
+                baseName = "changed"
+                classifier = "custom"
+            }
+        """
+        
+        when:
+        run "signJar"
+        
+        then:
+        ":signJar" in nonSkippedTasks
+        
+        and:
+        file("build", "libs", "changed-custom.jar.asc").text
+        
+    }
+    
 }

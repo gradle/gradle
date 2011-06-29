@@ -32,10 +32,10 @@ class SignOperationSpec extends SigningProjectSpec {
         
         input1 = getResourceFile("1.txt")
         input1Artifact = new DefaultPublishArtifact(input1.name, "Text File", "txt", null, null, input1)
-        output1 = signing.type.fileFor(input1)
+        output1 = signing.signatureType.fileFor(input1)
         
         input2 = getResourceFile("2.txt")
-        output2 = signing.type.fileFor(input2)
+        output2 = signing.signatureType.fileFor(input2)
         input2Artifact = new DefaultPublishArtifact(input2.name, "Text File", "txt", null, null, input2)
         
         [output1, output2].each { output ->
@@ -52,7 +52,6 @@ class SignOperationSpec extends SigningProjectSpec {
         then:
         output1.exists()
         output1 == operation.singleSignature.file
-        output1 == operation.singleArtifact.file
     }
     
     def "sign single artifact with defaults"() {
@@ -62,7 +61,6 @@ class SignOperationSpec extends SigningProjectSpec {
         then:
         output1.exists()
         output1 == operation.singleSignature.file
-        output1 == operation.singleArtifact.file
     }
     
     def "sign multiple files with defaults"() {
@@ -71,9 +69,9 @@ class SignOperationSpec extends SigningProjectSpec {
         
         then:
         output1.exists() && output2.exists()
-        [input1, input2] == operation.signed.files.toList()[0..1]
-        [output1, output2] == operation.files.files.toList()[0..1]
-        [output1, output2] == operation.artifacts*.file.toList()
+        [input1, input2] == operation.filesToSign.files.toList()[0..1]
+        [output1, output2] == operation.signatureFiles.files.toList()[0..1]
+        [output1, output2] == operation.signatures*.file.toList()
     }
 
     def "sign multiple artifacts with defaults"() {
@@ -82,9 +80,9 @@ class SignOperationSpec extends SigningProjectSpec {
         
         then:
         output1.exists() && output2.exists()
-        [input1, input2] == operation.signed.files.toList()[0..1]
-        [output1, output2] == operation.files.files.toList()[0..1]
-        [output1, output2] == operation.artifacts*.file.toList()
+        [input1, input2] == operation.filesToSign.files.toList()[0..1]
+        [output1, output2] == operation.signatureFiles.files.toList()[0..1]
+        [output1, output2] == operation.signatures*.file.toList()
     }
     
 }

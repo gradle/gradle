@@ -104,7 +104,7 @@ class SigningSettings {
         signatoryProvider.getDefaultSignatory(project)
     }
     
-    SignatureType getType() {
+    SignatureType getSignatureType() {
         typeHandler.defaultType
     }
     
@@ -130,7 +130,7 @@ class SigningSettings {
         }
         
         spec.conventionMapping.map('signatory') { getSignatory() }
-        spec.conventionMapping.map('type') { getType() }
+        spec.conventionMapping.map('signatureType') { getSignatureType() }
     }
     
     Sign sign(Task task) {
@@ -142,7 +142,7 @@ class SigningSettings {
             def signTask = project.task("sign${taskToSign.name.capitalize()}", type: Sign) {
                 sign taskToSign
             }
-            configuration.addArtifact(signTask.singleArtifact)
+            configuration.addArtifact(signTask.singleSignature)
             signTask
         }
     }
@@ -151,7 +151,7 @@ class SigningSettings {
         def signTask = project.task("sign${artifact.name.capitalize()}", type: Sign) {
             delegate.sign artifact
         }
-        configuration.addArtifact(signTask.singleArtifact)
+        configuration.addArtifact(signTask.singleSignature)
         signTask
     }
     
@@ -164,7 +164,7 @@ class SigningSettings {
             def signTask = project.task("sign${configuration.name.capitalize()}", type: Sign) {
                 sign configuration
             }
-            signTask.artifacts.each { getConfiguration().addArtifact(it) }
+            signTask.signatures.each { getConfiguration().addArtifact(it) }
             signTask
         }
     }
