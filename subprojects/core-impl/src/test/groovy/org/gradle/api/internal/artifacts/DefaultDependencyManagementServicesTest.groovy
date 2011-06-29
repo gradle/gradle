@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts
 
+import org.gradle.StartParameter
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.maven.MavenFactory
 import org.gradle.api.internal.ClassGenerator
@@ -29,7 +30,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -37,11 +37,10 @@ class DefaultDependencyManagementServicesTest extends Specification {
     final DependencyMetaDataProvider dependencyMetaDataProvider = Mock()
     final ProjectFinder projectFinder = Mock()
     final ClassGenerator classGenerator = Mock()
-    final IvyServiceFactory ivyServiceFactory = Mock()
-    final IvyService ivyService = Mock()
     final DomainObjectContext domainObjectContext = Mock()
     final TestRepositoryHandler repositoryHandler = Mock()
     final ConfigurationContainer configurationContainer = Mock()
+    final StartParameter startParameter = Mock()
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 
     def "provides a ResolverFactory"() {
@@ -60,10 +59,9 @@ class DefaultDependencyManagementServicesTest extends Specification {
     def "can create dependency resolution services"() {
         given:
         _ * parent.get(ClassGenerator.class) >> classGenerator
-        _ * parent.get(IvyServiceFactory.class) >> ivyServiceFactory
+        _ * parent.get(StartParameter.class) >> startParameter
         1 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >> repositoryHandler
-        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider, {it instanceof DefaultInternalRepository}) >> ivyService
-        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext) >> configurationContainer
+        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
@@ -79,11 +77,10 @@ class DefaultDependencyManagementServicesTest extends Specification {
         TestRepositoryHandler publishRepositoryHandler = Mock()
 
         given:
-        _ * parent.get(IvyServiceFactory.class) >> ivyServiceFactory
+        _ * parent.get(StartParameter.class) >> startParameter
         _ * parent.get(ClassGenerator.class) >> classGenerator
         2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
-        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider, {it instanceof DefaultInternalRepository}) >> ivyService
-        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext) >> configurationContainer
+        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
@@ -96,23 +93,20 @@ class DefaultDependencyManagementServicesTest extends Specification {
     }
 
     def "publish services provide an IvyService"() {
-        IvyService publishIvyService = Mock()
         TestRepositoryHandler publishRepositoryHandler = Mock()
 
         given:
-        _ * parent.get(IvyServiceFactory.class) >> ivyServiceFactory
+        _ * parent.get(StartParameter.class) >> startParameter
         _ * parent.get(ClassGenerator.class) >> classGenerator
         2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
-        1 * ivyServiceFactory.newIvyService(repositoryHandler, dependencyMetaDataProvider, {it instanceof DefaultInternalRepository}) >> ivyService
-        1 * ivyServiceFactory.newIvyService(publishRepositoryHandler, dependencyMetaDataProvider, {it instanceof DefaultInternalRepository}) >> publishIvyService
-        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext) >> configurationContainer
+        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
         def ivyService = resolutionServices.publishServicesFactory.create().ivyService
 
         then:
-        ivyService == publishIvyService
+        ivyService != null
     }
 }
 

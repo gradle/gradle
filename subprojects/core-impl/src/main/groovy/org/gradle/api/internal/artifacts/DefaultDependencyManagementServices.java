@@ -15,32 +15,38 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.StartParameter;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.MavenFactory;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.*;
+import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultLocalMavenCacheLocator;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.util.WrapUtil;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
+    private final Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
+
     public DefaultDependencyManagementServices(ServiceRegistry parent) {
         super(parent);
     }
@@ -55,6 +61,92 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected MavenFactory createMavenFactory() {
         return new DefaultMavenFactory();
+    }
+
+    protected PublishModuleDescriptorConverter createPublishModuleDescriptorConverter() {
+        return new PublishModuleDescriptorConverter(
+                createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
+                new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY));
+    }
+
+    protected IvyServiceFactory createIvyServiceFactory() {
+        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
+        PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
+                createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
+                new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
+
+        return new DefaultIvyServiceFactory(clientModuleRegistry,
+                new DefaultSettingsConverter(
+                        get(ProgressLoggerFactory.class)
+                ),
+                get(PublishModuleDescriptorConverter.class),
+                get(PublishModuleDescriptorConverter.class),
+                fileModuleDescriptorConverter,
+                new DefaultIvyFactory(),
+                new SelfResolvingDependencyResolver(
+                        new DefaultIvyDependencyResolver(
+                                new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))),
+                new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()));
+    }
+
+    protected ModuleDescriptorFactory createModuleDescriptorFactory() {
+        return new DefaultModuleDescriptorFactory();
+    }
+
+    protected ExcludeRuleConverter createExcludeRuleConverter() {
+        return new DefaultExcludeRuleConverter();
+    }
+
+    protected ExternalModuleDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory() {
+        return new ExternalModuleDependencyDescriptorFactory(get(ExcludeRuleConverter.class));
+    }
+
+    protected ConfigurationsToModuleDescriptorConverter createConfigurationsToModuleDescriptorConverter() {
+        return new DefaultConfigurationsToModuleDescriptorConverter();
+    }
+
+    private ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
+        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(projectDependencyStrategy);
+        return new ResolveModuleDescriptorConverter(
+                get(ModuleDescriptorFactory.class),
+                get(ConfigurationsToModuleDescriptorConverter.class),
+                new DefaultDependenciesToModuleDescriptorConverter(
+                        dependencyDescriptorFactoryDelegate,
+                        get(ExcludeRuleConverter.class)));
+    }
+
+    private DependencyDescriptorFactory createDependencyDescriptorFactory(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
+        DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
+        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
+                new ClientModuleDependencyDescriptorFactory(
+                        get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
+                new ProjectDependencyDescriptorFactory(
+                        get(ExcludeRuleConverter.class),
+                        projectDependencyStrategy),
+                get(ExternalModuleDependencyDescriptorFactory.class));
+        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
+        return dependencyDescriptorFactoryDelegate;
+    }
+
+    protected DependencyFactory createDependencyFactory() {
+        ClassGenerator classGenerator = get(ClassGenerator.class);
+        DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(
+                get(StartParameter.class).getProjectDependenciesBuildInstruction(),
+                classGenerator);
+        return new DefaultDependencyFactory(
+                WrapUtil.<IDependencyImplementationFactory>toSet(
+                        new ModuleDependencyFactory(
+                                classGenerator),
+                        new SelfResolvingDependencyFactory(
+                                classGenerator),
+                        new ClassPathDependencyFactory(
+                                classGenerator,
+                                get(ClassPathRegistry.class),
+                                new IdentityFileResolver()),
+                        projectDependencyFactory),
+                new DefaultClientModuleFactory(
+                        classGenerator),
+                projectDependencyFactory);
     }
 
     private static class DefaultDependencyResolutionServices implements DependencyResolutionServices {
