@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.Version
 import org.gradle.build.Install
 import org.gradle.build.Git
@@ -492,10 +491,6 @@ task intTestImage(type: Sync) {
     with binDistImage
     integTestGradleHome = file("$buildDir/integ test")
     into integTestGradleHome
-    doLast { task ->
-        ant.chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
-        WrapperProjectCreator.createProject(new File(integTestGradleHome, 'samples'), binZip.archivePath.parentFile, version.toString())
-    }
 }
 
 def isDevBuild() {

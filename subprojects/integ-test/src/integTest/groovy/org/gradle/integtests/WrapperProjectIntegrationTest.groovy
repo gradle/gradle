@@ -16,41 +16,60 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.tasks.wrapper.Wrapper
+
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Before
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 /**
  * @author Hans Dockter
  */
-class WrapperProjectIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('wrapper-project')
+class WrapperProjectIntegrationTest extends AbstractIntegrationTest {
 
+    @Before
+    public void createBuildScript() {
+        file("build.gradle") << """
+            task wrapper(type: Wrapper) {
+                gradleVersion = '$distribution.version'
+                urlRoot = '${distribution.binDistribution.parentFile.toURI().toURL()}'
+                zipBase = Wrapper.PathBase.PROJECT
+                zipPath = 'wrapper'
+                archiveBase = Wrapper.PathBase.PROJECT
+                archivePath = 'dist'
+                distributionBase = Wrapper.PathBase.PROJECT
+                distributionPath = 'dist'
+            }
+
+            task hello << {
+                println 'hello'
+            }
+        """
+        
+        executer.withTasks('wrapper').run()
+    }
+    
+    GradleDistributionExecuter getWrapperExecuter() {
+        executer.usingExecutable('gradlew').inDirectory(testDir)
+    }
+    
     @Test
     public void hasNonZeroExitCodeOnBuildFailure() {
-        File wrapperSampleDir = sample.dir
-
-        executer.inDirectory(wrapperSampleDir).withTasks('wrapper').run()
-
-        ExecutionFailure failure = executer.usingExecutable('gradlew').inDirectory(wrapperSampleDir).withTasks('unknown').runWithFailure()
-        failure.assertHasDescription("Task 'unknown' not found in root project 'wrapper-project'.")
+        ExecutionFailure failure = wrapperExecuter.withTasks('unknown').runWithFailure()
+        failure.assertHasDescription("Task 'unknown' not found in root project")
     }
 
     @Test
     public void wrapperSample() {
-        File wrapperSampleDir = sample.dir
-
-        executer.inDirectory(wrapperSampleDir).withTasks('wrapper').run()
-
-        ExecutionResult result = executer.usingExecutable('gradlew').inDirectory(wrapperSampleDir).withTasks('hello').run()
+        ExecutionResult result = wrapperExecuter.withTasks('hello').run()
         assertThat(result.output, containsString('hello'))
     }
 }
