@@ -24,9 +24,24 @@ import org.junit.runner.Result
  *
  * @author: Szczepan Faber, created at: 6/29/11
  */
-class JUnitTestsExecuter {
+class ToolingApiJUnitExecuter {
+
+    private final String targetGradleVersion
+
+    ToolingApiJUnitExecuter(String targetGradleVersion) {
+        this.targetGradleVersion = targetGradleVersion
+    }
 
     JUnitExecuterResult execute(Class... classes) {
+        TargetDistSelector.select(targetGradleVersion)
+        try {
+            return run(classes)
+        } finally {
+            TargetDistSelector.unselect()
+        }
+    }
+
+    private run(Class... classes) {
         Result result = JUnitCore.runClasses(classes)
         return new JUnitExecuterResult() {
             void shouldPass() {

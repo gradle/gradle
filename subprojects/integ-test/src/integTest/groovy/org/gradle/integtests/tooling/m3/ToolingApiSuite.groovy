@@ -17,24 +17,17 @@
 package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.JUnitExecuterResult
-import org.gradle.integtests.tooling.fixture.JUnitTestsExecuter
-import org.gradle.integtests.tooling.fixture.TargetDistSelector
+import org.gradle.integtests.tooling.fixture.ToolingApiJUnitExecuter
 
 /**
  * @author: Szczepan Faber, created at: 6/29/11
  */
 class ToolingApiSuite {
     public JUnitExecuterResult run(String targetGradleVersion) {
-        TargetDistSelector.select(targetGradleVersion)
-        try {
-            return new JUnitTestsExecuter().execute(
+        return new ToolingApiJUnitExecuter(targetGradleVersion).execute(
                 ToolingApiHonorsProjectCustomizationsIntegrationTest,
                 ToolingApiEclipseModelIntegrationTest,
                 ToolingApiModelIntegrationTest,
-                ToolingApiBuildExecutionIntegrationTest
-            )
-        } finally {
-            TargetDistSelector.unselect()
-        }
+                ToolingApiBuildExecutionIntegrationTest);
     }
 }
