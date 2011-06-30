@@ -30,8 +30,6 @@ public class DefaultClassPathProvider extends AbstractClassPathProvider {
         gradleApiPatterns.addAll(groovyPatterns);
         // Add the test fixture runtime, too
         gradleApiPatterns.addAll(toPatterns("commons-io", "asm", "commons-lang", "commons-collections", "maven-ant-tasks"));
-        // Add the runtime dependencies of GrailsLauncher
-        gradleApiPatterns.addAll(toPatterns("jna-posix", "jna", "guava", "logback-\\w+", "jul-to-slf4j"));
         add(GRADLE_API.name(), gradleApiPatterns);
         add("GRADLE_CORE", toPatterns("gradle-core"));
         add("ANT", toPatterns("ant", "ant-launcher"));
