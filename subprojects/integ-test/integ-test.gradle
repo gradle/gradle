@@ -31,8 +31,7 @@ integTestTasks.all {
 
         if (isDevBuild()) {
             exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
-            //TODO SF - the exclusion does not seem to work at the moment
-            exclude 'org/gradle/integtests/tooling/**/Suite.*'
+            exclude 'org/gradle/integtests/tooling/**/*Suite.*'
         }
     }
 }
