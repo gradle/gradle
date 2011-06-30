@@ -149,7 +149,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             TestFile tmpDir = getTmpDir();
             if (tmpDir != null) {
                 tmpDir.deleteDir().createDir();
-                forkingGradleExecuter.addGradleOpts(String.format("\"-Djava.io.tmpdir=%s\"", tmpDir));
+                forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=\"%s\"", tmpDir));
             }
             returnedExecuter = forkingGradleExecuter;
         }
