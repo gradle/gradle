@@ -64,7 +64,7 @@ class DefaultEarModule implements EarModule {
     @Override
     public boolean equals(Object obj) {
 
-        if (this == obj) {
+        if (this.is(obj)) {
             return true;
         }
         if (obj == null) {
