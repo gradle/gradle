@@ -623,6 +623,6 @@ class ExtractDslMetaDataTaskTest extends Specification {
         URL resource = getClass().classLoader.getResource(fileName)
         assert resource != null
         assert resource.protocol == 'file'
-        return new File(resource.path)
+        return new File(resource.toURI())
     }
 }
