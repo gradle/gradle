@@ -21,6 +21,9 @@ import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
 
 /**
+ * Allows 'injecting' target gradle distribution in tests that extend ToolingApiSpecification.
+ * Sort of hacky... but at given moment I couldn't figure out a better way if we want to keep all functionalities of ToolingApiSpecification
+ *
  * @author: Szczepan Faber, created at: 6/25/11
  */
 class TargetDistSelector implements MethodRule {

@@ -43,15 +43,22 @@ class ToolingApiCompatibilitySuite {
 
     @Test
     public void "m3 ToolingApi against current Gradle" () {
-        runTests(m3, dist);
+        tests("org.gradle.integtests.tooling.m3.ToolingApiSuite", m3, dist).shouldPass()
     }
 
     @Test
     public void "current ToolingApi against m3 Gradle" () {
-        runTests(dist, m3);
+        tests("org.gradle.integtests.tooling.m3.ToolingApiSuite", dist, m3).shouldPass()
     }
 
-    def runTests(BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
+    @Test
+    public void "new features of current ToolingApi against m3 Gradle should fail" () {
+        //sanity test that checks if the test harness works fine
+        //I don't we need such test per every milestone
+        tests("org.gradle.integtests.tooling.m4.ToolingApiSuite", dist, m3).shouldFail()
+    }
+
+    def tests(String testClass, BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
         def classpath = []
 
         classpath << ClasspathUtil.getClasspathForClass(ClassLoaderIsolationHelper.class)
@@ -77,7 +84,7 @@ class ToolingApiCompatibilitySuite {
 
         def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI().toURL() })
 
-        def allTests = classloader.loadClass("org.gradle.integtests.tooling.m3.ToolingApiSuite").newInstance()
-        allTests.run(gradle.version)
+        def allTests = classloader.loadClass(testClass).newInstance()
+        return allTests.run(gradle.version)
     }
 }

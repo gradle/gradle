@@ -18,21 +18,32 @@ package org.gradle.integtests.tooling.fixture
 
 import org.junit.runner.JUnitCore
 import org.junit.runner.Result
-import static org.junit.Assert.assertTrue
 
 /**
+ * Useful in case we're using the isolated classloader trick. In such case we have to call junit runner directly.
+ *
  * @author: Szczepan Faber, created at: 6/29/11
  */
 class JUnitTestsExecuter {
 
-    public void execute(Class ... classes) {
+    JUnitExecuterResult execute(Class... classes) {
         Result result = JUnitCore.runClasses(classes)
-        //Very simple for now. Failures are just printed to sys err.
-        if (!result.wasSuccessful()) {
-            System.err.println("Number of failures: " + result.failureCount);
-            result.failures.each { it.exception.printStackTrace() }
+        return new JUnitExecuterResult() {
+            void shouldPass() {
+                //Very simple for now. Failures are just printed to sys err.
+                if (!result.wasSuccessful()) {
+                    System.err.println("Number of failures: " + result.failureCount);
+                    result.failures.each { it.exception.printStackTrace() }
+                }
+                assert result.wasSuccessful()
+                assert result.runCount > 0
+            }
+
+            void shouldFail() {
+                assert !result.wasSuccessful()
+                //all tests should fail:
+                assert result.runCount == result.failureCount
+            }
         }
-        assertTrue(result.wasSuccessful())
-        assertTrue(result.runCount > 0)
     }
 }

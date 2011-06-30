@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.m3
+package org.gradle.integtests.tooling.m4
 
 import org.gradle.integtests.tooling.fixture.JUnitExecuterResult
 import org.gradle.integtests.tooling.fixture.JUnitTestsExecuter
@@ -28,10 +28,9 @@ class ToolingApiSuite {
         TargetDistSelector.select(targetGradleVersion)
         try {
             return new JUnitTestsExecuter().execute(
-                ToolingApiHonorsProjectCustomizationsIntegrationTest,
-                ToolingApiEclipseModelIntegrationTest,
-                ToolingApiModelIntegrationTest,
-                ToolingApiBuildExecutionIntegrationTest
+                ToolingApiEclipseLinkedResourcesIntegrationTest,
+                ToolingApiMinimalModelFixesTest,
+                ToolingApiTaskExecutionFixesTest
             )
         } finally {
             TargetDistSelector.unselect()
