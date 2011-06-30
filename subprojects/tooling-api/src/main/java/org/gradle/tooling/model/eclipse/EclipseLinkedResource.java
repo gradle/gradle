@@ -17,34 +17,55 @@
 package org.gradle.tooling.model.eclipse;
 
 /**
- * Eclipse linked resource.
- * Useful when the eclipse project needs to refer to a folder outside of the project folder structure.
+ * Linked resources are files and folders that are stored in locations in the file system outside of the project's location.
  */
 public interface EclipseLinkedResource {
 
     /**
-     * The name of the linked resource to referred by the clients
+     * The project-relative path of the linked resource as it appears in the workspace.
+     * <p>
+     * See the official eclipse documentation for most up-to-date information on properties of a linked resource
+     * <p>
+     * For example, a linked resource to a file system folder /some/path/to/someFolder can have a name 'someFolder'
      *
      * @return name
      */
     String getName();
 
     /**
-     * Internal eclipse type, for example: '3'
+     * The resource type.
+     * <p>
+     * If 'location' property is used the values are: "1" for a file, or "2" for a folder.
+     * <p>
+     * If 'locationUri' property is used then the values are:
+     * "1" for file or folder when 'locationUri' first segment is a workspace path variable (or path variable navigation element),
+     * "2" for an eclipse virtual folder.
+     * <p>
+     * See the official eclipse documentation for most up-to-date information on properties of a linked resource
      *
      * @return eclipse link type
      */
     String getType();
 
     /**
-     * Location, for example: '/path/to/somewhere'
+     * The local file system absolute path of the target of the linked resource. For example: '/path/to/somewhere'.
+     * Mutually exclusive with 'locationUri'
+     * <p>
+     * See the official eclipse documentation for most up-to-date information on properties of a linked resource
      *
      * @return location
      */
     String getLocation();
 
     /**
-     * Location uri, for example: 'file://some/path'
+     * If the file is not in the local file system, this attribute contains the absolute URI of the resource in some backing file system.
+     * Mutually exclusive with 'location'.
+     * <p>
+     * When workspace path variable is used as part of path then this property must be used instead of 'location'
+     * <p>
+     * Used for virtual folders. In that case the value is: 'virtual:/virtual'
+     * <p>
+     * See the official eclipse documentation for most up-to-date information on properties of a linked resource
      *
      * @return location uri
      */
