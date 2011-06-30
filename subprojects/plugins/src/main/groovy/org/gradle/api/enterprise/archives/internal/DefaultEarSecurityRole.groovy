@@ -15,7 +15,7 @@
  */
 package org.gradle.api.enterprise.archives.internal
 
-import org.gradle.api.enterprise.archives.EarSecurityRole;
+import org.gradle.api.enterprise.archives.EarSecurityRole
 
 /**
  * @author David Gileadi
@@ -39,35 +39,22 @@ class DefaultEarSecurityRole implements EarSecurityRole {
         this.description = description;
     }
 
-    @Override
-    public int hashCode() {
-
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((roleName == null) ? 0 : roleName.hashCode());
+    int hashCode() {
+        int result;
+        result = (description != null ? description.hashCode() : 0);
+        result = 31 * result + (roleName != null ? roleName.hashCode() : 0);
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    boolean equals(o) {
+        if (this.is(o)) { return true; }
+        if (!(o instanceof DefaultEarSecurityRole)) { return false; }
 
-        if (this.is(obj)) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        DefaultEarSecurityRole other = (DefaultEarSecurityRole) obj;
-        if (roleName == null) {
-            if (other.roleName != null) {
-                return false;
-            }
-        } else if (!roleName.equals(other.roleName)) {
-            return false;
-        }
+        DefaultEarSecurityRole that = (DefaultEarSecurityRole) o;
+
+        if (description != that.description) { return false; }
+        if (roleName != that.roleName) { return false; }
+
         return true;
     }
 }

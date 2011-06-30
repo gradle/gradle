@@ -15,9 +15,8 @@
  */
 package org.gradle.api.enterprise.archives.internal
 
-import groovy.xml.QName;
-
-import org.gradle.api.enterprise.archives.EarModule;
+import groovy.xml.QName
+import org.gradle.api.enterprise.archives.EarModule
 
 /**
  * @author David Gileadi
@@ -52,35 +51,22 @@ class DefaultEarModule implements EarModule {
         return name
     }
 
-    @Override
-    public int hashCode() {
-
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((path == null) ? 0 : path.hashCode());
+    int hashCode() {
+        int result;
+        result = (path != null ? path.hashCode() : 0);
+        result = 31 * result + (altDeployDescriptor != null ? altDeployDescriptor.hashCode() : 0);
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    boolean equals(o) {
+        if (this.is(o)) { return true; }
+        if (!(o instanceof DefaultEarModule)) { return false; }
 
-        if (this.is(obj)) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        DefaultEarModule other = (DefaultEarModule) obj;
-        if (path == null) {
-            if (other.path != null) {
-                return false;
-            }
-        } else if (!path.equals(other.path)) {
-            return false;
-        }
+        DefaultEarModule that = (DefaultEarModule) o;
+
+        if (altDeployDescriptor != that.altDeployDescriptor) { return false; }
+        if (path != that.path) { return false; }
+
         return true;
     }
 }
