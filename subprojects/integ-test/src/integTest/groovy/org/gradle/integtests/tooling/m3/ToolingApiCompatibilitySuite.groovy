@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.DefaultClassLoaderFactory
 import org.gradle.util.SetSystemProperties
+import org.junit.Ignore
 import org.junit.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -51,6 +52,7 @@ class ToolingApiCompatibilitySuite {
         tests("org.gradle.integtests.tooling.m3.ToolingApiSuite", dist, m3).shouldPass()
     }
 
+    @Ignore
     @Test
     public void "new features of current ToolingApi against m3 Gradle should fail" () {
         //sanity test that checks if the test harness works fine
