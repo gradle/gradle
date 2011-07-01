@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -42,12 +43,10 @@ sourceSets.main.resources.srcDirs.each { it.mkdirs() }
 
 configurations {
   someConfig
-  someOtherConfig
 }
 
 dependencies {
-  someConfig files('foo.txt', 'bar.txt', 'baz.txt')
-  someOtherConfig files('baz.txt')
+  someConfig files('foo.txt')
 }
 
 eclipse {
@@ -58,7 +57,6 @@ eclipse {
     sourceSets = []
 
     plusConfigurations += configurations.someConfig
-    minusConfigurations += configurations.someOtherConfig
 
     containers 'someFriendlyContainer', 'andYetAnotherContainer'
 
@@ -73,18 +71,85 @@ eclipse {
   }
 }
 """
-
-        content = getFile([:], '.classpath').text
+        content = getFile([print: true], '.classpath').text
 
         //then
         contains('foo.txt')
-        contains('bar.txt')
 
         contains('fooPathVariable')
         contains('someFriendlyContainer', 'andYetAnotherContainer')
 
         contains('build-eclipse')
         contains('<message>be cool')
+    }
+
+    @Test
+    @Ignore //not yet implemented
+    @Issue("GRADLE-1487")
+    void "handles plus minus configurations for self resolving deps"() {
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+configurations {
+  someConfig
+  someOtherConfig
+}
+
+dependencies {
+  someConfig files('foo.txt', 'bar.txt', 'unwanted.txt')
+  someOtherConfig files('unwanted.txt')
+}
+
+eclipse.classpath {
+    plusConfigurations += configurations.someConfig
+    minusConfigurations += configurations.someOtherConfig
+}
+"""
+        content = getFile([print: true], '.classpath').text
+
+        //then
+        contains 'foo.txt', 'bar.txt'
+        assert !content.contains('unwanted.txt')
+    }
+
+    @Test
+    void "handles plus minus configurations for external deps"() {
+        //given
+        def repoDir = file("repo")
+        publishArtifact(repoDir, "coolGroup", "coolArtifact", "unwantedArtifact")
+        publishArtifact(repoDir, "coolGroup", "unwantedArtifact")
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+configurations {
+  someConfig
+  someOtherConfig
+}
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
+
+dependencies {
+  someConfig 'coolGroup:coolArtifact:1.0'
+  someOtherConfig 'coolGroup:unwantedArtifact:1.0'
+}
+
+eclipse.classpath {
+    plusConfigurations += configurations.someConfig
+    minusConfigurations += configurations.someOtherConfig
+}
+"""
+        content = getFile([print: true], '.classpath').text
+
+        //then
+        contains 'coolArtifact'
+        assert !content.contains('unwantedArtifact')
     }
 
     @Test
@@ -209,7 +274,38 @@ task generateForTest << {}
         result.assertTasksExecuted(':generateForMain', ':generateForTest', ':eclipseClasspath', ':eclipseJdt', ':eclipseProject', ':eclipse')
     }
 
-    protected def contains(String ... contents) {
-        contents.each { assert content.contains(it)}
+    @Test
+    @Ignore //not yet implemented
+    @Issue("GRADLE-1613")
+    void "should allow setting non-exported configurations"() {
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+configurations {
+  provided
+}
+
+dependencies {
+  compile  files('compileDependency.jar')
+  provided files('providedDependency.jar')
+}
+
+eclipse {
+  classpath {
+    plusConfigurations += configurations.provided
+    noExportConfigNames = ['provided']
+  }
+}
+"""
+        //then no exception is thrown
+        def cp = parseClasspathFile(print: true)
+        assert cp.classpathentry.find   { it.@path.text().contains 'compileDependency.jar' }.@exported.text()
+        assert !cp.classpathentry.find { it.@path.text().contains 'providedDependency.jar' }.@exported.text()
+    }
+
+    protected def contains(String ... wanted) {
+        wanted.each { assert content.contains(it)}
     }
 }
