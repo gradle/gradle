@@ -18,6 +18,7 @@ package org.gradle.plugins.signing
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.BasePlugin
 
 /**
  * Adds the ability to digitially sign files and artifacts.
@@ -36,6 +37,8 @@ class SigningPlugin implements Plugin<Project> {
      * @see org.gradle.plugins.signing.SigningSettings#addSignatureSpecConventions(SigningSpec)
      */
     void apply(Project project) {
+        project.plugins.apply(BasePlugin)
+        
         def settings = new SigningSettings(project)
         def convention = new SigningPluginConvention(settings)
         project.convention.plugins.signing = convention
