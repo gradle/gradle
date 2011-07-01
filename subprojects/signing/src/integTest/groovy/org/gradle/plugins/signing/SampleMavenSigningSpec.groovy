@@ -22,7 +22,7 @@ import org.junit.*
 
 class SampleMavenSigningSpec extends AbstractIntegrationSpec {
     
-    @Rule public final Sample signingSample = new Sample('mavenSigning')
+    @Rule public final Sample signingSample = new Sample('signing/maven')
     
     def "upload attaches signatures"() {
         given:

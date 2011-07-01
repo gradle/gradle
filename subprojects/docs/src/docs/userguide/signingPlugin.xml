@@ -1,0 +1,156 @@
+<!--
+  ~ Copyright 2010 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id='signing_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Signing Plugin</title>
+
+    <note>
+        <para>This chapter is WIP.</para>
+    </note>
+    
+    <para>
+        The signing plugin adds the ability to digitally sign built files and artifacts.
+        These digital signatures can then be used to prove who built the artifact the signature is attached to
+        as well as other information such as when the signature was generated.
+    </para>
+    <para>
+        The signing plugin currently only provides support for generating <ulink url='http://www.pgpi.org/'>PGP signatures</ulink> 
+        (which is the signature format <ulink url="https://docs.sonatype.org/display/Repository/Central+Sync+Requirements">required for 
+        publication to the Maven Central Repository</ulink>).
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the Signing plugin, include in your build script:</para>
+        <sample id="useSigningPlugin" dir="signing/maven" title="Using the Signing plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+    
+    <section>
+        <title>Signatory credentials</title>
+        <para>
+            In order to create PGP signatures, you will need a key pair (instructions on creating a key pair using the <ulink url="http://www.gnupg.org/">GnuPG tools</ulink> 
+            can be found <ulink url="http://www.dewinter.com/gnupg_howto/english/GPGMiniHowto-3.html#ss3.1">here</ulink>). You need to provide the signing plugin
+            with your key information, which means three things: 
+        </para>
+        <itemizedlist>
+            <listitem><para>The public key ID (an 8 character hexadecimal string).</para></listitem>
+            <listitem><para>The absolute path to the secret key ring file containing your private key.</para></listitem>
+            <listitem><para>The passphrase used to protect your public key.</para></listitem>
+        </itemizedlist>
+        <para>
+            These items must be supplied as the property projects <literal>signing.keyId</literal>, <literal>signing.password</literal> 
+            and <literal>signing.secretKeyRingFile</literal> respectively. Given the personal and private nature of these values, a good practice
+            is to store them in the user <literal>gradle.properties</literal> file (described in <xref linkend="sec:gradle_properties_and_system_properties"/>).
+        </para>
+        <programlisting>
+            signing.keyId=24875D73
+signing.password=secret
+signing.secretKeyRingFile=/Users/me/.gnupg/secring.gpg
+        </programlisting>
+        <para>
+            If specifying this information in the user <literal>gradle.properties</literal> file is not feasible for your environment, you can source the information
+            however you need to and set the project properties manually.
+        </para>
+        <programlisting>
+// TODO - this is incomplete
+import org.gradle.plugins.signing.Sign
+
+taskGraph.whenReady { taskGraph ->
+    if (taskGraph.allTasks.any { it instanceof Sign }) {
+        // Use Java 6's console to read a password securely from the command line
+
+        def password = Console.readPassword("")
+    }
+}        
+        </programlisting>
+    </section>
+
+    <section>
+        <title>Specifying what to sign</title>
+        <para>
+            As well as configuring how things are to be signed (i.e. the signatory configuration), you must also specify what is to be signed. 
+            The Signing plugin provides a DSL that allows you to specify the tasks and/or configurations that should be signed.
+        </para>
+        <section>
+            <title>Signing Configurations</title>
+            <para>
+                It is common to want to sign the artifacts of a configuration. For example, the <link linkend="java_plugin">Java plugin</link> 
+                configures a jar to built and this jar artifact is added to the <literal>archives</literal> configuration. 
+                Using the Signing DSL, you can specify that all of the artifacts of this configuration should be signed.
+            </para>
+            <sample id="signingArchives" dir="signing/maven" title="Signing a configuration">
+                <sourcefile file="build.gradle" snippet="sign-archives"/>
+            </sample>
+            <para>
+                This will create a task (of type <apilink class="org.gradle.plugins.signing.Sign"/>) in your project named “<literal>signArchives</literal>”, 
+                that will build any <literal>archives</literal> artifacts (if needed) and then generate signatures for them. The signature files will be placed
+                alongside the artifacts being signed.
+            </para>
+            <sample id="signingArchivesOutput" dir="signing/maven" title="Signing a configuration output">
+                <output args="signArchives"/>
+            </sample>
+        </section>
+        <section>
+            <title>Signing Tasks</title>
+            <para>
+                In some cases the artifact that you need to sign may not be part of a configuration. In this case you can directly sign the task that
+                produces the artifact to sign.
+            </para>
+            <sample id="signingTasks" dir="signing/tasks" title="Signing a task">
+                <sourcefile file="build.gradle" snippet="sign-task"/>
+            </sample>
+            <para>
+                This will create a task (of type <apilink class="org.gradle.plugins.signing.Sign"/>) in your project named “<literal>signStuffZip</literal>”, 
+                that will build the input task's archive (if needed) and then sign it. The signature file will be placed
+                alongside the artifact being signed.
+            </para>
+            <sample id="signingTaskOutput" dir="signing/tasks" title="Signing a task output">
+                <output args="signStuffZip"/>
+            </sample>
+            <para>
+                For a task to be “signable”, it must produce an archive of some type. Tasks that do this are the <apilink class="org.gradle.api.tasks.bundling.Tar"/>,
+                <apilink class="org.gradle.api.tasks.bundling.Zip"/>, <apilink class="org.gradle.api.tasks.bundling.Jar"/>, 
+                <apilink class="org.gradle.api.tasks.bundling.War"/> and <apilink class="org.gradle.api.tasks.bundling.Ear"/> tasks.
+            </para>
+        </section>
+    </section>
+    
+    <section>
+        <title>The “signatures” configuration</title>
+        <note>
+            <para>This chapter is assuming <ulink link="http://issues.gradle.org/browse/GRADLE-1651">GRADLE-1651</ulink> has been implemented (which may not happen).</para>
+        </note>
+        <para>
+            When specifying what is to be signed via the Signing DSL, the resultant signature artifacts are automatically added to the “<literal>signatures</literal>”
+            dependency configuration that the signing plugin adds. The signing plugin adds the “<literal>signatures</literal>” configuration to the set of configurations 
+            that the “<literal>published</literal>” configuration extends, effectively making the signatures part of “<literal>published</literal>” configuration.
+        </para>
+    </section>
+    
+    <section>
+        <title>Signing POM files</title>
+        <para>
+            When deploying signatures for your artifacts to a Maven repository, you will also want to sign the published POM file. The signing plugin adds a
+            <literal>signPom()</literal> method that can be used in the <literal>beforeDeployment()</literal> block in your upload task configuration.
+            <sample id="signingMavenPom" dir="signing/maven" title="Signing a POM for deployment">
+                <sourcefile file="build.gradle" snippet="sign-pom"/>
+            </sample>
+        </para>
+    </section>
+    
+</chapter>

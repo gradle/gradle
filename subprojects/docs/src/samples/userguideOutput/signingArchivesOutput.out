@@ -1,0 +1,7 @@
+:compileJava
+:processResources
+:classes
+:jar
+:signArchives
+
+BUILD SUCCESSFUL
