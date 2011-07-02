@@ -26,19 +26,27 @@ import org.gradle.api.artifacts.*
  */
 class IdeDependenciesExtractor {
 
-    static class IdeDependency {
-        Project dependencyProject
-        File externalDependency
-        File externalDependencySource
-        File externalDependencyJavadoc
-        File internalDependency
+    static interface IdeDependency {}
+
+    static class IdeLocalFileDependency implements IdeDependency {
+        File dependency
+    }
+
+    static class IdeRepoFileDependency implements IdeDependency {
+        File dependency
+        File source
+        File javadoc
+    }
+
+    static class IdeProjectDependency implements IdeDependency {
+        Project dependency
     }
 
     List<IdeDependency> extract(ConfigurationContainer confContainer, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean downloadSources, boolean downloadJavadoc) {
         def out = []
 
         getDependencies(plusConfigurations, minusConfigurations, { it instanceof ProjectDependency }).each { ProjectDependency it ->
-            out << new IdeDependency (dependencyProject: it.dependencyProject)
+            out << new IdeProjectDependency (dependency: it.dependencyProject)
         }
 
         def allResolvedDependencies = resolveDependencies(plusConfigurations, minusConfigurations)
@@ -56,12 +64,12 @@ class IdeDependenciesExtractor {
         resolveFiles(plusConfigurations, minusConfigurations).collect { File binaryFile ->
             File sourceFile = sourceFiles[binaryFile.name]
             File javadocFile = javadocFiles[binaryFile.name]
-            out << new IdeDependency( externalDependency: binaryFile, externalDependencySource: sourceFile, externalDependencyJavadoc: javadocFile)
+            out << new IdeRepoFileDependency( dependency: binaryFile, source: sourceFile, javadoc: javadocFile)
         }
         getSelfResolvingFiles(
                 getDependencies(plusConfigurations, minusConfigurations, { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)})
         ).each {
-            out << new IdeDependency( internalDependency: it)
+            out << new IdeLocalFileDependency( dependency: it)
         }
 
         return out
@@ -80,10 +88,9 @@ class IdeDependenciesExtractor {
 
     private getSelfResolvingFiles(Collection dependencies) {
         dependencies.collect { SelfResolvingDependency dependency ->
-            dependency.resolve().collect()
+            dependency.resolve()
         }.flatten()
     }
-
 
     private Set<Dependency> getDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure filter) {
         def result = new LinkedHashSet()
