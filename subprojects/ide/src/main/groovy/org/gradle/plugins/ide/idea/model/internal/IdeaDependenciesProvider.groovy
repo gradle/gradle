@@ -17,18 +17,14 @@
 package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Spec
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
 import org.gradle.plugins.ide.idea.model.Path
 import org.gradle.plugins.ide.idea.model.PathFactory
+import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
+import org.gradle.api.artifacts.*
 
 /**
  * All code was refactored from the GenerateIdeaModule class.
@@ -43,6 +39,8 @@ class IdeaDependenciesProvider {
     boolean downloadSources
     boolean downloadJavadoc
     PathFactory pathFactory
+
+    private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
 
     Set<org.gradle.plugins.ide.idea.model.Dependency> provide(IdeaModule ideaModule, PathFactory pathFactory) {
         //(SF) below assignments are funky but I wanted to make little changes to the code refactored from GenerateIdeaModule
@@ -71,10 +69,10 @@ class IdeaDependenciesProvider {
     }
 
     protected Set getModules(String scope) {
-        if (scopes[scope]) {
-            return getScopeDependencies(scopes[scope], { it instanceof ProjectDependency }).collect { ProjectDependency dependency ->
-                def project = dependency.dependencyProject
-                return new ModuleDependencyBuilder().create(project, scope)
+        def s = scopes[scope]
+        if (s) {
+            return dependenciesExtractor.extractProjectDependencies(s.plus, s.minus).collect {
+                new ModuleDependencyBuilder().create(it.dependency, scope)
             }
         }
         return []
