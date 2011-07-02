@@ -59,20 +59,20 @@ class ClasspathFactory {
     }
 
     protected Set getLibraries(EclipseClasspath classpath) {
-        List moduleLibraries = []
+        List libs = []
 
         dependenciesExtractor.extractRepoFileDependencies(
                 classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
         .each { IdeRepoFileDependency it ->
-            moduleLibraries << createLibraryEntry(it.dependency, it.source, it.javadoc, classpath.pathVariables)
+            libs << createLibraryEntry(it.dependency, it.source, it.javadoc, classpath.pathVariables)
         }
 
         dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
         .each { IdeLocalFileDependency it ->
-            moduleLibraries << createLibraryEntry(it.dependency, null, null, classpath.pathVariables)
+            libs << createLibraryEntry(it.dependency, null, null, classpath.pathVariables)
         }
 
-        moduleLibraries
+        libs
     }
 
     AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map<String, File> pathVariables) {
