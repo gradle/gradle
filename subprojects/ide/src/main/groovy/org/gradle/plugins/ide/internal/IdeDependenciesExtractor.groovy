@@ -42,12 +42,16 @@ class IdeDependenciesExtractor {
         Project dependency
     }
 
+    List<IdeProjectDependency> extractProjectDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        getDependencies(plusConfigurations, minusConfigurations, { it instanceof ProjectDependency }).collect { ProjectDependency it ->
+            new IdeProjectDependency (dependency: it.dependencyProject)
+        }
+    }
+
     List<IdeDependency> extract(ConfigurationContainer confContainer, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean downloadSources, boolean downloadJavadoc) {
         def out = []
 
-        getDependencies(plusConfigurations, minusConfigurations, { it instanceof ProjectDependency }).each { ProjectDependency it ->
-            out << new IdeProjectDependency (dependency: it.dependencyProject)
-        }
+        out.addAll(extractProjectDependencies(plusConfigurations, minusConfigurations))
 
         def allResolvedDependencies = resolveDependencies(plusConfigurations, minusConfigurations)
 

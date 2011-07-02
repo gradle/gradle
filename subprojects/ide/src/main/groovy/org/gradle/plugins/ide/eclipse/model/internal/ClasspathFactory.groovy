@@ -17,6 +17,8 @@ package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Spec
+import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
+import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeProjectDependency
 import org.gradle.api.artifacts.*
 import org.gradle.plugins.ide.eclipse.model.*
 
@@ -25,6 +27,7 @@ import org.gradle.plugins.ide.eclipse.model.*
  */
 class ClasspathFactory {
 
+    private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
     private final sourceFoldersCreator = new SourceFoldersCreator()
     private final classFoldersCreator = new ClassFoldersCreator()
 
@@ -52,8 +55,8 @@ class ClasspathFactory {
     }
 
     protected List getModules(EclipseClasspath classpath) {
-        return getDependencies(classpath.plusConfigurations, classpath.minusConfigurations, { it instanceof org.gradle.api.artifacts.ProjectDependency })
-                .collect { projectDependency -> new ProjectDependencyBuilder().build(projectDependency.dependencyProject) }
+        return dependenciesExtractor.extractProjectDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
+                .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.dependency) }
     }
 
     protected Set getLibraries(EclipseClasspath classpath) {
