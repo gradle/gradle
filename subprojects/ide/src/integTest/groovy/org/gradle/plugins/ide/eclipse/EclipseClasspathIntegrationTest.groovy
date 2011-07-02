@@ -115,6 +115,40 @@ eclipse.classpath {
     }
 
     @Test
+    void "handles plus minus configurations for project deps"() {
+        //when
+        runEclipseTask "include 'foo', 'bar', 'unwanted'",
+"""
+allprojects {
+  apply plugin: 'java'
+  apply plugin: 'eclipse'
+}
+
+configurations {
+  someConfig
+  someOtherConfig
+}
+
+dependencies {
+  someConfig project(':foo')
+  someConfig project(':bar')
+  someConfig project(':unwanted')
+  someOtherConfig project(':unwanted')
+}
+
+eclipse.classpath {
+    plusConfigurations += configurations.someConfig
+    minusConfigurations += configurations.someOtherConfig
+}
+"""
+        content = getFile([print: true], '.classpath').text
+
+        //then
+        contains 'foo', 'bar'
+        assert !content.contains('unwanted')
+    }
+
+    @Test
     void "handles plus minus configurations for external deps"() {
         //given
         def repoDir = file("repo")
