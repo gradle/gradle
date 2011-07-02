@@ -123,7 +123,7 @@ dependencies {
 idea {
     module {
         scopes.COMPILE.plus += configurations.foo
-        scopes.COMPILE.minus += configurations.bar
+        scopes.COMPILE.minus += [configurations.bar, configurations.baz]
     }
 }
 '''
@@ -134,8 +134,7 @@ idea {
         assert content.contains('foo2.jar')
 
         assert !content.contains('bar.jar')
-        //TODO SF - exposes a bug
-//        assert !content.contains('foo3.jar')
+        assert !content.contains('foo3.jar')
     }
 
     @Test
