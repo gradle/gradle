@@ -43,26 +43,29 @@ class IdeDependenciesExtractor {
     }
 
     List<IdeProjectDependency> extractProjectDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        getDependencies(plusConfigurations, minusConfigurations, { it instanceof ProjectDependency }).collect { ProjectDependency it ->
+        def filter = { it instanceof ProjectDependency }
+        return getDependencies(plusConfigurations, minusConfigurations, filter).collect { ProjectDependency it ->
             new IdeProjectDependency (dependency: it.dependencyProject)
         }
     }
 
-    List<IdeDependency> extract(ConfigurationContainer confContainer, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean downloadSources, boolean downloadJavadoc) {
+    List<IdeRepoFileDependency> extractRepoFileDependencies(ConfigurationContainer confContainer,
+                                                           Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,
+                                                           boolean downloadSources, boolean downloadJavadoc) {
         def out = []
-
-        out.addAll(extractProjectDependencies(plusConfigurations, minusConfigurations))
 
         def allResolvedDependencies = resolveDependencies(plusConfigurations, minusConfigurations)
 
         Set sourceDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
             addSourceArtifact(dependency)
         }
+
         Map<String, File> sourceFiles = downloadSources ? getFiles(confContainer.detachedConfiguration(sourceDependencies as Dependency[]), "sources") : [:]
 
         Set javadocDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
             addJavadocArtifact(dependency)
         }
+
         Map<String, File> javadocFiles = downloadJavadoc ? getFiles(confContainer.detachedConfiguration(javadocDependencies as Dependency[]), "javadoc") : [:]
 
         resolveFiles(plusConfigurations, minusConfigurations).collect { File binaryFile ->
@@ -70,13 +73,14 @@ class IdeDependenciesExtractor {
             File javadocFile = javadocFiles[binaryFile.name]
             out << new IdeRepoFileDependency( dependency: binaryFile, source: sourceFile, javadoc: javadocFile)
         }
-        getSelfResolvingFiles(
-                getDependencies(plusConfigurations, minusConfigurations, { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)})
-        ).each {
-            out << new IdeLocalFileDependency( dependency: it)
-        }
 
-        return out
+        out
+    }
+
+    List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        def filter = { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}
+        return getSelfResolvingFiles(getDependencies(plusConfigurations, minusConfigurations, filter))
+                .collect { new IdeLocalFileDependency( dependency: it) }
     }
 
     private Set<File> resolveFiles(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
@@ -118,7 +122,7 @@ class IdeDependenciesExtractor {
         result
     }
 
-    protected Set getAllDeps(Collection deps, Set allDeps = []) {
+    private Set getAllDeps(Collection deps, Set allDeps = []) {
         deps.each { ResolvedDependency resolvedDependency ->
             def notSeenBefore = allDeps.add(resolvedDependency)
             if (notSeenBefore) { // defend against circular dependencies
@@ -138,7 +142,7 @@ class IdeDependenciesExtractor {
         }
     }
 
-    protected void addSourceArtifact(DefaultExternalModuleDependency dependency) {
+    private void addSourceArtifact(DefaultExternalModuleDependency dependency) {
         dependency.artifact { artifact ->
             artifact.name = dependency.name
             artifact.type = 'source'
@@ -147,7 +151,7 @@ class IdeDependenciesExtractor {
         }
     }
 
-    protected void addJavadocArtifact(DefaultExternalModuleDependency dependency) {
+    private void addJavadocArtifact(DefaultExternalModuleDependency dependency) {
         dependency.artifact { artifact ->
             artifact.name = dependency.name
             artifact.type = 'javadoc'
