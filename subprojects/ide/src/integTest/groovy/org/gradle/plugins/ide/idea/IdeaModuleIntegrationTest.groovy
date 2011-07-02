@@ -101,8 +101,7 @@ idea {
     }
 
     @Test
-    void plusMinusConfigurationsAreCorrectlyApplied() {
-        file('foo.jar', 'bar.jar')
+    void "plus minus configurations work fine for self resolving file dependencies"() {
         //when
         runTask 'idea', '''
 apply plugin: "java"
@@ -112,11 +111,13 @@ configurations {
   bar
   foo
   foo.extendsFrom(bar)
+  baz
 }
 
 dependencies {
   bar files('bar.jar')
-  foo files('foo.jar')
+  foo files('foo.jar', 'foo2.jar', 'foo3.jar')
+  baz files('foo3.jar')
 }
 
 idea {
@@ -130,7 +131,11 @@ idea {
 
         //then
         assert content.contains('foo.jar')
+        assert content.contains('foo2.jar')
+
         assert !content.contains('bar.jar')
+        //TODO SF - exposes a bug
+//        assert !content.contains('foo3.jar')
     }
 
     @Test
