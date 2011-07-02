@@ -26,19 +26,17 @@ import org.gradle.api.artifacts.*
  */
 class IdeDependenciesExtractor {
 
-    static interface IdeDependency {}
-
-    static class IdeLocalFileDependency implements IdeDependency {
+    static class IdeLocalFileDependency {
         File dependency
     }
 
-    static class IdeRepoFileDependency implements IdeDependency {
+    static class IdeRepoFileDependency {
         File dependency
         File source
         File javadoc
     }
 
-    static class IdeProjectDependency implements IdeDependency {
+    static class IdeProjectDependency {
         Project dependency
     }
 
@@ -78,9 +76,19 @@ class IdeDependenciesExtractor {
     }
 
     List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        def result = new LinkedHashSet()
         def filter = { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}
-        return getSelfResolvingFiles(getDependencies(plusConfigurations, minusConfigurations, filter))
-                .collect { new IdeLocalFileDependency( dependency: it) }
+        for (plusConfiguration in plusConfigurations) {
+            def deps = plusConfiguration.allDependencies.findAll(filter)
+            def files = deps.collect { it.resolve() }.flatten()
+            result.addAll(files)
+        }
+        for (minusConfiguration in minusConfigurations) {
+            def deps = minusConfiguration.allDependencies.findAll(filter)
+            def files = deps.collect { it.resolve() }.flatten()
+            result.removeAll(files)
+        }
+        return result.collect { new IdeLocalFileDependency( dependency: it) }
     }
 
     private Set<File> resolveFiles(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
@@ -92,12 +100,6 @@ class IdeDependenciesExtractor {
             result.removeAll(minusConfiguration.files { it instanceof ExternalDependency })
         }
         result
-    }
-
-    private getSelfResolvingFiles(Collection dependencies) {
-        dependencies.collect { SelfResolvingDependency dependency ->
-            dependency.resolve()
-        }.flatten()
     }
 
     private Set<Dependency> getDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure filter) {

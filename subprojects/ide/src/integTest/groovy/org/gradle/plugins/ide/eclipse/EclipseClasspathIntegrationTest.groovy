@@ -84,7 +84,6 @@ eclipse {
     }
 
     @Test
-    @Ignore //not yet implemented
     @Issue("GRADLE-1487")
     void "handles plus minus configurations for self resolving deps"() {
         //when
