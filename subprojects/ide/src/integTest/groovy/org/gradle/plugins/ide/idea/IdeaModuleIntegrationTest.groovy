@@ -217,4 +217,37 @@ task generateForTest << {}
         //then
         result.assertTasksExecuted(':generateForMain', ':generateForTest', ':ideaModule', ':ideaProject', ':ideaWorkspace', ':idea')
     }
+
+    @Test
+    void "enables toggling javadoc and sources off"() {
+        //given
+        def repoDir = file("repo")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "sources")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "javadoc")
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
+
+dependencies {
+    compile 'coolGroup:niceArtifact:1.0'
+}
+
+idea.module {
+    downloadSources = false
+    downloadJavadoc = false
+}
+"""
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        assert !content.contains('niceArtifact-1.0-sources.jar')
+        assert !content.contains('niceArtifact-1.0-javadoc.jar')
+    }
 }
