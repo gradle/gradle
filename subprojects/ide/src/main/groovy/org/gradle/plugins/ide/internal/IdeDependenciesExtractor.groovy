@@ -108,7 +108,28 @@ class IdeDependenciesExtractor {
             result.addAll(plusConfiguration.allDependencies.findAll(filter))
         }
         for (minusConfiguration in minusConfigurations) {
-            result.removeAll(minusConfiguration.allDependencies.findAll(filter))
+            minusConfiguration.allDependencies.findAll(filter).each { minusDep ->
+                if (minusDep instanceof ExternalDependency) {
+                    // This deals with dependencies that are defined in different scopes with different
+                    // artifacts. Right now we accept the fact, that in such a situation some artifacts
+                    // might be duplicated in Idea (they live in different scopes then).
+
+                    //TODO SF START - I think this code path should be removed.
+                    //I don't think it is ever executed because minusDep is never an instance of ExternalDependency
+                    //We only call this method for SelfResolvingDependencies (aka local files) and for ProjectDependencies (see the callers of this method)
+                    //So this path seems to be a dead code because non of above implementators ever implement the ExternalDependency interface.
+                    //All above is assuming that clients didn't create their own implementations of our public interfaces that satisfy this condition.
+                    //But I think it bloody unlikely someone was so hardcore to provide own implementations of SelfResolvingDependency, ProjectDependency, etc.
+                    //So, I think this code path should be removed but I cannot do it now as I'm refactoring something else in this area and I want to keep the demolition range short :)
+                    ExternalDependency removeCandidate = result.find { it == minusDep }
+                    if (removeCandidate && removeCandidate.artifacts == minusDep.artifacts) {
+                        result.remove(removeCandidate)
+                    }
+                    //END
+                } else {
+                    result.remove(minusDep)
+                }
+            }
         }
         result
     }

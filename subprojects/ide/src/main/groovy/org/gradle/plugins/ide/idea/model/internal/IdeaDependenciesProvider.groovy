@@ -43,7 +43,6 @@ class IdeaDependenciesProvider {
     private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
 
     Set<org.gradle.plugins.ide.idea.model.Dependency> provide(IdeaModule ideaModule, PathFactory pathFactory) {
-        //(SF) below assignments are funky but I wanted to make little changes to the code refactored from GenerateIdeaModule
         this.project = ideaModule.project
         this.scopes = ideaModule.scopes
         this.downloadSources = ideaModule.downloadSources
@@ -81,23 +80,13 @@ class IdeaDependenciesProvider {
     protected Set getModuleLibraries(String scope) {
         if (!scopes[scope]) { return [] }
 
-        def allResolvedDependencies = resolveDependencies(scopes[scope].plus, scopes[scope].minus)
+        def repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
+                project.configurations, scopes[scope].plus, scopes[scope].minus, downloadSources, downloadJavadoc)
 
-        Set sourceDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-            addSourceArtifact(dependency)
+        List moduleLibraries = repoFileDependencies.collect {
+            new ModuleLibrary([getPath(it.dependency)] as Set, it.javadoc ? [getPath(it.javadoc)] as Set : [] as Set, it.source ? [getPath(it.source)] as Set : [] as Set, [] as Set, scope)
         }
-        Map sourceFiles = downloadSources ? getFiles(sourceDependencies, "sources") : [:]
 
-        Set javadocDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-            addJavadocArtifact(dependency)
-        }
-        Map javadocFiles = downloadJavadoc ? getFiles(javadocDependencies, "javadoc") : [:]
-
-        List moduleLibraries = resolveFiles(scopes[scope].plus, scopes[scope].minus).collect { File binaryFile ->
-            File sourceFile = sourceFiles[binaryFile.name]
-            File javadocFile = javadocFiles[binaryFile.name]
-            new ModuleLibrary([getPath(binaryFile)] as Set, javadocFile ? [getPath(javadocFile)] as Set : [] as Set, sourceFile ? [getPath(sourceFile)] as Set : [] as Set, [] as Set, scope)
-        }
         moduleLibraries.addAll(getSelfResolvingFiles(getScopeDependencies(scopes[scope],
                 { it instanceof SelfResolvingDependency && !(it instanceof ProjectDependency)}), scope))
         return moduleLibraries as LinkedHashSet
