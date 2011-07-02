@@ -24,9 +24,9 @@ class MavenRepository {
         this.rootDir = rootDir
     }
 
-    MavenModule module(String groupId, String artifactId, Object version = '1.0') {
+    MavenModule module(String groupId, String artifactId, Object version = '1.0', String classifier = null) {
         def artifactDir = rootDir.file("${groupId.replace('.', '/')}/$artifactId/$version")
-        return new MavenModule(artifactDir, groupId, artifactId, version as String)
+        return new MavenModule(artifactDir, groupId, artifactId, version as String, classifier)
     }
 }
 
@@ -36,12 +36,14 @@ class MavenModule {
     final String artifactId
     final String version
     private final List<String> dependencies = []
+    final String classifier
 
-    MavenModule(TestFile moduleDir, String groupId, String artifactId, String version) {
+    MavenModule(TestFile moduleDir, String groupId, String artifactId, String version, String classifier = null) {
         this.moduleDir = moduleDir
         this.groupId = groupId
         this.artifactId = artifactId
         this.version = version
+        this.classifier = classifier
     }
 
     MavenModule dependsOn(String dependencyArtifactId) {
@@ -61,6 +63,8 @@ class MavenModule {
         moduleDir.createDir()
 
         def pomFile = new File(moduleDir, "$artifactId-${version}.pom")
+        pomFile.text = ''
+
         pomFile << """
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
@@ -82,7 +86,12 @@ class MavenModule {
 
         pomFile << "\n</project>"
 
-        def jarFile = new File("$moduleDir/$artifactId-${version}.jar")
+        def fileName = "$moduleDir/$artifactId-${version}.jar"
+        if (classifier) {
+            fileName = "$moduleDir/$artifactId-$version-${classifier}.jar"
+        }
+
+        def jarFile = new File(fileName)
         jarFile << "add some content so that file size isn't zero"
 
         return jarFile

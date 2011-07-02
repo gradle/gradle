@@ -49,8 +49,8 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         buildFile.parentFile.file("src/main/resources").createDir()
     }
 
-    protected File publishArtifact(dir, group, artifact, dependency = null) {
-        def module = new MavenRepository(new TestFile(dir)).module(group, artifact, 1.0)
+    protected File publishArtifact(dir, group, artifact, dependency = null, classifier = null) {
+        def module = new MavenRepository(new TestFile(dir)).module(group, artifact, 1.0, classifier)
         if (dependency) {
             module.dependsOn(dependency)
         }

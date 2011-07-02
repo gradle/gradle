@@ -187,6 +187,72 @@ eclipse.classpath {
     }
 
     @Test
+    void "configures javadoc and sources"() {
+        //given
+        def repoDir = file("repo")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "sources")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "javadoc")
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
+
+dependencies {
+    compile 'coolGroup:niceArtifact:1.0'
+}
+
+eclipse.classpath {
+    downloadSources = true
+    downloadJavadoc = true
+}
+"""
+        content = getFile([print: true], '.classpath').text
+
+        //then
+        contains 'niceArtifact-1.0-sources.jar'
+        contains 'niceArtifact-1.0-javadoc.jar'
+    }
+
+    @Test
+    void "enables toggling javadoc and sources off"() {
+        //given
+        def repoDir = file("repo")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "sources")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "javadoc")
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
+
+dependencies {
+    compile 'coolGroup:niceArtifact:1.0'
+}
+
+eclipse.classpath {
+    downloadSources = false
+    downloadJavadoc = false
+}
+"""
+        content = getFile([print: true], '.classpath').text
+
+        //then
+        assert !content.contains('niceArtifact-1.0-sources.jar')
+        assert !content.contains('niceArtifact-1.0-javadoc.jar')
+    }
+
+    @Test
     void allowsConfiguringHooks() {
         //given
         def classpath = getClasspathFile([:])
