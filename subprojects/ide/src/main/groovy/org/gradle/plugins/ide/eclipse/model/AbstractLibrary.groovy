@@ -52,7 +52,6 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
 
         AbstractLibrary that = (AbstractLibrary) o;
 
-        if (exported != that.exported) { return false }
         if (accessRules != that.accessRules) { return false }
         if (javadocPath != that.javadocPath) { return false }
         if (nativeLibraryLocation != that.nativeLibraryLocation) { return false }
@@ -67,7 +66,6 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
 
         result = path.hashCode();
         result = 31 * result + (nativeLibraryLocation != null ? nativeLibraryLocation.hashCode() : 0);
-        result = 31 * result + (exported ? 1 : 0);
         result = 31 * result + accessRules.hashCode();
         result = 31 * result + (sourcePath != null ? sourcePath.hashCode() : 0);
         result = 31 * result + (javadocPath != null ? javadocPath.hashCode() : 0);
