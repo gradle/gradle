@@ -26,20 +26,22 @@ import org.gradle.api.artifacts.*
  */
 class IdeDependenciesExtractor {
 
-    static class IdeLocalFileDependency {
+    static class IdeDependency {
+        Configuration configuration
+    }
+
+    static class IdeLocalFileDependency extends IdeDependency {
         File dependency
     }
 
-    static class IdeRepoFileDependency {
+    static class IdeRepoFileDependency extends IdeDependency {
         File dependency
         File source
         File javadoc
-        Configuration configuration
     }
 
-    static class IdeProjectDependency {
+    static class IdeProjectDependency extends IdeDependency {
         Project dependency
-        Configuration configuration
     }
 
     List<IdeProjectDependency> extractProjectDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
@@ -107,19 +109,22 @@ class IdeDependenciesExtractor {
     }
 
     List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        def result = new LinkedHashSet()
+        LinkedHashMap<File, Configuration> fileToConf = [:]
         def filter = { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}
+
         for (plusConfiguration in plusConfigurations) {
             def deps = plusConfiguration.allDependencies.findAll(filter)
             def files = deps.collect { it.resolve() }.flatten()
-            result.addAll(files)
+            files.each { fileToConf[it] = plusConfiguration }
         }
         for (minusConfiguration in minusConfigurations) {
             def deps = minusConfiguration.allDependencies.findAll(filter)
             def files = deps.collect { it.resolve() }.flatten()
-            result.removeAll(files)
+            files.each { fileToConf.remove(it) }
         }
-        return result.collect { new IdeLocalFileDependency( dependency: it) }
+        return fileToConf.collect { file, conf ->
+            new IdeLocalFileDependency( dependency: file, configuration: conf)
+        }
     }
 
     private Map<File, Configuration> resolveFiles(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
