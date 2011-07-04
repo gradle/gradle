@@ -34,11 +34,12 @@ class IdeDependenciesExtractor {
         File dependency
         File source
         File javadoc
+        Configuration configuration
     }
 
     static class IdeProjectDependency {
         Project dependency
-        Configuration source
+        Configuration configuration
     }
 
     List<IdeProjectDependency> extractProjectDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
@@ -72,8 +73,8 @@ class IdeDependenciesExtractor {
                 }
             }
         }
-        return depToConf.collect { ProjectDependency k, Configuration v ->
-            new IdeProjectDependency(dependency: k.dependencyProject, source: v)
+        return depToConf.collect { projectDependency, conf ->
+            new IdeProjectDependency(dependency: projectDependency.dependencyProject, configuration: conf)
         }
     }
 
@@ -96,10 +97,10 @@ class IdeDependenciesExtractor {
 
         Map<String, File> javadocFiles = downloadJavadoc ? getFiles(confContainer.detachedConfiguration(javadocDependencies as Dependency[]), "javadoc") : [:]
 
-        resolveFiles(plusConfigurations, minusConfigurations).collect { File binaryFile ->
+        resolveFiles(plusConfigurations, minusConfigurations).collect { File binaryFile, Configuration conf ->
             File sourceFile = sourceFiles[binaryFile.name]
             File javadocFile = javadocFiles[binaryFile.name]
-            out << new IdeRepoFileDependency( dependency: binaryFile, source: sourceFile, javadoc: javadocFile)
+            out << new IdeRepoFileDependency( dependency: binaryFile, source: sourceFile, javadoc: javadocFile, configuration: conf)
         }
 
         out
@@ -121,15 +122,19 @@ class IdeDependenciesExtractor {
         return result.collect { new IdeLocalFileDependency( dependency: it) }
     }
 
-    private Set<File> resolveFiles(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        def result = new LinkedHashSet()
+    private Map<File, Configuration> resolveFiles(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        LinkedHashMap<File, Configuration> fileToConf = [:]
         for (plusConfiguration in plusConfigurations) {
-            result.addAll(plusConfiguration.files { it instanceof ExternalDependency })
+            for (file in plusConfiguration.files { it instanceof ExternalDependency }) {
+                fileToConf[file] = plusConfiguration
+            }
         }
         for (minusConfiguration in minusConfigurations) {
-            result.removeAll(minusConfiguration.files { it instanceof ExternalDependency })
+            for (file in minusConfiguration.files { it instanceof ExternalDependency }) {
+                fileToConf.remove(file)
+            }
         }
-        result
+        fileToConf
     }
 
     private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
