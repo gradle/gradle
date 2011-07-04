@@ -25,8 +25,8 @@ import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
 /**
- * All code was refactored from the GenerateIdeaModule class.
- * TODO: This class should be refactored so that we can reuse it in Eclipse plugin also.
+ * TODO SF - later do some clean up in this class.
+ * For example remove unnecessary fields, pass configuration instead of scope name, etc.
  *
  * @author Szczepan Faber, created at: 4/1/11
  */
