@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -374,7 +373,6 @@ task generateForTest << {}
     }
 
     @Test
-    @Ignore //not yet implemented
     @Issue("GRADLE-1613")
     void "should allow setting non-exported configurations"() {
         //when
@@ -394,14 +392,17 @@ dependencies {
 eclipse {
   classpath {
     plusConfigurations += configurations.provided
-    noExportConfigNames = ['provided']
+    noExportConfigurations += configurations.provided
   }
 }
 """
         //then no exception is thrown
         def cp = parseClasspathFile(print: true)
-        assert cp.classpathentry.find   { it.@path.text().contains 'compileDependency.jar' }.@exported.text()
-        assert !cp.classpathentry.find { it.@path.text().contains 'providedDependency.jar' }.@exported.text()
+        assert "true" == cp.classpathentry.find   { it.@path.text().contains 'compileDependency.jar' }.@exported.text()
+
+        def providedDependency = cp.classpathentry.find { it.@path.text().contains 'providedDependency.jar' }
+        assert providedDependency : "dependency should be included in the classpath entries"
+        assert "" == providedDependency.@exported.text()
     }
 
     protected def contains(String ... wanted) {

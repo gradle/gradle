@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
+import org.gradle.plugins.ide.eclipse.model.internal.ExportedEntriesUpdater
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -123,6 +124,13 @@ class EclipseClasspath {
      */
     Collection<Configuration> minusConfigurations = []
 
+    /**
+     * The configurations which files will not be exported. TODO SF clarify and add an example.
+     * <p>
+     * For example see docs for {@link EclipseClasspath}
+     */
+    Collection<Configuration> noExportConfigurations = []
+
    /**
      * Containers to be added to the classpath
      * <p>
@@ -172,14 +180,13 @@ class EclipseClasspath {
      *
      * For example see docs for {@link EclipseProject}
      */
-
     void file(Closure closure) {
         ConfigureUtil.configure(closure, file)
     }
+
     /**
      * See {@link #file(Closure) }
      */
-
     XmlFileContentMerger file
 
     /******/
@@ -195,7 +202,9 @@ class EclipseClasspath {
      * Calculates, resolves & returns dependency entries of this classpath
      */
     public List<ClasspathEntry> resolveDependencies() {
-        return new ClasspathFactory().createEntries(this)
+        def entries = new ClasspathFactory().createEntries(this)
+        new ExportedEntriesUpdater().updateExported(entries, this.noExportConfigurations*.name)
+        return entries
     }
 
     void mergeXmlClasspath(Classpath xmlClasspath) {
