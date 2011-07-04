@@ -69,7 +69,7 @@ class IdeaDependenciesProvider {
         def s = scopes[scope]
         if (s) {
             return dependenciesExtractor.extractProjectDependencies(s.plus, s.minus).collect {
-                new ModuleDependencyBuilder().create(it.dependency, scope)
+                new ModuleDependencyBuilder().create(it.project, scope)
             }
         }
         return []
@@ -83,11 +83,11 @@ class IdeaDependenciesProvider {
                 project.configurations, scopes[scope].plus, scopes[scope].minus, downloadSources, downloadJavadoc)
 
         repoFileDependencies.each {
-            moduleLibraries << new ModuleLibrary([getPath(it.dependency)] as Set, it.javadoc ? [getPath(it.javadoc)] as Set : [] as Set, it.source ? [getPath(it.source)] as Set : [] as Set, [] as Set, scope)
+            moduleLibraries << new ModuleLibrary([getPath(it.file)] as Set, it.javadocFile ? [getPath(it.javadocFile)] as Set : [] as Set, it.sourceFile ? [getPath(it.sourceFile)] as Set : [] as Set, [] as Set, scope)
         }
 
         dependenciesExtractor.extractLocalFileDependencies(scopes[scope].plus, scopes[scope].minus).each {
-            moduleLibraries << new ModuleLibrary([getPath(it.dependency)] as Set, [] as Set, [] as Set, [] as Set, scope)
+            moduleLibraries << new ModuleLibrary([getPath(it.file)] as Set, [] as Set, [] as Set, [] as Set, scope)
         }
         moduleLibraries
     }

@@ -31,17 +31,17 @@ class IdeDependenciesExtractor {
     }
 
     static class IdeLocalFileDependency extends IdeDependency {
-        File dependency
+        File file
     }
 
     static class IdeRepoFileDependency extends IdeDependency {
-        File dependency
-        File source
-        File javadoc
+        File file
+        File sourceFile
+        File javadocFile
     }
 
     static class IdeProjectDependency extends IdeDependency {
-        Project dependency
+        Project project
     }
 
     List<IdeProjectDependency> extractProjectDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
@@ -76,7 +76,7 @@ class IdeDependenciesExtractor {
             }
         }
         return depToConf.collect { projectDependency, conf ->
-            new IdeProjectDependency(dependency: projectDependency.dependencyProject, declaredConfiguration: conf)
+            new IdeProjectDependency(project: projectDependency.dependencyProject, declaredConfiguration: conf)
         }
     }
 
@@ -102,7 +102,7 @@ class IdeDependenciesExtractor {
         resolveFiles(plusConfigurations, minusConfigurations).collect { File binaryFile, Configuration conf ->
             File sourceFile = sourceFiles[binaryFile.name]
             File javadocFile = javadocFiles[binaryFile.name]
-            out << new IdeRepoFileDependency( dependency: binaryFile, source: sourceFile, javadoc: javadocFile, declaredConfiguration: conf)
+            out << new IdeRepoFileDependency( file: binaryFile, sourceFile: sourceFile, javadocFile: javadocFile, declaredConfiguration: conf)
         }
 
         out
@@ -123,7 +123,7 @@ class IdeDependenciesExtractor {
             files.each { fileToConf.remove(it) }
         }
         return fileToConf.collect { file, conf ->
-            new IdeLocalFileDependency( dependency: file, declaredConfiguration: conf)
+            new IdeLocalFileDependency( file: file, declaredConfiguration: conf)
         }
     }
 

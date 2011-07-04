@@ -47,15 +47,15 @@ class ClasspathFactory {
 
     private List getDependencies(EclipseClasspath classpath) {
         if (classpath.projectDependenciesOnly) {
-            getModules(classpath)
+            getProjects(classpath)
         } else {
-            getModules(classpath) + getLibraries(classpath) + classFoldersCreator.create(classpath)
+            getProjects(classpath) + getLibraries(classpath) + classFoldersCreator.create(classpath)
         }
     }
 
-    protected List getModules(EclipseClasspath classpath) {
+    protected List getProjects(EclipseClasspath classpath) {
         return dependenciesExtractor.extractProjectDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
-                .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.dependency, it.declaredConfiguration.name) }
+                .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.project, it.declaredConfiguration.name) }
     }
 
     protected Set getLibraries(EclipseClasspath classpath) {
@@ -64,12 +64,12 @@ class ClasspathFactory {
         dependenciesExtractor.extractRepoFileDependencies(
                 classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
         .each { IdeRepoFileDependency it ->
-            libs << createLibraryEntry(it.dependency, it.source, it.javadoc, it.declaredConfiguration.name, classpath.pathVariables)
+            libs << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath.pathVariables)
         }
 
         dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
         .each { IdeLocalFileDependency it ->
-            libs << createLibraryEntry(it.dependency, null, null, it.declaredConfiguration.name, classpath.pathVariables)
+            libs << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath.pathVariables)
         }
 
         libs
