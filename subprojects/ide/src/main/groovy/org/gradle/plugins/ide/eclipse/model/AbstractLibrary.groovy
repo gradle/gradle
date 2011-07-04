@@ -20,6 +20,7 @@ package org.gradle.plugins.ide.eclipse.model
  */
 abstract class AbstractLibrary extends AbstractClasspathEntry {
     String sourcePath
+    String declaredConfigurationName
 
     AbstractLibrary(Node node) {
         super(node)

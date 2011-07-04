@@ -55,7 +55,7 @@ class ClasspathFactory {
 
     protected List getModules(EclipseClasspath classpath) {
         return dependenciesExtractor.extractProjectDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
-                .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.dependency) }
+                .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.dependency, it.declaredConfiguration.name) }
     }
 
     protected Set getLibraries(EclipseClasspath classpath) {
@@ -64,27 +64,31 @@ class ClasspathFactory {
         dependenciesExtractor.extractRepoFileDependencies(
                 classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
         .each { IdeRepoFileDependency it ->
-            libs << createLibraryEntry(it.dependency, it.source, it.javadoc, classpath.pathVariables)
+            libs << createLibraryEntry(it.dependency, it.source, it.javadoc, it.declaredConfiguration.name, classpath.pathVariables)
         }
 
         dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
         .each { IdeLocalFileDependency it ->
-            libs << createLibraryEntry(it.dependency, null, null, classpath.pathVariables)
+            libs << createLibraryEntry(it.dependency, null, null, it.declaredConfiguration.name, classpath.pathVariables)
         }
 
         libs
     }
 
-    AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map<String, File> pathVariables) {
+    private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, Map<String, File> pathVariables) {
         def usedVariableEntry = pathVariables.find { String name, File value -> binary.canonicalPath.startsWith(value.canonicalPath) }
+        def out
         if (usedVariableEntry) {
             String name = usedVariableEntry.key
             String value = usedVariableEntry.value.canonicalPath
             String binaryPath = name + binary.canonicalPath.substring(value.length())
             String sourcePath = source ? name + source.canonicalPath.substring(value.length()) : null
             String javadocPath = javadoc ? name + javadoc.canonicalPath.substring(value.length()) : null
-            return new Variable(binaryPath, true, null, [] as Set, sourcePath, javadocPath)
+            out = new Variable(binaryPath, true, null, [] as Set, sourcePath, javadocPath)
+        } else {
+            out = new Library(binary.canonicalPath, true, null, [] as Set, source ? source.canonicalPath : null, javadoc ? javadoc.canonicalPath : null)
         }
-        new Library(binary.canonicalPath, true, null, [] as Set, source ? source.canonicalPath : null, javadoc ? javadoc.canonicalPath : null)
+        out.declaredConfigurationName = declaredConfigurationName
+        out
     }
 }

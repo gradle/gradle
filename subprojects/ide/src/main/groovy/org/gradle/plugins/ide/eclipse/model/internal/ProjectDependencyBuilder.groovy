@@ -23,13 +23,15 @@ import org.gradle.plugins.ide.eclipse.model.ProjectDependency
  * @author Szczepan Faber, @date: 11.03.11
  */
 class ProjectDependencyBuilder {
-    ProjectDependency build(Project project) {
+    ProjectDependency build(Project project, String declaredConfigurationName) {
         def name
         if (project.plugins.hasPlugin(EclipsePlugin)) {
             name = project.eclipse.project.name
         } else {
             name = project.name
         }
-        new ProjectDependency('/' + name, true, null, [] as Set, project.path)
+        def out = new ProjectDependency('/' + name, true, null, [] as Set, project.path)
+        out.declaredConfigurationName = declaredConfigurationName
+        out
     }
 }

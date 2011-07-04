@@ -21,6 +21,7 @@ package org.gradle.plugins.ide.eclipse.model
 class ProjectDependency extends AbstractClasspathEntry {
 
     String gradlePath
+    String declaredConfigurationName
 
     ProjectDependency(Node node) {
         super(node)

@@ -29,10 +29,11 @@ class ProjectDependencyBuilderTest extends Specification {
 
     def "should create dependency using project name"() {
         when:
-        def dependency = builder.build(project)
+        def dependency = builder.build(project, 'compile')
 
         then:
         dependency.path == "/$project.name"
+        dependency.declaredConfigurationName == 'compile'
     }
 
     def "should create dependency using eclipse projectName"() {
@@ -41,7 +42,7 @@ class ProjectDependencyBuilderTest extends Specification {
         project.eclipse.project.name = 'foo'
 
         when:
-        def dependency = builder.build(project)
+        def dependency = builder.build(project, 'runtime')
 
         then:
         dependency.path == '/foo'
