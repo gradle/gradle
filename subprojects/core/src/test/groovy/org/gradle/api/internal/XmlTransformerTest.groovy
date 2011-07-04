@@ -178,7 +178,7 @@ class XmlTransformerTest extends Specification {
         looksLike "<root>\n\t<child>\n\t\t<grandchild/>\n\t</child>\n</root>\n", result
     }
 
-    def "allows adding DOCTYPE along with nodes"() {
+    def "can add DOCTYPE along with nodes"() {
         transformer.addAction { it.asNode().appendNode('someChild') }
         transformer.addAction {
             def s = it.asString()
@@ -190,6 +190,60 @@ class XmlTransformerTest extends Specification {
 
         then:
         result == TextUtil.toPlatformLineSeparators("<?xml version=\"1.0\"?>\n<!DOCTYPE application PUBLIC \"-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN\" \"http://java.sun.com/dtd/application_1_3.dtd\">\n<root>\n  <someChild/>\n</root>\n")
+    }
+
+    def "can specify DOCTYPE when using DomNode"() {
+        StringWriter writer = new StringWriter()
+        def node = new DomNode('root')
+        node.publicId = 'public-id'
+        node.systemId = 'system-id'
+
+        when:
+        transformer.transform(node, writer)
+
+        then:
+        writer.toString() == TextUtil.toPlatformLineSeparators('''<?xml version=\"1.0\"?>
+<!DOCTYPE root PUBLIC "public-id" "system-id">
+<root/>
+''')
+    }
+
+    def "DOCTYPE is preserved when transformed as a Node"() {
+        StringWriter writer = new StringWriter()
+        def node = new DomNode('root')
+        node.publicId = 'public-id'
+        node.systemId = 'system-id'
+        transformer.addAction { it.asNode().appendNode('someChild') }
+
+        when:
+        transformer.transform(node, writer)
+
+        then:
+        writer.toString() == TextUtil.toPlatformLineSeparators('''<?xml version=\"1.0\"?>
+<!DOCTYPE root PUBLIC "public-id" "system-id">
+<root>
+  <someChild/>
+</root>
+''')
+    }
+
+    def "DOCTYPE is preserved when transformed as a DOM element"() {
+        StringWriter writer = new StringWriter()
+        def node = new DomNode('root')
+        node.publicId = 'public-id'
+        node.systemId = getClass().getResource("xml-transformer-test.dtd")
+        transformer.addAction { it.asElement().appendChild(it.asElement().ownerDocument.createElement('someChild')) }
+
+        when:
+        transformer.transform(node, writer)
+
+        then:
+        writer.toString() == TextUtil.toPlatformLineSeparators("""<?xml version="1.0"?>
+<!DOCTYPE root PUBLIC "public-id" "${node.getSystemId()}">
+<root>
+  <someChild/>
+</root>
+""")
     }
 
     def "indentation correct when writing out DOM element (only) if indenting with spaces"() {

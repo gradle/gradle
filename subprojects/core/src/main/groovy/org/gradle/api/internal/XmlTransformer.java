@@ -25,6 +25,7 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.maven.XmlProvider;
+import org.gradle.util.GUtil;
 import org.gradle.util.SystemProperties;
 import org.gradle.util.TextUtil;
 import org.gradle.util.UncheckedException;
@@ -78,14 +79,27 @@ public class XmlTransformer implements Transformer<String> {
         doTransform(original).writeTo(destination);
     }
 
+    public void transform(DomNode original, Writer destination) {
+        doTransform(original).writeTo(destination);
+    }
+
+    public void transform(DomNode original, OutputStream destination) {
+        doTransform(original).writeTo(destination);
+    }
+
     private XmlProviderImpl doTransform(String original) {
-        XmlProviderImpl provider = new XmlProviderImpl(original);
-        provider.apply(actions);
-        return provider;
+        return doTransform(new XmlProviderImpl(original));
     }
 
     private XmlProviderImpl doTransform(Node original) {
-        XmlProviderImpl provider = new XmlProviderImpl(original);
+        return doTransform(new XmlProviderImpl(original));
+    }
+
+    private XmlProviderImpl doTransform(DomNode original) {
+        return doTransform(new XmlProviderImpl(original));
+    }
+
+    private XmlProviderImpl doTransform(XmlProviderImpl provider) {
         provider.apply(actions);
         return provider;
     }
@@ -95,6 +109,8 @@ public class XmlTransformer implements Transformer<String> {
         private Node node;
         private String stringValue;
         private Element element;
+        private String publicId;
+        private String systemId;
 
         public XmlProviderImpl(String original) {
             this.stringValue = original;
@@ -102,6 +118,12 @@ public class XmlTransformer implements Transformer<String> {
 
         public XmlProviderImpl(Node original) {
             this.node = original;
+        }
+
+        public XmlProviderImpl(DomNode original) {
+            this.node = original;
+            publicId = original.getPublicId();
+            systemId = original.getSystemId();
         }
 
         public void apply(Iterable<Action<? super XmlProvider>> actions) {
@@ -173,19 +195,9 @@ public class XmlTransformer implements Transformer<String> {
 
             try {
                 if (node != null) {
-                    final PrintWriter printWriter = new PrintWriter(writer);
-                    IndentPrinter indentPrinter = new IndentPrinter(printWriter, indentation) {
-                        @Override
-                        public void println() {
-                            printWriter.println();
-                        }
-                    };
-                    XmlNodePrinter nodePrinter = new XmlNodePrinter(indentPrinter);
-                    nodePrinter.setPreserveWhitespace(true);
-                    nodePrinter.print(node);
-                    printWriter.flush();
+                    printNode(node, writer);
                 } else if (element != null) {
-                    printNode(element, writer);
+                    printDomNode(element, writer);
                 } else if (builder != null) {
                     writer.append(TextUtil.toPlatformLineSeparators(stripXmlDeclaration(builder)));
                 } else {
@@ -196,7 +208,24 @@ public class XmlTransformer implements Transformer<String> {
             }
         }
 
-        private void printNode(org.w3c.dom.Node node, Writer destination) {
+        private void printNode(Node node, Writer writer) {
+            final PrintWriter printWriter = new PrintWriter(writer);
+            if (GUtil.isTrue(publicId)) {
+                printWriter.format("<!DOCTYPE %s PUBLIC \"%s\" \"%s\">%n", node.name(), publicId, systemId);
+            }
+            IndentPrinter indentPrinter = new IndentPrinter(printWriter, indentation) {
+                @Override
+                public void println() {
+                    printWriter.println();
+                }
+            };
+            XmlNodePrinter nodePrinter = new XmlNodePrinter(indentPrinter);
+            nodePrinter.setPreserveWhitespace(true);
+            nodePrinter.print(node);
+            printWriter.flush();
+        }
+
+        private void printDomNode(org.w3c.dom.Node node, Writer destination) {
             removeEmptyTextNodes(node); // empty text nodes hinder subsequent formatting
             int indentAmount = determineIndentAmount();
 
@@ -212,6 +241,10 @@ public class XmlTransformer implements Transformer<String> {
                 transformer.setOutputProperty(OutputKeys.METHOD, "xml");
                 transformer.setOutputProperty(OutputKeys.INDENT, "yes");
                 transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                if (GUtil.isTrue(publicId)) {
+                    transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, publicId);
+                    transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, systemId);
+                }
                 try {
                     // some impls support this but not factory.setAttribute("indent-number")
                     transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indentAmount));

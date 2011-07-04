@@ -25,6 +25,7 @@ import org.gradle.api.enterprise.archives.EarSecurityRole
 import org.gradle.api.enterprise.archives.EarWebModule
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.DomNode
 
 /**
  * @author David Gileadi
@@ -200,24 +201,20 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     public DefaultDeploymentDescriptor writeTo(Writer writer) {
-        if (version == "1.3") {
-            transformer.addAction {
-                def s = it.asString()
-                s.insert(s.indexOf("?>") + 2, '\n<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">')
-            }
-        }
         transformer.transform(toXmlNode(), writer)
         return this;
     }
 
     protected Node toXmlNode() {
-        Node root = new Node(null, nodeNameFor("application"))
+        DomNode root = new DomNode(nodeNameFor("application"))
         root.@version = version
         if (version != "1.3") {
             root.@"xmlns:xsi" = "http://www.w3.org/2001/XMLSchema-instance"
         }
         switch (version) {
             case "1.3":
+                root.publicId = "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN"
+                root.systemId = "http://java.sun.com/dtd/application_1_3.dtd"
                 break
             case "1.4":
                 root.@"xsi:schemaLocation" = "http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd"

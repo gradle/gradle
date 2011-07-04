@@ -37,6 +37,19 @@ class DefaultDeploymentDescriptorTest extends Specification {
 """)
     }
 
+    def "writes version 1.3 default descriptor"() {
+        descriptor.version = '1.3'
+
+        when:
+        descriptor.writeTo(out)
+
+        then:
+        out.toString() == toPlatformLineSeparators("""<?xml version="1.0"?>
+<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">
+<application version="1.3"/>
+""")
+    }
+
     def "writes values"() {
         descriptor.fileName = "myApp.xml"
         descriptor.version = "5"
