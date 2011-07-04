@@ -33,4 +33,6 @@ public interface ExtensionContainer {
      */
     void add(String name, Object extension);
     //TODO SF the method name is wrong. It should be 'put' or 'setExtension'
+
+    //TODO SF - add the method to get extension!
 }
