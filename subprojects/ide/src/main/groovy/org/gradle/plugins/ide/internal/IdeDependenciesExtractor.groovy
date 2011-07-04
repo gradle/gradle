@@ -38,12 +38,42 @@ class IdeDependenciesExtractor {
 
     static class IdeProjectDependency {
         Project dependency
+        Configuration source
     }
 
     List<IdeProjectDependency> extractProjectDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        def filter = { it instanceof ProjectDependency }
-        return getDependencies(plusConfigurations, minusConfigurations, filter).collect { ProjectDependency it ->
-            new IdeProjectDependency (dependency: it.dependencyProject)
+        LinkedHashMap<ProjectDependency, Configuration> depToConf = [:]
+        for (plusConfiguration in plusConfigurations) {
+            for (ProjectDependency dependency in plusConfiguration.allDependencies.findAll({ it instanceof ProjectDependency })) {
+                depToConf[dependency] = plusConfiguration
+            }
+        }
+        for (minusConfiguration in minusConfigurations) {
+            for(minusDep in minusConfiguration.allDependencies.findAll({ it instanceof ProjectDependency })) {
+                if (minusDep instanceof ExternalDependency) {
+                    // This deals with dependencies that are defined in different scopes with different
+                    // artifacts. Right now we accept the fact, that in such a situation some artifacts
+                    // might be duplicated in Idea (they live in different scopes then).
+
+                    //TODO SF START - I think this code path should be removed.
+                    //I don't think it is ever executed because minusDep is never an instance of ExternalDependency
+                    //We only call this method for ProjectDependencies (see the callers of this method) for SelfResolvingDependencies (aka local files - no longer the case after refactoring)
+                    //So this path seems to be a dead code because non of above implementators ever implement the ExternalDependency interface.
+                    //All above is assuming that clients didn't create their own implementations of our public interfaces that satisfy this condition.
+                    //But I think it bloody unlikely someone was so hardcore to provide own implementations of SelfResolvingDependency, ProjectDependency, etc.
+                    //So, I think this code path should be removed but I cannot do it now as I'm refactoring something else in this area and I want to keep the demolition range short :)
+                    ExternalDependency removeCandidate = depToConf[minusDep]
+                    if (removeCandidate && removeCandidate.artifacts == minusDep.artifacts) {
+                        depToConf.remove(removeCandidate)
+                    }
+                    //END
+                } else {
+                    depToConf.remove(minusDep)
+                }
+            }
+        }
+        return depToConf.collect { ProjectDependency k, Configuration v ->
+            new IdeProjectDependency(dependency: k.dependencyProject, source: v)
         }
     }
 
@@ -98,38 +128,6 @@ class IdeDependenciesExtractor {
         }
         for (minusConfiguration in minusConfigurations) {
             result.removeAll(minusConfiguration.files { it instanceof ExternalDependency })
-        }
-        result
-    }
-
-    private Set<Dependency> getDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure filter) {
-        def result = new LinkedHashSet()
-        for (plusConfiguration in plusConfigurations) {
-            result.addAll(plusConfiguration.allDependencies.findAll(filter))
-        }
-        for (minusConfiguration in minusConfigurations) {
-            minusConfiguration.allDependencies.findAll(filter).each { minusDep ->
-                if (minusDep instanceof ExternalDependency) {
-                    // This deals with dependencies that are defined in different scopes with different
-                    // artifacts. Right now we accept the fact, that in such a situation some artifacts
-                    // might be duplicated in Idea (they live in different scopes then).
-
-                    //TODO SF START - I think this code path should be removed.
-                    //I don't think it is ever executed because minusDep is never an instance of ExternalDependency
-                    //We only call this method for SelfResolvingDependencies (aka local files) and for ProjectDependencies (see the callers of this method)
-                    //So this path seems to be a dead code because non of above implementators ever implement the ExternalDependency interface.
-                    //All above is assuming that clients didn't create their own implementations of our public interfaces that satisfy this condition.
-                    //But I think it bloody unlikely someone was so hardcore to provide own implementations of SelfResolvingDependency, ProjectDependency, etc.
-                    //So, I think this code path should be removed but I cannot do it now as I'm refactoring something else in this area and I want to keep the demolition range short :)
-                    ExternalDependency removeCandidate = result.find { it == minusDep }
-                    if (removeCandidate && removeCandidate.artifacts == minusDep.artifacts) {
-                        result.remove(removeCandidate)
-                    }
-                    //END
-                } else {
-                    result.remove(minusDep)
-                }
-            }
         }
         result
     }
