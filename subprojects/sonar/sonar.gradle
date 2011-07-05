@@ -38,8 +38,5 @@ sourceSets {
     }
 }
 
-idea {
-    module {
-        scopes.PROVIDED.plus += configurations.provided
-    }
-}
+idea.module.scopes.PROVIDED.plus += configurations.provided
+eclipse.classpath.plusConfigurations += configurations.provided
