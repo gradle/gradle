@@ -30,6 +30,7 @@ configurations {
     integTestFixturesRuntime {
         extendsFrom integTestFixtures, integTestRuntime
     }
+    excludedInEclipse
 }
 
 dependencies {
@@ -71,6 +72,8 @@ dependencies {
 
     testFixtures sourceSets.test.output, sourceSets.main.output, project(':coreImpl')
     integTestFixtures sourceSets.integTest.output
+
+    excludedInEclipse project(":coreImpl")
 }
 
 def generatedResourcesDir = "$buildDir/generated-resources/main"
@@ -84,3 +87,8 @@ sourceSets.main.output.dir generatedResourcesDir, buildBy: 'releasesResource'
 test {
     jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
 }
+
+// (SF) See issue GRADLE-1581
+// needs to be excluded because Eclipse does not recognize the difference between test & prod dependency
+// this is not a best solution. I guess we should move the tests that depend on coreIml from the core subproject or fix eclipse :)
+eclipse.classpath.minusConfigurations += configurations.excludedInEclipse
