@@ -30,10 +30,6 @@
     <h2>Recent news</h2>
     <ul>${php.indexNews}</ul>
     <div class="more"><a href="news.php">more news</a></div>
-    <br>
-    <a href="http://vote.jax-awards.com/">
-	<img src="img/jaxawards.png" alt="JAXAwards" />
-	</a>
 </div>
 </div>
 
