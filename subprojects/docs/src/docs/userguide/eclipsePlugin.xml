@@ -113,7 +113,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Generates the <filename>.project</filename> file.</td>
+                <td>Removes the <filename>.project</filename> file.</td>
             </tr>
             <tr>
                 <td>
@@ -123,7 +123,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Generates the <filename>.classpath</filename> file.</td>
+                <td>Removes the <filename>.classpath</filename> file.</td>
             </tr>
             <tr>
                 <td>
