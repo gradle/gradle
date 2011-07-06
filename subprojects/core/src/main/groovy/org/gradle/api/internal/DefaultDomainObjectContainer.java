@@ -64,7 +64,7 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
         return new FilteredObjectStore<S>(store, type, Specs.satisfyAll());
     }
 
-    public void addObject(T value) {
+    protected void addObject(T value) {
         store.add(value);
     }
 

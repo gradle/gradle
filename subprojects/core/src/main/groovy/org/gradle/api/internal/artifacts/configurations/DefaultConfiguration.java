@@ -23,7 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.internal.MutableDomainObjectContainer;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -52,8 +52,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private IvyService ivyService;
 
-    private DefaultDomainObjectContainer<Dependency> dependencies =
-            new DefaultDomainObjectContainer<Dependency>(Dependency.class);
+    private MutableDomainObjectContainer<Dependency> dependencies =
+            new MutableDomainObjectContainer<Dependency>(Dependency.class);
 
     private Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
 
