@@ -275,7 +275,7 @@ public class DefaultDomainObjectContainerTest {
     }
 
     @Test
-    public void callsActionWhenObjectRemoved() {
+    public void callsRemoveActionWhenObjectReplaced() {
         final Action<CharSequence> action = context.mock(Action.class);
         final String original = "a";
 
@@ -286,6 +286,20 @@ public class DefaultDomainObjectContainerTest {
         container.whenObjectRemoved(action);
         container.addObject(original);
         container.addObject("a");
+    }
+
+    @Test
+    public void callsRemoveActionWhenObjectRemoved() {
+        final Action<CharSequence> action = context.mock(Action.class);
+        final String original = "a";
+
+        context.checking(new Expectations() {{
+            one(action).execute(with(sameInstance(original)));
+        }});
+
+        container.whenObjectRemoved(action);
+        container.addObject(original);
+        assertTrue(container.removeObject(original));
     }
 
     @Test
@@ -367,4 +381,19 @@ public class DefaultDomainObjectContainerTest {
         container.all(action);
     }
 
+    @Test
+    public void canRemoveObjectAndMaintainOrder() {
+        container.addObject("b");
+        container.addObject("a");
+        container.addObject("c");
+
+        assertTrue(container.removeObject("a"));
+        assertThat(container.getAll(), equalTo(toLinkedSet((CharSequence) "b", "c")));
+    }
+
+    @Test
+    public void canRemoveObjectNonExistentObject() {
+        assertFalse(container.removeObject("a"));
+    }
+    
 }

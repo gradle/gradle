@@ -68,8 +68,13 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
         store.add(value);
     }
 
+    protected boolean removeObject(T value) {
+        return store.remove(value);
+    }
+
     protected interface ObjectStore<S> extends Store<S> {
         void add(S object);
+        boolean remove(S object);
     }
 
     private static class SetStore<S> implements ObjectStore<S> {
@@ -85,6 +90,16 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
             addActions.execute(object);
         }
 
+        public boolean remove(S object) {
+            S removed = objects.remove(object);
+            if (removed != null) {
+                removeActions.execute(removed);
+                return true;
+            } else {
+                return false;
+            }
+        }
+        
         public Collection<? extends S> getAll() {
             return objects.values();
         }
@@ -106,5 +121,10 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
         public void add(S object) {
             throw new UnsupportedOperationException();
         }
+        
+        public boolean remove(S object) {
+            throw new UnsupportedOperationException();
+        }
+        
     }
 }

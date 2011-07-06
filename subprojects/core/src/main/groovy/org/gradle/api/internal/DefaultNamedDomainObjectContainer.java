@@ -64,6 +64,17 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
         store.put(name, object);
     }
 
+    /**
+     * Removes a domain object from this container.
+     * 
+     * @param name The name of the domain object to remove
+     * @return The removed domain object, or {@code null} if no object exists with that name
+     */
+    protected T removeObject(String name) {
+        assert name != null;
+        return store.remove(name);
+    }
+    
     public String getDisplayName() {
         return String.format("%s container", getTypeDisplayName());
     }
@@ -187,6 +198,8 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
     protected interface NamedObjectStore<S> extends Store<S> {
         S put(String name, S value);
 
+        S remove(String name);
+
         S find(String name);
 
         Map<String, S> getAsMap();
@@ -206,6 +219,16 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
             return oldValue;
         }
 
+        public S remove(String name) {
+            S removed = objects.remove(name);
+            if (removed != null) {
+                removeActions.execute(removed);
+                return removed;
+            } else {
+                return null;
+            }
+        }
+        
         public S find(String name) {
             return objects.get(name);
         }
@@ -236,6 +259,10 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
         }
 
         public S put(String name, S value) {
+            throw new UnsupportedOperationException();
+        }
+
+        public S remove(String name) {
             throw new UnsupportedOperationException();
         }
 

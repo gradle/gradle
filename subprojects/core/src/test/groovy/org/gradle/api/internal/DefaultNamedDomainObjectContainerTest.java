@@ -248,6 +248,11 @@ public class DefaultNamedDomainObjectContainerTest {
         container.addObject("c", bean4);
 
         assertThat(filteredCollection.getAll(), equalTo(toLinkedSet(bean2, bean4)));
+        
+        assertThat(container.removeObject("b"), sameInstance(bean2));
+
+        assertThat(filteredCollection.getAll(), equalTo(toLinkedSet(bean4)));
+        
     }
 
     @Test
@@ -446,7 +451,7 @@ public class DefaultNamedDomainObjectContainerTest {
     }
 
     @Test
-    public void callsActionWhenObjectRemoved() {
+    public void callsRemoveActionWhenObjectReplaced() {
         final Action<Bean> action = context.mock(Action.class);
         final Bean bean = new Bean();
 
@@ -457,6 +462,20 @@ public class DefaultNamedDomainObjectContainerTest {
         container.whenObjectRemoved(action);
         container.addObject("bean", bean);
         container.addObject("bean", new Bean());
+    }
+
+    @Test
+    public void callsActionWhenObjectRemoved() {
+        final Action<Bean> action = context.mock(Action.class);
+        final Bean bean = new Bean();
+
+        context.checking(new Expectations() {{
+            one(action).execute(bean);
+        }});
+
+        container.whenObjectRemoved(action);
+        container.addObject("bean", bean);
+        container.removeObject("bean");
     }
 
     @Test
