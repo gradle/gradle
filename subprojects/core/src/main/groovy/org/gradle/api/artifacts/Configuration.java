@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.DomainObjectCollection;
 
 import java.io.File;
 import java.util.Map;
@@ -250,6 +251,13 @@ public interface Configuration extends FileCollection {
     Set<Dependency> getDependencies();
 
     /**
+     * Gets the live dependency collection that makes up this configuration (ignoring superconfigurations).
+     *
+     * @return the collection of dependencies
+     */
+    DomainObjectCollection<Dependency> getDependencyCollection();
+
+    /**
      * Gets the complete set of dependencies including those contributed by
      * superconfigurations.
      *
@@ -286,6 +294,13 @@ public interface Configuration extends FileCollection {
      * Returns the artifacts of this configuration excluding the artifacts of extended configurations.
      */
     Set<PublishArtifact> getArtifacts();
+
+    /**
+     * Gets the live collection of artifacts that make up this configuration (ignoring superconfigurations).
+     * 
+     * @return the collection of artifacts
+     */
+    DomainObjectCollection<PublishArtifact> getArtifactCollection();
 
     /**
      * Returns the artifacts of this configuration including the artifacts of extended configurations.

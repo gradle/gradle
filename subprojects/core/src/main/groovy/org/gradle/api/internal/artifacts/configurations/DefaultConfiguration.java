@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.MutableDomainObjectContainer;
@@ -55,7 +56,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private MutableDomainObjectContainer<Dependency> dependencies =
             new MutableDomainObjectContainer<Dependency>(Dependency.class);
 
-    private Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
+    private MutableDomainObjectContainer<PublishArtifact> artifacts =
+            new MutableDomainObjectContainer<PublishArtifact>(PublishArtifact.class);
 
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
@@ -266,6 +268,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return dependencies.getAll();
     }
 
+    public DomainObjectCollection<Dependency> getDependencyCollection() {
+        return dependencies;
+    }
+
     public Set<Dependency> getAllDependencies() {
         return Configurations.getDependencies(getHierarchy(), Specs.<Dependency>satisfyAll());
     }
@@ -295,18 +301,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public Configuration addArtifact(PublishArtifact artifact) {
         throwExceptionIfNotInUnresolvedState();
-        artifacts.add(artifact);
+        artifacts.addObject(artifact);
         return this;
     }
 
     public Configuration removeArtifact(PublishArtifact artifact) {
         throwExceptionIfNotInUnresolvedState();
-        artifacts.remove(artifact);
+        artifacts.removeObject(artifact);
         return this;
     }
 
     public Set<PublishArtifact> getArtifacts() {
-        return Collections.unmodifiableSet(artifacts);
+        return artifacts.getAll();
+    }
+
+    public DomainObjectCollection<PublishArtifact> getArtifactCollection() {
+        return artifacts;
     }
 
     public Set<PublishArtifact> getAllArtifacts() {

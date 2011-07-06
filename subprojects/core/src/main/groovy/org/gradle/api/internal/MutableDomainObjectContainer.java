@@ -26,4 +26,8 @@ public class MutableDomainObjectContainer<T> extends DefaultDomainObjectContaine
     public void addObject(T o) {
         super.addObject(o);
     }
+
+    public boolean removeObject(T o) {
+        return super.removeObject(o);
+    }
 }

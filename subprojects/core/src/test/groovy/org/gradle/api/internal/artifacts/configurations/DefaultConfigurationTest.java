@@ -635,6 +635,35 @@ public class DefaultConfigurationTest {
     }
 
     @Test
+    public void artifactAddedAction() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        final PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+
+        context.checking(new Expectations() {{
+            one(closure).call(artifact);
+        }});
+
+        configuration.getArtifactCollection().whenObjectAdded(HelperUtil.toClosure(closure));
+        configuration.addArtifact(artifact);
+    }
+
+    @Test
+    public void artifactRemovedAction() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        final PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+
+        configuration.addArtifact(artifact);
+
+        context.checking(new Expectations() {{
+            one(closure).call(artifact);
+        }});
+
+        configuration.getArtifactCollection().whenObjectRemoved(HelperUtil.toClosure(closure));
+
+        configuration.removeArtifact(artifact);
+    }
+
+    @Test
     public void removeArtifact() {
         PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
         configuration.addArtifact(artifact);
