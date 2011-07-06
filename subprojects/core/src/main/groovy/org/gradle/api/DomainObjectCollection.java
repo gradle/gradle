@@ -121,6 +121,14 @@ public interface DomainObjectCollection<T> extends Iterable<T> {
     Action<? super T> whenObjectRemoved(Action<? super T> action);
 
     /**
+     * Adds a closure to be called when an object is removed from this collection. The removed object is passed to the
+     * closure as the parameter.
+     *
+     * @param action The closure to be called
+     */
+    void whenObjectRemoved(Closure action);
+
+    /**
      * Executes the given action against all objects in this collection, and any objects subsequently added to this
      * collection.
      *

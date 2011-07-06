@@ -269,6 +269,20 @@ public class DefaultDomainObjectContainerTest {
     }
 
     @Test
+    public void callsClosureWithRemovedObjectAsParameterWhenObjectRemoved() {
+        final TestClosure closure = context.mock(TestClosure.class);
+
+        container.addObject("a");
+
+        context.checking(new Expectations() {{
+            one(closure).call("a");
+        }});
+
+        container.whenObjectRemoved(HelperUtil.toClosure(closure));
+        container.removeObject("a");
+    }
+
+    @Test
     public void callsClosureWithNewObjectAsDelegateWhenObjectAdded() {
         container.whenObjectAdded(HelperUtil.toClosure("{ assert delegate == 'a' }"));
         container.addObject("a");

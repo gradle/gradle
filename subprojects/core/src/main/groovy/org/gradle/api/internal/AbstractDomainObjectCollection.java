@@ -91,6 +91,10 @@ public abstract class AbstractDomainObjectCollection<T> implements DomainObjectC
         whenObjectAdded(toAction(action));
     }
 
+    public void whenObjectRemoved(Closure action) {
+        whenObjectRemoved(toAction(action));
+    }
+
     private Action<? super T> toAction(final Closure action) {
         return new Action<T>() {
             public void execute(T t) {
