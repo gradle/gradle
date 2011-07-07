@@ -240,4 +240,91 @@ class CompositeDomainObjectCollectionTest extends Specification {
         calledFor == ["e"]
     }
 
+    def "callbacks called for composite of composites"() {
+        given:
+        def component1 = collection("a")
+        def component2 = collection("b")
+        def component3 = collection("c")
+        def component4 = collection("d")
+        
+        def composite1 = composite(component1, component2)
+        def composite2 = composite(component3, component4)
+        
+        def superComposite = composite(composite1, composite2)
+        
+        def calledFor = []
+        
+        expect:
+        superComposite.all.toList() == ["a", "b", "c", "d"]
+        
+        when:
+        superComposite.all { calledFor << it }
+        
+        then:
+        calledFor == ["a", "b", "c", "d"]
+        
+        when:
+        calledFor.clear()
+        component1.addObject("j")
+        component2.addObject("k")
+        component3.addObject("l")
+        component4.addObject("m")
+        
+        then:
+        calledFor == ["j", "k", "l", "m"]
+        
+        and:
+        superComposite.all.toList() == ["a", "j", "b", "k", "c", "l", "d", "m"]
+        
+        when:
+        superComposite.whenObjectRemoved { calledFor << it }
+        
+        and:
+        calledFor.clear()
+        component1.removeObject("j")
+        component2.removeObject("k")
+        component3.removeObject("l")
+        component4.removeObject("m")
+        
+        then:
+        calledFor == ["j", "k", "l", "m"]
+        
+        and:
+        superComposite.all.toList() == ["a", "b", "c", "d"]
+    }
+    
+    def "filtered composite of composites is live"() {
+        given:
+        def component1 = collection("a")
+        def component2 = collection("b")
+        def component3 = collection("j")
+        def component4 = collection("k")
+        
+        def composite1 = composite(component1, component2)
+        def composite2 = composite(component3, component4)
+        
+        def superComposite = composite(composite1, composite2)
+        def filtered = superComposite.matching { it < "g" }
+        
+        expect:
+        filtered.all.toList() == ["a", "b"]
+
+        when:
+        component1.addObject("j")
+        component2.addObject("k")
+        component3.addObject("c")
+        component4.addObject("d")
+        
+        then:
+        filtered.all.toList() == ["a", "b", "c", "d"]
+        
+        when:
+        component1.removeObject("j")
+        component2.removeObject("k")
+        component3.removeObject("c")
+        component4.removeObject("d")
+        
+        then:
+        filtered.all.toList() == ["a", "b"]
+    }
 }
