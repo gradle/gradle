@@ -38,7 +38,7 @@ import java.util.concurrent.Callable;
  *
  * @author Hans Dockter
  */
-public class MavenPlugin implements Plugin<Project> {
+public class MavenPlugin implements Plugin<ProjectInternal> {
     public static final int COMPILE_PRIORITY = 300;
     public static final int RUNTIME_PRIORITY = 200;
     public static final int TEST_COMPILE_PRIORITY = 150;
@@ -49,7 +49,7 @@ public class MavenPlugin implements Plugin<Project> {
 
     public static final String INSTALL_TASK_NAME = "install";
 
-    public void apply(final Project project) {
+    public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
         MavenPluginConvention pluginConvention = addConventionObject(project);
         setConventionMapping(project, pluginConvention);
@@ -81,8 +81,8 @@ public class MavenPlugin implements Plugin<Project> {
                 });
     }
 
-    private MavenPluginConvention addConventionObject(Project project) {
-        MavenPluginConvention mavenConvention = new MavenPluginConvention((ProjectInternal) project);
+    private MavenPluginConvention addConventionObject(ProjectInternal project) {
+        MavenPluginConvention mavenConvention = new MavenPluginConvention(project);
         Convention convention = project.getConvention();
         convention.getPlugins().put("maven", mavenConvention);
         return mavenConvention;

@@ -39,10 +39,10 @@ import java.io.File;
  *
  * @author Hans Dockter
  */
-public class GroovyBasePlugin implements Plugin<Project> {
+public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
 
-    public void apply(Project project) {
+    public void apply(ProjectInternal project) {
         JavaBasePlugin javaBasePlugin = project.getPlugins().apply(JavaBasePlugin.class);
 
         project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
@@ -66,11 +66,10 @@ public class GroovyBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureSourceSetDefaults(final Project project, final JavaBasePlugin javaBasePlugin) {
-        final ProjectInternal projectInternal = (ProjectInternal) project;
+    private void configureSourceSetDefaults(final ProjectInternal project, final JavaBasePlugin javaBasePlugin) {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
-                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), projectInternal.getFileResolver());
+                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), project.getFileResolver());
                 ((DynamicObjectAware) sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
                 groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));

@@ -27,7 +27,7 @@ import org.gradle.api.enterprise.archives.DeploymentDescriptor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.internal.project.AbstractProject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Ear;
 import org.gradle.api.tasks.bundling.Jar;
@@ -41,14 +41,14 @@ import java.util.concurrent.Callable;
  * 
  * @author David Gileadi, Hans Dockter
  */
-public class EarPlugin implements Plugin<AbstractProject> {
+public class EarPlugin implements Plugin<ProjectInternal> {
 
     public static final String EAR_TASK_NAME = "ear";
 
     public static final String DEPLOY_CONFIGURATION_NAME = "deploy";
     public static final String EARLIB_CONFIGURATION_NAME = "earlib";
 
-    public void apply(final AbstractProject project) {
+    public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
 
         final EarPluginConvention pluginConvention = project.getServices().get(ClassGenerator.class).newInstance(EarPluginConvention.class, project.getFileResolver());

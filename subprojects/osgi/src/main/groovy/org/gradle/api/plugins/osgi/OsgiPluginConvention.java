@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.osgi;
 
 import groovy.lang.Closure;
-import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest;
 import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,9 +28,9 @@ import org.gradle.util.ConfigureUtil;
  * @author Hans Dockter
  */
 public class OsgiPluginConvention {
-    private Project project;
+    private ProjectInternal project;
 
-    public OsgiPluginConvention(Project project) {
+    public OsgiPluginConvention(ProjectInternal project) {
         this.project = project;
     }
 
@@ -66,9 +65,9 @@ public class OsgiPluginConvention {
         return ConfigureUtil.configure(closure, createDefaultOsgiManifest(project));
     }
 
-    private OsgiManifest createDefaultOsgiManifest(Project project) {
+    private OsgiManifest createDefaultOsgiManifest(ProjectInternal project) {
         OsgiHelper osgiHelper = new OsgiHelper();
-        OsgiManifest osgiManifest = new DefaultOsgiManifest(((ProjectInternal) project).getFileResolver());
+        OsgiManifest osgiManifest = new DefaultOsgiManifest(project.getFileResolver());
         osgiManifest.setVersion(osgiHelper.getVersion((String) project.property("version")));
         osgiManifest.setName(project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName());
         osgiManifest.setSymbolicName(osgiHelper.getBundleSymbolicName(project));

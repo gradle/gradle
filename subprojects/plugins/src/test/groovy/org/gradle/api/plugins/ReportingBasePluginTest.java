@@ -15,16 +15,17 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 public class ReportingBasePluginTest {
     @Test
     public void addsTasksAndConventionToProject() {
-        Project project = HelperUtil.createRootProject();
+        ProjectInternal project = HelperUtil.createRootProject();
         new ReportingBasePlugin().apply(project);
 
         assertThat(project.getConvention().getPlugins().get("reportingBase"), instanceOf(ReportingBasePluginConvention.class));

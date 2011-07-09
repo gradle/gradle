@@ -16,10 +16,9 @@
 package org.gradle.api.plugins.sonar
 
 import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.cache.CacheRepository
 
 /**
@@ -27,17 +26,17 @@ import org.gradle.cache.CacheRepository
  * for managing code quality. Adds a task named <tt>sonar</tt> with type {@link Sonar} and configures it to
  * analyze the Java sources in the main source set.
  */
-class SonarPlugin implements Plugin<Project> {
+class SonarPlugin implements Plugin<ProjectInternal> {
     static final String SONAR_TASK_NAME = "sonar"
 
-    void apply(Project project) {
+    void apply(ProjectInternal project) {
         project.plugins.withType(JavaPlugin) {
             def sonarTask = project.tasks.add(SONAR_TASK_NAME, Sonar)
             configureConventions(sonarTask, project)
         }
     }
 
-    private void configureConventions(Sonar sonarTask, Project project) {
+    private void configureConventions(Sonar sonarTask, ProjectInternal project) {
         def main = project.sourceSets.main
         def test = project.sourceSets.test
 

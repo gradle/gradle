@@ -17,15 +17,15 @@ package org.gradle.api.plugins
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.file.SourceDirectorySet
 
 /**
  * Is mixed in into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
@@ -181,6 +181,6 @@ class JavaPluginConvention {
      * @param closure The closure to use to configure the manifest.
      */
     public Manifest manifest(Closure closure) {
-        return ConfigureUtil.configure(closure, new DefaultManifest(((ProjectInternal) getProject()).fileResolver));
+        return ConfigureUtil.configure(closure, new DefaultManifest((getProject()).fileResolver));
     }
 }
