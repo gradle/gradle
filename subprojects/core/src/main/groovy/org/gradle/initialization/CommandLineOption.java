@@ -58,7 +58,7 @@ public class CommandLineOption {
         if (deprecationWarning == null) {
             return description;
         }
-        return description + " [" + deprecationWarning + "].";
+        return description + " [deprecated - " + deprecationWarning + "].";
     }
 
     public CommandLineOption hasDescription(String description) {

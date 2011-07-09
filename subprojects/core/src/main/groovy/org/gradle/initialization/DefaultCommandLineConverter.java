@@ -25,6 +25,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.file.BaseDirConverter;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
@@ -80,9 +81,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
         parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
         parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
-        parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks").deprecated("deprecated - use 'gradle tasks' instead");
-        parser.option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties").deprecated("deprecated - use 'gradle properties' instead");
-        parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies").deprecated("deprecated - use 'gradle dependencies' instead");
+        parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks").deprecated(deprecationMessage("tasks"));
+        parser.option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties").deprecated(deprecationMessage("properties"));
+        parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies").deprecated(deprecationMessage("dependencies"));
         parser.option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
         parser.option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
@@ -100,6 +101,14 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     @Override
     protected StartParameter newInstance() {
         return new StartParameter();
+    }
+
+    private String deprecationMessage(String replacementTask) {
+        StringBuilder result = new StringBuilder();
+        result.append("use '");
+        new GradleLauncherMetaData().describeCommand(result, replacementTask);
+        result.append("' instead");
+        return result.toString();
     }
 
     public StartParameter convert(ParsedCommandLine options, StartParameter startParameter) throws CommandLineArgumentException {

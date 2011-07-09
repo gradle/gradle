@@ -389,7 +389,7 @@ public class CommandLineParser {
                 parsedOption.addArgument(value);
             }
             if (option.getDeprecationWarning() != null) {
-                new PrintStream(CommandLineParser.this.deprecationPrinter).println("'gradle " + optionString + "' is " + option.getDeprecationWarning());
+                new PrintStream(CommandLineParser.this.deprecationPrinter).println("The " + optionString + " option is deprecated - " + option.getDeprecationWarning());
             }
             if (option.getSubcommand() != null) {
                 return state.onNonOption(option.getSubcommand());
