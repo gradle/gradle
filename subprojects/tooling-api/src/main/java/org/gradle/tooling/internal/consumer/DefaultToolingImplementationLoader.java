@@ -18,17 +18,11 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.util.FilteringClassLoader;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.GradleVersion;
-import org.gradle.util.ObservableUrlClassLoader;
+import org.gradle.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -49,11 +43,20 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
     public ConnectionVersion4 create(Distribution distribution) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
         ClassLoader classLoader = createImplementationClassLoader(distribution);
-        String implementationClassName = loadImplementationClassName(classLoader, distribution);
+        ServiceLocator serviceLocator = new ServiceLocator();
         try {
-            return (ConnectionVersion4) classLoader.loadClass(implementationClassName).newInstance();
+            ConnectionVersion4 implementation = serviceLocator.findServiceImplementation(ConnectionVersion4.class, classLoader);
+            if (implementation == null) {
+                Matcher m = Pattern.compile("\\w+Version(\\d+)").matcher(ConnectionVersion4.class.getSimpleName());
+                m.matches();
+                String protocolVersion = m.group(1);
+                throw new UnsupportedVersionException(String.format("The specified %s is not supported by this tooling API version (%s, protocol version %s)", distribution.getDisplayName(), GradleVersion.current().getVersion(), protocolVersion));
+            }
+            return implementation;
+        } catch (UnsupportedVersionException e) {
+            throw e;
         } catch (Throwable t) {
-            throw new GradleConnectionException(String.format("Could not create an instance of Tooling API implementation class '%s'.", implementationClassName), t);
+            throw new GradleConnectionException(String.format("Could not create an instance of Tooling API implementation using the specified %s.", distribution.getDisplayName()), t);
         }
     }
 
@@ -64,36 +67,5 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
         return new ObservableUrlClassLoader(filteringClassLoader, urls);
-    }
-
-    private String loadImplementationClassName(ClassLoader classLoader, Distribution distribution) {
-        try {
-            String resourceName = "META-INF/services/" + ConnectionVersion4.class.getName();
-            InputStream inputStream = classLoader.getResourceAsStream(resourceName);
-            if (inputStream == null) {
-                Matcher m = Pattern.compile("\\w+Version(\\d+)").matcher(ConnectionVersion4.class.getSimpleName());
-                m.matches();
-                String protocolVersion = m.group(1);
-                throw new UnsupportedVersionException(String.format("The specified %s is not supported by this tooling API version (%s, protocol version %s)", distribution.getDisplayName(), GradleVersion.current().getVersion(), protocolVersion));
-            }
-
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.replaceAll("#.*", "").trim();
-                    if (line.length() > 0) {
-                        return line;
-                    }
-                }
-            } finally {
-                inputStream.close();
-            }
-            throw new UnsupportedOperationException(String.format("No implementation class specified in resource '%s'.", resourceName));
-        } catch (UnsupportedVersionException e) {
-            throw e;
-        } catch (Throwable t) {
-            throw new GradleConnectionException(String.format("Could not determine class name of Tooling API implementation."), t);
-        }
     }
 }

@@ -135,14 +135,14 @@ class EclipseClasspath {
      */
     Collection<Configuration> noExportConfigurations = []
 
-   /**
+    /**
      * Containers to be added to the classpath
      * <p>
      * For example see docs for {@link EclipseClasspath}
      */
     Set<String> containers = new LinkedHashSet<String>()
 
-   /**
+    /**
      * Adds containers to the .classpath.
      * <p>
      * For example see docs for {@link EclipseClasspath}
@@ -189,18 +189,22 @@ class EclipseClasspath {
     }
 
     /**
-     * See {@link #file(Closure) }
+     * See {@link #file(Closure)}
      */
     XmlFileContentMerger file
 
-    /******/
+    /** ****/
 
-    org.gradle.api.Project project
+    final org.gradle.api.Project project
     Map<String, File> pathVariables = [:]
     boolean projectDependenciesOnly = false
 
     //only folder paths internal to the project (e.g. beneath the project folder) are supported
     List<String> classFolders
+
+    EclipseClasspath(org.gradle.api.Project project) {
+        this.project = project
+    }
 
     /**
      * Calculates, resolves & returns dependency entries of this classpath

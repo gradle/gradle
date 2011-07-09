@@ -28,7 +28,7 @@ public class GenerateEclipseWtpComponentTest extends AbstractSpockTaskTest {
     private eclipseComponent = createTask(GenerateEclipseWtpComponent)
 
     def setup() {
-        eclipseComponent.component = new EclipseWtpComponent()
+        eclipseComponent.component = new EclipseWtpComponent(project, null)
     }
 
     ConventionTask getTask() { eclipseComponent }

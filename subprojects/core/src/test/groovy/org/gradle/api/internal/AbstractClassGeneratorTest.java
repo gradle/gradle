@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
-import groovy.lang.GroovyRuntimeException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
@@ -122,7 +121,7 @@ public abstract class AbstractClassGeneratorTest {
         try {
             generator.newInstance(Bean.class, "arg1", 2);
             fail();
-        } catch (GroovyRuntimeException e) {
+        } catch (IllegalArgumentException e) {
             // expected
         }
 

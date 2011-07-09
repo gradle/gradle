@@ -76,7 +76,7 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaModule(Project project) {
         def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) {
             def iml = new IdeaModuleIml(xmlTransformer, project.projectDir)
-            module = services.get(ClassGenerator).newInstance(IdeaModule, [project: project, iml: iml])
+            module = services.get(ClassGenerator).newInstance(IdeaModule, project, iml)
 
             model.module = module
 
@@ -103,7 +103,7 @@ class IdeaPlugin extends IdePlugin {
         if (isRoot(project)) {
             def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
                 def ipr = new XmlFileContentMerger(xmlTransformer)
-                ideaProject = services.get(ClassGenerator).newInstance(IdeaProject, [ipr: ipr])
+                ideaProject = services.get(ClassGenerator).newInstance(IdeaProject, ipr)
 
                 model.project = ideaProject
 

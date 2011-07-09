@@ -250,9 +250,13 @@ class EclipseProject {
     /**
      * See {@link #file(Closure) }
      */
-    XmlFileContentMerger file
+    final XmlFileContentMerger file
 
     /*****/
+
+    EclipseProject(XmlFileContentMerger file) {
+        this.file = file
+    }
 
     void mergeXmlProject(Project xmlProject) {
         file.beforeMerged.execute(xmlProject)

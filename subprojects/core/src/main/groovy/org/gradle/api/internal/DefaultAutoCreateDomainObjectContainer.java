@@ -17,7 +17,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.util.Instantiator;
 
 public class DefaultAutoCreateDomainObjectContainer<T> extends AutoCreateDomainObjectContainer<T> {
     private final NamedDomainObjectFactory<T> factory;
@@ -48,7 +48,8 @@ public class DefaultAutoCreateDomainObjectContainer<T> extends AutoCreateDomainO
         }
 
         public T create(String name) {
-            return type.cast(ReflectionUtil.newInstance(type, new Object[]{name}));
+            Instantiator instantiator = new Instantiator();
+            return instantiator.newInstance(type, name);
         }
     }
 

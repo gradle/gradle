@@ -40,7 +40,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     GenerateEclipseProject() {
         xmlTransformer.indentation = "\t"
-        projectModel = services.get(ClassGenerator).newInstance(EclipseProject, [file: new XmlFileContentMerger(xmlTransformer)])
+        projectModel = services.get(ClassGenerator).newInstance(EclipseProject, new XmlFileContentMerger(xmlTransformer))
     }
 
     @Override protected Project create() {

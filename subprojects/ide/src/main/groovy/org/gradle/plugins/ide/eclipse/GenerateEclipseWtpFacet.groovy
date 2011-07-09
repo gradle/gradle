@@ -37,7 +37,7 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
 
     GenerateEclipseWtpFacet() {
         xmlTransformer.indentation = "\t"
-        facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet, [file: new XmlFileContentMerger(xmlTransformer)])
+        facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet, new XmlFileContentMerger(xmlTransformer))
     }
 
     @Override protected WtpFacet create() {

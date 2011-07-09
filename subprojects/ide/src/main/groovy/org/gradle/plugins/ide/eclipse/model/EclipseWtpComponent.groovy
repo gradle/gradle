@@ -232,11 +232,11 @@ class EclipseWtpComponent {
     /**
      * See {@link #file(Closure) }
      */
-    XmlFileContentMerger file
+    final XmlFileContentMerger file
 
     //********
 
-    org.gradle.api.Project project
+    final org.gradle.api.Project project
 
     /**
      * The variables to be used for replacing absolute path in dependent-module elements.
@@ -244,6 +244,11 @@ class EclipseWtpComponent {
      * For examples see docs for {@link EclipseModel}
      */
     Map<String, File> pathVariables = [:]
+
+    EclipseWtpComponent(org.gradle.api.Project project, XmlFileContentMerger file) {
+        this.project = project
+        this.file = file
+    }
 
     void mergeXmlComponent(WtpComponent xmlComponent) {
         file.beforeMerged.execute(xmlComponent)

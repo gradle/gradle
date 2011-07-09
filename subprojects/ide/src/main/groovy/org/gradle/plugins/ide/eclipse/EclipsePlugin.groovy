@@ -108,7 +108,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(Project project) {
-        model.classpath = project.services.get(ClassGenerator).newInstance(EclipseClasspath, [project: project])
+        model.classpath = project.services.get(ClassGenerator).newInstance(EclipseClasspath, project)
         model.classpath.conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
 
         project.plugins.withType(JavaBasePlugin) {

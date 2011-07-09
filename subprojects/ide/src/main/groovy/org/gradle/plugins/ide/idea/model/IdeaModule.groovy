@@ -270,7 +270,7 @@ class IdeaModule {
     /**
      * See {@link #iml(Closure) }
      */
-    IdeaModuleIml iml
+    final IdeaModuleIml iml
 
     /**
      * Enables advanced configuration like tinkering with the output xml
@@ -298,10 +298,15 @@ class IdeaModule {
         iml.generateTo = newOutputFile.parentFile
     }
 
-    org.gradle.api.Project project
+    final org.gradle.api.Project project
     PathFactory pathFactory
 
     Map<String, Collection<File>> singleEntryLibraries
+
+    IdeaModule(org.gradle.api.Project project, IdeaModuleIml iml) {
+        this.project = project
+        this.iml = iml
+    }
 
     void mergeXmlModule(Module xmlModule) {
         iml.beforeMerged.execute(xmlModule)

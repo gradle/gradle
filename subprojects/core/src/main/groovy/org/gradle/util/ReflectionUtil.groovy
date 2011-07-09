@@ -23,10 +23,6 @@ class ReflectionUtil {
         return object.invokeMethod(method, params)
     }
 
-    static <T> T newInstance(Class cl, Object ... args) {
-        return cl.newInstance(args)
-    }
-
     static Object getProperty(def object, String property) {
         object.getProperty(property)
     }

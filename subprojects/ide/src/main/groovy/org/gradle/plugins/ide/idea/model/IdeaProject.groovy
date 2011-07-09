@@ -133,9 +133,13 @@ class IdeaProject {
     /**
      * See {@link #ipr(Closure) }
      */
-    XmlFileContentMerger ipr
+    final XmlFileContentMerger ipr
 
     PathFactory pathFactory
+
+    IdeaProject(XmlFileContentMerger ipr) {
+        this.ipr = ipr
+    }
 
     void mergeXmlProject(Project xmlProject) {
         ipr.beforeMerged.execute(xmlProject)

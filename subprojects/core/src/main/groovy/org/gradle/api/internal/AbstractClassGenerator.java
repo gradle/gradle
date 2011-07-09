@@ -18,7 +18,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.*;
 import org.gradle.api.GradleException;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.util.Instantiator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
@@ -31,7 +31,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class, Map<Class, Class>> GENERATED_CLASSES = new HashMap<Class, Map<Class, Class>>();
 
     public <T> T newInstance(Class<T> type, Object... parameters) {
-        return type.cast(ReflectionUtil.newInstance(generate(type), parameters));
+        Instantiator instantiator = new Instantiator();
+        return instantiator.newInstance(generate(type), parameters);
     }
 
     public <T> Class<? extends T> generate(Class<T> type) {

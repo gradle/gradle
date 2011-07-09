@@ -39,7 +39,7 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
     GenerateEclipseWtpComponent() {
         xmlTransformer.indentation = "\t"
-        component = services.get(ClassGenerator).newInstance(EclipseWtpComponent, [project: project, file: new XmlFileContentMerger(xmlTransformer)])
+        component = services.get(ClassGenerator).newInstance(EclipseWtpComponent, project, new XmlFileContentMerger(xmlTransformer))
     }
 
     @Override protected WtpComponent create() {

@@ -102,9 +102,13 @@ class EclipseWtpFacet {
     /**
      * See {@link #file(Closure) }
      */
-    XmlFileContentMerger file
+    final XmlFileContentMerger file
 
     //********
+
+    EclipseWtpFacet(XmlFileContentMerger file) {
+        this.file = file
+    }
 
     void mergeXmlFacet(WtpFacet xmlFacet) {
         file.beforeMerged.execute(xmlFacet)

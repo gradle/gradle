@@ -235,12 +235,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected DependencyManagementServices createDependencyManagementServices() {
         ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
-        try {
-            Class<?> implClass = coreImplClassLoader.loadClass("org.gradle.api.internal.artifacts.DefaultDependencyManagementServices");
-            return (DependencyManagementServices) implClass.getConstructor(ServiceRegistry.class).newInstance(this);
-        } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
+        ServiceLocator serviceLocator = new ServiceLocator();
+        return serviceLocator.getServiceImplementation(DependencyManagementServices.class, coreImplClassLoader, this);
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {
