@@ -167,6 +167,9 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
      * @return An executer
      */
     public BasicGradleDistribution previousVersion(String version) {
+        if (version.equals(this.getVersion())) {
+            return this;
+        }
         return new PreviousGradleVersionExecuter(this, version);
     }
 

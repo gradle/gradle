@@ -15,22 +15,13 @@
  */
 package org.gradle.integtests.tooling.m3
 
-import ch.qos.logback.core.joran.spi.JoranException
-import junit.framework.Assert
-import org.apache.commons.io.FileUtils
-import org.apache.tools.ant.Task
-import org.gradle.integtests.ClassLoaderIsolationHelper
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.util.ClasspathUtil
-import org.gradle.util.DefaultClassLoaderFactory
-import org.gradle.util.SetSystemProperties
 import org.junit.Ignore
 import org.junit.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.impl.StaticLoggerBinder
-import spock.lang.Specification
+import org.gradle.util.*
 
 /**
  * @author: Szczepan Faber, created at: 6/29/11
@@ -44,12 +35,12 @@ class ToolingApiCompatibilitySuite {
 
     @Test
     public void "m3 ToolingApi against current Gradle" () {
-        tests("org.gradle.integtests.tooling.m3.ToolingApiSuite", m3, dist).shouldPass()
+        tests(org.gradle.integtests.tooling.m3.ToolingApiSuite, m3, dist).shouldPass()
     }
 
     @Test
     public void "current ToolingApi against m3 Gradle" () {
-        tests("org.gradle.integtests.tooling.m3.ToolingApiSuite", dist, m3).shouldPass()
+        tests(org.gradle.integtests.tooling.m3.ToolingApiSuite, dist, m3).shouldPass()
     }
 
     @Ignore
@@ -57,36 +48,43 @@ class ToolingApiCompatibilitySuite {
     public void "new features of current ToolingApi against m3 Gradle should fail" () {
         //sanity test that checks if the test harness works fine
         //I don't we need such test per every milestone
-        tests("org.gradle.integtests.tooling.m4.ToolingApiSuite", dist, m3).shouldFail()
+        tests(org.gradle.integtests.tooling.m4.ToolingApiSuite, dist, m3).shouldFail()
     }
 
-    def tests(String testClass, BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
-        def classpath = []
+    def tests(Class<?> testClass, BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
+        def toolingApiClassPath = []
+        toolingApiClassPath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-tooling-api.*\.jar/ }
+        toolingApiClassPath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-core.*\.jar/ }
+        toolingApiClassPath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /slf4j-api.*\.jar/ }
 
-        classpath << ClasspathUtil.getClasspathForClass(ClassLoaderIsolationHelper.class)
-        classpath << ClasspathUtil.getClasspathForClass(Assert.class)
-        classpath << ClasspathUtil.getClasspathForClass(GroovyObject.class)
-        classpath << ClasspathUtil.getClasspathForClass(Specification.class)
-        classpath << ClasspathUtil.getClasspathForClass(FileUtils.class)
-        classpath << ClasspathUtil.getClasspathForClass(StaticLoggerBinder.class)
-        classpath << ClasspathUtil.getClasspathForClass(JoranException.class)
-        classpath << ClasspathUtil.getClasspathForClass(Task.class)
-        classpath << ClasspathUtil.getClasspathForClass(LoggerFactory.class)
-        classpath << ClasspathUtil.getClasspathForClass(SetSystemProperties.class)
-        classpath << ClasspathUtil.getClasspathForClass(GradleDistribution.class)
-
-        classpath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-tooling-api.*\.jar/ }
-        classpath += gradle.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-core.*\.jar/ }
-
-        String classpathEntries = "Classpath used: "
-        classpath.each {
+        String classpathEntries = "Tooling API classpath used: "
+        toolingApiClassPath.each {
             classpathEntries += " -> $it\n"
         }
         logger.debug(classpathEntries)
 
-        def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI().toURL() })
+        def classLoaderFactory = new DefaultClassLoaderFactory()
+        def toolingApiClassLoader = classLoaderFactory.createIsolatedClassLoader(toolingApiClassPath.collect { it.toURI().toURL() })
 
-        def allTests = classloader.loadClass(testClass).newInstance()
+        def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader)
+        sharedClassLoader.allowPackage('org.junit')
+        sharedClassLoader.allowPackage('org.hamcrest')
+        sharedClassLoader.allowPackage('junit.framework')
+        sharedClassLoader.allowPackage('groovy')
+        sharedClassLoader.allowPackage('org.codehaus.groovy')
+        sharedClassLoader.allowPackage('spock')
+        sharedClassLoader.allowPackage('org.spockframework')
+        sharedClassLoader.allowClass(TestFile)
+        sharedClassLoader.allowClass(SetSystemProperties)
+        sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
+
+        def parentClassLoader = new MultiParentClassLoader(toolingApiClassLoader, sharedClassLoader)
+
+        def testClassPath = []
+        testClassPath << ClasspathUtil.getClasspathForClass(testClass)
+
+        def classloader = new ObservableUrlClassLoader(parentClassLoader, testClassPath.collect { it.toURI().toURL() })
+        def allTests = classloader.loadClass(testClass.name).newInstance()
         return allTests.run(gradle.version)
     }
 }
