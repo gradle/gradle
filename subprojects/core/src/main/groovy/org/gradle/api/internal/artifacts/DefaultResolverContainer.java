@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;

@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationCont
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
+
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal

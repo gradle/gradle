@@ -18,15 +18,15 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.equalTo;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -37,8 +37,6 @@ public class DefaultExternalModuleDependencyTest extends AbstractModuleDependenc
     private static final String TEST_GROUP = "org.gradle";
     private static final String TEST_NAME = "gradle-core";
     private static final String TEST_VERSION = "4.4-beta2";
-
-    protected DependencyDescriptorFactory dependencyDescriptorFactoryMock;
 
     protected DefaultDependencyDescriptor expectedDependencyDescriptor;
 
@@ -59,7 +57,6 @@ public class DefaultExternalModuleDependencyTest extends AbstractModuleDependenc
     @Before public void setUp() {
         moduleDependency = new DefaultExternalModuleDependency(TEST_GROUP, TEST_NAME, TEST_VERSION);
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory.class);
         expectedDependencyDescriptor = HelperUtil.getTestDescriptor();
     }
 

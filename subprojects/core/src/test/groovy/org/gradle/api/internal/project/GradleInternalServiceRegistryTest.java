@@ -19,7 +19,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.execution.DefaultTaskGraphExecuter;
@@ -46,15 +45,11 @@ public class GradleInternalServiceRegistryTest {
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final GradleInternalServiceRegistry registry = new GradleInternalServiceRegistry(parent, gradle);
     private final StartParameter startParameter = new StartParameter();
-    private final PublishModuleDescriptorConverter publishModuleDescriptorConverter =
-            context.mock(PublishModuleDescriptorConverter.class);
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
 
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
-            allowing(parent).get(PublishModuleDescriptorConverter.class);
-            will(returnValue(publishModuleDescriptorConverter));
             allowing(parent).get(ListenerManager.class);
             will(returnValue(listenerManager));
             allowing(gradle).getStartParameter();

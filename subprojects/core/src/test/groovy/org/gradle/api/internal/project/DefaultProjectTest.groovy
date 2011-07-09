@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationCont
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
@@ -94,7 +93,6 @@ class DefaultProjectTest {
     AntBuilder testAntBuilder
 
     DefaultConfigurationContainer configurationContainerMock;
-    ResolverFactory resolverFactoryMock = context.mock(ResolverFactory.class);
     RepositoryHandler repositoryHandlerMock
     DependencyFactory dependencyFactoryMock
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)

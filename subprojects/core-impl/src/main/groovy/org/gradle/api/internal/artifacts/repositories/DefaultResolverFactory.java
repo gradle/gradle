@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.GradleIBiblioResolver;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
+import org.gradle.api.internal.artifacts.ResolverFactory;
 import org.gradle.api.internal.artifacts.publish.maven.*;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer;
