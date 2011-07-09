@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
-import org.gradle.api.internal.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
@@ -95,7 +94,6 @@ class DefaultProjectTest {
     AntBuilder testAntBuilder
 
     DefaultConfigurationContainer configurationContainerMock;
-    InternalRepository internalRepositoryDummy = context.mock(InternalRepository)
     ResolverFactory resolverFactoryMock = context.mock(ResolverFactory.class);
     RepositoryHandler repositoryHandlerMock
     DependencyFactory dependencyFactoryMock
