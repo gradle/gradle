@@ -100,7 +100,7 @@ class Sonar extends ConventionTask {
     Map projectProperties = [:]
 
     @TaskAction
-    void execute() {
+    void analyze() {
         withErrorSqlLogging {
             getBootstrapDir().mkdirs()
             def bootstrapper = new Bootstrapper("Gradle", getServerUrl(), getBootstrapDir())
