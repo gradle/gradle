@@ -56,6 +56,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.*
 import org.gradle.api.internal.*
+// redundant import to make project compile in IDEA (otherwise stub compilation fails)
+import org.gradle.api.internal.Factory
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
