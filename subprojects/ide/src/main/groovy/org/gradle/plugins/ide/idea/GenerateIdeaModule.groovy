@@ -26,7 +26,7 @@ import org.gradle.util.DeprecationLogger
  * <p>
  * Please refer to interesting examples on idea configuration in {@link IdeaModule}.
  * <p>
- * TAt this moment nearly all configuration is done via {@link IdeaModule}.
+ * At this moment nearly all configuration is done via {@link IdeaModule}.
  *
  * @author Hans Dockter
  */
