@@ -26,53 +26,63 @@ import org.gradle.plugins.ide.eclipse.model.*
  */
 class ClasspathFactory {
 
-    private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
+    interface ClasspathEntryBuilder {
+        void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath)
+    }
+
+    private final ClasspathEntryBuilder outputCreator = new ClasspathEntryBuilder() {
+        void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
+            entries.add(new Output(eclipseClasspath.project.relativePath(eclipseClasspath.defaultOutputDir)))
+        }
+    }
+
+    private final ClasspathEntryBuilder containersCreator = new ClasspathEntryBuilder() {
+        void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
+            eclipseClasspath.containers.each { container ->
+                entries << new Container(container, true, null, [] as Set)
+            }
+        }
+    }
+
+    private final ClasspathEntryBuilder projectDependenciesCreator = new ClasspathEntryBuilder() {
+        void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
+            entries.addAll(dependenciesExtractor.extractProjectDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations)
+                .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.project, it.declaredConfiguration.name) })
+        }
+    }
+
+    private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
+        void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
+            dependenciesExtractor.extractRepoFileDependencies(
+                    classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
+            .each { IdeRepoFileDependency it ->
+                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath.pathVariables)
+            }
+
+            dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
+            .each { IdeLocalFileDependency it ->
+                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath.pathVariables)
+            }
+        }
+    }
+
     private final sourceFoldersCreator = new SourceFoldersCreator()
+    private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
     private final classFoldersCreator = new ClassFoldersCreator()
 
     List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
         def entries = []
-        entries.add(new Output(classpath.project.relativePath(classpath.defaultOutputDir)))
+        outputCreator.update(entries, classpath)
         sourceFoldersCreator.populateForClasspath(entries, classpath)
-        entries.addAll(getEntriesFromContainers(classpath.getContainers()))
-        entries.addAll(getDependencies(classpath))
-        return entries
-    }
-
-    private List getEntriesFromContainers(Set containers) {
-        containers.collect { container ->
-            new Container(container, true, null, [] as Set)
-        }
-    }
-
-    private List getDependencies(EclipseClasspath classpath) {
+        containersCreator.update(entries, classpath)
         if (classpath.projectDependenciesOnly) {
-            getProjects(classpath)
+            projectDependenciesCreator.update(entries, classpath)
         } else {
-            getProjects(classpath) + getLibraries(classpath) + classFoldersCreator.create(classpath)
+            projectDependenciesCreator.update(entries, classpath)
+            librariesCreator.update(entries, classpath)
+            entries.addAll(classFoldersCreator.create(classpath))
         }
-    }
-
-    protected List getProjects(EclipseClasspath classpath) {
-        return dependenciesExtractor.extractProjectDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
-                .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.project, it.declaredConfiguration.name) }
-    }
-
-    protected Set getLibraries(EclipseClasspath classpath) {
-        List libs = []
-
-        dependenciesExtractor.extractRepoFileDependencies(
-                classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
-        .each { IdeRepoFileDependency it ->
-            libs << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath.pathVariables)
-        }
-
-        dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
-        .each { IdeLocalFileDependency it ->
-            libs << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath.pathVariables)
-        }
-
-        libs
+        return entries
     }
 
     private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, Map<String, File> pathVariables) {
