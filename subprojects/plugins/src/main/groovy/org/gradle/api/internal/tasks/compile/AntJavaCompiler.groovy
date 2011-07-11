@@ -38,7 +38,7 @@ class AntJavaCompiler implements JavaCompiler {
     CompileOptions compileOptions = new CompileOptions()
     final Factory<AntBuilder> antBuilderFactory
 
-    def AntJavaCompiler(Factory<AntBuilder> antBuilderFactory) {
+    AntJavaCompiler(Factory<AntBuilder> antBuilderFactory) {
         this.antBuilderFactory = antBuilderFactory
     }
 
@@ -48,7 +48,7 @@ class AntJavaCompiler implements JavaCompiler {
 
     WorkResult execute() {
         def ant = antBuilderFactory.create()
-        
+
         createAntClassPath(ant, classpath)
         Map otherArgs = [
                 includeAntRuntime: false,
