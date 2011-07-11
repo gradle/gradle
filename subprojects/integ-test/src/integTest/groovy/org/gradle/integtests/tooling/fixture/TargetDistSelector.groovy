@@ -39,10 +39,7 @@ class TargetDistSelector implements MethodRule {
     }
 
     Statement apply(Statement base, FrameworkMethod method, Object target) {
-        assert target instanceof ToolingApiSpecification
-
-        ToolingApiSpecification spec = target
-        spec.optionalTargetDist = version.get()
+        target.optionalTargetDist = version.get()
 
         return base
     }

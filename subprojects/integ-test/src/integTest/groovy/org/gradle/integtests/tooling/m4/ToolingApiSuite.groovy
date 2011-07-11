@@ -16,18 +16,24 @@
 
 package org.gradle.integtests.tooling.m4
 
-import org.gradle.integtests.tooling.fixture.JUnitExecuterResult
-import org.gradle.integtests.tooling.fixture.ToolingApiJUnitExecuter
+import org.gradle.integtests.tooling.fixture.ToolingApiCompatibilitySuite
+import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.util.GradleVersion
 
 /**
  * @author: Szczepan Faber, created at: 6/29/11
  */
-class ToolingApiSuite {
-    public JUnitExecuterResult run(String targetGradleVersion) {
-        return new ToolingApiJUnitExecuter(targetGradleVersion).execute(
-            ToolingApiEclipseLinkedResourcesIntegrationTest,
-            ToolingApiMinimalModelFixesTest,
-            ToolingApiTaskExecutionFixesTest
-        )
+class ToolingApiSuite extends ToolingApiCompatibilitySuite {
+    @Override
+    boolean accept(BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
+        def m3 = GradleVersion.version('1.0-milestone-3')
+        return GradleVersion.version(toolingApi.version) > m3 && GradleVersion.version(gradle.version) > m3
+    }
+
+    @Override
+    List<Class<?>> getClasses() {
+        return [ToolingApiEclipseLinkedResourcesIntegrationTest,
+                ToolingApiMinimalModelFixesTest,
+                ToolingApiTaskExecutionFixesTest]
     }
 }

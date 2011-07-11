@@ -22,6 +22,7 @@ import org.junit.Rule
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
+import org.gradle.util.GradleVersion
 
 abstract class ToolingApiSpecification extends Specification {
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
@@ -40,7 +41,8 @@ abstract class ToolingApiSpecification extends Specification {
 
     void setup() {
         toolingApi.withConnector {
-            if (dist.version != targetDist.version) {
+            LOGGER.info(" Using Tooling API consumer ${GradleVersion.current()}, provider ${targetDist}");
+            if (GradleVersion.current().version != targetDist.version) {
                 LOGGER.info("Overriding daemon tooling API provider to use installation: " + targetDist);
                 it.useInstallation(new File(targetDist.gradleHomeDir.absolutePath))
                 it.embedded = false

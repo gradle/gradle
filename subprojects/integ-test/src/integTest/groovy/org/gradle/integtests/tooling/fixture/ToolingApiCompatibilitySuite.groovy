@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.integtests.tooling.fixture
 
-/**
- * @author: Szczepan Faber, created at: 6/30/11
- */
-public interface JUnitExecuterResult {
+import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.BasicGradleDistribution
 
-    void shouldPass()
-    void shouldFail()
+@RunWith(ToolingApiCompatibilitySuiteRunner)
+abstract class ToolingApiCompatibilitySuite {
+    /**
+     * Returns true if this suite works with the given combination of tooling API consumer and provider.
+     */
+    boolean accept(BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
+        return true
+    }
+
+    /**
+     * Returns the test classes which make up this suite.
+     */
+    abstract List<Class<?>> getClasses()
 }

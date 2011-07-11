@@ -16,18 +16,17 @@
 
 package org.gradle.integtests.tooling.m3
 
-import org.gradle.integtests.tooling.fixture.JUnitExecuterResult
-import org.gradle.integtests.tooling.fixture.ToolingApiJUnitExecuter
+import org.gradle.integtests.tooling.fixture.ToolingApiCompatibilitySuite
 
 /**
  * @author: Szczepan Faber, created at: 6/29/11
  */
-class ToolingApiSuite {
-    public JUnitExecuterResult run(String targetGradleVersion) {
-        return new ToolingApiJUnitExecuter(targetGradleVersion).execute(
-                ToolingApiHonorsProjectCustomizationsIntegrationTest,
+class ToolingApiSuite extends ToolingApiCompatibilitySuite {
+    @Override
+    List<Class<?>> getClasses() {
+        return [ToolingApiHonorsProjectCustomizationsIntegrationTest,
                 ToolingApiEclipseModelIntegrationTest,
                 ToolingApiModelIntegrationTest,
-                ToolingApiBuildExecutionIntegrationTest);
+                ToolingApiBuildExecutionIntegrationTest]
     }
 }
