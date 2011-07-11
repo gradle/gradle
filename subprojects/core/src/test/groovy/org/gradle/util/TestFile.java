@@ -24,6 +24,10 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DeleteAction;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.process.internal.DefaultExecAction;
+import org.gradle.process.internal.ExecAction;
+import org.gradle.process.ExecResult;
+import org.gradle.util.ConfigureUtil;
 import org.hamcrest.Matcher;
 
 import java.io.*;
@@ -215,7 +219,7 @@ public class TestFile extends File implements TestFileContext {
     public void copyFrom(File target) {
         new TestFile(target).copyTo(this);
     }
-    
+
     public void copyFrom(URL resource) {
         try {
             FileUtils.copyURLToFile(resource, this);
@@ -470,5 +474,88 @@ public class TestFile extends File implements TestFileContext {
             modTime = lastModified();
             hash = HashUtil.createHash(TestFile.this);
         }
+    }
+
+    public class TestFileExec {
+        private final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        private final ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+        private final ExecAction action;
+
+        public TestFileExec() {
+            action = new DefaultExecAction();
+            action.setErrorOutput(err);
+            action.setStandardOutput(out);
+            action.workingDir(TestFile.this.getParentFile());
+            action.executable(TestFile.this);
+        }
+
+        public TestFileExec workingDir(File file) {
+            action.workingDir(file);
+            return this;
+        }
+
+        public TestFileExec args(Object... args) {
+            action.args(args);
+            return this;
+        }
+
+        public TestFileExec input(String input) {
+            return input(new ByteArrayInputStream(input.getBytes()));
+        }
+
+        public TestFileExec input(String enc, String input) {
+            try {
+                return input(new ByteArrayInputStream(input.getBytes(enc)));
+            } catch (java.io.UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+            
+        }
+
+        public TestFileExec input(InputStream input) {
+            action.setStandardInput(input);
+            return this;
+        }
+
+        public TestFileExecResult execute() {
+            return new TestFileExecResult(action.execute(), out, err);
+        }
+    }
+
+    public static class TestFileExecResult {
+        private final ExecResult result;
+        private final ByteArrayOutputStream out;
+        private final ByteArrayOutputStream err;
+
+        public TestFileExecResult(ExecResult result, ByteArrayOutputStream out, ByteArrayOutputStream err) {
+            this.result = result;
+            this.out = out;
+            this.err = err;
+        }
+
+        public ExecResult getResult() {
+            return result;
+        }
+
+        public String getOut() {
+            return out.toString();
+        }
+
+        public String getErr() {
+            return err.toString();
+        }
+    }
+
+    TestFileExecResult exec(Object... args) {
+        return exec(args, null);
+    }
+
+    TestFileExecResult exec(Object[] args, Closure configure) {
+        TestFileExec exec = new TestFileExec().args(args);
+        if (configure != null) {
+            ConfigureUtil.configure(configure, exec);
+        }
+        return exec.execute();
     }
 }
