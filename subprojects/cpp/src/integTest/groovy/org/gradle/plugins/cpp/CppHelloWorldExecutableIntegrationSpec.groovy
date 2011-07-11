@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package integTest.org.gradle.plugins.cpp
+package org.gradle.plugins.cpp
 
 import org.gradle.integtests.fixtures.*
 import org.gradle.integtests.fixtures.internal.*
@@ -22,9 +22,9 @@ import static org.gradle.util.TextUtil.escapeString
 
 class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
 
-    static HELLO_WORLD = "Hello, World!"
+    static final HELLO_WORLD = "Hello, World!"
     
-    static HELLO_WORLD_CPP = """
+    static final HELLO_WORLD_CPP = """
         #include <iostream>
 
         int 

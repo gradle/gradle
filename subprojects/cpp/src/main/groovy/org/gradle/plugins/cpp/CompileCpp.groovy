@@ -17,11 +17,8 @@ package org.gradle.plugins.cpp
 
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputDirectory
-
-import org.gradle.api.file.FileCollection
 
 class CompileCpp extends SourceTask {
 
