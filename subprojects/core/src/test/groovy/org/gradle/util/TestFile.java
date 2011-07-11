@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.copy.DeleteActionImpl;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.ExecResult;
-import org.gradle.util.ConfigureUtil;
 import org.hamcrest.Matcher;
 
 import java.io.*;
