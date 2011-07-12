@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.JvmCompiler;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 
 import java.io.File;

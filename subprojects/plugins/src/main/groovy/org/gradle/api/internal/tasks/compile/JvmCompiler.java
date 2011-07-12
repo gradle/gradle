@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import java.io.File;
 
-interface JvmCompiler extends Compiler {
+public interface JvmCompiler extends Compiler {
 
     void setDestinationDir(File destinationDir);
 
