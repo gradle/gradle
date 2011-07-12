@@ -47,4 +47,21 @@ public interface CppSourceSet {
      */
     CppSourceSet cpp(Closure configureClosure);
 
+    /**
+     * Returns the local header files associated with this source.
+     *
+     * @return the header files. Never returns null.
+     */
+    SourceDirectorySet getHeaders();
+
+    /**
+     * Configures the headers for this set.
+     *
+     * <p>The given closure is used to configure the {@link SourceDirectorySet} which contains the header files.
+     *
+     * @param configureClosure The closure to use to configure the header files source.
+     * @return this
+     */
+    CppSourceSet headers(Closure configureClosure);
+
 }

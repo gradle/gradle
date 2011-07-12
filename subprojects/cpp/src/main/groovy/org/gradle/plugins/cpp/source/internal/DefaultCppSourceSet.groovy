@@ -31,6 +31,7 @@ class DefaultCppSourceSet implements CppSourceSet {
     private String displayName
 
     private final SourceDirectorySet cppSource
+    private final SourceDirectorySet headerSource
 
     DefaultCppSourceSet(String name, FileResolver fileResolver) {
         this.name = name
@@ -40,6 +41,9 @@ class DefaultCppSourceSet implements CppSourceSet {
         cppSource = new DefaultSourceDirectorySet(cppSourceDisplayName, fileResolver)
         cppSource.filter.include("**/*.cpp")
 
+        def headerSourceDisplayName = String.format("%s header files", displayName)
+        headerSource = new DefaultSourceDirectorySet(headerSourceDisplayName, fileResolver)
+        headerSource.filter.include("**/*.h")
     }
 
     String getName() {
@@ -60,6 +64,15 @@ class DefaultCppSourceSet implements CppSourceSet {
 
     CppSourceSet cpp(Closure closure) {
         ConfigureUtil.configure(closure, getCpp())
+        this
+    }
+
+    SourceDirectorySet getHeaders() {
+        headerSource
+    }
+
+    CppSourceSet headers(Closure closure) {
+        ConfigureUtil.configure(closure, getHeaders())
         this
     }
 

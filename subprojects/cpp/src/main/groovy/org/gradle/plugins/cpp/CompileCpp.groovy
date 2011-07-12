@@ -19,14 +19,20 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.OutputFile
 
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.file.DefaultSourceDirectorySet
+
 class CompileCpp extends SourceTask {
 
     CppCompiler compiler
-    
+
     def output
+
+    SourceDirectorySet headers
 
     CompileCpp() {
         compiler = new GppCppCompiler()
+        headers = new DefaultSourceDirectorySet('headers', project.fileResolver)
     }
 
     @OutputFile
@@ -34,10 +40,15 @@ class CompileCpp extends SourceTask {
         project.file(output)
     }
 
+    SourceDirectorySet headers(Object... headerFileRoots) {
+        headers.srcDirs(headerFileRoots)
+    }
+
     @TaskAction
     void compile() {
         compiler.source = getSource()
         compiler.output = getOutput()
+        compiler.includes = headers.srcDirs
         compiler.execute()
     }
 

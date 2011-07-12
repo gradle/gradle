@@ -21,4 +21,8 @@ interface CppCompiler extends Compiler {
 
     void setOutput(File output)
 
+    CppCompiler includes(File... includes)
+    CppCompiler includes(Iterable<File> includes)
+    void setIncludes(Set<File> includes)
+
 }

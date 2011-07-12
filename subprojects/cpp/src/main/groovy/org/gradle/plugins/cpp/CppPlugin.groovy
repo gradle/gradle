@@ -33,6 +33,7 @@ class CppPlugin implements Plugin<Project> {
     private configureSourceSetDefaults(CppProjectExtension extension) {
         extension.sourceSets.all { sourceSet ->
             sourceSet.cpp.srcDir "src/${sourceSet.name}/cpp"
+            sourceSet.headers.srcDir "src/${sourceSet.name}/headers"
         }
     }
 

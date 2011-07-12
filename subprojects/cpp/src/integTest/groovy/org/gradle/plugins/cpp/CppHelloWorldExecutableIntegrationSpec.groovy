@@ -76,6 +76,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
             
             task compileCpp(type: org.gradle.plugins.cpp.CompileCpp) {
                 source cpp.sourceSets.main.cpp
+                headers cpp.sourceSets.main.headers
                 destinationDir = { "\$buildDir/object-files" }
                 output = { "\$buildDir/executables/\$archivesBaseName" }
             }
@@ -91,7 +92,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         and:
-        file("src", "main", "cpp", "hello.h") << """
+        file("src", "main", "headers", "hello.h") << """
             void hello();
         """
         

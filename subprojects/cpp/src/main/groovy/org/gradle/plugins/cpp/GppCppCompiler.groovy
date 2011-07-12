@@ -32,10 +32,15 @@ class GppCppCompiler implements CppCompiler {
     File output
     String gpp = "g++"
 
+    Set<File> includes = new HashSet()
+
     WorkResult execute() {
         def compilerInvocation = new DefaultExecAction().with {
             workingDir output.parentFile
             executable gpp
+            if (includes) {
+                args includes.collect { "-I${it.absolutePath}" }
+            }
             args source.files*.absolutePath
             args "-o", output
         }
@@ -43,6 +48,18 @@ class GppCppCompiler implements CppCompiler {
         def result = compilerInvocation.execute()
         result.assertNormalExitValue()
         return { true } as WorkResult
+    }
+
+    GppCppCompiler includes(File... includes) {
+        for (include in includes) {
+            this.includes.add(include)
+        }
+    }
+
+    GppCppCompiler includes(Iterable<File> includes) {
+        for (include in includes) {
+            this.includes.add(include)
+        }
     }
 
 }
