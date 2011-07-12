@@ -42,7 +42,8 @@ class SourceSetConfigurationSpec extends CppProjectSpec {
         def ss1 = cpp.sourceSets.ss1
         def ss2 = cpp.sourceSets.ss2
 
-        ss1.cpp.srcDirs*.name == ["d1", "d2"]
-        ss2.cpp.srcDirs*.name == ["d3"]
+        // cpp dir automatically added by convention
+        ss1.cpp.srcDirs*.name == ["cpp", "d1", "d2"]
+        ss2.cpp.srcDirs*.name == ["cpp", "d3"]
     }
 }
