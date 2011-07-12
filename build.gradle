@@ -580,18 +580,26 @@ gradle.taskGraph.whenReady {graph ->
 
 // A marker task which causes the release version to be used when it is present in the task graph
 task releaseVersion
+//TODO SF - this task name is inconsitent because other releaseXxx tasks actually upload some content somewhere. Should be called something like 'markReleaseVersion'
 
-task tag {
-    doLast {
-        def git = new Git(project)
-        git.checkNoModifications()
-        git.tag("REL_$version", "Release $version")
-        git.branch("RB_$version")
-    }
+def tagNow() {
+    def git = new Git(project)
+    git.checkNoModifications()
+    git.tag("REL_$version", "Release $version")
+    git.branch("RB_$version")
+}
+
+task tag << {
+    tagNow()
+}
+
+task testedTag(dependsOn: testedDists) << {
+    tagNow()
 }
 
 task releaseArtifacts {
     description = 'Builds the release artifacts'
+    //TODO SF - this task name is inconsitent because other releaseXxx tasks actually upload some content somewhere. Should be called something like 'buildReleaseArtifacts'
     group = 'release'
     dependsOn releaseVersion, assemble, ':docs:websiteDocs'
 }
@@ -599,10 +607,15 @@ task releaseArtifacts {
 task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, tag, releaseArtifacts, testedDists, uploadArchives, uploadDists, ':docs:uploadDocs'
+    dependsOn releaseVersion, testedTag, releaseArtifacts, testedDists, 'uploadAll'
     doLast {
         releases.incrementNextVersion()
     }
+}
+
+task uploadAll {
+    description = 'Uploads binaries, sources and documentation. Does not upload the website! Useful when release procedure breaks at upload and only upload tasks should executed again'
+    dependsOn uploadArchives, uploadDists, ':docs:uploadDocs'
 }
 
 task wrapper(type: Wrapper) {
