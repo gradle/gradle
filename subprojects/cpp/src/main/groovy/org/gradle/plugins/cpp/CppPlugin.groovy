@@ -23,7 +23,17 @@ class CppPlugin implements Plugin<Project> {
 
     void apply(Project project) {
         project.plugins.apply(BasePlugin)
-        project.extensions.add('cpp', new CppProjectExtension(project))
+
+        def extension = new CppProjectExtension(project)
+        configureSourceSetDefaults(extension)
+
+        project.extensions.add('cpp', extension)
+    }
+
+    private configureSourceSetDefaults(CppProjectExtension extension) {
+        extension.sourceSets.all { sourceSet ->
+            sourceSet.cpp.srcDir "src/${sourceSet.name}/cpp"
+        }
     }
 
 }

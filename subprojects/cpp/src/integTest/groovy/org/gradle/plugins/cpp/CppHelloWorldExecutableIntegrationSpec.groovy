@@ -32,9 +32,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
 
             cpp {
                 sourceSets {
-                    main {
-                        cpp.srcDir "src/main"
-                    }
+                    main { }
                 }
             }
             
@@ -46,7 +44,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         and:
-        file("src", "main", "helloworld.cpp") << """
+        file("src", "main", "cpp", "helloworld.cpp") << """
             #include <iostream>
 
             int main () {
@@ -72,9 +70,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
             
             cpp {
                 sourceSets {
-                    main {
-                        cpp.srcDir "src/main"
-                    }
+                    main { }
                 }
             }
             
@@ -86,7 +82,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         and:
-        file("src", "main", "hello.cpp") << """
+        file("src", "main", "cpp", "hello.cpp") << """
             #include <iostream>
 
             void hello () {
@@ -95,12 +91,12 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         and:
-        file("src", "main", "hello.h") << """
+        file("src", "main", "cpp", "hello.h") << """
             void hello();
         """
         
         and:
-        file("src", "main", "main.cpp") << """
+        file("src", "main", "cpp", "main.cpp") << """
             #include "hello.h"
 
             int main () {
