@@ -31,9 +31,9 @@ public interface CppSourceSet {
     String getName();
 
     /**
-     * Returns the Java source which is to be compiled by the Java compiler into the class output directory.
+     * Returns the C++ source which is to be compiled by the C++ compiler.
      *
-     * @return the Java source. Never returns null.
+     * @return the C++ source. Never returns null.
      */
     SourceDirectorySet getCpp();
 
@@ -42,7 +42,7 @@ public interface CppSourceSet {
      *
      * <p>The given closure is used to configure the {@link SourceDirectorySet} which contains the C++ source.
      *
-     * @param configureClosure The closure to use to configure the Java source.
+     * @param configureClosure The closure to use to configure the C++ source.
      * @return this
      */
     CppSourceSet cpp(Closure configureClosure);
