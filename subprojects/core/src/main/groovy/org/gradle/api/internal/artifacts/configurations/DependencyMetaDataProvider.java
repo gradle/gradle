@@ -17,13 +17,9 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Module;
 
-import java.io.File;
-
 /**
  * @author Hans Dockter
  */
 public interface DependencyMetaDataProvider {
-    File getGradleUserHomeDir();
-
     Module getModule();
 }

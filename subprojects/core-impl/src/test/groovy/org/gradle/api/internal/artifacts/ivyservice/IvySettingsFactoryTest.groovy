@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
+import spock.lang.Specification
+import org.gradle.api.artifacts.ResolverContainer
 
-public interface IvyServiceFactory {
-    IvyService newIvyService(ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider, InternalRepository internalRepository);
+class IvySettingsFactoryTest extends Specification {
+    final File userDir = new File('user-dir')
+    final IvySettingsFactory factory = new IvySettingsFactory(userDir)
+
+    def "creates and configures an IvySettings instance"() {
+        expect:
+        def settings = factory.create()
+        settings.defaultCache == new File(userDir, ResolverContainer.DEFAULT_CACHE_DIR_NAME)
+        settings.defaultCacheArtifactPattern == ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN
+    }
 }

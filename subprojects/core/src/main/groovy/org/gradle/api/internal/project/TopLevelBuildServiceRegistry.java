@@ -57,8 +57,6 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.*;
 
-import java.io.File;
-
 /**
  * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher}
  * invocation.
@@ -248,9 +246,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        public File getGradleUserHomeDir() {
-            return startParameter.getGradleUserHomeDir();
-        }
 
         public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);

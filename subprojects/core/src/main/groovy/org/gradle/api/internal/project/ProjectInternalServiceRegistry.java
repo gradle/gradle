@@ -156,10 +156,6 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new DependencyMetaDataProvider() {
 
-            public File getGradleUserHomeDir() {
-                return project.getGradle().getGradleUserHomeDir();
-            }
-
             public Module getModule() {
                 return new DefaultModule(project.getGroup().toString(), project.getName(), project.getVersion().toString(), project.getStatus().toString());
             }

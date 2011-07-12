@@ -72,9 +72,6 @@ public class DefaultIvyServiceResolveTest {
         IvyDependencyResolver ivyDependencyResolverMock = context.mock(IvyDependencyResolver.class);
 
         context.checking(new Expectations() {{
-            allowing(dependencyMetaDataProviderMock).getGradleUserHomeDir();
-            will(returnValue(cacheParentDirDummy));
-
             allowing(dependencyMetaDataProviderMock).getModule();
             will(returnValue(moduleDummy));
 
@@ -86,7 +83,7 @@ public class DefaultIvyServiceResolveTest {
                 settingsConverterMock, resolveModuleDescriptorConverterStub, publishModuleDescriptorConverterDummy,
                 publishModuleDescriptorConverterDummy,
                 ivyFactoryStub, ivyDependencyResolverMock,
-                context.mock(IvyDependencyPublisher.class), internalRepositoryDummy, clientModuleRegistryDummy);
+                context.mock(IvyDependencyPublisher.class));
     }
 
     @Test
@@ -115,8 +112,8 @@ public class DefaultIvyServiceResolveTest {
                     ivySettingsDummy);
             will(returnValue(moduleDescriptorDummy));
 
-            allowing(ivyService.getSettingsConverter()).convertForResolve(dependencyResolversDummy, cacheParentDirDummy,
-                    internalRepositoryDummy, clientModuleRegistryDummy);
+            allowing(ivyService.getSettingsConverter()).convertForResolve(dependencyResolversDummy
+            );
             will(returnValue(ivySettingsDummy));
         }});
 

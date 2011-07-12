@@ -25,10 +25,11 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.logging.ProgressLogger;
@@ -36,8 +37,10 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -45,13 +48,22 @@ import java.util.*;
 public class DefaultSettingsConverter implements SettingsConverter {
     private static Logger logger = Logging.getLogger(DefaultSettingsConverter.class);
 
-    private RepositoryCacheManager repositoryCacheManager = new DefaultRepositoryCacheManager();
-    private IvySettings ivySettings;
     private final ProgressLoggerFactory progressLoggerFactory;
+    private final Factory<IvySettings> settingsFactory;
+    private final DependencyResolver internalRepository;
+    private final Map<String, ModuleDescriptor> clientModuleRegistry;
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
+    private RepositoryCacheManager repositoryCacheManager = new DefaultRepositoryCacheManager();
+    private IvySettings publishSettings;
+    private IvySettings resolveSettings;
+    private ChainResolver userResolverChain;
+    private DependencyResolver outerChain;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory) {
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
         this.progressLoggerFactory = progressLoggerFactory;
+        this.settingsFactory = settingsFactory;
+        this.internalRepository = internalRepository;
+        this.clientModuleRegistry = clientModuleRegistry;
     }
 
     private static String getLengthText(TransferEvent evt) {
@@ -71,41 +83,33 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
     }
 
-    public IvySettings convertForPublish(List<DependencyResolver> publishResolvers, File gradleUserHome, DependencyResolver internalRepository) {
-        if (ivySettings != null) {
-            return ivySettings;
-        }
+    public IvySettings convertForPublish(List<DependencyResolver> publishResolvers) {
         Clock clock = new Clock();
-
-        IvySettings ivySettings = createIvySettings(gradleUserHome);
-        initializeResolvers(ivySettings, publishResolvers);
+        if (publishSettings == null) {
+            publishSettings = createIvySettings();
+        } else {
+            publishSettings.getResolvers().clear();
+        }
+        initializeResolvers(publishSettings, publishResolvers);
         logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
-        return ivySettings;
+        return publishSettings;
     }
 
-    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers,
-                               File gradleUserHome, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
-        if (ivySettings != null) {
-            return ivySettings;
-        }
+    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers) {
         Clock clock = new Clock();
-        DependencyResolver userResolverChain = createUserResolverChain(dependencyResolvers, internalRepository);
-        DependencyResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
-        DependencyResolver outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
 
-        IvySettings ivySettings = createIvySettings(gradleUserHome);
-        initializeResolvers(ivySettings, getAllResolvers(dependencyResolvers, Collections.<DependencyResolver>emptyList(), internalRepository, userResolverChain, clientModuleResolver, outerChain));
-        ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
+        if (resolveSettings == null) {
+            resolveSettings = createIvySettings();
+            userResolverChain = createUserResolverChain();
+            DependencyResolver clientModuleResolver = createClientModuleResolver(userResolverChain);
+            outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
+            initializeResolvers(resolveSettings, WrapUtil.toList(internalRepository, userResolverChain, clientModuleResolver, outerChain));
+        }
+        replaceResolvers(dependencyResolvers, userResolverChain);
+        initializeResolvers(resolveSettings, dependencyResolvers);
+        resolveSettings.setDefaultResolver(outerChain.getName());
         logger.debug("Timing: Ivy convert for resolve took {}", clock.getTime());
-        return ivySettings;
-    }
-
-    private List<DependencyResolver> getAllResolvers(List<DependencyResolver> classpathResolvers,
-                                                     List<DependencyResolver> otherResolvers, DependencyResolver... resolvers) {
-        List<DependencyResolver> allResolvers = new ArrayList<DependencyResolver>(otherResolvers);
-        allResolvers.addAll(classpathResolvers);
-        allResolvers.addAll(WrapUtil.toList(resolvers));
-        return allResolvers;
+        return resolveSettings;
     }
 
     private DependencyResolver createOuterChain(Collection<DependencyResolver> resolvers) {
@@ -119,11 +123,11 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return clientModuleChain;
     }
 
-    private DependencyResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, DependencyResolver userResolverChain) {
+    private DependencyResolver createClientModuleResolver(DependencyResolver userResolverChain) {
         return new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
     }
 
-    private DependencyResolver createUserResolverChain(List<DependencyResolver> classpathResolvers, DependencyResolver internalRepository) {
+    private ChainResolver createUserResolverChain() {
         ChainResolver chainResolver = new ChainResolver();
         chainResolver.setName(CHAIN_RESOLVER_NAME);
         chainResolver.add(internalRepository);
@@ -132,18 +136,23 @@ public class DefaultSettingsConverter implements SettingsConverter {
         chainResolver.setChangingMatcher(PatternMatcher.REGEXP);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));
-        for (DependencyResolver classpathResolver : classpathResolvers) {
-            chainResolver.add(classpathResolver);
-        }
         return chainResolver;
     }
 
-    private IvySettings createIvySettings(File gradleUserHome) {
-        IvySettings ivySettings = new IvySettings();
-        ivySettings.setDefaultCache(new File(gradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME));
-        ivySettings.setDefaultCacheIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
-        ivySettings.setDefaultCacheArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
-        ivySettings.setVariable("ivy.log.modules.in.use", "false");
+    private void replaceResolvers(List<DependencyResolver> classpathResolvers, ChainResolver chainResolver) {
+        Collection<DependencyResolver> oldResolvers = new ArrayList<DependencyResolver>(chainResolver.getResolvers());
+        oldResolvers.remove(internalRepository);
+        for (DependencyResolver resolver : oldResolvers) {
+            resolveSettings.getResolvers().remove(resolver);
+            chainResolver.getResolvers().remove(resolver);
+        }
+        for (DependencyResolver classpathResolver : classpathResolvers) {
+            chainResolver.add(classpathResolver);
+        }
+    }
+
+    private IvySettings createIvySettings() {
+        IvySettings ivySettings = settingsFactory.create();
         ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
         ((IvySettingsAware)repositoryCacheManager).setSettings(ivySettings);
         return ivySettings;
@@ -153,13 +162,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
         for (DependencyResolver dependencyResolver : allResolvers) {
             ivySettings.addResolver(dependencyResolver);
             RepositoryCacheManager cacheManager = dependencyResolver.getRepositoryCacheManager();
-            // Validate that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
-            if (cacheManager != ivySettings.getDefaultRepositoryCacheManager()
-                    && !(cacheManager instanceof NoOpRepositoryCacheManager)
-                    && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
-                throw new IllegalStateException(String.format(
-                        "For consistency reasons, gradle requires all remote resolver resolvers to share the same instance of the repository cache manager."
-                        + " Unexpected cache manager %s for repository %s (%s)", cacheManager, dependencyResolver.getName(), dependencyResolver));
+            // Ensure that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
+            if (!(cacheManager instanceof NoOpRepositoryCacheManager) && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
+                ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
             }
             if (dependencyResolver instanceof RepositoryResolver) {
                 Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
@@ -168,14 +173,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
                 }
             }
         }
-    }
-
-    public IvySettings getIvySettings() {
-        return ivySettings;
-    }
-
-    public void setIvySettings(IvySettings ivySettings) {
-        this.ivySettings = ivySettings;
     }
 
     private class ProgressLoggingTransferListener implements TransferListener {

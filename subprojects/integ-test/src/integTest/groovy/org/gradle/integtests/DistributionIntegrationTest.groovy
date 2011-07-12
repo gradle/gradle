@@ -103,6 +103,7 @@ class DistributionIntegrationTest {
         assertIsGradleJar(contentsDir.file("lib/gradle-tooling-api-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-wrapper-${version}.jar"))
 
+        // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-plugins-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ide-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-scala-${version}.jar"))
@@ -113,6 +114,8 @@ class DistributionIntegrationTest {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-sonar-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-signing-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-cpp-${version}.jar"))
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()

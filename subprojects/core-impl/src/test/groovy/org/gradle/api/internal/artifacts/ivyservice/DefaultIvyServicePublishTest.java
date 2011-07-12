@@ -37,7 +37,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -97,7 +96,7 @@ public class DefaultIvyServicePublishTest {
                 settingsConverterStub, resolveModuleDescriptorConverter, publishModuleDescriptorConverter,
                 fileModuleDescriptorConverter,
                 ivyFactoryStub, context.mock(IvyDependencyResolver.class),
-                ivyDependencyPublisherMock, internalRepositoryDummy, new HashMap<String, ModuleDescriptor>());
+                ivyDependencyPublisherMock);
     }
 
     private File createCacheParentDirDummy() {
@@ -137,14 +136,11 @@ public class DefaultIvyServicePublishTest {
                                  final List<DependencyResolver> publishResolversDummy, final Module moduleDummy,
                                  final File cacheParentDirDummy, final DefaultIvyService ivyService, final IvySettings ivySettingsDummy) {
         context.checking(new Expectations() {{
-            allowing(dependencyMetaDataProviderMock).getGradleUserHomeDir();
-            will(returnValue(cacheParentDirDummy));
-
             allowing(dependencyMetaDataProviderMock).getModule();
             will(returnValue(moduleDummy));
 
-            allowing(ivyService.getSettingsConverter()).convertForPublish(publishResolversDummy, cacheParentDirDummy,
-                    internalRepositoryDummy);
+            allowing(ivyService.getSettingsConverter()).convertForPublish(publishResolversDummy
+            );
             will(returnValue(ivySettingsDummy));
 
             allowing(setUpIvyFactory(ivySettingsDummy, ivyService)).getPublishEngine();

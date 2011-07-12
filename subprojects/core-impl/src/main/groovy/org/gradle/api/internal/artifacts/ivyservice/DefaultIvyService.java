@@ -27,13 +27,11 @@ import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -49,8 +47,6 @@ public class DefaultIvyService implements IvyService {
     private final IvyDependencyPublisher dependencyPublisher;
     private final DependencyMetaDataProvider metaDataProvider;
     private final ResolverProvider resolverProvider;
-    private final InternalRepository internalRepository;
-    private final Map<String, ModuleDescriptor> clientModuleRegistry;
 
     public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider,
                              SettingsConverter settingsConverter,
@@ -59,9 +55,7 @@ public class DefaultIvyService implements IvyService {
                              ModuleDescriptorConverter fileModuleDescriptorConverter,
                              IvyFactory ivyFactory,
                              IvyDependencyResolver dependencyResolver,
-                             IvyDependencyPublisher dependencyPublisher,
-                             InternalRepository internalRepository,
-                             Map<String, ModuleDescriptor> clientModuleRegistry) {
+                             IvyDependencyPublisher dependencyPublisher) {
         this.metaDataProvider = metaDataProvider;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
@@ -71,30 +65,18 @@ public class DefaultIvyService implements IvyService {
         this.ivyFactory = ivyFactory;
         this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
-        this.internalRepository = internalRepository;
-        this.clientModuleRegistry = clientModuleRegistry;
     }
 
-    private Ivy ivyForResolve(List<DependencyResolver> dependencyResolvers, File cacheParentDir,
-                   Map<String, ModuleDescriptor> clientModuleRegistry) {
+    private Ivy ivyForResolve(List<DependencyResolver> dependencyResolvers) {
         return ivyFactory.createIvy(
                 settingsConverter.convertForResolve(
-                        dependencyResolvers,
-                        cacheParentDir,
-                        internalRepository,
-                        clientModuleRegistry
+                        dependencyResolvers
                 )
         );
     }
 
-    private Ivy ivyForPublish(List<DependencyResolver> publishResolvers, File cacheParentDir) {
-        return ivyFactory.createIvy(
-                settingsConverter.convertForPublish(
-                        publishResolvers,
-                        cacheParentDir,
-                        internalRepository
-                )
-        );
+    private Ivy ivyForPublish(List<DependencyResolver> publishResolvers) {
+        return ivyFactory.createIvy(settingsConverter.convertForPublish(publishResolvers));
     }
 
     public SettingsConverter getSettingsConverter() {
@@ -134,8 +116,7 @@ public class DefaultIvyService implements IvyService {
     }
 
     public ResolvedConfiguration resolve(final Configuration configuration) {
-        Ivy ivy = ivyForResolve(resolverProvider.getResolvers(), metaDataProvider.getGradleUserHomeDir(),
-                clientModuleRegistry);
+        Ivy ivy = ivyForResolve(resolverProvider.getResolvers());
         ModuleDescriptor moduleDescriptor = resolveModuleDescriptorConverter.convert(configuration.getAll(),
                 metaDataProvider.getModule(), ivy.getSettings());
         return dependencyResolver.resolve(configuration, ivy, moduleDescriptor);
@@ -147,7 +128,7 @@ public class DefaultIvyService implements IvyService {
 
     private void publish(Set<Configuration> configurationsToPublish, File descriptorDestination,
                         List<DependencyResolver> publishResolvers) {
-        Ivy ivy = ivyForPublish(publishResolvers, metaDataProvider.getGradleUserHomeDir());
+        Ivy ivy = ivyForPublish(publishResolvers);
         Set<String> confs = Configurations.getNames(configurationsToPublish, false);
         writeDescriptorFile(descriptorDestination, configurationsToPublish, ivy.getSettings());
         dependencyPublisher.publish(

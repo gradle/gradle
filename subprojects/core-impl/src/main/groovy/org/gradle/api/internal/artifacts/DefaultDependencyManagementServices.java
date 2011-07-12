@@ -69,26 +69,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY));
     }
 
-    protected IvyServiceFactory createIvyServiceFactory() {
-        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
-        PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
-                createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
-                new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
-
-        return new DefaultIvyServiceFactory(clientModuleRegistry,
-                new DefaultSettingsConverter(
-                        get(ProgressLoggerFactory.class)
-                ),
-                get(PublishModuleDescriptorConverter.class),
-                get(PublishModuleDescriptorConverter.class),
-                fileModuleDescriptorConverter,
-                new DefaultIvyFactory(),
-                new SelfResolvingDependencyResolver(
-                        new DefaultIvyDependencyResolver(
-                                new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))),
-                new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()));
-    }
-
     protected ModuleDescriptorFactory createModuleDescriptorFactory() {
         return new DefaultModuleDescriptorFactory();
     }
@@ -149,7 +129,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 projectDependencyFactory);
     }
 
-    private static class DefaultDependencyResolutionServices implements DependencyResolutionServices {
+    private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
         private final ServiceRegistry parent;
         private final FileResolver fileResolver;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
@@ -211,8 +191,31 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         }
 
         IvyService createIvyService(RepositoryHandler resolverProvider) {
-            IvyServiceFactory ivyServiceFactory = parent.get(IvyServiceFactory.class);
-            return ivyServiceFactory.newIvyService(resolverProvider, dependencyMetaDataProvider, new DefaultInternalRepository(projectFinder, parent.get(ModuleDescriptorConverter.class)));
+            DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
+            PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
+                    createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
+                    new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
+
+            return new ErrorHandlingIvyService(
+                    new ShortcircuitEmptyConfigsIvyService(
+                            new DefaultIvyService(
+                                    dependencyMetaDataProvider,
+                                    resolverProvider,
+                                    new DefaultSettingsConverter(
+                                            parent.get(ProgressLoggerFactory.class),
+                                            new IvySettingsFactory(parent.get(StartParameter.class).getGradleUserHomeDir()),
+                                            new DefaultInternalRepository(projectFinder, parent.get(ModuleDescriptorConverter.class)),
+                                            clientModuleRegistry
+                                    ),
+                                    parent.get(PublishModuleDescriptorConverter.class),
+                                    parent.get(PublishModuleDescriptorConverter.class),
+                                    fileModuleDescriptorConverter,
+                                    new DefaultIvyFactory(),
+                                    new SelfResolvingDependencyResolver(
+                                        new DefaultIvyDependencyResolver(
+                                            new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))),
+                                    new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory())
+                            )));
         }
 
         RepositoryHandler createRepositoryHandlerWithSharedConventionMapping() {

@@ -18,11 +18,21 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.settings.IvySettings;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Hans Dockter
  */
 public class DefaultIvyFactory implements IvyFactory {
+    private final Map<IvySettings, Ivy> instanceCache = new HashMap<IvySettings, Ivy>();
+    
     public Ivy createIvy(IvySettings ivySettings) {
-        return Ivy.newInstance(ivySettings);
+        Ivy ivy = instanceCache.get(ivySettings);
+        if (ivy == null) {
+            ivy = Ivy.newInstance(ivySettings);
+            instanceCache.put(ivySettings, ivy);
+        }
+        return ivy;
     }
 }
