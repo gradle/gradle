@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
@@ -53,7 +52,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final DependencyResolver internalRepository;
     private final Map<String, ModuleDescriptor> clientModuleRegistry;
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
-    private RepositoryCacheManager repositoryCacheManager = new DefaultRepositoryCacheManager();
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private ChainResolver userResolverChain;
@@ -86,7 +84,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     public IvySettings convertForPublish(List<DependencyResolver> publishResolvers) {
         Clock clock = new Clock();
         if (publishSettings == null) {
-            publishSettings = createIvySettings();
+            publishSettings = settingsFactory.create();
         } else {
             publishSettings.getResolvers().clear();
         }
@@ -99,7 +97,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         Clock clock = new Clock();
 
         if (resolveSettings == null) {
-            resolveSettings = createIvySettings();
+            resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
             DependencyResolver clientModuleResolver = createClientModuleResolver(userResolverChain);
             outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
@@ -149,13 +147,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
         for (DependencyResolver classpathResolver : classpathResolvers) {
             chainResolver.add(classpathResolver);
         }
-    }
-
-    private IvySettings createIvySettings() {
-        IvySettings ivySettings = settingsFactory.create();
-        ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
-        ((IvySettingsAware)repositoryCacheManager).setSettings(ivySettings);
-        return ivySettings;
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {

@@ -19,14 +19,6 @@ import org.gradle.build.GenerateReleasesXml
 apply plugin: 'groovy'
 apply from: "$rootDir/gradle/integTest.gradle"
 
-repositories {
-    ivy {
-        name = 'jfrog'
-        artifactPattern('http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
-//        artifactPattern('http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml')
-    }
-}
-
 configurations {
     testFixtures
     testFixturesRuntime {

@@ -76,27 +76,24 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     public void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
         testFile('settings.gradle') << 'include "a", "b"'
         testFile('build.gradle') << """
+subprojects {
+    configurations {
+        compile
+    }
+    task listDeps << { configurations.compile.each { } }
+}
 project(':a') {
     repositories {
         mavenRepo urls: '${repo().rootDir.toURI()}'
-    }
-    configurations {
-        compile
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
     }
 }
 project(':b') {
-    configurations {
-        compile
-    }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
     }
-}
-subprojects {
-    task listDeps << { configurations.compile.each { } }
 }
 """
         repo().module('org.gradle.test', 'external1', '1.0').publishArtifact()
