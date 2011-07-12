@@ -30,9 +30,16 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
             apply plugin: "cpp"
             archivesBaseName = "hello"
 
+            cpp {
+                sourceSets {
+                    main {
+                        cpp.srcDir "src/main"
+                    }
+                }
+            }
+            
             task compileCpp(type: org.gradle.plugins.cpp.CompileCpp) {
-                source "src/main"
-                include "**/*.cpp"
+                source cpp.sourceSets.main.cpp
                 destinationDir = { "\$buildDir/object-files" }
                 output = { "\$buildDir/executables/\$archivesBaseName" }
             }
@@ -62,10 +69,17 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "cpp"
             archivesBaseName = "hello"
-
+            
+            cpp {
+                sourceSets {
+                    main {
+                        cpp.srcDir "src/main"
+                    }
+                }
+            }
+            
             task compileCpp(type: org.gradle.plugins.cpp.CompileCpp) {
-                source "src/main"
-                include "**/*.cpp"
+                source cpp.sourceSets.main.cpp
                 destinationDir = { "\$buildDir/object-files" }
                 output = { "\$buildDir/executables/\$archivesBaseName" }
             }

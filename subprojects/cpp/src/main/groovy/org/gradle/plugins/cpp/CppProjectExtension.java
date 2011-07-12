@@ -23,6 +23,11 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.cpp.source.CppSourceSetContainer;
 import org.gradle.plugins.cpp.source.internal.DefaultCppSourceSetContainer;
 
+import groovy.lang.Closure;
+
+/**
+ * The DSL for C++.
+ */
 public class CppProjectExtension {
 
     final private ProjectInternal project;
@@ -38,6 +43,10 @@ public class CppProjectExtension {
 
     public CppSourceSetContainer getSourceSets() {
         return sourceSets;
+    }
+
+    public CppSourceSetContainer sourceSets(Closure closure) {
+        return sourceSets.configure(closure);
     }
 
 }

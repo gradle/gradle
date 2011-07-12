@@ -15,15 +15,37 @@
  */
 package org.gradle.plugins.cpp
 
-import org.gradle.api.Project
-import org.gradle.api.Plugin
-import org.gradle.api.plugins.BasePlugin
+import org.gradle.plugins.cpp.source.CppSourceSetContainer
 
-class CppPlugin implements Plugin<Project> {
+/**
+ * Ensures the mechanics of the cpp extension are working.
+ */
+class CppProjectExtensionSmokeSpec extends CppProjectSpec {
 
-    void apply(Project project) {
-        project.plugins.apply(BasePlugin)
-        project.extensions.add('cpp', new CppProjectExtension(project))
+    def setup() {
+        applyPlugin()
+    }
+
+    def "cpp extension is available"() {
+        expect:
+        cpp instanceof CppProjectExtension
+
+        and:
+        cpp {
+
+        }
+    }
+
+    def "source set container is available"() {
+        expect:
+        cpp.sourceSets instanceof CppSourceSetContainer
+
+        and:
+        cpp {
+            sourceSets {
+                main { }
+            }
+        }
     }
 
 }

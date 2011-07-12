@@ -15,15 +15,34 @@
  */
 package org.gradle.plugins.cpp
 
-import org.gradle.api.Project
-import org.gradle.api.Plugin
-import org.gradle.api.plugins.BasePlugin
+class SourceSetConfigurationSpec extends CppProjectSpec {
 
-class CppPlugin implements Plugin<Project> {
-
-    void apply(Project project) {
-        project.plugins.apply(BasePlugin)
-        project.extensions.add('cpp', new CppProjectExtension(project))
+    def setup() {
+        applyPlugin()
     }
 
+    def "configure source sets"() {
+        when:
+        cpp {
+            sourceSets {
+                ss1 {
+                    cpp {
+                        srcDirs "d1", "d2"
+                    }
+                }
+                ss2 {
+                    cpp {
+                        srcDirs "d3"
+                    }
+                }
+            }
+        }
+
+        then:
+        def ss1 = cpp.sourceSets.ss1
+        def ss2 = cpp.sourceSets.ss2
+
+        ss1.cpp.srcDirs*.name == ["d1", "d2"]
+        ss2.cpp.srcDirs*.name == ["d3"]
+    }
 }
