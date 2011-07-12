@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.scala;
-
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.tasks.scala.ScalaCompileOptions;
+package org.gradle.api.internal.tasks.compile;
 
 import java.io.File;
 
-public interface ScalaCompiler extends JvmCompiler {
-    ScalaCompileOptions getScalaCompileOptions();
+interface JvmCompiler extends Compiler {
 
-    void setScalaClasspath(Iterable<File> classpath);
+    void setDestinationDir(File destinationDir);
+
+    void setClasspath(Iterable<File> classpath);
+
 }
