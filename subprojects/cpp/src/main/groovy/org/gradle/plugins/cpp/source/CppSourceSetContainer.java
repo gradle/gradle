@@ -43,4 +43,26 @@ public interface CppSourceSetContainer extends NamedDomainObjectContainer<CppSou
      * @throws InvalidUserDataException when a source set with the given name already exists in this container.
      */
     CppSourceSet add(String name, Closure configureClosure) throws InvalidUserDataException;
+
+    /**
+     * Configures the source sets of this container.
+     *
+     * <p>The given closure is executed against this container.
+     * <p>
+     * See the example below how {@link CppSourceSet} 'main' is accessed and how the {@link SourceDirectorySet} 'cpp'
+     * is configured to exclude some package from compilation.
+     *
+     * <pre>
+     * sourceSets.configure {
+     *   main {
+     *     cpp {
+     *       exclude 'some/unwanted/dir/**'
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * @param closure The closure to execute.
+     */
+    CppSourceSetContainer configure(Closure closure);
 }
