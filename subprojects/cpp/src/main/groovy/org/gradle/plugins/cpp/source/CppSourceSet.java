@@ -18,6 +18,9 @@ package org.gradle.plugins.cpp.source;
 import org.gradle.api.file.SourceDirectorySet;
 import groovy.lang.Closure;
 
+/**
+ * A {@code CppSourceSet} represents a logical group of C++ source.
+ */
 public interface CppSourceSet {
 
     /**
