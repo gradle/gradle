@@ -29,18 +29,12 @@ class GppCppCompiler implements CppCompiler {
     private static Logger logger = LoggerFactory.getLogger(GppCppCompiler)
 
     FileCollection source
-    File destinationDir
-
-    // doesn't make sense here, but is part of Compiler
-    Iterable<File> classpath
-
     File output
-
     String gpp = "g++"
 
     WorkResult execute() {
         def compilerInvocation = new DefaultExecAction().with {
-            workingDir destinationDir
+            workingDir output.parentFile
             executable gpp
             args source.files*.absolutePath
             args "-o", output

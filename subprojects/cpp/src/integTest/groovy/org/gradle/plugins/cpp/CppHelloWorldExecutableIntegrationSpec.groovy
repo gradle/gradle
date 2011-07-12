@@ -23,24 +23,13 @@ import static org.gradle.util.TextUtil.escapeString
 class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
-    
-    static final HELLO_WORLD_CPP = """
-        #include <iostream>
 
-        int 
-        main ()
-        {
-          std::cout << "${escapeString(HELLO_WORLD)}";
-          return 0;
-        }
-    """
-    
     def "build and execute simple hello world cpp program"() {
         given:
         buildFile << """
             apply plugin: "cpp"
             archivesBaseName = "hello"
-        
+
             task compileCpp(type: org.gradle.plugins.cpp.CompileCpp) {
                 source "src/main"
                 include "**/*.cpp"
@@ -48,16 +37,71 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
                 output = { "\$buildDir/executables/\$archivesBaseName" }
             }
         """
-        
+
         and:
-        file("src", "main", "helloworld.cpp") << HELLO_WORLD_CPP
-        
+        file("src", "main", "helloworld.cpp") << """
+            #include <iostream>
+
+            int main () {
+              std::cout << "${escapeString(HELLO_WORLD)}";
+              return 0;
+            }
+        """
+
         when:
-        run "compileCpp" 
-        
+        run "compileCpp"
+
         then:
         def executable = file("build/executables/hello")
         executable.exists()
         executable.exec().out == HELLO_WORLD
     }
+
+    def "build and execute simple hello world cpp program using header"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp"
+            archivesBaseName = "hello"
+
+            task compileCpp(type: org.gradle.plugins.cpp.CompileCpp) {
+                source "src/main"
+                include "**/*.cpp"
+                destinationDir = { "\$buildDir/object-files" }
+                output = { "\$buildDir/executables/\$archivesBaseName" }
+            }
+        """
+
+        and:
+        file("src", "main", "hello.cpp") << """
+            #include <iostream>
+
+            void hello () {
+              std::cout << "${escapeString(HELLO_WORLD)}";
+            }
+        """
+
+        and:
+        file("src", "main", "hello.h") << """
+            void hello();
+        """
+        
+        and:
+        file("src", "main", "main.cpp") << """
+            #include "hello.h"
+
+            int main () {
+              hello();
+              return 0;
+            }
+        """
+        
+        when:
+        run "compileCpp"
+
+        then:
+        def executable = file("build/executables/hello")
+        executable.exists()
+        executable.exec().out == HELLO_WORLD
+    }
+
 }

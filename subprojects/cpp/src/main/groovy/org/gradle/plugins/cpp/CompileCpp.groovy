@@ -18,22 +18,15 @@ package org.gradle.plugins.cpp
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.OutputDirectory
 
 class CompileCpp extends SourceTask {
 
     CppCompiler compiler
     
-    def destinationDir
     def output
 
     CompileCpp() {
         compiler = new GppCppCompiler()
-    }
-
-    @OutputDirectory
-    File getDestinationDir() {
-        project.file(destinationDir)
     }
 
     @OutputFile
@@ -44,7 +37,6 @@ class CompileCpp extends SourceTask {
     @TaskAction
     void compile() {
         compiler.source = getSource()
-        compiler.destinationDir = getDestinationDir()
         compiler.output = getOutput()
         compiler.execute()
     }
