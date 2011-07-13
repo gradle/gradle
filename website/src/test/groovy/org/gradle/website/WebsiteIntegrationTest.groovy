@@ -64,6 +64,7 @@ class WebsiteIntegrationTest {
         try {
             link.probe()
         } catch (Exception e) {
+            println "    * probe failed!"
             failedLinks << e.message
         }
     }
