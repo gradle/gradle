@@ -53,7 +53,7 @@
 	    <li><a href="http://gradleware.com/training.html">November 21-22, 2011, Oslo, NO</li>
 	    <li><a href="http://gradleware.com/training.html">December 6-8, 2011, D&uuml;&uuml;ldorf, DE</li>
     </ul>
-    <div class="more"><a href="http://gradleware.com/home/training">learn more</a></div>
+    <div class="more"><a href="http://gradleware.com/training">learn more</a></div>
 </div>
 
 <div id="who_uses" class="homeList">
