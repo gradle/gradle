@@ -13,21 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.compiler;
-
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.WorkResult;
-import java.io.File;
 
 /**
- * Links one or more object files (usually compiled from source) into a single binary.
+ * Objects responsible for some step in turning source code into a usable binary.
  */
-public interface CppLinker {
+package org.gradle.plugins.cpp.compiler;
 
-    void setSource(FileCollection source);
-
-    void setOutput(File output);
-
-    WorkResult execute();
-
-}

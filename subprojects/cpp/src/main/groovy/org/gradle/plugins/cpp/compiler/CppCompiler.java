@@ -18,23 +18,15 @@ package org.gradle.plugins.cpp.compiler;
 import org.gradle.api.internal.tasks.compile.Compiler;
 
 import java.io.File;
-import java.util.Set;
 
+/**
+ * A compiler of CPP source files (and headers).
+ */
 public interface CppCompiler extends Compiler {
 
     /**
-     *
+     * The include roots to use for the compile operation.
      */
-    CppCompiler includes(File... includes);
-
-    /**
-     *
-     */
-    CppCompiler includes(Iterable<File> includes);
-
-    /**
-     *
-     */
-    void setIncludes(Set<File> includes);
+    void setIncludes(Iterable<File> includes);
 
 }

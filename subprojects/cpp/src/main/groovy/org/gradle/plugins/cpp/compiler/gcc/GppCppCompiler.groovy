@@ -34,7 +34,7 @@ class GppCppCompiler implements CppCompiler {
     File destinationDir
     String gpp = "g++"
 
-    Set<File> includes = new HashSet()
+    Iterable<File> includes
 
     WorkResult execute() {
         def compilerInvocation = new DefaultExecAction().with {
@@ -50,18 +50,6 @@ class GppCppCompiler implements CppCompiler {
         def result = compilerInvocation.execute()
         result.assertNormalExitValue()
         return { true } as WorkResult
-    }
-
-    GppCppCompiler includes(File... includes) {
-        for (include in includes) {
-            this.includes.add(include)
-        }
-    }
-
-    GppCppCompiler includes(Iterable<File> includes) {
-        for (include in includes) {
-            this.includes.add(include)
-        }
     }
 
 }
