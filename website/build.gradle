@@ -288,8 +288,7 @@ class Release {
 
     def String getDistributionBase() {
         if (majorVersion >= 0.9 && !version.startsWith('0.9-rc')) {
-            String artifactoryFolder = versionInfo.release? 'distributions' : 'distributions-snapshots'
-            return "http://repo.gradle.org/gradle/$artifactoryFolder/"
+            return "http://repo.gradle.org/gradle/distributions/"
         } else {
             return "http://dist.codehaus.org/gradle/"
         }
@@ -343,6 +342,18 @@ class CurrentRelease extends Release {
 
     def String getDocsUrl() {
         return "current/docs"
+    }
+
+    def String getDistributionBase() {
+        String artifactoryFolder = super.versionInfo.release? 'distributions' : 'distributions-snapshots'
+        return "http://repo.gradle.org/gradle/$artifactoryFolder/"
+    }
+
+    def String getReleaseNotesUrl() {
+        if (super.versionInfo.release)
+            return "http://wiki.gradle.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes"
+        else
+            return "http://wiki.gradle.org/display/GRADLE/Releases"
     }
 }
 
