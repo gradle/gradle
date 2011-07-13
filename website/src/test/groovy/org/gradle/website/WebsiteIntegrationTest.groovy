@@ -15,16 +15,21 @@
  */
 package org.gradle.website
 
-import org.junit.Test
-import static org.junit.Assert.*
 import org.junit.Rule
+import org.junit.Test
 
 class WebsiteIntegrationTest {
     private final Layout layout = new LocalLayout()
     @Rule public final HtmlUnitBrowser browser = new HtmlUnitBrowser(layout)
-    
+
+//    Uncomment below to run test against test website
+//    @Before public void sysProperties() {
+//        System.properties['test.base.uri'] = 'http://www.gradle.org/latest/'
+//    }
+
     @Test
     public void brokenLinks() {
+        def failedLinks = []
         def homePage = browser.open(layout.homePage())
         def queue = [homePage]
         def visiting = new HashSet()
@@ -40,7 +45,7 @@ class WebsiteIntegrationTest {
                 if (!link.target.local) {
                     if (link.target.mustExist()) {
                         println "  * probe $link"
-                        link.probe()
+                        probe(link, failedLinks)
                     } else {
                         println "  * ignore $link"
                     }
@@ -51,6 +56,15 @@ class WebsiteIntegrationTest {
                     queue.add(targetPage)
                 }
             }
+        }
+        assert failedLinks.empty : "Some links failed. See the list below:\n" + failedLinks.join("\n") + "\n"
+    }
+
+    private def probe(Link link, List<Link> failedLinks) {
+        try {
+            link.probe()
+        } catch (Exception e) {
+            failedLinks << e.message
         }
     }
 }
