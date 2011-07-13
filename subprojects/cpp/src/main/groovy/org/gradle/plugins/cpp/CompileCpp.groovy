@@ -22,6 +22,9 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 
+import org.gradle.plugins.cpp.compiler.CppCompiler
+import org.gradle.plugins.cpp.compiler.gcc.GppCppCompiler
+
 class CompileCpp extends SourceTask {
 
     CppCompiler compiler

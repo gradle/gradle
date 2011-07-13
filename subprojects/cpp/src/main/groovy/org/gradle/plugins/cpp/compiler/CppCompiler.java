@@ -13,16 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp
+package org.gradle.plugins.cpp.compiler;
 
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.internal.tasks.compile.Compiler;
 
-interface CppCompiler extends Compiler {
+import java.io.File;
+import java.util.Set;
 
-    void setOutput(File output)
+public interface CppCompiler extends Compiler {
 
-    CppCompiler includes(File... includes)
-    CppCompiler includes(Iterable<File> includes)
-    void setIncludes(Set<File> includes)
+    /**
+     *
+     */
+    void setOutput(File output);
+
+    /**
+     *
+     */
+    CppCompiler includes(File... includes);
+
+    /**
+     *
+     */
+    CppCompiler includes(Iterable<File> includes);
+
+    /**
+     *
+     */
+    void setIncludes(Set<File> includes);
 
 }

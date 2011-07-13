@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp
+package org.gradle.plugins.cpp.compiler.gcc
 
 import org.gradle.api.file.FileCollection
 
@@ -23,6 +23,8 @@ import org.gradle.api.tasks.WorkResult
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import org.gradle.plugins.cpp.compiler.CppCompiler
 
 class GppCppCompiler implements CppCompiler {
 
