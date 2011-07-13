@@ -24,6 +24,7 @@ import org.gradle.api.Task;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.CompositeDomainObjectCollection;
 import org.gradle.api.internal.MutableDomainObjectContainer;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
@@ -58,6 +59,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private MutableDomainObjectContainer<PublishArtifact> artifacts =
             new MutableDomainObjectContainer<PublishArtifact>(PublishArtifact.class);
+
+    private CompositeDomainObjectCollection<PublishArtifact> allArtifacts =
+            new CompositeDomainObjectCollection<PublishArtifact>(PublishArtifact.class, artifacts);
 
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
@@ -102,6 +106,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public Configuration setExtendsFrom(Set<Configuration> extendsFrom) {
         throwExceptionIfNotInUnresolvedState();
+        for (Configuration configuration : this.extendsFrom) {
+            allArtifacts.removeCollection(configuration.getAllArtifactsCollection());
+        }
         this.extendsFrom = new HashSet<Configuration>();
         for (Configuration configuration : extendsFrom) {
             extendsFrom(configuration);
@@ -118,6 +125,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                         configuration, configuration.getHierarchy()));
             }
             this.extendsFrom.add(configuration);
+            allArtifacts.addCollection(configuration.getAllArtifactsCollection());
         }
         return this;
     }
@@ -323,6 +331,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Configurations.getArtifacts(this.getHierarchy(), Specs.SATISFIES_ALL);
     }
 
+    public DomainObjectCollection<PublishArtifact> getAllArtifactsCollection() {
+        return allArtifacts;
+    }
+    
     public FileCollection getAllArtifactFiles() {
         return new ArtifactsFileCollection();
     }

@@ -308,6 +308,13 @@ public interface Configuration extends FileCollection {
     Set<PublishArtifact> getAllArtifacts();
 
     /**
+     * Gets the live collection of artifacts that make up this configuration including the artifacts of extended configurations.
+     * 
+     * @return the collection of artifacts
+     */
+    DomainObjectCollection<PublishArtifact> getAllArtifactsCollection();
+
+    /**
      * Returns the artifacts of this configuration as a {@link FileCollection}, including artifacts of extended
      * configurations.
      *
