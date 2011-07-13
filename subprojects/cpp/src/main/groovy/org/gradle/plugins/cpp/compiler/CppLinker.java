@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.linker;
+package org.gradle.plugins.cpp.compiler;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.WorkResult;
 import java.io.File;
 
-public interface Linker {
+public interface CppLinker {
 
     void setSource(FileCollection source);
 

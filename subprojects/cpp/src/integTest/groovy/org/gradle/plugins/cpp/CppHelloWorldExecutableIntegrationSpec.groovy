@@ -41,7 +41,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
                 destinationDir = { "\$buildDir/object-files" }
             }
             
-            task link(type: org.gradle.plugins.cpp.Link) {
+            task link(type: org.gradle.plugins.cpp.LinkCpp) {
                 source compile.outputs.files
                 output { "\$buildDir/executables/\$archivesBaseName" }
             }
@@ -84,7 +84,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
                 destinationDir = { "\$buildDir/object-files" }
             }
             
-            task link(type: org.gradle.plugins.cpp.Link) {
+            task link(type: org.gradle.plugins.cpp.LinkCpp) {
                 source compile.outputs.files
                 output { "\$buildDir/executables/\$archivesBaseName" }
             }

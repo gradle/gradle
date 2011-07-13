@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.linker.gcc
+package org.gradle.plugins.cpp.compiler.gcc
 
-import org.gradle.plugins.cpp.linker.Linker
+import org.gradle.plugins.cpp.compiler.CppLinker
 
 import org.gradle.process.internal.DefaultExecAction
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.WorkResult
 
-class GppLinker implements Linker {
+class GppCppLinker implements CppLinker {
 
     FileCollection source
     File output

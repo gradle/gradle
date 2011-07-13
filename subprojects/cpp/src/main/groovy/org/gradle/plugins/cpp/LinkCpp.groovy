@@ -19,12 +19,12 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.OutputFile
 
-import org.gradle.plugins.cpp.linker.Linker
-import org.gradle.plugins.cpp.linker.gcc.GppLinker
+import org.gradle.plugins.cpp.compiler.CppLinker
+import org.gradle.plugins.cpp.compiler.gcc.GppCppLinker
 
-class Link extends SourceTask {
+class LinkCpp extends SourceTask {
 
-    Linker linker = new GppLinker()
+    CppLinker linker = new GppCppLinker()
 
     def output
 
@@ -33,7 +33,7 @@ class Link extends SourceTask {
         project.file(output)
     }
 
-    Link output(output) {
+    LinkCpp output(output) {
         this.output = output
         this
     }
