@@ -307,7 +307,7 @@ idea {
         def appConfig = new XmlParser().parseText('''
     <configuration default="false" name="Gradle" type="Application" factoryName="Application">
       <extension name="coverage" enabled="false" merge="false" />
-      <option name="MAIN_CLASS_NAME" value="org.gradle.launcher.Main" />
+      <option name="MAIN_CLASS_NAME" value="org.gradle.debug.GradleRunConfiguration" />
       <option name="VM_PARAMETERS" value="" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
