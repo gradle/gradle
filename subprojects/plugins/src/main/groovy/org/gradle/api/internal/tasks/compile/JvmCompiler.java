@@ -19,8 +19,6 @@ import java.io.File;
 
 public interface JvmCompiler extends Compiler {
 
-    void setDestinationDir(File destinationDir);
-
     void setClasspath(Iterable<File> classpath);
 
 }

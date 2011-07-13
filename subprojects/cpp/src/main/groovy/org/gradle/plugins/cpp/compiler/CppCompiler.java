@@ -25,11 +25,6 @@ public interface CppCompiler extends Compiler {
     /**
      *
      */
-    void setOutput(File output);
-
-    /**
-     *
-     */
     CppCompiler includes(File... includes);
 
     /**

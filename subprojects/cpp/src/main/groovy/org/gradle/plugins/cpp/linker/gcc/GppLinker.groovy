@@ -13,55 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.compiler.gcc
+package org.gradle.plugins.cpp.linker.gcc
 
-import org.gradle.api.file.FileCollection
+import org.gradle.plugins.cpp.linker.Linker
 
 import org.gradle.process.internal.DefaultExecAction
-import org.gradle.api.internal.tasks.compile.Compiler
+
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.WorkResult
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-import org.gradle.plugins.cpp.compiler.CppCompiler
-
-class GppCppCompiler implements CppCompiler {
-
-    private static Logger logger = LoggerFactory.getLogger(GppCppCompiler)
+class GppLinker implements Linker {
 
     FileCollection source
-    File destinationDir
+    File output
+
     String gpp = "g++"
-
-    Set<File> includes = new HashSet()
-
+    
     WorkResult execute() {
         def compilerInvocation = new DefaultExecAction().with {
-            workingDir destinationDir
+            workingDir output.parentFile
             executable gpp
-            if (includes) {
-                args includes.collect { "-I${it.absolutePath}" }
-            }
-            args "-c"
             args source.files*.absolutePath
+            args "-o", output
         }
 
         def result = compilerInvocation.execute()
         result.assertNormalExitValue()
         return { true } as WorkResult
-    }
-
-    GppCppCompiler includes(File... includes) {
-        for (include in includes) {
-            this.includes.add(include)
-        }
-    }
-
-    GppCppCompiler includes(Iterable<File> includes) {
-        for (include in includes) {
-            this.includes.add(include)
-        }
     }
 
 }
