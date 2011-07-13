@@ -341,7 +341,7 @@ class CurrentRelease extends Release {
     }
 
     def String getDocsUrl() {
-        return "current/docs"
+        super.versionInfo.release? "current/docs" : "/releases/latest/docs"
     }
 
     def String getDistributionBase() {
@@ -350,10 +350,8 @@ class CurrentRelease extends Release {
     }
 
     def String getReleaseNotesUrl() {
-        if (super.versionInfo.release)
-            return "http://wiki.gradle.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes"
-        else
-            return "http://wiki.gradle.org/display/GRADLE/Releases"
+        super.versionInfo.release?
+            "http://wiki.gradle.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes" : "http://wiki.gradle.org/display/GRADLE/Releases"
     }
 }
 
