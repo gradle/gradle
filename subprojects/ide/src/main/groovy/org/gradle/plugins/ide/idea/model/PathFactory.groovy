@@ -29,7 +29,7 @@ class PathFactory {
      * Creates a path for the given file.
      */
     Path path(File file) {
-        createFile(file.canonicalFile)
+        createFile(file)
     }
 
     private Path createFile(File file) {

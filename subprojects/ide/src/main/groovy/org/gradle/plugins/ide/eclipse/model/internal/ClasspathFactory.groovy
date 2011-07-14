@@ -96,7 +96,7 @@ class ClasspathFactory {
             String javadocPath = javadoc ? name + javadoc.canonicalPath.substring(value.length()) : null
             out = new Variable(binaryPath, true, null, [] as Set, sourcePath, javadocPath)
         } else {
-            out = new Library(binary.canonicalPath, true, null, [] as Set, source ? source.canonicalPath : null, javadoc ? javadoc.canonicalPath : null)
+            out = new Library(binary.absolutePath, true, null, [] as Set, source ? source.absolutePath : null, javadoc ? javadoc.absolutePath : null)
         }
         out.declaredConfigurationName = declaredConfigurationName
         out
