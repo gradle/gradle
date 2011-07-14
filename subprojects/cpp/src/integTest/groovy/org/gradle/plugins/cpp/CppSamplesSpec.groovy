@@ -27,8 +27,14 @@ class CppSamplesSpec extends AbstractIntegrationSpec {
         given:
         sample exewithlib
         
-        expect:
-        succeeds "build"
+        when:
+        run "build"
+        
+        then:
+        ":exe:linkMainExecutable" in executedTasks
+        
+        and:
+        file("cpp", "exewithlib", "exe", "build", "binaries", "main").exec().out == "Hello, World!\n"
     }
     
     
