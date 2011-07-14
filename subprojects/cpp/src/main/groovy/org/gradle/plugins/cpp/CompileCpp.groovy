@@ -44,7 +44,7 @@ class CompileCpp extends SourceTask {
     }
 
     SourceDirectorySet headers(Object... headerFileRoots) {
-        headers.srcDirs(headerFileRoots)
+        headers.srcDirs(*headerFileRoots)
     }
 
     @TaskAction

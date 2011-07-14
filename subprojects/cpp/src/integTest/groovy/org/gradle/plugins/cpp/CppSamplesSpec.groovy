@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.compiler;
+package org.gradle.plugins.cpp
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.WorkResult;
-import java.io.File;
+import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.internal.*
+import org.junit.*
 
-/**
- * Links one or more object files (usually compiled from source) into a single binary.
- */
-public interface CppLinker {
-
-    void setSource(FileCollection source);
-
-    void setOutput(File output);
+class CppSamplesSpec extends AbstractIntegrationSpec {
     
-    void setArgs(String... args);
-
-    WorkResult execute();
-
+    @Rule public final Sample exewithlib = new Sample('cpp/exewithlib')
+    
+    def "exe with lib"() {
+        given:
+        sample exewithlib
+        
+        expect:
+        succeeds "build"
+    }
+    
+    
 }

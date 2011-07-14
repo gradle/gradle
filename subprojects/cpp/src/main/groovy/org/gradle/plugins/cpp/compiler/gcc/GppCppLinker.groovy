@@ -27,13 +27,22 @@ class GppCppLinker implements CppLinker {
     FileCollection source
     File output
 
+    String[] linkerArgs
+    
     String gpp = "g++"
+    
+    void setArgs(String... args) {
+        this.linkerArgs = args
+    }
     
     WorkResult execute() {
         def compilerInvocation = new DefaultExecAction().with {
             workingDir output.parentFile
             executable gpp
             args source.files*.absolutePath
+            if (linkerArgs) {
+                args linkerArgs
+            }
             args "-o", output
         }
 

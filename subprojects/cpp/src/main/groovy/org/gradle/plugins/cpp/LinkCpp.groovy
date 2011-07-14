@@ -28,6 +28,8 @@ class LinkCpp extends SourceTask {
 
     def output
 
+    List<String> args = []
+    
     @OutputFile
     File getOutput() {
         project.file(output)
@@ -42,6 +44,16 @@ class LinkCpp extends SourceTask {
     void link() {
         linker.source = getSource()
         linker.output = getOutput()
+        linker.args = args.toArray()
         linker.execute()
+    }
+    
+    LinkCpp arg(String arg) {
+        args(arg)
+    }
+    
+    LinkCpp args(String... args) {
+        args.each { this.args.add(it) }
+        this
     }
 }

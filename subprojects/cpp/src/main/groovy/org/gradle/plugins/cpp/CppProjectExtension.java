@@ -19,9 +19,19 @@ import org.gradle.api.Project;
 
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.ConfigureUtil;
 
 import org.gradle.plugins.cpp.source.CppSourceSetContainer;
 import org.gradle.plugins.cpp.source.internal.DefaultCppSourceSetContainer;
+import org.gradle.plugins.cpp.built.CppExecutable;
+import org.gradle.plugins.cpp.built.CppExecutableContainer;
+import org.gradle.plugins.cpp.built.internal.DefaultCppExecutableContainer;
+import org.gradle.plugins.cpp.built.CppLibrary;
+import org.gradle.plugins.cpp.built.CppLibraryContainer;
+import org.gradle.plugins.cpp.built.internal.DefaultCppLibraryContainer;
+
+import org.gradle.plugins.cpp.dsl.LibraryDsl;
+import org.gradle.plugins.cpp.dsl.ExecutableDsl;
 
 import groovy.lang.Closure;
 
@@ -30,15 +40,25 @@ import groovy.lang.Closure;
  */
 public class CppProjectExtension {
 
+    static public final String DEFAULT_NAME = "main";
+
     final private ProjectInternal project;
 
     final private CppSourceSetContainer sourceSets;
+    final private CppLibraryContainer libraries;
+    final private CppExecutableContainer executables;
 
     public CppProjectExtension(Project project) {
         this.project = (ProjectInternal)project;
 
         ClassGenerator classGenerator = this.project.getServices().get(ClassGenerator.class);
         this.sourceSets = classGenerator.newInstance(DefaultCppSourceSetContainer.class, this.project.getFileResolver(), classGenerator);
+        this.libraries = classGenerator.newInstance(DefaultCppLibraryContainer.class, classGenerator);
+        this.executables = classGenerator.newInstance(DefaultCppExecutableContainer.class, classGenerator);
+    }
+
+    public Project getProject() {
+        return project;
     }
 
     public CppSourceSetContainer getSourceSets() {
@@ -49,4 +69,31 @@ public class CppProjectExtension {
         return sourceSets.configure(closure);
     }
 
+    public CppExecutable executable(Closure closure) {
+        return executable(DEFAULT_NAME, closure);
+    }
+
+    public CppExecutable executable(String name, Closure closure) {
+        ExecutableDsl dsl = new ExecutableDsl(this, name);
+        ConfigureUtil.configure(closure, dsl);
+        return executables.add(dsl.create());
+    }
+
+    public CppExecutableContainer getExecutables() {
+        return executables;
+    }
+
+    public CppLibrary library(Closure closure) {
+        return library(DEFAULT_NAME, closure);
+    }
+
+    public CppLibrary library(String name, Closure closure) {
+        LibraryDsl dsl = new LibraryDsl(this, name);
+        ConfigureUtil.configure(closure, dsl);
+        return libraries.add(dsl.create());
+    }
+
+    public CppLibraryContainer getLibraries() {
+        return libraries;
+    }
 }

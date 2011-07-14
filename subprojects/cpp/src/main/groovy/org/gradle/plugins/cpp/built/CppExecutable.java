@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.compiler;
+package org.gradle.plugins.cpp.built;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.Buildable;
+
 import java.io.File;
 
 /**
- * Links one or more object files (usually compiled from source) into a single binary.
+ * An executable binary that can be built.
  */
-public interface CppLinker {
+public interface CppExecutable extends Buildable {
 
-    void setSource(FileCollection source);
+    String getName();
 
-    void setOutput(File output);
-    
-    void setArgs(String... args);
-
-    WorkResult execute();
+    File getFile();
 
 }
