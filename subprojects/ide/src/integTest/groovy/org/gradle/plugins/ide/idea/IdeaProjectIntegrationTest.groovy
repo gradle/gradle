@@ -47,7 +47,7 @@ sourceCompatibility = 1.4
 
     @Issue("GRADLE-1011")
     @Test
-    void "language level is driven by java version"() {
+    void "language level should be driven by java version"() {
         //when
         runTask('idea', '''
 apply plugin: "java"
@@ -62,6 +62,23 @@ idea.project.javaVersion = 1.4
         assert ipr.contains('project-jdk-name="1.4"')
         assert ipr.contains('languageLevel="JDK_1_4"')
     }
+
+//    @Test
+//    void "language level is driven by java version"() {
+//        //when
+//        runTask('idea', '''
+//apply plugin: "java"
+//apply plugin: "idea"
+//
+//idea.project.javaVersion = 1.4
+//''')
+//
+//        //then
+//        def ipr = getFile([:], 'root.ipr').text
+//
+//        assert ipr.contains('project-jdk-name="1.4"')
+//        assert ipr.contains('languageLevel="JDK_1_4"')
+//    }
 
     @Test
     void enablesCustomizationsOnNewModel() {
