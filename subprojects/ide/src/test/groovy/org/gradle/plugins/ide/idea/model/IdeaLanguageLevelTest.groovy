@@ -25,10 +25,10 @@ class IdeaLanguageLevelTest extends Specification {
 
     def "formats language level in IDEA fancy format"() {
         expect:
-        new IdeaLanguageLevel(JavaVersion.VERSION_1_3).formatted == null
+        new IdeaLanguageLevel(JavaVersion.VERSION_1_3).formatted == "JDK_1_3"
         new IdeaLanguageLevel(JavaVersion.VERSION_1_4).formatted == "JDK_1_4"
         new IdeaLanguageLevel(JavaVersion.VERSION_1_5).formatted == "JDK_1_5"
         new IdeaLanguageLevel(JavaVersion.VERSION_1_6).formatted == "JDK_1_6"
-        new IdeaLanguageLevel(JavaVersion.VERSION_1_7).formatted == "JDK_1_6"
+        new IdeaLanguageLevel(JavaVersion.VERSION_1_7).formatted == "JDK_1_7"
     }
 }
