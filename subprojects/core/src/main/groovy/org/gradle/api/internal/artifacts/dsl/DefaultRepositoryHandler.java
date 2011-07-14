@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.URLResolver;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.ArtifactRepository;
@@ -158,6 +159,10 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
 
     public MavenResolver mavenInstaller(Closure configureClosure) {
         return mavenInstaller(Collections.emptyMap(), configureClosure);
+    }
+
+    public DependencyResolver github() {
+        return add(getResolverFactory().createGitHubResolver());
     }
 
     public MavenResolver mavenInstaller(Map args) {

@@ -257,6 +257,8 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      */
     MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure);
 
+    DependencyResolver github();
+
     /**
      * Adds and configures an Ivy repository.
      *

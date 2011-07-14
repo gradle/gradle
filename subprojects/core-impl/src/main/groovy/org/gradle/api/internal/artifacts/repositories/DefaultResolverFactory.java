@@ -152,6 +152,13 @@ public class DefaultResolverFactory implements ResolverFactory {
         return new DefaultIvyArtifactRepository(resolver);
     }
 
+    public DependencyResolver createGitHubResolver() {
+        URLResolver github = new URLResolver();
+        github.setName("GitHub");
+        github.addArtifactPattern("http://cloud.github.com/downloads/[organisation]/[module]/[module]-[revision].[ext]");
+        return github;
+    }
+
     private PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory) {
         return new BasePomFilterContainer(mavenPomFactory);
     }

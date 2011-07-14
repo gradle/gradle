@@ -124,4 +124,13 @@ class DefaultResolverFactoryTest {
         def repo = factory.createIvyRepository()
         assert repo instanceof DefaultIvyArtifactRepository
     }
+
+    @Test public void createGitHubResolver() {
+        DependencyResolver actual = factory.createGitHubResolver();
+        def expectedPatterns = [
+                'http://cloud.github.com/downloads/[organisation]/[module]/[module]-[revision].[ext]'
+        ]
+        assert expectedPatterns == actual.artifactPatterns
+        assert actual.name != null
+    }
 }

@@ -47,4 +47,6 @@ public interface ResolverFactory {
                                        Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);
 
     IvyArtifactRepository createIvyRepository(FileResolver resolver);
+
+    DependencyResolver createGitHubResolver();
 }

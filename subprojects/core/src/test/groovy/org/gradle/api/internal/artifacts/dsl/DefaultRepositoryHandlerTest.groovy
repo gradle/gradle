@@ -38,6 +38,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertSame
+import org.apache.ivy.plugins.resolver.URLResolver
 
 /**
  * @author Hans Dockter
@@ -120,6 +121,17 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         }
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenLocal().is(expectedResolver)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
+    }
+
+    @Test
+    public void testGithub() {
+        context.checking {
+            one(resolverFactoryMock).createGitHubResolver()
+            will(returnValue(expectedResolver))
+        }
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert repositoryHandler.github().is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
