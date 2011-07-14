@@ -112,22 +112,42 @@ public class DefaultCacheRepositoryTest {
     @Test
     public void createsCrossVersionCache() {
         context.checking(new Expectations() {{
+            one(cacheFactory).open(sharedCacheDir.file("a/b/c"), CacheUsage.ON, Collections.<String, Object>emptyMap());
+            will(returnValue(cache));
+        }});
+
+        assertThat(repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open(), sameInstance(cache));
+    }
+
+    @Test
+    public void createsCrossVersionCacheForAGradleInstance() {
+        context.checking(new Expectations() {{
+            one(cacheFactory).open(buildRootDir.file(".gradle", "a/b/c"), CacheUsage.ON, Collections.<String, Object>emptyMap());
+            will(returnValue(cache));
+        }});
+
+        assertThat(repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).forObject(gradle).open(), sameInstance(cache));
+    }
+
+    @Test
+    public void createsCrossVersionCacheThatIsInvalidatedOnVersionChange() {
+        context.checking(new Expectations() {{
             one(cacheFactory).open(sharedCacheDir.file("noVersion", "a/b/c"), CacheUsage.ON, Collections.singletonMap(
                     "gradle.version", version));
             will(returnValue(cache));
         }});
 
-        assertThat(repository.cache("a/b/c").invalidateOnVersionChange().open(), sameInstance(cache));
+        assertThat(repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).open(), sameInstance(cache));
     }
 
     @Test
-    public void createsCrossVersionCacheForAGradleInstance() {
+    public void createsCrossVersionCacheForAGradleInstanceThatIsInvalidatedOnVersionChange() {
         context.checking(new Expectations() {{
             one(cacheFactory).open(buildRootDir.file(".gradle", "noVersion", "a/b/c"), CacheUsage.ON,
                     Collections.singletonMap("gradle.version", version));
             will(returnValue(cache));
         }});
 
-        assertThat(repository.cache("a/b/c").invalidateOnVersionChange().forObject(gradle).open(), sameInstance(cache));
+        assertThat(repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).forObject(gradle).open(), sameInstance(cache));
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.util.WrapUtil;
@@ -82,7 +83,7 @@ public class BuildSourceBuilder {
 
         // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
         // Otherwise, just to a regular build
-        PersistentStateCache<Boolean> stateCache = cacheRepository.cache("buildSrc").forObject(startParameter.getCurrentDir()).invalidateOnVersionChange().open().openStateCache();
+        PersistentStateCache<Boolean> stateCache = cacheRepository.cache("buildSrc").forObject(startParameter.getCurrentDir()).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).open().openStateCache();
         boolean rebuild = stateCache.get() == null;
 
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameterArg);
