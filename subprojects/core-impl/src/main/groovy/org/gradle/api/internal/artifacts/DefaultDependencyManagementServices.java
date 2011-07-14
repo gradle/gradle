@@ -37,6 +37,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.cache.CacheRepository;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
@@ -203,7 +204,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                     resolverProvider,
                                     new DefaultSettingsConverter(
                                             parent.get(ProgressLoggerFactory.class),
-                                            new IvySettingsFactory(parent.get(StartParameter.class).getGradleUserHomeDir()),
+                                            new IvySettingsFactory(parent.get(CacheRepository.class)),
                                             new DefaultInternalRepository(projectFinder, parent.get(ModuleDescriptorConverter.class)),
                                             clientModuleRegistry
                                     ),
