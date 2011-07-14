@@ -23,9 +23,8 @@ import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.ivyservice.GradleIBiblioResolver;
-import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.publish.maven.*;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer;
@@ -105,6 +104,7 @@ public class DefaultResolverFactory implements ResolverFactory {
         iBiblioResolver.setPattern(ResolverContainer.MAVEN_REPO_PATTERN);
         iBiblioResolver.setM2compatible(true);
         iBiblioResolver.setUseMavenMetadata(true);
+        iBiblioResolver.setChecksums("");
         return iBiblioResolver;
     }
 
