@@ -29,7 +29,7 @@ class WebsiteIntegrationTest {
 
     //This is a hack, no doubt. However, the link has very little importance and...
     //I spent enough hours trying to figure out why this link is not resolvable from our build machine
-    def naughtyLinks = ['www.fcc-fac-xxx.ca']
+    def naughtyLinks = ['www.fcc-fac.ca']
 
     @Test
     public void brokenLinks() {
