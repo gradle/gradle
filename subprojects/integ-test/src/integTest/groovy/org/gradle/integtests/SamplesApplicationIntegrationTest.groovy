@@ -64,6 +64,9 @@ class SamplesApplicationIntegrationTest extends Specification {
         installDir.file('lib/application-1.0.2.jar').assertIsFile()
         installDir.file('lib/commons-collections-3.2.1.jar').assertIsFile()
 
+        installDir.file('LICENSE').assertIsFile()
+        installDir.file('docs/readme.txt').assertIsFile()
+
         def builder = new ScriptExecuter()
         builder.workingDir installDir.file('bin')
         builder.executable 'application'

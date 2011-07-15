@@ -1,0 +1,11 @@
+:createDocs
+:compileJava
+:processResources UP-TO-DATE
+:classes
+:jar
+:startScripts
+:distZip
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

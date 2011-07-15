@@ -15,7 +15,10 @@
  */
 package org.gradle.api.plugins
 
- /**
+import org.gradle.api.Project
+import org.gradle.api.file.CopySpec
+
+/**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
  *
  * @author Rene Groeschke
@@ -30,4 +33,17 @@ class ApplicationPluginConvention {
      * The fully qualified name of the application's main class.
      */
     String mainClassName
+
+    /**
+     * The specification of the distribution
+     */
+    CopySpec applicationDistribution
+
+    final Project project
+
+    ApplicationPluginConvention(Project project) {
+        this.project = project
+        applicationDistribution = project.copySpec {}
+    }
+
 }
