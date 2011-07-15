@@ -30,7 +30,7 @@ class ApplicationPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
     private final ApplicationPlugin plugin = new ApplicationPlugin();
 
-    public void appliesJavaPluginAndAddsConventionObjectWithDefaultValues() {
+    def "applies JavaPlugin and adds convention object with default values"() {
         when:
         plugin.apply(project)
 
@@ -39,9 +39,10 @@ class ApplicationPluginTest extends Specification {
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
+        project.distResourceDirName == "src/dist"
     }
 
-    public void addsRunTasksToProject() {
+    def "adds run task to project"() {
         when:
         plugin.apply(project)
 
@@ -52,7 +53,7 @@ class ApplicationPluginTest extends Specification {
         task Matchers.dependsOn('classes')
     }
 
-    public void addsCreateStartScriptsTaskToProject() {
+    public void "adds startScripts task to project"() {
         when:
         plugin.apply(project)
 
@@ -63,7 +64,7 @@ class ApplicationPluginTest extends Specification {
         task.outputDir == project.file('build/scripts')
     }
 
-    public void addsInstallTaskToProjectWithDefaultTarget() {
+    public void "adds installApp task to project with default target"() {
         when:
         plugin.apply(project)
 
@@ -73,7 +74,7 @@ class ApplicationPluginTest extends Specification {
         task.destinationDir == project.file("build/install/${project.applicationName}")
     }
 
-    public void addsDistZipTaskToProject() {
+    def "adds distZip task to project"() {
         when:
         plugin.apply(project)
 
@@ -83,7 +84,7 @@ class ApplicationPluginTest extends Specification {
         task.archiveName == "${project.applicationName}.zip"
     }
 
-    public void canChangeApplicationName() {
+    public void "applicationName is configurable"() {
         when:
         plugin.apply(project)
         project.applicationName = "SuperApp";
@@ -99,7 +100,7 @@ class ApplicationPluginTest extends Specification {
         distZipTask.archiveName == "SuperApp.zip"
     }
     
-    public void setMainClassNameSetsMainInRunTask() {
+    public void "mainClassName in project delegates to main in run task"() {
         when:
         plugin.apply(project)
         project.mainClassName = "Acme";
@@ -109,7 +110,7 @@ class ApplicationPluginTest extends Specification {
         run.main == "Acme"
     }
 
-    public void setMainClassNameSetsMainClassNameInCreateStartScriptsTask() {
+    public void "mainClassName in project delegates to mainClassName in startScripts task"() {
         when:
         plugin.apply(project);
         project.mainClassName = "Acme"

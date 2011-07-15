@@ -4,7 +4,7 @@
         <table>
             <thead>
                 <tr><td>Name</td>
-                    <td>Default values</td>
+                    <td>Default value</td>
                 </tr>
             </thead>
             <tr>
@@ -14,6 +14,10 @@
             <tr>
                 <td>mainClassName</td>
                 <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>distResourceDirName</td>
+                <td><filename>src/dist</filename></td>
             </tr>
         </table>
     </section>

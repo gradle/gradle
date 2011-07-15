@@ -15,7 +15,9 @@
  */
 package org.gradle.api.plugins
 
- /**
+import org.gradle.api.Project
+
+/**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
  *
  * @author Rene Groeschke
@@ -30,4 +32,23 @@ class ApplicationPluginConvention {
      * The fully qualified name of the application's main class.
      */
     String mainClassName
+
+    /**
+     * The directory that contains all additional files added to a application distribution.
+     */
+    String distResourceDirName
+
+    final Project project
+
+    def ApplicationPluginConvention(Project project) {
+        this.project = project
+        distResourceDirName = 'src/dist'
+    }
+
+    /**
+     * Returns the applications' dist resource directory.
+     */
+    File getDistResourceDir() {
+        project.file(distResourceDirName)
+    }
 }
