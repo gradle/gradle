@@ -109,13 +109,14 @@ class IdeaProject {
 
     /**
      * The java language level of the project.
+     * Pass a valid java number, i.e: '1.8' or language level in IDEA's format, i.e: 'JDK_1_5'
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
     IdeaLanguageLevel languageLevel
 
     void setLanguageLevel(Object languageLevel) {
-        this.languageLevel = new IdeaLanguageLevel(JavaVersion.toVersion(languageLevel))
+        this.languageLevel = new IdeaLanguageLevel(languageLevel)
     }
 
     /**

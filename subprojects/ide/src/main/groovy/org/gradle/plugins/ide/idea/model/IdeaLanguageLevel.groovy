@@ -27,7 +27,11 @@ class IdeaLanguageLevel {
 
     String formatted
 
-    IdeaLanguageLevel(JavaVersion version) {
-        formatted = version.name().replaceFirst("VERSION", "JDK")
+    IdeaLanguageLevel(Object version) {
+        if (version instanceof String && version =~ /^JDK_/) {
+            formatted = version
+            return
+        }
+        formatted = JavaVersion.toVersion(version).name().replaceFirst("VERSION", "JDK")
     }
 }
