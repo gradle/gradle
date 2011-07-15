@@ -189,10 +189,23 @@
                     <link linkend='eclipse_plugin'><literal>eclipse</literal></link>
                 </td>
                 <td>-</td>
-                <td><literal>java</literal>, <literal>groovy</literal>, <literal>scala</literal>, <literal>war</literal></td>
+                <td><literal>java</literal>, <literal>groovy</literal>, <literal>scala</literal></td>
                 <td>
                     <para>Generates files that are used by <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus making
                         it possible to import the project into Eclipse. See also <xref linkend="tutorial_java_projects"/>.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='eclipse_plugin'><literal>eclipse-wtp</literal></link>
+                </td>
+                <td>-</td>
+                <td><literal>ear</literal>, <literal>war</literal></td>
+                <td>
+                    <para>Does the same as the eclipse plugin plus generates eclipse WTP (Web Tools Platform) configuration files.
+                        After importing to eclipse your war/ear projects should be configured to work with WTP.
+                        See also <xref linkend="tutorial_java_projects"/>.
                     </para>
                 </td>
             </tr>
