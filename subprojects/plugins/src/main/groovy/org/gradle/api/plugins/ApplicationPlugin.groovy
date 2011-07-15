@@ -48,6 +48,9 @@ class ApplicationPlugin implements Plugin<Project> {
         addPluginConvention()
         addRunTask()
         addCreateScriptsTask()
+        
+        configureDistSpec(pluginConvention.applicationDistribution)
+        
         addInstallTask()
         addDistZipTask()
     }
@@ -80,7 +83,7 @@ class ApplicationPlugin implements Plugin<Project> {
         def installTask = project.tasks.add(TASK_INSTALL_NAME, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
-        installTask.with(createDistSpec())
+        installTask.with pluginConvention.applicationDistribution
         installTask.into { project.file("${project.buildDir}/install/${pluginConvention.applicationName}") }
         installTask.doFirst {
             if (destinationDir.directory) {
@@ -104,16 +107,16 @@ class ApplicationPlugin implements Plugin<Project> {
         distZipTask.conventionMapping.baseName = { pluginConvention.applicationName }
         def baseDir = { distZipTask.archiveName - ".zip" }
         distZipTask.into(baseDir) {
-            with(createDistSpec())
+            with(pluginConvention.applicationDistribution)
         }
     }
 
-    private CopySpec createDistSpec() {
+    private CopySpec configureDistSpec(CopySpec distSpec) {
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]
         def startScripts = project.tasks[TASK_START_SCRIPTS_NAME]
 
-        project.copySpec {
-            from({ pluginConvention.distResourceDir })
+        distSpec.with {
+            from(project.file("src/dist"))
 
             into("lib") {
                 from(jar.outputs.files)
@@ -124,5 +127,7 @@ class ApplicationPlugin implements Plugin<Project> {
                 fileMode = 0755
             }
         }
+        
+        distSpec
     }
 }

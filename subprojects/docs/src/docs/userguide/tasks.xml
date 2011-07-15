@@ -234,7 +234,7 @@
             you might have noticed that Gradle will skip tasks that are up-to-date. This behaviour is also available
             for your tasks, not just for built-in tasks.
         </para>
-        <section>
+        <section id="sec:task_inputs_outputs">
             <title>Declaring a task's inputs and outputs</title>
             <para>
                 Let's have a look at an example. Here our task generates several output files from a source XML file. Let's

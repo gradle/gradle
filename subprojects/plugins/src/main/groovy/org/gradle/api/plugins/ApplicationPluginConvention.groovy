@@ -16,6 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.file.CopySpec
 
 /**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
@@ -34,21 +35,15 @@ class ApplicationPluginConvention {
     String mainClassName
 
     /**
-     * The directory that contains all additional files added to a application distribution.
+     * The specification of the distribution
      */
-    String distResourceDirName
+    CopySpec applicationDistribution
 
     final Project project
 
-    def ApplicationPluginConvention(Project project) {
+    ApplicationPluginConvention(Project project) {
         this.project = project
-        distResourceDirName = 'src/dist'
+        applicationDistribution = project.copySpec {}
     }
 
-    /**
-     * Returns the applications' dist resource directory.
-     */
-    File getDistResourceDir() {
-        project.file(distResourceDirName)
-    }
 }

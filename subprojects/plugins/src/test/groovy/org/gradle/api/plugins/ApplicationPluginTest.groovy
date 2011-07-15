@@ -25,6 +25,7 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
 import org.gradle.api.tasks.Sync
+import org.gradle.api.file.CopySpec
 
 class ApplicationPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
@@ -39,7 +40,7 @@ class ApplicationPluginTest extends Specification {
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
-        project.distResourceDirName == "src/dist"
+        project.applicationDistribution instanceof CopySpec
     }
 
     def "adds run task to project"() {
