@@ -37,6 +37,11 @@ integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith(
 rootProject.integTests << integTestTasks
 
 integTestTasks.all {
+    if (project.hasProperty('skipIntegTests')) {
+        logger.quiet("Marking test task as disabled: $it")
+        it.enabled = false
+    }
+
     dependsOn ':intTestImage', project(":docs").samples
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath

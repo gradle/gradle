@@ -20,10 +20,68 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
+
+    @Issue("GRADLE-1011")
+    @Test
+    void "uses java plugin compatibility settings"() {
+        //when
+        runTask('idea', '''
+apply plugin: "java"
+apply plugin: "idea"
+
+sourceCompatibility = 1.4
+''')
+
+        //then
+        def ipr = getFile([:], 'root.ipr').text
+
+        assert ipr.contains('project-jdk-name="1.4"')
+        assert ipr.contains('languageLevel="JDK_1_4"')
+    }
+
+
+    @Issue("GRADLE-1011")
+    @Test
+    void "language level should be driven by java version"() {
+        //when
+        runTask('idea', '''
+apply plugin: "java"
+apply plugin: "idea"
+
+idea.project.javaVersion = 1.4
+''')
+
+        //then
+        def ipr = getFile([:], 'root.ipr').text
+
+        assert ipr.contains('project-jdk-name="1.4"')
+        assert ipr.contains('languageLevel="JDK_1_4"')
+    }
+
+    @Test
+    void "allows configuring the language level"() {
+        //when
+        runTask('idea', '''
+apply plugin: "java"
+apply plugin: "idea"
+
+idea.project {
+    javaVersion   = 1.6
+    languageLevel = 1.5
+}
+''')
+
+        //then
+        def ipr = getFile([:], 'root.ipr').text
+
+        assert ipr.contains('project-jdk-name="1.6"')
+        assert ipr.contains('languageLevel="JDK_1_5"')
+    }
 
     @Test
     void enablesCustomizationsOnNewModel() {
