@@ -1,9 +1,32 @@
 <h1>Downloads</h1>
+<h2>${currentRelease.displayName}</h2>
+<ul>
+    <li><a href="${currentRelease.releaseNotesUrl}">Release notes</a></li>
+    <li><a href="${currentRelease.allDistributionUrl}">gradle-${currentRelease.version}-all.zip</a>.
+        Complete distribution, including documentation, samples, and source.</li>
+    <li><a href="${currentRelease.binDistributionUrl}">gradle-${currentRelease.version}-bin.zip</a>.
+        Minimal distribution.</li>
+    <li><a href="${currentRelease.srcDistributionUrl}">gradle-${currentRelease.version}-src.zip</a>.
+        Source only distribution</li>
+</ul>
+<p>You can also <a href="build.html">build from source</a>.</p>
+
+<h2>Gradle nightly</h2>
+<p>For snapshots we use our <a href="http://repo.gradle.org/gradle/distributions-snapshots">Artifactory snapshot repository</a>.
+    The recommended way to start using the snapshot: First, find the interesting distribution in the artifactory,
+    then use it to configure the <a href="${currentRelease.userGuideSingleHtmlUrl}#gradle_wrapper">wrapper</a>.
+    Alternatively, you can manually download the snapshot distribution from the artifactory and install it locally.
+</p>
+
+<p>Gradle <a href="ci-server.html">Continuous Integration machines</a> build distributions continuously.
+    You can login as guest <a href="http://builds.gradle.org/viewLog.html?buildId=lastSuccessful&amp;buildTypeId=bt2&amp;tab=artifacts">here</a> to
+get the artifact list of the last successful build.</p>
+
 <%
     releases.each { release ->
+    if (release != currentRelease) {
 %>
 <h2>${release.displayName}</h2>
-
 <ul>
     <li><a href="${release.releaseNotesUrl}">Release notes</a></li>
     <li><a href="${release.allDistributionUrl}">gradle-${release.version}-all.zip</a>.
@@ -14,24 +37,9 @@
         Source only distribution</li>
 </ul>
 
-<% if (release == currentRelease) { %>
-<p>You can also <a href="build.html">build from source</a>.</p>
 <% } } %>
 
 <h2>Older Releases</h2>
 
 <p>You can find older releases at our <a href="http://repo.gradle.org/gradle/distributions">Artifactory distribution repository</a>
 and even older releases at our <a href="http://dist.codehaus.org/gradle">Codehaus distribution repository</a>.</p>
-
-<h2>Gradle Snapshots</h2>
-
-<h3>Snapshot repository</h3>
-<p>For special snapshots we use our <a href="http://repo.gradle.org/gradle/distributions/gradle-snapshots">Artifactory snapshot repository</a></p>
-
-<h3>CI builds</h3>
-<p>Snapshots are regularly built via our <a href="ci-server.html">Continuous Integration machines</a>.
-They store the Gradle distributions for a couple of the last successful builds.</p>
-
-<h4>Teamcity</h4>
-<p>Click <a href="http://builds.gradle.org/viewLog.html?buildId=lastSuccessful&amp;buildTypeId=bt2&amp;tab=artifacts">here</a> to
-get the artifact list of the last successful build. (choose the link 'Login as a Guest').</p>
