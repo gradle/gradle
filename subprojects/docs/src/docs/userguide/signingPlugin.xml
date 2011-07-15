@@ -17,10 +17,6 @@
 <chapter id='signing_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Signing Plugin</title>
 
-    <note>
-        <para>This chapter is WIP.</para>
-    </note>
-    
     <para>
         The signing plugin adds the ability to digitally sign built files and artifacts.
         These digital signatures can then be used to prove who built the artifact the signature is attached to
@@ -137,14 +133,20 @@ gradle.taskGraph.whenReady { taskGraph ->
     </section>
     
     <section>
-        <title>The “signatures” configuration</title>
-        <note>
-            <para>This chapter is assuming <ulink link="http://issues.gradle.org/browse/GRADLE-1651">GRADLE-1651</ulink> has been implemented (which may not happen).</para>
-        </note>
+        <title>Publishing the signatures</title>
         <para>
             When specifying what is to be signed via the Signing DSL, the resultant signature artifacts are automatically added to the “<literal>signatures</literal>”
-            dependency configuration that the signing plugin adds. The signing plugin adds the “<literal>signatures</literal>” configuration to the set of configurations 
-            that the “<literal>published</literal>” configuration extends, effectively making the signatures part of “<literal>published</literal>” configuration.
+            dependency configuration that the signing plugin adds. This means that if you want to upload your signatures to your distribution repository along
+            with the artifacts for which the signature is for you are going to have to create a new configuration that combines them. By default, created artifacts such
+            as jars and the like are added to the “<literal>archives</literal>” configuration. You can create a new configuration that extends 
+            “<literal>archives</literal>” and “<literal>signatures</literal>”.
+        </para>
+        <sample id="signingPublishedConfiguration" dir="signing/maven" title="Adding the published configuration">
+            <sourcefile file="build.gradle" snippet="published-configuration"/>
+        </sample>
+        <para>
+            This also means that instead of configuring and using the “<literal>uploadArchives</literal>” to distribute your artifacts, you would use the equivalent
+            “<literal>uploadPublished</literal>” task. See <xref linkend="artifact_management"/> for more on artifacts and configurations.
         </para>
     </section>
     
