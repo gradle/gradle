@@ -66,17 +66,23 @@ signing.secretKeyRingFile=/Users/me/.gnupg/secring.gpg
             If specifying this information in the user <literal>gradle.properties</literal> file is not feasible for your environment, you can source the information
             however you need to and set the project properties manually.
         </para>
+        <!--
+            Unsure how to go about automatically testing this little snippet.
+        -->
         <programlisting>
-// TODO - this is incomplete
 import org.gradle.plugins.signing.Sign
 
-taskGraph.whenReady { taskGraph ->
+gradle.taskGraph.whenReady { taskGraph ->
     if (taskGraph.allTasks.any { it instanceof Sign }) {
-        // Use Java 6's console to read a password securely from the command line
-
-        def password = Console.readPassword("")
+        // Use Java 6's console to read from the console (no good for a CI environment)
+        Console console = System.console()
+        console.printf "\n\nWe have to sign some things in this build.\n\nPlease enter your signing details.\n\n"
+        allprojects*.setProperty("signing.keyId", console.readLine("PGP Key Id: "))
+        allprojects*.setProperty("signing.secretKeyRingFile", console.readLine("PGP Secret Key Ring File (absolute path): "))
+        allprojects*.setProperty("signing.password", console.readPassword("PGP Private Key Password: "))
+        console.printf "\nThanks.\n\n"
     }
-}        
+}
         </programlisting>
     </section>
 
