@@ -19,9 +19,11 @@ signing {
 }
 // END SNIPPET sign-archives
 
+// START SNIPPET published-configuration
 configurations {
     published.extendsFrom archives, signatures
 }
+// END SNIPPET published-configuration
 
 // START SNIPPET sign-pom
 uploadPublished {
