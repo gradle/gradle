@@ -137,7 +137,18 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             builder.executable("cmd");
             builder.args("/c", cmd);
             String gradleHome = gradleHomeDir.getAbsolutePath();
-            builder.environment("Path", String.format("%s\\bin;%s", gradleHome, System.getenv("Path")));
+
+            // NOTE: Windows uses Path, but allows asking for PATH, and PATH
+            //       is set within builder object for some things such
+            //       as CommandLineIntegrationTest, try PATH first, and
+            //       then revert to default of Path if null
+            Object path = builder.getEnvironment().get("PATH");
+            if (path == null) {
+                path = builder.getEnvironment().get("Path");
+            }
+            builder.environment("Path", String.format("%s\\bin;%s",
+                                                      gradleHome,
+                                                      path));
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
         }
     }
