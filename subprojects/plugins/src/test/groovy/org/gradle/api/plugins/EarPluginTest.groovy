@@ -115,6 +115,41 @@ class EarPluginTest {
         assertThat(task.taskDependencies.getDependencies(task)*.path as Set, hasItem(':child:jar'))
     }
 
+    @Test public void supportsSkinnyDeploy() {
+        earPlugin.apply(project)
+        project.convention.plugins.ear.includeDeployDependencies = true
+
+        JavaPlugin javaPlugin = new JavaPlugin()
+        Project childProjectA = HelperUtil.createChildProject(project, 'childA')
+        javaPlugin.apply(childProjectA)
+        childProjectA.file("src/main/resources").mkdirs()
+        childProjectA.file("src/main/resources/testA.txt").createNewFile()
+
+        WarPlugin warPlugin = new WarPlugin()
+        Project childProjectB = HelperUtil.createChildProject(project, 'childB')
+        warPlugin.apply(childProjectB)
+        childProjectB.file("src/main/webapp").mkdirs()
+        childProjectB.file("src/main/webapp/testB.jsp").createNewFile()
+
+        childProjectB.dependencies {
+            providedRuntime project(path: childProjectA.path)
+        }
+        project.dependencies {
+            deploy project(path: childProjectB.path)
+        }
+
+        execute childProjectA.tasks[JavaBasePlugin.BUILD_TASK_NAME]
+        execute childProjectB.tasks[JavaBasePlugin.BUILD_TASK_NAME]
+        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+
+        def war = childProjectB.zipTree("build/libs/${childProjectB.name}.war")
+        assertFalse war.isEmpty()
+        assertNull war.files.find { it.name == "childA.jar" }
+        def ear = project.zipTree("build/libs/${project.name}.ear")
+        assertFalse ear.isEmpty()
+        assertNotNull ear.files.find { it.name == "childA.jar" }
+    }
+
     @Test public void appliesMappingsToArchiveTasks() {
         earPlugin.apply(project)
 

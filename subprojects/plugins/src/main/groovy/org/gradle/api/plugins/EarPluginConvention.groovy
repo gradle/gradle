@@ -23,6 +23,22 @@ import org.gradle.util.ConfigureUtil
 public class EarPluginConvention {
 
     /**
+     * Whether to put transitive dependencies of "deploy" modules into the ear file's lib directory. This is often
+     * called a "skinny" deploy. Default is <code>false</code>.
+     */
+    boolean includeDeployDependencies
+
+    /**
+     * Allows changing whether to put transitive dependencies of "deploy" modules into the ear file's lib directory.
+     * This is often called a "skinny" deploy. Default is <code>false</code>.
+     * 
+     * @param includeDeployDependencies
+     */
+    void includeDeployDependencies(boolean includeDeployDependencies) {
+        this.includeDeployDependencies = includeDeployDependencies
+    }
+
+    /**
      * The name of the application directory, relative to the project directory. Default is "src/main/application".
      */
     String appDirName
