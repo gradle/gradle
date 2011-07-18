@@ -35,7 +35,20 @@ class ApplicationPluginConvention {
     String mainClassName
 
     /**
-     * The specification of the distribution
+     * <p>The specification of the contents of the distribution.</p>
+     * <p>
+     * Use this {@link org.gradle.api.file.CopySpec} to include extra files/resource in the application distribution.
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * applicationDistribution.from("some/dir") {
+     *   include "*.txt"
+     * }
+     * </pre>
+     * <p>
+     * Note that the application plugin pre configures this spec to; include the contents of "{@code src/dir}",
+     * copy the application start scripts into the "{@code bin}" directory, and copy the built jar and its dependencies
+     * into the "{@code lib}" directory.
      */
     CopySpec applicationDistribution
 
