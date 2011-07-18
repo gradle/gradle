@@ -46,7 +46,7 @@
         <itemizedlist>
             <listitem><para>The public key ID (an 8 character hexadecimal string).</para></listitem>
             <listitem><para>The absolute path to the secret key ring file containing your private key.</para></listitem>
-            <listitem><para>The passphrase used to protect your public key.</para></listitem>
+            <listitem><para>The passphrase used to protect your private key.</para></listitem>
         </itemizedlist>
         <para>
             These items must be supplied as the property projects <literal>signing.keyId</literal>, <literal>signing.password</literal> 
