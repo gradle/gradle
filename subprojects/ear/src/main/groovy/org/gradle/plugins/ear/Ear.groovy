@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.bundling
+package org.gradle.plugins.ear
 
-import org.gradle.api.enterprise.archives.DeploymentDescriptor
-import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
-import org.gradle.api.enterprise.archives.EarModule
-import org.gradle.api.enterprise.archives.internal.DefaultEarModule
-import org.gradle.api.enterprise.archives.internal.DefaultEarWebModule
+import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
+import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
+import org.gradle.plugins.ear.descriptor.EarModule
+import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule
+import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule
+
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.collections.FileTreeAdapter

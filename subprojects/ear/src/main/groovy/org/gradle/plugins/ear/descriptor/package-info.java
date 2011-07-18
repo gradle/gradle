@@ -17,4 +17,4 @@
 /**
  * Classes for working with EAR deployment descriptors.
  */
-package org.gradle.api.enterprise.archives;
+package org.gradle.plugins.ear.descriptor;

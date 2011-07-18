@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.enterprise.archives.internal
+package org.gradle.plugins.ear.descriptor.internal
 
 import groovy.xml.QName
 import org.gradle.api.Action
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.artifacts.maven.XmlProvider
-import org.gradle.api.enterprise.archives.DeploymentDescriptor
-import org.gradle.api.enterprise.archives.EarModule
-import org.gradle.api.enterprise.archives.EarSecurityRole
-import org.gradle.api.enterprise.archives.EarWebModule
+import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
+import org.gradle.plugins.ear.descriptor.EarModule
+import org.gradle.plugins.ear.descriptor.EarSecurityRole
+import org.gradle.plugins.ear.descriptor.EarWebModule
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.DomNode

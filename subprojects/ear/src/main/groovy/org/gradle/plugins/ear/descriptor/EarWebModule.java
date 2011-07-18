@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ear.descriptor;
 
-apply from: "$rootDir/gradle/integTest.gradle"
+/**
+ * A module element in a deployment descriptor like application.xml that has a web child element.
+ * 
+ * @author David Gileadi
+ */
+public interface EarWebModule extends EarModule {
 
-dependencies {
-    groovy libraries.groovy_depends
-    compile project(':core'), project(":plugins")
+    /**
+     * The context-root element specifies the context root of a web application.
+     */
+    public String getContextRoot();
 
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
-    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    public void setContextRoot(String contextRoot);
 }

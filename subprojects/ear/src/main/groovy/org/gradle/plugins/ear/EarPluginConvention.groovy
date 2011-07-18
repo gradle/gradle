@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins
+package org.gradle.plugins.ear
 
-import org.gradle.api.enterprise.archives.DeploymentDescriptor
-import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
+import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
+import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.ConfigureUtil
 

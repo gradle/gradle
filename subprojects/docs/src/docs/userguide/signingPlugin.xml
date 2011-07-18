@@ -127,7 +127,7 @@ gradle.taskGraph.whenReady { taskGraph ->
             <para>
                 For a task to be “signable”, it must produce an archive of some type. Tasks that do this are the <apilink class="org.gradle.api.tasks.bundling.Tar"/>,
                 <apilink class="org.gradle.api.tasks.bundling.Zip"/>, <apilink class="org.gradle.api.tasks.bundling.Jar"/>, 
-                <apilink class="org.gradle.api.tasks.bundling.War"/> and <apilink class="org.gradle.api.tasks.bundling.Ear"/> tasks.
+                <apilink class="org.gradle.api.tasks.bundling.War"/> and <apilink class="org.gradle.plugins.ear.Ear"/> tasks.
             </para>
         </section>
         <section>

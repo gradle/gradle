@@ -49,7 +49,7 @@
                 <td>
                     <literal>compile</literal> (only if the Java plugin is also applied)
                 </td>
-                <td><apilink class="org.gradle.api.tasks.bundling.Ear"/></td>
+                <td><apilink class="org.gradle.plugins.ear.Ear"/></td>
                 <td>Assembles the application EAR file.</td>
             </tr>
         </table>
@@ -141,7 +141,7 @@
                     <literal>deploymentDescriptor</literal>
                 </td>
                 <td>
-                    <classname>org.gradle.api.enterprise.archives.DeploymentDescriptor</classname>
+                    <classname>org.gradle.plugins.ear.descriptor.DeploymentDescriptor</classname>
                 </td>
                 <td>
                     A deployment descriptor with sensible defaults named <literal>application.xml</literal>
@@ -154,7 +154,7 @@
             </tr>
         </table>
 
-        <para>These properties are provided by a <apilink class="org.gradle.api.plugins.EarPluginConvention"/>
+        <para>These properties are provided by a <apilink class="org.gradle.plugins.ear.EarPluginConvention"/>
             convention object.
         </para>
     </section>
@@ -166,7 +166,7 @@
             to the root of the archive. If your <literal>application</literal> directory doesn't contain a
             <literal>META-INF/application.xml</literal> deployment descriptor then one will be generated for you.
 		</para>
-        <para>Also have a look at <apilink class="org.gradle.api.tasks.bundling.Ear"/>.</para>
+        <para>Also have a look at <apilink class="org.gradle.plugins.ear.Ear"/>.</para>
     </section>
     <section id='sec:customizing'>
         <title>Customizing</title>

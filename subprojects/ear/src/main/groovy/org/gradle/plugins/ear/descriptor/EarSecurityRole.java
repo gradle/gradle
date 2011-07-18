@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.enterprise.archives;
+package org.gradle.plugins.ear.descriptor;
 
 /**
- * A module element in a deployment descriptor like application.xml that has a web child element.
+ * A security-role element in a deployment descriptor like application.xml.
  * 
  * @author David Gileadi
  */
-public interface EarWebModule extends EarModule {
+public interface EarSecurityRole {
 
     /**
-     * The context-root element specifies the context root of a web application.
+     * A description of the security role. Optional.
      */
-    public String getContextRoot();
+    public String getDescription();
 
-    public void setContextRoot(String contextRoot);
+    public void setDescription(String description);
+
+    /**
+     * The name of the security role. Required.
+     */
+    public String getRoleName();
+
+    public void setRoleName(String roleName);
+
 }

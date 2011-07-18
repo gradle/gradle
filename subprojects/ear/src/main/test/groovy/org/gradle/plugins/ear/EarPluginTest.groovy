@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins
+package org.gradle.plugins.ear
 
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.tasks.bundling.Ear
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test

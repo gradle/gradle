@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.enterprise.archives.internal
+package org.gradle.plugins.ear.descriptor.internal
 
-import org.gradle.api.enterprise.archives.EarWebModule;
+import org.gradle.plugins.ear.descriptor.EarWebModule;
 
 /**
  * @author David Gileadi

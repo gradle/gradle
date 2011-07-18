@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.bundling
+package org.gradle.plugins.ear
 
-import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
+import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.assertEquals

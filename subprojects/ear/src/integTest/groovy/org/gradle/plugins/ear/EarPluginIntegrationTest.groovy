@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.plugins
+package org.gradle.plugins.ear
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.junit.Before

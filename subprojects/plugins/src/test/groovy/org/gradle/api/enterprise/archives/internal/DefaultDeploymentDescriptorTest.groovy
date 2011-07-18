@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.enterprise.archives.internal
+package org.gradle.plugins.ear.descriptor.internal
 
 import spock.lang.Specification
 import static org.gradle.util.TextUtil.toPlatformLineSeparators

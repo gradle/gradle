@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.enterprise.archives.internal
+package org.gradle.plugins.ear.descriptor.internal
 
 import groovy.xml.QName
-import org.gradle.api.enterprise.archives.EarModule
+import org.gradle.plugins.ear.descriptor.EarModule
 
 /**
  * @author David Gileadi

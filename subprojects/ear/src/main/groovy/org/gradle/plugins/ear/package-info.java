@@ -13,27 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.enterprise.archives;
 
 /**
- * A security-role element in a deployment descriptor like application.xml.
- * 
- * @author David Gileadi
+ * Support for generating EAR archives in a Gradle build
  */
-public interface EarSecurityRole {
-
-    /**
-     * A description of the security role. Optional.
-     */
-    public String getDescription();
-
-    public void setDescription(String description);
-
-    /**
-     * The name of the security role. Required.
-     */
-    public String getRoleName();
-
-    public void setRoleName(String roleName);
-
-}
+package org.gradle.plugins.ear;
