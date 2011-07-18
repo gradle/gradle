@@ -56,6 +56,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
         pluginConvention.setLibDirName("lib");
         pluginConvention.setAppDirName("src/main/application");
 
+        wireEarTaskConventions(project, pluginConvention);
         configureConfigurations(project);
 
         //TODO SF evaluation order-sensitive
@@ -112,7 +113,6 @@ public class EarPlugin implements Plugin<ProjectInternal> {
         //TODO SF why is the ear added this way and not a proper way? Also: groovify!
         Ear ear = project.getTasks().add(EAR_TASK_NAME, Ear.class);
         ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
-        ear.setEarModel(pluginConvention);
         DeploymentDescriptor deploymentDescriptor = pluginConvention.getDeploymentDescriptor();
         if (deploymentDescriptor != null) {
             if (deploymentDescriptor.getDisplayName() == null) {
@@ -128,6 +128,19 @@ public class EarPlugin implements Plugin<ProjectInternal> {
         archivesConfiguration.addArtifact(new ArchivePublishArtifact(ear));
     }
 
+    private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
+        project.getTasks().withType(Ear.class, new Action<Ear>() {
+            public void execute(Ear task) {
+                task.getConventionMapping().map("libDirName", new Callable<String>() {
+                    public String call() throws Exception { return earConvention.getLibDirName(); }
+                });
+                task.getConventionMapping().map("deploymentDescriptor", new Callable<DeploymentDescriptor>() {
+                    public DeploymentDescriptor call() throws Exception { return earConvention.getDeploymentDescriptor(); }
+                });
+            }
+        });
+    }
+    
     private void configureConfigurations(final Project project) {
 
         ConfigurationContainer configurations = project.getConfigurations();

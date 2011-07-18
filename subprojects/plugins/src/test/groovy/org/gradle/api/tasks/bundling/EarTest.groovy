@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
-import org.gradle.api.plugins.EarPluginConvention
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.assertEquals
@@ -34,7 +33,6 @@ class EarTest extends AbstractArchiveTaskTest {
     @Before public void setUp() {
         super.setUp()
         ear = createTask(Ear)
-        ear.earModel = new EarPluginConvention(resolver)
         configure(ear)
     }
 
@@ -47,12 +45,12 @@ class EarTest extends AbstractArchiveTaskTest {
     }
 
     @Test public void testLibDirName() {
-        ear.earModel.libDirName = "APP-INF/lib"
-        assertEquals(ear.earModel.libDirName, ear.lib.destPath as String)
+        ear.libDirName = "APP-INF/lib"
+        assertEquals(ear.libDirName, ear.lib.destPath as String)
     }
 
     @Test public void testDeploymentDescriptor() {
-        ear.earModel.deploymentDescriptor = new DefaultDeploymentDescriptor(null)
+        ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null)
         checkDeploymentDescriptor()
     }
 
@@ -62,7 +60,7 @@ class EarTest extends AbstractArchiveTaskTest {
     }
 
     public void checkDeploymentDescriptor() {
-        ear.earModel.deploymentDescriptor {
+        ear.deploymentDescriptor {
             fileName = "myApp.xml"
             version = "5"
             applicationName = "myapp"
@@ -78,7 +76,7 @@ class EarTest extends AbstractArchiveTaskTest {
                 //just adds an action
             }
         }
-        def d = ear.earModel.deploymentDescriptor
+        def d = ear.deploymentDescriptor
         assertEquals("myApp.xml", d.fileName)
         assertEquals("5", d.version)
         assertEquals("myapp", d.applicationName)

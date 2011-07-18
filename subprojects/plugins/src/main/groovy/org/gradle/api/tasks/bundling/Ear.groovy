@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.enterprise.archives.DeploymentDescriptor
+import org.gradle.api.enterprise.archives.internal.DefaultDeploymentDescriptor
 import org.gradle.api.enterprise.archives.EarModule
 import org.gradle.api.enterprise.archives.internal.DefaultEarModule
 import org.gradle.api.enterprise.archives.internal.DefaultEarWebModule
@@ -24,7 +25,6 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
-import org.gradle.api.plugins.EarPluginConvention
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -35,30 +35,38 @@ import org.gradle.util.ConfigureUtil
 class Ear extends Jar {
     public static final String EAR_EXTENSION = 'ear'
 
-    EarPluginConvention earModel
+    /**
+     * The name of the library directory in the EAR file. Default is "lib".
+     */
+    String libDirName
+
+    /**
+     * The deployment descriptor configuration.
+     */
+    DeploymentDescriptor deploymentDescriptor
 
     private CopySpec lib
 
     Ear() {
         extension = EAR_EXTENSION
         lib = copyAction.rootSpec.addChild().into {
-            earModel.libDirName
+            getLibDirName()
         }
         copyAction.mainSpec.eachFile { FileCopyDetails details ->
-            if (earModel.deploymentDescriptor && details.path.equalsIgnoreCase('META-INF/' + earModel.deploymentDescriptor.fileName)) {
+            if (deploymentDescriptor && details.path.equalsIgnoreCase('META-INF/' + deploymentDescriptor.fileName)) {
                 // the deployment descriptor already exists; no need to generate it
-                earModel.deploymentDescriptor = null
+                deploymentDescriptor = null
             }
             // since we might generate the deployment descriptor, record each top-level module
-            if (earModel.deploymentDescriptor && details.path.lastIndexOf('/') <= 0) {
+            if (deploymentDescriptor && details.path.lastIndexOf('/') <= 0) {
                 EarModule module
                 if (details.path.toLowerCase().endsWith(".war")) {
                     module = new DefaultEarWebModule(details.path, details.path.substring(0, details.path.lastIndexOf('.')))
                 } else {
                     module = new DefaultEarModule(details.path)
                 }
-                if (!earModel.deploymentDescriptor.modules.contains(module)) {
-                    earModel.deploymentDescriptor.modules.add module
+                if (!deploymentDescriptor.modules.contains(module)) {
+                    deploymentDescriptor.modules.add module
                 }
             }
         }
@@ -67,10 +75,10 @@ class Ear extends Jar {
         def metaInf = copyAction.mainSpec.addChild().into('META-INF')
         metaInf.addChild().from {
             MapFileTree descriptorSource = new MapFileTree(temporaryDir)
-            final DeploymentDescriptor descriptor = earModel.deploymentDescriptor
+            final DeploymentDescriptor descriptor = deploymentDescriptor
             if (descriptor) {
                 if (!descriptor.libraryDirectory) {
-                    descriptor.libraryDirectory = earModel.libDirName
+                    descriptor.libraryDirectory = libDirName
                 }
                 descriptorSource.add(descriptor.fileName) {OutputStream outstr ->
                     descriptor.writeTo(new OutputStreamWriter(outstr))
@@ -79,6 +87,23 @@ class Ear extends Jar {
             }
             return null
         }
+    }
+
+    /**
+     * Configures the deployment descriptor for this EAR archive.
+     *
+     * <p>The given closure is executed to configure the deployment descriptor. The {@link DeploymentDescriptor}
+     * is passed to the closure as its delegate.</p>
+     *
+     * @param configureClosure The closure.
+     * @return This.
+     */
+    Ear deploymentDescriptor(Closure configureClosure) {
+        if (!deploymentDescriptor) {
+            deploymentDescriptor = new DefaultDeploymentDescriptor(project.fileResolver) // implied use of ProjectInternal
+        }
+        ConfigureUtil.configure(configureClosure, deploymentDescriptor)
+        this
     }
 
     /**
