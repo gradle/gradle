@@ -154,6 +154,7 @@ idea {
     project {
         wildcards += ['?*.gradle']
         javaVersion = '1.6'
+        languageLevel = '1.5'
 
         ipr {
 
@@ -283,10 +284,6 @@ idea {
           </component>
         ''')
                 node.append(codeFormatSettings)
-            }
-
-            whenMerged { project ->
-                project.jdk.languageLevel = 'JDK_1_5'
             }
         }
     }

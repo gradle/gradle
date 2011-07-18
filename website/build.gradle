@@ -69,7 +69,9 @@ task userguideContent << {
 
 releases = []
 task configureReleases << {
-    def releaseXml = new XmlParser().parse(new File(generatedDocs, "releases.xml"))
+    def releasesFile = new File(generatedDocs, "releases.xml")
+    assert releasesFile.exists() : "$releasesFile does not exist. Please run :docs:websiteDocs"
+    def releaseXml = new XmlParser().parse(releasesFile)
     def current = releaseXml.current[0]
     releases << new CurrentRelease(version: current.'@version', versionInfo: versionInfo)
     releaseXml.release.each {

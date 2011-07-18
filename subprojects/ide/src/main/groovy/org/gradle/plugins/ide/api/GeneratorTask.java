@@ -126,7 +126,8 @@ public class GeneratorTask<T> extends ConventionTask {
     @Deprecated
     public void beforeConfigured(Closure closure) {
         DeprecationLogger.nagUserWith("<someIdeTask>.beforeConfigured is deprecated! Replaced by beforeMerged() method placed on the relevant model object of eclipse/idea.\n"
-                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject.\n"
+                + "For example, ideaProject.beforeConfigured was changed to idea.project.ipr.beforeMerged");
         beforeConfigured.add(closure);
     }
 
@@ -145,7 +146,8 @@ public class GeneratorTask<T> extends ConventionTask {
     @Deprecated
     public void beforeConfigured(Action<? super T> action) {
         DeprecationLogger.nagUserWith("<someIdeTask>.beforeConfigured is deprecated! Replaced by beforeMerged() method placed on the relevant model object of eclipse/idea.\n"
-                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject.\n"
+                + "For example, ideaProject.beforeConfigured was changed to idea.project.ipr.beforeMerged");
         beforeConfigured.add(action);
     }
 
@@ -164,7 +166,8 @@ public class GeneratorTask<T> extends ConventionTask {
     @Deprecated
     public void whenConfigured(Closure closure) {
         DeprecationLogger.nagUserWith("<someIdeTask>.whenConfigured is deprecated! Replaced by whenMerged() method placed on the relevant model object of eclipse/idea.\n"
-                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject.\n"
+                + "For example, ideaProject.whenConfigured was changed to idea.project.ipr.whenMerged");
         afterConfigured.add(closure);
     }
 
@@ -183,7 +186,8 @@ public class GeneratorTask<T> extends ConventionTask {
     @Deprecated
     public void whenConfigured(Action<? super T> action) {
         DeprecationLogger.nagUserWith("<someIdeTask>.whenConfigured is deprecated! Replaced by whenMerged() method placed on the relevant model object of eclipse/idea.\n"
-                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject.\n"
+                + "For example, ideaProject.whenConfigured was changed to idea.project.ipr.whenMerged");
         afterConfigured.add(action);
     }
 

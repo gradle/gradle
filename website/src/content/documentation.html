@@ -36,26 +36,20 @@
     <li><a href="http://wiki.gradle.org/display/GRADLE/External+Resources">External resources</a></li>
 </ul>
 
-<% releases.each { release -> %>
-<a name="${release.version}"></a>
-<h2>${release.displayName}</h2>
+<a name="${currentRelease.version}"></a>
+<h2>${currentRelease.displayName}</h2>
 <ul>
-<% if ( release == currentRelease ) { %>
     <li><a href="installation.html">Installing Gradle</a></li>
     <li><a href="tutorials.html">Tutorials</a></li>
     <li><a href="standard_plugins.html">Gradle plugins</a></li>
-<% }%>
-    <li><a href="${release.userGuideHtmlUrl}">User guide HTML</a> (one page per chapter)</li>
-    <li><a href="${release.userGuideSingleHtmlUrl}">User guide HTML</a> (single page)</li>
-    <li><a href="${release.userGuidePdfUrl}">User guide PDF</a></li>
-<% if ( release.hasDsldoc ) { %>
-    <li><a href="${release.dsldocUrl}">Gradle DSL reference</a></li>
-<% } %>
-    <li><a href="${release.releaseNotesUrl}">Release notes</a></li>
-    <li><a href="${release.javadocUrl}">Javadoc API documentation</a></li>
-    <li><a href="${release.groovydocUrl}">Groovydoc API documentation</a></li>
+    <li><a href="${currentRelease.userGuideHtmlUrl}">User guide HTML</a> (one page per chapter)</li>
+    <li><a href="${currentRelease.userGuideSingleHtmlUrl}">User guide HTML</a> (single page)</li>
+    <li><a href="${currentRelease.userGuidePdfUrl}">User guide PDF</a></li>
+    <li><a href="${currentRelease.dsldocUrl}">Gradle DSL reference</a></li>
+    <li><a href="${currentRelease.releaseNotesUrl}">Release notes</a></li>
+    <li><a href="${currentRelease.javadocUrl}">Javadoc API documentation</a></li>
+    <li><a href="${currentRelease.groovydocUrl}">Groovydoc API documentation</a></li>
 </ul>
-<% } %>
 
 <h2>Latest Nightly</h2>
 <p>These are uploaded by the latest successful nightly build</p>
@@ -67,3 +61,21 @@
     <li><a href="/releases/latest/docs/javadoc/index.html">Javadoc API documentation</a></li>
     <li><a href="/releases/latest/docs/groovydoc/index.html">Groovydoc API documentation</a></li>
 </ul>
+
+<% releases.each { release -> %>
+    <% if ( release != currentRelease ) { %>
+    <a name="${release.version}"></a>
+    <h2>${release.displayName}</h2>
+    <ul>
+        <li><a href="${release.userGuideHtmlUrl}">User guide HTML</a> (one page per chapter)</li>
+        <li><a href="${release.userGuideSingleHtmlUrl}">User guide HTML</a> (single page)</li>
+        <li><a href="${release.userGuidePdfUrl}">User guide PDF</a></li>
+    <% if ( release.hasDsldoc ) { %>
+        <li><a href="${release.dsldocUrl}">Gradle DSL reference</a></li>
+    <% } %>
+        <li><a href="${release.releaseNotesUrl}">Release notes</a></li>
+        <li><a href="${release.javadocUrl}">Javadoc API documentation</a></li>
+        <li><a href="${release.groovydocUrl}">Groovydoc API documentation</a></li>
+    </ul>
+    <% } %>
+<% } %>
