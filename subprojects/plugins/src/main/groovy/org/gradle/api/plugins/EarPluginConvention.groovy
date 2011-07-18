@@ -50,7 +50,6 @@ public class EarPluginConvention {
 
     /**
      * Allows changing the library directory in the EAR file. Default is "lib".
-     * Allows changing the library directory in the EAR file. Default is "lib".
      */
     void libDirName(String libDirName) {
         this.libDirName = libDirName
