@@ -130,6 +130,16 @@ gradle.taskGraph.whenReady { taskGraph ->
                 <apilink class="org.gradle.api.tasks.bundling.War"/> and <apilink class="org.gradle.api.tasks.bundling.Ear"/> tasks.
             </para>
         </section>
+        <section>
+            <title>Conditional Signing</title>
+            <para>
+                A common usage pattern is to only sign build artifacts under certain conditions. For example, you may not wish to sign artifacts for non release versions.
+                To achieve this, you can wrap whatever logic you need around the signing DSL.
+            </para>
+            <sample id="conditionalSigning" dir="signing/conditional" title="Conditional signing">
+                <sourcefile file="build.gradle" snippet="conditional-signing" />
+            </sample>
+        </section>
     </section>
     
     <section>

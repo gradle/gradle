@@ -20,17 +20,28 @@ import org.gradle.integtests.fixtures.*
 import org.gradle.integtests.fixtures.internal.*
 import org.junit.*
 
-class SampleMavenSigningSpec extends AbstractIntegrationSpec {
-    
-    @Rule public final Sample signingSample = new Sample('signing/maven')
-    
+class SigningSamplesSpec extends AbstractIntegrationSpec {
+
+    @Rule public final Sample mavenSample = new Sample('signing/maven')
+    @Rule public final Sample conditionalSample = new Sample('signing/conditional')
+
     def "upload attaches signatures"() {
         given:
-        sample signingSample
-        
+        sample mavenSample
+
         expect:
         succeeds "uploadPublished"
     }
-    
-    
+
+    def "conditional signing"() {
+        given:
+        sample conditionalSample
+
+        expect:
+        succeeds "uploadPublished"
+        
+        and:
+        !(":signArchives" in executedTasks)
+    }
+
 }
