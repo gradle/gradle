@@ -39,7 +39,7 @@ class ApplicationPluginConvention {
      * <p>
      * Use this {@link org.gradle.api.file.CopySpec} to include extra files/resource in the application distribution.
      * <pre autoTested=''>
-     * apply plugin: 'java'
+     * apply plugin: 'application'
      *
      * applicationDistribution.from("some/dir") {
      *   include "*.txt"
