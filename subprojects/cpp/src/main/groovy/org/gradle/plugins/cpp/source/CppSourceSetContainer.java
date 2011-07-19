@@ -49,7 +49,7 @@ public interface CppSourceSetContainer extends NamedDomainObjectContainer<CppSou
      *
      * <p>The given closure is executed against this container.
      * <p>
-     * See the example below how {@link CppSourceSet} 'main' is accessed and how the {@link SourceDirectorySet} 'cpp'
+     * See the example below how {@link CppSourceSet} 'main' is accessed and how the {@link org.gradle.api.file.SourceDirectorySet} 'cpp'
      * is configured to exclude some package from compilation.
      *
      * <pre>
