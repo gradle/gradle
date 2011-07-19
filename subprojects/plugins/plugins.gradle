@@ -39,16 +39,13 @@ dependencies {
     testFixtures sourceSets.test.output
 }
 
-def generatedResourcesDir = "$buildDir/generated-resources/main"
-sourceSets.main.output.dir generatedResourcesDir, buildBy: 'reportResources'
-
-
 task reportResources << {
     copy {
         from(configurations.reports)
         into "$generatedResourcesDir/org/gradle/api/internal/tasks/testing/junit/report"
     }
 }
+sourceSets.main.output.dir generatedResourcesDir, buildBy: reportResources
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'

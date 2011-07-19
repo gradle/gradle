@@ -1,0 +1,36 @@
+import java.util.jar.Attributes
+
+apply plugin: 'groovy'
+
+archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
+dependencies {
+    testCompile libraries.junit, libraries.jmock, libraries.spock
+}
+
+apply from: "$rootDir/gradle/compile.gradle"
+
+test {
+    maxParallelForks = guessMaxForks()
+}
+
+tasks.withType(Jar).each { jar ->
+    jar.manifest.mainAttributes([
+            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
+    ])
+}
+
+generatedResourcesDir = file("$buildDir/generated-resources/main")
+
+task classpathManifest {
+    def manifestFile = new File(generatedResourcesDir, "${archivesBaseName}-classpath.properties")
+    outputs.file manifestFile
+    inputs.files configurations.runtime
+    doLast {
+        manifestFile.parentFile.mkdirs()
+        def properties = new Properties()
+        properties.runtime = configurations.runtime.collect {it.name}.join(',')
+        manifestFile.withOutputStream { properties.save(it, 'classpath definitions') }
+    }
+}
+sourceSets.main.output.dir generatedResourcesDir, buildBy: classpathManifest

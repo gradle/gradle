@@ -34,7 +34,7 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
     private final File gradleHome;
 
     protected AbstractClassPathProvider() {
-        File codeSource = ClasspathUtil.getClasspathForClass(DefaultClassPathProvider.class);
+        File codeSource = ClasspathUtil.getClasspathForClass(AbstractClassPathProvider.class);
         if (codeSource.isFile()) {
             // Loaded from a JAR - assume we're running from the distribution
             gradleHome = codeSource.getParentFile().getParentFile();
@@ -56,6 +56,14 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
 
     protected void add(String name, List<Pattern> patterns) {
         classPaths.put(name, patterns);
+    }
+
+    protected static List<Pattern> jarNames(List<String> jarNames) {
+        List<Pattern> patterns = new ArrayList<Pattern>();
+        for (String jarName : jarNames) {
+            patterns.add(Pattern.compile(Pattern.quote(jarName)));
+        }
+        return patterns;
     }
 
     protected static List<Pattern> toPatterns(String... patternStrings) {

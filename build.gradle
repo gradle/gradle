@@ -19,7 +19,6 @@ import org.gradle.build.Install
 import org.gradle.build.Git
 import org.gradle.build.Releases
 
-import java.util.jar.Attributes
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 /**
@@ -102,25 +101,7 @@ allprojects {
 }
 
 configure(groovyProjects()) {
-    apply plugin: 'groovy'
-
-    archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
-    dependencies {
-        testCompile libraries.junit, libraries.jmock, libraries.spock
-    }
-
-    apply from: "$rootDir/gradle/compile.gradle"
-
-    test {
-        maxParallelForks = guessMaxForks()
-    }
-
-    tasks.withType(Jar).each { jar ->
-        jar.manifest.mainAttributes([
-                (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-                (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
-        ])
-    }
+    apply from: "$rootDir/gradle/groovyProject.gradle"
 }
 
 configure(publishedProjects()) {
