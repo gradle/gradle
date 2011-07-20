@@ -30,7 +30,7 @@ public class JavaMethodTest {
 
     @Test
     public void invokesMethodOnObject() {
-        JavaMethod<CharSequence, CharSequence> method = new JavaMethod<CharSequence, CharSequence>(CharSequence.class, CharSequence.class, "subSequence", int.class, int.class);
+        JavaMethod<CharSequence, CharSequence> method = JavaMethod.create(CharSequence.class, CharSequence.class, "subSequence", int.class, int.class);
         assertThat(method.invoke("string", 0, 3), equalTo((CharSequence) "str"));
     }
     
@@ -43,7 +43,7 @@ public class JavaMethodTest {
             will(throwException(failure));
         }});
 
-        JavaMethod<CharSequence, CharSequence> method = new JavaMethod<CharSequence, CharSequence>(CharSequence.class, CharSequence.class, "subSequence", int.class, int.class);
+        JavaMethod<CharSequence, CharSequence> method = JavaMethod.create(CharSequence.class, CharSequence.class, "subSequence", int.class, int.class);
         try {
             method.invoke(mock, 0, 3);
             fail();
@@ -62,7 +62,7 @@ public class JavaMethodTest {
             }
         };
 
-        JavaMethod<ClassLoader, Package[]> method = new JavaMethod<ClassLoader, Package[]>(ClassLoader.class, Package[].class, "getPackages");
+        JavaMethod<ClassLoader, Package[]> method = JavaMethod.create(ClassLoader.class, Package[].class, "getPackages");
         assertThat(method.invoke(classLoader), sameInstance(packages));
     }
 }

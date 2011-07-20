@@ -31,8 +31,8 @@ public class MultiParentClassLoader extends ClassLoader {
     public MultiParentClassLoader(ClassLoader... parents) {
         super(parents.length == 0 ? null : parents[0]);
         this.parents = new CopyOnWriteArrayList<ClassLoader>(Arrays.asList(parents));
-        getPackagesMethod = new JavaMethod<ClassLoader, Package[]>(ClassLoader.class, Package[].class, "getPackages");
-        getPackageMethod = new JavaMethod<ClassLoader, Package>(ClassLoader.class, Package.class, "getPackage", String.class);
+        getPackagesMethod = JavaMethod.create(ClassLoader.class, Package[].class, "getPackages");
+        getPackageMethod = JavaMethod.create(ClassLoader.class, Package.class, "getPackage", String.class);
     }
 
     public void addParent(ClassLoader parent) {
