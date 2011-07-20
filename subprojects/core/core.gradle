@@ -39,9 +39,6 @@ dependencies {
     compile "commons-httpclient:commons-httpclient:3.0@jar", "commons-codec:commons-codec:1.2@jar", libraries.jcl_to_slf4j
 
     compile libraries.ivy, "com.jcraft:jsch:0.1.42@jar", 'com.jcraft:jzlib:1.0.7@jar'
-    compile 'org.jfrog.wharf:wharf-core:1.0-rc-4@jar'
-    runtime 'org.codehaus.jackson:jackson-core-asl:1.5.6', 'org.codehaus.jackson:jackson-core-asl:1.5.6', 'com.esotericsoftware:kryo:1.03', 'com.esotericsoftware:minlog:1.2',
-            'com.esotericsoftware:reflectasm:1.0', libraries.asm_all, libraries.ivy
 
     publishCompile libraries.slf4j_api
 
