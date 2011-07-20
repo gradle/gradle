@@ -43,7 +43,7 @@ class GppCppCompiler implements CppCompiler {
             if (includes) {
                 args includes.collect { "-I${it.absolutePath}" }
             }
-            args "-c"
+            args "-c", "-fPIC"
             args source.files*.absolutePath
         }
 
