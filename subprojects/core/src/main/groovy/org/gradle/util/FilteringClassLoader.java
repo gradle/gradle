@@ -29,7 +29,7 @@ import java.util.*;
 public class FilteringClassLoader extends ClassLoader {
     private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
     private static final ClassLoader EXT_CLASS_LOADER;
-    private static final Set<Package> SYSTEM_PACKAGES = new HashSet<Package>();
+    private static final Set<String> SYSTEM_PACKAGES = new HashSet<String>();
     private final Set<String> packageNames = new HashSet<String>();
     private final Set<String> packagePrefixes = new HashSet<String>();
     private final Set<String> resourcePrefixes = new HashSet<String>();
@@ -40,9 +40,11 @@ public class FilteringClassLoader extends ClassLoader {
         for (ClassLoader cl = EXT_CLASS_LOADER; cl != null; cl = cl.getParent()) {
             SYSTEM_CLASS_LOADERS.add(cl);
         }
-        JavaMethod<ClassLoader, Package[]> method = new JavaMethod<ClassLoader, Package[]>(ClassLoader.class,
-                Package[].class, "getPackages");
-        SYSTEM_PACKAGES.addAll(Arrays.asList((Package[]) method.invoke(EXT_CLASS_LOADER)));
+        JavaMethod<ClassLoader, Package[]> method = new JavaMethod<ClassLoader, Package[]>(ClassLoader.class, Package[].class, "getPackages");
+        Package[] systemPackages = method.invoke(EXT_CLASS_LOADER);
+        for (Package p : systemPackages) {
+            SYSTEM_PACKAGES.add(p.getName());
+        }
     }
 
     public FilteringClassLoader(ClassLoader parent) {
@@ -118,13 +120,11 @@ public class FilteringClassLoader extends ClassLoader {
     }
 
     private boolean allowed(Package p) {
-        if (SYSTEM_PACKAGES.contains(p)) {
+        if (SYSTEM_PACKAGES.contains(p.getName())) {
             return true;
         }
-        for (String packageName : packageNames) {
-            if (p.getName().equals(packageName)) {
-                return true;
-            }
+        if (packageNames.contains(p.getName())) {
+            return true;
         }
         for (String packagePrefix : packagePrefixes) {
             if (p.getName().startsWith(packagePrefix)) {
