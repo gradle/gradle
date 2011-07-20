@@ -29,10 +29,6 @@ class PathFactory {
      * Creates a path for the given file.
      */
     Path path(File file) {
-        createFile(file.canonicalFile)
-    }
-
-    private Path createFile(File file) {
         Map match = null
         for (variable in variables) {
             if (file.absolutePath == variable.dir.absolutePath) {
@@ -47,23 +43,39 @@ class PathFactory {
         }
 
         if (match) {
-            return new Path(match.dir, match.name, file)
+            return relativePath(match.dir, match.name, file)
         }
 
-        return new Path(file)
+        // IDEA doesn't like the result of file.toURI() so use the absolute path instead
+        def relPath = file.absolutePath.replace(File.separator, '/')
+        def url = relativePathToURI(relPath)
+        return new Path(url, url, relPath)
     }
 
     /**
      * Creates a path relative to the given path variable.
      */
     Path relativePath(String pathVar, File file) {
-        return new Path(varsByName[pathVar], "\$${pathVar}\$", file)
+        return relativePath(varsByName[pathVar], "\$$pathVar\$", file)
+    }
+
+    private Path relativePath(File rootDir, String rootDirName, File file) {
+        def relPath = getRelativePath(rootDir, rootDirName, file)
+        def url = relativePathToURI(relPath)
+        def canonicalUrl = relativePathToURI(file.absolutePath.replace(File.separator, '/'))
+        return new Path(url, canonicalUrl, relPath)
+    }
+    /**
+     * Creates a path for the given URL.
+     */
+    Path path(String url) {
+        return path(url, null)
     }
 
     /**
      * Creates a path for the given URL.
      */
-    Path path(String url) {
+    Path path(String url, String relPath) {
         String expandedUrl = url
         for (variable in variables) {
             expandedUrl = expandedUrl.replace(variable.name, variable.prefix)
@@ -76,10 +88,69 @@ class PathFactory {
                 expandedUrl = toUrl('jar', new File(parts[0]).canonicalFile) + '!' + parts[1]
             }
         }
-        return new Path(url, expandedUrl)
+        return new Path(url, expandedUrl, relPath)
     }
 
-    def toUrl(String scheme, File file) {
+    private def toUrl(String scheme, File file) {
         return scheme + '://' + file.absolutePath.replace(File.separator, '/')
+    }
+
+    private static String getRelativePath(File rootDir, String rootDirString, File file) {
+        String relpath = matchPathLists(getPathList(rootDir), getPathList(file))
+        return relpath != null ? rootDirString + '/' + relpath : file.absolutePath.replace(File.separator, '/')
+    }
+
+    private static String relativePathToURI(String relpath) {
+        if (relpath.endsWith('.jar')) {
+            return 'jar://' + relpath + '!/';
+        } else {
+            return 'file://' + relpath;
+        }
+    }
+
+    private static List getPathList(File f) {
+        List list = []
+        File r = f.canonicalFile
+        while (r != null) {
+            File parent = r.parentFile
+            list.add(parent ? r.name : r.absolutePath)
+            r = parent
+        }
+
+        return list
+    }
+
+    private static String matchPathLists(List r, List f) {
+        StringBuilder s = new StringBuilder();
+
+        // eliminate the common root
+        int i = r.size() - 1
+        int j = f.size() - 1
+
+        if (r[i] != f[j]) {
+            // no common root
+            return null
+        }
+
+        while ((i >= 0) && (j >= 0) && (r[i] == f[j])) {
+            i--
+            j--
+        }
+
+        // for each remaining level in the relativeTo path, add a ..
+        for (; i >= 0; i--) {
+            s.append('../')
+        }
+
+        // for each level in the file path, add the path
+        for (; j >= 1; j--) {
+            s.append(f[j]).append('/')
+        }
+        // add the file name
+        if (j == 0) {
+            s.append(f[j])
+        }
+
+        return s.toString()
     }
 }

@@ -53,15 +53,18 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
+            def referenceFactory = new FileReferenceFactory()
+            classpath.pathVariables.each { name, dir -> referenceFactory.addPathVariable(name, dir) }
+
             dependenciesExtractor.extractRepoFileDependencies(
                     classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
             .each { IdeRepoFileDependency it ->
-                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath.pathVariables)
+                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, referenceFactory)
             }
 
             dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
             .each { IdeLocalFileDependency it ->
-                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath.pathVariables)
+                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, referenceFactory)
             }
         }
     }
@@ -85,18 +88,18 @@ class ClasspathFactory {
         return entries
     }
 
-    private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, Map<String, File> pathVariables) {
-        def usedVariableEntry = pathVariables.find { String name, File value -> binary.canonicalPath.startsWith(value.canonicalPath) }
+    private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, FileReferenceFactory referenceFactory) {
+        def binaryRef = referenceFactory.file(binary)
+        def sourceRef = source ? referenceFactory.file(source) : null
+        def javadocRef = javadoc ? referenceFactory.file(javadoc) : null
         def out
-        if (usedVariableEntry) {
-            String name = usedVariableEntry.key
-            String value = usedVariableEntry.value.canonicalPath
-            String binaryPath = name + binary.canonicalPath.substring(value.length())
-            String sourcePath = source ? name + source.canonicalPath.substring(value.length()) : null
-            String javadocPath = javadoc ? name + javadoc.canonicalPath.substring(value.length()) : null
+        if (binaryRef.relativeToPathVariable) {
+            String binaryPath = binaryRef.path
+            String sourcePath = sourceRef?.path
+            String javadocPath = javadocRef?.path
             out = new Variable(binaryPath, true, null, [] as Set, sourcePath, javadocPath)
         } else {
-            out = new Library(binary.canonicalPath, true, null, [] as Set, source ? source.canonicalPath : null, javadoc ? javadoc.canonicalPath : null)
+            out = new Library(binary.path, true, null, [] as Set, source?.path, javadoc?.path)
         }
         out.declaredConfigurationName = declaredConfigurationName
         out

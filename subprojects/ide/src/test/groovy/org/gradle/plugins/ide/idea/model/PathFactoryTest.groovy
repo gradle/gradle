@@ -30,6 +30,7 @@ class PathFactoryTest extends Specification {
         expect:
         def path = factory.path(tmpDir.file('a', 'b'))
         path.url == 'file://$ROOT_DIR$/a/b'
+        path.relPath == '$ROOT_DIR$/a/b'
     }
 
     def createsPathForAFileNotUnderARootDir() {
@@ -40,6 +41,7 @@ class PathFactoryTest extends Specification {
         expect:
         def path = factory.path(file)
         path.url == "file://$relpath"
+        path.relPath == relpath
     }
 
     def usesTheClosestAncestorRootDirForAFileUnderMultipleRootDirs() {
@@ -49,6 +51,7 @@ class PathFactoryTest extends Specification {
         expect:
         def path = factory.path(tmpDir.file('sub', 'a'))
         path.url == 'file://$SUB_DIR$/a'
+        path.relPath == '$SUB_DIR$/a'
     }
 
     def createsPathForARootDir() {
@@ -58,9 +61,11 @@ class PathFactoryTest extends Specification {
         expect:
         def rootDir = factory.path(tmpDir.dir)
         rootDir.url == 'file://$ROOT_DIR$/'
+        rootDir.relPath == '$ROOT_DIR$/'
 
         def subDir = factory.path(tmpDir.file('sub'))
         subDir.url == 'file://$SUB_DIR$/'
+        subDir.relPath == '$SUB_DIR$/'
     }
 
     def createsPathForAJarFile() {
@@ -69,35 +74,78 @@ class PathFactoryTest extends Specification {
         expect:
         def path = factory.path(tmpDir.file('a.jar'))
         path.url == 'jar://$ROOT_DIR$/a.jar!/'
+        path.relPath == '$ROOT_DIR$/a.jar'
     }
 
-    def createsRelativePath() {
+    def createsRelativePathForADescendantOfRootDir() {
         factory.addPathVariable('ROOT_DIR', tmpDir.dir)
 
         expect:
         def path = factory.relativePath('ROOT_DIR', tmpDir.file('a/b'))
         path.url == 'file://$ROOT_DIR$/a/b'
-
-        def parentPath = factory.relativePath('ROOT_DIR', tmpDir.dir.parentFile.parentFile.file('a/b'))
-        parentPath.url == 'file://$ROOT_DIR$/../../a/b'
+        path.relPath == '$ROOT_DIR$/a/b'
     }
-    
+
+    def createsRelativePathForAnAncestorOfRootDir() {
+        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+
+        expect:
+        def path = factory.relativePath('ROOT_DIR', tmpDir.dir.parentFile.parentFile.file('a/b'))
+        path.url == 'file://$ROOT_DIR$/../../a/b'
+        path.relPath == '$ROOT_DIR$/../../a/b'
+    }
+
+    def createsRelativePathForASiblingOfRootDir() {
+        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+
+        expect:
+        def path = factory.relativePath('ROOT_DIR', tmpDir.dir.parentFile.file('a'))
+        path.url == 'file://$ROOT_DIR$/../a'
+        path.relPath == '$ROOT_DIR$/../a'
+    }
+
+    def createsRelativePathForAFileOnAnotherFileSystem() {
+        def fileSystemRoots = findFileSystemRoots()
+        if (fileSystemRoots.size() == 1) {
+            return
+        }
+        def rootDir = new File(fileSystemRoots[0], 'root')
+        def file = new File(fileSystemRoots[1], 'file')
+        def relpath = relpath(file)
+        factory.addPathVariable('ROOT_DIR', rootDir)
+
+        expect:
+        def path = factory.relativePath('ROOT_DIR', file)
+        path.url == "file://${relpath}"
+        path.relPath == relpath
+    }
+
     def createsPathForAFileUrl() {
         expect:
         def path = factory.path('file://a/b/c')
         path.url == 'file://a/b/c'
+        path.relPath == null
     }
 
     def createsPathForAJarUrl() {
         expect:
         def path = factory.path('jar://a/b/c.jar!/some/entry')
         path.url == 'jar://a/b/c.jar!/some/entry'
+        path.relPath == null
     }
 
     def createsPathForAUrlWithUnknownScheme() {
         expect:
         def path = factory.path('other:abc')
         path.url == 'other:abc'
+        path.relPath == null
+    }
+
+    def createsPathForAUrlAndRelPath() {
+        expect:
+        def path = factory.path('file://a/b/c', '/path')
+        path.url == 'file://a/b/c'
+        path.relPath == '/path'
     }
 
     def createsPathForAUrlWithPathVariables() {
@@ -106,6 +154,7 @@ class PathFactoryTest extends Specification {
         expect:
         def path = factory.path('file://$ROOT_DIR$/c')
         path.url == 'file://$ROOT_DIR$/c'
+        path.relPath == null
     }
 
     def filePathsAreEqualWhenTheyPointToTheSameFile() {
@@ -165,6 +214,18 @@ class PathFactoryTest extends Specification {
 
     private String relpath(File file) {
         return file.absolutePath.replace(File.separator, '/')
+    }
+
+    def findFileSystemRoots() {
+        File.listRoots().inject([]) {List result, File root ->
+            try {
+                new File(root, 'file').canonicalFile
+                result << root
+            } catch (IOException e) {
+                // skip
+            }
+            return result
+        }
     }
 
 }

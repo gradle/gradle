@@ -157,7 +157,7 @@ class IdeaProject {
     void mergeXmlProject(Project xmlProject) {
         ipr.beforeMerged.execute(xmlProject)
         def modulePaths = getModules().collect {
-            new ModulePath(getPathFactory().relativePath('PROJECT_DIR', it.outputFile))
+            getPathFactory().relativePath('PROJECT_DIR', it.outputFile)
         }
         xmlProject.configure(modulePaths, getJavaVersion(), getLanguageLevel(), getWildcards())
         ipr.whenMerged.execute(xmlProject)

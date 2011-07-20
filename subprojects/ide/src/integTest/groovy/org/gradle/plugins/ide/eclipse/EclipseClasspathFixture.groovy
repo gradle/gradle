@@ -67,6 +67,10 @@ class EclipseClasspathFixture {
             assert entry.@path == jar.absolutePath
         }
 
+        void assertHasJar(String jar) {
+            assert entry.@path == jar
+        }
+
         void assertHasCachedJar(String group, String module, String version) {
             assert entry.@path ==~ cachedArtifact(group, module, version)
         }

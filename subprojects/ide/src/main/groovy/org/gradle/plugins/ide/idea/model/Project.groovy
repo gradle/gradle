@@ -28,7 +28,7 @@ class Project extends XmlPersistableConfigurationObject {
     /**
      * A set of {@link Path} instances pointing to the modules contained in the ipr.
      */
-    Set modulePaths = []
+    Set<Path> modulePaths = []
 
     /**
      * A set of wildcard string to be included/excluded from the resources.
@@ -47,7 +47,7 @@ class Project extends XmlPersistableConfigurationObject {
         this.pathFactory = pathFactory
     }
 
-    def configure(Collection<ModulePath> modulePaths, JavaVersion javaVersion, IdeaLanguageLevel languageLevel, Collection<String> wildcards) {
+    def configure(Collection<Path> modulePaths, JavaVersion javaVersion, IdeaLanguageLevel languageLevel, Collection<String> wildcards) {
         if (javaVersion) {
             jdk = new Jdk(javaVersion.toString(), languageLevel)
         }
@@ -57,7 +57,7 @@ class Project extends XmlPersistableConfigurationObject {
 
     @Override protected void load(Node xml) {
         findModules().module.each { module ->
-            this.modulePaths.add(new ModulePath(pathFactory.path(module.@fileurl), module.@filepath))
+            this.modulePaths.add(pathFactory.path(module.@fileurl, module.@filepath))
         }
 
         findWildcardResourcePatterns().entry.each { entry ->
@@ -76,8 +76,8 @@ class Project extends XmlPersistableConfigurationObject {
     @Override protected void store(Node xml) {
         findModules().replaceNode {
             modules {
-                modulePaths.each { ModulePath modulePath ->
-                    module(fileurl: modulePath.path.url, filepath: modulePath.filePath)
+                modulePaths.each { Path modulePath ->
+                    module(fileurl: modulePath.url, filepath: modulePath.relPath)
                 }
             }
         }

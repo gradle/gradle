@@ -24,7 +24,7 @@ import spock.lang.Specification
  */
 class ProjectTest extends Specification {
     final PathFactory pathFactory = new PathFactory()
-    final customModules = [new ModulePath(path('file://$PROJECT_DIR$/gradle-idea-plugin.iml'), '$PROJECT_DIR$/gradle-idea-plugin.iml')]
+    final customModules = [path('file://$PROJECT_DIR$/gradle-idea-plugin.iml')]
     final customWildcards = ["?*.gradle", "?*.grails"] as Set
     Project project = new Project(new XmlTransformer(), pathFactory)
 
@@ -39,7 +39,7 @@ class ProjectTest extends Specification {
     }
 
     def customJdkAndWildcards_shouldBeMerged() {
-        def modules = [new ModulePath(path('file://$PROJECT_DIR$/other.iml'), '$PROJECT_DIR$/other.iml')]
+        def modules = [path('file://$PROJECT_DIR$/other.iml')]
 
         when:
         project.load(customProjectReader)

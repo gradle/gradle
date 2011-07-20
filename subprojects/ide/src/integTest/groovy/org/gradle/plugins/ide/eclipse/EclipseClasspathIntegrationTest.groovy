@@ -31,7 +31,7 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
     String content
 
     @Test
-    void "classpath contains entries for external dependencies"() {
+    void "classpath contains library entries for external and file dependencies"() {
         //given
         def repoDir = file("repo")
         publishArtifact(repoDir, "coolGroup", "niceArtifact")
@@ -49,19 +49,23 @@ repositories {
 
 dependencies {
     compile 'coolGroup:niceArtifact:1.0'
+    compile files('lib/dep.jar')
 }
 """
 
         //then
         def libraries = classpath.libs
-        assert libraries.size() == 1
+        assert libraries.size() == 2
         libraries[0].assertHasCachedJar("coolGroup", "niceArtifact", "1.0")
         libraries[0].assertHasCachedSource("coolGroup", "niceArtifact", "1.0")
         libraries[0].assertHasNoJavadoc()
+        libraries[1].assertHasJar(file('lib/dep.jar'))
+        libraries[1].assertHasNoSource()
+        libraries[1].assertHasNoJavadoc()
     }
 
     @Test
-    void "substitutes path variables into external dependency paths"() {
+    void "substitutes path variables into library paths"() {
         //given
         def repoDir = file("repo")
         publishArtifact(repoDir, "coolGroup", "niceArtifact")
@@ -79,18 +83,23 @@ repositories {
 
 dependencies {
     compile 'coolGroup:niceArtifact:1.0'
+    compile files('lib/dep.jar')
 }
 
 eclipse {
     pathVariables HOME_DIR: gradle.gradleUserHomeDir
+    pathVariables LIB_DIR: file('lib')
+    classpath.downloadJavadoc = true
 }
 """
 
         //then
         def libraries = classpath.withHomeDir('HOME_DIR').vars
-        assert libraries.size() == 1
+        assert libraries.size() == 2
         libraries[0].assertHasCachedJar("coolGroup", "niceArtifact", "1.0")
         libraries[0].assertHasCachedSource("coolGroup", "niceArtifact", "1.0")
+        libraries[0].assertHasCachedJavadoc("coolGroup", "niceArtifact", "1.0")
+        libraries[1].assertHasJar('LIB_DIR/dep.jar')
     }
 
     @Test
@@ -113,7 +122,7 @@ dependencies {
 
 eclipse {
 
-  pathVariables fooPathVariable: new File('.')
+  pathVariables fooPathVariable: projectDir
 
   classpath {
     sourceSets = []
@@ -279,6 +288,7 @@ eclipse.classpath {
     downloadJavadoc = true
 }
 """
+
         //then
         def libraries = classpath.libs
         assert libraries.size() == 1
