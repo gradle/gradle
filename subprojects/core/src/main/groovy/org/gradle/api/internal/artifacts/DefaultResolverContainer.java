@@ -65,6 +65,14 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
         return "resolver";
     }
 
+    public DependencyResolver add(DependencyResolver resolver, Closure configureClosure) {
+        return addLast(resolver, configureClosure);
+    }
+
+    public DependencyResolver add(DependencyResolver resolver) {
+        return addLast(resolver);
+    }
+    
     public DependencyResolver addLast(Object userDescription) {
         return addLast(userDescription, null);
     }
