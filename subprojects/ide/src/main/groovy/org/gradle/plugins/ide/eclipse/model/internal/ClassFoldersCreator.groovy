@@ -30,7 +30,9 @@ class ClassFoldersCreator {
         List<Library> out = new LinkedList<Library>()
 
         classpath.classFolders.each { folderPath ->
-            out << new Library(folderPath, true, null, [] as Set, null, null)
+            Library library = new Library(folderPath)
+            library.exported = true
+            out << library
         }
 
         return out;

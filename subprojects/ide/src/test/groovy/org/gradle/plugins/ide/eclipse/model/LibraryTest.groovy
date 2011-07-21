@@ -60,7 +60,12 @@ class LibraryTest extends Specification {
     }
 
     private Library createLibrary() {
-        return new Library('/ant.jar', true, 'mynative', [new AccessRule('nonaccessible', 'secret**')] as Set,
-                "/ant-src.jar", "jar:file:/ant-javadoc.jar!/path")
+        Library library = new Library('/ant.jar')
+        library.exported = true
+        library.nativeLibraryLocation = 'mynative'
+        library.accessRules += [new AccessRule('nonaccessible', 'secret**')]
+        library.sourcePath = "/ant-src.jar"
+        library.javadocPath = "jar:file:/ant-javadoc.jar!/path"
+        return library
     }
 }

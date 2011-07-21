@@ -71,22 +71,16 @@ class SourceFoldersCreator {
             sortedSourceDirs.each { tree ->
                 def dir = tree.dir
                 if (dir.isDirectory()) {
-                    def folder = new SourceFolder(
-                            provideRelativePath(dir),
-                            null,
-                            [] as Set,
-                            null,
-                            tree.patterns.includes as List,
-                            tree.patterns.excludes as List
-                    )
+                    def folder = new SourceFolder(provideRelativePath(dir), null)
                     folder.dir = dir
+                    folder.includes = tree.patterns.includes as List
+                    folder.excludes = tree.patterns.excludes as List
                     entries.add(folder)
                 }
             }
         }
         entries
     }
-
 
     private List<SourceSet> sortSourceSetsAsPerUsualConvention(Collection<SourceSet> sourceSets) {
         return sourceSets.sort { sourceSet ->

@@ -39,7 +39,9 @@ class ClasspathFactory {
     private final ClasspathEntryBuilder containersCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
             eclipseClasspath.containers.each { container ->
-                entries << new Container(container, true, null, [] as Set)
+                Container entry = new Container(container)
+                entry.exported = true
+                entries << entry
             }
         }
     }
@@ -94,13 +96,13 @@ class ClasspathFactory {
         def javadocRef = javadoc ? referenceFactory.file(javadoc) : null
         def out
         if (binaryRef.relativeToPathVariable) {
-            String binaryPath = binaryRef.path
-            String sourcePath = sourceRef?.path
-            String javadocPath = javadocRef?.path
-            out = new Variable(binaryPath, true, null, [] as Set, sourcePath, javadocPath)
+            out = new Variable(binaryRef.path)
         } else {
-            out = new Library(binary.path, true, null, [] as Set, source?.path, javadoc?.path)
+            out = new Library(binaryRef.path)
         }
+        out.sourcePath = sourceRef?.path
+        out.javadocPath = javadocRef?.path
+        out.exported = true
         out.declaredConfigurationName = declaredConfigurationName
         out
     }

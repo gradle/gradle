@@ -60,9 +60,12 @@ class VariableTest extends Specification {
     }
 
     private Variable createVariable() {
-        return new Variable('/GRADLE_CACHE/ant.jar', true, 'mynative', [new AccessRule('nonaccessible', 'secret**')] as Set,
-                "/GRADLE_CACHE/ant-src.jar", "jar:file:/GRADLE_CACHE/ant-javadoc.jar!/path")
+        Variable variable = new Variable('/GRADLE_CACHE/ant.jar')
+        variable.exported = true
+        variable.nativeLibraryLocation = 'mynative'
+        variable.accessRules += [new AccessRule('nonaccessible', 'secret**')]
+        variable.sourcePath = "/GRADLE_CACHE/ant-src.jar"
+        variable.javadocPath = "jar:file:/GRADLE_CACHE/ant-javadoc.jar!/path"
+        return variable
     }
-
-
 }

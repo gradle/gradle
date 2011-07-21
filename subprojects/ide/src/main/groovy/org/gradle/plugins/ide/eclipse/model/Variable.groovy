@@ -23,8 +23,8 @@ class Variable extends AbstractLibrary {
         super(node)
     }
 
-    Variable(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath, String javadocPath) {
-        super(path, exported, nativeLibraryLocation, accessRules, sourcePath, javadocPath)
+    Variable(String path) {
+        super(path)
     }
 
     String getKind() {

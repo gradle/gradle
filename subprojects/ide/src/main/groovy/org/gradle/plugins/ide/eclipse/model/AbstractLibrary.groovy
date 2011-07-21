@@ -32,14 +32,15 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
     }
 
     void setJavadocPath(String path) {
-        entryAttributes.javadoc_location = path
+        entryAttributes.javadoc_location = normalizePath(path)
     }
 
-    AbstractLibrary(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath,
-                        String javadocPath) {
-        super(path, exported, nativeLibraryLocation, accessRules)
-        this.sourcePath = normalizePath(sourcePath);
-        this.javadocPath = normalizePath(javadocPath);
+    void setSourcePath(String path) {
+        sourcePath = normalizePath(path)
+    }
+
+    AbstractLibrary(String path) {
+        super(path)
     }
 
     void appendNode(Node node) {

@@ -59,7 +59,11 @@ class ContainerTest extends Specification {
     }
 
     private Container createContainer() {
-        return new Container('somePath', true, 'mynative', [new AccessRule('nonaccessible', 'secret**')] as Set)
+        Container container = new Container('somePath')
+        container.exported = true
+        container.nativeLibraryLocation = 'mynative'
+        container.accessRules += [new AccessRule('nonaccessible', 'secret**')]
+        return container
     }
 
 
