@@ -66,12 +66,12 @@ public interface ResolverContainer extends NamedDomainObjectContainer<Dependency
     String RESOLVER_URL = "url";
 
     /**
-     * Delegates to {@link addLast(Object)}.
+     * Delegates to {@link #addLast(Object)}.
      */
     DependencyResolver add(DependencyResolver resolver);
 
     /**
-     * Delegates to {@link addLast(Object,Closure)}.
+     * Delegates to {@link #addLast(Object,Closure)}.
      */
     DependencyResolver add(DependencyResolver resolver, Closure configureClosure);
 
