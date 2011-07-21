@@ -21,7 +21,7 @@ public class TestContainer extends AutoCreateDomainObjectContainer<TestObject> {
         super(TestObject.class, classGenerator);
     }
 
-    protected TestObject create(String name) {
+    protected TestObject doCreate(String name) {
         TestObject testObject = new TestObject();
         testObject.add(name);
         return testObject;

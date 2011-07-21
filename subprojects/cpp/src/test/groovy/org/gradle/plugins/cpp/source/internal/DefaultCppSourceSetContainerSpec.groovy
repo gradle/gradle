@@ -26,7 +26,7 @@ class DefaultCppSourceSetContainerSpec extends Specification {
     
     def "source sets are auto created"() {
         when:
-        def ss = container.add('new')
+        def ss = container.create('new')
         
         then:
         ss != null

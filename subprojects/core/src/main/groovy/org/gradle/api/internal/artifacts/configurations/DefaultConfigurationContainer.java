@@ -26,6 +26,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.IvyService;
 
 import java.util.Collection;
+import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
@@ -48,10 +49,18 @@ public class DefaultConfigurationContainer extends AutoCreateDomainObjectContain
     }
 
     @Override
-    protected Configuration create(String name) {
+    protected Configuration doCreate(String name) {
         return classGenerator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService);
     }
 
+    public Configuration add(String name) {
+        return create(name);
+    }
+
+    public Configuration add(String name, Closure closure) {
+        return create(name, closure);
+    }
+    
     @Override
     public String getTypeDisplayName() {
         return "configuration";

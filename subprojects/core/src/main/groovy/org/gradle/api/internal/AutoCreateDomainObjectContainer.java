@@ -26,18 +26,18 @@ public abstract class AutoCreateDomainObjectContainer<T> extends DefaultNamedDom
         super(type, classGenerator);
     }
 
-    protected abstract T create(String name);
+    protected abstract T doCreate(String name);
 
-    public T add(String name) {
-        return add(name, null);
+    public T create(String name) {
+        return create(name, null);
     }
 
-    public T add(String name, Closure configureClosure) {
+    public T create(String name, Closure configureClosure) {
         if (findByName(name) != null) {
             throw new InvalidUserDataException(String.format("Cannot add %s '%s' as a %s with that name already exists.",
                     getTypeDisplayName(), name, getTypeDisplayName()));
         }
-        T object = create(name);
+        T object = doCreate(name);
         addObject(name, object);
         ConfigureUtil.configure(configureClosure, object);
         return object;

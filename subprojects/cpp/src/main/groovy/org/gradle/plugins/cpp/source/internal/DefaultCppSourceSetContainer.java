@@ -34,7 +34,7 @@ public class DefaultCppSourceSetContainer extends AutoCreateDomainObjectContaine
         this.generator = classGenerator;
     }
 
-    protected CppSourceSet create(String name) {
+    protected CppSourceSet doCreate(String name) {
         return generator.newInstance(DefaultCppSourceSet.class, name, fileResolver);
     }
 

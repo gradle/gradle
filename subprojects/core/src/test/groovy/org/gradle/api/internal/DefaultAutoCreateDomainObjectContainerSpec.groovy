@@ -26,7 +26,7 @@ class DefaultAutoCreateDomainObjectContainerSpec extends Specification {
         def container = new DefaultAutoCreateDomainObjectContainer<String>(String.class, classGenerator, factory)
 
         when:
-        def result = container.add('a')
+        def result = container.create('a')
 
         then:
         result == 'element a'
@@ -38,7 +38,7 @@ class DefaultAutoCreateDomainObjectContainerSpec extends Specification {
         def container = new DefaultAutoCreateDomainObjectContainer<String>(String.class, classGenerator)
 
         when:
-        def result = container.add('a')
+        def result = container.create('a')
 
         then:
         result == 'a'
@@ -50,7 +50,7 @@ class DefaultAutoCreateDomainObjectContainerSpec extends Specification {
         def container = new DefaultAutoCreateDomainObjectContainer<String>(String.class, classGenerator, cl)
 
         when:
-        def result = container.add('a')
+        def result = container.create('a')
 
         then:
         result == 'element a'

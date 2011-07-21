@@ -36,7 +36,7 @@ public class DefaultAutoCreateDomainObjectContainer<T> extends AutoCreateDomainO
     }
 
     @Override
-    protected T create(String name) {
+    protected T doCreate(String name) {
         return factory.create(name);
     }
 

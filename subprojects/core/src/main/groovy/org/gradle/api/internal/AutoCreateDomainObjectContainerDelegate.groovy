@@ -46,7 +46,7 @@ class AutoCreateDomainObjectContainerDelegate {
             boolean isConfigureMethod = params.length == 1 && params[0] instanceof Closure
             if (isTopLevelCall && isConfigureMethod) {
                 // looks like a configure method - add the object and try the delegate again
-                container.add(name)
+                container.create(name)
             }
 
             return delegate.invokeMethod(name, params);
@@ -69,7 +69,7 @@ class AutoCreateDomainObjectContainerDelegate {
         }
 
         // try the delegate again
-        container.add(name)
+        container.create(name)
         return delegate.getProperty(name)
     }
 }
