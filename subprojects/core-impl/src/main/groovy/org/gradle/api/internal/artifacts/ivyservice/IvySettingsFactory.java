@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.internal.Factory;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
 import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 public class IvySettingsFactory implements Factory<IvySettings> {
@@ -31,7 +32,9 @@ public class IvySettingsFactory implements Factory<IvySettings> {
 
     public IvySettings create() {
         IvySettings ivySettings = new IvySettings();
-        ivySettings.setDefaultCache(cacheRepository.cache("artifacts").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open().getBaseDir());
+        PersistentCache cache = cacheRepository.cache("artifacts").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open();
+        cache.markValid();
+        ivySettings.setDefaultCache(cache.getBaseDir());
         ivySettings.setDefaultCacheIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
