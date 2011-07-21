@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.built.internal;
+package org.gradle.api.internal.collections;
 
-import org.gradle.api.Namer;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.ClassGenerator;
+import java.util.Set;
 
-import org.gradle.plugins.cpp.built.CppLibrary;
-import org.gradle.plugins.cpp.built.CppLibraryContainer;
+public class FilteredSet<T, S extends T> extends FilteredCollection<T, S> implements Set<S> {
 
-public class DefaultCppLibraryContainer extends DefaultNamedDomainObjectSet<CppLibrary> implements CppLibraryContainer {
-
-    public DefaultCppLibraryContainer(ClassGenerator classGenerator) {
-        super(CppLibrary.class, classGenerator,  new Namer<CppLibrary>() { public String determineName(CppLibrary l) { return l.getName(); }});
+    public FilteredSet(Set<T> collection, CollectionFilter<S> filter) {
+        super(collection, filter);
     }
 
 }

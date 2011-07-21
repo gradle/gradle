@@ -50,6 +50,15 @@ public interface Configuration extends FileCollection {
     String getName();
 
     /**
+     * A {@link org.gradle.api.Namer} namer for configurations that returns {@link #getName()}.
+     */
+    static class Namer implements org.gradle.api.Namer<Configuration> {
+        public String determineName(Configuration c) {
+            return c.getName();
+        }
+    }
+    
+    /**
      * Returns true if this is a visible configuration. A visible configuration is usable outside the project it belongs
      * to. The default value is true.
      *

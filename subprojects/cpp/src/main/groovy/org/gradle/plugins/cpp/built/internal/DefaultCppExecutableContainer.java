@@ -15,21 +15,17 @@
  */
 package org.gradle.plugins.cpp.built.internal;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
+import org.gradle.api.Namer;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.ClassGenerator;
 
 import org.gradle.plugins.cpp.built.CppExecutable;
 import org.gradle.plugins.cpp.built.CppExecutableContainer;
 
-public class DefaultCppExecutableContainer extends DefaultNamedDomainObjectContainer<CppExecutable> implements CppExecutableContainer {
+public class DefaultCppExecutableContainer extends DefaultNamedDomainObjectSet<CppExecutable> implements CppExecutableContainer {
 
     public DefaultCppExecutableContainer(ClassGenerator classGenerator) {
-        super(CppExecutable.class, classGenerator);
+        super(CppExecutable.class, classGenerator, new Namer<CppExecutable>() { public String determineName(CppExecutable e) { return e.getName(); }});
     }
-    
-    public CppExecutable add(CppExecutable executable) throws InvalidUserDataException {
-        addObject(executable.getName(), executable);
-        return executable;
-    }
+
 }

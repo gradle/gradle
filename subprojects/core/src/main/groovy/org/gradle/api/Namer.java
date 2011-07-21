@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.built;
-
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectSet;
+package org.gradle.api;
 
 /**
- * A {@code CppLibraryContainer} manages a set of {@link CppLibrary} objects.
+ * A namer is capable of providing a name based on some inherent characteristic of an object.
+ *
+ * @param <T> The type of object that the namer can name
  */
-public interface CppLibraryContainer extends NamedDomainObjectSet<CppLibrary> {
+public interface Namer<T> {
 
     /**
-     * Adds a library.
-     *
-     * @param library The library to add to this collection.
-     * @return whether or not the library was successfully added.
-     * @throws org.gradle.api.InvalidUserDataException when a library with the given name already exists in this container.
+     * Determines the name of the given object.
+     * 
+     * @param object The object to determine the name of
+     * @return The object's inherent name. Never null.
+     * @throws RuntimeException If the name cannot be determined or is null
      */
-    boolean add(CppLibrary library) throws InvalidUserDataException;
+    String determineName(T object);
 
 }

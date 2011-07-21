@@ -19,16 +19,17 @@ import groovy.lang.Closure;
 import org.gradle.api.specs.Spec;
 
 import java.util.Set;
+import java.util.Collection;
 
 /**
- * <p>A {@code DomainObjectCollection} represents a read-only set of domain objects of type {@code T}.</p>
+ * <p>A {@code DomainObjectCollection} represents a read-only collection of domain objects of type {@code T}.</p>
  *
  * <p>You can use the methods of this interface to query the elements of the collection. You can also add actions
  * which are executed as elements are added to this collection.</p>
  *
  * @param <T> The type of domain objects in this collection.
  */
-public interface DomainObjectCollection<T> extends Iterable<T> {
+public interface DomainObjectCollection<T> extends Collection<T> {
     /**
      * Returns the objects in this collection.
      *
@@ -50,7 +51,7 @@ public interface DomainObjectCollection<T> extends Iterable<T> {
      * collection.
      *
      * @param type The type of objects to find.
-     * @return The matching objects. Returns an empty set if there are no such objects in this collection.
+     * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
      */
     <S extends T> DomainObjectCollection<S> withType(Class<S> type);
 
@@ -60,7 +61,7 @@ public interface DomainObjectCollection<T> extends Iterable<T> {
      *
      * @param type The type of objects to find.
      * @param configureAction The action to execute for each object in the resulting collection.
-     * @return The matching objects. Returns an empty set if there are no such objects in this collection.
+     * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
      */
     <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction);
 
@@ -70,7 +71,7 @@ public interface DomainObjectCollection<T> extends Iterable<T> {
      *
      * @param type The type of objects to find.
      * @param configureClosure The closure to execute for each object in the resulting collection.
-     * @return The matching objects. Returns an empty set if there are no such objects in this collection.
+     * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
      */
     <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure);
 

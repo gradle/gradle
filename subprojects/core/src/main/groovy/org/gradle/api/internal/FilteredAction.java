@@ -15,19 +15,24 @@
  */
 package org.gradle.api.internal;
 
-/**
- * Extension of DefaultDomainObjectContainer that makes the mutation methods public.
- */
-public class MutableDomainObjectContainer<T> extends DefaultDomainObjectContainer<T> {
-    public MutableDomainObjectContainer(Class<T> type) {
-        super(type);
+import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
+
+public class FilteredAction<T> implements Action<T> {
+
+    private final Spec<? super T> filter;
+    private final Action<? super T> action;
+
+    public FilteredAction(Spec<? super T> filter, Action<? super T> action) {
+        this.filter = filter;
+        this.action = action;
     }
 
-    public void addObject(T o) {
-        super.addObject(o);
+    public void execute(T t) {
+        if (filter.isSatisfiedBy(t)) {
+            action.execute(t);
+        }
     }
 
-    public boolean removeObject(T o) {
-        return super.removeObject(o);
-    }
 }
+

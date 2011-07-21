@@ -13,19 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.built.internal;
+package org.gradle.api.internal;
 
 import org.gradle.api.Namer;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.ClassGenerator;
+import java.util.Comparator;
 
-import org.gradle.plugins.cpp.built.CppLibrary;
-import org.gradle.plugins.cpp.built.CppLibraryContainer;
+class NamerComparator<T> implements Comparator<T> {
 
-public class DefaultCppLibraryContainer extends DefaultNamedDomainObjectSet<CppLibrary> implements CppLibraryContainer {
+    private final Namer<? super T> namer;
 
-    public DefaultCppLibraryContainer(ClassGenerator classGenerator) {
-        super(CppLibrary.class, classGenerator,  new Namer<CppLibrary>() { public String determineName(CppLibrary l) { return l.getName(); }});
+    public NamerComparator(Namer<? super T> namer) {
+        this.namer = namer;
     }
 
+    public int compare(T o1, T o2) {
+        return namer.determineName(o1).compareTo(namer.determineName(o2));
+    }
+
+    public boolean equals(Object obj) {
+        return getClass().equals(obj.getClass()) && namer.equals(((NamerComparator)obj).namer);
+    }
+
+    public int hashCode() {
+        return 31 * namer.hashCode();
+    }
 }

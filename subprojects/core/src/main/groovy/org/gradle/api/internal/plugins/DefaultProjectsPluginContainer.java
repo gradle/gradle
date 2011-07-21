@@ -69,7 +69,7 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
     private <T extends Plugin> T addPluginInternal(Class<T> type) {
         if (findPlugin(type) == null) {
             Plugin plugin = providePlugin(type);
-            addObject(plugin);
+            add(plugin);
         }
         return type.cast(findPlugin(type));
     }
