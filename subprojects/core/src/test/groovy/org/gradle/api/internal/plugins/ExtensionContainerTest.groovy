@@ -28,10 +28,14 @@ public class ExtensionContainerTest extends Specification {
 
     def ExtensionContainer container = new DefaultConvention()
     def extension = new FooExtension()
+    def barExtension = new BarExtension()
 
     class FooExtension {
         String message = "smile"
     }
+
+    class BarExtension {}
+    class SomeExtension {}
 
     def "extension can be accessed and configured"() {
         when:
@@ -60,5 +64,45 @@ public class ExtensionContainerTest extends Specification {
 
         then:
         thrown(GradleException)
+    }
+
+    def "knows registered extensions"() {
+        when:
+        container.add("foo", extension)
+        container.add("bar", barExtension)
+
+        then:
+        container.getByName("foo") == extension
+        container.findByName("bar") == barExtension
+
+        container.getByType(BarExtension) == barExtension
+        container.findByType(FooExtension) == extension
+
+        container.findByType(SomeExtension) == null
+        container.findByName("i don't exist") == null
+    }
+
+    def "throws when unknown exception wanted by name"() {
+        container.add("foo", extension)
+
+        when:
+        container.getByName("i don't exist")
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains 'foo'
+        ex.message.contains "i don't exist"
+    }
+
+    def "throws when unknown extension wanted by type"() {
+        container.add("foo", extension)
+
+        when:
+        container.getByType(SomeExtension)
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains 'FooExtension'
+        ex.message.contains 'SomeExtension'
     }
 }

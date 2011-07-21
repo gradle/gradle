@@ -59,7 +59,7 @@ public class AbstractConvention implements Convention {
 
     public Object getProperty(String name) throws MissingPropertyException {
         if (extensionsStorage.hasExtension(name)) {
-            return extensionsStorage.getExtension(name);
+            return extensionsStorage.getByName(name);
         }
         BeanDynamicObject dynamicObject = new BeanDynamicObject(this);
         if (dynamicObject.hasProperty(name)) {
@@ -142,5 +142,21 @@ public class AbstractConvention implements Convention {
 
     public void add(String name, Object extension) {
         extensionsStorage.add(name, extension);
+    }
+
+    public <T> T getByType(Class<T> type) {
+        return extensionsStorage.getByType(type);
+    }
+
+    public <T> T findByType(Class<T> type) {
+        return extensionsStorage.findByType(type);
+    }
+
+    public Object getByName(String name) {
+        return extensionsStorage.getByName(name);
+    }
+
+    public Object findByName(String name) {
+        return extensionsStorage.findByName(name);
     }
 }
