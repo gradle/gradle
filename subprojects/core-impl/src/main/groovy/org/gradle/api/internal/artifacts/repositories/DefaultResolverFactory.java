@@ -112,6 +112,7 @@ public class DefaultResolverFactory implements ResolverFactory {
         URLResolver urlResolver = new UrlWharfResolver();
         urlResolver.setName(name + "_jars");
         urlResolver.setM2compatible(true);
+        urlResolver.setChecksums("");
         urlResolver.addArtifactPattern(root + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
         for (String jarRepoUrl : jarRepoUrls) {
             urlResolver.addArtifactPattern(jarRepoUrl + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
