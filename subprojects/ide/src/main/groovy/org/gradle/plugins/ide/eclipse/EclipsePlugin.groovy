@@ -129,8 +129,7 @@ class EclipsePlugin extends IdePlugin {
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]
                     classpath.conventionMapping.classFolders = {
-                        def dirs = project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
-                        dirs.collect { project.relativePath(it)} .findAll { !it.contains('..') }
+                        return (project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs) as List
                     }
                     task.dependsOn {
                         project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs

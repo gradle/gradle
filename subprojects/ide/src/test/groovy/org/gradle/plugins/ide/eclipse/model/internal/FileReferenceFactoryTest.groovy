@@ -19,6 +19,7 @@ import spock.lang.Specification
 import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
+import org.gradle.util.Matchers
 
 class FileReferenceFactoryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -33,7 +34,7 @@ class FileReferenceFactoryTest extends Specification {
         TestFile file = tmpDir.file("file.txt")
 
         expect:
-        def reference = factory.file(file)
+        def reference = factory.fromFile(file)
         reference.file == file
         reference.path == relpath(file)
         !reference.relativeToPathVariable
@@ -43,7 +44,7 @@ class FileReferenceFactoryTest extends Specification {
         TestFile file = rootDir.file("a/file.txt")
 
         expect:
-        def reference = factory.file(file)
+        def reference = factory.fromFile(file)
         reference.file == file
         reference.path == "ROOT_DIR/a/file.txt"
         reference.relativeToPathVariable
@@ -51,30 +52,56 @@ class FileReferenceFactoryTest extends Specification {
 
     def "creates a reference for a root directory"() {
         expect:
-        def reference = factory.file(rootDir)
+        def reference = factory.fromFile(rootDir)
         reference.file == rootDir
         reference.path == "ROOT_DIR"
         reference.relativeToPathVariable
+    }
+
+    def "creates null reference for a null file"() {
+        expect:
+        factory.fromFile(null) == null
     }
 
     def "creates a reference from a file path"() {
         TestFile file = tmpDir.file("file.txt")
 
         expect:
-        def reference = factory.file(relpath(file))
+        def reference = factory.fromPath(relpath(file))
         reference.file == file
         reference.path == relpath(file)
         !reference.relativeToPathVariable
     }
 
-    def "creates a reference from a path starting with a variable"() {
+    def "creates null reference for a null file path"() {
+        expect:
+        factory.fromPath(null) == null
+    }
+
+    def "creates a reference from a variable path"() {
         TestFile file = rootDir.file("a/file.txt")
 
         expect:
-        def reference = factory.var("ROOT_DIR/a/file.txt")
+        def reference = factory.fromVariablePath("ROOT_DIR/a/file.txt")
         reference.file == file
         reference.path == "ROOT_DIR/a/file.txt"
         reference.relativeToPathVariable
+    }
+
+    def "creates null reference for a null file variable path"() {
+        expect:
+        factory.fromVariablePath(null) == null
+    }
+
+    def "file references are equal when they point to the same file"() {
+        TestFile file = rootDir.file("a/file.txt")
+        def reference = factory.fromFile(file)
+        def sameFile = factory.fromFile(file)
+        def differentFile = factory.fromFile(rootDir)
+
+        expect:
+        reference Matchers.strictlyEqual(sameFile)
+        reference != differentFile
     }
 
     private String relpath(File file) {

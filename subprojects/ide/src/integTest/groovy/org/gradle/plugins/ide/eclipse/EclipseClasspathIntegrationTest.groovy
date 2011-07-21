@@ -333,7 +333,37 @@ eclipse.classpath {
     }
 
     @Test
-    void allowsConfiguringHooks() {
+    void "removes dependencies from existing classpath file when merging"() {
+        //given
+        getClasspathFile() << '''<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
+	<classpathentry kind="lib" path="/some/path/someDependency.jar" exported="true"/>
+	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar" exported="true"/>
+	<classpathentry kind="src" path="/someProject" exported="true"/>
+</classpath>
+'''
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+dependencies {
+  compile files('newDependency.jar')
+}
+"""
+
+        //then
+        assert classpath.entries.size() == 3
+        def libraries = classpath.libs
+        assert libraries.size() == 1
+        libraries[0].assertHasJar(file('newDependency.jar'))
+    }
+
+    @Test
+    void "can access xml model before and after generation"() {
         //given
         def classpath = getClasspathFile([:])
         classpath << '''<?xml version="1.0" encoding="UTF-8"?>
@@ -341,6 +371,7 @@ eclipse.classpath {
 	<classpathentry kind="output" path="bin"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
 	<classpathentry kind="lib" path="/some/path/someDependency.jar" exported="true"/>
+	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar" exported="true"/>
 </classpath>
 '''
 
@@ -360,12 +391,17 @@ eclipse {
     file {
       beforeMerged {
         hooks << 'beforeMerged'
+        assert it.entries.size() == 4
         assert it.entries.any { it.path.contains('someDependency.jar') }
+        assert it.entries.any { it.path.contains('someVarDependency.jar') }
         assert !it.entries.any { it.path.contains('newDependency.jar') }
       }
       whenMerged {
         hooks << 'whenMerged'
+        assert it.entries.size() == 3
         assert it.entries.any { it.path.contains('newDependency.jar') }
+        assert !it.entries.any { it.path.contains('someDependency.jar') }
+        assert !it.entries.any { it.path.contains('someVarDependency.jar') }
       }
     }
   }
@@ -381,7 +417,7 @@ eclipseClasspath.doLast() {
 
     @Issue("GRADLE-1502")
     @Test
-    void createsLinkedResourcesForClasspathFoldersNotBeneathProjectDir() {
+    void "creates linked resources for source directories which are not under the project directory"() {
         file('someGroovySrc').mkdirs()
 
         def settingsFile = file('settings.gradle')
@@ -432,9 +468,10 @@ sourceSets.main.output.dir "$buildDir/generated/main"
 sourceSets.test.output.dir "$buildDir/generated/test"
 '''
         //then
-        def out = parseClasspathFile(print: true)
-        def libPaths = out.classpathentry.findAll { it.@kind.text() == 'lib' }.collect { it.@path.text() }
-        assert libPaths == ['build/generated/main', 'build/generated/test']
+        def libraries = classpath.libs
+        assert libraries.size() == 2
+        libraries[0].assertHasJar(file('build/generated/main'))
+        libraries[1].assertHasJar(file('build/generated/test'))
     }
 
     @Test

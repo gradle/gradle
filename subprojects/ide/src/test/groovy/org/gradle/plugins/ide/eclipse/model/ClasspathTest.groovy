@@ -20,23 +20,25 @@ import org.gradle.api.internal.XmlTransformer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
 /**
  * @author Hans Dockter
  */
 public class ClasspathTest extends Specification {
+    final fileReferenceFactory = new FileReferenceFactory()
     final customEntries = [
             new ProjectDependency("/test2", null),
             new Container("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"),
-            new Library("/apache-ant-1.7.1/lib/ant-antlr.jar"),
+            new Library(fileReferenceFactory.fromPath("/apache-ant-1.7.1/lib/ant-antlr.jar")),
             new SourceFolder("src", "bin2"),
-            new Variable("GRADLE_CACHE/ant-1.6.5.jar"),
+            new Variable(fileReferenceFactory.fromVariablePath("GRADLE_CACHE/ant-1.6.5.jar")),
             new Container("org.eclipse.jdt.USER_LIBRARY/gradle"),
             new Output("bin")]
     final projectDependency = [customEntries[0]]
-    final allDependencies = [customEntries[0], customEntries[2]]
+    final allDependencies = [customEntries[0], customEntries[2], customEntries[4]]
 
-    private final Classpath classpath = new Classpath(new XmlTransformer())
+    private final Classpath classpath = new Classpath(new XmlTransformer(), fileReferenceFactory)
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder()
@@ -81,7 +83,7 @@ public class ClasspathTest extends Specification {
         classpath.load(customClasspathReader)
         classpath.configure(constructorEntries)
         def xml = getToXmlReader()
-        def other = new Classpath(new XmlTransformer())
+        def other = new Classpath(new XmlTransformer(), fileReferenceFactory)
         other.load(xml)
 
         then:
@@ -93,7 +95,7 @@ public class ClasspathTest extends Specification {
     }
 
     private Library createSomeLibrary() {
-        Library library = new Library("/somepath")
+        Library library = new Library(fileReferenceFactory.fromPath("/somepath"))
         library.exported = true
         return library
     }

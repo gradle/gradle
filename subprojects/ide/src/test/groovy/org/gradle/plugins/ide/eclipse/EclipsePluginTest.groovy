@@ -119,11 +119,11 @@ class EclipsePluginTest extends Specification {
         project.sourceSets.test.output.dir 'generated-test'
         project.sourceSets.test.output.dir 'test-resources'
 
-        project.sourceSets.test.output.dir '../some/unwanted/external/dir'
+        project.sourceSets.test.output.dir '../some/external/dir'
 
         then:
         def folders = project.eclipseClasspath.classpath.classFolders
-        folders == ['generated-folder', 'ws-generated', 'generated-test', 'test-resources']
+        folders == [project.file('generated-folder'), project.file('ws-generated'), project.file('generated-test'), project.file('test-resources'), project.file('../some/external/dir')]
     }
 
     private void checkEclipseProjectTask(List buildCommands, List natures) {

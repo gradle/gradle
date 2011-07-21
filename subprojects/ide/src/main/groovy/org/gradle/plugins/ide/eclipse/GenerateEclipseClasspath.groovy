@@ -38,7 +38,7 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
     }
 
     @Override protected Classpath create() {
-        return new Classpath(xmlTransformer)
+        return new Classpath(xmlTransformer, classpath.fileReferenceFactory)
     }
 
     @Override protected void configure(Classpath xmlClasspath) {

@@ -15,42 +15,45 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+
 /**
  * @author Hans Dockter
  */
 abstract class AbstractLibrary extends AbstractClasspathEntry {
-    String sourcePath
+    FileReference sourcePath
+    FileReference javadocPath
+    FileReference library
     String declaredConfigurationName
 
-    AbstractLibrary(Node node) {
+    AbstractLibrary(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node)
-        sourcePath = normalizePath(node.@sourcepath)
+        javadocPath = fileReferenceFactory.fromPath(entryAttributes.javadoc_location)
     }
 
-    String getJavadocPath() {
-        normalizePath(entryAttributes.javadoc_location)
+    AbstractLibrary(FileReference library) {
+        super(library.path)
+        this.library = library
     }
 
-    void setJavadocPath(String path) {
-        entryAttributes.javadoc_location = normalizePath(path)
+    void setLibrary(FileReference library) {
+        this.library = library
+        path = library.path
     }
 
-    void setSourcePath(String path) {
-        sourcePath = normalizePath(path)
-    }
-
-    AbstractLibrary(String path) {
-        super(path)
+    void setJavadocPath(FileReference path) {
+        this.javadocPath = path
+        entryAttributes.javadoc_location = path ? path.path : null
     }
 
     void appendNode(Node node) {
-        addClasspathEntry(node, [sourcepath: sourcePath])
+        addClasspathEntry(node, [sourcepath: sourcePath?.path])
     }
 
     boolean equals(o) {
         if (this.is(o)) { return true }
 
-        if (getClass() != o.class) { return false }
+        if (o == null || getClass() != o.class) { return false }
 
         AbstractLibrary that = (AbstractLibrary) o;
 

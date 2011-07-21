@@ -55,8 +55,7 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
-            def referenceFactory = new FileReferenceFactory()
-            classpath.pathVariables.each { name, dir -> referenceFactory.addPathVariable(name, dir) }
+            def referenceFactory = classpath.fileReferenceFactory
 
             dependenciesExtractor.extractRepoFileDependencies(
                     classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
@@ -91,17 +90,17 @@ class ClasspathFactory {
     }
 
     private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, FileReferenceFactory referenceFactory) {
-        def binaryRef = referenceFactory.file(binary)
-        def sourceRef = source ? referenceFactory.file(source) : null
-        def javadocRef = javadoc ? referenceFactory.file(javadoc) : null
+        def binaryRef = referenceFactory.fromFile(binary)
+        def sourceRef = referenceFactory.fromFile(source)
+        def javadocRef = referenceFactory.fromFile(javadoc)
         def out
         if (binaryRef.relativeToPathVariable) {
-            out = new Variable(binaryRef.path)
+            out = new Variable(binaryRef)
         } else {
-            out = new Library(binaryRef.path)
+            out = new Library(binaryRef)
         }
-        out.sourcePath = sourceRef?.path
-        out.javadocPath = javadocRef?.path
+        out.sourcePath = sourceRef
+        out.javadocPath = javadocRef
         out.exported = true
         out.declaredConfigurationName = declaredConfigurationName
         out

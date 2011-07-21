@@ -48,6 +48,10 @@ class EclipseClasspathFixture {
         return classpath
     }
 
+    List<Node> getEntries() {
+        return getClasspath().classpathentry as List
+    }
+
     List<EclipseLibrary> getLibs() {
         return getClasspath().classpathentry.findAll { it.@kind == 'lib' }.collect { new EclipseLibrary(it) }
     }

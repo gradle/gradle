@@ -15,16 +15,19 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+
 /**
  * @author Hans Dockter
  */
 class Variable extends AbstractLibrary {
-    Variable(Node node) {
-        super(node)
+    Variable(Node node, FileReferenceFactory fileReferenceFactory) {
+        super(node, fileReferenceFactory)
+        sourcePath = fileReferenceFactory.fromVariablePath(node.@sourcepath)
     }
 
-    Variable(String path) {
-        super(path)
+    Variable(FileReference library) {
+        super(library)
     }
 
     String getKind() {

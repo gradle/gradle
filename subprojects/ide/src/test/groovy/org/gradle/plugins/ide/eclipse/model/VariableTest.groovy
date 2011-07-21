@@ -16,6 +16,8 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import spock.lang.Specification
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+import org.gradle.util.Matchers
 
 /**
  * @author Hans Dockter
@@ -32,10 +34,11 @@ class VariableTest extends Specification {
                         <accessrule kind="nonaccessible" pattern="secret**"/>
                     </accessrules>
                 </classpathentry>'''
+    final fileReferenceFactory = new FileReferenceFactory()
 
     def canReadFromXml() {
         when:
-        Variable variable = new Variable(new XmlParser().parseText(XML_TEXT))
+        Variable variable = new Variable(new XmlParser().parseText(XML_TEXT), fileReferenceFactory)
 
         then:
         variable == createVariable()
@@ -48,24 +51,27 @@ class VariableTest extends Specification {
         createVariable().appendNode(rootNode)
 
         then:
-        new Variable(rootNode.classpathentry[0]) == createVariable()
+        new Variable(rootNode.classpathentry[0], fileReferenceFactory) == createVariable()
     }
 
     def equality() {
         Variable variable = createVariable()
-        variable.sourcePath += 'x'
+        Variable same = createVariable()
+        Variable different = createVariable()
+        different.path = '/other'
 
         expect:
-        variable != createVariable()
+        variable Matchers.strictlyEqual(same)
+        variable != different
     }
 
     private Variable createVariable() {
-        Variable variable = new Variable('/GRADLE_CACHE/ant.jar')
+        Variable variable = new Variable(fileReferenceFactory.fromVariablePath('/GRADLE_CACHE/ant.jar'))
         variable.exported = true
         variable.nativeLibraryLocation = 'mynative'
         variable.accessRules += [new AccessRule('nonaccessible', 'secret**')]
-        variable.sourcePath = "/GRADLE_CACHE/ant-src.jar"
-        variable.javadocPath = "jar:file:/GRADLE_CACHE/ant-javadoc.jar!/path"
+        variable.sourcePath = fileReferenceFactory.fromVariablePath("/GRADLE_CACHE/ant-src.jar")
+        variable.javadocPath = fileReferenceFactory.fromVariablePath("jar:file:/GRADLE_CACHE/ant-javadoc.jar!/path")
         return variable
     }
 }

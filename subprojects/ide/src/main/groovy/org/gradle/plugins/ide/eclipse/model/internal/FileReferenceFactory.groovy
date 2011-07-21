@@ -28,9 +28,13 @@ class FileReferenceFactory {
     }
 
     /**
-     * Creates a reference to the given file.
+     * Creates a reference to the given file. Returns null for a null file.
      */
-    FileReference file(File file) {
+    FileReference fromFile(File file) {
+        if (!file) {
+
+            return null
+        }
         def path
         def usedVar = false
         for (entry in variables.entrySet()) {
@@ -53,16 +57,22 @@ class FileReferenceFactory {
     }
 
     /**
-     * Creates a reference to the given path.
+     * Creates a reference to the given path. Returns null for for null path
      */
-    FileReference file(String path) {
+    FileReference fromPath(String path) {
+        if (path == null) {
+            return null
+        }
         new FileReferenceImpl(new File(path), path, false)
     }
 
     /**
-     * Creates a reference to the given path containing a variable reference.
+     * Creates a reference to the given path containing a variable reference. Returns null for null variable path
      */
-    FileReference var(String path) {
+    FileReference fromVariablePath(String path) {
+        if (path == null) {
+            return null
+        }
         for (entry in variables.entrySet()) {
             def prefix = "$entry.key/"
             if (path.startsWith(prefix)) {
@@ -70,7 +80,7 @@ class FileReferenceFactory {
                 return new FileReferenceImpl(file, path, true)
             }
         }
-        return file(path)
+        return fromPath(path)
     }
 
     private static class FileReferenceImpl implements FileReference {
@@ -82,6 +92,23 @@ class FileReferenceFactory {
             this.file = file
             this.path = path
             this.relativeToPathVariable = relativeToPathVariable
+        }
+
+        @Override
+        boolean equals(Object obj) {
+            if (obj.is(this)) {
+                return true
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false
+            }
+
+            return file.equals(obj.file)
+        }
+
+        @Override
+        int hashCode() {
+            return file.hashCode()
         }
     }
 }

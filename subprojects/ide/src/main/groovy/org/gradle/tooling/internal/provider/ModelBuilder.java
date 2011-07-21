@@ -79,10 +79,10 @@ public class ModelBuilder {
 
         for (ClasspathEntry entry : entries) {
             if (entry instanceof Library) {
-                Library library = (Library) entry;
-                final File file = project.file(library.getPath());
-                final File source = library.getSourcePath() == null ? null : project.file(library.getSourcePath());
-                final File javadoc = library.getJavadocPath() == null ? null : project.file(library.getJavadocPath());
+                AbstractLibrary library = (AbstractLibrary) entry;
+                final File file = library.getLibrary().getFile();
+                final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
+                final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
                 externalDependencies.add(new DefaultExternalDependency(file, javadoc, source));
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;

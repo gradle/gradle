@@ -16,6 +16,8 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import spock.lang.Specification
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+import org.gradle.util.Matchers
 
 /**
  * @author Hans Dockter
@@ -32,10 +34,11 @@ class LibraryTest extends Specification {
                             <accessrule kind="nonaccessible" pattern="secret**"/>
                         </accessrules>
                     </classpathentry>'''
+    final fileReferenceFactory = new FileReferenceFactory()
 
     def canReadFromXml() {
         when:
-        Library library = new Library(new XmlParser().parseText(XML_TEXT))
+        Library library = new Library(new XmlParser().parseText(XML_TEXT), fileReferenceFactory)
 
         then:
         library == createLibrary()
@@ -48,24 +51,27 @@ class LibraryTest extends Specification {
         createLibrary().appendNode(rootNode)
 
         then:
-        new Library(rootNode.classpathentry[0]) == createLibrary()
+        new Library(rootNode.classpathentry[0], fileReferenceFactory) == createLibrary()
     }
 
     def equality() {
         Library library = createLibrary()
-        library.javadocPath += 'x'
+        Library same = createLibrary()
+        Library differentPath = createLibrary()
+        differentPath.path = '/other'
 
         expect:
-        library != createLibrary()
+        library Matchers.strictlyEqual(same)
+        library != differentPath
     }
 
     private Library createLibrary() {
-        Library library = new Library('/ant.jar')
+        Library library = new Library(fileReferenceFactory.fromPath('/ant.jar'))
         library.exported = true
         library.nativeLibraryLocation = 'mynative'
         library.accessRules += [new AccessRule('nonaccessible', 'secret**')]
-        library.sourcePath = "/ant-src.jar"
-        library.javadocPath = "jar:file:/ant-javadoc.jar!/path"
+        library.sourcePath = fileReferenceFactory.fromPath("/ant-src.jar")
+        library.javadocPath = fileReferenceFactory.fromPath("jar:file:/ant-javadoc.jar!/path")
         return library
     }
 }

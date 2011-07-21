@@ -28,9 +28,10 @@ class ClassFoldersCreator {
 
     List<Library> create(EclipseClasspath classpath) {
         List<Library> out = new LinkedList<Library>()
+        FileReferenceFactory fileReferenceFactory = classpath.fileReferenceFactory
 
-        classpath.classFolders.each { folderPath ->
-            Library library = new Library(folderPath)
+        classpath.classFolders.each { File folder ->
+            Library library = new Library(fileReferenceFactory.fromFile(folder))
             library.exported = true
             out << library
         }
