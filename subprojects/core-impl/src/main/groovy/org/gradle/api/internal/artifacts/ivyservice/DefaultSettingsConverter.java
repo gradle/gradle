@@ -24,10 +24,7 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
-import org.apache.ivy.plugins.resolver.ChainResolver;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -157,11 +154,27 @@ public class DefaultSettingsConverter implements SettingsConverter {
             if (!(cacheManager instanceof NoOpRepositoryCacheManager) && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
                 ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
             }
-            if (dependencyResolver instanceof RepositoryResolver) {
-                Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
-                if (!repository.hasTransferListener(transferListener)) {
-                    repository.addTransferListener(transferListener);
-                }
+            attachListener(dependencyResolver);
+        }
+    }
+
+    private void attachListener(DependencyResolver dependencyResolver) {
+        if (dependencyResolver instanceof RepositoryResolver) {
+            Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
+            if (!repository.hasTransferListener(transferListener)) {
+                repository.addTransferListener(transferListener);
+            }
+        }
+        if (dependencyResolver instanceof DualResolver) {
+            DualResolver dualResolver = (DualResolver) dependencyResolver;
+            attachListener(dualResolver.getIvyResolver());
+            attachListener(dualResolver.getArtifactResolver());
+        }
+        if (dependencyResolver instanceof ChainResolver) {
+            ChainResolver chainResolver = (ChainResolver) dependencyResolver;
+            List<DependencyResolver> resolvers = chainResolver.getResolvers();
+            for (DependencyResolver resolver : resolvers) {
+                attachListener(resolver);
             }
         }
     }
