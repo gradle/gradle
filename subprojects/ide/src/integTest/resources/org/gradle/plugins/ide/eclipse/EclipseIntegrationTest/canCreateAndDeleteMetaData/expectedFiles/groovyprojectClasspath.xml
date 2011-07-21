@@ -6,7 +6,7 @@
 	<classpathentry kind="src" path="src/test/resources"/>
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
-	<classpathentry sourcepath="@CACHE_DIR@/commons-collections/commons-collections/sources/commons-collections-3.2-sources.jar" kind="lib"
-					path="@CACHE_DIR@/commons-collections/commons-collections/jars/commons-collections-3.2.jar" exported="true"/>
-	<classpathentry sourcepath="@CACHE_DIR@/junit/junit/sources/junit-4.7-sources.jar" kind="lib" path="@CACHE_DIR@/junit/junit/jars/junit-4.7.jar" exported="true"/>
+	<classpathentry sourcepath="@CACHE_DIR@/commons-collections/commons-collections/@REPO@/sources/commons-collections-3.2-sources.jar" kind="lib"
+					path="@CACHE_DIR@/commons-collections/commons-collections/@REPO@/jars/commons-collections-3.2.jar" exported="true"/>
+	<classpathentry sourcepath="@CACHE_DIR@/junit/junit/@REPO@/sources/junit-4.7-sources.jar" kind="lib" path="@CACHE_DIR@/junit/junit/@REPO@/jars/junit-4.7.jar" exported="true"/>
 </classpath>

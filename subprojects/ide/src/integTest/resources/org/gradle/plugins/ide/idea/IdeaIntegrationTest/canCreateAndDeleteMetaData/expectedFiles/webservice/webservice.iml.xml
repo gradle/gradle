@@ -11,11 +11,11 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/jars/slf4j-api-1.5.8.jar!/"/>
+          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/@REPO@/jars/slf4j-api-1.5.8.jar!/"/>
         </CLASSES>
         <JAVADOC/>
         <SOURCES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/sources/slf4j-api-1.5.8-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/@REPO@/sources/slf4j-api-1.5.8-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>
@@ -32,37 +32,37 @@
     <orderEntry type="module-library" exported="" scope="RUNTIME">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/jars/commons-lang-2.4.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/@REPO@/jars/commons-lang-2.4.jar!/"/>
         </CLASSES>
         <JAVADOC>
-          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/javadocs/commons-lang-2.4-javadoc.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/@REPO@/javadocs/commons-lang-2.4-javadoc.jar!/"/>
         </JAVADOC>
         <SOURCES>
-          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/sources/commons-lang-2.4-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/@REPO@/sources/commons-lang-2.4-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="RUNTIME">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/commons-io/commons-io/jars/commons-io-1.2.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-io/commons-io/@REPO@/jars/commons-io-1.2.jar!/"/>
         </CLASSES>
         <JAVADOC>
-          <root url="jar://@CACHE_DIR@/commons-io/commons-io/javadocs/commons-io-1.2-javadoc.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-io/commons-io/@REPO@/javadocs/commons-io-1.2-javadoc.jar!/"/>
         </JAVADOC>
         <SOURCES>
-          <root url="jar://@CACHE_DIR@/commons-io/commons-io/sources/commons-io-1.2-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-io/commons-io/@REPO@/sources/commons-io-1.2-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/junit/junit/jars/junit-4.7.jar!/"/>
+          <root url="jar://@CACHE_DIR@/junit/junit/@REPO@/jars/junit-4.7.jar!/"/>
         </CLASSES>
         <JAVADOC/>
         <SOURCES>
-          <root url="jar://@CACHE_DIR@/junit/junit/sources/junit-4.7-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/junit/junit/@REPO@/sources/junit-4.7-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>
