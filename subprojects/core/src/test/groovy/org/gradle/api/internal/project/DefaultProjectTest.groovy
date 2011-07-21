@@ -159,11 +159,11 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(StandardOutputCapture); will(returnValue(context.mock(StandardOutputCapture)))
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
-            allowing(serviceRegistryMock).get(FileResolver); will(returnValue([:] as FileResolver))
+            allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(ClassGenerator); will(returnValue(new AsmBackedClassGenerator()))
             allowing(serviceRegistryMock).get(FileOperations);
             will(returnValue(fileOperationsMock))
-            allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([:] as ScriptPluginFactory))
+            allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();
