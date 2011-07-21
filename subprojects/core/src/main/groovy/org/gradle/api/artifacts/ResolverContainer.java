@@ -36,7 +36,7 @@ import java.util.List;
  * resolver as the property name. For example:</p>
  *
  * <pre>
- * resolvers.add('myResolver')
+ * resolvers.addLastt('myResolver')
  * resolvers.myResolver.addArtifactPattern(somePattern)
  * </pre>
  *
@@ -44,7 +44,7 @@ import java.util.List;
  * {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
  *
  * <pre>
- * resolvers.add('myResolver')
+ * resolvers.addLast('myResolver')
  * resolvers.myResolver {
  *     addArtifactPattern(somePattern)
  * }
@@ -84,23 +84,23 @@ public interface ResolverContainer extends NamedDomainObjectContainer<Dependency
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
      */
-    DependencyResolver add(Object userDescription) throws InvalidUserDataException;
+    DependencyResolver addLast(Object userDescription) throws InvalidUserDataException;
 
     /**
      * Adds a resolver to this container, at the end of the resolver sequence. The resolver is configured using the
      * given configure closure.
      *
-     * @param userDescription The resolver definition. See {@link #add(Object)} for details of this parameter.
+     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
      * @param configureClosure The closure to use to configure the resolver.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
      */
-    DependencyResolver add(Object userDescription, Closure configureClosure) throws InvalidUserDataException;
+    DependencyResolver addLast(Object userDescription, Closure configureClosure) throws InvalidUserDataException;
 
     /**
      * Adds a resolver to this container, before the given resolver.
      *
-     * @param userDescription The resolver definition. See {@link #add(Object)} for details of this parameter.
+     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
      * @param nextResolver The existing resolver to add the new resolver before.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
@@ -112,7 +112,7 @@ public interface ResolverContainer extends NamedDomainObjectContainer<Dependency
      * Adds a resolver to this container, before the given resolver. The resolver is configured using the given
      * configure closure.
      *
-     * @param userDescription The resolver definition. See {@link #add(Object)} for details of this parameter.
+     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
      * @param nextResolver The existing resolver to add the new resolver before.
      * @param configureClosure The closure to use to configure the resolver.
      * @return The added resolver.
@@ -125,7 +125,7 @@ public interface ResolverContainer extends NamedDomainObjectContainer<Dependency
     /**
      * Adds a resolver to this container, after the given resolver.
      *
-     * @param userDescription The resolver definition. See {@link #add(Object)} for details of this parameter.
+     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
      * @param previousResolver The existing resolver to add the new resolver after.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
@@ -137,7 +137,7 @@ public interface ResolverContainer extends NamedDomainObjectContainer<Dependency
      * Adds a resolver to this container, after the given resolver. The resolver is configured using the given configure
      * closure.
      *
-     * @param userDescription The resolver definition. See {@link #add(Object)} for details of this parameter.
+     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
      * @param previousResolver The existing resolver to add the new resolver after.
      * @param configureClosure The closure to use to configure the resolver.
      * @return The added resolver.
@@ -150,7 +150,7 @@ public interface ResolverContainer extends NamedDomainObjectContainer<Dependency
     /**
      * Adds a resolver to this container, at the start of the resolver sequence.
      *
-     * @param userDescription The resolver definition. See {@link #add(Object)} for details of this parameter.
+     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
      */
@@ -160,7 +160,7 @@ public interface ResolverContainer extends NamedDomainObjectContainer<Dependency
      * Adds a resolver to this container, at the start of the resolver sequence. The resolver is configured using the
      * given configure closure.
      *
-     * @param userDescription The resolver definition. See {@link #add(Object)} for details of this parameter.
+     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
      * @param configureClosure The closure to use to configure the resolver.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.

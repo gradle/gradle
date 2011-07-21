@@ -65,11 +65,11 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
         return "resolver";
     }
 
-    public DependencyResolver add(Object userDescription) {
-        return add(userDescription, null);
+    public DependencyResolver addLast(Object userDescription) {
+        return addLast(userDescription, null);
     }
 
-    public DependencyResolver add(Object userDescription, Closure configureClosure) {
+    public DependencyResolver addLast(Object userDescription, Closure configureClosure) {
         return addInternal(userDescription, configureClosure, new OrderAction() {
             public void apply(String resolverName) {
                 resolverNames.add(resolverName);

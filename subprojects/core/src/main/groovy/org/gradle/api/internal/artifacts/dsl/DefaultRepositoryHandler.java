@@ -59,7 +59,7 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
         FileSystemResolver resolver = getResolverFactory().createFlatDirResolver(
                 getNameFromMap(args, HashUtil.createHash(GUtil.join(rootDirPaths, ""))),
                 rootDirs);
-        return (FileSystemResolver) add(resolver);
+        return (FileSystemResolver) addLast(resolver);
     }
 
     private String getNameFromMap(Map args, String defaultName) {
@@ -99,14 +99,14 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
 
     public DependencyResolver mavenCentral(Map args) {
         List<String> urls = createStringifiedListFromMapArg(args, "urls");
-        return add(getResolverFactory().createMavenRepoResolver(
+        return addLast(getResolverFactory().createMavenRepoResolver(
                 getNameFromMap(args, DEFAULT_MAVEN_CENTRAL_REPO_NAME),
                 MAVEN_CENTRAL_URL,
                 urls == null ? new String[0] : urls.toArray(new String[urls.size()])));
     }
 
     public DependencyResolver mavenLocal() {
-        return add(getResolverFactory().createMavenLocalResolver(DEFAULT_MAVEN_LOCAL_REPO_NAME));
+        return addLast(getResolverFactory().createMavenLocalResolver(DEFAULT_MAVEN_LOCAL_REPO_NAME));
     }
 
     public DependencyResolver mavenRepo(Map args) {
@@ -123,12 +123,12 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
                 getNameFromMap(args, urls.get(0)),
                 urls.get(0),
                 urls.size() == 1 ? new String[0] : extraUrls.toArray(new String[extraUrls.size()]));
-        return add(resolver, configClosure);
+        return addLast(resolver, configClosure);
     }
 
     public GroovyMavenDeployer mavenDeployer(Map args) {
         GroovyMavenDeployer mavenDeployer = createMavenDeployer(args);
-        return (GroovyMavenDeployer) add(mavenDeployer);
+        return (GroovyMavenDeployer) addLast(mavenDeployer);
     }
 
     private GroovyMavenDeployer createMavenDeployer(Map args) {
@@ -149,7 +149,7 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
 
     public GroovyMavenDeployer mavenDeployer(Map args, Closure configureClosure) {
         GroovyMavenDeployer mavenDeployer = createMavenDeployer(args);
-        return (GroovyMavenDeployer) add(mavenDeployer, configureClosure);
+        return (GroovyMavenDeployer) addLast(mavenDeployer, configureClosure);
     }
 
     public MavenResolver mavenInstaller() {
@@ -162,12 +162,12 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
 
     public MavenResolver mavenInstaller(Map args) {
         MavenResolver mavenInstaller = createMavenInstaller(args);
-        return (MavenResolver) add(mavenInstaller);
+        return (MavenResolver) addLast(mavenInstaller);
     }
 
     public MavenResolver mavenInstaller(Map args, Closure configureClosure) {
         MavenResolver mavenInstaller = createMavenInstaller(args);
-        return (MavenResolver) add(mavenInstaller, configureClosure);
+        return (MavenResolver) addLast(mavenInstaller, configureClosure);
     }
 
     private MavenResolver createMavenInstaller(Map args) {
@@ -210,7 +210,7 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
         ArtifactRepositoryInternal internalRepository = (ArtifactRepositoryInternal) repository;
         internalRepository.createResolvers(resolvers);
         for (DependencyResolver resolver : resolvers) {
-            add(resolver);
+            addLast(resolver);
         }
     }
 
