@@ -26,8 +26,8 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
 
     String path
     boolean exported
-    final Set<AccessRule> accessRules
-    final Map entryAttributes
+    Set<AccessRule> accessRules
+    final Map<String, Object> entryAttributes
 
     AbstractClasspathEntry(Node node) {
         path = normalizePath(node.@path)
@@ -37,13 +37,12 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
         assert path != null && accessRules != null
     }
 
-    AbstractClasspathEntry(String path, boolean exported, String nativeLibraryLocation, Set accessRules) {
-        assert path != null && accessRules != null
+    AbstractClasspathEntry(String path) {
+        assert path != null
         this.path = normalizePath(path);
-        this.exported = exported
-        this.accessRules = accessRules
+        this.exported = false
+        this.accessRules = [] as Set
         entryAttributes = [:]
-        this.nativeLibraryLocation = nativeLibraryLocation
     }
 
     String getNativeLibraryLocation() {
@@ -58,7 +57,7 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
         addClasspathEntry(node, [:])
     }
 
-    protected Node addClasspathEntry(Node node, Map attributes) {
+    protected Node addClasspathEntry(Node node, Map<String, ?> attributes) {
         def allAttributes = attributes.findAll { it.value } + [kind: getKind(), path: path]
         if (exported && !(this instanceof SourceFolder)) {
             allAttributes.exported = true

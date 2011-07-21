@@ -19,9 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.project.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -74,10 +72,6 @@ public class GlobalTestServices extends DefaultServiceRegistry {
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
         return new DefaultStyledTextOutputFactory(get(ListenerManager.class).getBroadcaster(OutputEventListener.class), new TrueTimeProvider());
-    }
-
-    protected IsolatedAntBuilder createIsolatedAntBuilder() {
-        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
     }
 
     protected ClassLoaderFactory createClassLoaderFactory() {

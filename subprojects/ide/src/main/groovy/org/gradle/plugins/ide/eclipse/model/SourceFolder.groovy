@@ -22,8 +22,8 @@ package org.gradle.plugins.ide.eclipse.model
  */
 class SourceFolder extends AbstractClasspathEntry {
     String output
-    List includes
-    List excludes
+    List<String> includes
+    List<String> excludes
     //optional
     File dir
 
@@ -34,12 +34,11 @@ class SourceFolder extends AbstractClasspathEntry {
         this.excludes = node.@excluding?.split('\\|') ?: []
     }
 
-    SourceFolder(String projectRelativePath, String nativeLibraryLocation, Set accessRules, String output,
-                     List includes, List excludes) {
-        super(projectRelativePath, false, nativeLibraryLocation, accessRules)
+    SourceFolder(String projectRelativePath, String output) {
+        super(projectRelativePath)
         this.output = normalizePath(output);
-        this.includes = includes ?: [];
-        this.excludes = excludes ?: [];
+        this.includes = []
+        this.excludes = []
     }
 
     String getKind() {

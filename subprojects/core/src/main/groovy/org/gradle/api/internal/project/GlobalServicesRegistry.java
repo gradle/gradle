@@ -72,10 +72,6 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         return new DefaultClassPathProvider();
     }
     
-    protected IsolatedAntBuilder createIsolatedAntBuilder() {
-        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
-    }
-
     protected ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
     }

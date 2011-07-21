@@ -229,7 +229,7 @@ dependencies {
     }
 
     @Test
-    void addsLinkToTheOutputFile() {
+    void addsLinkToTheProjectFile() {
         runEclipseTask '''
 apply plugin: 'java'
 apply plugin: 'eclipse'

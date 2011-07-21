@@ -30,7 +30,8 @@ class ProjectDependencyBuilder {
         } else {
             name = project.name
         }
-        def out = new ProjectDependency('/' + name, true, null, [] as Set, project.path)
+        def out = new ProjectDependency('/' + name, project.path)
+        out.exported = true
         out.declaredConfigurationName = declaredConfigurationName
         out
     }

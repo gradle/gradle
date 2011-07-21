@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import groovy.text.TemplateEngine
 import java.util.regex.Matcher
-import com.sun.org.apache.xerces.internal.parsers.XMLParser
 
 // we only need a test source set
 apply plugin: 'groovy'
@@ -27,7 +27,8 @@ apply plugin: 'eclipse'
 apply from: '../gradle/codeQuality.gradle'
 apply from: '../gradle/ssh.gradle'
 
-remoteLocations = new RemoteLocations()
+VersionInfo versionInfo = new VersionInfo()
+RemoteLocations remoteLocations = new RemoteLocations(versionInfo: versionInfo)
 
 repositories {
     mavenCentral()
@@ -68,11 +69,13 @@ task userguideContent << {
 
 releases = []
 task configureReleases << {
-    def releaseXml = new XmlParser().parse(new File(generatedDocs, "releases.xml"))
+    def releasesFile = new File(generatedDocs, "releases.xml")
+    assert releasesFile.exists() : "$releasesFile does not exist. Please run :docs:websiteDocs"
+    def releaseXml = new XmlParser().parse(releasesFile)
     def current = releaseXml.current[0]
-    releases << new CurrentRelease(version: current.'@version')
+    releases << new CurrentRelease(version: current.'@version', versionInfo: versionInfo)
     releaseXml.release.each {
-        releases << new Release(version: it.'@version')
+        releases << new Release(version: it.'@version', versionInfo: versionInfo)
     }
 }
 
@@ -131,7 +134,7 @@ assemble.dependsOn html
 task releaseVersion
 gradle.taskGraph.whenReady { graph ->
     if (graph.hasTask(releaseVersion)) {
-        remoteLocations.release = true
+        versionInfo.release = true
     }
 }
 
@@ -254,6 +257,7 @@ class PhpIncludes {
 class Release {
     def String title
     def String version
+    def VersionInfo versionInfo
 
     def BigDecimal getMajorVersion() {
         Matcher matcher = version =~ /(\d+\.\d+).*/
@@ -339,15 +343,29 @@ class CurrentRelease extends Release {
     }
 
     def String getDocsUrl() {
-        return "current/docs"
+        super.versionInfo.release? "current/docs" : "/releases/latest/docs"
+    }
+
+    def String getDistributionBase() {
+        String artifactoryFolder = super.versionInfo.release? 'distributions' : 'distributions-snapshots'
+        return "http://repo.gradle.org/gradle/$artifactoryFolder/"
+    }
+
+    def String getReleaseNotesUrl() {
+        super.versionInfo.release?
+            "http://wiki.gradle.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes" : "http://wiki.gradle.org/display/GRADLE/Releases"
     }
 }
 
-class RemoteLocations {
+class VersionInfo {
     boolean release
+}
+
+class RemoteLocations {
+    VersionInfo versionInfo
 
     String getWebsiteUrl() {
-        return release ? 'http://www.gradle.org/' : 'http://www.gradle.org/latest/'
+        return versionInfo.release ? 'http://www.gradle.org/' : 'http://www.gradle.org/latest/'
     }
 
     String getWebRootDir() {
@@ -355,6 +373,6 @@ class RemoteLocations {
     }
 
     String getScpDir() {
-        return release ? webRootDir : "$webRootDir/latest"
+        return versionInfo.release ? webRootDir : "$webRootDir/latest"
     }
 }

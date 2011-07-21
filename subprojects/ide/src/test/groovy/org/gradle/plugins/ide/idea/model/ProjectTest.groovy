@@ -24,7 +24,7 @@ import spock.lang.Specification
  */
 class ProjectTest extends Specification {
     final PathFactory pathFactory = new PathFactory()
-    final customModules = [new ModulePath(path('file://$PROJECT_DIR$/gradle-idea-plugin.iml'), '$PROJECT_DIR$/gradle-idea-plugin.iml')]
+    final customModules = [path('file://$PROJECT_DIR$/gradle-idea-plugin.iml')]
     final customWildcards = ["?*.gradle", "?*.grails"] as Set
     Project project = new Project(new XmlTransformer(), pathFactory)
 
@@ -39,16 +39,16 @@ class ProjectTest extends Specification {
     }
 
     def customJdkAndWildcards_shouldBeMerged() {
-        def modules = [new ModulePath(path('file://$PROJECT_DIR$/other.iml'), '$PROJECT_DIR$/other.iml')]
+        def modules = [path('file://$PROJECT_DIR$/other.iml')]
 
         when:
         project.load(customProjectReader)
-        project.configure(modules, JavaVersion.VERSION_1_6, ['?*.groovy'])
+        project.configure(modules, JavaVersion.VERSION_1_6, new IdeaLanguageLevel(JavaVersion.VERSION_1_5), ['?*.groovy'])
 
         then:
         project.modulePaths as Set == (customModules + modules) as Set
         project.wildcards == customWildcards + ['?*.groovy'] as Set
-        project.jdk == new Jdk("1.6")
+        project.jdk == new Jdk("1.6", new IdeaLanguageLevel(JavaVersion.VERSION_1_5))
     }
 
     def loadDefaults() {
@@ -64,7 +64,7 @@ class ProjectTest extends Specification {
     def toXml_shouldContainCustomValues() {
         when:
         project.loadDefaults()
-        project.configure([], JavaVersion.VERSION_1_5, ['?*.groovy'])
+        project.configure([], JavaVersion.VERSION_1_5, new IdeaLanguageLevel(JavaVersion.VERSION_1_5), ['?*.groovy'])
         def xml = toXmlReader
         def other = new Project(new XmlTransformer(), pathFactory)
         other.load(xml)

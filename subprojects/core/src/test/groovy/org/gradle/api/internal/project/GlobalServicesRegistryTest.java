@@ -85,11 +85,6 @@ public class GlobalServicesRegistryTest {
     }
     
     @Test
-    public void providesAnIsolatedAntBuilder() {
-        assertThat(registry.get(IsolatedAntBuilder.class), instanceOf(DefaultIsolatedAntBuilder.class));
-    }
-
-    @Test
     public void providesAClassLoaderFactory() {
         assertThat(registry.get(ClassLoaderFactory.class), instanceOf(DefaultClassLoaderFactory.class));
     }

@@ -359,6 +359,8 @@ public class DefaultConfigurationTest {
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toSet()));
 
+            allowing(otherConfiguration).getAllArtifactsCollection();
+            
             allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
             will(returnValue(toSet(otherConfTaskMock)));
 
@@ -385,6 +387,8 @@ public class DefaultConfigurationTest {
         context.checking(new Expectations() {{
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toSet()));
+
+            allowing(otherConfiguration).getAllArtifactsCollection();
 
             allowing(otherConfiguration).getExtendsFrom();
             will(returnValue(toSet()));
@@ -465,6 +469,8 @@ public class DefaultConfigurationTest {
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toSet()));
 
+            allowing(otherConfiguration).getAllArtifactsCollection();
+            
             allowing(otherConfTaskDependencyMock).getDependencies(target);
             will(returnValue(toSet(otherConfTaskMock)));
         }});

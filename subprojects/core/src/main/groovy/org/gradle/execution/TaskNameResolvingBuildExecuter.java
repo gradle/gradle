@@ -83,7 +83,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
                         CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
                         if (commandLineOption != null) {
                             commandLineParser.option(commandLineOption.options()).hasDescription(commandLineOption.description());
-                            options.put(commandLineOption.options()[0], new JavaMethod<Task, Object>(Task.class, Object.class, method));
+                            options.put(commandLineOption.options()[0], JavaMethod.create(Task.class, Object.class, method));
                         }
                     }
                 }

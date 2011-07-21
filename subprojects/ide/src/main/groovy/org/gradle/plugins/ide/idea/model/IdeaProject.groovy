@@ -32,8 +32,9 @@ import org.gradle.util.ConfigureUtil
  *
  * idea {
  *   project {
- *     //if you want to set specific java version for the idea project
- *     javaVersion = '1.5'
+ *     //if you want to set specific jdk and language level
+ *     javaVersion = '1.6'
+ *     languageLevel = '1.5'
  *
  *     //you can update the source wildcards
  *     wildcards += '!?*.ruby'
@@ -107,6 +108,18 @@ class IdeaProject {
     }
 
     /**
+     * The java language level of the project.
+     * Pass a valid java number, i.e: '1.8' or language level in IDEA's format, i.e: 'JDK_1_5'
+     * <p>
+     * See the examples in the docs for {@link IdeaProject}
+     */
+    IdeaLanguageLevel languageLevel
+
+    void setLanguageLevel(Object languageLevel) {
+        this.languageLevel = new IdeaLanguageLevel(languageLevel)
+    }
+
+    /**
      * The wildcard resource patterns.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
@@ -144,9 +157,9 @@ class IdeaProject {
     void mergeXmlProject(Project xmlProject) {
         ipr.beforeMerged.execute(xmlProject)
         def modulePaths = getModules().collect {
-            new ModulePath(getPathFactory().relativePath('PROJECT_DIR', it.outputFile))
+            getPathFactory().relativePath('PROJECT_DIR', it.outputFile)
         }
-        xmlProject.configure(modulePaths, getJavaVersion(), getWildcards())
+        xmlProject.configure(modulePaths, getJavaVersion(), getLanguageLevel(), getWildcards())
         ipr.whenMerged.execute(xmlProject)
     }
 }

@@ -15,16 +15,19 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+
 /**
  * @author Hans Dockter
  */
 class Library extends AbstractLibrary {
-    Library(Node node) {
-        super(node);
+    Library(Node node, FileReferenceFactory fileReferenceFactory) {
+        super(node, fileReferenceFactory)
+        sourcePath = fileReferenceFactory.fromPath(node.@sourcepath)
     }
 
-    Library(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath, String javadocPath) {
-        super(path, exported, nativeLibraryLocation, accessRules, sourcePath, javadocPath)
+    Library(FileReference library) {
+        super(library)
     }
 
     String getKind() {

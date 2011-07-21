@@ -76,11 +76,10 @@ dependencies {
     excludedInEclipse project(":coreImpl")
 }
 
-def generatedResourcesDir = "$buildDir/generated-resources/main"
 task releasesResource(type: GenerateReleasesXml) {
     destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
 }
-sourceSets.main.output.dir generatedResourcesDir, buildBy: 'releasesResource'
+sourceSets.main.output.dir generatedResourcesDir, buildBy: releasesResource
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

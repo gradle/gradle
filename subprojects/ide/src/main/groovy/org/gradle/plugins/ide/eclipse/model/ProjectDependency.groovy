@@ -28,8 +28,8 @@ class ProjectDependency extends AbstractClasspathEntry {
         assertPathIsValid()
     }
 
-    ProjectDependency(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String gradlePath) {
-        super(path, exported, nativeLibraryLocation, accessRules)
+    ProjectDependency(String path, String gradlePath) {
+        super(path)
         assertPathIsValid()
         this.gradlePath = gradlePath
     }

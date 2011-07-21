@@ -186,7 +186,7 @@
                 <td>org.gradle.api.tasks.diagnostics.DependencyReportTask</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.bundling.Ear</td>
+                <td>org.gradle.plugins.ear.Ear</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Exec</td>

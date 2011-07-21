@@ -21,6 +21,7 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 import org.gradle.plugins.ide.eclipse.model.internal.ExportedEntriesUpdater
 import org.gradle.util.ConfigureUtil
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
 /**
  * Enables fine-tuning classpath details (.classpath file) of the Eclipse plugin
@@ -199,8 +200,7 @@ class EclipseClasspath {
     Map<String, File> pathVariables = [:]
     boolean projectDependenciesOnly = false
 
-    //only folder paths internal to the project (e.g. beneath the project folder) are supported
-    List<String> classFolders
+    List<File> classFolders
 
     EclipseClasspath(org.gradle.api.Project project) {
         this.project = project
@@ -220,5 +220,11 @@ class EclipseClasspath {
         def entries = resolveDependencies()
         xmlClasspath.configure(entries)
         file.whenMerged.execute(xmlClasspath)
+    }
+
+    FileReferenceFactory getFileReferenceFactory() {
+        def referenceFactory = new FileReferenceFactory()
+        pathVariables.each { name, dir -> referenceFactory.addPathVariable(name, dir) }
+        return referenceFactory
     }
 }

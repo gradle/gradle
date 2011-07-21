@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.ExecutionResult
@@ -70,5 +67,9 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
         def classpath = parseClasspathFile()
         def libs = findEntries(classpath, "lib")
         assert libs*.@path*.text().collect { new File(it).name } as Set == filenames as Set
+    }
+
+    protected EclipseClasspathFixture getClasspath() {
+        return new EclipseClasspathFixture(distribution.userHomeDir, distribution.testDir)
     }
 }

@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.internal.*
 
 import static org.gradle.util.TextUtil.escapeString
 
+import spock.lang.*
+
 class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
@@ -28,18 +30,14 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildFile << """
             apply plugin: "cpp"
-            archivesBaseName = "hello"
 
             cpp {
                 sourceSets {
                     main { }
                 }
-            }
-            
-            task compileCpp(type: org.gradle.plugins.cpp.CompileCpp) {
-                source cpp.sourceSets.main.cpp
-                destinationDir = { "\$buildDir/object-files" }
-                output = { "\$buildDir/executables/\$archivesBaseName" }
+                executable {
+                    source sourceSets.main
+                }
             }
         """
 
@@ -54,36 +52,37 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        run "compileCpp"
+        run "linkMainExecutable"
 
         then:
-        def executable = file("build/executables/hello")
+        def executable = file("build/binaries/main")
         executable.exists()
         executable.exec().out == HELLO_WORLD
     }
 
+    @IgnoreRest
     def "build and execute simple hello world cpp program using header"() {
         given:
         buildFile << """
             apply plugin: "cpp"
-            archivesBaseName = "hello"
             
             cpp {
                 sourceSets {
                     main { }
+                    lib { }
                 }
-            }
-            
-            task compileCpp(type: org.gradle.plugins.cpp.CompileCpp) {
-                source cpp.sourceSets.main.cpp
-                headers cpp.sourceSets.main.headers
-                destinationDir = { "\$buildDir/object-files" }
-                output = { "\$buildDir/executables/\$archivesBaseName" }
+                library("hello") {
+                    source sourceSets.lib
+                }
+                executable {
+                    libs libraries.hello
+                    source sourceSets.main
+                }
             }
         """
 
         and:
-        file("src", "main", "cpp", "hello.cpp") << """
+        file("src", "lib", "cpp", "hello.cpp") << """
             #include <iostream>
 
             void hello () {
@@ -92,7 +91,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         and:
-        file("src", "main", "headers", "hello.h") << """
+        file("src", "lib", "headers", "hello.h") << """
             void hello();
         """
         
@@ -107,12 +106,10 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
         
         when:
-        run "compileCpp"
+        run "linkMainExecutable"
 
         then:
-        def executable = file("build/executables/hello")
-        executable.exists()
-        executable.exec().out == HELLO_WORLD
+        file("build/binaries/main").exec().out == HELLO_WORLD
     }
 
 }

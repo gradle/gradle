@@ -31,7 +31,79 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
     String content
 
     @Test
-    void allowsConfiguringEclipseClasspath() {
+    void "classpath contains library entries for external and file dependencies"() {
+        //given
+        def repoDir = file("repo")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "sources")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "javadoc")
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
+
+dependencies {
+    compile 'coolGroup:niceArtifact:1.0'
+    compile files('lib/dep.jar')
+}
+"""
+
+        //then
+        def libraries = classpath.libs
+        assert libraries.size() == 2
+        libraries[0].assertHasCachedJar("coolGroup", "niceArtifact", "1.0")
+        libraries[0].assertHasCachedSource("coolGroup", "niceArtifact", "1.0")
+        libraries[0].assertHasNoJavadoc()
+        libraries[1].assertHasJar(file('lib/dep.jar'))
+        libraries[1].assertHasNoSource()
+        libraries[1].assertHasNoJavadoc()
+    }
+
+    @Test
+    void "substitutes path variables into library paths"() {
+        //given
+        def repoDir = file("repo")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "sources")
+        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "javadoc")
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+}
+
+dependencies {
+    compile 'coolGroup:niceArtifact:1.0'
+    compile files('lib/dep.jar')
+}
+
+eclipse {
+    pathVariables HOME_DIR: gradle.gradleUserHomeDir
+    pathVariables LIB_DIR: file('lib')
+    classpath.downloadJavadoc = true
+}
+"""
+
+        //then
+        def libraries = classpath.withHomeDir('HOME_DIR').vars
+        assert libraries.size() == 2
+        libraries[0].assertHasCachedJar("coolGroup", "niceArtifact", "1.0")
+        libraries[0].assertHasCachedSource("coolGroup", "niceArtifact", "1.0")
+        libraries[0].assertHasCachedJavadoc("coolGroup", "niceArtifact", "1.0")
+        libraries[1].assertHasJar('LIB_DIR/dep.jar')
+    }
+
+    @Test
+    void "can customise the classpath model"() {
         //when
         runEclipseTask """
 apply plugin: 'java'
@@ -50,7 +122,7 @@ dependencies {
 
 eclipse {
 
-  pathVariables fooPathVariable: new File('.')
+  pathVariables fooPathVariable: projectDir
 
   classpath {
     sourceSets = []
@@ -110,13 +182,19 @@ eclipse.classpath {
         //then
         contains 'foo.txt', 'bar.txt'
         assert !content.contains('unwanted.txt')
+
+        //then
+        def libraries = classpath.libs
+        assert libraries.size() == 2
+        libraries[0].assertHasJar(file("foo.txt"))
+        libraries[1].assertHasJar(file("bar.txt"))
     }
 
     @Test
     void "handles plus minus configurations for project deps"() {
         //when
         runEclipseTask "include 'foo', 'bar', 'unwanted'",
-"""
+                """
 allprojects {
   apply plugin: 'java'
   apply plugin: 'eclipse'
@@ -177,15 +255,15 @@ eclipse.classpath {
     minusConfigurations += configurations.someOtherConfig
 }
 """
-        content = getFile([print: true], '.classpath').text
 
         //then
-        contains 'coolArtifact'
-        assert !content.contains('unwantedArtifact')
+        def libraries = classpath.libs
+        assert libraries.size() == 1
+        libraries[0].assertHasCachedJar("coolGroup", "coolArtifact", "1.0")
     }
 
     @Test
-    void "configures javadoc and sources"() {
+    void "can toggle javadoc and sources on"() {
         //given
         def repoDir = file("repo")
         publishArtifact(repoDir, "coolGroup", "niceArtifact")
@@ -210,15 +288,17 @@ eclipse.classpath {
     downloadJavadoc = true
 }
 """
-        content = getFile([print: true], '.classpath').text
 
         //then
-        contains 'niceArtifact-1.0-sources.jar'
-        contains 'niceArtifact-1.0-javadoc.jar'
+        def libraries = classpath.libs
+        assert libraries.size() == 1
+        libraries[0].assertHasCachedJar("coolGroup", "niceArtifact", "1.0")
+        libraries[0].assertHasCachedSource("coolGroup", "niceArtifact", "1.0")
+        libraries[0].assertHasCachedJavadoc("coolGroup", "niceArtifact", "1.0")
     }
 
     @Test
-    void "enables toggling javadoc and sources off"() {
+    void "can toggle javadoc and sources off"() {
         //given
         def repoDir = file("repo")
         publishArtifact(repoDir, "coolGroup", "niceArtifact")
@@ -243,15 +323,47 @@ eclipse.classpath {
     downloadJavadoc = false
 }
 """
-        content = getFile([print: true], '.classpath').text
 
         //then
-        assert !content.contains('niceArtifact-1.0-sources.jar')
-        assert !content.contains('niceArtifact-1.0-javadoc.jar')
+        def libraries = classpath.libs
+        assert libraries.size() == 1
+        libraries[0].assertHasCachedJar("coolGroup", "niceArtifact", "1.0")
+        libraries[0].assertHasNoSource()
+        libraries[0].assertHasNoJavadoc()
     }
 
     @Test
-    void allowsConfiguringHooks() {
+    void "removes dependencies from existing classpath file when merging"() {
+        //given
+        getClasspathFile() << '''<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
+	<classpathentry kind="lib" path="/some/path/someDependency.jar" exported="true"/>
+	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar" exported="true"/>
+	<classpathentry kind="src" path="/someProject" exported="true"/>
+</classpath>
+'''
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+dependencies {
+  compile files('newDependency.jar')
+}
+"""
+
+        //then
+        assert classpath.entries.size() == 3
+        def libraries = classpath.libs
+        assert libraries.size() == 1
+        libraries[0].assertHasJar(file('newDependency.jar'))
+    }
+
+    @Test
+    void "can access xml model before and after generation"() {
         //given
         def classpath = getClasspathFile([:])
         classpath << '''<?xml version="1.0" encoding="UTF-8"?>
@@ -259,6 +371,7 @@ eclipse.classpath {
 	<classpathentry kind="output" path="bin"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
 	<classpathentry kind="lib" path="/some/path/someDependency.jar" exported="true"/>
+	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar" exported="true"/>
 </classpath>
 '''
 
@@ -278,12 +391,17 @@ eclipse {
     file {
       beforeMerged {
         hooks << 'beforeMerged'
+        assert it.entries.size() == 4
         assert it.entries.any { it.path.contains('someDependency.jar') }
+        assert it.entries.any { it.path.contains('someVarDependency.jar') }
         assert !it.entries.any { it.path.contains('newDependency.jar') }
       }
       whenMerged {
         hooks << 'whenMerged'
+        assert it.entries.size() == 3
         assert it.entries.any { it.path.contains('newDependency.jar') }
+        assert !it.entries.any { it.path.contains('someDependency.jar') }
+        assert !it.entries.any { it.path.contains('someVarDependency.jar') }
       }
     }
   }
@@ -299,7 +417,7 @@ eclipseClasspath.doLast() {
 
     @Issue("GRADLE-1502")
     @Test
-    void createsLinkedResourcesForClasspathFoldersNotBeneathProjectDir() {
+    void "creates linked resources for source directories which are not under the project directory"() {
         file('someGroovySrc').mkdirs()
 
         def settingsFile = file('settings.gradle')
@@ -327,12 +445,12 @@ project(':api') {
         //then
         def classpath = getClasspathFile(project: 'api').text
 
-        assert !classpath.contains('path="../someGroovySrc"') : "external src folders are not supported by eclipse"
-        assert classpath.contains('path="someGroovySrc"') : "external folder should be mapped to linked resource"
+        assert !classpath.contains('path="../someGroovySrc"'): "external src folders are not supported by eclipse"
+        assert classpath.contains('path="someGroovySrc"'): "external folder should be mapped to linked resource"
 
         def project = parseProjectFile(project: 'api')
 
-        assert project.linkedResources.link.location.text().contains('someGroovySrc') : 'should contain linked resource for folder that is not beneath the project dir'
+        assert project.linkedResources.link.location.text().contains('someGroovySrc'): 'should contain linked resource for folder that is not beneath the project dir'
     }
 
     @Issue("GRADLE-1402")
@@ -350,9 +468,10 @@ sourceSets.main.output.dir "$buildDir/generated/main"
 sourceSets.test.output.dir "$buildDir/generated/test"
 '''
         //then
-        def out = parseClasspathFile(print: true)
-        def libPaths = out.classpathentry.findAll { it.@kind.text() == 'lib' }.collect { it.@path.text() }
-        assert libPaths == ['build/generated/main', 'build/generated/test']
+        def libraries = classpath.libs
+        assert libraries.size() == 2
+        libraries[0].assertHasJar(file('build/generated/main'))
+        libraries[1].assertHasJar(file('build/generated/test'))
     }
 
     @Test
@@ -396,16 +515,17 @@ eclipse {
   }
 }
 """
-        //then no exception is thrown
-        def cp = parseClasspathFile(print: true)
-        assert "true" == cp.classpathentry.find   { it.@path.text().contains 'compileDependency.jar' }.@exported.text()
 
-        def providedDependency = cp.classpathentry.find { it.@path.text().contains 'providedDependency.jar' }
-        assert providedDependency : "dependency should be included in the classpath entries"
-        assert "" == providedDependency.@exported.text()
+        //then
+        def libraries = classpath.libs
+        assert libraries.size() == 2
+        libraries[0].assertHasJar(file('compileDependency.jar'))
+        libraries[0].assertExported()
+        libraries[1].assertHasJar(file('providedDependency.jar'))
+        libraries[1].assertNotExported()
     }
 
-    protected def contains(String ... wanted) {
+    protected def contains(String... wanted) {
         wanted.each { assert content.contains(it)}
     }
 }

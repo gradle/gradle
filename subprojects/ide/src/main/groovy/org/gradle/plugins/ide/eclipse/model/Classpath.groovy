@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
 /**
  * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).
@@ -24,10 +25,12 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
  * @author Hans Dockter
  */
 class Classpath extends XmlPersistableConfigurationObject {
+    private final FileReferenceFactory fileReferenceFactory
     List<ClasspathEntry> entries = []
 
-    Classpath(XmlTransformer xmlTransformer) {
+    Classpath(XmlTransformer xmlTransformer, FileReferenceFactory fileReferenceFactory) {
         super(xmlTransformer)
+        this.fileReferenceFactory = fileReferenceFactory
     }
 
     Classpath() {
@@ -46,11 +49,11 @@ class Classpath extends XmlPersistableConfigurationObject {
                     def path = entryNode.@path
                     entry = path.startsWith('/') ? new ProjectDependency(entryNode) : new SourceFolder(entryNode)
                     break
-                case 'var': entry = new Variable(entryNode)
+                case 'var': entry = new Variable(entryNode, fileReferenceFactory)
                     break
                 case 'con': entry = new Container(entryNode)
                     break
-                case 'lib': entry = new Library(entryNode)
+                case 'lib': entry = new Library(entryNode, fileReferenceFactory)
                     break
                 case 'output': entry = new Output(entryNode)
                     break
@@ -99,6 +102,6 @@ class Classpath extends XmlPersistableConfigurationObject {
     }
 
     private boolean isDependency(ClasspathEntry entry) {
-        entry instanceof ProjectDependency || entry instanceof Library
+        entry instanceof ProjectDependency || entry instanceof AbstractLibrary
     }
 }

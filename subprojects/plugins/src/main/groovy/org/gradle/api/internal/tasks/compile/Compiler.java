@@ -18,8 +18,12 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.WorkResult;
 
+import java.io.File;
+
 public interface Compiler {
     void setSource(FileCollection source);
+
+    void setDestinationDir(File destinationDir);
 
     WorkResult execute();
 }

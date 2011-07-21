@@ -88,18 +88,18 @@ class DefaultResolverContainerTest {
     }
 
     @Test public void testAddResolver() {
-        assert resolverContainer.add(expectedUserDescription).is(expectedResolver)
+        assert resolverContainer.addLast(expectedUserDescription).is(expectedResolver)
         assert resolverContainer.findByName(expectedName).is(expectedResolver)
-        resolverContainer.add(expectedUserDescription2)
+        resolverContainer.addLast(expectedUserDescription2)
         assertEquals([expectedResolver, expectedResolver2], resolverContainer.resolvers)
     }
 
     @Test public void testCannotAddResolverWithDuplicateName() {
         [expectedResolver, expectedResolver2]*.name = 'resolver'
-        resolverContainer.add(expectedUserDescription)
+        resolverContainer.addLast(expectedUserDescription)
 
         try {
-            resolverContainer.add(expectedUserDescription2)
+            resolverContainer.addLast(expectedUserDescription2)
             fail()
         } catch (InvalidUserDataException e) {
             assertThat(e.message, equalTo("Cannot add a resolver with name 'resolver' as a resolver with that name already exists."))
@@ -109,26 +109,26 @@ class DefaultResolverContainerTest {
     @Test public void testAddResolverWithClosure() {
         def expectedConfigureValue = 'testvalue'
         Closure configureClosure = {transactional = expectedConfigureValue}
-        assertThat(resolverContainer.add(expectedUserDescription, configureClosure), sameInstance(expectedResolver))
+        assertThat(resolverContainer.addLast(expectedUserDescription, configureClosure), sameInstance(expectedResolver))
         assertThat(resolverContainer.findByName(expectedName), sameInstance(expectedResolver))
         assert expectedResolver.transactional == expectedConfigureValue
     }
 
     @Test public void testAddBefore() {
-        resolverContainer.add(expectedUserDescription)
+        resolverContainer.addLast(expectedUserDescription)
         assert resolverContainer.addBefore(expectedUserDescription2, expectedName).is(expectedResolver2)
         assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolvers)
     }
 
     @Test public void testAddAfter() {
-        resolverContainer.add(expectedUserDescription)
+        resolverContainer.addLast(expectedUserDescription)
         assert resolverContainer.addAfter(expectedUserDescription2, expectedName).is(expectedResolver2)
         resolverContainer.addAfter(expectedUserDescription3, expectedName)
         assertEquals([expectedResolver, expectedResolver3, expectedResolver2], resolverContainer.resolvers)
     }
 
     @Test(expected = InvalidUserDataException) public void testAddWithNullUserDescription() {
-        resolverContainer.add(null)
+        resolverContainer.addLast(null)
     }
 
     @Test(expected = InvalidUserDataException) public void testAddFirstWithNullUserDescription() {
@@ -160,7 +160,7 @@ class DefaultResolverContainerTest {
     @Test(expected = InvalidUserDataException)
     public void testAddWithUnnamedResolver() {
         expectedResolver.name = null
-        resolverContainer.add(expectedUserDescription).is(expectedResolver)
+        resolverContainer.addLast(expectedUserDescription).is(expectedResolver)
     }
 
     @Test

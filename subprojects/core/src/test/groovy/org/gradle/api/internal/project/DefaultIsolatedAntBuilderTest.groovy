@@ -23,17 +23,20 @@ import org.apache.tools.ant.taskdefs.ConditionTask
 import org.gradle.api.GradleException
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathRegistry
+import org.gradle.api.internal.DependencyClassPathProvider
 import org.gradle.api.internal.project.ant.BasicAntBuilder
+import org.gradle.initialization.ClassLoaderRegistry
+import org.gradle.logging.LoggingTestHelper
+import org.gradle.util.DefaultClassLoaderFactory
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.logging.LoggingTestHelper
-import org.gradle.util.DefaultClassLoaderFactory
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 class DefaultIsolatedAntBuilderTest {
-    private final ClassPathRegistry registry = new DefaultClassPathRegistry()
+    private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DependencyClassPathProvider({getClass().classLoader} as ClassLoaderRegistry))
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
     private final TestAppender appender = new TestAppender()
     private final LoggingTestHelper helper = new LoggingTestHelper(appender)

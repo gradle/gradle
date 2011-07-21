@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.Project
 import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.plugins.EarPlugin
+import org.gradle.plugins.ear.EarPlugin
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -129,8 +129,7 @@ class EclipsePlugin extends IdePlugin {
                 project.plugins.withType(JavaPlugin) {
                     classpath.plusConfigurations = [project.configurations.testRuntime]
                     classpath.conventionMapping.classFolders = {
-                        def dirs = project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
-                        dirs.collect { project.relativePath(it)} .findAll { !it.contains('..') }
+                        return (project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs) as List
                     }
                     task.dependsOn {
                         project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs

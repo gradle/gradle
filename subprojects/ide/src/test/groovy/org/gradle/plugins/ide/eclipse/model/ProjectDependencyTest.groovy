@@ -59,8 +59,10 @@ class ProjectDependencyTest extends Specification {
     }
 
     private ProjectDependency createProjectDependency() {
-        return new ProjectDependency('/test2', true, 'mynative', [new AccessRule('nonaccessible', 'secret**')] as Set, null)
+        ProjectDependency dependency = new ProjectDependency('/test2', null)
+        dependency.exported = true
+        dependency.nativeLibraryLocation = 'mynative'
+        dependency.accessRules += [new AccessRule('nonaccessible', 'secret**')]
+        return dependency
     }
-
-
 }

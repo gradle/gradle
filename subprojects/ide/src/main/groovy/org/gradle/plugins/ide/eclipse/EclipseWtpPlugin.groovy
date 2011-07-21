@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.plugins.EarPlugin
+import org.gradle.plugins.ear.EarPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType

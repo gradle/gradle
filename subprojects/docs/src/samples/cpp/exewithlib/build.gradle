@@ -1,0 +1,28 @@
+allprojects {
+    apply plugin: 'cpp'
+}
+
+project(":lib") {
+    cpp {
+        sourceSets {
+            main {}
+        }
+        library {
+            source sourceSets.main
+        }
+    }
+}
+
+project(":exe") {
+    cpp {
+        sourceSets {
+            main {}
+        }
+        executable {
+            source sourceSets.main
+            libs project(":lib").cpp.libraries.main
+        }
+    }
+}
+
+task build(dependsOn: project(":exe").linkMainExecutable)

@@ -39,7 +39,9 @@ class ClasspathFactory {
     private final ClasspathEntryBuilder containersCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
             eclipseClasspath.containers.each { container ->
-                entries << new Container(container, true, null, [] as Set)
+                Container entry = new Container(container)
+                entry.exported = true
+                entries << entry
             }
         }
     }
@@ -53,15 +55,17 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
+            def referenceFactory = classpath.fileReferenceFactory
+
             dependenciesExtractor.extractRepoFileDependencies(
                     classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
             .each { IdeRepoFileDependency it ->
-                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath.pathVariables)
+                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, referenceFactory)
             }
 
             dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
             .each { IdeLocalFileDependency it ->
-                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath.pathVariables)
+                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, referenceFactory)
             }
         }
     }
@@ -85,19 +89,19 @@ class ClasspathFactory {
         return entries
     }
 
-    private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, Map<String, File> pathVariables) {
-        def usedVariableEntry = pathVariables.find { String name, File value -> binary.canonicalPath.startsWith(value.canonicalPath) }
+    private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, FileReferenceFactory referenceFactory) {
+        def binaryRef = referenceFactory.fromFile(binary)
+        def sourceRef = referenceFactory.fromFile(source)
+        def javadocRef = referenceFactory.fromFile(javadoc)
         def out
-        if (usedVariableEntry) {
-            String name = usedVariableEntry.key
-            String value = usedVariableEntry.value.canonicalPath
-            String binaryPath = name + binary.canonicalPath.substring(value.length())
-            String sourcePath = source ? name + source.canonicalPath.substring(value.length()) : null
-            String javadocPath = javadoc ? name + javadoc.canonicalPath.substring(value.length()) : null
-            out = new Variable(binaryPath, true, null, [] as Set, sourcePath, javadocPath)
+        if (binaryRef.relativeToPathVariable) {
+            out = new Variable(binaryRef)
         } else {
-            out = new Library(binary.absolutePath, true, null, [] as Set, source ? source.absolutePath : null, javadoc ? javadoc.absolutePath : null)
+            out = new Library(binaryRef)
         }
+        out.sourcePath = sourceRef
+        out.javadocPath = javadocRef
+        out.exported = true
         out.declaredConfigurationName = declaredConfigurationName
         out
     }

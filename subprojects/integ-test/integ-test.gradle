@@ -10,6 +10,7 @@ dependencies {
     integTestCompile project(path: ':core', configuration: 'integTestFixturesRuntime')
 
     integTestCompile project(':toolingApi')
+    integTestCompile project(':launcher')
     integTestCompile libraries.ant
     integTestCompile libraries.xmlunit
 

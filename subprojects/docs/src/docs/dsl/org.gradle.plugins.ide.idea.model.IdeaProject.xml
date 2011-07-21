@@ -20,6 +20,11 @@
                 <td><literal>project.sourceCompatibility</literal></td>
             </tr>
             <tr>
+                <td>languageLevel</td>
+                <td><literal>'JDK_1_6'</literal></td>
+                <td><literal>project.idea.project.javaVersion</literal></td>
+            </tr>
+            <tr>
                 <td>wildcards</td>
                 <td><literal>['!?*.java', '!?*.groovy']</literal></td>
                 <td/>

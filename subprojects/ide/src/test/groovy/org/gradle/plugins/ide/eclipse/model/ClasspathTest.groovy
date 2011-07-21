@@ -20,34 +20,39 @@ import org.gradle.api.internal.XmlTransformer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
 /**
  * @author Hans Dockter
  */
 public class ClasspathTest extends Specification {
-    private static final CUSTOM_ENTRIES = [
-            new ProjectDependency("/test2", false, null, [] as Set, null),
-            new Container("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6",
-                false, null, [] as Set),
-            new Library("/apache-ant-1.7.1/lib/ant-antlr.jar", false, null, [] as Set, null, null),
-            new SourceFolder("src", null, [] as Set, "bin2", [], []),
-            new Variable("GRADLE_CACHE/ant-1.6.5.jar", false, null, [] as Set, null, null),
-            new Container("org.eclipse.jdt.USER_LIBRARY/gradle", false, null, [] as Set),
+    final fileReferenceFactory = new FileReferenceFactory()
+    final customEntries = [
+            new ProjectDependency("/test2", null),
+            new Container("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"),
+            new Library(fileReferenceFactory.fromPath("/apache-ant-1.7.1/lib/ant-antlr.jar")),
+            new SourceFolder("src", "bin2"),
+            new Variable(fileReferenceFactory.fromVariablePath("GRADLE_CACHE/ant-1.6.5.jar")),
+            new Container("org.eclipse.jdt.USER_LIBRARY/gradle"),
             new Output("bin")]
-    private static final PROJECT_DEPENDENCY = [CUSTOM_ENTRIES[0]]
-    private static final ALL_DEPENDENCIES = [CUSTOM_ENTRIES[0], CUSTOM_ENTRIES[2]]
+    final projectDependency = [customEntries[0]]
+    final allDependencies = [customEntries[0], customEntries[2], customEntries[4]]
 
-    private final Classpath classpath = new Classpath(new XmlTransformer())
+    private final Classpath classpath = new Classpath(new XmlTransformer(), fileReferenceFactory)
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder()
+
+    def setup() {
+
+    }
 
     def "load from reader"() {
         when:
         classpath.load(customClasspathReader)
 
         then:
-        classpath.entries == CUSTOM_ENTRIES
+        classpath.entries == customEntries
     }
 
     def "configure overwrites dependencies and appends all other entries"() {
@@ -55,12 +60,12 @@ public class ClasspathTest extends Specification {
 
         when:
         classpath.load(customClasspathReader)
-        def newEntries = constructorEntries + PROJECT_DEPENDENCY
+        def newEntries = constructorEntries + projectDependency
         classpath.configure(newEntries)
 
         then:
-        def entriesToBeKept = CUSTOM_ENTRIES - ALL_DEPENDENCIES
-        classpath.entries ==  entriesToBeKept + newEntries
+        def entriesToBeKept = customEntries - allDependencies
+        classpath.entries == entriesToBeKept + newEntries
     }
 
     def "load defaults"() {
@@ -78,7 +83,7 @@ public class ClasspathTest extends Specification {
         classpath.load(customClasspathReader)
         classpath.configure(constructorEntries)
         def xml = getToXmlReader()
-        def other = new Classpath(new XmlTransformer())
+        def other = new Classpath(new XmlTransformer(), fileReferenceFactory)
         other.load(xml)
 
         then:
@@ -90,7 +95,9 @@ public class ClasspathTest extends Specification {
     }
 
     private Library createSomeLibrary() {
-        return new Library("/somepath", true, null, [] as Set, null, null)
+        Library library = new Library(fileReferenceFactory.fromPath("/somepath"))
+        library.exported = true
+        return library
     }
 
     private InputStream getToXmlReader() {

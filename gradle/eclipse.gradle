@@ -1,0 +1,16 @@
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+
+allprojects {
+	apply plugin: "eclipse"
+}
+
+configure(groovyProjects()) {
+    eclipse {
+        classpath {
+            plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs*.findAll { it.isDirectory() }} )))
+            file.whenMerged { classpath ->
+                classpath.entries.removeAll { it instanceof org.gradle.plugins.ide.eclipse.model.SourceFolder && it.path.endsWith('/resources') }
+            }
+        }
+    }
+}

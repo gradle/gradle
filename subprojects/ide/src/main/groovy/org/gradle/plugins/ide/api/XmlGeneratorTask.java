@@ -64,7 +64,8 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
     @Deprecated
     public void withXml(Closure closure) {
         DeprecationLogger.nagUserWith("<someIdeTask>.withXml is deprecated! Moved to the relevant model object of eclipse/idea.\n"
-                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject.\n"
+                + "For example, ideaProject.withXml was changed to idea.project.ipr.withXml");
         xmlTransformer.addAction(closure);
     }
 
@@ -81,7 +82,8 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
     @Deprecated
     public void withXml(Action<? super XmlProvider> action) {
         DeprecationLogger.nagUserWith("<someIdeTask>.withXml is deprecated! Moved to the relevant model object of eclipse/idea.\n"
-                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject");
+                + "As a starting point, refer to the dsl guide for IdeaProject or EclipseProject.\n"
+                + "For example, ideaProject.withXml was changed to idea.project.ipr.withXml");
         xmlTransformer.addAction(action);
     }
 }

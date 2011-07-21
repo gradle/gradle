@@ -29,7 +29,7 @@ import java.util.Collection;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
- * 
+ *
  * @param <T> The type of domain objects in the component collections of this collection.
  */
 public class CompositeDomainObjectCollection<T> extends AbstractDomainObjectCollection<T> {
@@ -52,15 +52,23 @@ public class CompositeDomainObjectCollection<T> extends AbstractDomainObjectColl
         this.store = store;
         this.type = type;
     }
-    
+
     public Class<T> getType() {
         return type;
     }
 
-    public void addCollection(DomainObjectCollection<T> collection) {
-        store.addCollection(collection);
+    public boolean addCollection(DomainObjectCollection<T> collection) {
+        return store.addCollection(collection);
     }
-    
+
+    public boolean removeCollection(DomainObjectCollection<T> collection) {
+        return store.removeCollection(collection);
+    }
+
+    public void clear() {
+        store.clear();
+    }
+
     public DomainObjectCollection<T> matching(final Spec<? super T> spec) {
         return new CompositeDomainObjectCollection<T>(type, storeWithSpec(spec));
     }
@@ -82,20 +90,43 @@ public class CompositeDomainObjectCollection<T> extends AbstractDomainObjectColl
     }
 
     protected interface CompositeStore<S> extends Store<S> {
-        void addCollection(DomainObjectCollection<S> collection);
+        boolean addCollection(DomainObjectCollection<S> collection);
+        boolean removeCollection(DomainObjectCollection<S> collection);
+        void clear();
     }
-    
+
     protected static class DefaultCompositeStore<S> implements CompositeStore<S> {
         private final ActionBroadcast<S> addActions = new ActionBroadcast<S>();
         private final ActionBroadcast<S> removeActions = new ActionBroadcast<S>();
         private final List<DomainObjectCollection<S>> collections = new ArrayList<DomainObjectCollection<S>>();
 
-        public void addCollection(DomainObjectCollection<S> collection) {
-            collections.add(collection);
-            collection.all(addActions);
-            collection.whenObjectRemoved(removeActions);
+        public boolean addCollection(DomainObjectCollection<S> collection) {
+            if (collections.add(collection)) {
+                collection.all(addActions);
+                collection.whenObjectRemoved(removeActions);
+                return true;
+            } else {
+                return false;
+            }
         }
-        
+
+        public boolean removeCollection(DomainObjectCollection<S> collection) {
+            if (collections.remove(collection)) {
+                for (S item : collection) {
+                    removeActions.execute(item);
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public void clear() {
+            for (DomainObjectCollection<S> collection : collections) {
+                removeCollection(collection);
+            }
+        }
+
         public Collection<? extends S> getAll() {
             List<S> all = new ArrayList<S>();
             for (DomainObjectCollection<S> collection : collections) {
@@ -112,15 +143,24 @@ public class CompositeDomainObjectCollection<T> extends AbstractDomainObjectColl
             removeActions.add(action);
         }
     }
-    
+
     protected static class FilteredCompositeStore<S> extends FilteredStore<S> implements CompositeStore<S> {
         public FilteredCompositeStore(CompositeStore<? super S> store, Class<S> type, Spec<? super S> spec) {
             super(store, type, spec);
         }
-        
-        public void addCollection(DomainObjectCollection<S> collection) {
+
+        public boolean addCollection(DomainObjectCollection<S> collection) {
             throw new UnsupportedOperationException();
         }
+
+        public boolean removeCollection(DomainObjectCollection<S> collection) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
     }
 
 }

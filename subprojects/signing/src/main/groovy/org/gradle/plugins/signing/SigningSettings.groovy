@@ -200,7 +200,7 @@ class SigningSettings {
             def signTask = project.task("sign${taskToSign.name.capitalize()}", type: Sign) {
                 sign taskToSign
             }
-            configuration.addArtifact(signTask.singleSignature)
+            addSignaturesToConfiguration(signTask, getConfiguration())
             signTask
         }
     }
@@ -209,7 +209,7 @@ class SigningSettings {
         def signTask = project.task("sign${artifact.name.capitalize()}", type: Sign) {
             delegate.sign artifact
         }
-        configuration.addArtifact(signTask.singleSignature)
+        addSignaturesToConfiguration(signTask, getConfiguration())
         signTask
     }
     
@@ -222,8 +222,18 @@ class SigningSettings {
             def signTask = project.task("sign${configuration.name.capitalize()}", type: Sign) {
                 sign configuration
             }
-            signTask.signatures.each { getConfiguration().addArtifact(it) }
+            addSignaturesToConfiguration(signTask, getConfiguration())
             signTask
+        }
+    }
+    
+    private addSignaturesToConfiguration(Sign task, Configuration configuration) {
+        task.signatureCollection.all.each { configuration.addArtifact(it) }
+        task.signatureCollection.whenObjectAdded {
+            configuration.addArtifact(it)
+        }
+        task.signatureCollection.whenObjectRemoved {
+            configuration.removeArtifact(it)
         }
     }
 }
