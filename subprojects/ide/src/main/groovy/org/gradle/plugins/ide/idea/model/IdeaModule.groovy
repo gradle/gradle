@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.idea.model
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
@@ -65,8 +64,8 @@ import org.gradle.util.ConfigureUtil
  *     outputDir = file('muchBetterOutputDir')
  *     testOutputDir = file('muchBetterTestOutputDir')
  *
- *     //if you prefer different java version than inherited from IDEA project
- *     javaVersion = '1.6'
+ *     //if you prefer different sdk than inherited from IDEA project
+ *     jdkName = '1.6'
  *
  *     //if you need to put provided dependencies on the classpath
  *     scopes.PROVIDED.plus += configurations.provided
@@ -261,11 +260,7 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    JavaVersion javaVersion
-
-    void setJavaVersion(Object javaVersion) {
-        this.javaVersion = JavaVersion.toVersion(javaVersion)
-    }
+    String jdkName
 
     /**
      * See {@link #iml(Closure) }
@@ -321,7 +316,7 @@ class IdeaModule {
         Set dependencies = new IdeaDependenciesProvider().provide(this, getPathFactory())
 
         xmlModule.configure(contentRoot, sourceFolders, testSourceFolders, excludeFolders,
-                getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJavaVersion())
+                getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName())
 
         iml.whenMerged.execute(xmlModule)
     }

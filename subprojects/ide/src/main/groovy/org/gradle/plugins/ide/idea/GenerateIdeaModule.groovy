@@ -174,14 +174,14 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     String getJavaVersion() {
-        DeprecationLogger.nagUser("ideaModule.javaVersion", "idea.module.javaVersion")
-        module.javaVersion
+        DeprecationLogger.nagUser("ideaModule.javaVersion", "idea.module.jdkName")
+        module.jdkName
     }
 
     @Deprecated
-    void setJavaVersion(String javaVersion) {
-        DeprecationLogger.nagUser("ideaModule.javaVersion", "idea.module.javaVersion")
-        module.javaVersion = javaVersion
+    void setJavaVersion(String jdkName) {
+        DeprecationLogger.nagUser("ideaModule.javaVersion", "idea.module.jdkName")
+        module.jdkName = jdkName
     }
 
     /**

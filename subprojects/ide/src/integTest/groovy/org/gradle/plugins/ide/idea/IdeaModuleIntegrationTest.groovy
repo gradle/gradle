@@ -69,7 +69,7 @@ idea {
         outputDir = file('muchBetterOutputDir')
         testOutputDir = file('muchBetterTestOutputDir')
 
-        javaVersion = '1.6'
+        jdkName = '1.6'
 
         iml {
             generateTo = file('customImlFolder')
@@ -164,7 +164,7 @@ idea {
         excludeDirs = [project.file('folderThatIsExcludedNow')] as Set
         iml {
             beforeMerged { it.excludeFolders.clear() }
-            whenMerged   { it.javaVersion = '1.33'   }
+            whenMerged   { it.jdkName = '1.33'   }
         }
     }
 }
