@@ -29,7 +29,7 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 
 import java.util.*;
 
-public class DefaultDomainObjectCollection<T> implements DomainObjectCollection<T> {
+public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T> {
 
     private final Class<T> type;
     private final CollectionEventRegister<T> eventRegister;
@@ -134,7 +134,7 @@ public class DefaultDomainObjectCollection<T> implements DomainObjectCollection<
 
         // copy in case any actions mutate the store
         // linked list because the underlying store may preserve order
-        Collection<T> copied = new LinkedList<T>(getStore());
+        Collection<T> copied = new LinkedList<T>(this);
 
         for (T t : copied) {
             action.execute(t);
@@ -253,14 +253,6 @@ public class DefaultDomainObjectCollection<T> implements DomainObjectCollection<
 
     public int size() {
         return getStore().size();
-    }
-
-    public Object[] toArray() {
-        return getStore().toArray();
-    }
-
-    public <T> T[] toArray(T[] a) {
-        return getStore().toArray(a);
     }
 
 }
