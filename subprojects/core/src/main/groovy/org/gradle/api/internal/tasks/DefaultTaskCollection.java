@@ -37,16 +37,11 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         this.project = project;
     }
 
-    public DefaultTaskCollection(Class<T> type, Set<T> store, ClassGenerator classGenerator, ProjectInternal project) {
-        super(type, store, classGenerator, new Task.Namer());
-        this.project = project;
-    }
-    
     protected DefaultTaskCollection(Class<T> type, Set<T> store, CollectionEventRegister<T> eventRegister, ClassGenerator classGenerator, ProjectInternal project) {
         super(type, store, eventRegister, classGenerator, new Task.Namer());
         this.project = project;
     }
-    
+
     public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, ClassGenerator classGenerator, ProjectInternal project) {
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), classGenerator, project);
     }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.AbstractAutoCreateDomainObjectContainer;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.Namer;
@@ -24,7 +24,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 
 import groovy.lang.Closure;
 
-public class DefaultSourceSetContainer extends AbstractAutoCreateDomainObjectContainer<SourceSet> implements SourceSetContainer {
+public class DefaultSourceSetContainer extends AbstractNamedDomainObjectContainer<SourceSet> implements SourceSetContainer {
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
     private final ClassGenerator generator;

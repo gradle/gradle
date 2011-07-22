@@ -19,13 +19,13 @@ import spock.lang.Specification
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer
 
-class FactoryAutoCreateDomainObjectContainerSpec extends Specification {
+class FactoryNamedDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
     final ClassGenerator classGenerator = Mock()
     final namer = { it } as Namer
     
     def usesFactoryToCreateContainerElements() {
-        def container = new FactoryAutoCreateDomainObjectContainer<String>(String.class, classGenerator, namer, factory)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, classGenerator, namer, factory)
 
         when:
         def result = container.create('a')
@@ -37,7 +37,7 @@ class FactoryAutoCreateDomainObjectContainerSpec extends Specification {
     }
 
     def usesPublicConstructorWhenNoFactorySupplied() {
-        def container = new FactoryAutoCreateDomainObjectContainer<String>(String.class, classGenerator, namer)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, classGenerator, namer)
 
         when:
         def result = container.create('a')
@@ -49,7 +49,7 @@ class FactoryAutoCreateDomainObjectContainerSpec extends Specification {
 
     def usesClosureToCreateContainerElements() {
         def cl = { name -> "element $name" as String }
-        def container = new FactoryAutoCreateDomainObjectContainer<String>(String.class, classGenerator, namer, cl)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, classGenerator, namer, cl)
 
         when:
         def result = container.create('a')

@@ -49,7 +49,7 @@ public class DefaultNamedDomainObjectSetTest {
     @Test
     public void usesTypeNameToGenerateDisplayName() {
         assertThat(container.getTypeDisplayName(), equalTo("Bean"));
-        assertThat(container.getDisplayName(), equalTo("Bean container"));
+        assertThat(container.getDisplayName(), equalTo("Bean set"));
     }
 
     @Test

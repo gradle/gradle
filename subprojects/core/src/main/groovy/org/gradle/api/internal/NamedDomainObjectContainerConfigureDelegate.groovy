@@ -15,13 +15,15 @@
  */
 package org.gradle.api.internal
 
-class AutoCreateDomainObjectContainerDelegate {
+import org.gradle.api.NamedDomainObjectContainer
+
+class NamedDomainObjectContainerConfigureDelegate {
     private final Object owner;
-    private final AbstractAutoCreateDomainObjectContainer container;
+    private final NamedDomainObjectContainer container;
     private final DynamicObject delegate;
     private final ThreadLocal<Boolean> configuring = new ThreadLocal<Boolean>()
 
-    public AutoCreateDomainObjectContainerDelegate(Object owner, AbstractAutoCreateDomainObjectContainer container) {
+    public NamedDomainObjectContainerConfigureDelegate(Object owner, NamedDomainObjectContainer container) {
         this.container = container
         delegate = container.asDynamicObject
         this.owner = owner

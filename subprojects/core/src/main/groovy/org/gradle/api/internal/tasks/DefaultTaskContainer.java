@@ -22,9 +22,11 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.util.GUtil;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +57,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                         "Cannot add %s as a task with that name already exists.", task));
             }
         }
-        
+
         add(task);
 
         return task;
@@ -69,12 +71,20 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return type.cast(add(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type)));
     }
 
+    public Task create(String name) {
+        return add(name);
+    }
+
     public Task add(String name) {
         return add(GUtil.map(Task.TASK_NAME, name));
     }
 
     public Task replace(String name) {
         return add(GUtil.map(Task.TASK_NAME, name, Task.TASK_OVERWRITE, true));
+    }
+
+    public Task create(String name, Closure configureClosure) {
+        return add(name, configureClosure);
     }
 
     public Task add(String name, Closure configureClosure) {
@@ -115,4 +125,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
         return task;
     }
+
+    protected Object createConfigureDelegate(Closure configureClosure) {
+        return new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
+    }
+
+    public TaskContainerInternal configure(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, createConfigureDelegate(configureClosure));
+        return this;
+    }
+
 }

@@ -17,16 +17,20 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.api.Namer;
 
-public abstract class AbstractAutoCreateDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements
-        Configurable<AbstractAutoCreateDomainObjectContainer<T>> {
-    protected AbstractAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer) {
+import org.gradle.api.Namer;
+import org.gradle.api.NamedDomainObjectContainer;
+
+public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements NamedDomainObjectContainer<T> {
+
+    protected AbstractNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer) {
         super(type, classGenerator, namer);
     }
 
+    /**
+     * Subclasses need only implement this method as the creation strategy.
+     */
     protected abstract T doCreate(String name);
 
     public T create(String name) {
@@ -44,9 +48,17 @@ public abstract class AbstractAutoCreateDomainObjectContainer<T> extends Default
         return object;
     }
 
-    public AbstractAutoCreateDomainObjectContainer<T> configure(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, new AutoCreateDomainObjectContainerDelegate(
-                configureClosure.getOwner(), this));
+    protected Object createConfigureDelegate(Closure configureClosure) {
+        return new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
+    }
+
+    public AbstractNamedDomainObjectContainer<T> configure(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, createConfigureDelegate(configureClosure));
         return this;
     }
+
+    public String getDisplayName() {
+        return String.format("%s container", getTypeDisplayName());
+    }
+
 }

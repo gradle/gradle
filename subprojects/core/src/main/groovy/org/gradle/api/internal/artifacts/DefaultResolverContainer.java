@@ -72,6 +72,10 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<Depend
         return "resolver";
     }
 
+    public DefaultResolverContainer configure(Closure closure) {
+        return ConfigureUtil.configure(closure, this);
+    }
+    
     public boolean add(DependencyResolver resolver, Closure configureClosure) {
         addLast(resolver, configureClosure);
         return true;

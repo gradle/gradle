@@ -16,38 +16,49 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
-
-import java.util.List;
+import org.gradle.util.Configurable;
 
 /**
- * A {@code DomainObjectContainer} represents a mutable collection of domain objects of type {@code T}.
- *
+ * <p>A named domain object container is a specialisation of {@link NamedDomainObjectSet} that adds the ability to create
+ * instances of the element type.</p>
+ * 
+ * <p>Implementations may use different strategies for creating new object instances.</p>
+ * 
+ * <p>Note that a container is an implementation of {@link java.util.SortedSet}, which means that the container is guaranteed
+ * to only contain elements with unique names within this container. Furthermore, items are ordered by their name.</p>
+ * 
  * @param <T> The type of domain objects in this container.
+ * @see NamedDomainObjectSet
  */
-public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T> {
+public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, Configurable<NamedDomainObjectContainer<T>> {
 
     /**
-     * Adds a rule to this container. The given rule is invoked when an unknown object is requested by name.
+     * Creates a new item with the given name, adding it to this container.
      *
-     * @param rule The rule to add.
-     * @return The added rule.
+     * @param name The name to assign to the created object
+     * @return The created object. Never null.
+     * @throws InvalidUserDataException if an object with the given name already exists in this container.
      */
-    Rule addRule(Rule rule);
+    T create(String name) throws InvalidUserDataException;
 
     /**
-     * Adds a rule to this container. The given closure is executed when an unknown object is requested by name. The
-     * requested name is passed to the closure as a parameter.
+     * Creates a new item with the given name, adding it to this container, then configuring it with the given closure.
      *
-     * @param description The description of the rule.
-     * @param ruleAction The closure to execute to apply the rule.
-     * @return The added rule.
+     * @param name The name to assign to the created object
+     * @param configureClosure The closure to configure the created object with
+     * @return The created object. Never null.
+     * @throws InvalidUserDataException if an object with the given name already exists in this container.
      */
-    Rule addRule(String description, Closure ruleAction);
+    T create(String name, Closure configureClosure) throws InvalidUserDataException;
 
     /**
-     * Returns the rules used by this container.
-     *
-     * @return The rules, in the order they will be applied.
+     * <p>Allows the container to be configured, creating missing objects as they are referenced.</p>
+     * 
+     * <p>TODO: example usage</p>
+     * 
+     * @param configureClosure The closure to configure this container with
+     * @return This.
      */
-    List<Rule> getRules();
+    NamedDomainObjectContainer<T> configure(Closure configureClosure);
+    
 }

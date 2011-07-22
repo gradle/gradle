@@ -20,19 +20,19 @@ import org.gradle.api.Namer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.util.Instantiator;
 
-public class FactoryAutoCreateDomainObjectContainer<T> extends AbstractAutoCreateDomainObjectContainer<T> {
+public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {
     private final NamedDomainObjectFactory<T> factory;
 
-    public FactoryAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, NamedDomainObjectFactory<T> factory) {
+    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, NamedDomainObjectFactory<T> factory) {
         super(type, classGenerator, namer);
         this.factory = factory;
     }
 
-    public FactoryAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer) {
+    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer) {
         this(type, classGenerator, namer, new DefaultConstructorObjectFactory<T>(type));
     }
 
-    public FactoryAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, final Closure factoryClosure) {
+    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, final Closure factoryClosure) {
         this(type, classGenerator, namer, new ClosureObjectFactory<T>(type, factoryClosure));
     }
 

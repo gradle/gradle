@@ -1034,12 +1034,12 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void createsADomainObjectContainer() {
-        assertThat(project.container(String.class), instanceOf(FactoryAutoCreateDomainObjectContainer.class))
+        assertThat(project.container(String.class), instanceOf(FactoryNamedDomainObjectContainer.class))
         assertThat(project.container(String.class), instanceOf(IConventionAware.class))
 
-        assertThat(project.container(String.class, context.mock(NamedDomainObjectFactory.class)), instanceOf(FactoryAutoCreateDomainObjectContainer.class))
+        assertThat(project.container(String.class, context.mock(NamedDomainObjectFactory.class)), instanceOf(FactoryNamedDomainObjectContainer.class))
 
-        assertThat(project.container(String.class, { }), instanceOf(FactoryAutoCreateDomainObjectContainer.class))
+        assertThat(project.container(String.class, { }), instanceOf(FactoryNamedDomainObjectContainer.class))
     }
 
 }

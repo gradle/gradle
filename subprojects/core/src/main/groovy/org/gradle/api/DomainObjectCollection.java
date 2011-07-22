@@ -22,23 +22,26 @@ import java.util.Set;
 import java.util.Collection;
 
 /**
- * <p>A {@code DomainObjectCollection} represents a read-only collection of domain objects of type {@code T}.</p>
+ * <p>A {@code DomainObjectCollection} is a specialised {@link Collection} that adds the ability to modification notifications and live filtered sub collections.</p>
  *
- * <p>You can use the methods of this interface to query the elements of the collection. You can also add actions
- * which are executed as elements are added to this collection.</p>
+ * <p>The filtered collections returned by the filtering methods, such as {@link #matching(Closure)}, return collections that are <em>live</em>. That is, they reflect 
+ * changes made to the source collection that they were created from. This is true for filtered collections made from filtered collections etc.</p>
+ * <p>
+ * You can also add actions which are executed as elements are added to the collection. Actions added to filtered collections will be fired if an addition/removal
+ * occurs for the source collection that matches the filter.</p>
  *
  * @param <T> The type of domain objects in this collection.
  */
 public interface DomainObjectCollection<T> extends Collection<T> {
     /**
-     * Returns the objects in this collection.
+     * Returns a snapshot of the objects in this collection (i.e. changes to this collection will not be reflected in the returned collection).
      *
      * @return The objects. Returns an empty set if this collection is empty.
      */
     Set<T> getAll();
 
     /**
-     * Returns the objects in this collection which meet the given specification.
+     * Returns a snapshot of the objects in this collection which meet the given specification.
      *
      * @param spec The specification to use.
      * @return The matching objects. Returns an empty set if there are no such objects in this collection.
