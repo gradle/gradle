@@ -25,6 +25,7 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 
 import java.util.Set;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 
 public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> implements DomainObjectSet<T> {
@@ -33,7 +34,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         this(type, new LinkedHashSet<T>());
     }
 
-    public DefaultDomainObjectSet(Class<T> type, Set<T> store) {
+    public DefaultDomainObjectSet(Class<T> type, Collection<T> store) {
         super(type, store);
     }
 
@@ -41,12 +42,8 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter));
     }
 
-    protected DefaultDomainObjectSet(Class<T> type, Set<T> store, CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectSet(Class<T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
         super(type, store, eventRegister);
-    }
-
-    protected Set<T> getStore() {
-        return (Set)super.getStore();
     }
 
     protected <S extends T> DefaultDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
