@@ -23,7 +23,6 @@ import org.apache.commons.collections.collection.CompositeCollection;
 import java.util.LinkedHashSet;
 import java.util.Iterator;
 import java.util.Collection;
-import java.util.LinkedList;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
