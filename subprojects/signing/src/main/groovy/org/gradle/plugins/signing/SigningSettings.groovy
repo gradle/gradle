@@ -228,7 +228,7 @@ class SigningSettings {
     }
     
     private addSignaturesToConfiguration(Sign task, Configuration configuration) {
-        task.signatureCollection.all.each { configuration.addArtifact(it) }
+        task.signatureCollection.each { configuration.addArtifact(it) }
         task.signatureCollection.whenObjectAdded {
             configuration.addArtifact(it)
         }

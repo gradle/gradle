@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>configurations</td>
-                <td><literal>project.configurations.all</literal></td>
+                <td><literal>project.configurations</literal></td>
             </tr>
             <tr>
                 <td>outputFile</td>
