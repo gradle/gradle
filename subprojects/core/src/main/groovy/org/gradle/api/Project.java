@@ -1451,7 +1451,9 @@ public interface Project extends Comparable<Project> {
     ProjectState getState();
 
     /**
-     * Creates a container for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.
+     * <p>Creates a container for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.<p>
+     * 
+     * <p>All objects <strong>MUST</strong> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
      * @param type The type of objects for the container to contain.
      * @param <T> The type of objects for the container to contain.
@@ -1460,7 +1462,9 @@ public interface Project extends Comparable<Project> {
     <T> NamedDomainObjectContainer<T> container(Class<T> type);
 
     /**
-     * Creates a container for managing named objects of the specified type. The given factory is used to create object instances.
+     * <p>Creates a container for managing named objects of the specified type. The given factory is used to create object instances.</p>
+     * 
+     * <p>All objects <strong>MUST</strong> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
      * @param type The type of objects for the container to contain.
      * @param factory The factory to use to create object instances.
@@ -1470,8 +1474,10 @@ public interface Project extends Comparable<Project> {
     <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory);
 
     /**
-     * Creates a container for managing named objects of the specified type. The given closure is used to create object instances. The name of the instance to be created is passed as a parameter to
-     * the closure.
+     * <p>Creates a container for managing named objects of the specified type. The given closure is used to create object instances. The name of the instance to be created is passed as a parameter to
+     * the closure.</p>
+     * 
+     * <p>All objects <strong>MUST</strong> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
      * @param type The type of objects for the container to contain.
      * @param factoryClosure The closure to use to create object instances.
