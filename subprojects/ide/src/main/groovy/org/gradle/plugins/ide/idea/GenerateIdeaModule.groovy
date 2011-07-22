@@ -166,7 +166,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     /**
-     * Deprecated. Please use #idea.module.javaVersion. See examples in {@link IdeaModule}.
+     * Deprecated. Please use #idea.module.jdkName. See examples in {@link IdeaModule}.
      * <p>
      * The JDK to use for this module. If {@code null}, the value of the existing or default ipr XML (inherited)
      * is used. If it is set to <code>inherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
