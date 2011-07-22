@@ -118,10 +118,10 @@ class Sign extends DefaultTask implements SignatureSpec {
     void sign(Configuration... configurations) {
         for (configuration in configurations) {
             dependsOn(configuration.buildArtifacts)
-            configuration.allArtifactsCollection.all { PublishArtifact artifact ->
+            configuration.allArtifacts.all { PublishArtifact artifact ->
                 sign(artifact)
             }
-            configuration.artifactCollection.whenObjectRemoved { PublishArtifact artifact ->
+            configuration.allArtifacts.whenObjectRemoved { PublishArtifact artifact ->
                 signatures.remove(signatures.find { it.toSignArtifact == artifact })
             }
         }

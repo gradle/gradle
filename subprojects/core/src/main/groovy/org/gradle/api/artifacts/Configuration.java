@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectSet;
 
 import java.io.File;
 import java.util.Map;
@@ -257,40 +257,37 @@ public interface Configuration extends FileCollection {
      *
      * @return the set of dependencies
      */
-    Set<Dependency> getDependencies();
+    DomainObjectSet<Dependency> getDependencies();
 
     /**
-     * Gets the live dependency collection that makes up this configuration (ignoring superconfigurations).
+     * <p>Gets the complete set of dependencies including those contributed by
+     * superconfigurations.</p>
      *
-     * @return the collection of dependencies
+     * @return the (read-only) set of dependencies
      */
-    DomainObjectCollection<Dependency> getDependencyCollection();
+    DomainObjectSet<Dependency> getAllDependencies();
 
     /**
-     * Gets the complete set of dependencies including those contributed by
-     * superconfigurations.
-     *
-     * @return the set of dependencies
-     */
-    Set<Dependency> getAllDependencies();
-
-    /**
-     * Gets the set of dependencies of type T directly contained in this configuration (ignoring superconfigurations).
+     * <p>Gets the set of dependencies of type T directly contained in this configuration (ignoring superconfigurations).</p>
+     * 
+     * <p>The returned set is live, in that any future dependencies added to this configuration that match the type will appear in the returned set.</p>
      *
      * @param type the dependency type
      * @param <T> the dependency type
-     * @return The set. Returns an empty set if there are no such dependencies.
+     * @return The (read-only) set.
      */
-    <T extends Dependency> Set<T> getDependencies(Class<T> type);
+    <T extends Dependency> DomainObjectSet<T> getDependencies(Class<T> type);
 
     /**
      * Gets the set of dependencies of type T for this configuration including those contributed by superconfigurations.
      *
+     * <p>The returned set is live, in that any future dependencies added to this configuration that match the type will appear in the returned set.</p>
+     * 
      * @param type the dependency type
      * @param <T> the dependency type
-     * @return The set. Returns an empty set if there are no such dependencies.
+     * @return The (read-only) set.
      */
-    <T extends Dependency> Set<T> getAllDependencies(Class<T> type);
+    <T extends Dependency> DomainObjectSet<T> getAllDependencies(Class<T> type);
 
     /**
      * Adds a dependency to this configuration.
@@ -301,27 +298,17 @@ public interface Configuration extends FileCollection {
 
     /**
      * Returns the artifacts of this configuration excluding the artifacts of extended configurations.
-     */
-    Set<PublishArtifact> getArtifacts();
-
-    /**
-     * Gets the live collection of artifacts that make up this configuration (ignoring superconfigurations).
      * 
-     * @return the collection of artifacts
+     * @return The set.
      */
-    DomainObjectCollection<PublishArtifact> getArtifactCollection();
+    DomainObjectSet<PublishArtifact> getArtifacts();
 
     /**
      * Returns the artifacts of this configuration including the artifacts of extended configurations.
-     */
-    Set<PublishArtifact> getAllArtifacts();
-
-    /**
-     * Gets the live collection of artifacts that make up this configuration including the artifacts of extended configurations.
      * 
-     * @return the collection of artifacts
+     * @return The (read-only) set.
      */
-    DomainObjectCollection<PublishArtifact> getAllArtifactsCollection();
+    DomainObjectSet<PublishArtifact> getAllArtifacts();
 
     /**
      * Returns the artifacts of this configuration as a {@link FileCollection}, including artifacts of extended

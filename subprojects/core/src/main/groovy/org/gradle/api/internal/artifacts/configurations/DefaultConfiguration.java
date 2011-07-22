@@ -21,11 +21,12 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -57,11 +58,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultDomainObjectSet<Dependency> dependencies =
             new DefaultDomainObjectSet<Dependency>(Dependency.class);
 
+    private CompositeDomainObjectSet<Dependency> allDependencies =
+            new CompositeDomainObjectSet<Dependency>(Dependency.class, dependencies);
+
     private DefaultDomainObjectSet<PublishArtifact> artifacts =
             new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
 
-    private CompositeDomainObjectCollection<PublishArtifact> allArtifacts =
-            new CompositeDomainObjectCollection<PublishArtifact>(PublishArtifact.class, artifacts);
+    private CompositeDomainObjectSet<PublishArtifact> allArtifacts =
+            new CompositeDomainObjectSet<PublishArtifact>(PublishArtifact.class, artifacts);
 
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
@@ -107,7 +111,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public Configuration setExtendsFrom(Set<Configuration> extendsFrom) {
         throwExceptionIfNotInUnresolvedState();
         for (Configuration configuration : this.extendsFrom) {
-            allArtifacts.removeCollection(configuration.getAllArtifactsCollection());
+            allArtifacts.removeCollection(configuration.getAllArtifacts());
+            allDependencies.removeCollection(configuration.getAllDependencies());
         }
         this.extendsFrom = new HashSet<Configuration>();
         for (Configuration configuration : extendsFrom) {
@@ -125,7 +130,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                         configuration, configuration.getHierarchy()));
             }
             this.extendsFrom.add(configuration);
-            allArtifacts.addCollection(configuration.getAllArtifactsCollection());
+            allArtifacts.addCollection(configuration.getAllArtifacts());
+            allDependencies.addCollection(configuration.getAllDependencies());
         }
         return this;
     }
@@ -272,34 +278,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return getAllArtifactFiles().getBuildDependencies();
     }
 
-    public Set<Dependency> getDependencies() {
+    public DomainObjectSet<Dependency> getDependencies() {
         return dependencies;
     }
 
-    public DomainObjectCollection<Dependency> getDependencyCollection() {
-        return dependencies;
+    public DomainObjectSet<Dependency> getAllDependencies() {
+        return allDependencies;
     }
 
-    public Set<Dependency> getAllDependencies() {
-        return Configurations.getDependencies(getHierarchy(), Specs.<Dependency>satisfyAll());
+    public <T extends Dependency> DomainObjectSet<T> getDependencies(Class<T> type) {
+        return dependencies.withType(type);
     }
 
-    public <T extends Dependency> Set<T> getDependencies(Class<T> type) {
-        return filter(type, getDependencies());
-    }
-
-    private <T extends Dependency> Set<T> filter(Class<T> type, Set<Dependency> dependencySet) {
-        Set<T> matches = new LinkedHashSet<T>();
-        for (Dependency dependency : dependencySet) {
-            if (type.isInstance(dependency)) {
-                matches.add(type.cast(dependency));
-            }
-        }
-        return matches;
-    }
-
-    public <T extends Dependency> Set<T> getAllDependencies(Class<T> type) {
-        return filter(type, getAllDependencies());
+    public <T extends Dependency> DomainObjectSet<T> getAllDependencies(Class<T> type) {
+        return allDependencies.withType(type);
     }
 
     public void addDependency(Dependency dependency) {
@@ -319,22 +311,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    public Set<PublishArtifact> getArtifacts() {
+    public DomainObjectSet<PublishArtifact> getArtifacts() {
         return artifacts;
     }
 
-    public DomainObjectCollection<PublishArtifact> getArtifactCollection() {
-        return artifacts;
-    }
-
-    public Set<PublishArtifact> getAllArtifacts() {
-        return Configurations.getArtifacts(this.getHierarchy(), Specs.SATISFIES_ALL);
-    }
-
-    public DomainObjectCollection<PublishArtifact> getAllArtifactsCollection() {
+    public DomainObjectSet<PublishArtifact> getAllArtifacts() {
         return allArtifacts;
     }
-    
+
     public FileCollection getAllArtifactFiles() {
         return new ArtifactsFileCollection();
     }
