@@ -36,7 +36,6 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolverContainer;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
@@ -51,7 +50,6 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
-import java.util.LinkedHashSet;
 
 /**
  * @author Hans Dockter
