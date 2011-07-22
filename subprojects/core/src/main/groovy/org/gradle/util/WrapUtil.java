@@ -117,4 +117,8 @@ public class WrapUtil {
     public static <T> T[] toArray(T... items) {
         return items;
     }
+    
+    public static <T> Set<T> asSet(Collection<T> c) {
+        return new LinkedHashSet<T>(c);
+    }
 }

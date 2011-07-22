@@ -124,7 +124,7 @@ public class DefaultConfigurationContainerTest {
         expectConfigurationCreated(TEST_NAME + "delta");
         Configuration configuration1 = configurationContainer.add(TEST_NAME);
         Configuration configuration2 = configurationContainer.add(TEST_NAME + "delta");
-        assertThat(toList(configurationContainer.getAll()), equalTo(toList(configuration1, configuration2)));
+        assertThat(toList(configurationContainer), equalTo(toList(configuration1, configuration2)));
     }
 
     @Test

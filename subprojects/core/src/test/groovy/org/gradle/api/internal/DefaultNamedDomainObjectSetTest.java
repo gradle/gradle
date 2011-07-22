@@ -67,7 +67,7 @@ public class DefaultNamedDomainObjectSetTest {
         container.add(bean1);
         container.add(bean3);
     
-        assertThat(toList(container.getAll()), equalTo(toList(bean1, bean2, bean3)));
+        assertThat(toList(container), equalTo(toList(bean1, bean2, bean3)));
     }
 
     @Test

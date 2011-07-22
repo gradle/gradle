@@ -20,7 +20,7 @@ import org.gradle.api.specs.Spec;
 import java.util.Set;
 
 /**
- * <p>A specialisation of {@link NamedDomainObjectCollection} that also implements {@link Set}.</p>
+ * <p>A specialisation of {@link NamedDomainObjectCollection} that also implements {@link Set} and orders objects by their inherent name.</p>
  * 
  * <p>All object equality is determined in terms of object names. That is, calling {@code remove()} with an object that is NOT equal to
  * an existing object in terms of {@code equals}, but IS in terms of name equality will result in the existing collection item with

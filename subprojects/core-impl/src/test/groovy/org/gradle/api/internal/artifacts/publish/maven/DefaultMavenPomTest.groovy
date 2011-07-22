@@ -73,11 +73,9 @@ class DefaultMavenPomTest extends Specification {
     }
 
     def effectivePomShouldHaveGeneratedDependencies() {
-        Set configurations = [Mock(Configuration)]
-        configurationContainerStub.getAll() >> configurations
         List generatedDependencies = [new Dependency(groupId: 'someGroup')]
         List manuallyAddedDependencies = [new Dependency()]
-        pomDependenciesConverterStub.convert(conf2ScopeMappingContainer, configurations) >> generatedDependencies
+        pomDependenciesConverterStub.convert(conf2ScopeMappingContainer, configurationContainerStub) >> generatedDependencies
 
         when:
         mavenPom.dependencies = manuallyAddedDependencies.clone()
@@ -108,10 +106,8 @@ class DefaultMavenPomTest extends Specification {
 
 
     def writeShouldUseEffectivePom() {
-        Set configurations = [Mock(Configuration)]
-        configurationContainerStub.getAll() >> configurations
         List generatedDependencies = [new Dependency(groupId: 'someGroup')]
-        pomDependenciesConverterStub.convert(conf2ScopeMappingContainer, configurations) >> generatedDependencies
+        pomDependenciesConverterStub.convert(conf2ScopeMappingContainer, configurationContainerStub) >> generatedDependencies
 
         when:
         StringWriter pomWriter = new StringWriter()

@@ -66,7 +66,7 @@ public class DependencyReportTask extends AbstractReportTask {
     }
 
     private Set<Configuration> getConfigurations(Project project) {
-        return configurations != null ? configurations : project.getConfigurations().getAll();
+        return configurations != null ? configurations : project.getConfigurations();
     }
 
     /**

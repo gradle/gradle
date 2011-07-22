@@ -612,10 +612,14 @@ class DefaultProjectTest {
         expectedMap[childchild] = [] as TreeSet
 
         context.checking {
-            one(taskContainerMock).getAll(); will(returnValue([projectTask] as Set))
-            one(taskContainerMock).getAll(); will(returnValue([child1Task] as Set))
-            one(taskContainerMock).getAll(); will(returnValue([child2Task] as Set))
-            one(taskContainerMock).getAll(); will(returnValue([] as Set))
+            one(taskContainerMock).size(); will(returnValue(1))
+            one(taskContainerMock).iterator(); will(returnValue(([projectTask] as Set).iterator()))
+            one(taskContainerMock).size(); will(returnValue(1))
+            one(taskContainerMock).iterator(); will(returnValue(([child1Task] as Set).iterator()))
+            one(taskContainerMock).size(); will(returnValue(1))
+            one(taskContainerMock).iterator(); will(returnValue(([child2Task] as Set).iterator()))
+            one(taskContainerMock).size(); will(returnValue(0))
+            one(taskContainerMock).iterator(); will(returnValue(([] as Set).iterator()))
         }
 
         assertEquals(expectedMap, project.getAllTasks(true))
@@ -628,7 +632,8 @@ class DefaultProjectTest {
         expectedMap[project] = [projectTask] as TreeSet
 
         context.checking {
-            one(taskContainerMock).getAll(); will(returnValue([projectTask] as Set))
+            one(taskContainerMock).size(); will(returnValue(1))
+            one(taskContainerMock).iterator(); will(returnValue(([projectTask] as Set).iterator()))
         }
 
         assertEquals(expectedMap, project.getAllTasks(false))

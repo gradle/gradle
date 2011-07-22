@@ -95,7 +95,7 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         Project project = projectFinder.getProject(projectPathValue);
         Module projectModule = ((ProjectInternal) project).getModule();
         ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(
-                new LinkedHashSet<Configuration>(project.getConfigurations().getAll()),
+                project.getConfigurations(),
                 projectModule, IvyContext.getContext().getIvy().getSettings());
 
         for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {

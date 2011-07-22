@@ -627,7 +627,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         final Map<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
         Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
-                foundTargets.put(project, new TreeSet<Task>(project.getTasks().getAll()));
+                foundTargets.put(project, new TreeSet<Task>(project.getTasks()));
             }
         };
         if (recursive) {

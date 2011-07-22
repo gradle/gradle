@@ -154,7 +154,7 @@ public class DefaultMavenPom implements MavenPom {
         if (configurations == null) {
             return Collections.emptyList();
         }
-        return (List<Dependency>) pomDependenciesConverter.convert(getScopeMappings(), configurations.getAll());
+        return (List<Dependency>) pomDependenciesConverter.convert(getScopeMappings(), configurations);
     }
 
     public DefaultMavenPom getEffectivePom() {

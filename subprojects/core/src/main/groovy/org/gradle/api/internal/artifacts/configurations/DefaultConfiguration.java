@@ -273,7 +273,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Dependency> getDependencies() {
-        return new LinkedHashSet(dependencies.getAll());
+        return dependencies;
     }
 
     public DomainObjectCollection<Dependency> getDependencyCollection() {
@@ -320,7 +320,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<PublishArtifact> getArtifacts() {
-        return new LinkedHashSet(artifacts.getAll());
+        return artifacts;
     }
 
     public DomainObjectCollection<PublishArtifact> getArtifactCollection() {

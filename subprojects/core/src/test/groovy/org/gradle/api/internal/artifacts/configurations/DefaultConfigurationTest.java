@@ -771,7 +771,7 @@ public class DefaultConfigurationTest {
         assertThat(copiedConfiguration.getAllArtifacts(), equalTo(configuration.getAllArtifacts()));
         assertThat(copiedConfiguration.getExcludeRules(), equalTo(configuration.getExcludeRules()));
         assertThat(copiedConfiguration.getExcludeRules().iterator().next(), not(sameInstance(configuration.getExcludeRules().iterator().next())));
-        assertThat(copiedConfiguration.getDependencies(), equalTo(expectedDependencies));
+        assertThat(WrapUtil.asSet(copiedConfiguration.getDependencies()), equalTo(WrapUtil.asSet(expectedDependencies)));
         assertNotSameInstances(copiedConfiguration.getDependencies(), expectedDependencies);
     }
 
