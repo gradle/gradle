@@ -35,7 +35,7 @@ class FileReferenceFactory {
 
             return null
         }
-        def path
+        def path = null
         def usedVar = false
         for (entry in variables.entrySet()) {
             def rootDirPath = entry.value.absolutePath
@@ -52,7 +52,7 @@ class FileReferenceFactory {
                 break
             }
         }
-        path = path ?: PathUtil.normalizePath(file.absolutePath)
+        path = PathUtil.normalizePath(path ?: file.absolutePath)
         return new FileReferenceImpl(file, path, usedVar)
     }
 
