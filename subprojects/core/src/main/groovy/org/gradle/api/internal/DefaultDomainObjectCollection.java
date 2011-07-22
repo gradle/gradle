@@ -98,12 +98,12 @@ public class DefaultDomainObjectCollection<T> implements DomainObjectCollection<
     }
 
     public Set<T> getAll() {
-        // DeprecationLogger.nagUser("DomainObjectCollection.getAll()");
+        DeprecationLogger.nagUserWith("The DomainObjectCollection.getAll() method is deprecated as DomainObjectCollection is now a Collection itself. Simply use the collection.");
         return findAll(Specs.<T>satisfyAll());
     }
 
     public Set<T> findAll(Spec<? super T> spec) {
-        // DeprecationLogger.nagUser("DomainObjectCollection.findAll()", "all()");
+        DeprecationLogger.nagUserWith("The DomainObjectCollection.findAll() method is deprecated as DomainObjectCollection is now a Collection itself. Use the matching(Spec) method.");
 
         Set<T> filtered = new LinkedHashSet<T>(size());
         for (T t : getStore()) {

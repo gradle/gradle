@@ -37,7 +37,9 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * Returns a snapshot of the objects in this collection (i.e. changes to this collection will not be reflected in the returned collection).
      *
      * @return The objects. Returns an empty set if this collection is empty.
+     * @deprecated as DomainObjectCollection implementations are now Collection implementations.
      */
+    @Deprecated
     Set<T> getAll();
 
     /**
@@ -45,7 +47,9 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * @param spec The specification to use.
      * @return The matching objects. Returns an empty set if there are no such objects in this collection.
+     * @deprecated Use {@link #matching(Spec)} instead.
      */
+    @Deprecated
     Set<T> findAll(Spec<? super T> spec);
 
     /**
