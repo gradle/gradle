@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.idea.model
 
-import org.gradle.api.JavaVersion
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
 
@@ -33,7 +32,7 @@ import org.gradle.util.ConfigureUtil
  * idea {
  *   project {
  *     //if you want to set specific jdk and language level
- *     javaVersion = '1.6'
+ *     jdkName = '1.6'
  *     languageLevel = '1.5'
  *
  *     //you can update the source wildcards
@@ -101,11 +100,7 @@ class IdeaProject {
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    JavaVersion javaVersion
-
-    void setJavaVersion(Object javaVersion) {
-        this.javaVersion = JavaVersion.toVersion(javaVersion)
-    }
+    String jdkName
 
     /**
      * The java language level of the project.
@@ -159,7 +154,7 @@ class IdeaProject {
         def modulePaths = getModules().collect {
             getPathFactory().relativePath('PROJECT_DIR', it.outputFile)
         }
-        xmlProject.configure(modulePaths, getJavaVersion(), getLanguageLevel(), getWildcards())
+        xmlProject.configure(modulePaths, getJdkName(), getLanguageLevel(), getWildcards())
         ipr.whenMerged.execute(xmlProject)
     }
 }
