@@ -21,7 +21,7 @@ import org.gradle.api.specs.Spec;
 import java.util.Map;
 
 /**
- * <p>A {@code NamedDomainObjectCollection} represents a read-only set of domain objects of type {@code T}. Each domain
+ * <p>A {@code NamedDomainObjectSet} represents a read-only collection of domain objects of type {@code T}. Each domain
  * object in this collection has a name, which uniquely identifies the object in this collection.</p>
  *
  * <p>Each object in a collection are accessible as read-only properties of the collection, using the name of the object
@@ -51,7 +51,7 @@ import java.util.Map;
  *
  * @param <T> The type of domain objects in this collection.
  */
-public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T> {
+public interface NamedDomainObjectSet<T> extends DomainObjectSet<T> {
     /**
      * Returns the objects in this collection, as a map from object name to object instance.
      *
@@ -100,15 +100,15 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     /**
      * {@inheritDoc}
      */
-    <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type);
+    <S extends T> NamedDomainObjectSet<S> withType(Class<S> type);
 
     /**
      * {@inheritDoc}
      */
-    NamedDomainObjectCollection<T> matching(Spec<? super T> spec);
+    NamedDomainObjectSet<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
-    NamedDomainObjectCollection<T> matching(Closure spec);
+    NamedDomainObjectSet<T> matching(Closure spec);
 }

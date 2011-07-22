@@ -18,33 +18,37 @@ package org.gradle.api.internal.plugins;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.DeprecationLogger;
 
-public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectContainer<T>
-        implements PluginCollection<T> {
+public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
+
     public DefaultPluginCollection(Class<T> type) {
         super(type);
     }
-
-    protected DefaultPluginCollection(Class<T> type, ObjectStore<T> store) {
-        super(type, store);
+    
+    protected DefaultPluginCollection(DefaultPluginCollection<? super T> collection, CollectionFilter<T> filter) {
+        super(collection, filter);
     }
 
-    public PluginCollection<T> matching(Spec<? super T> spec) {
-        return new DefaultPluginCollection<T>(getType(), storeWithSpec(spec));
-    }
-
-    @Override
-    public PluginCollection<T> matching(Closure spec) {
-        return matching(Specs.convertClosureToSpec(spec));
+    protected <S extends T> DefaultPluginCollection<S> filtered(CollectionFilter<S> filter) {
+        return new DefaultPluginCollection<S>(this, filter);
     }
 
     public <S extends T> PluginCollection<S> withType(Class<S> type) {
-        return new DefaultPluginCollection<S>(type, storeWithType(type));
+        return filtered(createFilter(type));
+    }
+
+    public PluginCollection<T> matching(Spec<? super T> spec) {
+        return filtered(createFilter(spec));
+    }
+
+    public PluginCollection<T> matching(Closure spec) {
+        return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
     public Action<? super T> whenPluginAdded(Action<? super T> action) {

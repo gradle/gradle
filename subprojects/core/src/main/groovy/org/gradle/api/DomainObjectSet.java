@@ -13,23 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.built;
+package org.gradle.api;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectSet;
+import groovy.lang.Closure;
+import org.gradle.api.specs.Spec;
+
+import java.util.Set;
 
 /**
- * A {@code CppLibraryContainer} manages a set of {@link CppLibrary} objects.
+ * <p>A {@code DomainObjectSet} is a specialisation of {@link DomainObjectCollection} that guarantees {@link Set} semantics.</p>
+ *
+ * @param <T> The type of domain objects in this set.
  */
-public interface CppLibraryContainer extends NamedDomainObjectSet<CppLibrary> {
+public interface DomainObjectSet<T> extends DomainObjectCollection<T>, Set<T> {
 
     /**
-     * Adds a library.
-     *
-     * @param library The library to add to this collection.
-     * @return whether or not the library was successfully added.
-     * @throws org.gradle.api.InvalidUserDataException when a library with the given name already exists in this container.
+     * {@inheritDoc}
      */
-    boolean add(CppLibrary library) throws InvalidUserDataException;
+    <S extends T> DomainObjectSet<S> withType(Class<S> type);
+
+    /**
+     * {@inheritDoc}
+     */
+    DomainObjectSet<T> matching(Spec<? super T> spec);
+
+    /**
+     * {@inheritDoc}
+     */
+    DomainObjectSet<T> matching(Closure spec);
 
 }

@@ -24,7 +24,7 @@ import java.util.List;
  *
  * @param <T> The type of domain objects in this container.
  */
-public interface NamedDomainObjectContainer<T> extends NamedDomainObjectCollection<T> {
+public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T> {
 
     /**
      * Adds a rule to this container. The given rule is invoked when an unknown object is requested by name.

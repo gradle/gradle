@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -28,7 +28,7 @@ import groovy.lang.Closure;
  * @author Hans Dockter
  * @param <T> The type of plugins which this collection contains.
  */
-public interface PluginCollection<T extends Plugin> extends DomainObjectCollection<T> {
+public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
     /**
      * {@inheritDoc}
      */

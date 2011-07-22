@@ -17,13 +17,15 @@ package org.gradle.api.internal
 
 import spock.lang.Specification
 import org.gradle.api.NamedDomainObjectFactory
+import org.gradle.api.Namer
 
-class DefaultAutoCreateDomainObjectContainerSpec extends Specification {
+class FactoryAutoCreateDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
     final ClassGenerator classGenerator = Mock()
-
+    final namer = { it } as Namer
+    
     def usesFactoryToCreateContainerElements() {
-        def container = new DefaultAutoCreateDomainObjectContainer<String>(String.class, classGenerator, factory)
+        def container = new FactoryAutoCreateDomainObjectContainer<String>(String.class, classGenerator, namer, factory)
 
         when:
         def result = container.create('a')
@@ -35,7 +37,7 @@ class DefaultAutoCreateDomainObjectContainerSpec extends Specification {
     }
 
     def usesPublicConstructorWhenNoFactorySupplied() {
-        def container = new DefaultAutoCreateDomainObjectContainer<String>(String.class, classGenerator)
+        def container = new FactoryAutoCreateDomainObjectContainer<String>(String.class, classGenerator, namer)
 
         when:
         def result = container.create('a')
@@ -47,7 +49,7 @@ class DefaultAutoCreateDomainObjectContainerSpec extends Specification {
 
     def usesClosureToCreateContainerElements() {
         def cl = { name -> "element $name" as String }
-        def container = new DefaultAutoCreateDomainObjectContainer<String>(String.class, classGenerator, cl)
+        def container = new FactoryAutoCreateDomainObjectContainer<String>(String.class, classGenerator, namer, cl)
 
         when:
         def result = container.create('a')

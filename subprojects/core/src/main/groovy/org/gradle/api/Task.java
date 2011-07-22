@@ -152,6 +152,15 @@ public interface Task extends Comparable<Task> {
     String getName();
 
     /**
+     * A {@link org.gradle.api.Namer} namer for tasks that returns {@link #getName()}.
+     */
+    static class Namer implements org.gradle.api.Namer<Task> {
+        public String determineName(Task c) {
+            return c.getName();
+        }
+    }
+
+    /**
      * <p>Returns the {@link Project} which this task belongs to.</p>
      *
      * @return The project this task belongs to. Never returns null.

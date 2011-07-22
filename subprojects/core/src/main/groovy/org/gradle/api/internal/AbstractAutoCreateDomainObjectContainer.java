@@ -19,11 +19,12 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.api.Namer;
 
-public abstract class AutoCreateDomainObjectContainer<T> extends DefaultNamedDomainObjectContainer<T> implements
-        Configurable<AutoCreateDomainObjectContainer<T>> {
-    protected AutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator) {
-        super(type, classGenerator);
+public abstract class AbstractAutoCreateDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements
+        Configurable<AbstractAutoCreateDomainObjectContainer<T>> {
+    protected AbstractAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer) {
+        super(type, classGenerator, namer);
     }
 
     protected abstract T doCreate(String name);
@@ -38,12 +39,12 @@ public abstract class AutoCreateDomainObjectContainer<T> extends DefaultNamedDom
                     getTypeDisplayName(), name, getTypeDisplayName()));
         }
         T object = doCreate(name);
-        addObject(name, object);
+        add(object);
         ConfigureUtil.configure(configureClosure, object);
         return object;
     }
 
-    public AutoCreateDomainObjectContainer<T> configure(Closure configureClosure) {
+    public AbstractAutoCreateDomainObjectContainer<T> configure(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, new AutoCreateDomainObjectContainerDelegate(
                 configureClosure.getOwner(), this));
         return this;

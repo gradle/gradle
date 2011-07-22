@@ -25,7 +25,7 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectCollection;
-import org.gradle.api.internal.MutableDomainObjectContainer;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -54,11 +54,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private IvyService ivyService;
 
-    private MutableDomainObjectContainer<Dependency> dependencies =
-            new MutableDomainObjectContainer<Dependency>(Dependency.class);
+    private DefaultDomainObjectSet<Dependency> dependencies =
+            new DefaultDomainObjectSet<Dependency>(Dependency.class);
 
-    private MutableDomainObjectContainer<PublishArtifact> artifacts =
-            new MutableDomainObjectContainer<PublishArtifact>(PublishArtifact.class);
+    private DefaultDomainObjectSet<PublishArtifact> artifacts =
+            new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
 
     private CompositeDomainObjectCollection<PublishArtifact> allArtifacts =
             new CompositeDomainObjectCollection<PublishArtifact>(PublishArtifact.class, artifacts);
@@ -273,7 +273,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Dependency> getDependencies() {
-        return dependencies.getAll();
+        return new LinkedHashSet(dependencies.getAll());
     }
 
     public DomainObjectCollection<Dependency> getDependencyCollection() {
@@ -304,23 +304,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public void addDependency(Dependency dependency) {
         throwExceptionIfNotInUnresolvedState();
-        dependencies.addObject(dependency);
+        dependencies.add(dependency);
     }
 
     public Configuration addArtifact(PublishArtifact artifact) {
         throwExceptionIfNotInUnresolvedState();
-        artifacts.addObject(artifact);
+        artifacts.add(artifact);
         return this;
     }
 
     public Configuration removeArtifact(PublishArtifact artifact) {
         throwExceptionIfNotInUnresolvedState();
-        artifacts.removeObject(artifact);
+        artifacts.remove(artifact);
         return this;
     }
 
     public Set<PublishArtifact> getArtifacts() {
-        return artifacts.getAll();
+        return new LinkedHashSet(artifacts.getAll());
     }
 
     public DomainObjectCollection<PublishArtifact> getArtifactCollection() {

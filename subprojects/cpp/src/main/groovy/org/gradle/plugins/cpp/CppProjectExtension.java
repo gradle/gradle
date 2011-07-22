@@ -76,7 +76,9 @@ public class CppProjectExtension {
     public CppExecutable executable(String name, Closure closure) {
         ExecutableDsl dsl = new ExecutableDsl(this, name);
         ConfigureUtil.configure(closure, dsl);
-        return executables.add(dsl.create());
+        CppExecutable executable = dsl.create();
+        executables.add(executable);
+        return executable;
     }
 
     public CppExecutableContainer getExecutables() {
@@ -90,7 +92,9 @@ public class CppProjectExtension {
     public CppLibrary library(String name, Closure closure) {
         LibraryDsl dsl = new LibraryDsl(this, name);
         ConfigureUtil.configure(closure, dsl);
-        return libraries.add(dsl.create());
+        CppLibrary library = dsl.create();
+        libraries.add(library);
+        return library;
     }
 
     public CppLibraryContainer getLibraries() {

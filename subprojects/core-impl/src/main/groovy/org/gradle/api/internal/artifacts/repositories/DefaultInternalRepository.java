@@ -36,6 +36,7 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
@@ -50,6 +51,7 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+import java.util.LinkedHashSet;
 
 /**
  * @author Hans Dockter
@@ -92,7 +94,8 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         }
         Project project = projectFinder.getProject(projectPathValue);
         Module projectModule = ((ProjectInternal) project).getModule();
-        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations().getAll(),
+        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(
+                new LinkedHashSet<Configuration>(project.getConfigurations().getAll()),
                 projectModule, IvyContext.getContext().getIvy().getSettings());
 
         for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {

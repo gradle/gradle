@@ -26,7 +26,7 @@ import org.gradle.api.InvalidUserDataException
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.MutableDomainObjectContainer
+import org.gradle.api.internal.DefaultDomainObjectSet
 
 import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.type.SignatureType
@@ -55,7 +55,7 @@ class Sign extends DefaultTask implements SignatureSpec {
      */
     boolean required = true
     
-    final private MutableDomainObjectContainer<Signature> signaturesCollection = new MutableDomainObjectContainer<Signature>(Signature)
+    final private DefaultDomainObjectSet<Signature> signaturesCollection = new DefaultDomainObjectSet<Signature>(Signature)
     
     Sign() {
         super()
@@ -122,13 +122,13 @@ class Sign extends DefaultTask implements SignatureSpec {
                 sign(artifact)
             }
             configuration.artifactCollection.whenObjectRemoved { PublishArtifact artifact ->
-                signaturesCollection.removeObject(artifact)
+                signaturesCollection.remove(signaturesCollection.find { it.toSignArtifact == artifact })
             }
         }
     }
     
     private addSignature(Signature signature) {
-        signaturesCollection.addObject(signature)
+        signaturesCollection.add(signature)
     }
     
     /**

@@ -22,7 +22,7 @@ import org.junit.Ignore
 
 class AutoCreateDomainObjectContainerTest {
     private final ClassGenerator classGenerator = new AsmBackedClassGenerator()
-    private final AutoCreateDomainObjectContainer container = classGenerator.newInstance(TestContainer.class, classGenerator)
+    private final AbstractAutoCreateDomainObjectContainer container = classGenerator.newInstance(TestContainer.class, classGenerator)
 
     @Test
     public void canAddObjectWithName() {
@@ -179,7 +179,7 @@ class DynamicOwner {
 
 class TestObject extends ArrayList<String> {
     def String prop
-
+    String name
     def methodMissing(String name, Object params) {
         if (name == 'testObjectDynamicMethod') {
             add(name)
