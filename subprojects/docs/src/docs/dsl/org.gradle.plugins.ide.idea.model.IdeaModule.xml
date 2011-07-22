@@ -72,7 +72,7 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
-                <td>javaVersion</td>
+                <td>jdkName</td>
                 <td><literal>'inherited'</literal></td>
                 <td/>
             </tr>
