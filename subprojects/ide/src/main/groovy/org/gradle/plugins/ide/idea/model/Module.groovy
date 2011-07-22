@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
+import org.gradle.util.DeprecationLogger
 
 /**
  * Represents the customizable elements of an iml (via XML hooks everything of the iml is customizable).
@@ -68,9 +69,17 @@ class Module extends XmlPersistableConfigurationObject {
      */
     Set<Dependency> dependencies = [] as LinkedHashSet
 
-    //TODO SF: add deprecated logic
-//    String javaVersion
     String jdkName
+
+    String getJavaVersion() {
+        DeprecationLogger.nagUser("javaVersion", "jdkName")
+        jdkName
+    }
+
+    void setJavaVersion(String jdkName) {
+        DeprecationLogger.nagUser("javaVersion", "jdkName")
+        this.jdkName = jdkName
+    }
 
     private final PathFactory pathFactory
 
