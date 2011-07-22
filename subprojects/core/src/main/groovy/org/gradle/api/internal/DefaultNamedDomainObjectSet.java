@@ -32,10 +32,13 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
         super(type, new TreeSet(new Namer.Comparator(namer)), classGenerator, namer);
     }
 
+    /**
+     * Subclasses using this constructor must ensure that the {@code store} uses a name based equality strategy as per the contract on NamedDomainObjectContainer.
+     */
     protected DefaultNamedDomainObjectSet(Class<T> type, Set<T> store, CollectionEventRegister<T> eventRegister, ClassGenerator classGenerator, Namer<? super T> namer) {
         super(type, store, eventRegister, classGenerator, namer);
     }
-    
+
     // should be protected, but use of teh class generator forces it to be public
     public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, ClassGenerator classGenerator, Namer<? super T> namer) {
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), classGenerator, namer);
@@ -44,7 +47,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
         return getClassGenerator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getClassGenerator(), getNamer());
     }
-    
+
     protected <S extends T> Set<S> filteredStore(CollectionFilter<S> filter) {
         return new FilteredSet<T, S>(this, filter);
     }
@@ -69,5 +72,5 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     public boolean add(T o) {
         return super.add(o);
     }
-    
+
 }
