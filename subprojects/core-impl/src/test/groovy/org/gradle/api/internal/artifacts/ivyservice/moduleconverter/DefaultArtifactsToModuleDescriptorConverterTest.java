@@ -111,7 +111,7 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
         final Configuration configurationStub = IvyConverterTestUtil.createNamedConfigurationStub(publishArtifact.getName(), context);
         context.checking(new Expectations() {{
             allowing(configurationStub).getArtifacts();
-            will(returnValue(WrapUtil.toSet(publishArtifact)));
+            will(returnValue(WrapUtil.toDomainObjectSet(PublishArtifact.class, publishArtifact)));
         }});
         return configurationStub;
     }
