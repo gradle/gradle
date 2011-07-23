@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.model.Project;
+import org.gradle.tooling.model.elements.Element;
 
 import java.io.OutputStream;
 
@@ -40,7 +40,7 @@ import java.io.OutputStream;
  *
  * @param <T> The type of model to build
  */
-public interface ModelBuilder<T extends Project> {
+public interface ModelBuilder<T extends Element> {
     /**
      * Sets the {@link OutputStream} which should receive standard output logging generated while building the model. The default is to discard the output.
      *
