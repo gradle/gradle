@@ -40,6 +40,7 @@ description = 'this is a project'
 //        project.description == null
 //        project.projectDirectory == projectDir
 //        project.modules.size() == 1
+
     }
 
 //    def "provides basic project information"() {
