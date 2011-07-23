@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.model;
 
-import org.gradle.tooling.model.elements.Element;
-
-import java.io.File;
+package org.gradle.tooling.model.elements;
 
 /**
- * Represents a project of some kind.
+ * Described element of something :)
  */
-@Deprecated
-public interface Project extends Element {
+public interface Element {
+
     /**
-     * Returns the fully-qualified path of this project. This is a unique identifier for the project.
+     * Returns the unique identifier of this element.
      *
      * @return The path.
      */
-    String getPath();
+    String getId();
 
     /**
-     * Returns the name of this project. Note that the name is not a unique identifier for the project.
+     * Returns the name of this project. Note that the name is not a unique identifier.
      *
      * @return The name.
      */
@@ -44,11 +41,4 @@ public interface Project extends Element {
      * @return The description. May be null.
      */
     String getDescription();
-
-    /**
-     * Returns the project directory for this project.
-     *
-     * @return The project directory.
-     */
-    File getProjectDirectory();
 }

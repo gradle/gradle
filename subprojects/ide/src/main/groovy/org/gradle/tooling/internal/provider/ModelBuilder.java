@@ -23,7 +23,9 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.tooling.internal.*;
+import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
+import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
@@ -37,19 +39,25 @@ import java.util.*;
 /**
 * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
 */
-public class ModelBuilder {
+public class ModelBuilder implements BuildsModel {
     private boolean projectDependenciesOnly;
-    private Object currentProject;
+    private ProjectVersion3 currentProject;
     private final Map<String, EclipseProjectVersion3> projectMapping = new HashMap<String, EclipseProjectVersion3>();
     private GradleInternal gradle;
-    private final TasksFactory tasksFactory;
+    private TasksFactory tasksFactory;
 
-    public ModelBuilder(boolean includeTasks, boolean projectDependenciesOnly) {
-        this.tasksFactory = new TasksFactory(includeTasks);
-        this.projectDependenciesOnly = projectDependenciesOnly;
+    public boolean canBuild(Class type) {
+        if (type.isAssignableFrom(EclipseProjectVersion3.class)) {
+            //I don't like preparing the state in this method but for now lets leave it :/
+            boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
+            this.tasksFactory = new TasksFactory(includeTasks);
+            this.projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
+            return true;
+        }
+        return false;
     }
 
-    public Object buildAll(GradleInternal gradle) {
+    public ProjectVersion3 buildAll(GradleInternal gradle) {
         this.gradle = gradle;
         Project root = gradle.getRootProject();
         tasksFactory.collectTasks(root);

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.*;
 import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.HierarchicalProjectVersion1;
+import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
@@ -26,13 +27,15 @@ import org.gradle.tooling.model.HierarchicalProject;
 import org.gradle.tooling.model.Project;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
+import org.gradle.tooling.model.elements.Element;
+import org.gradle.tooling.model.idea.IdeaProject;
 
 import java.util.HashMap;
 import java.util.Map;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConnection connection;
-    private final Map<Class<? extends Project>, Class<? extends ProjectVersion3>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion3>>();
+    private final Map<Class<? extends Element>, Class<? extends ProjectVersion3>> modelTypeMap = new HashMap<Class<? extends Element>, Class<? extends ProjectVersion3>>();
     private ProtocolToModelAdapter adapter;
     private final ConnectionParameters parameters;
 
@@ -45,17 +48,18 @@ class DefaultProjectConnection implements ProjectConnection {
         modelTypeMap.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
         modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
         modelTypeMap.put(EclipseProject.class, EclipseProjectVersion3.class);
+        modelTypeMap.put(IdeaProject.class, InternalIdeaProject.class);
     }
 
     public void close() {
         connection.stop();
     }
 
-    public <T extends Project> T getModel(Class<T> viewType) {
+    public <T extends Element> T getModel(Class<T> viewType) {
         return model(viewType).get();
     }
 
-    public <T extends Project> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
+    public <T extends Element> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
         model(viewType).get(handler);
     }
 
@@ -63,11 +67,11 @@ class DefaultProjectConnection implements ProjectConnection {
         return new DefaultBuildLauncher(connection, parameters);
     }
 
-    public <T extends Project> ModelBuilder<T> model(Class<T> modelType) {
+    public <T extends Element> ModelBuilder<T> model(Class<T> modelType) {
         return new DefaultModelBuilder<T>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
     }
 
-    private Class<? extends ProjectVersion3> mapToProtocol(Class<? extends Project> viewType) {
+    private Class<? extends ProjectVersion3> mapToProtocol(Class<? extends Element> viewType) {
         Class<? extends ProjectVersion3> protocolViewType = modelTypeMap.get(viewType);
         if (protocolViewType == null) {
             throw new UnsupportedVersionException(String.format("Model of type '%s' is not supported.", viewType.getSimpleName()));

@@ -20,11 +20,11 @@ import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.tooling.model.Project;
+import org.gradle.tooling.model.elements.Element;
 
 import java.io.OutputStream;
 
-public class DefaultModelBuilder<T extends Project> extends AbstractLongRunningOperation implements ModelBuilder<T> {
+public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningOperation implements ModelBuilder<T> {
     private final Class<T> modelType;
     private final Class<? extends ProjectVersion3> protocolType;
     private final AsyncConnection connection;

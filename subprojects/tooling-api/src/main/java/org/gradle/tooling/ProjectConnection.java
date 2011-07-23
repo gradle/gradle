@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.model.Project;
+import org.gradle.tooling.model.elements.Element;
 
 /**
  * Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.
@@ -40,7 +40,7 @@ public interface ProjectConnection {
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When this connection has been closed or is closing.
      */
-    <T extends Project> T getModel(Class<T> viewType) throws GradleConnectionException;
+    <T extends Element> T getModel(Class<T> viewType) throws GradleConnectionException;
 
     /**
      * Fetches a snapshot of the model for this project asynchronously. This method return immediately, and the result of the operation is passed to the supplied result handler.
@@ -50,7 +50,7 @@ public interface ProjectConnection {
      * @param <T> The model type.
      * @throws IllegalStateException When this connection has been closed or is closing.
      */
-    <T extends Project> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException;
+    <T extends Element> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException;
 
     /**
      * Creates a launcher which can be used to execute a build.
@@ -66,7 +66,7 @@ public interface ProjectConnection {
      * @param <T> The model type.
      * @return The builder.
      */
-    <T extends Project> ModelBuilder<T> model(Class<T> modelType);
+    <T extends Element> ModelBuilder<T> model(Class<T> modelType);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.
