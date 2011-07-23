@@ -27,10 +27,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Collections;
 
 import static org.gradle.util.Matchers.isEmpty;
-import static org.gradle.util.WrapUtil.toSet;
 import static org.gradle.util.WrapUtil.toDomainObjectSet;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertFalse;
