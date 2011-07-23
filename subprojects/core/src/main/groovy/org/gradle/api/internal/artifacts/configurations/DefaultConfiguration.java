@@ -17,16 +17,11 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.DomainObjectSet;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.CompositeDomainObjectCollection;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.file.AbstractFileCollection;

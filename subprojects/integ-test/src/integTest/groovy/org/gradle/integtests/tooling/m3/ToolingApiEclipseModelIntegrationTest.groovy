@@ -205,11 +205,8 @@ project(':a') {
 
         minimalProject.projectDependencies.size() == 2
 
-        minimalProject.projectDependencies[0].path == 'root'
-        minimalProject.projectDependencies[0].targetProject == minimalModel
-
-        minimalProject.projectDependencies[1].path == 'b'
-        minimalProject.projectDependencies[1].targetProject == minimalProject.children[0]
+        minimalProject.projectDependencies.any { it.path == 'root' && it.targetProject == minimalModel }
+        minimalProject.projectDependencies.any { it.path == 'b' && it.targetProject == minimalProject.children[0] }
 
         when:
         EclipseProject fullModel = withConnection { connection -> connection.getModel(EclipseProject.class) }
@@ -219,11 +216,8 @@ project(':a') {
 
         fullProject.projectDependencies.size() == 2
 
-        fullProject.projectDependencies[0].path == 'root'
-        fullProject.projectDependencies[0].targetProject == fullModel
-
-        fullProject.projectDependencies[1].path == 'b'
-        fullProject.projectDependencies[1].targetProject == fullProject.children[0]
+        fullProject.projectDependencies.any { it.path == 'root' && it.targetProject == fullModel }
+        fullProject.projectDependencies.any { it.path == 'b' && it.targetProject == fullProject.children[0] }
     }
 
     def "can build project dependencies with targetProject references for complex scenarios"() {
