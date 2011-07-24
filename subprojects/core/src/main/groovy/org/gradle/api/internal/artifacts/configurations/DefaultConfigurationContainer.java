@@ -26,6 +26,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.IvyService;
 
 import java.util.Collection;
+import java.util.Set;
 import groovy.lang.Closure;
 
 /**
@@ -51,6 +52,11 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     @Override
     protected Configuration doCreate(String name) {
         return classGenerator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService);
+    }
+
+    // Override deprecated version from DomainObjectCollection (through AbstractNamedDomainObjectContainer)
+    public Set<Configuration> getAll() {
+        return this;
     }
 
     public Configuration add(String name) {
