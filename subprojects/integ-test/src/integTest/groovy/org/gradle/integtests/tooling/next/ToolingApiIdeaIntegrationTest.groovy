@@ -35,7 +35,7 @@ description = 'this is a project'
         project.name == 'test project'
         project.id   == ':'
         project.description == null
-//        project.modules.size() == 1
+        project.children.size() == 1
     }
 
     def "provides basic project information"() {

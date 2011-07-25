@@ -41,4 +41,6 @@ public interface IdeaProject extends HierarchicalElement, Element {
      */
     String getLanguageLevel();
 
+    //TODO SF - should project also have method getModules() ?
+    //DomainObjectSet<? extends IdeaModule> getModules();
 }

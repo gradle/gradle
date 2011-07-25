@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal;
+package org.gradle.tooling.internal.idea;
 
 import org.gradle.api.GradleException;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
+import java.util.Collection;
 
 /**
  * @author: Szczepan Faber, created at: 7/25/11
@@ -31,7 +34,7 @@ public class DefaultIdeaProject implements InternalIdeaProject {
     private String id;
     private String name;
     private String description;
-    private DomainObjectSet<? extends HierarchicalElement> children;
+    private DomainObjectSet<? extends IdeaModule> children;
     private String languageLevel;
     private String jdkName;
 
@@ -80,15 +83,6 @@ public class DefaultIdeaProject implements InternalIdeaProject {
         return this;
     }
 
-    public DomainObjectSet<? extends HierarchicalElement> getChildren() {
-        return children;
-    }
-
-    public DefaultIdeaProject setChildren(DomainObjectSet<? extends HierarchicalElement> children) {
-        this.children = children;
-        return this;
-    }
-
     public HierarchicalElement getParent() {
         return null;
     }
@@ -99,5 +93,14 @@ public class DefaultIdeaProject implements InternalIdeaProject {
 
     public String getPath() {
         throw new GradleException("This method should not be used.");
+    }
+
+    public DefaultIdeaProject setChildren(Collection<? extends IdeaModule> modules) {
+        this.children = new ImmutableDomainObjectSet(modules);
+        return this;
+    }
+
+    public DomainObjectSet<? extends IdeaModule> getChildren() {
+        return children;
     }
 }

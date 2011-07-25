@@ -20,10 +20,16 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
+import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
-import org.gradle.tooling.internal.DefaultIdeaProject;
+import org.gradle.tooling.internal.idea.DefaultIdeaModule;
+import org.gradle.tooling.internal.idea.DefaultIdeaProject;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
+
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author: Szczepan Faber, created at: 7/23/11
@@ -50,28 +56,23 @@ public class IdeaModelBuilder implements BuildsModel {
         IdeaModel ideaModel = project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProject projectModel = ideaModel.getProject();
 
-        DefaultIdeaProject newProject = new DefaultIdeaProject()
+        DefaultIdeaProject out = new DefaultIdeaProject()
             .setName(projectModel.getName())
             .setId(project.getPath())
             .setJdkName(projectModel.getJdkName())
             .setLanguageLevel(projectModel.getLanguageLevel().getFormatted());
 
+        Set<DefaultIdeaModule> modules = new LinkedHashSet<DefaultIdeaModule>();
+        for (IdeaModule module: projectModel.getModules()) {
+            buildModule(modules, module, out);
+        }
+        out.setChildren(modules);
 
-
-//        newProject.setJavaVersion(projectModel.getJavaVersion().toString());
-//        newProject.setLanguageLevel(projectModel.getLanguageLevel().getFormatted());
-//
-//        Set<DefaultIdeaModule> modules = new LinkedHashSet<DefaultIdeaModule>();
-//        for (IdeaModule module: projectModel.getModules()) {
-//            buildModule(modules, module, newProject);
-//        }
-//        newProject.setModules(new ImmutableDomainObjectSet<org.gradle.tooling.model.idea.IdeaModule>(modules));
-
-        return newProject;
+        return out;
     }
 
-//    private void buildModule(Collection<DefaultIdeaModule> modules, IdeaModule module, DefaultIdeaProject newProject) {
-//        DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule();
+    private void buildModule(Collection<DefaultIdeaModule> modules, IdeaModule module, DefaultIdeaProject newProject) {
+        DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule();
 //        defaultIdeaModule.setSourceDirectories(new LinkedList<File>(module.getSourceDirs()));
 //        defaultIdeaModule.setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()));
 //        defaultIdeaModule.setExcludeDirectories(new LinkedList<File>(module.getExcludeDirs()));
@@ -103,7 +104,7 @@ public class IdeaModelBuilder implements BuildsModel {
 //                defaultIdeaModule.setModuleDependencies(dependencies);
 //            }
 //        }
-//
-//        modules.add(defaultIdeaModule);
-//    }
+
+        modules.add(defaultIdeaModule);
+    }
 }
