@@ -105,9 +105,9 @@ public class DefaultIvyDependencyResolverTest {
             allowing(resolvedDependency2).getChildren();
             will(returnValue(toSet()));
             allowing(configurationStub).getAllDependencies();
-            will(returnValue(toSet(moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
+            will(returnValue(toDomainObjectSet(Dependency.class, moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
             allowing(configurationStub).getAllDependencies(ModuleDependency.class);
-            will(returnValue(toSet(moduleDependencyDummy1, moduleDependencyDummy2)));
+            will(returnValue(toDomainObjectSet(ModuleDependency.class, moduleDependencyDummy1, moduleDependencyDummy2)));
             allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
             will(returnValue(conversionResultStub));
             allowing(conversionResultStub).getFirstLevelResolvedDependencies();

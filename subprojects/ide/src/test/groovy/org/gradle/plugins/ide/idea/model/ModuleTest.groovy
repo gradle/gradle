@@ -43,7 +43,7 @@ class ModuleTest extends Specification {
         module.load(customModuleReader)
 
         then:
-        module.javaVersion == "1.6"
+        module.jdkName == "1.6"
         module.sourceFolders == customSourceFolders
         module.testSourceFolders == customTestSourceFolders
         module.excludeFolders == customExcludeFolders
@@ -58,7 +58,7 @@ class ModuleTest extends Specification {
         def constructorExcludeFolders = [path('c')] as Set
         def constructorInheritOutputDirs = false
         def constructorOutputDir = path('someOut')
-        def constructorJavaVersion = JavaVersion.VERSION_1_6
+        def constructorJavaVersion = JavaVersion.VERSION_1_6.toString()
         def constructorTestOutputDir = path('someTestOut')
         def constructorModuleDependencies = [
                 customDependencies[0],
@@ -75,7 +75,7 @@ class ModuleTest extends Specification {
         module.excludeFolders == customExcludeFolders + constructorExcludeFolders
         module.outputDir == constructorOutputDir
         module.testOutputDir == constructorTestOutputDir
-        module.javaVersion == constructorJavaVersion.toString()
+        module.jdkName == constructorJavaVersion.toString()
         module.dependencies == constructorModuleDependencies
     }
 
@@ -85,7 +85,7 @@ class ModuleTest extends Specification {
                 true, null, null, [] as Set, null)
 
         then:
-        module.javaVersion == Module.INHERITED
+        module.jdkName == Module.INHERITED
     }
 
     def loadDefaults() {
@@ -93,7 +93,7 @@ class ModuleTest extends Specification {
         module.loadDefaults()
 
         then:
-        module.javaVersion == Module.INHERITED
+        module.jdkName == Module.INHERITED
         module.inheritOutputDirs
         module.sourceFolders == [] as Set
         module.dependencies.size() == 0

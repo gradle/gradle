@@ -15,13 +15,15 @@
  */
 package org.gradle.api.internal
 
-class AutoCreateDomainObjectContainerDelegate {
+import org.gradle.api.NamedDomainObjectContainer
+
+class NamedDomainObjectContainerConfigureDelegate {
     private final Object owner;
-    private final AutoCreateDomainObjectContainer container;
+    private final NamedDomainObjectContainer container;
     private final DynamicObject delegate;
     private final ThreadLocal<Boolean> configuring = new ThreadLocal<Boolean>()
 
-    public AutoCreateDomainObjectContainerDelegate(Object owner, AutoCreateDomainObjectContainer container) {
+    public NamedDomainObjectContainerConfigureDelegate(Object owner, NamedDomainObjectContainer container) {
         this.container = container
         delegate = container.asDynamicObject
         this.owner = owner
@@ -46,7 +48,7 @@ class AutoCreateDomainObjectContainerDelegate {
             boolean isConfigureMethod = params.length == 1 && params[0] instanceof Closure
             if (isTopLevelCall && isConfigureMethod) {
                 // looks like a configure method - add the object and try the delegate again
-                container.add(name)
+                container.create(name)
             }
 
             return delegate.invokeMethod(name, params);
@@ -69,7 +71,7 @@ class AutoCreateDomainObjectContainerDelegate {
         }
 
         // try the delegate again
-        container.add(name)
+        container.create(name)
         return delegate.getProperty(name)
     }
 }

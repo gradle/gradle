@@ -35,6 +35,7 @@ import java.util.Set;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.Matchers.strictlyEqual;
 import static org.gradle.util.WrapUtil.toSet;
+import static org.gradle.util.WrapUtil.toDomainObjectSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -116,7 +117,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
             will(returnValue(projectConfigurationStub));
 
             allowing(projectConfigurationStub).getAllDependencies();
-            will(returnValue(toSet(projectSelfResolvingDependency, transitiveProjectDependencyStub)));
+            will(returnValue(toDomainObjectSet(Dependency.class, projectSelfResolvingDependency, transitiveProjectDependencyStub)));
 
             allowing(resolveContext).isTransitive();
             will(returnValue(true));

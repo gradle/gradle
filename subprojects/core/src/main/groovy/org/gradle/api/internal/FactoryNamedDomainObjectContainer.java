@@ -16,27 +16,28 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.Namer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.util.Instantiator;
 
-public class DefaultAutoCreateDomainObjectContainer<T> extends AutoCreateDomainObjectContainer<T> {
+public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {
     private final NamedDomainObjectFactory<T> factory;
 
-    public DefaultAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, NamedDomainObjectFactory<T> factory) {
-        super(type, classGenerator);
+    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, NamedDomainObjectFactory<T> factory) {
+        super(type, classGenerator, namer);
         this.factory = factory;
     }
 
-    public DefaultAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator) {
-        this(type, classGenerator, new DefaultConstructorObjectFactory<T>(type));
+    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer) {
+        this(type, classGenerator, namer, new DefaultConstructorObjectFactory<T>(type));
     }
-    
-    public DefaultAutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, final Closure factoryClosure) {
-        this(type, classGenerator, new ClosureObjectFactory<T>(type, factoryClosure));
+
+    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, final Closure factoryClosure) {
+        this(type, classGenerator, namer, new ClosureObjectFactory<T>(type, factoryClosure));
     }
 
     @Override
-    protected T create(String name) {
+    protected T doCreate(String name) {
         return factory.create(name);
     }
 

@@ -18,16 +18,14 @@ package org.gradle.initialization
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.StartParameter
+import org.gradle.api.internal.GradleInternal
+import org.gradle.configuration.ScriptPlugin
+import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
-import org.gradle.groovy.scripts.*
-
-import static org.junit.Assert.*
-import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.configuration.ScriptPlugin
-import org.gradle.api.internal.GradleInternal
+import static org.junit.Assert.assertSame
 
 /**
  * @author Hans Dockter
@@ -51,16 +49,15 @@ class ScriptEvaluatingSettingsProcessorTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE)
         configurerFactoryMock = context.mock(ScriptPluginFactory)
         settingsFactory = context.mock(SettingsFactory)
-        settingsProcessor = new ScriptEvaluatingSettingsProcessor(configurerFactoryMock, settingsFactory)
+        propertiesLoaderMock = context.mock(IGradlePropertiesLoader)
+        settingsProcessor = new ScriptEvaluatingSettingsProcessor(configurerFactoryMock, settingsFactory, propertiesLoaderMock)
         expectedSettingsFinder = new DefaultSettingsFinder()
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
         expectedStartParameter = new StartParameter()
         expectedGradleProperties = [a: 'b']
-        propertiesLoaderMock = [getGradleProperties: { expectedGradleProperties }] as IGradlePropertiesLoader
         urlClassLoader = new URLClassLoader(new URL[0]);
         initExpectedSettings()
     }
@@ -85,13 +82,14 @@ class ScriptEvaluatingSettingsProcessorTest {
         context.checking {
             one(configurerFactoryMock).create(scriptSourceMock)
             will(returnValue(configurerMock))
-
+            one(propertiesLoaderMock).mergeProperties([:])
+            will(returnValue(expectedGradleProperties))
             one(configurerMock).setClassLoader(urlClassLoader)
             one(configurerMock).setScriptBaseClass(SettingsScript)
             one(configurerMock).apply(expectedSettings)
         }
         
         SettingsLocation settingsLocation = new SettingsLocation(TEST_ROOT_DIR, scriptSourceMock)
-        assertSame(expectedSettings, settingsProcessor.process(gradleMock, settingsLocation, urlClassLoader, expectedStartParameter, propertiesLoaderMock))
+        assertSame(expectedSettings, settingsProcessor.process(gradleMock, settingsLocation, urlClassLoader, expectedStartParameter))
     }
 }

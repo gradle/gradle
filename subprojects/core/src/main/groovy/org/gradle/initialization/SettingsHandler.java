@@ -41,15 +41,15 @@ public class SettingsHandler {
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle, IGradlePropertiesLoader gradlePropertiesLoader) {
+    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
-        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter, gradlePropertiesLoader);
+        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);
         if (!startParameter.getDefaultProjectSelector().containsProject(settings.getProjectRegistry())) {
             // The settings we found did not include the desired default project. Try again with an empty settings file.
 
             StartParameter noSearchParameter = startParameter.newInstance();
             noSearchParameter.setSettingsScriptSource(new StringScriptSource("empty settings file", ""));
-            settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, gradlePropertiesLoader);
+            settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
             if (settings == null) // not using an assert to make sure it is not disabled
             {
                 throw new InternalError("Empty settings file does not contain expected project.");
@@ -73,8 +73,7 @@ public class SettingsHandler {
      * loaded (executed), then a null is returned.
      */
     private SettingsInternal findSettingsAndLoadIfAppropriate(GradleInternal gradle,
-                                                              StartParameter startParameter,
-                                                              IGradlePropertiesLoader gradlePropertiesLoader) {
+                                                              StartParameter startParameter) {
         SettingsLocation settingsLocation = findSettings(startParameter);
 
         // We found the desired settings file, now build the associated buildSrc before loading settings.  This allows
@@ -84,7 +83,7 @@ public class SettingsHandler {
                 BaseSettings.DEFAULT_BUILD_SRC_DIR));
         URLClassLoader buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
-        return loadSettings(gradle, settingsLocation, buildSourceClassLoader, startParameter, gradlePropertiesLoader);
+        return loadSettings(gradle, settingsLocation, buildSourceClassLoader, startParameter);
     }
 
     private SettingsLocation findSettings(StartParameter startParameter) {
@@ -92,10 +91,8 @@ public class SettingsHandler {
     }
 
     private SettingsInternal loadSettings(GradleInternal gradle, SettingsLocation settingsLocation,
-                                          URLClassLoader buildSourceClassLoader, StartParameter startParameter,
-                                          IGradlePropertiesLoader gradlePropertiesLoader) {
-        return settingsProcessor.process(gradle, settingsLocation, buildSourceClassLoader, startParameter,
-                gradlePropertiesLoader);
+                                          URLClassLoader buildSourceClassLoader, StartParameter startParameter) {
+        return settingsProcessor.process(gradle, settingsLocation, buildSourceClassLoader, startParameter);
     }
 }
 

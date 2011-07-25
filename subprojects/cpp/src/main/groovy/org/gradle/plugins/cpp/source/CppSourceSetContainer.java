@@ -18,12 +18,12 @@ package org.gradle.plugins.cpp.source;
 import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * A {@code CppSourceSetContainer} manages a set of {@link CppSourceSet} objects.
  */
-public interface CppSourceSetContainer extends NamedDomainObjectContainer<CppSourceSet>, NamedDomainObjectCollection<CppSourceSet> {
+public interface CppSourceSetContainer extends NamedDomainObjectContainer<CppSourceSet>, NamedDomainObjectSet<CppSourceSet> {
     /**
      * Adds a source set with the given name.
      *
@@ -31,7 +31,7 @@ public interface CppSourceSetContainer extends NamedDomainObjectContainer<CppSou
      * @return The newly added source set.
      * @throws org.gradle.api.InvalidUserDataException when a source set with the given name already exists in this container.
      */
-    CppSourceSet add(String name) throws InvalidUserDataException;
+    CppSourceSet create(String name) throws InvalidUserDataException;
 
     /**
      * Adds a source set with the given name. The given configuration closure is executed against the source set
@@ -42,7 +42,7 @@ public interface CppSourceSetContainer extends NamedDomainObjectContainer<CppSou
      * @return The newly added source set.
      * @throws InvalidUserDataException when a source set with the given name already exists in this container.
      */
-    CppSourceSet add(String name, Closure configureClosure) throws InvalidUserDataException;
+    CppSourceSet create(String name, Closure configureClosure) throws InvalidUserDataException;
 
     /**
      * Configures the source sets of this container.

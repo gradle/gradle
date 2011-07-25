@@ -136,7 +136,7 @@ class BasePlugin implements Plugin<Project> {
                     description
                 },
                 apply: {String taskName ->
-                    Set<Configuration> configurations = project.configurations.all
+                    Set<Configuration> configurations = project.configurations
                     for (Configuration configuration: configurations) {
                         if (taskName == configuration.uploadTaskName) {
                             createUploadTask(configuration.uploadTaskName, configuration, project)

@@ -18,7 +18,6 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectCollection;
 
 /**
  * <p>A {@code ConfigurationContainer} is responsible for managing a set of {@link Configuration} instances.</p>
@@ -46,7 +45,7 @@ import org.gradle.api.NamedDomainObjectCollection;
  *
  * @author Hans Dockter
  */
-public interface ConfigurationContainer extends NamedDomainObjectContainer<Configuration>, NamedDomainObjectCollection<Configuration> {
+public interface ConfigurationContainer extends NamedDomainObjectContainer<Configuration> {
     /**
      * {@inheritDoc}
      */

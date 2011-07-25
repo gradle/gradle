@@ -24,7 +24,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 
 import org.jmock.Expectations;
@@ -33,6 +33,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.util.Set;
+import java.util.Collection;
 
 /**
  * @author Hans Dockter
@@ -109,12 +110,12 @@ public class DefaultConfigurationContainerTest {
         expectConfigurationCreated(TEST_NAME + "delta");
         Configuration configuration = configurationContainer.add(TEST_NAME);
         configurationContainer.add(TEST_NAME + "delta");
-        Set<Configuration> result = configurationContainer.findAll(new Spec<Configuration>() {
+        Collection<Configuration> result = configurationContainer.findAll(new Spec<Configuration>() {
             public boolean isSatisfiedBy(Configuration element) {
                 return element.getName().equals(TEST_NAME);
             }
         });
-        assertThat(result, equalTo(WrapUtil.toSet(configuration)));
+        assertThat(toList(result), equalTo(toList(toSet(configuration))));
     }
 
     @Test
@@ -123,7 +124,7 @@ public class DefaultConfigurationContainerTest {
         expectConfigurationCreated(TEST_NAME + "delta");
         Configuration configuration1 = configurationContainer.add(TEST_NAME);
         Configuration configuration2 = configurationContainer.add(TEST_NAME + "delta");
-        assertThat(configurationContainer.getAll(), equalTo(WrapUtil.toSet(configuration1, configuration2)));
+        assertThat(toList(configurationContainer), equalTo(toList(configuration1, configuration2)));
     }
 
     @Test
@@ -133,10 +134,10 @@ public class DefaultConfigurationContainerTest {
 
         Configuration detachedConf = configurationContainer.detachedConfiguration(dependency1, dependency2);
 
-        assertThat(detachedConf.getAll(), equalTo(WrapUtil.toSet(detachedConf)));
-        assertThat(detachedConf.getHierarchy(), equalTo(WrapUtil.<Configuration>toSet(detachedConf)));
-        assertThat(detachedConf.getDependencies(), equalTo(WrapUtil.toSet(dependency1, dependency2)));
-        assertNotSameInstances(detachedConf.getDependencies(), WrapUtil.toSet(dependency1, dependency2));
+        assertThat(toList(detachedConf.getAll()), equalTo(toList(toSet(detachedConf))));
+        assertThat(toList(detachedConf.getHierarchy()), equalTo(toList(toSet(detachedConf))));
+        assertThat(detachedConf.getDependencies(), equalTo(toSet(dependency1, dependency2)));
+        assertNotSameInstances(detachedConf.getDependencies(), toSet(dependency1, dependency2));
     }
 
     private void expectConfigurationCreated(final String name) {

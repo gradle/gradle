@@ -16,20 +16,20 @@
 package org.gradle.plugins.cpp.built;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * A {@code CppLibraryContainer} manages a set of {@link CppLibrary} objects.
  */
-public interface CppLibraryContainer extends NamedDomainObjectCollection<CppLibrary> {
+public interface CppLibraryContainer extends NamedDomainObjectSet<CppLibrary> {
 
     /**
      * Adds a library.
      *
      * @param library The library to add to this collection.
-     * @return The added library.
+     * @return whether or not the library was successfully added.
      * @throws org.gradle.api.InvalidUserDataException when a library with the given name already exists in this container.
      */
-    CppLibrary add(CppLibrary library) throws InvalidUserDataException;
+    boolean add(CppLibrary library) throws InvalidUserDataException;
 
 }

@@ -133,8 +133,65 @@
             Groovy closure delegate feature. This technique is possible in other JVM languages but may not be as convenient 
             as in Groovy. 
         </para>
+        
+        <section>
+            <title>Using conventions for default values</title>
+            <para>
+                The convention mechanism is also a powerful way of declaring default values for objects such as tasks. Furthermore, these default values
+                can be specified in terms of other properties.
+            </para>
+            <sample id="conventionTaskWithProperty" dir="userguide/tasks/customTaskUsingConvention" title="A task with a configuration property">
+                <sourcefile file="build.gradle" snippet="task"/>
+            </sample>
+            <para>
+                Given the above task, we can wire in a default value for the <literal>greeting</literal> property that is any value. In this case we defer
+                to a project property of the same name.
+            </para>
+            <sample id="customTaskApplyingConventionInPlugin" dir="userguide/tasks/customTaskUsingConvention" title="Wiring in the task property default value with conventions">
+                <sourcefile file="build.gradle" snippet="plugin"/>
+            </sample>
+            <para>
+                By using the convention mapping above to map the value of the project property <literal>greeting</literal> as the value for the 
+                <literal>greeting</literal> property on all <literal>GreetingTask</literal> tasks, we have effectively configured this as the default value.
+                That is, individual tasks can be overridden in such a way to override this default.
+            </para>
+            <sample id="customTaskWithConventionUsage" dir="userguide/tasks/customTaskUsingConvention" title="Overriding conventional defaults">
+                <sourcefile file="build.gradle" snippet="tasks"/>
+            </sample>
+            <para>
+                In the above, the <literal>hello</literal> task will assume the default value, while <literal>bonjour</literal> overrides this explicitly.
+            </para>
+            <sample id="customTaskWithConventionOutput" dir="userguide/tasks/customTaskUsingConvention" title="Conventional defaults in action">
+                <output args="-q hello bonjour"/>
+            </sample>
+            <para>
+                Note that the convention mapping is “live” in that the convention mapping closure will be evaluated everytime that the value is requested.
+                In this example this means that the default value for the task property will always be the value of <literal>project.greeting</literal>, 
+                no matter when or how it changes.
+            </para>
+        </section>
+        
     </section>
 
+    <section>
+        <title>Working with files in custom tasks and plugins</title>
+        <para>
+            When developing custom tasks and plugins, it's a good idea to be very flexible when accepting input configuration for file locations.
+            To do this, you can leverage the <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method to resolve values to files as late as possible.
+        </para>
+        <sample id="lazyFileProperties" dir="userguide/tasks/customTaskWithFileProperty" title="Evaluating file properties lazily">
+            <sourcefile file="build.gradle"/>
+            <output args="-q sayGreeting"/>
+        </sample>
+        <para>
+            In this example, we configure the <literal>greet</literal> task <literal>destination</literal> property as a closure, which is evaluated with
+            the <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method to turn the return value of the closure into a file object
+            at the last minute. You will notice that in the above example we specify the <literal>greetingFile</literal> property value after we have 
+            configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then 
+            resolving that value when reading the property.
+        </para>
+    </section>
+    
     <section>
         <title>A standalone project</title>
         <para>Now we will move our plugin to a standalone project, so we can publish it and share it with others.
@@ -192,5 +249,12 @@
             <sourcefile file="build.gradle"/>
             <output args="-q books"/>
         </sample>
+        <para>
+            The <apilink class="org.gradle.api.Project" method="container(java.lang.Class)"/> methods create instances of <apilink class="org.gradle.api.NamedDomainObjectContainer"/>, that have many useful methods for managing and configuring the objects. In order
+            to use a type with any of the <literal>project.container</literal> methods, it MUST expose a property named “<literal>name</literal>”
+            as the unique, and constant, name for the object. The <literal>project.container(Class)</literal> variant of the container method creates 
+            new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. 
+            See the above link for <literal>project.container</literal> method variants taht allow custom instantiation strategies.
+        </para>
     </section>
 </chapter>

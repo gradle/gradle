@@ -15,21 +15,17 @@
  */
 package org.gradle.plugins.cpp.built.internal;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
+import org.gradle.api.Namer;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.ClassGenerator;
 
 import org.gradle.plugins.cpp.built.CppLibrary;
 import org.gradle.plugins.cpp.built.CppLibraryContainer;
 
-public class DefaultCppLibraryContainer extends DefaultNamedDomainObjectContainer<CppLibrary> implements CppLibraryContainer {
+public class DefaultCppLibraryContainer extends DefaultNamedDomainObjectSet<CppLibrary> implements CppLibraryContainer {
 
     public DefaultCppLibraryContainer(ClassGenerator classGenerator) {
-        super(CppLibrary.class, classGenerator);
+        super(CppLibrary.class, classGenerator,  new Namer<CppLibrary>() { public String determineName(CppLibrary l) { return l.getName(); }});
     }
-    
-    public CppLibrary add(CppLibrary library) throws InvalidUserDataException {
-        addObject(library.getName(), library);
-        return library;
-    }
+
 }

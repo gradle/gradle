@@ -108,7 +108,7 @@ class IdeaPlugin extends IdePlugin {
                 model.project = ideaProject
 
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
-                ideaProject.conventionMapping.javaVersion = { JavaVersion.VERSION_1_6 }
+                ideaProject.conventionMapping.jdkName = { JavaVersion.VERSION_1_6.toString() }
                 ideaProject.conventionMapping.languageLevel = { new IdeaLanguageLevel(JavaVersion.VERSION_1_6) }
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.conventionMapping.modules = {
@@ -132,9 +132,9 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaProjectForJava(Project project) {
         if (isRoot(project)) {
-            project.idea.project.conventionMapping.javaVersion   = { project.sourceCompatibility }
+            project.idea.project.conventionMapping.jdkName   = { project.sourceCompatibility.toString() }
             project.idea.project.conventionMapping.languageLevel = {
-                new IdeaLanguageLevel(project.idea.project.javaVersion)
+                new IdeaLanguageLevel(project.sourceCompatibility)
             }
         }
     }

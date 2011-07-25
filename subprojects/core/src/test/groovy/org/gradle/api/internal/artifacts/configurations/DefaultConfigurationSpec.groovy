@@ -50,11 +50,11 @@ class DefaultConfigurationSpec extends Specification {
         def c = conf()
         
         when:
-        c.addArtifact(artifact())
-        c.addArtifact(artifact())
+        c.artifacts << artifact()
+        c.artifacts << artifact()
         
         then:
-        c.allArtifactsCollection.all.size() == 2
+        c.allArtifacts.size() == 2
     }
 
     def "all artifacts collection has inherited artifacts"() {
@@ -73,7 +73,7 @@ class DefaultConfigurationSpec extends Specification {
         def masterParent2Parent2 = conf()
         masterParent2.extendsFrom masterParent2Parent1, masterParent2Parent2
         
-        def allArtifacts = master.allArtifactsCollection
+        def allArtifacts = master.allArtifacts
         
         def added = []
         allArtifacts.whenObjectAdded { added << it.name }
@@ -81,25 +81,25 @@ class DefaultConfigurationSpec extends Specification {
         allArtifacts.whenObjectRemoved { removed << it.name }
         
         expect:
-        allArtifacts.all.empty
+        allArtifacts.empty
         
         when:
-        masterParent1.addArtifact(artifact("p1-1"))
-        masterParent1Parent1.addArtifact(artifact("p1p1-1"))
-        masterParent1Parent2.addArtifact(artifact("p1p2-1"))
-        masterParent2.addArtifact(artifact("p2-1"))
-        masterParent2Parent1.addArtifact(artifact("p2p1-1"))
-        masterParent2Parent2.addArtifact(artifact("p2p2-1"))
+        masterParent1.artifacts << artifact("p1-1")
+        masterParent1Parent1.artifacts << artifact("p1p1-1")
+        masterParent1Parent2.artifacts << artifact("p1p2-1")
+        masterParent2.artifacts << artifact("p2-1")
+        masterParent2Parent1.artifacts << artifact("p2p1-1")
+        masterParent2Parent2.artifacts << artifact("p2p2-1")
         
         then:
-        allArtifacts.all.size() == 6
+        allArtifacts.size() == 6
         added == ["p1-1", "p1p1-1", "p1p2-1", "p2-1", "p2p1-1", "p2p2-1"]
         
         when:
         masterParent2Parent2.removeArtifact masterParent2Parent2.artifacts.toList().first()
         
         then:
-        allArtifacts.all.size() == 5
+        allArtifacts.size() == 5
         removed == ["p2p2-1"]
         
         when:
@@ -107,7 +107,7 @@ class DefaultConfigurationSpec extends Specification {
         masterParent1.extendsFrom = []
         
         then:
-        allArtifacts.all.size() == 3
+        allArtifacts.size() == 3
         removed == ["p1p1-1", "p1p2-1"]
     }
     

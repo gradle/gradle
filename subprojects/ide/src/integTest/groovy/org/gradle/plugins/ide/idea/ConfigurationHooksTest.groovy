@@ -64,7 +64,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 ideaModule {
-    whenConfigured { it.javaVersion = '1.44' }
+    whenConfigured { it.jdkName = '1.44' }
 }
 ideaProject {
     whenConfigured { it.wildcards += '!?*.ruby' }

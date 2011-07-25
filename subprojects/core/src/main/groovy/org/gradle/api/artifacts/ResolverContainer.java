@@ -17,10 +17,10 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.util.Configurable;
 
 import java.io.File;
 import java.util.List;
@@ -52,7 +52,7 @@ import java.util.List;
  *
  * @author Hans Dockter
  */
-public interface ResolverContainer extends NamedDomainObjectContainer<DependencyResolver>, NamedDomainObjectCollection<DependencyResolver> {
+public interface ResolverContainer extends NamedDomainObjectSet<DependencyResolver>, Configurable<ResolverContainer> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
@@ -65,14 +65,14 @@ public interface ResolverContainer extends NamedDomainObjectContainer<Dependency
     String RESOLVER_URL = "url";
 
     /**
-     * Delegates to {@link addLast(Object)}.
+     * Delegates to {@link #addLast(Object)}.
      */
-    DependencyResolver add(DependencyResolver resolver);
+    boolean add(DependencyResolver resolver);
 
     /**
-     * Delegates to {@link addLast(Object,Closure)}.
+     * Delegates to {@link #addLast(Object,Closure)}.
      */
-    DependencyResolver add(DependencyResolver resolver, Closure configureClosure);
+    boolean add(DependencyResolver resolver, Closure configureClosure);
 
     /**
      * Adds a resolver to this container, at the end of the resolver sequence. The given {@code userDescription} can be

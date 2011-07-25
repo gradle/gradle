@@ -24,7 +24,7 @@ import org.gradle.api.specs.Spec;
  *
  * @param <T> The type of tasks which this collection contains.
  */
-public interface TaskCollection<T extends Task> extends NamedDomainObjectCollection<T> {
+public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> {
 
     /**
      * {@inheritDoc}

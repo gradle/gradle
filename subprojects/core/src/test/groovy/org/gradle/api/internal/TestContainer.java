@@ -15,14 +15,15 @@
  */
 package org.gradle.api.internal;
 
-public class TestContainer extends AutoCreateDomainObjectContainer<TestObject> {
+public class TestContainer extends AbstractNamedDomainObjectContainer<TestObject> {
 
     public TestContainer(ClassGenerator classGenerator) {
-        super(TestObject.class, classGenerator);
+        super(TestObject.class, classGenerator, new DynamicPropertyNamer());
     }
 
-    protected TestObject create(String name) {
+    protected TestObject doCreate(String name) {
         TestObject testObject = new TestObject();
+        testObject.setName(name);
         testObject.add(name);
         return testObject;
     }

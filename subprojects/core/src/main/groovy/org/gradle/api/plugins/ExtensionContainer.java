@@ -18,8 +18,6 @@ package org.gradle.api.plugins;
 
 /**
  * Allows adding 'namespaced' DSL extensions to the object.
- *
- * //TODO SF - should be called 'Extendable'?
  */
 public interface ExtensionContainer {
 
@@ -32,7 +30,36 @@ public interface ExtensionContainer {
      * @param extension Any object whose methods and properties will extend the target object
      */
     void add(String name, Object extension);
-    //TODO SF the method name is wrong. It should be 'put' or 'setExtension'
 
-    //TODO SF - add the method to get extension!
+    /**
+     * Looks for the extension of a given type (useful to avoid casting). If none find it will throw an exception.
+     *
+     * @param type extension type
+     * @return extension, never null
+     */
+    <T> T getByType(Class<T> type);
+
+    /**
+     * Looks for the extension of a given type (useful to avoid casting). If none find null is returned.
+     *
+     * @param type extension type
+     * @return extension or null
+     */
+    <T> T findByType(Class<T> type);
+
+    /**
+     * Looks for the extension of a given name. If none find it will throw an exception.
+     *
+     * @param name extension name
+     * @return extension, never null
+     */
+    Object getByName(String name);
+
+    /**
+     * Looks for the extension of a given name. If none find null is returned.
+     *
+     * @param name extension name
+     * @return extension or null
+     */
+    Object findByName(String name);
 }

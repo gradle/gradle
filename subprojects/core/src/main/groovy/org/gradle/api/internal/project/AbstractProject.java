@@ -627,7 +627,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         final Map<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
         Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
-                foundTargets.put(project, new TreeSet<Task>(project.getTasks().getAll()));
+                foundTargets.put(project, new TreeSet<Task>(project.getTasks()));
             }
         };
         if (recursive) {
@@ -933,17 +933,17 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
         ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
-        return classGenerator.newInstance(DefaultAutoCreateDomainObjectContainer.class, type, classGenerator);
+        return classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, type, classGenerator, new DynamicPropertyNamer());
     }
 
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
         ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
-        return classGenerator.newInstance(DefaultAutoCreateDomainObjectContainer.class, type, classGenerator, factory);
+        return classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, type, classGenerator, new DynamicPropertyNamer(), factory);
     }
 
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
-        return classGenerator.newInstance(DefaultAutoCreateDomainObjectContainer.class, type, classGenerator, factoryClosure);
+        return classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, type, classGenerator, new DynamicPropertyNamer(), factoryClosure);
     }
 
     public ExtensionContainer getExtensions() {

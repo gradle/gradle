@@ -38,7 +38,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private final GradleInternal gradle;
     private final SettingsHandler settingsHandler;
-    private final IGradlePropertiesLoader gradlePropertiesLoader;
     private final BuildLoader buildLoader;
     private final BuildConfigurer buildConfigurer;
     private final ExceptionAnalyser exceptionAnalyser;
@@ -51,13 +50,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
      * #newInstance(String...)} instead.  Note that this method is package-protected to discourage it's direct use.
      */
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
-                                 IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
-                                 BuildConfigurer buildConfigurer, BuildListener buildListener,
+                                 BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
                                  ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
-        this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
         this.exceptionAnalyser = exceptionAnalyser;
@@ -130,11 +127,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
         initScriptHandler.executeScripts(gradle);
 
         // Evaluate settings script
-        SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle, gradlePropertiesLoader);
+        SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
         buildListener.settingsEvaluated(settings);
 
         // Load build
-        buildLoader.load(settings.getRootProject(), gradle, gradlePropertiesLoader.getGradleProperties());
+        buildLoader.load(settings.getRootProject(), gradle);
         buildListener.projectsLoaded(gradle);
 
         // Configure build

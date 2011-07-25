@@ -15,6 +15,8 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import java.util.*;
 
 /**
@@ -29,6 +31,13 @@ public class WrapUtil {
         Set<T> coll = new HashSet<T>();
         Collections.addAll(coll, items);
         return coll;
+    }
+
+    /**
+     * Wraps the given items in a mutable domain object set.
+     */
+    public static <T> DomainObjectSet<T> toDomainObjectSet(Class<T> type, T... items) {
+        return new DefaultDomainObjectSet<T>(type, toSet(items));
     }
 
     /**
@@ -116,5 +125,9 @@ public class WrapUtil {
 
     public static <T> T[] toArray(T... items) {
         return items;
+    }
+    
+    public static <T> Set<T> asSet(Collection<T> c) {
+        return new LinkedHashSet<T>(c);
     }
 }

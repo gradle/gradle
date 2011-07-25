@@ -60,6 +60,10 @@ abstract class BasicScript extends org.gradle.groovy.scripts.Script implements o
         }
     }
 
+    def getProperties() {
+        return target.getProperties()
+    }
+
     def hasProperty(String property) {
         target.hasProperty(property)
     }

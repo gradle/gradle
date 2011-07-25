@@ -44,25 +44,6 @@ sourceCompatibility = 1.4
         assert ipr.contains('languageLevel="JDK_1_4"')
     }
 
-
-    @Issue("GRADLE-1011")
-    @Test
-    void "language level should be driven by java version"() {
-        //when
-        runTask('idea', '''
-apply plugin: "java"
-apply plugin: "idea"
-
-idea.project.javaVersion = 1.4
-''')
-
-        //then
-        def ipr = getFile([:], 'root.ipr').text
-
-        assert ipr.contains('project-jdk-name="1.4"')
-        assert ipr.contains('languageLevel="JDK_1_4"')
-    }
-
     @Test
     void "allows configuring the language level"() {
         //when
@@ -71,7 +52,7 @@ apply plugin: "java"
 apply plugin: "idea"
 
 idea.project {
-    javaVersion   = 1.6
+    jdkName   = 1.6
     languageLevel = 1.5
 }
 ''')
@@ -94,7 +75,7 @@ allprojects {
 
 idea {
     project {
-        javaVersion = '1.3'
+        jdkName = '1.3'
         wildcards += '!?*.ruby'
 
         //let's remove one of the subprojects from generation:

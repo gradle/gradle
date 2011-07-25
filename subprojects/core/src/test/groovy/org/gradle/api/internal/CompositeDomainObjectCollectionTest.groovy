@@ -24,8 +24,8 @@ class CompositeDomainObjectCollectionTest extends Specification {
     Class type = String
 
     protected collection(Object... entries) {
-        def collection = new MutableDomainObjectContainer(type)
-        entries.each { collection.addObject(it) }
+        def collection = new DefaultDomainObjectCollection(type, new LinkedHashSet())
+        entries.each { collection.add(it) }
         collection
     }
 
@@ -35,17 +35,17 @@ class CompositeDomainObjectCollectionTest extends Specification {
 
     def "empty composite contains no elements"() {
         expect:
-        composite().all.empty
+        composite().empty
     }
 
     def "composite containing one collection"() {
         expect:
-        composite(collection("a", "b")).all.toList() == ["a", "b"]
+        composite(collection("a", "b")).toList() == ["a", "b"]
     }
 
     def "composite containing two collections"() {
         expect:
-        composite(collection("a", "b"), collection("c", "d")).all.toList() == ["a", "b", "c", "d"]
+        composite(collection("a", "b"), collection("c", "d")).toList() == ["a", "b", "c", "d"]
     }
 
     def "combined collection contains additions and removals"() {
@@ -55,14 +55,14 @@ class CompositeDomainObjectCollectionTest extends Specification {
         def composite = composite(component1, component2)
 
         expect:
-        composite.all.toList() == ["a", "b", "c", "d"]
+        composite.toList() == ["a", "b", "c", "d"]
 
         when:
-        component1.addObject("e")
-        component2.removeObject("d")
+        component1.add("e")
+        component2.remove("d")
 
         then:
-        composite.all.toList() == ["a", "b", "e", "c"]
+        composite.toList() == ["a", "b", "e", "c"]
     }
 
     def "all action called for all existing items"() {
@@ -91,8 +91,8 @@ class CompositeDomainObjectCollectionTest extends Specification {
         calledFor == ["a", "b"]
 
         when:
-        component1.addObject("c")
-        component2.addObject("d")
+        component1.add("c")
+        component2.add("d")
 
         then:
         calledFor == ["a", "b", "c", "d"]
@@ -112,8 +112,8 @@ class CompositeDomainObjectCollectionTest extends Specification {
         calledFor == []
 
         when:
-        component1.addObject("c")
-        component2.addObject("d")
+        component1.add("c")
+        component2.add("d")
 
         then:
         calledFor == ["c", "d"]
@@ -153,8 +153,8 @@ class CompositeDomainObjectCollectionTest extends Specification {
         calledFor == []
 
         when:
-        component1.removeObject("b")
-        component2.removeObject("d")
+        component1.remove("b")
+        component2.remove("d")
 
         then:
         calledFor == ["b", "d"]
@@ -168,31 +168,31 @@ class CompositeDomainObjectCollectionTest extends Specification {
         def filtered = composite.matching { it > "d" }
 
         expect:
-        filtered.all.toList() == ["j", "k"]
+        filtered.toList() == ["j", "k"]
 
         when:
-        component1.addObject("c")
-        component1.addObject("l")
-        component2.addObject("d")
-        component2.addObject("m")
+        component1.add("c")
+        component1.add("l")
+        component2.add("d")
+        component2.add("m")
 
         then:
-        filtered.all.toList() == ["j", "l", "k", "m"]
+        filtered.toList() == ["j", "l", "k", "m"]
 
         when:
-        component1.removeObject("c")
-        component1.removeObject("l")
-        component2.removeObject("d")
-        component2.removeObject("m")
+        component1.remove("c")
+        component1.remove("l")
+        component2.remove("d")
+        component2.remove("m")
 
         then:
-        filtered.all.toList() == ["j", "k"]
+        filtered.toList() == ["j", "k"]
 
         when:
         composite.addCollection collection("c", "e")
 
         then:
-        filtered.all.toList() == ["j", "k", "e"]
+        filtered.toList() == ["j", "k", "e"]
     }
 
     def "filtered collection callbacks live"() {
@@ -211,10 +211,10 @@ class CompositeDomainObjectCollectionTest extends Specification {
 
         when:
         calledFor.clear()
-        component1.addObject("c")
-        component1.addObject("l")
-        component2.addObject("d")
-        component2.addObject("m")
+        component1.add("c")
+        component1.add("l")
+        component2.add("d")
+        component2.add("m")
 
         then:
         calledFor == ["l", "m"]
@@ -224,10 +224,10 @@ class CompositeDomainObjectCollectionTest extends Specification {
 
         and:
         filtered.whenObjectRemoved { calledFor << it }
-        component1.removeObject("c")
-        component1.removeObject("l")
-        component2.removeObject("d")
-        component2.removeObject("m")
+        component1.remove("c")
+        component1.remove("l")
+        component2.remove("d")
+        component2.remove("m")
 
         then:
         calledFor == ["l", "m"]
@@ -255,7 +255,7 @@ class CompositeDomainObjectCollectionTest extends Specification {
         def calledFor = []
         
         expect:
-        superComposite.all.toList() == ["a", "b", "c", "d"]
+        superComposite.toList() == ["a", "b", "c", "d"]
         
         when:
         superComposite.all { calledFor << it }
@@ -265,32 +265,32 @@ class CompositeDomainObjectCollectionTest extends Specification {
         
         when:
         calledFor.clear()
-        component1.addObject("j")
-        component2.addObject("k")
-        component3.addObject("l")
-        component4.addObject("m")
+        component1.add("j")
+        component2.add("k")
+        component3.add("l")
+        component4.add("m")
         
         then:
         calledFor == ["j", "k", "l", "m"]
         
         and:
-        superComposite.all.toList() == ["a", "j", "b", "k", "c", "l", "d", "m"]
+        superComposite.toList() == ["a", "j", "b", "k", "c", "l", "d", "m"]
         
         when:
         superComposite.whenObjectRemoved { calledFor << it }
         
         and:
         calledFor.clear()
-        component1.removeObject("j")
-        component2.removeObject("k")
-        component3.removeObject("l")
-        component4.removeObject("m")
+        component1.remove("j")
+        component2.remove("k")
+        component3.remove("l")
+        component4.remove("m")
         
         then:
         calledFor == ["j", "k", "l", "m"]
         
         and:
-        superComposite.all.toList() == ["a", "b", "c", "d"]
+        superComposite.toList() == ["a", "b", "c", "d"]
     }
     
     def "filtered composite of composites is live"() {
@@ -307,24 +307,24 @@ class CompositeDomainObjectCollectionTest extends Specification {
         def filtered = superComposite.matching { it < "g" }
         
         expect:
-        filtered.all.toList() == ["a", "b"]
+        filtered.toList() == ["a", "b"]
 
         when:
-        component1.addObject("j")
-        component2.addObject("k")
-        component3.addObject("c")
-        component4.addObject("d")
+        component1.add("j")
+        component2.add("k")
+        component3.add("c")
+        component4.add("d")
         
         then:
-        filtered.all.toList() == ["a", "b", "c", "d"]
+        filtered.toList() == ["a", "b", "c", "d"]
         
         when:
-        component1.removeObject("j")
-        component2.removeObject("k")
-        component3.removeObject("c")
-        component4.removeObject("d")
+        component1.remove("j")
+        component2.remove("k")
+        component3.remove("c")
+        component4.remove("d")
         
         then:
-        filtered.all.toList() == ["a", "b"]
+        filtered.toList() == ["a", "b"]
     }
 }

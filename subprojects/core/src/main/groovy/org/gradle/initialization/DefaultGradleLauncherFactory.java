@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
-import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.Logging;
@@ -134,10 +133,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                                 this,
                                 serviceRegistry.get(ClassLoaderRegistry.class),
                                 serviceRegistry.get(CacheRepository.class))),
-                new DefaultGradlePropertiesLoader(),
-                new BuildLoader(
-                        serviceRegistry.get(IProjectFactory.class)
-                ),
+                serviceRegistry.get(BuildLoader.class),
                 serviceRegistry.get(BuildConfigurer.class),
                 gradle.getBuildListenerBroadcaster(),
                 serviceRegistry.get(ExceptionAnalyser.class),

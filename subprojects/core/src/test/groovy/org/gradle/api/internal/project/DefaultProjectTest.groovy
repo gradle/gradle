@@ -159,11 +159,11 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(StandardOutputCapture); will(returnValue(context.mock(StandardOutputCapture)))
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
-            allowing(serviceRegistryMock).get(FileResolver); will(returnValue([:] as FileResolver))
+            allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(ClassGenerator); will(returnValue(new AsmBackedClassGenerator()))
             allowing(serviceRegistryMock).get(FileOperations);
             will(returnValue(fileOperationsMock))
-            allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([:] as ScriptPluginFactory))
+            allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();
@@ -612,10 +612,14 @@ class DefaultProjectTest {
         expectedMap[childchild] = [] as TreeSet
 
         context.checking {
-            one(taskContainerMock).getAll(); will(returnValue([projectTask] as Set))
-            one(taskContainerMock).getAll(); will(returnValue([child1Task] as Set))
-            one(taskContainerMock).getAll(); will(returnValue([child2Task] as Set))
-            one(taskContainerMock).getAll(); will(returnValue([] as Set))
+            one(taskContainerMock).size(); will(returnValue(1))
+            one(taskContainerMock).iterator(); will(returnValue(([projectTask] as Set).iterator()))
+            one(taskContainerMock).size(); will(returnValue(1))
+            one(taskContainerMock).iterator(); will(returnValue(([child1Task] as Set).iterator()))
+            one(taskContainerMock).size(); will(returnValue(1))
+            one(taskContainerMock).iterator(); will(returnValue(([child2Task] as Set).iterator()))
+            one(taskContainerMock).size(); will(returnValue(0))
+            one(taskContainerMock).iterator(); will(returnValue(([] as Set).iterator()))
         }
 
         assertEquals(expectedMap, project.getAllTasks(true))
@@ -628,7 +632,8 @@ class DefaultProjectTest {
         expectedMap[project] = [projectTask] as TreeSet
 
         context.checking {
-            one(taskContainerMock).getAll(); will(returnValue([projectTask] as Set))
+            one(taskContainerMock).size(); will(returnValue(1))
+            one(taskContainerMock).iterator(); will(returnValue(([projectTask] as Set).iterator()))
         }
 
         assertEquals(expectedMap, project.getAllTasks(false))
@@ -1034,12 +1039,12 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void createsADomainObjectContainer() {
-        assertThat(project.container(String.class), instanceOf(DefaultAutoCreateDomainObjectContainer.class))
+        assertThat(project.container(String.class), instanceOf(FactoryNamedDomainObjectContainer.class))
         assertThat(project.container(String.class), instanceOf(IConventionAware.class))
 
-        assertThat(project.container(String.class, context.mock(NamedDomainObjectFactory.class)), instanceOf(DefaultAutoCreateDomainObjectContainer.class))
+        assertThat(project.container(String.class, context.mock(NamedDomainObjectFactory.class)), instanceOf(FactoryNamedDomainObjectContainer.class))
 
-        assertThat(project.container(String.class, { }), instanceOf(DefaultAutoCreateDomainObjectContainer.class))
+        assertThat(project.container(String.class, { }), instanceOf(FactoryNamedDomainObjectContainer.class))
     }
 
 }

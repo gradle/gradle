@@ -16,20 +16,20 @@
 package org.gradle.plugins.cpp.built;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * A {@code CppExecutableContainer} manages a set of {@link CppExecutable} objects.
  */
-public interface CppExecutableContainer extends NamedDomainObjectCollection<CppExecutable> {
+public interface CppExecutableContainer extends NamedDomainObjectSet<CppExecutable> {
 
     /**
      * Adds an executable.
      *
      * @param executable The executable to add to this collection.
-     * @return The added executable.
+     * @return Whether or not the executable was added.
      * @throws org.gradle.api.InvalidUserDataException when an executable with the given name already exists in this container.
      */
-    CppExecutable add(CppExecutable executable) throws InvalidUserDataException;
+    boolean add(CppExecutable executable) throws InvalidUserDataException;
 
 }

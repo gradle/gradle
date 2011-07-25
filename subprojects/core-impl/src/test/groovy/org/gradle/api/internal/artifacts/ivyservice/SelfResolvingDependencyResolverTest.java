@@ -40,6 +40,7 @@ import java.text.ParseException;
 
 import static org.gradle.util.WrapUtil.toLinkedSet;
 import static org.gradle.util.WrapUtil.toSet;
+import static org.gradle.util.WrapUtil.toDomainObjectSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
@@ -60,7 +61,7 @@ public class SelfResolvingDependencyResolverTest {
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).getAllDependencies(DependencyInternal.class);
-            will(returnValue(toSet()));
+            will(returnValue(toDomainObjectSet(DependencyInternal.class)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});
@@ -86,7 +87,7 @@ public class SelfResolvingDependencyResolverTest {
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).getAllDependencies(DependencyInternal.class);
-            will(returnValue(toSet(dependency)));
+            will(returnValue(toDomainObjectSet(DependencyInternal.class, dependency)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});
@@ -128,7 +129,7 @@ public class SelfResolvingDependencyResolverTest {
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).getAllDependencies(DependencyInternal.class);
-            will(returnValue(toSet()));
+            will(returnValue(toDomainObjectSet(DependencyInternal.class)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});
@@ -150,7 +151,7 @@ public class SelfResolvingDependencyResolverTest {
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).getAllDependencies(DependencyInternal.class);
-            will(returnValue(toSet()));
+            will(returnValue(toDomainObjectSet(DependencyInternal.class)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});

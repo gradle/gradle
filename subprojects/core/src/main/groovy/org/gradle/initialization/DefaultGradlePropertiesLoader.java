@@ -16,13 +16,12 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.util.GUtil;
 import org.gradle.api.Project;
+import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -33,19 +32,27 @@ import java.util.Properties;
 public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private static Logger logger = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
-    private Map<String, String> gradleProperties = new HashMap<String, String>();
+    private Map<String, String> defaultProperties = new HashMap<String, String>();
+    private Map<String, String> overrideProperties = new HashMap<String, String>();
+    private final StartParameter startParameter;
 
-    public void loadProperties(File settingsDir, StartParameter startParameter) {
+    public DefaultGradlePropertiesLoader(StartParameter startParameter) {
+        this.startParameter = startParameter;
+    }
+
+    public void loadProperties(File settingsDir) {
         loadProperties(settingsDir, startParameter, getAllSystemProperties(), getAllEnvProperties());
     }
 
     void loadProperties(File settingsDir, StartParameter startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
-        gradleProperties.clear();
-        addGradleProperties(new File(settingsDir, Project.GRADLE_PROPERTIES), new File(startParameter.getGradleUserHomeDir(), Project.GRADLE_PROPERTIES));
+        defaultProperties.clear();
+        overrideProperties.clear();
+        addGradleProperties(defaultProperties, new File(settingsDir, Project.GRADLE_PROPERTIES));
+        addGradleProperties(overrideProperties, new File(startParameter.getGradleUserHomeDir(), Project.GRADLE_PROPERTIES));
         setSystemProperties(startParameter.getSystemPropertiesArgs());
-        gradleProperties.putAll(getEnvProjectProperties(envProperties));
-        gradleProperties.putAll(getSystemProjectProperties(systemProperties));
-        gradleProperties.putAll(startParameter.getProjectProperties());
+        overrideProperties.putAll(getEnvProjectProperties(envProperties));
+        overrideProperties.putAll(getSystemProjectProperties(systemProperties));
+        overrideProperties.putAll(startParameter.getProjectProperties());
     }
 
     Map getAllSystemProperties() {
@@ -53,34 +60,24 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     Map<String, String> getAllEnvProperties() {
-        // The reason why we have an try-catch block here is for JDK 1.4 compatibility. We use the retrotranslator to produce
-        // a 1.4 compatible version. But the retrotranslator is not capable of translating System.getenv to 1.4.
-        // The System.getenv call is only available in 1.5. In fact 1.4 does not offer any API to read
-        // environment variables. Therefore this call leads to an exception when used with 1.4. We ignore the exception in this
-        // case and simply return an empty hashmap.
-        try {
-            return System.getenv();
-        } catch (Throwable e) {
-            logger.debug("The System.getenv() call has lead to an exception. Probably you are running on Java 1.4.", e);
-            return Collections.emptyMap();
-        }
+        return System.getenv();
     }
 
-    private void addGradleProperties(File... files) {
+    private void addGradleProperties(Map<String, String> target, File... files) {
         for (File propertyFile : files) {
             if (propertyFile.isFile()) {
                 Properties properties = GUtil.loadProperties(propertyFile);
-                gradleProperties.putAll(new HashMap(properties));
+                target.putAll(new HashMap(properties));
             }
         }
     }
 
-    public Map<String, String> getGradleProperties() {
-        return gradleProperties;
-    }
-
-    public void setGradleProperties(Map<String, String> gradleProperties) {
-        this.gradleProperties = gradleProperties;
+    public Map<String, String> mergeProperties(Map<String, String> properties) {
+        Map<String, String> result = new HashMap<String, String>();
+        result.putAll(defaultProperties);
+        result.putAll(properties);
+        result.putAll(overrideProperties);
+        return result;
     }
 
     private Map<String, String> getSystemProjectProperties(Map<String, String> systemProperties) {
@@ -107,13 +104,14 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
 
     private void setSystemProperties(Map<String, String> properties) {
         System.getProperties().putAll(properties);
-        addSystemPropertiesFromGradleProperties();
+        addSystemPropertiesFromGradleProperties(defaultProperties);
+        addSystemPropertiesFromGradleProperties(overrideProperties);
     }
 
-    private void addSystemPropertiesFromGradleProperties() {
-        for (String key : gradleProperties.keySet()) {
+    private void addSystemPropertiesFromGradleProperties(Map<String, String> properties) {
+        for (String key : properties.keySet()) {
             if (key.startsWith(Project.SYSTEM_PROP_PREFIX + '.')) {
-                System.setProperty(key.substring((Project.SYSTEM_PROP_PREFIX + '.').length()), gradleProperties.get(key));
+                System.setProperty(key.substring((Project.SYSTEM_PROP_PREFIX + '.').length()), properties.get(key));
             }
         }
     }

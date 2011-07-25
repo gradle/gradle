@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.Namer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -27,7 +28,7 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
@@ -40,7 +41,7 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<DependencyResolver>
+public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<DependencyResolver>
         implements ResolverContainer, MavenPomMetaInfoProvider {
     private final ResolverFactory resolverFactory;
 
@@ -55,9 +56,15 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
     private ConfigurationContainer configurationContainer;
 
     public DefaultResolverContainer(ResolverFactory resolverFactory, FileResolver fileResolver, ClassGenerator classGenerator) {
-        super(DependencyResolver.class, classGenerator);
+        super(DependencyResolver.class, classGenerator, new DependencyResolverNamer());
         this.resolverFactory = resolverFactory;
         this.fileResolver = fileResolver;
+    }
+
+    private static class DependencyResolverNamer implements Namer<DependencyResolver> {
+        public String determineName(DependencyResolver r) {
+            return r.getName();
+        }
     }
 
     @Override
@@ -65,12 +72,18 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
         return "resolver";
     }
 
-    public DependencyResolver add(DependencyResolver resolver, Closure configureClosure) {
-        return addLast(resolver, configureClosure);
+    public DefaultResolverContainer configure(Closure closure) {
+        return ConfigureUtil.configure(closure, this);
+    }
+    
+    public boolean add(DependencyResolver resolver, Closure configureClosure) {
+        addLast(resolver, configureClosure);
+        return true;
     }
 
-    public DependencyResolver add(DependencyResolver resolver) {
-        return addLast(resolver);
+    public boolean add(DependencyResolver resolver) {
+        addLast(resolver);
+        return true;
     }
     
     public DependencyResolver addLast(Object userDescription) {
@@ -158,7 +171,7 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
             throw new InvalidUserDataException(String.format(
                     "Cannot add a resolver with name '%s' as a resolver with that name already exists.", resolver.getName()));
         }
-        addObject(resolver.getName(), resolver);
+        getStore().add(resolver);
         orderAction.apply(resolver.getName());
         return resolver;
     }

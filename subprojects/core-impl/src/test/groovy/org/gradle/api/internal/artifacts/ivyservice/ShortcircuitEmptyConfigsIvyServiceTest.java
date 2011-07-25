@@ -27,10 +27,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Collections;
 
 import static org.gradle.util.Matchers.isEmpty;
-import static org.gradle.util.WrapUtil.toSet;
+import static org.gradle.util.WrapUtil.toDomainObjectSet;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -46,7 +45,7 @@ public class ShortcircuitEmptyConfigsIvyServiceTest {
     public void resolveReturnsEmptyResolvedConfigWhenConfigHasNoDependencies() {
         context.checking(new Expectations(){{
             allowing(configuration).getAllDependencies();
-            will(returnValue(Collections.emptySet()));
+            will(returnValue(toDomainObjectSet(Dependency.class)));
         }});
 
         ResolvedConfiguration resolvedConfig = ivyService.resolve(configuration);
@@ -65,7 +64,7 @@ public class ShortcircuitEmptyConfigsIvyServiceTest {
 
         context.checking(new Expectations() {{
             allowing(configuration).getAllDependencies();
-            will(returnValue(toSet(dependencyDummy)));
+            will(returnValue(toDomainObjectSet(Dependency.class, dependencyDummy)));
 
             one(delegate).resolve(configuration);
             will(returnValue(resolvedConfigDummy));

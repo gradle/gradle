@@ -60,20 +60,20 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     }
 
     /**
-     * Deprecated. Please use #idea.project.javaVersion. See examples in {@link IdeaProject}.
+     * Deprecated. Please use #idea.project.jdkName. See examples in {@link IdeaProject}.
      * <p>
      * The java version used for defining the project sdk.
      */
     @Deprecated
     String getJavaVersion() {
-        DeprecationLogger.nagUser("ideaProject.javaVersion", "idea.project.javaVersion")
-        ideaProject.javaVersion
+        DeprecationLogger.nagUser("ideaProject.javaVersion", "idea.project.jdkName")
+        ideaProject.jdkName
     }
 
     @Deprecated
-    void setJavaVersion(String javaVersion) {
-        DeprecationLogger.nagUser("ideaProject.javaVersion", "idea.project.javaVersion")
-        ideaProject.javaVersion = javaVersion
+    void setJavaVersion(String jdkName) {
+        DeprecationLogger.nagUser("ideaProject.javaVersion", "idea.project.jdkName")
+        ideaProject.jdkName = jdkName
     }
 
     /**

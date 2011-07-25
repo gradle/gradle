@@ -20,8 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.GradleException;
 import org.gradle.util.ConfigureUtil;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author: Szczepan Faber, created at: 6/24/11
@@ -42,10 +41,6 @@ public class ExtensionsStorage {
         return extensions;
     }
 
-    public Object getExtension(String name) {
-        return extensions.get(name);
-    }
-
     public void checkExtensionIsNotReassigned(String name) {
         if (hasExtension(name)) {
             throw new GradleException("There's an extension registered with name '%s'. You should not reassign it via a property setter.");
@@ -58,5 +53,39 @@ public class ExtensionsStorage {
 
     public Object configureExtension(String methodName, Object ... arguments) {
         return ConfigureUtil.configure((Closure) arguments[0], extensions.get(methodName));
+    }
+
+    public <T> T getByType(Class<T> type) {
+        Collection<Object> values = extensions.values();
+        List types = new LinkedList();
+        for (Object e : values) {
+            Class clazz = e.getClass();
+            types.add(clazz.getSimpleName());
+            if (clazz.isAssignableFrom(type)) {
+                return (T) e;
+            }
+        }
+        throw new GradleException("Extension of type '" + type.getSimpleName() + "' does not exist. Currently registered extension types: " + types);
+    }
+
+    public <T> T findByType(Class<T> type) {
+        Collection<Object> values = extensions.values();
+        for (Object e : values) {
+            if (e.getClass().isAssignableFrom(type)) {
+                return (T) e;
+            }
+        }
+        return null;
+    }
+
+    public Object getByName(String name) {
+        if (!hasExtension(name)) {
+            throw new GradleException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
+        }
+        return extensions.get(name);
+    }
+
+    public Object findByName(String name) {
+        return extensions.get(name);
     }
 }

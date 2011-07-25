@@ -20,19 +20,19 @@ import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.junit.Ignore
 
-class AutoCreateDomainObjectContainerTest {
+class AbstractNamedDomainObjectContainerTest {
     private final ClassGenerator classGenerator = new AsmBackedClassGenerator()
-    private final AutoCreateDomainObjectContainer container = classGenerator.newInstance(TestContainer.class, classGenerator)
+    private final AbstractNamedDomainObjectContainer container = classGenerator.newInstance(TestContainer.class, classGenerator)
 
     @Test
     public void canAddObjectWithName() {
-        container.add('obj')
+        container.create('obj')
         assertThat(container.getByName('obj'), equalTo(['obj']))
     }
 
     @Test
     public void canAddAndConfigureAnObjectWithName() {
-        container.add('obj') {
+        container.create('obj') {
             add(1)
             add('value')
         }
@@ -41,10 +41,10 @@ class AutoCreateDomainObjectContainerTest {
 
     @Test
     public void failsToAddObjectWhenObjectWithSameNameAlreadyInContainer() {
-        container.add('obj')
+        container.create('obj')
 
         try {
-            container.add('obj')
+            container.create('obj')
             fail()
         } catch (org.gradle.api.InvalidUserDataException e) {
             assertThat(e.message, equalTo('Cannot add TestObject \'obj\' as a TestObject with that name already exists.'))
@@ -53,7 +53,7 @@ class AutoCreateDomainObjectContainerTest {
 
     @Test
     public void canConfigureExistingObject() {
-        container.add('list1')
+        container.create('list1')
         container.configure {
             list1 { add(1) }
         }
@@ -62,7 +62,7 @@ class AutoCreateDomainObjectContainerTest {
 
     @Test
     public void propagatesNestedMissingMethodException() {
-        container.add('list1')
+        container.create('list1')
         try {
             container.configure {
                 list1 { unknown { anotherUnknown(2) } }
@@ -179,7 +179,7 @@ class DynamicOwner {
 
 class TestObject extends ArrayList<String> {
     def String prop
-
+    String name
     def methodMissing(String name, Object params) {
         if (name == 'testObjectDynamicMethod') {
             add(name)

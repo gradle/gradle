@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.idea.model
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
@@ -47,9 +46,9 @@ class Project extends XmlPersistableConfigurationObject {
         this.pathFactory = pathFactory
     }
 
-    def configure(Collection<Path> modulePaths, JavaVersion javaVersion, IdeaLanguageLevel languageLevel, Collection<String> wildcards) {
-        if (javaVersion) {
-            jdk = new Jdk(javaVersion.toString(), languageLevel)
+    def configure(Collection<Path> modulePaths, String jdkName, IdeaLanguageLevel languageLevel, Collection<String> wildcards) {
+        if (jdkName) {
+            jdk = new Jdk(jdkName, languageLevel)
         }
         this.modulePaths.addAll(modulePaths)
         this.wildcards.addAll(wildcards)

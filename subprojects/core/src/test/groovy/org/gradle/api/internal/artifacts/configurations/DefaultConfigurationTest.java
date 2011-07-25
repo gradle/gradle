@@ -30,6 +30,8 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
 import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.asSet;
+import static org.gradle.util.WrapUtil.toDomainObjectSet;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -359,7 +361,8 @@ public class DefaultConfigurationTest {
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toSet()));
 
-            allowing(otherConfiguration).getAllArtifactsCollection();
+            allowing(otherConfiguration).getAllArtifacts();
+            allowing(otherConfiguration).getAllDependencies();
             
             allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
             will(returnValue(toSet(otherConfTaskMock)));
@@ -388,7 +391,9 @@ public class DefaultConfigurationTest {
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toSet()));
 
-            allowing(otherConfiguration).getAllArtifactsCollection();
+            allowing(otherConfiguration).getAllArtifacts();
+            will(returnValue(toDomainObjectSet(PublishArtifact.class, otherArtifact)));
+            allowing(otherConfiguration).getAllDependencies();
 
             allowing(otherConfiguration).getExtendsFrom();
             will(returnValue(toSet()));
@@ -469,7 +474,8 @@ public class DefaultConfigurationTest {
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toSet()));
 
-            allowing(otherConfiguration).getAllArtifactsCollection();
+            allowing(otherConfiguration).getAllArtifacts();
+            allowing(otherConfiguration).getAllDependencies();
             
             allowing(otherConfTaskDependencyMock).getDependencies(target);
             will(returnValue(toSet(otherConfTaskMock)));
@@ -518,7 +524,7 @@ public class DefaultConfigurationTest {
         final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
         final Configuration dependentConfig = context.mock(Configuration.class);
         final ProjectDependency projectDependency = context.mock(ProjectDependency.class);
-        final Set<ProjectDependency> projectDependencies = toSet(projectDependency);
+        final Set<ProjectDependency> projectDependencies = toDomainObjectSet(ProjectDependency.class, projectDependency);
 
 
         context.checking(new Expectations() {{
@@ -649,7 +655,7 @@ public class DefaultConfigurationTest {
             one(closure).call(artifact);
         }});
 
-        configuration.getArtifactCollection().whenObjectAdded(HelperUtil.toClosure(closure));
+        configuration.getArtifacts().whenObjectAdded(HelperUtil.toClosure(closure));
         configuration.addArtifact(artifact);
     }
 
@@ -664,7 +670,7 @@ public class DefaultConfigurationTest {
             one(closure).call(artifact);
         }});
 
-        configuration.getArtifactCollection().whenObjectRemoved(HelperUtil.toClosure(closure));
+        configuration.getArtifacts().whenObjectRemoved(HelperUtil.toClosure(closure));
 
         configuration.removeArtifact(artifact);
     }
@@ -768,10 +774,10 @@ public class DefaultConfigurationTest {
         assertThat(copiedConfiguration.isVisible(), equalTo(configuration.isVisible()));
         assertThat(copiedConfiguration.isTransitive(), equalTo(configuration.isTransitive()));
         assertThat(copiedConfiguration.getDescription(), equalTo(configuration.getDescription()));
-        assertThat(copiedConfiguration.getAllArtifacts(), equalTo(configuration.getAllArtifacts()));
+        assertThat(asSet(copiedConfiguration.getAllArtifacts()), equalTo(asSet(configuration.getAllArtifacts())));
         assertThat(copiedConfiguration.getExcludeRules(), equalTo(configuration.getExcludeRules()));
         assertThat(copiedConfiguration.getExcludeRules().iterator().next(), not(sameInstance(configuration.getExcludeRules().iterator().next())));
-        assertThat(copiedConfiguration.getDependencies(), equalTo(expectedDependencies));
+        assertThat(WrapUtil.asSet(copiedConfiguration.getDependencies()), equalTo(WrapUtil.asSet(expectedDependencies)));
         assertNotSameInstances(copiedConfiguration.getDependencies(), expectedDependencies);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,12 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.IProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.util.GUtil
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
@@ -35,17 +33,17 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.initialization.*
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 /**
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-class BuildLoaderTest {
+class InstantiatingBuildLoaderTest {
 
-    BuildLoader buildLoader
+    InstantiatingBuildLoader buildLoader
     IProjectFactory projectFactory
     File testDir
     File rootProjectDir
@@ -62,7 +60,7 @@ class BuildLoaderTest {
 
     @Before public void setUp()  {
         projectFactory = context.mock(IProjectFactory)
-        buildLoader = new BuildLoader(projectFactory)
+        buildLoader = new InstantiatingBuildLoader(projectFactory)
         testDir = tmpDir.dir
         (rootProjectDir = new File(testDir, 'root')).mkdirs()
         (childProjectDir = new File(rootProjectDir, 'child')).mkdirs()
@@ -93,42 +91,15 @@ class BuildLoaderTest {
             one(build).setDefaultProject(rootProject)
         }
 
-        buildLoader.load(rootDescriptor, build, [:])
+        buildLoader.load(rootDescriptor, build)
     }
 
     @Test public void createsBuildWithMultipleProjects() {
         expectProjectsCreated()
 
-        buildLoader.load(rootDescriptor, build, [:])
+        buildLoader.load(rootDescriptor, build)
 
         assertThat(rootProject.childProjects['child'], sameInstance(childProject))
-    }
-
-    @Test public void setsExternalPropertiesOnEachProject() {
-        expectProjectsCreated()
-
-        buildLoader.load(rootDescriptor, build, [buildDirName: 'target', prop: 'value'])
-
-        assertThat(rootProject.buildDirName, equalTo('target'))
-        assertThat(rootProject.prop, equalTo('value'))
-
-        assertThat(rootProject.project('child').buildDirName, equalTo('target'))
-        assertThat(rootProject.project('child').prop, equalTo('value'))
-    }
-
-    @Test public void setsProjectSpecificProperties() {
-        GUtil.saveProperties(new Properties([buildDirName: 'target/root', prop: 'rootValue']), new File(rootProjectDir, Project.GRADLE_PROPERTIES))
-        GUtil.saveProperties(new Properties([buildDirName: 'target/child', prop: 'childValue']), new File(childProjectDir, Project.GRADLE_PROPERTIES))
-
-        expectProjectsCreated()
-
-        buildLoader.load(rootDescriptor, build, [:])
-
-        assertThat(rootProject.buildDirName, equalTo('target/root'))
-        assertThat(rootProject.prop, equalTo('rootValue'))
-
-        assertThat(rootProject.project('child').buildDirName, equalTo('target/child'))
-        assertThat(rootProject.project('child').prop, equalTo('childValue'))
     }
 
     @Test public void selectsDefaultProject() {
@@ -143,7 +114,7 @@ class BuildLoaderTest {
             one(build).setDefaultProject(childProject)
         }
 
-        buildLoader.load(rootDescriptor, build, [:])
+        buildLoader.load(rootDescriptor, build)
     }
 
     @Test public void wrapsDefaultProjectSelectionException() {
@@ -157,7 +128,7 @@ class BuildLoaderTest {
         }
 
         try {
-            buildLoader.load(rootDescriptor, build, [:])
+            buildLoader.load(rootDescriptor, build)
             fail()
         } catch (GradleException e) {
             assertThat(e.message, equalTo('Could not select the default project for this build. <error>'))

@@ -124,7 +124,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         final Configuration configurationStub = IvyConverterTestUtil.createNamedConfigurationStub(name, context);
         context.checking(new Expectations() {{
             allowing(configurationStub).getDependencies(ModuleDependency.class);
-            will(returnValue(toSet(dependencies)));    
+            will(returnValue(toDomainObjectSet(ModuleDependency.class, dependencies)));
 
             allowing(configurationStub).getExcludeRules();
             will(returnValue(excludeRule == null ? Collections.emptySet() : toSet(excludeRule)));

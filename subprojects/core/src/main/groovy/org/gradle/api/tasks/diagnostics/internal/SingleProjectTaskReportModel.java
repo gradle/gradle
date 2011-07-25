@@ -51,7 +51,7 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
         GraphAggregator<Task> aggregator = new GraphAggregator<Task>(new DirectedGraph<Task, Object>() {
             public void getNodeValues(Task node, Collection<Object> values, Collection<Task> connectedNodes) {
                 for (Task dep : node.getTaskDependencies().getDependencies(node)) {
-                    if (tasks.contains(dep)) {
+                    if (containsTaskWithPath(tasks, dep.getPath())) {
                         connectedNodes.add(dep);
                     }
                 }
@@ -69,7 +69,7 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
                             Collections.<TaskDetails>emptySet()));
                 }
                 for (Task dep : node.getTaskDependencies().getDependencies(node)) {
-                    if (topLevelTasks.contains(dep) || !tasks.contains(dep)) {
+                    if (topLevelTasks.contains(dep) || !containsTaskWithPath(tasks, dep.getPath())) {
                         dependencies.add(factory.create(dep));
                     }
                 }
@@ -80,6 +80,15 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
         }
     }
 
+    private boolean containsTaskWithPath(Collection<? extends Task> tasks, String path) {
+        for (Task task : tasks) {
+            if (task.getPath().equals(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public Set<String> getGroups() {
         return groups.keySet();
     }

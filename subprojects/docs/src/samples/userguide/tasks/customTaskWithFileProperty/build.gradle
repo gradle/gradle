@@ -1,0 +1,29 @@
+// START SNIPPET task
+class GreetingToFileTask extends DefaultTask {
+
+    def destination
+
+    File getDestination() {
+        project.file(destination)
+    }
+
+    @TaskAction
+    def greet() {
+        def file = getDestination()
+        file.parentFile.mkdirs()
+        file.write "Hello!"
+    }
+}
+// END SNIPPET task
+
+// START SNIPPET config
+task greet(type: GreetingToFileTask) {
+    destination = { project.greetingFile }
+}
+
+task sayGreeting(dependsOn: greet) << {
+    println file(greetingFile).text
+}
+
+greetingFile = "$buildDir/hello.txt"
+// END SNIPPET config

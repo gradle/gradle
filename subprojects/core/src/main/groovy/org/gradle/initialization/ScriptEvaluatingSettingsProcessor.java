@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URLClassLoader;
+import java.util.Collections;
+import java.util.Map;
 
 
 /**
@@ -34,24 +36,26 @@ import java.net.URLClassLoader;
 public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private static Logger logger = LoggerFactory.getLogger(ScriptEvaluatingSettingsProcessor.class);
 
-    private SettingsFactory settingsFactory;
-
-    private ScriptPluginFactory configurerFactory;
+    private final SettingsFactory settingsFactory;
+    private final IGradlePropertiesLoader propertiesLoader;
+    private final ScriptPluginFactory configurerFactory;
 
     public ScriptEvaluatingSettingsProcessor(ScriptPluginFactory configurerFactory,
-                                             SettingsFactory settingsFactory) {
+                                             SettingsFactory settingsFactory,
+                                             IGradlePropertiesLoader propertiesLoader) {
         this.configurerFactory = configurerFactory;
         this.settingsFactory = settingsFactory;
+        this.propertiesLoader = propertiesLoader;
     }
 
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
                                     URLClassLoader buildSourceClassLoader,
-                                    StartParameter startParameter,
-                                    IGradlePropertiesLoader propertiesLoader) {
+                                    StartParameter startParameter) {
         Clock settingsProcessingClock = new Clock();
+        Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(),
-                settingsLocation.getSettingsScriptSource(), propertiesLoader.getGradleProperties(), startParameter, buildSourceClassLoader);
+                settingsLocation.getSettingsScriptSource(), properties, startParameter, buildSourceClassLoader);
         applySettingsScript(settingsLocation, buildSourceClassLoader, settings);
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
         return settings;

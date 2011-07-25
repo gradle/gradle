@@ -18,23 +18,24 @@ package org.gradle.plugins.cpp.source.internal;
 import org.gradle.plugins.cpp.source.CppSourceSet;
 import org.gradle.plugins.cpp.source.CppSourceSetContainer;
 
-import org.gradle.api.internal.AutoCreateDomainObjectContainer;
+import org.gradle.api.Namer;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.file.FileResolver;
 
 import groovy.lang.Closure;
 
-public class DefaultCppSourceSetContainer extends AutoCreateDomainObjectContainer<CppSourceSet> implements CppSourceSetContainer {
+public class DefaultCppSourceSetContainer extends AbstractNamedDomainObjectContainer<CppSourceSet> implements CppSourceSetContainer {
     private final FileResolver fileResolver;
     private final ClassGenerator generator;
 
     public DefaultCppSourceSetContainer(FileResolver fileResolver, ClassGenerator classGenerator) {
-        super(CppSourceSet.class, classGenerator);
+        super(CppSourceSet.class, classGenerator, new Namer<CppSourceSet>() { public String determineName(CppSourceSet ss) { return ss.getName(); }});
         this.fileResolver = fileResolver;
         this.generator = classGenerator;
     }
 
-    protected CppSourceSet create(String name) {
+    protected CppSourceSet doCreate(String name) {
         return generator.newInstance(DefaultCppSourceSet.class, name, fileResolver);
     }
 

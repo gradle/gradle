@@ -18,12 +18,12 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * A {@code SourceSetContainer} manages a set of {@link SourceSet} objects.
  */
-public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet>, NamedDomainObjectCollection<SourceSet> {
+public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet>, NamedDomainObjectSet<SourceSet> {
     /**
      * Adds a source set with the given name.
      *
