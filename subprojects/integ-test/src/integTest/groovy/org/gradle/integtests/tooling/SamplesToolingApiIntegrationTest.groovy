@@ -61,6 +61,25 @@ class SamplesToolingApiIntegrationTest extends Specification {
         result.output.contains("Welcome to Gradle")
     }
 
+    @UsesSample('toolingApi/idea')
+    def buildsIdeaModel() {
+        def projectDir = sample.dir
+        Properties props = new Properties()
+        props['toolingApiRepo'] = distribution.libsRepo.toURI().toString()
+        props['gradleDistribution'] = distribution.gradleHomeDir.toString()
+        projectDir.file('gradle.properties').withOutputStream {outstr ->
+            props.store(outstr, 'props')
+        }
+        projectDir.file('settings.gradle').text = '// to stop search upwards'
+
+        when:
+        def result = run(projectDir)
+
+        then:
+        result.output.contains("Project: idea")
+        result.output.contains("Module: idea")
+    }
+
     private ExecutionResult run(dir) {
         try {
             return new GradleDistributionExecuter(distribution).inDirectory(dir).withTasks('run').run()

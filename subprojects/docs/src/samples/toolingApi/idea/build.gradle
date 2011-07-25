@@ -1,0 +1,51 @@
+/*
+ * Copyright 2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+if (!hasProperty('toolingApiVersion')) {
+    toolingApiVersion = gradle.gradleVersion
+}
+if (!hasProperty('toolingApiRepo')) {
+    toolingApiRepo = 'http://repo.gradle.org/gradle/libs-releases-local'
+}
+
+repositories {
+    mavenRepo urls: uri(toolingApiRepo)
+    mavenCentral()
+}
+
+mainClassName = 'org.gradle.sample.Main'
+
+dependencies {
+    compile "org.gradle:gradle-tooling-api:${toolingApiVersion}"
+    // Need an SLF4J implementation at runtime
+    runtime 'org.slf4j:slf4j-simple:1.6.1'
+}
+
+mainClassName = 'org.gradle.sample.Main'
+
+run {
+    if (project.hasProperty('gradleDistribution')) {
+        args = [gradleDistribution]
+    }
+    
+    //jvmArgs = ['-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
+}
+
+//Example for local debugging:
+//gradle clean run -u -PtoolingApiRepo=/Users/szczepan/gradle/gradle.src/build/repo -PgradleDistribution=/Users/szczepan/programs/gradle-current -PtoolingApiVersion=1.0-milestone-4-20110725164259+0200
