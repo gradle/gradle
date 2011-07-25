@@ -174,6 +174,25 @@
     </section>
 
     <section>
+        <title>Working with files in custom tasks and plugins</title>
+        <para>
+            When developing custom tasks and plugins, it's a good idea to be very flexible when accepting input configuration for file locations.
+            To do this, you can leverage the <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method to resolve values to files as late as possible.
+        </para>
+        <sample id="lazyFileProperties" dir="userguide/tasks/customTaskWithFileProperty" title="Evaluating file properties lazily">
+            <sourcefile file="build.gradle"/>
+            <output args="-q sayGreeting"/>
+        </sample>
+        <para>
+            In this example, we configure the <literal>greet</literal> task <literal>destination</literal> property as a closure, which is evaluated with
+            the <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method to turn the return value of the closure into a file object
+            at the last minute. You will notice that in the above example we specify the <literal>greetingFile</literal> property value after we have 
+            configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then 
+            resolving that value when reading the property.
+        </para>
+    </section>
+    
+    <section>
         <title>A standalone project</title>
         <para>Now we will move our plugin to a standalone project, so we can publish it and share it with others.
             This project is simply a Groovy project that produces a JAR containing the plugin classes.
