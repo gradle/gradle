@@ -18,23 +18,21 @@ package org.gradle.tooling.internal.idea;
 
 import org.gradle.api.GradleException;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
-import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
-import java.util.Collection;
+import java.io.Serializable;
 
 /**
  * @author: Szczepan Faber, created at: 7/25/11
  */
-public class DefaultIdeaProject implements InternalIdeaProject {
+public class DefaultIdeaProject implements InternalIdeaProject, Serializable {
 
     private String id;
     private String name;
     private String description;
-    private DomainObjectSet<? extends IdeaModule> children;
+    private Iterable<? extends IdeaModule> children;
     private String languageLevel;
     private String jdkName;
 
@@ -95,12 +93,12 @@ public class DefaultIdeaProject implements InternalIdeaProject {
         throw new GradleException("This method should not be used.");
     }
 
-    public DefaultIdeaProject setChildren(Collection<? extends IdeaModule> modules) {
-        this.children = new ImmutableDomainObjectSet(modules);
+    public DefaultIdeaProject setChildren(Iterable<? extends IdeaModule> children) {
+        this.children = children;
         return this;
     }
 
-    public DomainObjectSet<? extends IdeaModule> getChildren() {
+    public Iterable<? extends IdeaModule> getChildren() {
         return children;
     }
 }

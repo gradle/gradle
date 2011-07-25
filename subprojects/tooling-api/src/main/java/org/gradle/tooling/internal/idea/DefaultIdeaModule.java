@@ -21,10 +21,12 @@ import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.idea.IdeaModule;
 
+import java.io.Serializable;
+
 /**
  * @author: Szczepan Faber, created at: 7/25/11
  */
-public class DefaultIdeaModule implements IdeaModule {
+public class DefaultIdeaModule implements IdeaModule, Serializable {
     public DomainObjectSet<? extends Task> getTasks() {
         throw new RuntimeException("not yet implemented");
     }
