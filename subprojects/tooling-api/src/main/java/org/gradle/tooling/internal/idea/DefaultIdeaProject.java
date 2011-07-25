@@ -29,6 +29,8 @@ import java.io.Serializable;
  */
 public class DefaultIdeaProject implements InternalIdeaProject, Serializable {
 
+//    public static final long serialVersionUID = 1L;
+
     private String id;
     private String name;
     private String description;

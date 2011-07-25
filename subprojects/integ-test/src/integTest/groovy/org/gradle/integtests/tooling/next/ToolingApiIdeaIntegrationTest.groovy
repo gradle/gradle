@@ -16,9 +16,19 @@
 package org.gradle.integtests.tooling.next
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 
 class ToolingApiIdeaModelIntegrationTest extends ToolingApiSpecification {
+
+    def setup() {
+//        toolingApi.withConnector {
+//            it.useInstallation(new File(dist.gradleHomeDir.absolutePath))
+//            it.embedded(false)
+//            it.daemonMaxIdleTime(300, TimeUnit.SECONDS)
+//            DaemonGradleExecuter.registerDaemon(dist.userHomeDir)
+//        }
+    }
 
     def "builds the model even if idea plugin not applied"() {
         def projectDir = dist.testDir
@@ -36,6 +46,7 @@ description = 'this is a project'
         project.id   == ':'
         project.description == null
         project.children.size() == 1
+        project.children[0] instanceof IdeaModule
     }
 
     def "provides basic project information"() {
@@ -58,24 +69,24 @@ idea.project {
         project.jdkName == '1.6'
     }
 
-//    def "provides all modules"() {
-//        def projectDir = dist.testDir
-//        projectDir.file('build.gradle').text = '''
-//subprojects {
-//    apply plugin: 'java'
-//}
-//'''
-//        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
-//
-//        when:
-//        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-//
-//        then:
-//        project.modules.size() == 3
-//        project.modules.any { it.name == 'api' }
-//        project.modules.any { it.name == 'impl' }
-//    }
-//
+    def "provides all modules"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+subprojects {
+    apply plugin: 'java'
+}
+'''
+        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
+
+        when:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+
+        then:
+        project.children.size() == 3
+        project.children.any { it.name == 'api' }
+        project.children.any { it.name == 'impl' }
+    }
+
 //    def "provides dependencies"() {
 //        def projectDir = dist.testDir
 //        projectDir.file('build.gradle').text = '''

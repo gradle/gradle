@@ -26,7 +26,20 @@ import java.io.Serializable;
 /**
  * @author: Szczepan Faber, created at: 7/25/11
  */
-public class DefaultIdeaModule implements IdeaModule, Serializable {
+public class DefaultIdeaModule implements Serializable, IdeaModule {
+
+//    public static final long serialVersionUID = 1L;
+
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public DomainObjectSet<? extends Task> getTasks() {
         throw new RuntimeException("not yet implemented");
     }
@@ -40,10 +53,6 @@ public class DefaultIdeaModule implements IdeaModule, Serializable {
     }
 
     public String getId() {
-        throw new RuntimeException("not yet implemented");
-    }
-
-    public String getName() {
         throw new RuntimeException("not yet implemented");
     }
 

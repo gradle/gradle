@@ -73,11 +73,12 @@ public class IdeaModelBuilder implements BuildsModel {
 
     private void buildModule(Collection<DefaultIdeaModule> modules, IdeaModule module, DefaultIdeaProject newProject) {
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule();
+        defaultIdeaModule.setName(module.getName());
+
 //        defaultIdeaModule.setSourceDirectories(new LinkedList<File>(module.getSourceDirs()));
 //        defaultIdeaModule.setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()));
 //        defaultIdeaModule.setExcludeDirectories(new LinkedList<File>(module.getExcludeDirs()));
 //        defaultIdeaModule.setContentRoot(module.getContentRoot());
-//        defaultIdeaModule.setName(module.getName());
 //        defaultIdeaModule.setProject(newProject);
 //        defaultIdeaModule.setModuleFileDir(module.getIml().getGenerateTo());
 //        defaultIdeaModule.setInheritOutputDirs(module.getInheritOutputDirs() != null ? module.getInheritOutputDirs() : false);

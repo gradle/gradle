@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Element;
 import org.gradle.tooling.model.HierarchicalElement;
 
@@ -40,6 +41,13 @@ public interface IdeaProject extends HierarchicalElement, Element {
      * @return language level
      */
     String getLanguageLevel();
+
+    /**
+     * Returns modules of this idea project. Most projects have at least one module.
+     *
+     * @return modules
+     */
+    DomainObjectSet<? extends IdeaModule> getChildren();
 
     //TODO SF - should project also have method getModules() ?
     //DomainObjectSet<? extends IdeaModule> getModules();
