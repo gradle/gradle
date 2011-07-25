@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static org.codehaus.groovy.runtime.InvokerHelper.asList;
+
 /**
  * @author: Szczepan Faber, created at: 7/23/11
  */
@@ -75,10 +77,11 @@ public class IdeaModelBuilder implements BuildsModel {
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule();
         defaultIdeaModule.setName(module.getName());
 
+        defaultIdeaModule.setContentRoots(asList(module.getContentRoot()));
+
 //        defaultIdeaModule.setSourceDirectories(new LinkedList<File>(module.getSourceDirs()));
 //        defaultIdeaModule.setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()));
 //        defaultIdeaModule.setExcludeDirectories(new LinkedList<File>(module.getExcludeDirs()));
-//        defaultIdeaModule.setContentRoot(module.getContentRoot());
 //        defaultIdeaModule.setProject(newProject);
 //        defaultIdeaModule.setModuleFileDir(module.getIml().getGenerateTo());
 //        defaultIdeaModule.setInheritOutputDirs(module.getInheritOutputDirs() != null ? module.getInheritOutputDirs() : false);

@@ -87,70 +87,30 @@ subprojects {
         project.children.any { it.name == 'impl' }
     }
 
-//    def "provides dependencies"() {
-//        def projectDir = dist.testDir
-//        projectDir.file('build.gradle').text = '''
-//subprojects {
-//    apply plugin: 'java'
-//}
-//
-//project(':impl') {
-//    repositories { mavenCentral() }
-//
-//    dependencies {
-//        compile project(':api')
-//        testCompile 'junit:junit:4.5'
-//    }
-//}
-//'''
-//        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
-//
-//        when:
-//        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-//        def module = project.modules.find { it.name == 'impl' }
-//
-//        then:
-//        def lib = module.libraryDependencies[0]
-//
-//        lib.file.exists()
-//        lib.file.path.endsWith('junit-4.5.jar')
-//        //TODO SF find library that has javadocs :)
-////        lib.javadoc.exists()
-//        lib.source.exists()
-//        lib.source.path.endsWith('junit-4.5-sources.jar')
-//        lib.scope.toString() == 'TEST'
-//
-//        def md = module.moduleDependencies[0]
-//
-//        md.dependencyModuleName == 'api'
-//        md.scope.toString() == 'COMPILE'
-//        md.exported
-//    }
-//
-//    def "provides basic module information"() {
-//        def projectDir = dist.testDir
-//        projectDir.file('build.gradle').text = """
-//apply plugin: 'java'
-//apply plugin: 'idea'
-//
-//idea.module.inheritOutputDirs = false
-//idea.module.outputDir = file('someDir')
-//idea.module.testOutputDir = file('someTestDir')
-//"""
-//
-//        when:
-//        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-//        def module = project.modules[0]
-//
-//        then:
-//        module.contentRoot == projectDir
+    def "provides basic module information"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+idea.module.inheritOutputDirs = false
+idea.module.outputDir = file('someDir')
+idea.module.testOutputDir = file('someTestDir')
+"""
+
+        when:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        def module = project.children[0]
+
+        then:
+        module.contentRoots == [projectDir]
 //        module.project.projectDirectory == project.projectDirectory
 //        module.moduleFileDir == dist.testDir
 //        !module.inheritOutputDirs
 //        module.outputDir == projectDir.file('someDir')
 //        module.testOutputDir == projectDir.file('someTestDir')
-//    }
-//
+    }
+
 //    def "provides source dir information"() {
 //        def projectDir = dist.testDir
 //        projectDir.file('build.gradle').text = "apply plugin: 'java'"
@@ -197,5 +157,45 @@ subprojects {
 //
 //        then:
 //        module.excludeDirectories.any { it.path.endsWith 'foo' }
+//    }
+//
+//    def "provides dependencies"() {
+//        def projectDir = dist.testDir
+//        projectDir.file('build.gradle').text = '''
+//subprojects {
+//    apply plugin: 'java'
+//}
+//
+//project(':impl') {
+//    repositories { mavenCentral() }
+//
+//    dependencies {
+//        compile project(':api')
+//        testCompile 'junit:junit:4.5'
+//    }
+//}
+//'''
+//        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
+//
+//        when:
+//        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+//        def module = project.modules.find { it.name == 'impl' }
+//
+//        then:
+//        def lib = module.libraryDependencies[0]
+//
+//        lib.file.exists()
+//        lib.file.path.endsWith('junit-4.5.jar')
+//        //TODO SF find library that has javadocs :)
+////        lib.javadoc.exists()
+//        lib.source.exists()
+//        lib.source.path.endsWith('junit-4.5-sources.jar')
+//        lib.scope.toString() == 'TEST'
+//
+//        def md = module.moduleDependencies[0]
+//
+//        md.dependencyModuleName == 'api'
+//        md.scope.toString() == 'COMPILE'
+//        md.exported
 //    }
 }

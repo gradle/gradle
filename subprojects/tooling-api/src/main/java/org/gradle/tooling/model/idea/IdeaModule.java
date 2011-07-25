@@ -19,8 +19,18 @@ package org.gradle.tooling.model.idea;
 import org.gradle.tooling.model.BuildableElement;
 import org.gradle.tooling.model.HierarchicalElement;
 
+import java.io.File;
+import java.util.List;
+
 /**
  * Represents information about the IntelliJ IDEA module
  */
 public interface IdeaModule extends BuildableElement, HierarchicalElement {
+
+    /**
+     * All content roots. Most idea modules have a single content root.
+     *
+     * @return content roots
+     */
+    List<File> getContentRoots();
 }

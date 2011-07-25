@@ -21,7 +21,10 @@ import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.idea.IdeaModule;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author: Szczepan Faber, created at: 7/25/11
@@ -31,6 +34,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 //    public static final long serialVersionUID = 1L;
 
     private String name;
+    private List<File> contentRoots = new LinkedList<File>();
 
     public String getName() {
         return name;
@@ -38,6 +42,14 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<File> getContentRoots() {
+        return contentRoots;
+    }
+
+    public void setContentRoots(List<File> contentRoots) {
+        this.contentRoots = contentRoots;
     }
 
     public DomainObjectSet<? extends Task> getTasks() {
