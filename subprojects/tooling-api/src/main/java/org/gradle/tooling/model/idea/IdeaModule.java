@@ -86,4 +86,11 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      * @return test dirs
      */
     List<File> getTestDirectories();
+
+    /**
+     * exclude dirs
+     *
+     * @return exclude dirs
+     */
+    List<File> getExcludeDirectories();
 }

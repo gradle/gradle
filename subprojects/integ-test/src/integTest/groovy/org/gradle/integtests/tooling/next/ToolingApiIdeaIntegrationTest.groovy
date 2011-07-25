@@ -148,23 +148,23 @@ idea.module.testOutputDir = file('someTestDir')
         module.testDirectories.any { it.path.endsWith 'src/test/resources' }
     }
 
-//    def "provides excluded dir information"() {
-//        def projectDir = dist.testDir
-//        projectDir.file('build.gradle').text = """
-//apply plugin: 'java'
-//apply plugin: 'idea'
-//
-//idea.module.excludeDirs += file('foo')
-//"""
-//
-//        when:
-//        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-//        def module = project.modules[0]
-//
-//        then:
-//        module.excludeDirectories.any { it.path.endsWith 'foo' }
-//    }
-//
+    def "provides exclude dir information"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+idea.module.excludeDirs += file('foo')
+"""
+
+        when:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        def module = project.children[0]
+
+        then:
+        module.excludeDirectories.any { it.path.endsWith 'foo' }
+    }
+
 //    def "provides dependencies"() {
 //        def projectDir = dist.testDir
 //        projectDir.file('build.gradle').text = '''

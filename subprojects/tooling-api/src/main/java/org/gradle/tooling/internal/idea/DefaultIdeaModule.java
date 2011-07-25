@@ -48,6 +48,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     File moduleFileDir;
     List<File> sourceDirectories;
     List<File> testDirectories;
+    List<File> excludeDirectories;
 
     public String getName() {
         return name;
@@ -127,6 +128,15 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     public DefaultIdeaModule setTestDirectories(List<File> testDirectories) {
         this.testDirectories = testDirectories;
+        return this;
+    }
+
+    public List<File> getExcludeDirectories() {
+        return excludeDirectories;
+    }
+
+    public DefaultIdeaModule setExcludeDirectories(List<File> excludeDirectories) {
+        this.excludeDirectories = excludeDirectories;
         return this;
     }
 

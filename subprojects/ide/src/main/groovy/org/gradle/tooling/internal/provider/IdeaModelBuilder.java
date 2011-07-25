@@ -85,9 +85,8 @@ public class IdeaModelBuilder implements BuildsModel {
                 .setTestOutputDir(module.getTestOutputDir())
                 .setModuleFileDir(module.getIml().getGenerateTo())
                 .setSourceDirectories(new LinkedList<File>(module.getSourceDirs()))
-                .setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()));
-
-//                .setExcludeDirectories(new LinkedList<File>(module.getExcludeDirs()))
+                .setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()))
+                .setExcludeDirectories(new LinkedList<File>(module.getExcludeDirs()));
 //
 //        Set<Dependency> resolved = module.resolveDependencies();
 //        for (Dependency dependency: resolved) {
