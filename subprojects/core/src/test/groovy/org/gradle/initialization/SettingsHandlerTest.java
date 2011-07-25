@@ -33,8 +33,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -44,7 +44,6 @@ public class SettingsHandlerTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private GradleInternal gradle = context.mock(GradleInternal.class);
-    private IGradlePropertiesLoader gradlePropertiesLoader = context.mock(IGradlePropertiesLoader.class);
     private SettingsInternal settings = context.mock(SettingsInternal.class);
     private SettingsLocation settingsLocation = new SettingsLocation(new File("someDir"), null);
     private StartParameter startParameter = new StartParameter();
@@ -64,7 +63,7 @@ public class SettingsHandlerTest {
                     settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR))));
             will(returnValue(urlClassLoader));
         }});
-        assertThat(settingsHandler.findAndLoadSettings(gradle, gradlePropertiesLoader), sameInstance(settings));
+        assertThat(settingsHandler.findAndLoadSettings(gradle), sameInstance(settings));
     }
 
     private void prepareForExistingSettings() {
@@ -91,8 +90,7 @@ public class SettingsHandlerTest {
             allowing(settingsFinder).find(startParameter);
             will(returnValue(settingsLocation));
 
-            one(settingsProcessor).process(gradle, settingsLocation, urlClassLoader,
-                    startParameter, gradlePropertiesLoader);
+            one(settingsProcessor).process(gradle, settingsLocation, urlClassLoader, startParameter);
             will(returnValue(settings));
 
             one(scriptClassLoader).addParent(urlClassLoader);

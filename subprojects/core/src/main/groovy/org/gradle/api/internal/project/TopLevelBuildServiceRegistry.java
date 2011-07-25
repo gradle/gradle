@@ -117,6 +117,16 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         return new DefaultActorFactory(get(ExecutorFactory.class));
     }
 
+    protected IGradlePropertiesLoader createGradlePropertiesLoader() {
+        return new DefaultGradlePropertiesLoader(startParameter);
+    }
+
+    protected BuildLoader createBuildLoader() {
+        return new ProjectPropertySettingBuildLoader(
+                get(IGradlePropertiesLoader.class),
+                new InstantiatingBuildLoader(get(IProjectFactory.class)));
+    }
+
     protected TaskExecuter createTaskExecuter() {
         return new ExecuteAtMostOnceTaskExecuter(
                 new SkipOnlyIfTaskExecuter(
@@ -198,11 +208,13 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected SettingsProcessor createSettingsProcessor() {
-        return new PropertiesLoadingSettingsProcessor(new
-                ScriptEvaluatingSettingsProcessor(
+        return new PropertiesLoadingSettingsProcessor(
+                new ScriptEvaluatingSettingsProcessor(
                     get(ScriptPluginFactory.class),
                     new SettingsFactory(
-                        new DefaultProjectDescriptorRegistry())));
+                        new DefaultProjectDescriptorRegistry()),
+                        get(IGradlePropertiesLoader.class)),
+                get(IGradlePropertiesLoader.class));
     }
 
     protected ExceptionAnalyser createExceptionAnalyser() {

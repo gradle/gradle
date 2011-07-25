@@ -58,7 +58,7 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
     }
 
     public <T extends Plugin> T findPlugin(Class<T> type) {
-        for (Plugin plugin : getAll()) {
+        for (Plugin plugin : this) {
             if (plugin.getClass().equals(type)) {
                 return type.cast(plugin);
             }

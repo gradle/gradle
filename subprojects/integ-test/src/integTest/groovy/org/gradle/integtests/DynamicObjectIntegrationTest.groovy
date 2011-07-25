@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.GradleDistribution
@@ -46,6 +43,16 @@ class DynamicObjectIntegrationTest {
                 "task testTask << {",
                 "  new Reporter().checkProperties(project)",
                 "}",
+                "assert 'root' == rootProperty",
+                "assert 'root' == property('rootProperty')",
+                "assert 'root' == properties.rootProperty",
+                "assert 'child' == childProperty",
+                "assert 'child' == property('childProperty')",
+                "assert 'child' == properties.childProperty",
+                "assert 'shared' == sharedProperty",
+                "assert 'shared' == property('sharedProperty')",
+                "assert 'shared' == properties.sharedProperty",
+                "assert 'convention' == conventionProperty",
                 // Use a separate class, to isolate Project from the script
                 "class Reporter {",
                 "  def checkProperties(object) {",
@@ -94,6 +101,33 @@ class DynamicObjectIntegrationTest {
         );
 
         executer.inDirectory(testDir).withTasks("testTask").run();
+    }
+
+    @Test
+    public void canAddPropertiesToProjectUsingGradlePropertiesFile() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("settings.gradle").writelns("include 'child'");
+        testDir.file("gradle.properties") << '''
+global=some value
+'''
+        testDir.file("build.gradle") << '''
+assert 'some value' == global
+assert hasProperty('global')
+assert 'some value' == property('global')
+assert 'some value' == properties.global
+assert 'some value' == project.global
+assert project.hasProperty('global')
+assert 'some value' == project.property('global')
+assert 'some value' == project.properties.global
+'''
+        testDir.file("child/gradle.properties") << '''
+global=overridden value
+'''
+        testDir.file("child/build.gradle") << '''
+assert 'overridden value' == global
+'''
+
+        executer.inDirectory(testDir).run();
     }
 
     @Test

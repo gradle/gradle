@@ -23,17 +23,18 @@ import java.net.URLClassLoader;
 
 public class PropertiesLoadingSettingsProcessor implements SettingsProcessor {
     private final SettingsProcessor processor;
+    private final IGradlePropertiesLoader propertiesLoader;
 
-    public PropertiesLoadingSettingsProcessor(SettingsProcessor processor) {
+    public PropertiesLoadingSettingsProcessor(SettingsProcessor processor, IGradlePropertiesLoader propertiesLoader) {
         this.processor = processor;
+        this.propertiesLoader = propertiesLoader;
     }
 
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
                                     URLClassLoader buildSourceClassLoader,
-                                    StartParameter startParameter,
-                                    IGradlePropertiesLoader propertiesLoader) {
-        propertiesLoader.loadProperties(settingsLocation.getSettingsDir(), startParameter);
-        return processor.process(gradle, settingsLocation, buildSourceClassLoader, startParameter, propertiesLoader);
+                                    StartParameter startParameter) {
+        propertiesLoader.loadProperties(settingsLocation.getSettingsDir());
+        return processor.process(gradle, settingsLocation, buildSourceClassLoader, startParameter);
     }
 }

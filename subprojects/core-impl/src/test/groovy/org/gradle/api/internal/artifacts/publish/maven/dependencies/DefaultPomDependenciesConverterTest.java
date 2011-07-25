@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 import static java.util.Arrays.asList;
 import static org.gradle.util.WrapUtil.toMap;
 import static org.gradle.util.WrapUtil.toSet;
+import static org.gradle.util.WrapUtil.toDomainObjectSet;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -102,7 +103,7 @@ public class DefaultPomDependenciesConverterTest {
             allowing(configurationStub).getName();
             will(returnValue(confName));
             allowing(configurationStub).getDependencies(ModuleDependency.class);
-            will(returnValue(toSet(dependencies)));
+            will(returnValue(toDomainObjectSet(ModuleDependency.class, dependencies)));
             allowing(configurationStub).getExcludeRules();
             will(returnValue(excludeRules));            
         }});
