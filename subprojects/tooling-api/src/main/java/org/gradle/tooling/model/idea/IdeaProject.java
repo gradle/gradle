@@ -24,6 +24,7 @@ import org.gradle.tooling.model.HierarchicalElement;
  */
 public interface IdeaProject extends HierarchicalElement, Element {
 
-    String getFoo();
+    String getJdkName();
+    String getLanguageLevel();
 
 }

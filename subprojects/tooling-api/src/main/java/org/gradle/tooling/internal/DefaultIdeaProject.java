@@ -32,6 +32,26 @@ public class DefaultIdeaProject implements InternalIdeaProject {
     private String name;
     private String description;
     private DomainObjectSet<? extends HierarchicalElement> children;
+    private String languageLevel;
+    private String jdkName;
+
+    public String getLanguageLevel() {
+        return languageLevel;
+    }
+
+    public DefaultIdeaProject setLanguageLevel(String languageLevel) {
+        this.languageLevel = languageLevel;
+        return this;
+    }
+
+    public String getJdkName() {
+        return jdkName;
+    }
+
+    public DefaultIdeaProject setJdkName(String jdkName) {
+        this.jdkName = jdkName;
+        return this;
+    }
 
     public String getId() {
         return id;

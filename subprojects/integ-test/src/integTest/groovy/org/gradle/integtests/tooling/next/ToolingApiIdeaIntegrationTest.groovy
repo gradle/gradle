@@ -38,26 +38,26 @@ description = 'this is a project'
 //        project.modules.size() == 1
     }
 
-//    def "provides basic project information"() {
-//        def projectDir = dist.testDir
-//        projectDir.file('build.gradle').text = """
-//apply plugin: 'java'
-//apply plugin: 'idea'
-//
-//idea.project {
-//  languageLevel = '1.5'
-//  javaVersion = '1.6'
-//}
-//"""
-//
-//        when:
-//        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-//
-//        then:
-//        project.languageLevel == 'JDK_1_5'
-//        project.javaVersion == '1.6'
-//    }
-//
+    def "provides basic project information"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+idea.project {
+  languageLevel = '1.5'
+  jdkName = '1.6'
+}
+"""
+
+        when:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+
+        then:
+        project.languageLevel == 'JDK_1_5'
+        project.jdkName == '1.6'
+    }
+
 //    def "provides all modules"() {
 //        def projectDir = dist.testDir
 //        projectDir.file('build.gradle').text = '''

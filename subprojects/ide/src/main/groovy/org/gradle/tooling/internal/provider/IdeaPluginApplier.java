@@ -29,9 +29,7 @@ public class IdeaPluginApplier {
         //TODO SF some duplication with the eclipse
         Set<Project> allprojects = root.getAllprojects();
         for (Project p : allprojects) {
-            if (!p.getPlugins().hasPlugin(IdeaPlugin.class)) {
-                p.getPlugins().apply(IdeaPlugin.class);
-            }
+            p.getPlugins().apply(IdeaPlugin.class);
         }
 //        root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
     }

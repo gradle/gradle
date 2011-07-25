@@ -51,8 +51,11 @@ public class IdeaModelBuilder implements BuildsModel {
         IdeaProject projectModel = ideaModel.getProject();
 
         DefaultIdeaProject newProject = new DefaultIdeaProject()
-                .setName(projectModel.getName())
-                .setId(project.getPath());
+            .setName(projectModel.getName())
+            .setId(project.getPath())
+            .setJdkName(projectModel.getJdkName())
+            .setLanguageLevel(projectModel.getLanguageLevel().getFormatted());
+
 
 
 //        newProject.setJavaVersion(projectModel.getJavaVersion().toString());
