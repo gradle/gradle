@@ -24,7 +24,21 @@ import org.gradle.tooling.model.HierarchicalElement;
  */
 public interface IdeaProject extends HierarchicalElement, Element {
 
+    /**
+     * The name of the jdk
+     *
+     * @return jdk name
+     */
     String getJdkName();
+
+    /**
+     * Language level to use within the current project.
+     *
+     * TODO SF - we need to decide how to model it. I have a POC implementation of modelling it as an enum (with graceful degradation)
+     * but I'm not sure if it's worth the hassle.
+     *
+     * @return language level
+     */
     String getLanguageLevel();
 
 }
