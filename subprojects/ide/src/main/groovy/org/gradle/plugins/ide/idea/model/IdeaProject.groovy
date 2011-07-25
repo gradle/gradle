@@ -129,6 +129,14 @@ class IdeaProject {
     File outputFile
 
     /**
+     * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
+     * In idea, the project name is driven by the name of the 'ipr' file.
+     */
+    String getName() {
+       getOutputFile().name.replaceFirst(/\.ipr$/, '')
+    }
+
+    /**
      * Enables advanced configuration like tinkering with the output xml
      * or affecting the way existing *.ipr content is merged with gradle build information
      * <p>

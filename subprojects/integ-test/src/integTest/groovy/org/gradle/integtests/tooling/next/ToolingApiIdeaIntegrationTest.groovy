@@ -32,15 +32,10 @@ description = 'this is a project'
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
 
         then:
-        project.foo == "foo"
-
-        // BELOW ARE TESTS TO BE ENABLED AS FEATURES GROW
-
-//        project.name == 'test project'
-//        project.description == null
-//        project.projectDirectory == projectDir
+        project.name == 'test project'
+        project.id   == ':'
+        project.description == null
 //        project.modules.size() == 1
-
     }
 
 //    def "provides basic project information"() {
