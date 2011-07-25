@@ -29,14 +29,14 @@ public interface Element {
     String getId();
 
     /**
-     * Returns the name of this project. Note that the name is not a unique identifier.
+     * Returns the name. Note that the name is not a unique identifier.
      *
      * @return The name.
      */
     String getName();
 
     /**
-     * Returns the description of this project.
+     * Returns the description.
      *
      * @return The description. May be null.
      */
