@@ -28,6 +28,5 @@ public interface SettingsProcessor {
     SettingsInternal process(GradleInternal gradle,
                              SettingsLocation settingsLocation,
                              URLClassLoader buildSourceClassLoader,
-                             StartParameter startParameter,
-                             IGradlePropertiesLoader propertiesLoader);
+                             StartParameter startParameter);
 }

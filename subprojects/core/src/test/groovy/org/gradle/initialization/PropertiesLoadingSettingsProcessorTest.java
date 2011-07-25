@@ -47,14 +47,14 @@ public class PropertiesLoadingSettingsProcessorTest {
         final GradleInternal gradle = context.mock(GradleInternal.class);
         final SettingsLocation settingsLocation = new SettingsLocation(settingsDir, settingsScriptSource);
 
-        PropertiesLoadingSettingsProcessor processor = new PropertiesLoadingSettingsProcessor(delegate);
+        PropertiesLoadingSettingsProcessor processor = new PropertiesLoadingSettingsProcessor(delegate, propertiesLoader);
 
         context.checking(new Expectations() {{
-            one(propertiesLoader).loadProperties(settingsDir, startParameter);
-            one(delegate).process(gradle, settingsLocation, urlClassLoader, startParameter, propertiesLoader);
+            one(propertiesLoader).loadProperties(settingsDir);
+            one(delegate).process(gradle, settingsLocation, urlClassLoader, startParameter);
             will(returnValue(settings));
         }});
 
-        assertThat(processor.process(gradle, settingsLocation, urlClassLoader, startParameter, propertiesLoader), sameInstance(settings));
+        assertThat(processor.process(gradle, settingsLocation, urlClassLoader, startParameter), sameInstance(settings));
     }
 }

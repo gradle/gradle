@@ -44,11 +44,10 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.toSortedSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
@@ -60,7 +59,6 @@ public class DefaultGradleLauncherTest {
     private BuildLoader buildLoaderMock;
     private InitScriptHandler initscriptHandlerMock;
     private SettingsHandler settingsHandlerMock;
-    private IGradlePropertiesLoader gradlePropertiesLoaderMock;
     private BuildConfigurer buildConfigurerMock;
     private DefaultProject expectedRootProject;
     private DefaultProject expectedCurrentProject;
@@ -70,8 +68,6 @@ public class DefaultGradleLauncherTest {
     private StartParameter expectedStartParams;
     private GradleInternal gradleMock;
     private BuildListener buildBroadcaster;
-
-    private Map testGradleProperties = new HashMap();
 
     private GradleLauncher gradleLauncher;
 
@@ -93,14 +89,12 @@ public class DefaultGradleLauncherTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         initscriptHandlerMock = context.mock(InitScriptHandler.class);
         settingsHandlerMock = context.mock(SettingsHandler.class);
-        gradlePropertiesLoaderMock = context.mock(IGradlePropertiesLoader.class);
         settingsMock = context.mock(SettingsInternal.class);
         taskExecuterMock = context.mock(TaskGraphExecuter.class);
         buildLoaderMock = context.mock(BuildLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         gradleMock = context.mock(GradleInternal.class);
         buildBroadcaster = context.mock(BuildListener.class);
-        testGradleProperties = toMap("prop1", "value1");
         boolean expectedSearchUpwards = false;
 
         File expectedRootDir = tmpDir.file("rootDir");
@@ -119,12 +113,10 @@ public class DefaultGradleLauncherTest {
         expectedStartParams.setGradleUserHomeDir(tmpDir.createDir("gradleUserHome"));
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
-                gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, buildBroadcaster, exceptionAnalyserMock, loggingManagerMock);
+                buildLoaderMock, buildConfigurerMock, buildBroadcaster, exceptionAnalyserMock, loggingManagerMock);
 
         context.checking(new Expectations() {
             {
-                allowing(gradlePropertiesLoaderMock).getGradleProperties();
-                will(returnValue(testGradleProperties));
                 allowing(settingsMock).getRootProject();
                 will(returnValue(expectedRootProjectDescriptor));
                 allowing(gradleMock).getRootProject();
@@ -197,7 +189,7 @@ public class DefaultGradleLauncherTest {
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock);
             one(buildConfigurerMock).configure(gradleMock);
         }});
         BuildResult buildResult = gradleLauncher.getBuildAnalysis();
@@ -214,7 +206,7 @@ public class DefaultGradleLauncherTest {
         expectSettingsBuilt();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock);
             will(throwException(exception));
             one(exceptionAnalyserMock).transform(exception);
             will(returnValue(transformedException));
@@ -232,7 +224,7 @@ public class DefaultGradleLauncherTest {
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock);
             one(buildConfigurerMock).configure(gradleMock);
         }});
 
@@ -259,7 +251,7 @@ public class DefaultGradleLauncherTest {
         expectInitScriptsExecuted();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
-            one(settingsHandlerMock).findAndLoadSettings(gradleMock, gradlePropertiesLoaderMock);
+            one(settingsHandlerMock).findAndLoadSettings(gradleMock);
             will(throwException(failure));
             one(exceptionAnalyserMock).transform(failure);
             will(returnValue(transformedException));
@@ -308,7 +300,7 @@ public class DefaultGradleLauncherTest {
     private void expectSettingsBuilt() {
         context.checking(new Expectations() {
             {
-                one(settingsHandlerMock).findAndLoadSettings(gradleMock, gradlePropertiesLoaderMock);
+                one(settingsHandlerMock).findAndLoadSettings(gradleMock);
                 will(returnValue(settingsMock));
                 one(buildBroadcaster).settingsEvaluated(settingsMock);
             }
@@ -327,7 +319,7 @@ public class DefaultGradleLauncherTest {
     private void expectDagBuilt() {
         context.checking(new Expectations() {
             {
-                one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
+                one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock);
                 one(buildConfigurerMock).configure(gradleMock);
                 one(taskExecuterMock).addTasks(expectedTasks.get(0));
                 one(taskExecuterMock).addTasks(expectedTasks.get(1));

@@ -227,6 +227,18 @@ public class TopLevelBuildServiceRegistryTest {
         assertThat(factory.get(BuildConfigurer.class), sameInstance(factory.get(BuildConfigurer.class)));
     }
 
+    @Test
+    public void providesAPropertiesLoader() {
+        assertThat(factory.get(IGradlePropertiesLoader.class), instanceOf(DefaultGradlePropertiesLoader.class));
+        assertThat(factory.get(IGradlePropertiesLoader.class), sameInstance(factory.get(IGradlePropertiesLoader.class)));
+    }
+
+    @Test
+    public void providesABuildLoader() {
+        assertThat(factory.get(BuildLoader.class), instanceOf(ProjectPropertySettingBuildLoader.class));
+        assertThat(factory.get(BuildLoader.class), sameInstance(factory.get(BuildLoader.class)));
+    }
+
     private ListenerManager expectListenerManagerCreated() {
         final ListenerManager listenerManager = new DefaultListenerManager();
         context.checking(new Expectations(){{

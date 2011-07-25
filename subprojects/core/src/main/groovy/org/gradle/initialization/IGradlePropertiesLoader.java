@@ -15,8 +15,6 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
-
 import java.io.File;
 import java.util.Map;
 
@@ -27,8 +25,8 @@ public interface IGradlePropertiesLoader {
     public static final String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
 
     public static final String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
-    
-    Map<String, String> getGradleProperties();
 
-    void loadProperties(File rootDir, StartParameter startParameter);
+    Map<String, String> mergeProperties(Map<String, String> properties);
+
+    void loadProperties(File rootDir);
 }
