@@ -80,7 +80,8 @@ public class IdeaModelBuilder implements BuildsModel {
                 .setParent(ideaProject)
                 .setInheritOutputDirs(module.getInheritOutputDirs() != null ? module.getInheritOutputDirs() : false)
                 .setOutputDir(module.getOutputDir())
-                .setTestOutputDir(module.getTestOutputDir());
+                .setTestOutputDir(module.getTestOutputDir())
+                .setModuleFileDir(module.getIml().getGenerateTo());
 
 //        defaultIdeaModule.setSourceDirectories(new LinkedList<File>(module.getSourceDirs()));
 //        defaultIdeaModule.setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()));

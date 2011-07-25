@@ -45,6 +45,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     boolean inheritOutputDirs;
     File outputDir;
     File testOutputDir;
+    File moduleFileDir;
 
     public String getName() {
         return name;
@@ -70,6 +71,15 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     public DefaultIdeaModule setParent(IdeaProject parent) {
         this.parent = parent;
+        return this;
+    }
+
+    public File getModuleFileDir() {
+        return moduleFileDir;
+    }
+
+    public DefaultIdeaModule setModuleFileDir(File moduleFileDir) {
+        this.moduleFileDir = moduleFileDir;
         return this;
     }
 

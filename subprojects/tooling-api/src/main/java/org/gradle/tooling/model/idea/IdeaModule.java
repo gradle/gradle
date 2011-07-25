@@ -42,6 +42,13 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
     IdeaProject getParent();
 
     /**
+     * the folder containing module file (*.iml)
+     *
+     * @return module file dir
+     */
+    File getModuleFileDir(); //TODO SF - this property is a bit awkward but it seems Denis needs it...
+
+    /**
      * whether current module should inherit project's output directory.
      *
      * @return inherit output dirs flag
