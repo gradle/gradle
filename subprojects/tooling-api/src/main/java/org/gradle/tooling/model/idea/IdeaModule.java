@@ -40,4 +40,29 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      * @return idea project
      */
     IdeaProject getParent();
+
+    /**
+     * whether current module should inherit project's output directory.
+     *
+     * @return inherit output dirs flag
+     * @see #getOutputDir()
+     * @see #getTestOutputDir()
+     */
+    Boolean getInheritOutputDirs();
+
+    /**
+     * directory to store module's production classes and resources.
+     *
+     * @return directory to store production output. non-<code>null</code> if
+     *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
+     */
+    File getOutputDir();
+
+    /**
+     * directory to store module's test classes and resources.
+     *
+     * @return directory to store test output. non-<code>null</code> if
+     *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
+     */
+    File getTestOutputDir();
 }

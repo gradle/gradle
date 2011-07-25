@@ -42,6 +42,9 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     private String name;
     private List<File> contentRoots = new LinkedList<File>();
     private IdeaProject parent;
+    boolean inheritOutputDirs;
+    File outputDir;
+    File testOutputDir;
 
     public String getName() {
         return name;
@@ -67,6 +70,33 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     public DefaultIdeaModule setParent(IdeaProject parent) {
         this.parent = parent;
+        return this;
+    }
+
+    public Boolean getInheritOutputDirs() {
+        return inheritOutputDirs;
+    }
+
+    public DefaultIdeaModule setInheritOutputDirs(boolean inheritOutputDirs) {
+        this.inheritOutputDirs = inheritOutputDirs;
+        return this;
+    }
+
+    public File getOutputDir() {
+        return outputDir;
+    }
+
+    public DefaultIdeaModule setOutputDir(File outputDir) {
+        this.outputDir = outputDir;
+        return this;
+    }
+
+    public File getTestOutputDir() {
+        return testOutputDir;
+    }
+
+    public DefaultIdeaModule setTestOutputDir(File testOutputDir) {
+        this.testOutputDir = testOutputDir;
         return this;
     }
 

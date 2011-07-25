@@ -77,15 +77,15 @@ public class IdeaModelBuilder implements BuildsModel {
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
                 .setName(module.getName())
                 .setContentRoots(asList(module.getContentRoot()))
-                .setParent(ideaProject);
+                .setParent(ideaProject)
+                .setInheritOutputDirs(module.getInheritOutputDirs() != null ? module.getInheritOutputDirs() : false)
+                .setOutputDir(module.getOutputDir())
+                .setTestOutputDir(module.getTestOutputDir());
 
 //        defaultIdeaModule.setSourceDirectories(new LinkedList<File>(module.getSourceDirs()));
 //        defaultIdeaModule.setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()));
 //        defaultIdeaModule.setExcludeDirectories(new LinkedList<File>(module.getExcludeDirs()));
 //        defaultIdeaModule.setModuleFileDir(module.getIml().getGenerateTo());
-//        defaultIdeaModule.setInheritOutputDirs(module.getInheritOutputDirs() != null ? module.getInheritOutputDirs() : false);
-//        defaultIdeaModule.setOutputDir(module.getOutputDir());
-//        defaultIdeaModule.setTestOutputDir(module.getTestOutputDir());
 //
 //        Set<Dependency> resolved = module.resolveDependencies();
 //        for (Dependency dependency: resolved) {

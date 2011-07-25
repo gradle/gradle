@@ -110,10 +110,11 @@ idea.module.testOutputDir = file('someTestDir')
         module.children.empty
         module.description == null
 
+        !module.inheritOutputDirs
+        module.outputDir == projectDir.file('someDir')
+        module.testOutputDir == projectDir.file('someTestDir')
+
 //        module.moduleFileDir == dist.testDir
-//        !module.inheritOutputDirs
-//        module.outputDir == projectDir.file('someDir')
-//        module.testOutputDir == projectDir.file('someTestDir')
     }
 
 //    def "provides source dir information"() {
