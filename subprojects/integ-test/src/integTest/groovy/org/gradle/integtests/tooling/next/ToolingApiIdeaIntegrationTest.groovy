@@ -117,37 +117,37 @@ idea.module.testOutputDir = file('someTestDir')
         module.moduleFileDir == dist.testDir
     }
 
-//    def "provides source dir information"() {
-//        def projectDir = dist.testDir
-//        projectDir.file('build.gradle').text = "apply plugin: 'java'"
-//
-//        projectDir.create {
-//            src {
-//                main {
-//                    java {}
-//                    resources {}
-//                }
-//                test {
-//                    java {}
-//                    resources {}
-//                }
-//            }
-//        }
-//
-//        when:
-//        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-//        def module = project.modules[0]
-//
-//        then:
-//        module.sourceDirectories.size() == 2
-//        module.sourceDirectories.any { it.path.endsWith 'src/main/java' }
-//        module.sourceDirectories.any { it.path.endsWith 'src/main/resources' }
-//
-//        module.testDirectories.size() == 2
-//        module.testDirectories.any { it.path.endsWith 'src/test/java' }
-//        module.testDirectories.any { it.path.endsWith 'src/test/resources' }
-//    }
-//
+    def "provides source dir information"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = "apply plugin: 'java'"
+
+        projectDir.create {
+            src {
+                main {
+                    java {}
+                    resources {}
+                }
+                test {
+                    java {}
+                    resources {}
+                }
+            }
+        }
+
+        when:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        def module = project.children[0]
+
+        then:
+        module.sourceDirectories.size() == 2
+        module.sourceDirectories.any { it.path.endsWith 'src/main/java' }
+        module.sourceDirectories.any { it.path.endsWith 'src/main/resources' }
+
+        module.testDirectories.size() == 2
+        module.testDirectories.any { it.path.endsWith 'src/test/java' }
+        module.testDirectories.any { it.path.endsWith 'src/test/resources' }
+    }
+
 //    def "provides excluded dir information"() {
 //        def projectDir = dist.testDir
 //        projectDir.file('build.gradle').text = """

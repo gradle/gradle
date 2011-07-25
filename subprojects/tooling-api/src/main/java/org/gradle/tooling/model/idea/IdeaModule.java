@@ -72,4 +72,18 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
      */
     File getTestOutputDir();
+
+    /**
+     * source dirs
+     *
+     * @return source dirs
+     */
+    List<File> getSourceDirectories();
+
+    /**
+     * test dirs
+     *
+     * @return test dirs
+     */
+    List<File> getTestDirectories();
 }

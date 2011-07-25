@@ -27,8 +27,10 @@ import org.gradle.tooling.internal.idea.DefaultIdeaProject;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
@@ -81,12 +83,11 @@ public class IdeaModelBuilder implements BuildsModel {
                 .setInheritOutputDirs(module.getInheritOutputDirs() != null ? module.getInheritOutputDirs() : false)
                 .setOutputDir(module.getOutputDir())
                 .setTestOutputDir(module.getTestOutputDir())
-                .setModuleFileDir(module.getIml().getGenerateTo());
+                .setModuleFileDir(module.getIml().getGenerateTo())
+                .setSourceDirectories(new LinkedList<File>(module.getSourceDirs()))
+                .setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()));
 
-//        defaultIdeaModule.setSourceDirectories(new LinkedList<File>(module.getSourceDirs()));
-//        defaultIdeaModule.setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()));
-//        defaultIdeaModule.setExcludeDirectories(new LinkedList<File>(module.getExcludeDirs()));
-//        defaultIdeaModule.setModuleFileDir(module.getIml().getGenerateTo());
+//                .setExcludeDirectories(new LinkedList<File>(module.getExcludeDirs()))
 //
 //        Set<Dependency> resolved = module.resolveDependencies();
 //        for (Dependency dependency: resolved) {

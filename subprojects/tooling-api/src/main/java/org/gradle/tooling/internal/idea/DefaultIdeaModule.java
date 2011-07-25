@@ -46,6 +46,8 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     File outputDir;
     File testOutputDir;
     File moduleFileDir;
+    List<File> sourceDirectories;
+    List<File> testDirectories;
 
     public String getName() {
         return name;
@@ -107,6 +109,24 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     public DefaultIdeaModule setTestOutputDir(File testOutputDir) {
         this.testOutputDir = testOutputDir;
+        return this;
+    }
+
+    public List<File> getSourceDirectories() {
+        return sourceDirectories;
+    }
+
+    public DefaultIdeaModule setSourceDirectories(List<File> sourceDirectories) {
+        this.sourceDirectories = sourceDirectories;
+        return this;
+    }
+
+    public List<File> getTestDirectories() {
+        return testDirectories;
+    }
+
+    public DefaultIdeaModule setTestDirectories(List<File> testDirectories) {
+        this.testDirectories = testDirectories;
         return this;
     }
 
