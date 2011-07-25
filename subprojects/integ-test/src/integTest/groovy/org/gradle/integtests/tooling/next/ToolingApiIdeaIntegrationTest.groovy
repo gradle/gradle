@@ -106,6 +106,7 @@ idea.module.testOutputDir = file('someTestDir')
         module.contentRoots == [projectDir]
         module.parent instanceof IdeaProject
         module.parent == project
+        module.children.empty
 
 //        module.moduleFileDir == dist.testDir
 //        !module.inheritOutputDirs
