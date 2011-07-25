@@ -20,6 +20,7 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaProject;
 
 import java.io.File;
 import java.io.Serializable;
@@ -35,28 +36,36 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     private String name;
     private List<File> contentRoots = new LinkedList<File>();
+    private IdeaProject parent;
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public DefaultIdeaModule setName(String name) {
         this.name = name;
+        return this;
     }
 
     public List<File> getContentRoots() {
         return contentRoots;
     }
 
-    public void setContentRoots(List<File> contentRoots) {
+    public DefaultIdeaModule setContentRoots(List<File> contentRoots) {
         this.contentRoots = contentRoots;
+        return this;
+    }
+
+    public IdeaProject getParent() {
+        return parent;
+    }
+
+    public DefaultIdeaModule setParent(IdeaProject parent) {
+        this.parent = parent;
+        return this;
     }
 
     public DomainObjectSet<? extends Task> getTasks() {
-        throw new RuntimeException("not yet implemented");
-    }
-
-    public HierarchicalElement getParent() {
         throw new RuntimeException("not yet implemented");
     }
 

@@ -33,4 +33,11 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      * @return content roots
      */
     List<File> getContentRoots();
+
+    /**
+     * Returns the project of this module.
+     *
+     * @return idea project
+     */
+    IdeaProject getParent();
 }

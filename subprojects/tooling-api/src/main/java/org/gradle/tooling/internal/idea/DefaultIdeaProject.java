@@ -18,8 +18,11 @@ package org.gradle.tooling.internal.idea;
 
 import org.gradle.api.GradleException;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
 import java.io.Serializable;
@@ -27,7 +30,7 @@ import java.io.Serializable;
 /**
  * @author: Szczepan Faber, created at: 7/25/11
  */
-public class DefaultIdeaProject implements InternalIdeaProject, Serializable {
+public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Serializable {
 
 //    public static final long serialVersionUID = 1L;
 
@@ -100,7 +103,7 @@ public class DefaultIdeaProject implements InternalIdeaProject, Serializable {
         return this;
     }
 
-    public Iterable<? extends IdeaModule> getChildren() {
-        return children;
+    public DomainObjectSet<? extends IdeaModule> getChildren() {
+        return new ImmutableDomainObjectSet<IdeaModule>(children);
     }
 }
