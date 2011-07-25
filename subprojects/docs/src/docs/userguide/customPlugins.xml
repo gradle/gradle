@@ -230,5 +230,12 @@
             <sourcefile file="build.gradle"/>
             <output args="-q books"/>
         </sample>
+        <para>
+            The <apilink class="org.gradle.api.Project" method="container(java.lang.Class)"/> methods create instances of <apilink class="org.gradle.api.NamedDomainObjectContainer"/>, that have many useful methods for managing and configuring the objects. In order
+            to use a type with any of the <literal>project.container</literal> methods, it MUST expose a property named “<literal>name</literal>”
+            as the unique, and constant, name for the object. The <literal>project.container(Class)</literal> variant of the container method creates 
+            new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. 
+            See the above link for <literal>project.container</literal> method variants taht allow custom instantiation strategies.
+        </para>
     </section>
 </chapter>
