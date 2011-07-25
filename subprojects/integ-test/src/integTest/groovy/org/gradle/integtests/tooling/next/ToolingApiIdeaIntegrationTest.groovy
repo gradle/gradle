@@ -165,29 +165,30 @@ idea.module.excludeDirs += file('foo')
         module.excludeDirectories.any { it.path.endsWith 'foo' }
     }
 
-//    def "provides dependencies"() {
-//        def projectDir = dist.testDir
-//        projectDir.file('build.gradle').text = '''
-//subprojects {
-//    apply plugin: 'java'
-//}
-//
-//project(':impl') {
-//    repositories { mavenCentral() }
-//
-//    dependencies {
-//        compile project(':api')
-//        testCompile 'junit:junit:4.5'
-//    }
-//}
-//'''
-//        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
-//
-//        when:
-//        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-//        def module = project.modules.find { it.name == 'impl' }
-//
-//        then:
+    def "provides dependencies"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+subprojects {
+    apply plugin: 'java'
+}
+
+project(':impl') {
+    repositories { mavenCentral() }
+
+    dependencies {
+        compile project(':api')
+        testCompile 'junit:junit:4.5'
+    }
+}
+'''
+        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
+
+        when:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        def module = project.children.find { it.name == 'impl' }
+
+        then:
+        def libs = module.dependencies
 //        def lib = module.libraryDependencies[0]
 //
 //        lib.file.exists()
@@ -203,5 +204,5 @@ idea.module.excludeDirs += file('foo')
 //        md.dependencyModuleName == 'api'
 //        md.scope.toString() == 'COMPILE'
 //        md.exported
-//    }
+    }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
+import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -49,6 +50,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     List<File> sourceDirectories;
     List<File> testDirectories;
     List<File> excludeDirectories;
+    List<IdeaDependency> dependencies;
 
     public String getName() {
         return name;
@@ -137,6 +139,15 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     public DefaultIdeaModule setExcludeDirectories(List<File> excludeDirectories) {
         this.excludeDirectories = excludeDirectories;
+        return this;
+    }
+
+    public DomainObjectSet<IdeaDependency> getDependencies() {
+        return new ImmutableDomainObjectSet<IdeaDependency>(dependencies);
+    }
+
+    public DefaultIdeaModule setDependencies(List<IdeaDependency> dependencies) {
+        this.dependencies = dependencies;
         return this;
     }
 

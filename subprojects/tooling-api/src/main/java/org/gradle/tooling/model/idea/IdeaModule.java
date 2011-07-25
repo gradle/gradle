@@ -17,6 +17,7 @@
 package org.gradle.tooling.model.idea;
 
 import org.gradle.tooling.model.BuildableElement;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 
 import java.io.File;
@@ -93,4 +94,11 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      * @return exclude dirs
      */
     List<File> getExcludeDirectories();
+
+    /**
+     * dependencies of this module (i.e. module dependencies, library dependencies, etc.)
+     *
+     * @return dependencies
+     */
+    DomainObjectSet<? extends IdeaDependency> getDependencies();
 }

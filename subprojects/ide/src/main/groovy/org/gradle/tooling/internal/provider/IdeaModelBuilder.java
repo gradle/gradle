@@ -26,12 +26,10 @@ import org.gradle.tooling.internal.idea.DefaultIdeaModule;
 import org.gradle.tooling.internal.idea.DefaultIdeaProject;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
+import org.gradle.tooling.model.idea.IdeaDependency;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 
@@ -68,25 +66,28 @@ public class IdeaModelBuilder implements BuildsModel {
 
         Set<DefaultIdeaModule> modules = new LinkedHashSet<DefaultIdeaModule>();
         for (IdeaModule module: projectModel.getModules()) {
-            buildModule(modules, module, out);
+            appendModule(modules, module, out);
         }
         out.setChildren(modules);
 
         return out;
     }
 
-    private void buildModule(Collection<DefaultIdeaModule> modules, IdeaModule module, DefaultIdeaProject ideaProject) {
+    private void appendModule(Collection<DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject) {
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
-                .setName(module.getName())
-                .setContentRoots(asList(module.getContentRoot()))
+                .setName(ideaModule.getName())
+                .setContentRoots(asList(ideaModule.getContentRoot()))
                 .setParent(ideaProject)
-                .setInheritOutputDirs(module.getInheritOutputDirs() != null ? module.getInheritOutputDirs() : false)
-                .setOutputDir(module.getOutputDir())
-                .setTestOutputDir(module.getTestOutputDir())
-                .setModuleFileDir(module.getIml().getGenerateTo())
-                .setSourceDirectories(new LinkedList<File>(module.getSourceDirs()))
-                .setTestDirectories(new LinkedList<File>(module.getTestSourceDirs()))
-                .setExcludeDirectories(new LinkedList<File>(module.getExcludeDirs()));
+                .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
+                .setOutputDir(ideaModule.getOutputDir())
+                .setTestOutputDir(ideaModule.getTestOutputDir())
+                .setModuleFileDir(ideaModule.getIml().getGenerateTo())
+                .setSourceDirectories(new LinkedList<File>(ideaModule.getSourceDirs()))
+                .setTestDirectories(new LinkedList<File>(ideaModule.getTestSourceDirs()))
+                .setExcludeDirectories(new LinkedList<File>(ideaModule.getExcludeDirs()));
+
+        List<IdeaDependency> deps = new LinkedList<IdeaDependency>();
+        defaultIdeaModule.setDependencies(deps);
 //
 //        Set<Dependency> resolved = module.resolveDependencies();
 //        for (Dependency dependency: resolved) {
