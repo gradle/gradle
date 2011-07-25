@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.idea;
 
+import org.gradle.api.GradleException;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
@@ -78,10 +79,11 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     }
 
     public String getId() {
-        throw new RuntimeException("not yet implemented");
+        //TODO SF should module have an id? It is a bit awkard to get it.
+        throw new GradleException("IdeaModule does not have an id");
     }
 
     public String getDescription() {
-        throw new RuntimeException("not yet implemented");
+        return null;
     }
 }

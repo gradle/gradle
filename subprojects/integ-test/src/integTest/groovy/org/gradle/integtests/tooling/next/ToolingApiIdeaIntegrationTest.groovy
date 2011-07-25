@@ -42,6 +42,7 @@ description = 'this is a project'
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
 
         then:
+        project.parent == null
         project.name == 'test project'
         project.id   == ':'
         project.description == null
@@ -107,6 +108,7 @@ idea.module.testOutputDir = file('someTestDir')
         module.parent instanceof IdeaProject
         module.parent == project
         module.children.empty
+        module.description == null
 
 //        module.moduleFileDir == dist.testDir
 //        !module.inheritOutputDirs
