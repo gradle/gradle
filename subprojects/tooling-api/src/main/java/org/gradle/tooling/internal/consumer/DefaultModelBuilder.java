@@ -20,7 +20,7 @@ import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
-import org.gradle.tooling.model.elements.Element;
+import org.gradle.tooling.model.Element;
 
 import java.io.OutputStream;
 

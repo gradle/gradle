@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling.model;
 
-import org.gradle.tooling.model.elements.Element;
-
 import java.io.File;
 
 /**

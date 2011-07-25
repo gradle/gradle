@@ -14,7 +14,31 @@
  * limitations under the License.
  */
 
+package org.gradle.tooling.model;
+
 /**
- * Top level hierarchy of ToolingApi model types
+ * Described element of something :)
  */
-package org.gradle.tooling.model.elements;
+public interface Element {
+
+    /**
+     * Returns the unique identifier of this element.
+     *
+     * @return The path.
+     */
+    String getId();
+
+    /**
+     * Returns the name of this project. Note that the name is not a unique identifier.
+     *
+     * @return The name.
+     */
+    String getName();
+
+    /**
+     * Returns the description of this project.
+     *
+     * @return The description. May be null.
+     */
+    String getDescription();
+}

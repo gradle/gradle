@@ -16,13 +16,13 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.tooling.model.Project;
-import org.gradle.tooling.model.elements.HierarchicalElement;
+import org.gradle.tooling.model.Element;
+import org.gradle.tooling.model.HierarchicalElement;
 
 /**
  * Represents the information about the IntelliJ IDEA project
  */
-public interface IdeaProject extends HierarchicalElement, Project {
+public interface IdeaProject extends HierarchicalElement, Element {
 
     String getFoo();
 

@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.tooling.model.elements.BuildableElement;
-import org.gradle.tooling.model.elements.HierarchicalElement;
+import org.gradle.tooling.model.BuildableElement;
+import org.gradle.tooling.model.HierarchicalElement;
 
 /**
  * Represents information about the IntelliJ IDEA module

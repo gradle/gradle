@@ -23,11 +23,11 @@ import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 import org.gradle.tooling.model.BuildableProject;
+import org.gradle.tooling.model.Element;
 import org.gradle.tooling.model.HierarchicalProject;
 import org.gradle.tooling.model.Project;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
-import org.gradle.tooling.model.elements.Element;
 import org.gradle.tooling.model.idea.IdeaProject;
 
 import java.util.HashMap;

@@ -20,7 +20,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.elements.HierarchicalElement;
+import org.gradle.tooling.model.HierarchicalElement;
 
 import java.io.File;
 

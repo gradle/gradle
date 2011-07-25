@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.elements;
-
-import org.gradle.tooling.model.DomainObjectSet;
+package org.gradle.tooling.model;
 
 /**
  * Represents an element which belongs to some hierarchy.
  */
-public interface HierarchicalElement {
+public interface HierarchicalElement extends Element {
 
     /**
      * Returns the parent of this element, if any.

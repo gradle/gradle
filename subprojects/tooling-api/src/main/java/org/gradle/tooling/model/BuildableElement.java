@@ -14,31 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.elements;
+package org.gradle.tooling.model;
 
 /**
- * Described element of something :)
+ * Represents an element which has Gradle tasks associated with it.
  */
-public interface Element {
+public interface BuildableElement extends Element {
 
     /**
-     * Returns the unique identifier of this element.
+     * Returns the tasks of this project.
      *
-     * @return The path.
+     * @return The tasks.
      */
-    String getId();
+    DomainObjectSet<? extends Task> getTasks();
 
-    /**
-     * Returns the name of this project. Note that the name is not a unique identifier.
-     *
-     * @return The name.
-     */
-    String getName();
-
-    /**
-     * Returns the description of this project.
-     *
-     * @return The description. May be null.
-     */
-    String getDescription();
 }

@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.model.elements.Element;
+import org.gradle.tooling.model.Element;
 
 import java.io.OutputStream;
 
