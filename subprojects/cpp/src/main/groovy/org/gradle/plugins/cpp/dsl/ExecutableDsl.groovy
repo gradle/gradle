@@ -17,15 +17,15 @@ package org.gradle.plugins.cpp.dsl
 
 import org.gradle.api.internal.project.ProjectInternal
 
-import org.gradle.plugins.cpp.CompileCpp
-import org.gradle.plugins.cpp.LinkCpp
+import org.gradle.plugins.cpp.tasks.CompileCpp
+import org.gradle.plugins.cpp.tasks.LinkCpp
 
 import org.gradle.plugins.cpp.CppProjectExtension
-import org.gradle.plugins.cpp.built.CppExecutable
-import org.gradle.plugins.cpp.built.internal.DefaultCppExecutable
+import org.gradle.plugins.cpp.model.CppExecutable
+import org.gradle.plugins.cpp.model.internal.DefaultCppExecutable
 
-import org.gradle.plugins.cpp.source.CppSourceSet
-import org.gradle.plugins.cpp.built.CppLibrary
+import org.gradle.plugins.cpp.model.CppSourceSet
+import org.gradle.plugins.cpp.model.CppLibrary
 
 class ExecutableDsl {
 

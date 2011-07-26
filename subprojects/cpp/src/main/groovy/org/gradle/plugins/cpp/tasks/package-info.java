@@ -15,7 +15,6 @@
  */
 
 /**
- * The classes related to managing C++ source files and friends.
+ * Tasks for building C++ projects.
  */
-package org.gradle.plugins.cpp.source;
-
+package org.gradle.plugins.cpp.tasks;

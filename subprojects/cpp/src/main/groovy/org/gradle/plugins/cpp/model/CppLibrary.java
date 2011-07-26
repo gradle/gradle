@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.built;
+package org.gradle.plugins.cpp.model;
 
+import org.gradle.api.Named;
 import org.gradle.api.Buildable;
 
 import java.io.File;
+import java.util.Set;
 
 /**
- * An executable binary that can be built.
+ * An binary library that can be built.
  */
-public interface CppExecutable extends Buildable {
+public interface CppLibrary extends Buildable, Named {
 
     String getName();
 
     File getFile();
+
+    Set<File> getIncludes();
 
 }

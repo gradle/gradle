@@ -18,6 +18,7 @@ package org.gradle.api.internal
 import spock.lang.Specification
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer
+import org.gradle.api.Named
 
 class FactoryNamedDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
@@ -58,4 +59,86 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
         result == 'element a'
         0 * _._
     }
+    
+    // Tests for reflective instantiation
+    
+    def type
+    def extraArgs = []
+    def name = "test"
+    
+    protected getInstance() {
+        getInstance(name)
+    }
+
+    protected getInstance(name) {
+        new FactoryNamedDomainObjectContainer(type, classGenerator, new ReflectiveNamedDomainObjectFactory(type, *extraArgs)).create(name)
+    }
+
+    static class JustName implements Named {
+        String name
+
+        JustName(String name) {
+            this.name = name
+        }
+    }
+
+    def "can create instance with just name constructor"() {
+        given:
+        type = JustName
+
+        expect:
+        instance.name == name
+    }
+
+    def "specifying extra args that the type can't handle produces exception"() {
+        given:
+        type = JustName
+        extraArgs = [1, 2]
+
+        when:
+        getInstance()
+
+        then:
+        thrown IllegalArgumentException
+    }
+
+    static class NoConstructor {}
+
+    def "type with no name constructor produces exception"() {
+        given:
+        type = NoConstructor
+
+        when:
+        getInstance()
+
+        then:
+        thrown IllegalArgumentException
+    }
+
+    static class ExtraArgs implements Named {
+        String name
+        int arg1
+        int arg2
+
+        ExtraArgs(name, arg1, arg2) {
+            this.name = name
+            this.arg1 = arg1
+            this.arg2 = arg2
+        }
+    }
+
+    def "can supply extra args"() {
+        given:
+        type = ExtraArgs
+        extraArgs = [1, 2]
+
+        when:
+        def instance = getInstance()
+
+        then:
+        instance.name == name
+        instance.arg1 == 1
+        instance.arg2 == 2
+    }
+    
 }

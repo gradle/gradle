@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.built;
-
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectSet;
+package org.gradle.api;
 
 /**
- * A {@code CppLibraryContainer} manages a set of {@link CppLibrary} objects.
+ * An object that can create new instances of a given type, which may be decorated in some fashion.
  */
-public interface CppLibraryContainer extends NamedDomainObjectSet<CppLibrary> {
+public interface Instantiator {
 
     /**
-     * Adds a library.
-     *
-     * @param library The library to add to this collection.
-     * @return whether or not the library was successfully added.
-     * @throws org.gradle.api.InvalidUserDataException when a library with the given name already exists in this container.
+     * Create a new instance of T, using {@code parameters} as the construction parameters.
      */
-    boolean add(CppLibrary library) throws InvalidUserDataException;
+    <T> T newInstance(Class<T> type, Object... parameters);
 
 }

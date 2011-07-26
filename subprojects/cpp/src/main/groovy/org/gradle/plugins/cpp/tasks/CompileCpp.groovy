@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp
+package org.gradle.plugins.cpp.tasks
 
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction

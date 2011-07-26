@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 
 /**
- * The final outputs of build operations.
+ * Classes that model aspects of C++ projects.
  */
-package org.gradle.plugins.cpp.built;
+package org.gradle.plugins.cpp.model;

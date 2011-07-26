@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal;
 
-public interface ClassGenerator {
+import org.gradle.api.Instantiator;
+
+public interface ClassGenerator extends Instantiator {
     /**
      * Generates a proxy class for the given class. May decorate the given class or may generate a subclass.
      */

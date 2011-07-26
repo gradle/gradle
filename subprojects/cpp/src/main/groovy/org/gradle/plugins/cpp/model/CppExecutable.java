@@ -13,25 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.source.internal
+package org.gradle.plugins.cpp.model;
 
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.plugins.cpp.source.*
+import org.gradle.api.Named;
+import org.gradle.api.Buildable;
 
-import spock.lang.*
+import java.io.File;
 
-class DefaultCppSourceSetContainerSpec extends Specification {
+/**
+ * An executable binary that can be built.
+ */
+public interface CppExecutable extends Buildable, Named {
 
-    final DefaultCppSourceSetContainer container = new DefaultCppSourceSetContainer(null, new AsmBackedClassGenerator())
-    
-    def "source sets are auto created"() {
-        when:
-        def ss = container.create('new')
-        
-        then:
-        ss != null
-        ss instanceof CppSourceSet
-    }
-    
+    String getName();
+
+    File getFile();
 
 }

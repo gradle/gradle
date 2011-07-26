@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.built.internal
+package org.gradle.plugins.cpp.model.internal
 
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.file.FileResolver
 
-import org.gradle.plugins.cpp.built.CppLibrary
+import org.gradle.plugins.cpp.model.CppExecutable
 
-class DefaultCppLibrary implements CppLibrary {
+class DefaultCppExecutable implements CppExecutable {
 
     private String name
     private file
-    private includes = new HashSet()
     private DefaultTaskDependency taskDependency
 
     private FileResolver fileResolver
 
-    DefaultCppLibrary(String name, FileResolver fileResolver) {
+    DefaultCppExecutable(String name, FileResolver fileResolver) {
         this.name = name
         this.fileResolver = fileResolver
         this.taskDependency = new DefaultTaskDependency()
@@ -48,7 +47,7 @@ class DefaultCppLibrary implements CppLibrary {
         this.file = file
     }
 
-    DefaultCppLibrary file(file) {
+    DefaultCppExecutable file(file) {
         setFile(file)
         this
     }
@@ -57,26 +56,7 @@ class DefaultCppLibrary implements CppLibrary {
         fileResolver.resolve(file)
     }
 
-    void setIncludes(Object... includes) {
-        this.includes.clear()
-        this.includes(includes)
-    }
-
-    DefaultCppLibrary include(include) {
-        includes.add(include)
-        this
-    }
-
-    DefaultCppLibrary includes(Object... includes) {
-        includes.each { this.includes.add(it) }
-        this
-    }
-
-    Set<File> getIncludes() {
-        fileResolver.resolveFiles(*includes.toList()).files
-    }
-
-    DefaultCppLibrary builtBy(Object... tasks) {
+    DefaultCppExecutable builtBy(Object... tasks) {
         taskDependency.add(tasks)
         this
     }

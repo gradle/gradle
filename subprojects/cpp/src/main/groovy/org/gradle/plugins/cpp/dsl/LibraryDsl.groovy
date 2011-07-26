@@ -17,14 +17,14 @@ package org.gradle.plugins.cpp.dsl
 
 import org.gradle.api.internal.project.ProjectInternal
 
-import org.gradle.plugins.cpp.CompileCpp
-import org.gradle.plugins.cpp.LinkCpp
+import org.gradle.plugins.cpp.tasks.CompileCpp
+import org.gradle.plugins.cpp.tasks.LinkCpp
 
 import org.gradle.plugins.cpp.CppProjectExtension
-import org.gradle.plugins.cpp.built.internal.DefaultCppLibrary
 
-import org.gradle.plugins.cpp.source.CppSourceSet
-import org.gradle.plugins.cpp.built.CppLibrary
+import org.gradle.plugins.cpp.model.CppSourceSet
+import org.gradle.plugins.cpp.model.CppLibrary
+import org.gradle.plugins.cpp.model.internal.DefaultCppLibrary
 
 class LibraryDsl {
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.Instantiator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +35,7 @@ public class ServiceLocator {
             if (implementationClass == null) {
                 return null;
             }
-            Instantiator instantiator = new Instantiator();
+            Instantiator instantiator = new DirectInstantiator();
             return instantiator.newInstance(implementationClass, params);
         } catch (Throwable t) {
             throw new RuntimeException(String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
