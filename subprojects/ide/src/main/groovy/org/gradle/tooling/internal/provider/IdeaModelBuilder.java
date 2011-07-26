@@ -19,9 +19,8 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
-import org.gradle.plugins.ide.idea.model.IdeaModel;
-import org.gradle.plugins.ide.idea.model.IdeaModule;
-import org.gradle.plugins.ide.idea.model.IdeaProject;
+import org.gradle.plugins.ide.idea.model.*;
+import org.gradle.tooling.internal.idea.DefaultIdeaLibraryDependency;
 import org.gradle.tooling.internal.idea.DefaultIdeaModule;
 import org.gradle.tooling.internal.idea.DefaultIdeaProject;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
@@ -59,13 +58,13 @@ public class IdeaModelBuilder implements BuildsModel {
         IdeaProject projectModel = ideaModel.getProject();
 
         DefaultIdeaProject out = new DefaultIdeaProject()
-            .setName(projectModel.getName())
-            .setId(project.getPath())
-            .setJdkName(projectModel.getJdkName())
-            .setLanguageLevel(projectModel.getLanguageLevel().getFormatted());
+                .setName(projectModel.getName())
+                .setId(project.getPath())
+                .setJdkName(projectModel.getJdkName())
+                .setLanguageLevel(projectModel.getLanguageLevel().getFormatted());
 
         Set<DefaultIdeaModule> modules = new LinkedHashSet<DefaultIdeaModule>();
-        for (IdeaModule module: projectModel.getModules()) {
+        for (IdeaModule module : projectModel.getModules()) {
             appendModule(modules, module, out);
         }
         out.setChildren(modules);
@@ -88,27 +87,28 @@ public class IdeaModelBuilder implements BuildsModel {
 
         List<IdeaDependency> deps = new LinkedList<IdeaDependency>();
         defaultIdeaModule.setDependencies(deps);
-//
-//        Set<Dependency> resolved = module.resolveDependencies();
-//        for (Dependency dependency: resolved) {
-//            if (dependency instanceof ModuleLibrary) {
-//                List<IdeaLibraryDependency> dependencies = new LinkedList<IdeaLibraryDependency>();
-//                File file = ((ModuleLibrary) dependency).getSingleJar();
-//                File javadoc = ((ModuleLibrary) dependency).getSingleJavadoc();
-//                File source = ((ModuleLibrary) dependency).getSingleSource();
-//                boolean exported = ((ModuleLibrary) dependency).getExported();
-//                String scope = ((ModuleLibrary) dependency).getScope();
-//                dependencies.add(new DefaultIdeaLibraryDependency(file, source, javadoc, scope, exported));
-//                defaultIdeaModule.setLibraryDependencies(dependencies);
-//            } else if (dependency instanceof ModuleDependency) {
-//                List<IdeaModuleDependency> dependencies = new LinkedList<IdeaModuleDependency>();
-//                String name = ((ModuleDependency) dependency).getName();
+
+        Set<Dependency> resolved = ideaModule.resolveDependencies();
+        List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
+        for (Dependency dependency : resolved) {
+            if (dependency instanceof SingleEntryModuleLibrary) {
+                SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
+                IdeaDependency defaultDependency = new DefaultIdeaLibraryDependency()
+                        .setFile(d.getLibraryFile())
+                        .setSource(d.getSourceFile())
+                        .setJavadoc(d.getJavadocFile())
+                        .setScope(d.getScope())
+                        .setExported(d.getExported());
+                dependencies.add(defaultDependency);
+            } else if (dependency instanceof ModuleDependency) {
+                String name = ((ModuleDependency) dependency).getName();
 //                boolean exported = ((ModuleDependency) dependency).getExported();
 //                String scope = ((ModuleDependency) dependency).getScope();
 //                dependencies.add(new DefaultIdeaModuleDependency(scope, name, exported));
 //                defaultIdeaModule.setModuleDependencies(dependencies);
-//            }
-//        }
+            }
+        }
+        defaultIdeaModule.setDependencies(dependencies);
 
         modules.add(defaultIdeaModule);
     }

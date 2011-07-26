@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.plugins.ide.idea.model
 
-import org.gradle.util.Matchers
-import spock.lang.Specification
+/**
+ * A Path that keeps the reference to the File
+ */
+class FilePath extends Path {
 
-class PathTest extends Specification {
-    def "paths are equal when they have the same canonical url"() {
-        expect:
-        Matchers.strictlyEquals(new Path('file://$ROOT_DIR$/file'), new Path('file://$ROOT_DIR$/file'))
-        new Path('file://$ROOT_DIR$/file') != new Path('file://$ROOT_DIR$/other')
-    }
+    /**
+     * file
+     */
+    final File file
 
-    def "equals honors subclasses"() {
-        expect:
-        new Path('file://$ROOT_DIR$/file') == new FilePath(null, null, 'file://$ROOT_DIR$/file', null)
+    FilePath(File file, String url, String canonicalUrl, String relPath) {
+        super(url, canonicalUrl, relPath)
+        this.file = file
     }
 }

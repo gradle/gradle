@@ -23,8 +23,40 @@ import java.lang.reflect.*;
 import java.util.*;
 
 public class ProtocolToModelAdapter {
+
     public <T, S> T adapt(Class<T> targetType, S protocolObject) {
-        return targetType.cast(Proxy.newProxyInstance(targetType.getClassLoader(), new Class<?>[]{targetType}, new InvocationHandlerImpl(protocolObject)));
+        Class<T> trueTarget = guessTarget(targetType, protocolObject);
+        Object proxy = Proxy.newProxyInstance(trueTarget.getClassLoader(), new Class<?>[]{trueTarget}, new InvocationHandlerImpl(protocolObject));
+        return trueTarget.cast(proxy);
+    }
+
+    /**
+     * tries to guess the target for casting. Usually it will be the targetType that is passed as parameter.
+     * Sometimes, when there are multiple inheritors of an interface we need to guess the target type (example: IdeaDependency and its inheritors)
+     */
+    private <T, S> Class<T> guessTarget(Class<T> targetType, S protocolObject) {
+        if (isDirectChild(targetType, protocolObject)) {
+            return targetType;
+        }
+        //TODO SF wasn't sure how to tackle this. There're multiple solutions.
+        for (Class i : protocolObject.getClass().getInterfaces()) {
+            if (i.getCanonicalName().startsWith("org.gradle.tooling.model")) {
+                return i;
+            }
+        }
+        throw new RuntimeException("I cannot figure out the target type for casting");
+    }
+
+    /**
+     * returns true if the classes are easily adaptable, that is if the target type is one of the interfaces of the protocol object
+     */
+    private boolean isDirectChild(Class targetType, Object protocolObject) {
+        Class[] interfaces = protocolObject.getClass().getInterfaces();
+        List<String> names = new LinkedList<String>();
+        for (Class i : interfaces) {
+            names.add(i.getCanonicalName());
+        }
+        return names.contains(targetType.getCanonicalName());
     }
 
     private class InvocationHandlerImpl implements InvocationHandler {

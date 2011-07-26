@@ -18,10 +18,10 @@ package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.plugins.ide.idea.model.FilePath
 import org.gradle.plugins.ide.idea.model.IdeaModule
-import org.gradle.plugins.ide.idea.model.ModuleLibrary
-import org.gradle.plugins.ide.idea.model.Path
 import org.gradle.plugins.ide.idea.model.PathFactory
+import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
 /**
@@ -51,7 +51,7 @@ class IdeaDependenciesProvider {
         ideaModule.singleEntryLibraries.each { scope, files ->
             files.each {
                 if (it && it.isDirectory()) {
-                    result << new ModuleLibrary([getPath(it)] as Set, [] as Set, [] as Set, [] as Set, scope)
+                    result << new SingleEntryModuleLibrary(getPath(it), scope)
                 }
             }
         }
@@ -83,16 +83,16 @@ class IdeaDependenciesProvider {
                 project.configurations, scopes[scope].plus, scopes[scope].minus, downloadSources, downloadJavadoc)
 
         repoFileDependencies.each {
-            moduleLibraries << new ModuleLibrary([getPath(it.file)] as Set, it.javadocFile ? [getPath(it.javadocFile)] as Set : [] as Set, it.sourceFile ? [getPath(it.sourceFile)] as Set : [] as Set, [] as Set, scope)
+            moduleLibraries << new SingleEntryModuleLibrary(getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scope)
         }
 
         dependenciesExtractor.extractLocalFileDependencies(scopes[scope].plus, scopes[scope].minus).each {
-            moduleLibraries << new ModuleLibrary([getPath(it.file)] as Set, [] as Set, [] as Set, [] as Set, scope)
+            moduleLibraries << new SingleEntryModuleLibrary(getPath(it.file), scope)
         }
         moduleLibraries
     }
 
-    protected Path getPath(File file) {
-        return pathFactory.path(file)
+    protected FilePath getPath(File file) {
+        file? pathFactory.path(file) : null
     }
 }

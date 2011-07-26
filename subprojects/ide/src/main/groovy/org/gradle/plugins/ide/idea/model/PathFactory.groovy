@@ -28,7 +28,7 @@ class PathFactory {
     /**
      * Creates a path for the given file.
      */
-    Path path(File file) {
+    FilePath path(File file) {
         Map match = null
         for (variable in variables) {
             if (file.absolutePath == variable.dir.absolutePath) {
@@ -49,21 +49,21 @@ class PathFactory {
         // IDEA doesn't like the result of file.toURI() so use the absolute path instead
         def relPath = file.absolutePath.replace(File.separator, '/')
         def url = relativePathToURI(relPath)
-        return new Path(url, url, relPath)
+        return new FilePath(file, url, url, relPath)
     }
 
     /**
      * Creates a path relative to the given path variable.
      */
-    Path relativePath(String pathVar, File file) {
+    FilePath relativePath(String pathVar, File file) {
         return relativePath(varsByName[pathVar], "\$$pathVar\$", file)
     }
 
-    private Path relativePath(File rootDir, String rootDirName, File file) {
+    private FilePath relativePath(File rootDir, String rootDirName, File file) {
         def relPath = getRelativePath(rootDir, rootDirName, file)
         def url = relativePathToURI(relPath)
         def canonicalUrl = relativePathToURI(file.absolutePath.replace(File.separator, '/'))
-        return new Path(url, canonicalUrl, relPath)
+        return new FilePath(file, url, canonicalUrl, relPath)
     }
     /**
      * Creates a path for the given URL.

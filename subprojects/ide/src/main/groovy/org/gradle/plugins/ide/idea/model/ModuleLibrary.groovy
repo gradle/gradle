@@ -22,7 +22,7 @@ package org.gradle.plugins.ide.idea.model
  */
 class ModuleLibrary implements Dependency {
     /**
-     * A set of  {@link org.gradle.plugins.ide.idea.model.Path}  instances for class libraries.
+     * A set of {@link org.gradle.plugins.ide.idea.model.Path} instances for class libraries. Can be paths to jars or class folders.
      */
     Set classes
 

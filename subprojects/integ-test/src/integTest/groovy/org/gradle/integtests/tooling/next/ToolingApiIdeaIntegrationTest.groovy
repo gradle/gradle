@@ -189,20 +189,14 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-//        def lib = module.libraryDependencies[0]
-//
-//        lib.file.exists()
-//        lib.file.path.endsWith('junit-4.5.jar')
+        def lib = libs[0]
+        lib.file.exists()
+
+        lib.file.path.endsWith('junit-4.5.jar')
 //        //TODO SF find library that has javadocs :)
 ////        lib.javadoc.exists()
-//        lib.source.exists()
-//        lib.source.path.endsWith('junit-4.5-sources.jar')
-//        lib.scope.toString() == 'TEST'
-//
-//        def md = module.moduleDependencies[0]
-//
-//        md.dependencyModuleName == 'api'
-//        md.scope.toString() == 'COMPILE'
-//        md.exported
+        lib.source.exists()
+        lib.source.path.endsWith('junit-4.5-sources.jar')
+        lib.scope.toString() == 'TEST'
     }
 }

@@ -31,7 +31,10 @@ class Path {
      */
     final String relPath
 
-    private final String canonicalUrl
+    /**
+     * Canonical url
+     */
+    final String canonicalUrl
 
     Path(String url) {
         this(url, url, null)
@@ -44,13 +47,18 @@ class Path {
     }
 
     boolean equals(o) {
-        if (this.is(o)) { return true }
-
-        if (o == null || getClass() != o.class) { return false }
+        if (this.is(o)) {
+            return true
+        }
+        if (!(o instanceof Path)) {
+            return false
+        }
 
         Path path = (Path) o;
 
-        if (canonicalUrl != path.canonicalUrl) { return false }
+        if (canonicalUrl != path.canonicalUrl) {
+            return false
+        }
 
         return true;
     }
@@ -62,8 +70,6 @@ class Path {
     public String toString() {
         return "Path{" +
                 "url='" + url + '\'' +
-                ", canonicalUrl='" + canonicalUrl + '\'' +
-                ", path='" + relPath + '\'' +
                 '}';
     }
 }
