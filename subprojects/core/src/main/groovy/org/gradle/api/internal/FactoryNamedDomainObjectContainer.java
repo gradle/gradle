@@ -33,7 +33,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param classGenerator The class generator to use to create any other collections based on this one
      */
     public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator) {
-        this(type, classGenerator, (Namer<T>)createNamerForNamed(type));
+        this(type, classGenerator, Named.Namer.forType(type));
     }
 
     /**
@@ -55,7 +55,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param factory The factory responsible for creating new instances on demand
      */
     public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, NamedDomainObjectFactory<T> factory) {
-        this(type, classGenerator, createNamerForNamed(type), factory);
+        this(type, classGenerator, Named.Namer.forType(type), factory);
     }
 
     /**
@@ -79,7 +79,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param factoryClosure The closure responsible for creating new instances on demand
      */
     public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, final Closure factoryClosure) {
-        this(type, classGenerator, createNamerForNamed(type), factoryClosure);
+        this(type, classGenerator, Named.Namer.forType(type), factoryClosure);
     }
 
     /**
@@ -92,14 +92,6 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      */
     public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, final Closure factoryClosure) {
         this(type, classGenerator, namer, new ClosureObjectFactory<T>(type, factoryClosure));
-    }
-
-    static private <T> Namer<T> createNamerForNamed(Class<T> type) {
-        if (Named.class.isAssignableFrom(type)) {
-            return (Namer<T>)new org.gradle.api.Named.Namer();
-        } else {
-            throw new IllegalArgumentException(String.format("The '%s' cannot be used with FactoryNamedDomainObjectContainer without specifying a Namer as it does not implement the Named interface.", type));
-        }
     }
 
     @Override
