@@ -29,7 +29,14 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer) {
-        this(type, classGenerator, namer, new DefaultConstructorObjectFactory<T>(type));
+        this(type, classGenerator, namer, new ReflectiveObjectFactory<T>(type));
+    }
+
+    /**
+     * @param creationArgs Extra args passed to the constructor of auto created objects, after the first name argument.
+     */
+    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, Object... creationArgs) {
+        this(type, classGenerator, namer, new ReflectiveObjectFactory<T>(type, creationArgs));
     }
 
     public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, final Closure factoryClosure) {
@@ -41,16 +48,35 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
         return factory.create(name);
     }
 
-    private static class DefaultConstructorObjectFactory<T> implements NamedDomainObjectFactory<T> {
-        private final Class<T> type;
+    protected static class ReflectiveObjectFactory<T> implements NamedDomainObjectFactory<T> {
+        private final Class<? extends T> type;
+        private final Object[] extraArgs;
 
-        public DefaultConstructorObjectFactory(Class<T> type) {
+        public ReflectiveObjectFactory(Class<? extends T> type, Object... extraArgs) {
             this.type = type;
+            this.extraArgs = extraArgs;
         }
 
         public T create(String name) {
             Instantiator instantiator = new Instantiator();
-            return instantiator.newInstance(type, name);
+            return instantiator.newInstance(type, combineInstantiationArgs(name));
+        }
+
+        protected Object[] combineInstantiationArgs(String name) {
+            Object[] combinedArgs;
+            if (extraArgs.length == 0) {
+                Object[] nameArg = {name};
+                combinedArgs = nameArg;
+            } else {
+                combinedArgs = new Object[extraArgs.length + 1];
+                combinedArgs[0] = name;
+                int i = 1;
+                for (Object e : extraArgs) {
+                    combinedArgs[i++] = e;
+                }
+            }
+
+            return combinedArgs;
         }
     }
 
