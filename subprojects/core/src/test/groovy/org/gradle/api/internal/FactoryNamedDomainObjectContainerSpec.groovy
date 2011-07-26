@@ -70,10 +70,10 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     protected getInstance(name) {
-        new FactoryNamedDomainObjectContainer(type, classGenerator, { it.name} as Namer, *extraArgs).create(name)
+        new FactoryNamedDomainObjectContainer(type, classGenerator, *extraArgs).create(name)
     }
 
-    static class JustName {
+    static class JustName implements Named {
         String name
 
         JustName(String name) {
@@ -114,7 +114,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
         thrown IllegalArgumentException
     }
 
-    static class ExtraArgs {
+    static class ExtraArgs implements Named {
         String name
         int arg1
         int arg2

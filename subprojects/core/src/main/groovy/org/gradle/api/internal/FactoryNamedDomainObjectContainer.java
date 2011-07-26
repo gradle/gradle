@@ -33,6 +33,31 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     /**
+     * <p>Creates a container that instantiates reflectively, expecting a 1 arg constructor taking the name.<p>
+     *
+     * <p>The type must implement the {@link Named} interface as a {@link Namer} will be created based on this type.</p>
+     *
+     * @param type The concrete type of element in the container (must implement {@link Named})
+     * @param classGenerator The class generator to use to create any other collections based on this one
+     */
+    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator) {
+        this(type, classGenerator, (Namer<T>)createNamerForNamed(type));
+    }
+
+    /**
+     * <p>Creates a container that instantiates reflectively, using a constructor that expects the {@code creationArgs} after the 1st name argument.<p>
+     *
+     * <p>The type must implement the {@link Named} interface as a {@link Namer} will be created based on this type.</p>
+     *
+     * @param type The concrete type of element in the container (must implement {@link Named})
+     * @param classGenerator The class generator to use to create any other collections based on this one
+     * @param creationArgs Extra arguments that should be used to construct new element instances
+     */
+    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Object... creationArgs) {
+        this(type, classGenerator, (Namer<T>)createNamerForNamed(type), creationArgs);
+    }
+
+    /**
      * @param creationArgs Extra args passed to the constructor of auto created objects, after the first name argument.
      */
     public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, Object... creationArgs) {
@@ -41,6 +66,14 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
 
     public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, final Closure factoryClosure) {
         this(type, classGenerator, namer, new ClosureObjectFactory<T>(type, factoryClosure));
+    }
+
+    static private <T> Namer<T> createNamerForNamed(Class<T> type) {
+        if (Named.class.isAssignableFrom(type)) {
+            return ((Namer<T>)new org.gradle.api.internal.Named.Namer());
+        } else {
+            throw new IllegalArgumentException(String.format("The class '%s' cannot be used with FactoryNamedDomainObjectContainer without specifying a Namer as it does not implement the Named interface"));
+        }
     }
 
     @Override
