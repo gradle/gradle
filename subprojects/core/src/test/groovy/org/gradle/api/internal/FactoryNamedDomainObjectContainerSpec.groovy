@@ -71,7 +71,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     protected getInstance(name) {
-        new FactoryNamedDomainObjectContainer(type, classGenerator, *extraArgs).create(name)
+        new FactoryNamedDomainObjectContainer(type, classGenerator, new ReflectiveNamedDomainObjectFactory(type, *extraArgs)).create(name)
     }
 
     static class JustName implements Named {
