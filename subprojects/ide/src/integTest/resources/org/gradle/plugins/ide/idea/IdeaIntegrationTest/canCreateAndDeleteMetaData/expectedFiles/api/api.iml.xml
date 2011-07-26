@@ -12,22 +12,22 @@
     <orderEntry type="module-library" exported="" scope="RUNTIME">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/commons-collections/commons-collections/jars/commons-collections-3.2.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-collections/commons-collections/@REPO@/jars/commons-collections-3.2.jar!/"/>
         </CLASSES>
         <JAVADOC/>
         <SOURCES>
-          <root url="jar://@CACHE_DIR@/commons-collections/commons-collections/sources/commons-collections-3.2-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-collections/commons-collections/@REPO@/sources/commons-collections-3.2-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/junit/junit/jars/junit-4.7.jar!/"/>
+          <root url="jar://@CACHE_DIR@/junit/junit/@REPO@/jars/junit-4.7.jar!/"/>
         </CLASSES>
         <JAVADOC/>
         <SOURCES>
-          <root url="jar://@CACHE_DIR@/junit/junit/sources/junit-4.7-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/junit/junit/@REPO@/sources/junit-4.7-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>

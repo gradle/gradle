@@ -18,22 +18,27 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.internal.Factory;
-
-import java.io.File;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 public class IvySettingsFactory implements Factory<IvySettings> {
-    private final File gradleUserHome;
+    private final CacheRepository cacheRepository;
 
-    public IvySettingsFactory(File gradleUserHome) {
-        this.gradleUserHome = gradleUserHome;
+    public IvySettingsFactory(CacheRepository cacheRepository) {
+        this.cacheRepository = cacheRepository;
     }
 
     public IvySettings create() {
         IvySettings ivySettings = new IvySettings();
-        ivySettings.setDefaultCache(new File(gradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME));
+        PersistentCache cache = cacheRepository.cache("artifacts").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open();
+        cache.markValid();
+        ivySettings.setDefaultCache(cache.getBaseDir());
         ivySettings.setDefaultCacheIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
+        ivySettings.setDefaultRepositoryCacheManager(WharfCacheManager.newInstance(ivySettings));
         return ivySettings;
     }
 }

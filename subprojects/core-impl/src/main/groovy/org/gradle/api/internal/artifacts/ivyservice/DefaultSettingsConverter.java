@@ -20,15 +20,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
-import org.apache.ivy.plugins.resolver.ChainResolver;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -53,7 +49,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final DependencyResolver internalRepository;
     private final Map<String, ModuleDescriptor> clientModuleRegistry;
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
-    private RepositoryCacheManager repositoryCacheManager = new DefaultRepositoryCacheManager();
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private ChainResolver userResolverChain;
@@ -86,7 +81,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     public IvySettings convertForPublish(List<DependencyResolver> publishResolvers) {
         Clock clock = new Clock();
         if (publishSettings == null) {
-            publishSettings = createIvySettings();
+            publishSettings = settingsFactory.create();
         } else {
             publishSettings.getResolvers().clear();
         }
@@ -99,7 +94,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         Clock clock = new Clock();
 
         if (resolveSettings == null) {
-            resolveSettings = createIvySettings();
+            resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
             DependencyResolver clientModuleResolver = createClientModuleResolver(userResolverChain);
             outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
@@ -151,13 +146,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
     }
 
-    private IvySettings createIvySettings() {
-        IvySettings ivySettings = settingsFactory.create();
-        ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
-        ((IvySettingsAware)repositoryCacheManager).setSettings(ivySettings);
-        return ivySettings;
-    }
-
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
             ivySettings.addResolver(dependencyResolver);
@@ -166,11 +154,27 @@ public class DefaultSettingsConverter implements SettingsConverter {
             if (!(cacheManager instanceof NoOpRepositoryCacheManager) && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
                 ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
             }
-            if (dependencyResolver instanceof RepositoryResolver) {
-                Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
-                if (!repository.hasTransferListener(transferListener)) {
-                    repository.addTransferListener(transferListener);
-                }
+            attachListener(dependencyResolver);
+        }
+    }
+
+    private void attachListener(DependencyResolver dependencyResolver) {
+        if (dependencyResolver instanceof RepositoryResolver) {
+            Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
+            if (!repository.hasTransferListener(transferListener)) {
+                repository.addTransferListener(transferListener);
+            }
+        }
+        if (dependencyResolver instanceof DualResolver) {
+            DualResolver dualResolver = (DualResolver) dependencyResolver;
+            attachListener(dualResolver.getIvyResolver());
+            attachListener(dualResolver.getArtifactResolver());
+        }
+        if (dependencyResolver instanceof ChainResolver) {
+            ChainResolver chainResolver = (ChainResolver) dependencyResolver;
+            List<DependencyResolver> resolvers = chainResolver.getResolvers();
+            for (DependencyResolver resolver : resolvers) {
+                attachListener(resolver);
             }
         }
     }
