@@ -15,7 +15,7 @@
  */
 package org.gradle.util;
 
-import org.gradle.api.Instantiator;
+import org.gradle.api.internal.Instantiator;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api;
+package org.gradle.api.internal;
 
 /**
  * An object that can create new instances of a given type, which may be decorated in some fashion.

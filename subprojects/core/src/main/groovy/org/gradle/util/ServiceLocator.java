@@ -15,7 +15,7 @@
  */
 package org.gradle.util;
 
-import org.gradle.api.Instantiator;
+import org.gradle.api.internal.Instantiator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
