@@ -76,7 +76,6 @@ public class CppProjectExtension {
                     }
 
                     public void apply(String domainObjectName) {
-                        System.out.println("creating: " + domainObjectName);
                         ss.create(domainObjectName);
                     }
                 });
