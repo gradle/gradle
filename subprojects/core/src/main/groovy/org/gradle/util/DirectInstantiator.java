@@ -15,13 +15,14 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.Instantiator;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Instantiator {
+public class DirectInstantiator implements Instantiator {
     public <T> T newInstance(Class<T> type, Object... params) {
         try {
             List<Constructor<?>> matches = new ArrayList<Constructor<?>>();

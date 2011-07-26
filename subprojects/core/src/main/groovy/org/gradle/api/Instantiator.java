@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.api;
 
-import org.gradle.api.Instantiator;
-
-public interface ClassGenerator extends Instantiator {
-    /**
-     * Generates a proxy class for the given class. May decorate the given class or may generate a subclass.
-     */
-    <T> Class<? extends T> generate(Class<T> type);
+/**
+ * An object that can create new instances of a given type, which may be decorated in some fashion.
+ */
+public interface Instantiator {
 
     /**
-     * Creates an instance of the proxy class for the given class.
+     * Create a new instance of T, using {@code parameters} as the construction parameters.
      */
     <T> T newInstance(Class<T> type, Object... parameters);
+
 }
