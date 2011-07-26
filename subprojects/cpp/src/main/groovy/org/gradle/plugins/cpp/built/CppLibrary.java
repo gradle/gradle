@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.cpp.built;
 
+import org.gradle.api.Named;
 import org.gradle.api.Buildable;
 
 import java.io.File;
@@ -23,7 +24,7 @@ import java.util.Set;
 /**
  * An binary library that can be built.
  */
-public interface CppLibrary extends Buildable {
+public interface CppLibrary extends Buildable, Named {
 
     String getName();
 

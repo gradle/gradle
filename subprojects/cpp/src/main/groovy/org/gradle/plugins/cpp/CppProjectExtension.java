@@ -17,6 +17,8 @@ package org.gradle.plugins.cpp;
 
 import org.gradle.api.Project;
 
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.ConfigureUtil;
@@ -24,11 +26,9 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.plugins.cpp.source.CppSourceSetContainer;
 import org.gradle.plugins.cpp.source.internal.DefaultCppSourceSetContainer;
 import org.gradle.plugins.cpp.built.CppExecutable;
-import org.gradle.plugins.cpp.built.CppExecutableContainer;
-import org.gradle.plugins.cpp.built.internal.DefaultCppExecutableContainer;
+import org.gradle.plugins.cpp.built.internal.DefaultCppExecutable;
 import org.gradle.plugins.cpp.built.CppLibrary;
-import org.gradle.plugins.cpp.built.CppLibraryContainer;
-import org.gradle.plugins.cpp.built.internal.DefaultCppLibraryContainer;
+import org.gradle.plugins.cpp.built.internal.DefaultCppLibrary;
 
 import org.gradle.plugins.cpp.dsl.LibraryDsl;
 import org.gradle.plugins.cpp.dsl.ExecutableDsl;
@@ -45,16 +45,17 @@ public class CppProjectExtension {
     final private ProjectInternal project;
 
     final private CppSourceSetContainer sourceSets;
-    final private CppLibraryContainer libraries;
-    final private CppExecutableContainer executables;
+    final private NamedDomainObjectContainer<CppLibrary> libraries;
+    final private NamedDomainObjectContainer<CppExecutable> executables;
 
     public CppProjectExtension(Project project) {
         this.project = (ProjectInternal)project;
 
         ClassGenerator classGenerator = this.project.getServices().get(ClassGenerator.class);
         this.sourceSets = classGenerator.newInstance(DefaultCppSourceSetContainer.class, this.project.getFileResolver(), classGenerator);
-        this.libraries = classGenerator.newInstance(DefaultCppLibraryContainer.class, classGenerator);
-        this.executables = classGenerator.newInstance(DefaultCppExecutableContainer.class, classGenerator);
+        
+        this.libraries = classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, DefaultCppLibrary.class, classGenerator);
+        this.executables = classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, DefaultCppExecutable.class, classGenerator);
     }
 
     public Project getProject() {
@@ -81,7 +82,7 @@ public class CppProjectExtension {
         return executable;
     }
 
-    public CppExecutableContainer getExecutables() {
+    public NamedDomainObjectContainer<CppExecutable> getExecutables() {
         return executables;
     }
 
@@ -97,7 +98,7 @@ public class CppProjectExtension {
         return library;
     }
 
-    public CppLibraryContainer getLibraries() {
+    public NamedDomainObjectContainer<CppLibrary> getLibraries() {
         return libraries;
     }
 }

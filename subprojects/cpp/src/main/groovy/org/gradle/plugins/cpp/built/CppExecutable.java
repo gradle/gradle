@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.cpp.built;
 
+import org.gradle.api.Named;
 import org.gradle.api.Buildable;
 
 import java.io.File;
@@ -22,7 +23,7 @@ import java.io.File;
 /**
  * An executable binary that can be built.
  */
-public interface CppExecutable extends Buildable {
+public interface CppExecutable extends Buildable, Named {
 
     String getName();
 
