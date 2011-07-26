@@ -16,9 +16,7 @@
 package org.gradle.api;
 
 /**
- * Types that are to be used with a {@link NamedDomainObjectContainer} can implement this interface to achieve implicit naming.
- *
- * @see FactoryNamedDomainObjectContainer#FactoryNamedDomainObjectContainer(Class, ClassGenerator)
+ * Types can implement this interface and use the embedded {@link Namer} implementation, to satisfy API that calls for a namer.
  */
 public interface Named {
 
@@ -36,6 +34,9 @@ public interface Named {
     // if you have a groovy class with a “String name” property the generated getName() method will not 
     // satisfy the Named interface. This seems to be a bug in the Groovy compiler - LD.
 
+    /**
+     * An implementation of the namer interface for objects implementing the named interface.
+     */
     public static class Namer implements org.gradle.api.Namer<Named> {
         public String determineName(Named object) {
             return object.getName();
