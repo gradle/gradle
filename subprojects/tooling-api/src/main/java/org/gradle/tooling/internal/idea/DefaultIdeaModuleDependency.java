@@ -21,7 +21,7 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency;
 /**
  * @author: Szczepan Faber, created at: 7/26/11
  */
-public class DefaultModuleDependency implements IdeaModuleDependency {
+public class DefaultIdeaModuleDependency implements IdeaModuleDependency {
 
     private String scope;
     private String dependencyModuleName;
@@ -31,7 +31,7 @@ public class DefaultModuleDependency implements IdeaModuleDependency {
         return scope;
     }
 
-    public DefaultModuleDependency setScope(String scope) {
+    public DefaultIdeaModuleDependency setScope(String scope) {
         this.scope = scope;
         return this;
     }
@@ -40,7 +40,7 @@ public class DefaultModuleDependency implements IdeaModuleDependency {
         return dependencyModuleName;
     }
 
-    public DefaultModuleDependency setDependencyModuleName(String dependencyModuleName) {
+    public DefaultIdeaModuleDependency setDependencyModuleName(String dependencyModuleName) {
         this.dependencyModuleName = dependencyModuleName;
         return this;
     }
@@ -49,7 +49,7 @@ public class DefaultModuleDependency implements IdeaModuleDependency {
         return exported;
     }
 
-    public DefaultModuleDependency setExported(boolean exported) {
+    public DefaultIdeaModuleDependency setExported(boolean exported) {
         this.exported = exported;
         return this;
     }

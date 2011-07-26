@@ -191,7 +191,7 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-        IdeaLibraryDependency lib = libs[0]
+        IdeaLibraryDependency lib = libs.find {it instanceof IdeaLibraryDependency}
         lib.file.exists()
 
         lib.file.path.endsWith('junit-4.5.jar')
@@ -201,7 +201,7 @@ project(':impl') {
         lib.source.path.endsWith('junit-4.5-sources.jar')
         lib.scope.toString() == 'TEST'
 
-        IdeaModuleDependency mod = libs[1]
+        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
         mod.dependencyModuleName == 'api'
     }
 }

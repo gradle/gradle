@@ -16,6 +16,8 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.idea.IdeaLibraryDependency;
+import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.gradle.util.UncheckedException;
 
@@ -24,39 +26,28 @@ import java.util.*;
 
 public class ProtocolToModelAdapter {
 
+    Map<String, Class> configuredTargetTypes = new HashMap<String, Class>();
+
+    {{
+        configuredTargetTypes.put("org.gradle.tooling.internal.idea.DefaultIdeaLibraryDependency", IdeaLibraryDependency.class);
+        configuredTargetTypes.put("org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency",  IdeaModuleDependency.class);
+    }}
+
     public <T, S> T adapt(Class<T> targetType, S protocolObject) {
-        Class<T> trueTarget = guessTarget(targetType, protocolObject);
-        Object proxy = Proxy.newProxyInstance(trueTarget.getClassLoader(), new Class<?>[]{trueTarget}, new InvocationHandlerImpl(protocolObject));
-        return trueTarget.cast(proxy);
+        Class<T> target = guessTarget(targetType, protocolObject);
+        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject));
+        return target.cast(proxy);
     }
 
     /**
-     * tries to guess the target for casting. Usually it will be the targetType that is passed as parameter.
-     * Sometimes, when there are multiple inheritors of an interface we need to guess the target type (example: IdeaDependency and its inheritors)
+     * occasionally we want to use preconfigured target type instead of passed target type.
      */
     private <T, S> Class<T> guessTarget(Class<T> targetType, S protocolObject) {
-        if (isDirectChild(targetType, protocolObject)) {
-            return targetType;
+        Class configuredType = configuredTargetTypes.get(protocolObject.getClass().getCanonicalName());
+        if (configuredType != null){
+            return configuredType;
         }
-        //TODO SF wasn't sure how to tackle this. There're multiple solutions.
-        for (Class i : protocolObject.getClass().getInterfaces()) {
-            if (i.getCanonicalName().startsWith("org.gradle.tooling.model")) {
-                return i;
-            }
-        }
-        throw new RuntimeException("I cannot figure out the target type for casting");
-    }
-
-    /**
-     * returns true if the classes are easily adaptable, that is if the target type is one of the interfaces of the protocol object
-     */
-    private boolean isDirectChild(Class targetType, Object protocolObject) {
-        Class[] interfaces = protocolObject.getClass().getInterfaces();
-        List<String> names = new LinkedList<String>();
-        for (Class i : interfaces) {
-            names.add(i.getCanonicalName());
-        }
-        return names.contains(targetType.getCanonicalName());
+        return targetType;
     }
 
     private class InvocationHandlerImpl implements InvocationHandler {
