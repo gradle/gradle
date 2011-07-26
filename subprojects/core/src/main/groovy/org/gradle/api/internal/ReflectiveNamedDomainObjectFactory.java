@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.Instantiator;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.util.DirectInstantiator;
 

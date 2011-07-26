@@ -3,17 +3,17 @@
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
 	<classpathentry kind="src" path="/api" exported="true"/>
-	<classpathentry sourcepath="@CACHE_DIR@/commons-lang/commons-lang/sources/commons-lang-2.5-sources.jar" kind="lib" path="@CACHE_DIR@/commons-lang/commons-lang/jars/commons-lang-2.5.jar"
+	<classpathentry sourcepath="@CACHE_DIR@/commons-lang/commons-lang/@REPO@/sources/commons-lang-2.5-sources.jar" kind="lib" path="@CACHE_DIR@/commons-lang/commons-lang/@REPO@/jars/commons-lang-2.5.jar"
 					exported="true">
 		<attributes>
-			<attribute name="javadoc_location" value="@CACHE_DIR@/commons-lang/commons-lang/javadocs/commons-lang-2.5-javadoc.jar"/>
+			<attribute name="javadoc_location" value="@CACHE_DIR@/commons-lang/commons-lang/@REPO@/javadocs/commons-lang-2.5-javadoc.jar"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry sourcepath="@CACHE_DIR@/commons-io/commons-io/sources/commons-io-1.2-sources.jar" kind="lib" path="@CACHE_DIR@/commons-io/commons-io/jars/commons-io-1.2.jar" exported="true">
+	<classpathentry sourcepath="@CACHE_DIR@/commons-io/commons-io/@REPO@/sources/commons-io-1.2-sources.jar" kind="lib" path="@CACHE_DIR@/commons-io/commons-io/@REPO@/jars/commons-io-1.2.jar" exported="true">
 		<attributes>
-			<attribute name="javadoc_location" value="@CACHE_DIR@/commons-io/commons-io/javadocs/commons-io-1.2-javadoc.jar"/>
+			<attribute name="javadoc_location" value="@CACHE_DIR@/commons-io/commons-io/@REPO@/javadocs/commons-io-1.2-javadoc.jar"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry sourcepath="@CACHE_DIR@/junit/junit/sources/junit-4.7-sources.jar" kind="lib" path="@CACHE_DIR@/junit/junit/jars/junit-4.7.jar" exported="true"/>
-	<classpathentry sourcepath="@CACHE_DIR@/org.slf4j/slf4j-api/sources/slf4j-api-1.5.8-sources.jar" kind="lib" path="@CACHE_DIR@/org.slf4j/slf4j-api/jars/slf4j-api-1.5.8.jar" exported="true"/>
+	<classpathentry sourcepath="@CACHE_DIR@/junit/junit/@REPO@/sources/junit-4.7-sources.jar" kind="lib" path="@CACHE_DIR@/junit/junit/@REPO@/jars/junit-4.7.jar" exported="true"/>
+	<classpathentry sourcepath="@CACHE_DIR@/org.slf4j/slf4j-api/@REPO@/sources/slf4j-api-1.5.8-sources.jar" kind="lib" path="@CACHE_DIR@/org.slf4j/slf4j-api/@REPO@/jars/slf4j-api-1.5.8.jar" exported="true"/>
 </classpath>

@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api;
+package org.gradle.plugins.cpp.model;
+
+import org.gradle.api.Named;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.NamedDomainObjectContainer;
 
 /**
- * An object that can create new instances of a given type, which may be decorated in some fashion.
+ * A {@code NativeSourceSet} represents a logical group of source that is compiled together.
  */
-public interface Instantiator {
+public interface NativeSourceSet extends NamedDomainObjectContainer<SourceDirectorySet>, Named {
 
     /**
-     * Create a new instance of T, using {@code parameters} as the construction parameters.
+     * Returns the name of this source set.
+     *
+     * @return The name. Never returns null.
      */
-    <T> T newInstance(Class<T> type, Object... parameters);
+    String getName();
 
 }

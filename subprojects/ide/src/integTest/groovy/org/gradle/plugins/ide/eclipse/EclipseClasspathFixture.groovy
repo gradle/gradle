@@ -106,15 +106,15 @@ class EclipseClasspathFixture {
         }
 
         final Pattern cachedArtifact(group, module, version, classifier = null) {
-            def type = classifier == 'javadoc' ? 'javadocs' : classifier ?: "jars"
-            def cacheLocation = "cache/${group}/${module}/${type}/${module}-${version}${classifier ? '-' + classifier : ''}.jar"
             def dir
             if (userHomeDirVar) {
-                dir = "${userHomeDirVar}/${cacheLocation}"
+                dir = userHomeDirVar
             } else {
-                dir = userHomeDir.file(cacheLocation).absolutePath.replace(File.separator, '/')
+                dir = userHomeDir.absolutePath.replace(File.separator, '/')
             }
-            return Pattern.compile(Pattern.quote(dir))
+            def type = classifier == 'javadoc' ? 'javadocs' : classifier ?: "jars"
+            String regexp = Pattern.quote(dir) + Pattern.quote("/caches/artifacts/${group}/${module}/") + '[a-f0-9]+' + Pattern.quote("/${type}/${module}-${version}${classifier ? '-' + classifier : ''}.jar")
+            return Pattern.compile(regexp)
         }
     }
 }

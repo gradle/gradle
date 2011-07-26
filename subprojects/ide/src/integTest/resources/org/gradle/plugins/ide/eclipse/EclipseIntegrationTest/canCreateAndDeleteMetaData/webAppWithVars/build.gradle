@@ -6,5 +6,5 @@ dependencies {
 }
 
 eclipse {
-    pathVariables GRADLE_USER_HOME: gradle.gradleUserHomeDir
+    pathVariables GRADLE_USER_HOME: file("${gradle.gradleUserHomeDir}/caches/artifacts")
 }

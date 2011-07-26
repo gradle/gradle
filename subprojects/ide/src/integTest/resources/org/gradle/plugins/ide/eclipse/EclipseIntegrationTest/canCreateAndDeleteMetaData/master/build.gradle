@@ -3,6 +3,7 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.junit.ComparisonFailure
+import java.util.regex.Pattern
 
 buildscript {
     repositories {
@@ -33,7 +34,7 @@ allprojects {
         configure(p) {
             eclipseProject.doLast {
                 compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Project.xml")),
-                        file(".project").text)
+                        getActualXml(file(".project")))
             }
 
             if (p.hasProperty('eclipseClasspath')) {
@@ -45,7 +46,7 @@ allprojects {
                 eclipseClasspath {
                     doLast {
                         compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Classpath.xml")),
-                                file(".classpath").text)
+                                getActualXml(file(".classpath")))
                     }
                 }
             }
@@ -54,7 +55,7 @@ allprojects {
                 eclipseJdt {
                     doLast {
                         compareProperties(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Jdt.properties")),
-                                file(".settings/org.eclipse.jdt.core.prefs").text)
+                                getActualXml(file(".settings/org.eclipse.jdt.core.prefs")))
                     }
                 }
             }
@@ -63,7 +64,7 @@ allprojects {
                 eclipseWtpComponent {
                     doLast {
                         compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpComponent.xml")),
-                                file(".settings/org.eclipse.wst.common.component").text)
+                                getActualXml(file(".settings/org.eclipse.wst.common.component")))
                     }
                 }
             }
@@ -71,7 +72,7 @@ allprojects {
                 eclipseWtpFacet {
                     doLast {
                         compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpFacet.xml")),
-                                file(".settings/org.eclipse.wst.common.project.facet.core.xml").text)
+                                getActualXml(file(".settings/org.eclipse.wst.common.project.facet.core.xml")))
                     }
                 }
             }
@@ -105,7 +106,15 @@ void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
 }
 
 String getExpectedXml(File file) {
-    def cache = new File(gradle.gradleUserHomeDir, "/cache").absolutePath.replace(File.separator, '/')
-    return file.text.replace('@CACHE_DIR@', cache)
+    return file.text
+}
+
+String getActualXml(File file) {
+    def homeDir = gradle.gradleUserHomeDir.absolutePath.replace(File.separator, '/')
+    def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/artifacts/(.+?/.+?)/[a-z0-9]+/")
+    def text = file.text.replaceAll(pattern, "@CACHE_DIR@/\$1/@REPO@/")
+    pattern = Pattern.compile("GRADLE_USER_HOME/(.+?/.+?)/[a-z0-9]+/")
+    text = text.replaceAll(pattern, "GRADLE_USER_HOME/\$1/@REPO@/")
+    return text
 }
 

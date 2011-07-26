@@ -46,7 +46,7 @@ public class DefaultCacheRepository implements CacheRepository {
         private final String key;
         private Map<String, ?> properties = Collections.emptyMap();
         private Object target;
-        private boolean invalidateOnVersionChange;
+        private VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
 
         private PersistentCacheBuilder(String key) {
             this.key = key;
@@ -57,13 +57,13 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
-        public CacheBuilder forObject(Object target) {
-            this.target = target;
+        public CacheBuilder withVersionStrategy(VersionStrategy strategy) {
+            this.versionStrategy = strategy;
             return this;
         }
 
-        public CacheBuilder invalidateOnVersionChange() {
-            invalidateOnVersionChange = true;
+        public CacheBuilder forObject(Object target) {
+            this.target = target;
             return this;
         }
 
@@ -81,11 +81,18 @@ public class DefaultCacheRepository implements CacheRepository {
             } else {
                 throw new IllegalArgumentException(String.format("Cannot create cache for unrecognised domain object %s.", target));
             }
-            if (invalidateOnVersionChange) {
-                properties.put("gradle.version", version.getVersion());
-                cacheBaseDir = new File(cacheBaseDir, "noVersion");
-            } else {
-                cacheBaseDir = new File(cacheBaseDir, version.getVersion());
+            switch (versionStrategy) {
+                case SharedCache:
+                    // Use the root directory
+                    break;
+                case CachePerVersion:
+                    cacheBaseDir = new File(cacheBaseDir, version.getVersion());
+                    break;
+                case SharedCacheInvalidateOnVersionChange:
+                    // Include the 'noVersion' suffix for backwards compatibility
+                    cacheBaseDir = new File(cacheBaseDir, "noVersion");
+                    properties.put("gradle.version", version.getVersion());
+                    break;
             }
             return factory.open(new File(cacheBaseDir, key), cacheUsage, properties);
         }

@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.apache.ivy.plugins.resolver.URLResolver;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
+import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.net.URI;
 import java.util.Collection;
@@ -64,7 +64,7 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
     }
 
     private RepositoryResolver url() {
-        return new URLResolver();
+        return new UrlWharfResolver();
     }
 
     private RepositoryResolver file() {

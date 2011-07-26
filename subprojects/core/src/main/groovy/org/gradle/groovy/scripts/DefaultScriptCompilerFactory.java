@@ -18,7 +18,7 @@ package org.gradle.groovy.scripts;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.HashUtil;
-import org.gradle.api.Instantiator;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.util.DirectInstantiator;
 
 import java.io.File;

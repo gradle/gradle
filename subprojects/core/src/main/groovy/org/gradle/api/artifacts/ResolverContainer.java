@@ -61,7 +61,6 @@ public interface ResolverContainer extends NamedDomainObjectSet<DependencyResolv
             = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";
     String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
     String INTERNAL_REPOSITORY_NAME = "internal-repository";
-    String DEFAULT_CACHE_DIR_NAME = "cache";
     String RESOLVER_NAME = "name";
     String RESOLVER_URL = "url";
 

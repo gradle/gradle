@@ -124,7 +124,7 @@ class BuildSourceBuilderTest {
             one(builder).forObject(testBuildSrcDir)
             will(returnValue(builder))
 
-            one(builder).invalidateOnVersionChange()
+            one(builder).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange)
             will(returnValue(builder))
 
             one(builder).open()

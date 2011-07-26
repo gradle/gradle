@@ -24,14 +24,14 @@ import org.gradle.plugins.cpp.CppProjectExtension
 import org.gradle.plugins.cpp.model.CppExecutable
 import org.gradle.plugins.cpp.model.internal.DefaultCppExecutable
 
-import org.gradle.plugins.cpp.model.CppSourceSet
+import org.gradle.plugins.cpp.model.NativeSourceSet
 import org.gradle.plugins.cpp.model.CppLibrary
 
 class ExecutableDsl {
 
     private final CppProjectExtension extension
     final String name
-    Set<CppSourceSet> source = new HashSet<CppSourceSet>()
+    Set<NativeSourceSet> source = new HashSet<NativeSourceSet>()
     Set<CppLibrary> libs = new HashSet<CppLibrary>()
 
     ExecutableDsl(CppProjectExtension extension, String name) {
@@ -39,7 +39,7 @@ class ExecutableDsl {
         this.name = name
     }
 
-    ExecutableDsl source(CppSourceSet... sourceSets) {
+    ExecutableDsl source(NativeSourceSet... sourceSets) {
         sourceSets.each { source.add(it) }
         this
     }

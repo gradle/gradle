@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal;
 
 /**
- * Implementations of the native model classes.
+ * An object that can create new instances of a given type, which may be decorated in some fashion.
  */
-package org.gradle.plugins.cpp.model.internal;
+public interface Instantiator {
+
+    /**
+     * Create a new instance of T, using {@code parameters} as the construction parameters.
+     */
+    <T> T newInstance(Class<T> type, Object... parameters);
+
+}
