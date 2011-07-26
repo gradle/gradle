@@ -15,7 +15,8 @@
  */
 package org.gradle.plugins.cpp
 
-import org.gradle.plugins.cpp.source.CppSourceSetContainer
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.plugins.cpp.source.CppSourceSet
 
 /**
  * Ensures the mechanics of the cpp extension are working.
@@ -38,7 +39,7 @@ class CppProjectExtensionSmokeSpec extends CppProjectSpec {
 
     def "source set container is available"() {
         expect:
-        cpp.sourceSets instanceof CppSourceSetContainer
+        cpp.sourceSets instanceof NamedDomainObjectContainer
 
         and:
         cpp {
@@ -46,6 +47,9 @@ class CppProjectExtensionSmokeSpec extends CppProjectSpec {
                 main { }
             }
         }
+        
+        and:
+        cpp.sourceSets.main instanceof CppSourceSet
     }
 
 }

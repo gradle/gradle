@@ -15,13 +15,14 @@
  */
 package org.gradle.plugins.cpp.source;
 
+import org.gradle.api.Named;
 import org.gradle.api.file.SourceDirectorySet;
 import groovy.lang.Closure;
 
 /**
  * A {@code CppSourceSet} represents a logical group of C++ source.
  */
-public interface CppSourceSet {
+public interface CppSourceSet extends Named {
 
     /**
      * Returns the name of this source set.

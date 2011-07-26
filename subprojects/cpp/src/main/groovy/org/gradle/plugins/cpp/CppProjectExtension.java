@@ -17,18 +17,21 @@ package org.gradle.plugins.cpp;
 
 import org.gradle.api.Project;
 
+import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
+import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.ConfigureUtil;
 
-import org.gradle.plugins.cpp.source.CppSourceSetContainer;
-import org.gradle.plugins.cpp.source.internal.DefaultCppSourceSetContainer;
+import org.gradle.plugins.cpp.source.CppSourceSet;
+import org.gradle.plugins.cpp.source.internal.DefaultCppSourceSet;
 import org.gradle.plugins.cpp.built.CppExecutable;
 import org.gradle.plugins.cpp.built.internal.DefaultCppExecutable;
 import org.gradle.plugins.cpp.built.CppLibrary;
 import org.gradle.plugins.cpp.built.internal.DefaultCppLibrary;
+
 
 import org.gradle.plugins.cpp.dsl.LibraryDsl;
 import org.gradle.plugins.cpp.dsl.ExecutableDsl;
@@ -44,7 +47,7 @@ public class CppProjectExtension {
 
     final private ProjectInternal project;
 
-    final private CppSourceSetContainer sourceSets;
+    final private NamedDomainObjectContainer<CppSourceSet> sourceSets;
     final private NamedDomainObjectContainer<CppLibrary> libraries;
     final private NamedDomainObjectContainer<CppExecutable> executables;
 
@@ -52,7 +55,17 @@ public class CppProjectExtension {
         this.project = (ProjectInternal)project;
 
         ClassGenerator classGenerator = this.project.getServices().get(ClassGenerator.class);
-        this.sourceSets = classGenerator.newInstance(DefaultCppSourceSetContainer.class, this.project.getFileResolver(), classGenerator);
+        
+        this.sourceSets = classGenerator.newInstance(
+                FactoryNamedDomainObjectContainer.class,
+                CppSourceSet.class,
+                classGenerator,
+                new ReflectiveNamedDomainObjectFactory<CppSourceSet>(
+                        DefaultCppSourceSet.class, 
+                        classGenerator, 
+                        this.project.getFileResolver()
+                )
+        );
         
         this.libraries = classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, DefaultCppLibrary.class, classGenerator);
         this.executables = classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, DefaultCppExecutable.class, classGenerator);
@@ -62,11 +75,11 @@ public class CppProjectExtension {
         return project;
     }
 
-    public CppSourceSetContainer getSourceSets() {
+    public NamedDomainObjectContainer<CppSourceSet> getSourceSets() {
         return sourceSets;
     }
 
-    public CppSourceSetContainer sourceSets(Closure closure) {
+    public NamedDomainObjectContainer<CppSourceSet> sourceSets(Closure closure) {
         return sourceSets.configure(closure);
     }
 
