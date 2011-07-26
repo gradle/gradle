@@ -25,6 +25,7 @@ import org.gradle.messaging.remote.internal.protocol.ChannelUnavailable
 
 class ChannelLookupProtocolTest extends Specification {
     final Address address = Mock()
+    final MessageOriginator messageSource = Mock()
     final ProtocolContext.Callback timeout = Mock()
     final ProtocolContext<DiscoveryMessage> context = Mock()
     final ChannelLookupProtocol protocol = new ChannelLookupProtocol()
@@ -35,7 +36,7 @@ class ChannelLookupProtocolTest extends Specification {
     }
 
     def "forwards lookup request"() {
-        def request = new LookupRequest("group", "channel")
+        def request = new LookupRequest(messageSource, "group", "channel")
 
         when:
         protocol.handleOutgoing(request)
@@ -45,8 +46,8 @@ class ChannelLookupProtocolTest extends Specification {
     }
 
     def "forwards channel available response"() {
-        def request = new LookupRequest("group", "channel")
-        def response = new ChannelAvailable("group", "channel", address)
+        def request = new LookupRequest(messageSource, "group", "channel")
+        def response = new ChannelAvailable(messageSource, "group", "channel", address)
 
         given:
         protocol.handleOutgoing(request)
@@ -60,7 +61,7 @@ class ChannelLookupProtocolTest extends Specification {
     }
 
     def "resends lookup request if no response received within timeout"() {
-        def request = new LookupRequest("group", "channel")
+        def request = new LookupRequest(messageSource, "group", "channel")
         def callback
 
         when:
@@ -79,8 +80,8 @@ class ChannelLookupProtocolTest extends Specification {
     }
 
     def "cancels timeout when response received"() {
-        def request = new LookupRequest("group", "channel")
-        def response = new ChannelAvailable("group", "channel", address)
+        def request = new LookupRequest(messageSource, "group", "channel")
+        def response = new ChannelAvailable(messageSource, "group", "channel", address)
 
         when:
         protocol.handleOutgoing(request)
@@ -97,9 +98,9 @@ class ChannelLookupProtocolTest extends Specification {
 
     def "forwards each channel available message received"() {
         final Address address2 = Mock()
-        def request = new LookupRequest("group", "channel")
-        def response1 = new ChannelAvailable("group", "channel", address)
-        def response2 = new ChannelAvailable("group", "channel", address2)
+        def request = new LookupRequest(messageSource, "group", "channel")
+        def response1 = new ChannelAvailable(messageSource, "group", "channel", address)
+        def response2 = new ChannelAvailable(messageSource, "group", "channel", address2)
 
         given:
         protocol.handleOutgoing(request)
@@ -116,6 +117,7 @@ class ChannelLookupProtocolTest extends Specification {
 
     def "ignores message for unknown channel"() {
         when:
+        MessageOriginator messageSource = Mock()
         protocol.handleIncoming(message)
 
         then:
@@ -123,14 +125,14 @@ class ChannelLookupProtocolTest extends Specification {
 
         where:
         message << [
-                new ChannelAvailable("group", "channel", {} as Address),
-                new ChannelUnavailable("group", "channel", {} as Address)
+                new ChannelAvailable(messageSource, "group", "channel", {} as Address),
+                new ChannelUnavailable(messageSource, "group", "channel", {} as Address)
         ]
     }
 
     def "ignores lookup requests"() {
         when:
-        protocol.handleIncoming(new LookupRequest("group", "channel"))
+        protocol.handleIncoming(new LookupRequest(messageSource, "group", "channel"))
 
         then:
         0 * context._

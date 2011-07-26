@@ -28,7 +28,12 @@ import java.util.Map;
 public class ChannelRegistrationProtocol implements Protocol<DiscoveryMessage> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChannelRegistrationProtocol.class);
     private final Map<String, ChannelAvailable> channels = new HashMap<String, ChannelAvailable>();
+    private final MessageOriginator messageOriginator;
     private ProtocolContext<DiscoveryMessage> context;
+
+    public ChannelRegistrationProtocol(MessageOriginator messageOriginator) {
+        this.messageOriginator = messageOriginator;
+    }
 
     public void start(ProtocolContext<DiscoveryMessage> context) {
         this.context = context;
@@ -39,21 +44,23 @@ public class ChannelRegistrationProtocol implements Protocol<DiscoveryMessage> {
             handleLookup((LookupRequest) message);
         } else if (!(message instanceof ChannelAvailable) && !(message instanceof ChannelUnavailable)) {
             // Discard
-            LOGGER.debug("Received unexpected discovery message {}. Discarding.", message);
+            LOGGER.info("Received unexpected discovery message - discarding: {}", message);
+        } else {
+            // Else, ignore
+            LOGGER.info("Ignoring discovery message: {}", message);
         }
-        // Else, ignore
     }
 
     public void handleOutgoing(DiscoveryMessage message) {
         if (message instanceof ChannelAvailable) {
             ChannelAvailable channelAvailable = (ChannelAvailable) message;
             channels.put(channelAvailable.getChannel(), channelAvailable);
-            LOGGER.debug("Channel registered. Broadcasting {}.", message);
+            LOGGER.info("Channel registered. Broadcasting {}.", message);
             context.dispatchOutgoing(message);
         } else if (message instanceof ChannelUnavailable) {
             ChannelUnavailable channelUnavailable = (ChannelUnavailable) message;
             channels.remove(channelUnavailable.getChannel());
-            LOGGER.debug("Channel unregistered. Broadcasting {}.", message);
+            LOGGER.info("Channel unregistered. Broadcasting {}.", message);
             context.dispatchOutgoing(message);
         } else {
             throw new UnsupportedOperationException();
@@ -63,17 +70,17 @@ public class ChannelRegistrationProtocol implements Protocol<DiscoveryMessage> {
     private void handleLookup(LookupRequest request) {
         ChannelAvailable response = channels.get(request.getChannel());
         if (response != null) {
-            LOGGER.debug("Received lookup request {} for known channel. Replying with {}.", request, response);
+            LOGGER.info("Replying to lookup request for known channel. Request: {}. Response: {}.", request, response);
             context.dispatchOutgoing(response);
         } else {
-            LOGGER.debug("Received lookup request {} for unknown channel. Discarding.", request);
+            LOGGER.info("Received lookup request for unknown channel - discarding: {}", request);
         }
     }
 
     public void stopRequested() {
         try {
             for (ChannelAvailable channelAvailable : channels.values()) {
-                context.dispatchOutgoing(new ChannelUnavailable(channelAvailable.getGroup(), channelAvailable.getChannel(), channelAvailable.getAddress()));
+                context.dispatchOutgoing(new ChannelUnavailable(messageOriginator, channelAvailable.getGroup(), channelAvailable.getChannel(), channelAvailable.getAddress()));
             }
         } finally {
             channels.clear();

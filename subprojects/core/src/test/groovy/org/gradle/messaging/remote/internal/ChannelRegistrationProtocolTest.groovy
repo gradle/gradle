@@ -15,24 +15,25 @@
  */
 package org.gradle.messaging.remote.internal
 
-import spock.lang.Specification
-import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage
 import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.protocol.ChannelAvailable
-import org.gradle.messaging.remote.internal.protocol.LookupRequest
 import org.gradle.messaging.remote.internal.protocol.ChannelUnavailable
+import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage
+import org.gradle.messaging.remote.internal.protocol.LookupRequest
+import spock.lang.Specification
 
 class ChannelRegistrationProtocolTest extends Specification {
     final Address address = Mock()
     final ProtocolContext<DiscoveryMessage> context = Mock()
-    final protocol = new ChannelRegistrationProtocol()
+    final MessageOriginator messageSource = Mock()
+    final protocol = new ChannelRegistrationProtocol(messageSource)
 
     def setup() {
         protocol.start(context)
     }
 
     def "forwards channel available message when channel registered"() {
-        def message = new ChannelAvailable("group", "channel", address)
+        def message = new ChannelAvailable(messageSource, "group", "channel", address)
 
         when:
         protocol.handleOutgoing(message)
@@ -43,8 +44,8 @@ class ChannelRegistrationProtocolTest extends Specification {
     }
 
     def "sends channel unavailable message for all available channels when registry stopped"() {
-        def availableMessage = new ChannelAvailable("group", "channel", address)
-        def unavailableMessage = new ChannelUnavailable("group", "channel", address)
+        def availableMessage = new ChannelAvailable(messageSource, "group", "channel", address)
+        def unavailableMessage = new ChannelUnavailable(messageSource, "group", "channel", address)
 
         protocol.handleOutgoing(availableMessage)
 
@@ -58,8 +59,8 @@ class ChannelRegistrationProtocolTest extends Specification {
     }
 
     def "sends channel available message when lookup request received"() {
-        def lookupRequest = new LookupRequest("group", "channel")
-        def availableMessage = new ChannelAvailable("group", "channel", address)
+        def lookupRequest = new LookupRequest(messageSource, "group", "channel")
+        def availableMessage = new ChannelAvailable(messageSource, "group", "channel", address)
 
         protocol.handleOutgoing(availableMessage)
 
@@ -73,6 +74,7 @@ class ChannelRegistrationProtocolTest extends Specification {
 
     def "ignores incoming broadcast messages"() {
         when:
+        MessageOriginator messageSource = Mock()
         protocol.handleIncoming(message)
 
         then:
@@ -80,14 +82,14 @@ class ChannelRegistrationProtocolTest extends Specification {
 
         where:
         message << [
-            new ChannelAvailable("group", "channel", null),
-            new ChannelUnavailable("group", "channel", null)
+            new ChannelAvailable(messageSource, "group", "channel", null),
+            new ChannelUnavailable(messageSource, "group", "channel", null)
         ]
     }
 
     def "ignores lookup request for unknown channel"() {
         when:
-        protocol.handleIncoming(new LookupRequest("group", "other"))
+        protocol.handleIncoming(new LookupRequest(messageSource, "group", "other"))
 
         then:
         0 * context._

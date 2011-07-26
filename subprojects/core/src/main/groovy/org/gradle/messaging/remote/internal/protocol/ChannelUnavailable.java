@@ -16,13 +16,14 @@
 package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.MessageOriginator;
 
 public class ChannelUnavailable extends DiscoveryMessage {
     private final String channel;
     private final Address address;
 
-    public ChannelUnavailable(String group, String channel, Address address) {
-        super(group);
+    public ChannelUnavailable(MessageOriginator originator, String group, String channel, Address address) {
+        super(originator, group);
         this.channel = channel;
         this.address = address;
     }
@@ -52,6 +53,6 @@ public class ChannelUnavailable extends DiscoveryMessage {
 
     @Override
     public String toString() {
-        return String.format("[ChannelUnavailable channel: %s, address: %s]", channel, address);
+        return String.format("[ChannelUnavailable channel: %s, address: %s, source: %s]", channel, address, getOriginator());
     }
 }

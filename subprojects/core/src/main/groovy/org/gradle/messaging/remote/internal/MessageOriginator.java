@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.remote.internal.protocol;
+package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.remote.internal.MessageOriginator;
+public class MessageOriginator {
+    private final Object id;
+    private final String name;
 
-import java.io.Serializable;
-
-public class DiscoveryMessage implements Serializable {
-    private final MessageOriginator originator;
-    private final String group;
-
-    public DiscoveryMessage(MessageOriginator originator, String group) {
-        this.originator = originator;
-        this.group = group;
+    public MessageOriginator(Object id, String name) {
+        this.id = id;
+        this.name = name;
     }
 
-    public MessageOriginator getOriginator() {
-        return originator;
+    public Object getId() {
+        return id;
     }
 
-    public String getGroup() {
-        return group;
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -45,12 +41,17 @@ public class DiscoveryMessage implements Serializable {
             return false;
         }
 
-        DiscoveryMessage other = (DiscoveryMessage) o;
-        return originator.equals(other.originator) && group.equals(other.group);
+        MessageOriginator other = (MessageOriginator) o;
+        return id.equals(other.id) && name.equals(other.name);
     }
 
     @Override
     public int hashCode() {
-        return group.hashCode();
+        return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[MessageOriginator name: %s, id: %s]", name, id);
     }
 }

@@ -26,12 +26,14 @@ import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.inet.*;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryProtocolSerializer;
+import org.gradle.util.IdGenerator;
 import org.gradle.util.UUIDGenerator;
 import org.gradle.util.UncheckedException;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.UUID;
 
 /**
  * A factory for a set of messaging services. Provides the following services:
@@ -49,10 +51,11 @@ import java.net.UnknownHostException;
  * </ul>
  */
 public class MessagingServices extends DefaultServiceRegistry implements Stoppable {
+    private final IdGenerator<UUID> idGenerator = new UUIDGenerator();
     private final ClassLoader messageClassLoader;
     private final String broadcastGroup;
     private final SocketInetAddress broadcastAddress;
-    private final String nodeName;
+    private final MessageOriginator messageOriginator;
     private DefaultMessagingClient messagingClient;
     private DefaultMultiChannelConnector multiChannelConnector;
     private TcpIncomingConnector<Message> incomingConnector;
@@ -74,16 +77,21 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         this.messageClassLoader = messageClassLoader;
         this.broadcastGroup = broadcastGroup;
         this.broadcastAddress = broadcastAddress;
-        try {
-            nodeName = String.format("%s@%s", System.getProperty("user.name"), InetAddress.getLocalHost().getHostName());
-        } catch (UnknownHostException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
+
+        this.messageOriginator = new MessageOriginator(idGenerator.generateId(), determineNodeName());
     }
 
     private static SocketInetAddress defaultBroadcastAddress() {
         try {
             return new SocketInetAddress(InetAddress.getByName("233.253.17.122"), 7912);
+        } catch (UnknownHostException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+    }
+
+    private static String determineNodeName() {
+        try {
+            return String.format("%s@%s", System.getProperty("user.name"), InetAddress.getLocalHost().getHostName());
         } catch (UnknownHostException e) {
             throw UncheckedException.asUncheckedException(e);
         }
@@ -124,7 +132,7 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
                 new DefaultMessageSerializer<Message>(
                         messageClassLoader),
                 new InetAddressFactory(),
-                new UUIDGenerator());
+                idGenerator);
         return incomingConnector;
     }
 
@@ -153,24 +161,24 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
 
     protected IncomingBroadcast createIncomingBroadcast() {
         incomingBroadcast = new DefaultIncomingBroadcast(
+                messageOriginator,
                 broadcastGroup,
-                nodeName,
                 get(AsyncConnection.class),
                 get(IncomingConnector.class),
                 get(ExecutorFactory.class),
-                new UUIDGenerator(),
+                idGenerator,
                 messageClassLoader);
         return incomingBroadcast;
     }
 
     protected OutgoingBroadcast createOutgoingBroadcast() {
         outgoingBroadcast = new DefaultOutgoingBroadcast(
+                messageOriginator,
                 broadcastGroup,
-                nodeName,
                 get(AsyncConnection.class),
                 get(OutgoingConnector.class),
                 get(ExecutorFactory.class),
-                new UUIDGenerator(),
+                idGenerator,
                 messageClassLoader);
         return outgoingBroadcast;
     }

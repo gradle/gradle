@@ -38,7 +38,7 @@ public class ChannelLookupProtocol implements Protocol<DiscoveryMessage> {
     public void handleOutgoing(DiscoveryMessage message) {
         if (message instanceof LookupRequest) {
             LookupRequest lookupRequest = (LookupRequest) message;
-            LOGGER.debug("Broadcasting lookup request {}.", lookupRequest);
+            LOGGER.info("Broadcasting lookup request: {}", lookupRequest);
             RequestDetails request = new RequestDetails(lookupRequest);
             channels.put(lookupRequest.getChannel(), request);
             request.run();
@@ -50,18 +50,21 @@ public class ChannelLookupProtocol implements Protocol<DiscoveryMessage> {
     public void handleIncoming(DiscoveryMessage message) {
         if (message instanceof ChannelAvailable) {
             ChannelAvailable channelAvailable = (ChannelAvailable) message;
+            LOGGER.info("Channel discovered: {}", channelAvailable);
             RequestDetails request = channels.get(channelAvailable.getChannel());
             if (request != null) {
-                LOGGER.debug("Channel discovered: {}.", channelAvailable);
+                LOGGER.info("Processing request on channel: {}", request.lookupRequest);
                 request.handleResponse(channelAvailable);
             } else {
-                LOGGER.debug("Channel discovered: {}. Ignoring", channelAvailable);
+                LOGGER.info("No request for channel, ignoring.");
             }
         } else if (!(message instanceof LookupRequest) && !(message instanceof ChannelUnavailable)) {
             // Discard
-            LOGGER.debug("Received unknown discovery message {}. Discarding.", message);
+            LOGGER.info("Received unknown discovery message - discarding: {}", message);
+        } else {
+            // Else ignore
+            LOGGER.info("Ignored incoming discovery message {}", message);
         }
-        // Else ignore
     }
 
     public void stopRequested() {

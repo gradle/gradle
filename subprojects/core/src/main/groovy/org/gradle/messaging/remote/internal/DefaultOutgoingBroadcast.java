@@ -38,6 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOutgoingBroadcast.class);
+    private final MessageOriginator messageOriginator;
     private final String group;
     private final OutgoingConnector<Message> outgoingConnector;
     private final ProtocolStack<DiscoveryMessage> discoveryBroadcast;
@@ -47,18 +48,21 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     private final Set<Address> connections = new HashSet<Address>();
     private final MessageHub hub;
 
-    public DefaultOutgoingBroadcast(String group, String nodeName, AsyncConnection<DiscoveryMessage> connection, OutgoingConnector<Message> outgoingConnector, ExecutorFactory executorFactory, final IdGenerator<?> idGenerator, ClassLoader messagingClassLoader) {
+    public DefaultOutgoingBroadcast(MessageOriginator messageOriginator, String group, AsyncConnection<DiscoveryMessage> connection, OutgoingConnector<Message> outgoingConnector, ExecutorFactory executorFactory, final IdGenerator<?> idGenerator, ClassLoader messagingClassLoader) {
+        this.messageOriginator = messageOriginator;
         this.group = group;
         this.outgoingConnector = outgoingConnector;
         DispatchFailureHandler<Object> failureHandler = new DiscardingFailureHandler<Object>(LOGGER);
 
-        hub = new MessageHub("outgoing broadcast", nodeName, executorFactory, idGenerator, messagingClassLoader);
+        hub = new MessageHub("outgoing broadcast", messageOriginator.getName(), executorFactory, idGenerator, messagingClassLoader);
 
         executor = executorFactory.create("broadcast lookup");
         discoveryBroadcast = new ProtocolStack<DiscoveryMessage>(executor, failureHandler, failureHandler, new ChannelLookupProtocol());
         connection.dispatchTo(new GroupMessageFilter(group, discoveryBroadcast.getBottom()));
         discoveryBroadcast.getBottom().dispatchTo(connection);
         discoveryBroadcast.getTop().dispatchTo(new DiscoveryMessageDispatch());
+
+        LOGGER.info("Created OutgoingBroadcast with {}", messageOriginator);
     }
 
     public <T> T addOutgoing(Class<T> type) {
@@ -66,7 +70,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
         lock.lock();
         try {
             if (channels.add(channelKey)) {
-                discoveryBroadcast.getTop().dispatch(new LookupRequest(group, channelKey));
+                discoveryBroadcast.getTop().dispatch(new LookupRequest(messageOriginator, group, channelKey));
             }
         } finally {
             lock.unlock();

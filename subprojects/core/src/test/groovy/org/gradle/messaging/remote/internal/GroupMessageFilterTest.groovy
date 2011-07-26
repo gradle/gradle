@@ -22,10 +22,11 @@ import org.gradle.messaging.remote.internal.protocol.UnknownMessage
 
 class GroupMessageFilterTest extends Specification {
     final Dispatch<DiscoveryMessage> target = Mock()
+    final MessageOriginator messageSource = Mock()
     final GroupMessageFilter filter = new GroupMessageFilter("group", target)
 
     def "forwards message for known group"() {
-        def message = new DiscoveryMessage("group")
+        def message = new DiscoveryMessage(messageSource, "group")
 
         when:
         filter.dispatch(message)
@@ -35,7 +36,7 @@ class GroupMessageFilterTest extends Specification {
     }
 
     def "discards message for unknown group"() {
-        def message = new DiscoveryMessage("unknown")
+        def message = new DiscoveryMessage(messageSource, "unknown")
 
         when:
         filter.dispatch(message)

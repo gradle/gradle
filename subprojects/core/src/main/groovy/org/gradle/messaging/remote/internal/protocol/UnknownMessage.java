@@ -19,7 +19,7 @@ public class UnknownMessage extends DiscoveryMessage {
     private final String description;
 
     public UnknownMessage(String description) {
-        super(null);
+        super(null, null);
         this.description = description;
     }
 

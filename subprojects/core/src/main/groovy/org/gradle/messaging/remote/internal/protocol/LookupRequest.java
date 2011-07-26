@@ -15,11 +15,13 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
+import org.gradle.messaging.remote.internal.MessageOriginator;
+
 public class LookupRequest extends DiscoveryMessage {
     private final String channel;
 
-    public LookupRequest(String group, String channel) {
-        super(group);
+    public LookupRequest(MessageOriginator originator, String group, String channel) {
+        super(originator, group);
         this.channel = channel;
     }
 
@@ -44,6 +46,6 @@ public class LookupRequest extends DiscoveryMessage {
 
     @Override
     public String toString() {
-        return String.format("[LookupRequest channel: %s]", channel);
+        return String.format("[LookupRequest channel: %s, source: %s]", channel, getOriginator());
     }
 }

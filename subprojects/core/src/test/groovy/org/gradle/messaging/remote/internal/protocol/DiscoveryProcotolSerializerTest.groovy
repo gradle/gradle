@@ -16,10 +16,15 @@
 package org.gradle.messaging.remote.internal.protocol
 
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
+import org.gradle.util.UUIDGenerator
+import spock.lang.Shared
 import spock.lang.Specification
+import org.gradle.messaging.remote.internal.MessageOriginator
 
 class DiscoveryProcotolSerializerTest extends Specification {
     final DiscoveryProtocolSerializer serializer = new DiscoveryProtocolSerializer()
+    @Shared def uuidGenerator = new UUIDGenerator()
+    @Shared MessageOriginator messageOriginator = new MessageOriginator(uuidGenerator.generateId(), "source display name")
 
     def "writes and reads message types"() {
         when:
@@ -30,9 +35,9 @@ class DiscoveryProcotolSerializerTest extends Specification {
 
         where:
         original << [
-                new LookupRequest("group", "channel"),
-                new ChannelAvailable("group", "channel", new MultiChoiceAddress(UUID.randomUUID(), 8091, [InetAddress.getByName("127.0.0.1")])),
-                new ChannelUnavailable("group", "channel", new MultiChoiceAddress(UUID.randomUUID(), 8091, [InetAddress.getByName("127.0.0.1")]))
+                new LookupRequest(messageOriginator, "group", "channel"),
+                new ChannelAvailable(messageOriginator, "group", "channel", new MultiChoiceAddress(UUID.randomUUID(), 8091, [InetAddress.getByName("127.0.0.1")])),
+                new ChannelUnavailable(messageOriginator, "group", "channel", new MultiChoiceAddress(UUID.randomUUID(), 8091, [InetAddress.getByName("127.0.0.1")]))
         ]
     }
 

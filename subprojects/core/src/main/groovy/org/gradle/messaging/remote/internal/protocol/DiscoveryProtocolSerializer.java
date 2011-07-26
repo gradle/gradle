@@ -17,6 +17,7 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.MessageSerializer;
+import org.gradle.messaging.remote.internal.MessageOriginator;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
 
 import java.io.DataInputStream;
@@ -51,29 +52,36 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
     }
 
     private DiscoveryMessage readChannelUnavailable(DataInputStream inputStream) throws IOException {
+        MessageOriginator originator = readMessageOriginator(inputStream);
         String group = inputStream.readUTF();
         String channel = inputStream.readUTF();
         Address address = readAddress(inputStream);
-        return new ChannelUnavailable(group, channel, address);
+        return new ChannelUnavailable(originator, group, channel, address);
     }
 
     private DiscoveryMessage readChannelAvailable(DataInputStream inputStream) throws IOException {
+        MessageOriginator originator = readMessageOriginator(inputStream);
         String group = inputStream.readUTF();
         String channel = inputStream.readUTF();
         Address address = readAddress(inputStream);
-        return new ChannelAvailable(group, channel, address);
+        return new ChannelAvailable(originator, group, channel, address);
     }
 
     private DiscoveryMessage readLookupRequest(DataInputStream inputStream) throws IOException {
+        MessageOriginator originator = readMessageOriginator(inputStream);
         String group = inputStream.readUTF();
         String channel = inputStream.readUTF();
-        return new LookupRequest(group, channel);
+        return new LookupRequest(originator, group, channel);
+    }
+
+    private MessageOriginator readMessageOriginator(DataInputStream inputStream) throws IOException {
+        UUID uuid = readUUID(inputStream);
+        String name = inputStream.readUTF();
+        return new MessageOriginator(uuid, name);
     }
 
     private MultiChoiceAddress readAddress(DataInputStream inputStream) throws IOException {
-        long mostSigUuidBits = inputStream.readLong();
-        long leastSigUuidBits = inputStream.readLong();
-        UUID uuid = new UUID(mostSigUuidBits, leastSigUuidBits);
+        UUID uuid = readUUID(inputStream);
         int port = inputStream.readInt();
         int addressCount = inputStream.readInt();
         List<InetAddress> addresses = new ArrayList<InetAddress>();
@@ -85,6 +93,12 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
             addresses.add(inetAddress);
         }
         return new MultiChoiceAddress(uuid, port, addresses);
+    }
+
+    private UUID readUUID(DataInputStream inputStream) throws IOException {
+        long mostSigUuidBits = inputStream.readLong();
+        long leastSigUuidBits = inputStream.readLong();
+        return new UUID(mostSigUuidBits, leastSigUuidBits);
     }
 
     public void write(DiscoveryMessage message, DataOutputStream outputStream) throws Exception {
@@ -102,6 +116,7 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
 
     private void writeChannelUnavailable(DataOutputStream outputStream, ChannelUnavailable channelUnavailable) throws IOException {
         outputStream.writeByte(CHANNEL_UNAVAILABLE);
+        writeMessageOriginator(outputStream, channelUnavailable.getOriginator());
         outputStream.writeUTF(channelUnavailable.getGroup());
         outputStream.writeUTF(channelUnavailable.getChannel());
         writeAddress(outputStream, (MultiChoiceAddress) channelUnavailable.getAddress());
@@ -109,6 +124,7 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
 
     private void writeChannelAvailable(DataOutputStream outputStream, ChannelAvailable channelAvailable) throws IOException {
         outputStream.writeByte(CHANNEL_AVAILABLE);
+        writeMessageOriginator(outputStream, channelAvailable.getOriginator());
         outputStream.writeUTF(channelAvailable.getGroup());
         outputStream.writeUTF(channelAvailable.getChannel());
         writeAddress(outputStream, (MultiChoiceAddress) channelAvailable.getAddress());
@@ -116,14 +132,18 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
 
     private void writeLookupRequest(DataOutputStream outputStream, LookupRequest request) throws IOException {
         outputStream.writeByte(LOOKUP_REQUEST);
+        writeMessageOriginator(outputStream, request.getOriginator());
         outputStream.writeUTF(request.getGroup());
         outputStream.writeUTF(request.getChannel());
     }
 
+    private void writeMessageOriginator(DataOutputStream outputStream, MessageOriginator messageOriginator) throws IOException {
+        writeUUID(outputStream, messageOriginator.getId());
+        outputStream.writeUTF(messageOriginator.getName());
+    }
+
     private void writeAddress(DataOutputStream outputStream, MultiChoiceAddress address) throws IOException {
-        UUID uuid = (UUID) address.getCanonicalAddress();
-        outputStream.writeLong(uuid.getMostSignificantBits());
-        outputStream.writeLong(uuid.getLeastSignificantBits());
+        writeUUID(outputStream, address.getCanonicalAddress());
         outputStream.writeInt(address.getPort());
         outputStream.writeInt(address.getCandidates().size());
         for (InetAddress inetAddress : address.getCandidates()) {
@@ -131,5 +151,11 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
             outputStream.writeInt(binAddress.length);
             outputStream.write(binAddress);
         }
+    }
+
+    private void writeUUID(DataOutputStream outputStream, Object id) throws IOException {
+        UUID uuid = (UUID) id;
+        outputStream.writeLong(uuid.getMostSignificantBits());
+        outputStream.writeLong(uuid.getLeastSignificantBits());
     }
 }

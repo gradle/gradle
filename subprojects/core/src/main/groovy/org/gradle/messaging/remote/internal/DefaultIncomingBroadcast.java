@@ -39,6 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncomingBroadcast.class);
     private final ProtocolStack<DiscoveryMessage> protocolStack;
+    private final MessageOriginator messageOriginator;
     private final String group;
     private final Lock lock = new ReentrantLock();
     private final Set<String> channels = new HashSet<String>();
@@ -46,17 +47,20 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     private final Address address;
     private final MessageHub hub;
 
-    public DefaultIncomingBroadcast(String group, String nodeName, AsyncConnection<DiscoveryMessage> connection, IncomingConnector<Message> incomingConnector, ExecutorFactory executorFactory, IdGenerator<?> idGenerator, ClassLoader messagingClassLoader) {
+    public DefaultIncomingBroadcast(MessageOriginator messageOriginator, String group, AsyncConnection<DiscoveryMessage> connection, IncomingConnector<Message> incomingConnector, ExecutorFactory executorFactory, IdGenerator<?> idGenerator, ClassLoader messagingClassLoader) {
+        this.messageOriginator = messageOriginator;
         this.group = group;
 
         executor = executorFactory.create("discovery broadcast");
         DiscardingFailureHandler<DiscoveryMessage> failureHandler = new DiscardingFailureHandler<DiscoveryMessage>(LOGGER);
-        protocolStack = new ProtocolStack<DiscoveryMessage>(executor, failureHandler, failureHandler, new ChannelRegistrationProtocol());
+        protocolStack = new ProtocolStack<DiscoveryMessage>(executor, failureHandler, failureHandler, new ChannelRegistrationProtocol(messageOriginator));
         connection.dispatchTo(new GroupMessageFilter(group, protocolStack.getBottom()));
         protocolStack.getBottom().dispatchTo(connection);
 
         address = incomingConnector.accept(new IncomingConnectionAction(), true);
-        hub = new MessageHub("incoming broadcast", nodeName, executorFactory, idGenerator, messagingClassLoader);
+        hub = new MessageHub("incoming broadcast", messageOriginator.getName(), executorFactory, idGenerator, messagingClassLoader);
+
+        LOGGER.info("Created IncomingBroadcast with {}", messageOriginator);
     }
 
     public <T> void addIncoming(Class<T> type, T handler) {
@@ -64,7 +68,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
         lock.lock();
         try {
             if (channels.add(channelKey)) {
-                protocolStack.getTop().dispatch(new ChannelAvailable(group, channelKey, address));
+                protocolStack.getTop().dispatch(new ChannelAvailable(messageOriginator, group, channelKey, address));
             }
         } finally {
             lock.unlock();
