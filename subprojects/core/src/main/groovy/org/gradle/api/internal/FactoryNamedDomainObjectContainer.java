@@ -70,7 +70,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
 
     static private <T> Namer<T> createNamerForNamed(Class<T> type) {
         if (Named.class.isAssignableFrom(type)) {
-            return ((Namer<T>)new org.gradle.api.internal.Named.Namer());
+            return (Namer<T>)new org.gradle.api.internal.Named.Namer();
         } else {
             throw new IllegalArgumentException(String.format("The class '%s' cannot be used with FactoryNamedDomainObjectContainer without specifying a Namer as it does not implement the Named interface"));
         }
