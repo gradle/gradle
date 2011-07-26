@@ -19,8 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Namer;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Instantiator;
-import org.gradle.util.DirectInstantiator;
 
 public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {
 
