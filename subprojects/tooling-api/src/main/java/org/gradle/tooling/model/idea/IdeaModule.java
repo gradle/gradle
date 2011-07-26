@@ -34,6 +34,7 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      * @return content roots
      */
     List<File> getContentRoots();
+    //TODO SF - this is no good. It requires better modelling because src/test/exclude folders are per content root
 
     /**
      * Returns the project of this module.
@@ -75,14 +76,14 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
     File getTestOutputDir();
 
     /**
-     * source dirs
+     * source dirs. TODO SF model
      *
      * @return source dirs
      */
     List<File> getSourceDirectories();
 
     /**
-     * test dirs
+     * test dirs. TODO SF model
      *
      * @return test dirs
      */
