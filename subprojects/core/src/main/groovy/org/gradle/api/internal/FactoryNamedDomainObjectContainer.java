@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Namer;
+import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.util.Instantiator;
 
@@ -54,7 +55,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param creationArgs Extra arguments that should be used to construct new element instances
      */
     public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Object... creationArgs) {
-        this(type, classGenerator, (Namer<T>)createNamerForNamed(type), creationArgs);
+        this(type, classGenerator, createNamerForNamed(type), creationArgs);
     }
 
     /**
@@ -70,7 +71,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
 
     static private <T> Namer<T> createNamerForNamed(Class<T> type) {
         if (Named.class.isAssignableFrom(type)) {
-            return (Namer<T>)new org.gradle.api.internal.Named.Namer();
+            return (Namer<T>)new org.gradle.api.Named.Namer();
         } else {
             throw new IllegalArgumentException(String.format("The class '%s' cannot be used with FactoryNamedDomainObjectContainer without specifying a Namer as it does not implement the Named interface"));
         }

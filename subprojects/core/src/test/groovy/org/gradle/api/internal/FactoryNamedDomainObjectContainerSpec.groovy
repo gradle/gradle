@@ -18,6 +18,7 @@ package org.gradle.api.internal
 import spock.lang.Specification
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer
+import org.gradle.api.Named
 
 class FactoryNamedDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
