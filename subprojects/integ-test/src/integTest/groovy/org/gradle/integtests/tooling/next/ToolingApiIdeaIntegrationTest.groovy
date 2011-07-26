@@ -16,7 +16,9 @@
 package org.gradle.integtests.tooling.next
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.model.idea.IdeaLibraryDependency
 import org.gradle.tooling.model.idea.IdeaModule
+import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 
 class ToolingApiIdeaModelIntegrationTest extends ToolingApiSpecification {
@@ -189,14 +191,17 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-        def lib = libs[0]
+        IdeaLibraryDependency lib = libs[0]
         lib.file.exists()
 
         lib.file.path.endsWith('junit-4.5.jar')
-//        //TODO SF find library that has javadocs :)
+//        //TODO SF find library that has javadocs or better: use fake local repo :)
 ////        lib.javadoc.exists()
         lib.source.exists()
         lib.source.path.endsWith('junit-4.5-sources.jar')
         lib.scope.toString() == 'TEST'
+
+        IdeaModuleDependency mod = libs[1]
+        mod.dependencyModuleName == 'api'
     }
 }

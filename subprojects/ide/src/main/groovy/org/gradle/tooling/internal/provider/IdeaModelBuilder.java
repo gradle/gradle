@@ -23,6 +23,7 @@ import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.tooling.internal.idea.DefaultIdeaLibraryDependency;
 import org.gradle.tooling.internal.idea.DefaultIdeaModule;
 import org.gradle.tooling.internal.idea.DefaultIdeaProject;
+import org.gradle.tooling.internal.idea.DefaultModuleDependency;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.idea.IdeaDependency;
@@ -101,11 +102,12 @@ public class IdeaModelBuilder implements BuildsModel {
                         .setExported(d.getExported());
                 dependencies.add(defaultDependency);
             } else if (dependency instanceof ModuleDependency) {
-                String name = ((ModuleDependency) dependency).getName();
-//                boolean exported = ((ModuleDependency) dependency).getExported();
-//                String scope = ((ModuleDependency) dependency).getScope();
-//                dependencies.add(new DefaultIdeaModuleDependency(scope, name, exported));
-//                defaultIdeaModule.setModuleDependencies(dependencies);
+                ModuleDependency d = (ModuleDependency) dependency;
+                IdeaDependency defaultDependency = new DefaultModuleDependency()
+                        .setExported(d.getExported())
+                        .setScope(d.getScope())
+                        .setDependencyModuleName(d.getName());
+                dependencies.add(defaultDependency);
             }
         }
         defaultIdeaModule.setDependencies(dependencies);
