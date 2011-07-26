@@ -15,6 +15,7 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Named;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 import java.io.File;
@@ -27,7 +28,12 @@ import java.util.Set;
  * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec
  * TODO - allow add FileTree
  */
-public interface SourceDirectorySet extends FileTree, PatternFilterable {
+public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
+
+    /**
+     * A concise name for the source directory set (typically used to identify it in a collection).
+     */
+    String getName();
 
     /**
      * Adds the given source directory to this set.
@@ -67,7 +73,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable {
      * @return this
      */
     SourceDirectorySet source(SourceDirectorySet source);
-    
+
     /**
      * Returns the source directory trees which make up this set. Does not filter source directories which do not exist.
      *

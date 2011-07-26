@@ -32,14 +32,24 @@ import java.util.*;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final List<Object> source = new ArrayList<Object>();
+    private final String name;
     private final String displayName;
     private final FileResolver fileResolver;
     private final PatternSet patterns = new PatternSet();
     private final PatternSet filter = new PatternSet();
 
-    public DefaultSourceDirectorySet(String displayName, FileResolver fileResolver) {
+    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver) {
+        this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;
+    }
+
+    public DefaultSourceDirectorySet(String name, FileResolver fileResolver) {
+        this(name, name, fileResolver);
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     public Set<File> getSrcDirs() {
