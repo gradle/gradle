@@ -22,7 +22,7 @@ import org.gradle.plugins.cpp.tasks.LinkCpp
 
 import org.gradle.plugins.cpp.CppProjectExtension
 
-import org.gradle.plugins.cpp.model.CppSourceSet
+import org.gradle.plugins.cpp.model.NativeSourceSet
 import org.gradle.plugins.cpp.model.CppLibrary
 import org.gradle.plugins.cpp.model.internal.DefaultCppLibrary
 
@@ -31,14 +31,14 @@ class LibraryDsl {
     private final CppProjectExtension extension
     final String name
     String fileExtension = "so"
-    Set<CppSourceSet> source = new HashSet<CppSourceSet>()
+    Set<NativeSourceSet> source = new HashSet<NativeSourceSet>()
 
     LibraryDsl(CppProjectExtension extension, String name) {
         this.extension = extension
         this.name = name
     }
 
-    LibraryDsl source(CppSourceSet... sourceSets) {
+    LibraryDsl source(NativeSourceSet... sourceSets) {
         sourceSets.each { source.add(it) }
         this
     }

@@ -16,7 +16,7 @@
 package org.gradle.plugins.cpp
 
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.plugins.cpp.model.CppSourceSet
+import org.gradle.plugins.cpp.model.NativeSourceSet
 
 /**
  * Ensures the mechanics of the cpp extension are working.
@@ -49,7 +49,7 @@ class CppProjectExtensionSmokeSpec extends CppProjectSpec {
         }
         
         and:
-        cpp.sourceSets.main instanceof CppSourceSet
+        cpp.sourceSets.main instanceof NativeSourceSet
     }
 
 }

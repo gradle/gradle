@@ -13,8 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.cpp.model;
+
+import org.gradle.api.Named;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.NamedDomainObjectContainer;
 
 /**
- * Implementations of the native model classes.
+ * A {@code NativeSourceSet} represents a logical group of source that is compiled together.
  */
-package org.gradle.plugins.cpp.model.internal;
+public interface NativeSourceSet extends NamedDomainObjectContainer<SourceDirectorySet>, Named {
+
+    /**
+     * Returns the name of this source set.
+     *
+     * @return The name. Never returns null.
+     */
+    String getName();
+
+}
