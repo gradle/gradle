@@ -16,7 +16,7 @@
 package org.gradle.plugins.cpp
 
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.plugins.cpp.source.CppSourceSet
+import org.gradle.plugins.cpp.model.CppSourceSet
 
 /**
  * Ensures the mechanics of the cpp extension are working.

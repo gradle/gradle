@@ -13,8 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.cpp.model;
+
+import org.gradle.api.Named;
+import org.gradle.api.Buildable;
+
+import java.io.File;
+import java.util.Set;
 
 /**
- * The final outputs of build operations.
+ * An binary library that can be built.
  */
-package org.gradle.plugins.cpp.built;
+public interface CppLibrary extends Buildable, Named {
+
+    String getName();
+
+    File getFile();
+
+    Set<File> getIncludes();
+
+}

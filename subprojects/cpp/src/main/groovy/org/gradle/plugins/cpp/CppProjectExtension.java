@@ -17,7 +17,6 @@ package org.gradle.plugins.cpp;
 
 import org.gradle.api.Project;
 
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
@@ -25,12 +24,12 @@ import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.ConfigureUtil;
 
-import org.gradle.plugins.cpp.source.CppSourceSet;
-import org.gradle.plugins.cpp.source.internal.DefaultCppSourceSet;
-import org.gradle.plugins.cpp.built.CppExecutable;
-import org.gradle.plugins.cpp.built.internal.DefaultCppExecutable;
-import org.gradle.plugins.cpp.built.CppLibrary;
-import org.gradle.plugins.cpp.built.internal.DefaultCppLibrary;
+import org.gradle.plugins.cpp.model.CppSourceSet;
+import org.gradle.plugins.cpp.model.internal.DefaultCppSourceSet;
+import org.gradle.plugins.cpp.model.CppExecutable;
+import org.gradle.plugins.cpp.model.internal.DefaultCppExecutable;
+import org.gradle.plugins.cpp.model.CppLibrary;
+import org.gradle.plugins.cpp.model.internal.DefaultCppLibrary;
 
 
 import org.gradle.plugins.cpp.dsl.LibraryDsl;

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.source.internal
+package org.gradle.plugins.cpp.model.internal
 
-import org.gradle.plugins.cpp.source.CppSourceSet
+import org.gradle.plugins.cpp.model.CppSourceSet
 
-import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.file.SourceDirectorySet
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
