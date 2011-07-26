@@ -142,12 +142,12 @@ idea.module.testOutputDir = file('someTestDir')
 
         then:
         module.sourceDirectories.size() == 2
-        module.sourceDirectories.any { it.path.endsWith 'src/main/java' }
-        module.sourceDirectories.any { it.path.endsWith 'src/main/resources' }
+        module.sourceDirectories.any { it == projectDir.file('src/main/java') }
+        module.sourceDirectories.any { it == projectDir.file('src/main/resources') }
 
         module.testDirectories.size() == 2
-        module.testDirectories.any { it.path.endsWith 'src/test/java' }
-        module.testDirectories.any { it.path.endsWith 'src/test/resources' }
+        module.testDirectories.any { it == projectDir.file('src/test/java') }
+        module.testDirectories.any { it == projectDir.file('src/test/resources') }
     }
 
     def "provides exclude dir information"() {
