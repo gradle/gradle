@@ -19,6 +19,8 @@ import java.io.File;
 
 /**
  * Represents a project of some kind.
+ *
+ * @deprecated Use {@link Element} or one of its subtypes instead.
  */
 @Deprecated
 public interface Project extends Element {

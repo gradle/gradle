@@ -23,7 +23,7 @@ package org.gradle.tooling.model;
  * Many things are easier if they are decoupled and it fits our present trend of decoupling gradle project from idea module & eclipse project.
  * Needs discussion. This is the first step towards this idea.
  */
-public interface GradleProject extends HierarchicalElement {
+public interface GradleProject extends HierarchicalElement, BuildableElement {
 
     /**
      * Returns the tasks of this project.

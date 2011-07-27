@@ -17,8 +17,11 @@ package org.gradle.tooling.model;
 
 /**
  * Represents a project which has Gradle tasks associated with it.
+ *
+ * @deprecated Use {@link BuildableElement} or one of its subtypes instead.
  */
-public interface BuildableProject extends Project {
+@Deprecated
+public interface BuildableProject extends Project, BuildableElement {
     /**
      * Returns the tasks of this project.
      *
