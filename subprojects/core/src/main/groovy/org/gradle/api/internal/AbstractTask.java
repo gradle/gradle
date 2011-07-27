@@ -395,7 +395,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task configure(Closure closure) {
-        return ConfigureUtil.configure(closure, this);
+        return ConfigureUtil.configure(closure, this, false);
     }
 
     public File getTemporaryDir() {
