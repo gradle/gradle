@@ -23,6 +23,7 @@ import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
@@ -47,8 +48,8 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     File outputDir;
     File testOutputDir;
     File moduleFileDir;
-    List<File> sourceDirectories;
-    List<File> testDirectories;
+    List<IdeaSourceDirectory> sourceDirectories;
+    List<IdeaSourceDirectory> testDirectories;
     List<File> excludeDirectories;
     List<IdeaDependency> dependencies;
 
@@ -115,20 +116,20 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public List<File> getSourceDirectories() {
+    public List<IdeaSourceDirectory> getSourceDirectories() {
         return sourceDirectories;
     }
 
-    public DefaultIdeaModule setSourceDirectories(List<File> sourceDirectories) {
+    public DefaultIdeaModule setSourceDirectories(List<IdeaSourceDirectory> sourceDirectories) {
         this.sourceDirectories = sourceDirectories;
         return this;
     }
 
-    public List<File> getTestDirectories() {
+    public List<IdeaSourceDirectory> getTestDirectories() {
         return testDirectories;
     }
 
-    public DefaultIdeaModule setTestDirectories(List<File> testDirectories) {
+    public DefaultIdeaModule setTestDirectories(List<IdeaSourceDirectory> testDirectories) {
         this.testDirectories = testDirectories;
         return this;
     }

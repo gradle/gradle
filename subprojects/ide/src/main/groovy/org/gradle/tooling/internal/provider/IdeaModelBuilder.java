@@ -20,13 +20,11 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
-import org.gradle.tooling.internal.idea.DefaultIdeaLibraryDependency;
-import org.gradle.tooling.internal.idea.DefaultIdeaModule;
-import org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency;
-import org.gradle.tooling.internal.idea.DefaultIdeaProject;
+import org.gradle.tooling.internal.idea.*;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.idea.IdeaDependency;
+import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 
 import java.io.File;
 import java.util.*;
@@ -82,8 +80,8 @@ public class IdeaModelBuilder implements BuildsModel {
                 .setOutputDir(ideaModule.getOutputDir())
                 .setTestOutputDir(ideaModule.getTestOutputDir())
                 .setModuleFileDir(ideaModule.getIml().getGenerateTo())
-                .setSourceDirectories(new LinkedList<File>(ideaModule.getSourceDirs()))
-                .setTestDirectories(new LinkedList<File>(ideaModule.getTestSourceDirs()))
+                .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
+                .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs()))
                 .setExcludeDirectories(new LinkedList<File>(ideaModule.getExcludeDirs()));
 
         List<IdeaDependency> deps = new LinkedList<IdeaDependency>();
@@ -113,5 +111,13 @@ public class IdeaModelBuilder implements BuildsModel {
         defaultIdeaModule.setDependencies(dependencies);
 
         modules.add(defaultIdeaModule);
+    }
+
+    private List<IdeaSourceDirectory> srcDirs(Set<File> sourceDirs) {
+        List<IdeaSourceDirectory> out = new LinkedList<IdeaSourceDirectory>();
+        for (File s : sourceDirs) {
+            out.add(new DefaultIdeaSourceDirectory().setDirectory(s));
+        }
+        return out;
     }
 }

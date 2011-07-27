@@ -76,18 +76,18 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
     File getTestOutputDir();
 
     /**
-     * source dirs. TODO SF model
+     * source dirs.
      *
      * @return source dirs
      */
-    List<File> getSourceDirectories();
+    List<IdeaSourceDirectory> getSourceDirectories();
 
     /**
-     * test dirs. TODO SF model
+     * test dirs.
      *
      * @return test dirs
      */
-    List<File> getTestDirectories();
+    List<IdeaSourceDirectory> getTestDirectories();
 
     /**
      * exclude dirs
