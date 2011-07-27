@@ -28,10 +28,10 @@ public class ProtocolToModelAdapter {
 
     Map<String, Class> configuredTargetTypes = new HashMap<String, Class>();
 
-    {{
+    public ProtocolToModelAdapter() {
         configuredTargetTypes.put("org.gradle.tooling.internal.idea.DefaultIdeaLibraryDependency", IdeaLibraryDependency.class);
         configuredTargetTypes.put("org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency",  IdeaModuleDependency.class);
-    }}
+    }
 
     public <T, S> T adapt(Class<T> targetType, S protocolObject) {
         Class<T> target = guessTarget(targetType, protocolObject);
