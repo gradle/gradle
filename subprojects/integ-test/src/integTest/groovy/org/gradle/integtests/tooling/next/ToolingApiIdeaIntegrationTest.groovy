@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling.next
 
+import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaLibraryDependency
 import org.gradle.tooling.model.idea.IdeaModule
@@ -169,20 +170,33 @@ idea.module.excludeDirs += file('foo')
 
     def "provides dependencies"() {
         def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = '''
+        def fakeRepo = projectDir.file("repo")
+
+        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 1.0).publishArtifact()
+        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 1.0, 'sources').publishArtifact()
+        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 1.0, 'javadoc').publishArtifact()
+
+
+        projectDir.file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'
 }
 
 project(':impl') {
-    repositories { mavenCentral() }
+    apply plugin: 'idea'
+
+    repositories {
+        mavenRepo urls: "${fakeRepo.toURI()}"
+    }
 
     dependencies {
         compile project(':api')
-        testCompile 'junit:junit:4.5'
+        testCompile 'foo.bar:coolLib:1.0'
     }
+
+    idea.module.downloadJavadoc = true
 }
-'''
+"""
         projectDir.file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
@@ -192,13 +206,16 @@ project(':impl') {
         then:
         def libs = module.dependencies
         IdeaLibraryDependency lib = libs.find {it instanceof IdeaLibraryDependency}
-        lib.file.exists()
 
-        lib.file.path.endsWith('junit-4.5.jar')
-//        //TODO SF find library that has javadocs or better: use fake local repo :)
-////        lib.javadoc.exists()
+        lib.file.exists()
+        lib.file.path.endsWith('coolLib-1.0.jar')
+
         lib.source.exists()
-        lib.source.path.endsWith('junit-4.5-sources.jar')
+        lib.source.path.endsWith('coolLib-1.0-sources.jar')
+
+        lib.javadoc.exists()
+        lib.javadoc.path.endsWith('coolLib-1.0-javadoc.jar')
+
         lib.scope.toString() == 'TEST'
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
