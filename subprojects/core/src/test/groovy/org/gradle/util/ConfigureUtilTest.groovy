@@ -72,6 +72,23 @@ class ConfigureUtilTest {
             assertThat(e.property, equalTo('unknown'))
         }
     }
+    
+    static class TestConfigurable implements Configurable {
+        def props = [:]
+        
+        TestConfigurable configure(Closure closure) {
+            props.with(closure)
+            this
+        }
+    }
+    
+    @Test
+    void testConfigurableAware() {
+        def c = new TestConfigurable()
+        ConfigureUtil.configure({ a = 1 }, c)
+        assert c.props.a == 1
+    }
+    
 }
 
 class Bean {
