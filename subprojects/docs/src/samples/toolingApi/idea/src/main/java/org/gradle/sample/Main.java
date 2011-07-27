@@ -2,6 +2,7 @@ package org.gradle.sample;
 
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.model.idea.*;
 
 import java.io.File;
 
