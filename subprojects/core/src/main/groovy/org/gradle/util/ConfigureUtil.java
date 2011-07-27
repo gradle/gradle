@@ -48,7 +48,7 @@ public class ConfigureUtil {
         return delegate;
     }
 
-    private static <T> T configure(Closure configureClosure, T delegate, int resolveStrategy) {
+    public static <T> T configure(Closure configureClosure, T delegate, int resolveStrategy) {
         if (configureClosure == null) {
             return delegate;
         }
