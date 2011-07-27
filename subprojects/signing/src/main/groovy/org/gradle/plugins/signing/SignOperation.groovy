@@ -114,7 +114,7 @@ class SignOperation implements SignatureSpec {
      * Executes the given closure against this object.
      */
     SignOperation configure(Closure closure) {
-        ConfigureUtil.configure(closure, this)
+        ConfigureUtil.configure(closure, this, false)
         this
     }
     
