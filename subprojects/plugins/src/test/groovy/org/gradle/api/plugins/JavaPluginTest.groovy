@@ -233,16 +233,16 @@ class JavaPluginTest {
         javaPlugin.apply(appProject);
 
         appProject.dependencies {
-            compile project(path: middleProject.path, configuration: 'compile')
+            compile middleProject
         }
         middleProject.dependencies {
-            compile project(path: commonProject.path, configuration: 'compile')
+            compile commonProject
         }
 
-        Task task = middleProject.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME];
-        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build', ':common:build'] as Set))
+        Task task = middleProject.tasks['buildNeeded'];
+        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build', ':common:buildNeeded'] as Set))
 
-        task = middleProject.tasks[JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME];
-        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build', ':app:build'] as Set))
+        task = middleProject.tasks['buildDependents'];
+        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build', ':app:buildDependents'] as Set))
     }
 }

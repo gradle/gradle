@@ -153,4 +153,77 @@ sourceSets.test.output.dir "$buildDir/generatedTestResources", buildBy: 'generat
         //then
         result.output.contains(":generateTestResource")
     }
+
+    @Test
+    public void "can recursively build dependent and dependee projects"() {
+        testFile("settings.gradle") << "include 'a', 'b', 'c'"
+        testFile("build.gradle") << """
+allprojects { apply plugin: 'java' }
+
+project(':a') {
+    dependencies { compile project(':b') }
+}
+
+project(':b') {
+    dependencies { compile project(':c') }
+}
+
+project(':c') {
+}
+
+"""
+
+        def result = inTestDirectory().withTasks('c:buildDependents').run()
+
+        assert result.executedTasks.contains(':a:build')
+        assert result.executedTasks.contains(':a:jar')
+        assert result.executedTasks.contains(':b:build')
+        assert result.executedTasks.contains(':b:jar')
+        assert result.executedTasks.contains(':c:build')
+        assert result.executedTasks.contains(':c:jar')
+
+        result = inTestDirectory().withTasks('b:buildDependents').run()
+
+        assert result.executedTasks.contains(':a:build')
+        assert result.executedTasks.contains(':a:jar')
+        assert result.executedTasks.contains(':b:build')
+        assert result.executedTasks.contains(':b:jar')
+        assert !result.executedTasks.contains(':c:build')
+        assert result.executedTasks.contains(':c:jar')
+
+        result = inTestDirectory().withTasks('a:buildDependents').run()
+
+        assert result.executedTasks.contains(':a:build')
+        assert result.executedTasks.contains(':a:jar')
+        assert !result.executedTasks.contains(':b:build')
+        assert result.executedTasks.contains(':b:jar')
+        assert !result.executedTasks.contains(':c:build')
+        assert result.executedTasks.contains(':c:jar')
+
+        result = inTestDirectory().withTasks('a:buildNeeded').run()
+
+        assert result.executedTasks.contains(':a:build')
+        assert result.executedTasks.contains(':a:jar')
+        assert result.executedTasks.contains(':b:build')
+        assert result.executedTasks.contains(':b:jar')
+        assert result.executedTasks.contains(':c:build')
+        assert result.executedTasks.contains(':c:jar')
+
+        result = inTestDirectory().withTasks('b:buildNeeded').run()
+
+        assert !result.executedTasks.contains(':a:build')
+        assert !result.executedTasks.contains(':a:jar')
+        assert result.executedTasks.contains(':b:build')
+        assert result.executedTasks.contains(':b:jar')
+        assert result.executedTasks.contains(':c:build')
+        assert result.executedTasks.contains(':c:jar')
+
+        result = inTestDirectory().withTasks(':c:buildNeeded').run()
+
+        assert !result.executedTasks.contains(':a:build')
+        assert !result.executedTasks.contains(':a:jar')
+        assert !result.executedTasks.contains(':b:build')
+        assert !result.executedTasks.contains(':b:jar')
+        assert result.executedTasks.contains(':c:build')
+    }
 }
