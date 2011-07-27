@@ -76,4 +76,15 @@ public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Seri
         this.scope = scope;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultIdeaLibraryDependency{"
+                + "file=" + file
+                + ", source=" + source
+                + ", javadoc=" + javadoc
+                + ", exported=" + exported
+                + ", scope='" + scope + '\''
+                + '}';
+    }
 }

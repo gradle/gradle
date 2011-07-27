@@ -27,7 +27,10 @@ import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 
@@ -62,7 +65,7 @@ public class IdeaModelBuilder implements BuildsModel {
                 .setJdkName(projectModel.getJdkName())
                 .setLanguageLevel(projectModel.getLanguageLevel().getFormatted());
 
-        Set<DefaultIdeaModule> modules = new LinkedHashSet<DefaultIdeaModule>();
+        List<DefaultIdeaModule> modules = new LinkedList<DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
             appendModule(modules, module, out);
         }

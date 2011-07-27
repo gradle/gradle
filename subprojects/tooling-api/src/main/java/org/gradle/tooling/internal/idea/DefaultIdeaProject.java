@@ -26,6 +26,8 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author: Szczepan Faber, created at: 7/25/11
@@ -37,7 +39,7 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
     private String id;
     private String name;
     private String description;
-    private Iterable<? extends IdeaModule> children;
+    private List<? extends IdeaModule> children = new LinkedList<IdeaModule>();
     private String languageLevel;
     private String jdkName;
 
@@ -98,12 +100,24 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
         throw new GradleException("This method should not be used.");
     }
 
-    public DefaultIdeaProject setChildren(Iterable<? extends IdeaModule> children) {
+    public DefaultIdeaProject setChildren(List<? extends IdeaModule> children) {
         this.children = children;
         return this;
     }
 
     public DomainObjectSet<? extends IdeaModule> getChildren() {
         return new ImmutableDomainObjectSet<IdeaModule>(children);
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultIdeaProject{"
+                + "id='" + id + '\''
+                + ", name='" + name + '\''
+                + ", description='" + description + '\''
+                + ", children count=" + children.size()
+                + ", languageLevel='" + languageLevel + '\''
+                + ", jdkName='" + jdkName + '\''
+                + '}';
     }
 }

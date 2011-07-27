@@ -2,13 +2,8 @@ package org.gradle.sample;
 
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.idea.IdeaProject;
 
 import java.io.File;
-
-//import org.gradle.tooling.model.idea.IdeaDependency;
-//import org.gradle.tooling.internal.idea.DefaultIdeaModule;
 
 public class Main {
     public static void main(String[] args) {
@@ -22,28 +17,35 @@ public class Main {
         ProjectConnection connection = connector.connect();
         try {
             IdeaProject project = connection.getModel(IdeaProject.class);
+            System.out.println("***");
+            System.out.println("Project details: ");
+            System.out.println(project);
 
-            System.out.println("Project: " + project.getName());
+            System.out.println("***");
+            System.out.println("Project modules: ");
+            for(IdeaModule module: project.getChildren()) {
+                System.out.println("  " + module);
+                System.out.println("  module details:");
 
-            IdeaModule module = project.getChildren().getAt(0);
-            System.out.println("Module: " + module.getName());
-            
-            /*
-            System.out.println("Source directories:");
-            for (File srcDir : module.getSourceDirectories()) {
-                System.out.println(srcDir);
+                System.out.println("    dependencies:");
+                for (IdeaDependency dependency: module.getDependencies()) {
+                    if (dependency instanceof IdeaLibraryDependency) {
+                        System.out.println("      library: " + dependency);
+                    } else if (dependency instanceof IdeaModuleDependency) {
+                        System.out.println("      module: " + dependency);
+                    }
+                }
+
+                System.out.println("    exclude dirs:");
+                for (File dir: module.getExcludeDirectories()) {
+                    System.out.println("      " + dir);
+                }
+
+                System.out.println("    source dirs:");
+                for (IdeaSourceDirectory dir: module.getSourceDirectories()) {
+                    System.out.println("      " + dir);
+                }
             }
-            
-            System.out.println("Module dependencies:");
-            for (IdeaDependency dependency : module.getModuleDependencies()) {
-                System.out.println(dependency);
-            }
-            
-            System.out.println("Library dependencies:");
-            for (IdeaDependency dependency : module.getLibraryDependencies()) {
-                System.out.println(dependency);
-            }
-            */
         } finally {
             // Clean up
             connection.close();

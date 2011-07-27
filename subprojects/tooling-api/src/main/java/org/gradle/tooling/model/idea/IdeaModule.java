@@ -80,14 +80,14 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      *
      * @return source dirs
      */
-    List<IdeaSourceDirectory> getSourceDirectories();
+    DomainObjectSet<? extends IdeaSourceDirectory> getSourceDirectories();
 
     /**
      * test dirs.
      *
      * @return test dirs
      */
-    List<IdeaSourceDirectory> getTestDirectories();
+    DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories();
 
     /**
      * exclude dirs

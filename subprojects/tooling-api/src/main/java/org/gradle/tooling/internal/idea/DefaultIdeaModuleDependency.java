@@ -55,4 +55,13 @@ public class DefaultIdeaModuleDependency implements IdeaModuleDependency, Serial
         this.exported = exported;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultIdeaModuleDependency{"
+                 + "scope='" + scope + '\''
+                 + ", dependencyModuleName='" + dependencyModuleName + '\''
+                 + ", exported=" + exported
+                 + '}';
+    }
 }

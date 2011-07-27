@@ -48,10 +48,10 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     File outputDir;
     File testOutputDir;
     File moduleFileDir;
-    List<IdeaSourceDirectory> sourceDirectories;
-    List<IdeaSourceDirectory> testDirectories;
-    List<File> excludeDirectories;
-    List<IdeaDependency> dependencies;
+    List<IdeaSourceDirectory> sourceDirectories = new LinkedList<IdeaSourceDirectory>();
+    List<IdeaSourceDirectory> testDirectories = new LinkedList<IdeaSourceDirectory>();
+    List<File> excludeDirectories = new LinkedList<File>();
+    List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
 
     public String getName() {
         return name;
@@ -116,8 +116,8 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public List<IdeaSourceDirectory> getSourceDirectories() {
-        return sourceDirectories;
+    public DomainObjectSet<IdeaSourceDirectory> getSourceDirectories() {
+        return new ImmutableDomainObjectSet<IdeaSourceDirectory>(sourceDirectories);
     }
 
     public DefaultIdeaModule setSourceDirectories(List<IdeaSourceDirectory> sourceDirectories) {
@@ -125,8 +125,8 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public List<IdeaSourceDirectory> getTestDirectories() {
-        return testDirectories;
+    public DomainObjectSet<IdeaSourceDirectory> getTestDirectories() {
+        return new ImmutableDomainObjectSet<IdeaSourceDirectory>(testDirectories);
     }
 
     public DefaultIdeaModule setTestDirectories(List<IdeaSourceDirectory> testDirectories) {
@@ -161,11 +161,27 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     }
 
     public String getId() {
-        //TODO SF should module have an id? It is a bit awkard to get it.
+        //TODO SF should module have an id? It is a bit awkard to get it because at the moment ide idea modules don't have any id.
         throw new GradleException("IdeaModule does not have an id");
     }
 
     public String getDescription() {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultIdeaModule{"
+                + "name='" + name + '\''
+                + ", parent path=" + parent.getId()
+                + ", inheritOutputDirs=" + inheritOutputDirs
+                + ", outputDir=" + outputDir
+                + ", testOutputDir=" + testOutputDir
+                + ", moduleFileDir=" + moduleFileDir
+                + ", sourceDirectories count=" + sourceDirectories.size()
+                + ", testDirectories count=" + testDirectories.size()
+                + ", excludeDirectories count=" + excludeDirectories.size()
+                + ", dependencies count=" + dependencies.size()
+                + '}';
     }
 }

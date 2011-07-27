@@ -36,4 +36,11 @@ public class DefaultIdeaSourceDirectory implements IdeaSourceDirectory, Serializ
         this.directory = directory;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultIdeaSourceDirectory{"
+                + "directory=" + directory
+                + '}';
+    }
 }
