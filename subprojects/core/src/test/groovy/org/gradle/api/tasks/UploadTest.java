@@ -23,16 +23,20 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.ConfigureUtil;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.action.CustomAction;
+import org.jmock.api.Invocation;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import groovy.lang.Closure;
 import java.io.File;
 
 /**
@@ -99,6 +103,12 @@ public class UploadTest extends AbstractTaskTest {
         upload.setRepositories(repositoriesMock);
 
         context.checking(new Expectations(){{
+            one(repositoriesMock).configure(with(any(Closure.class)));
+            will(new CustomAction("execution configure") { 
+                public Object invoke(Invocation invocation) {
+                    return ConfigureUtil.configure((Closure)invocation.getParameter(0), invocation.getInvokedObject(), false);
+                }
+            });
             one(repositoriesMock).mavenCentral();
         }});
 

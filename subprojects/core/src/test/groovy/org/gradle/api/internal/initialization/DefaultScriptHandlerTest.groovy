@@ -29,6 +29,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ObservableUrlClassLoader
+import org.gradle.util.ConfigureUtil
 
 @RunWith(JMock)
 public class DefaultScriptHandlerTest {
@@ -69,13 +70,17 @@ public class DefaultScriptHandlerTest {
     @Test void canConfigureRepositories() {
         DefaultScriptHandler handler = handler()
 
+        def configure = {
+            mavenCentral()
+        }
+
         context.checking {
+            one(repositoryHandler).configure(configure)
+            will { ConfigureUtil.configure(configure, repositoryHandler, false) }
             one(repositoryHandler).mavenCentral()
         }
 
-        handler.repositories {
-            mavenCentral()
-        }
+        handler.repositories(configure)
     }
 
     @Test void canConfigureDependencies() {
