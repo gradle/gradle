@@ -27,13 +27,14 @@ public class Main {
                 System.out.println("  " + module);
                 System.out.println("  module details:");
 
-                System.out.println("    dependencies:");
-                for (IdeaDependency dependency: module.getDependencies()) {
-                    if (dependency instanceof IdeaLibraryDependency) {
-                        System.out.println("      library: " + dependency);
-                    } else if (dependency instanceof IdeaModuleDependency) {
-                        System.out.println("      module: " + dependency);
-                    }
+                System.out.println("    source dirs:");
+                for (IdeaSourceDirectory dir: module.getSourceDirectories()) {
+                    System.out.println("      " + dir);
+                }
+
+                System.out.println("    test dirs:");
+                for (IdeaSourceDirectory dir: module.getTestDirectories()) {
+                    System.out.println("      " + dir);
                 }
 
                 System.out.println("    exclude dirs:");
@@ -41,9 +42,13 @@ public class Main {
                     System.out.println("      " + dir);
                 }
 
-                System.out.println("    source dirs:");
-                for (IdeaSourceDirectory dir: module.getSourceDirectories()) {
-                    System.out.println("      " + dir);
+                System.out.println("    dependencies:");
+                for (IdeaDependency dependency: module.getDependencies()) {
+                    if (dependency instanceof IdeaLibraryDependency) {
+                        System.out.println("      library: " + dependency);
+                    } else if (dependency instanceof IdeaModuleDependency) {
+                        System.out.println("      module: " + dependency);
+                    }
                 }
             }
         } finally {

@@ -73,11 +73,10 @@ class SamplesToolingApiIntegrationTest extends Specification {
         projectDir.file('settings.gradle').text = '// to stop search upwards'
 
         when:
-        def result = run(projectDir)
+        run(projectDir)
 
         then:
-        result.output.contains("Project: idea")
-        result.output.contains("Module: idea")
+        noExceptionThrown()
     }
 
     private ExecutionResult run(dir) {

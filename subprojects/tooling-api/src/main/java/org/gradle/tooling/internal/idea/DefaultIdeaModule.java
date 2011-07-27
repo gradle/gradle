@@ -116,7 +116,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public DomainObjectSet<IdeaSourceDirectory> getSourceDirectories() {
+    public DomainObjectSet<? extends IdeaSourceDirectory> getSourceDirectories() {
         return new ImmutableDomainObjectSet<IdeaSourceDirectory>(sourceDirectories);
     }
 
@@ -125,7 +125,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public DomainObjectSet<IdeaSourceDirectory> getTestDirectories() {
+    public DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories() {
         return new ImmutableDomainObjectSet<IdeaSourceDirectory>(testDirectories);
     }
 
