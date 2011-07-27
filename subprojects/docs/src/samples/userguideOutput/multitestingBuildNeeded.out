@@ -20,6 +20,7 @@
 :shared:test
 :shared:check
 :shared:build
+:shared:buildNeeded
 :api:buildNeeded
 
 BUILD SUCCESSFUL
