@@ -14,32 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model;
+package org.gradle.tooling.internal.protocol;
 
 /**
- * Described element of something :)
+ * I needed this interface so that it is possible to develop idea features incrementally.
+ * In general I'd like to avoid growing VersionX interfaces
+ * because we have an excellent test suite that tells the story of what has changed and when
  */
-public interface Element {
-
-    /**
-     * Returns the unique identifier of this element.
-     * //TODO SF should be path after all
-     *
-     * @return The path.
-     */
-    String getId();
-
-    /**
-     * Returns the name. Note that the name is not a unique identifier.
-     *
-     * @return The name.
-     */
-    String getName();
-
-    /**
-     * Returns the description.
-     *
-     * @return The description. May be null.
-     */
-    String getDescription();
-}
+public interface InternalGradleProject extends ProjectVersion3 {}

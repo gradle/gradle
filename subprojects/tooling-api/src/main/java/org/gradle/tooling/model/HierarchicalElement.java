@@ -29,9 +29,9 @@ public interface HierarchicalElement extends Element {
     HierarchicalElement getParent();
 
     /**
-     * Returns the child projects of this project.
+     * Returns the child elements.
      *
-     * @return The child projects. Returns an empty set if it has no children.
+     * @return The child elements. Returns an empty set if it has no children.
      */
     DomainObjectSet<? extends HierarchicalElement> getChildren();
 

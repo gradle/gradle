@@ -16,16 +16,10 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
-import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
-import org.gradle.tooling.internal.protocol.HierarchicalProjectVersion1;
-import org.gradle.tooling.internal.protocol.InternalIdeaProject;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
-import org.gradle.tooling.model.BuildableProject;
-import org.gradle.tooling.model.Element;
-import org.gradle.tooling.model.HierarchicalProject;
-import org.gradle.tooling.model.Project;
+import org.gradle.tooling.model.*;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -49,6 +43,7 @@ class DefaultProjectConnection implements ProjectConnection {
         modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
         modelTypeMap.put(EclipseProject.class, EclipseProjectVersion3.class);
         modelTypeMap.put(IdeaProject.class, InternalIdeaProject.class);
+        modelTypeMap.put(GradleProject.class, InternalGradleProject.class);
     }
 
     public void close() {

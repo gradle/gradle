@@ -13,37 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.model;
 
 /**
  * Represents a task which is executable by Gradle.
+ *
+ * TODO SF. It would be nice to decouple gradle tasks from IDEA / Eclipse model.
+ * Many things are easier if they are decoupled and it fits our present trend of decoupling gradle project from idea module & eclipse project.
+ * Needs discussion. This is the first step towards this idea.
  */
-public interface Task {
-    /**
-     * Returns the path of this task. This is a fully qualified unique name for this task.
-     */
-    String getPath();
-
-    /**
-     * Returns the name of this task. Note that the name is not necessarily a unique identifier for the task.
-     *
-     * @return The name.
-     */
-    String getName();
-
-    /**
-     * Returns the description of this task.
-     *
-     * @return The description. May be null.
-     */
-    String getDescription();
+public interface GradleTask extends Task {
 
     /**
      * Returns the element which this task belongs to.
      *
-     * //TODO SF rename?
-     *
      * @return The element.
      */
-    Element getProject();
+    GradleProject getProject();
 }
