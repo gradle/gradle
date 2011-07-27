@@ -18,10 +18,12 @@ package org.gradle.tooling.internal.idea;
 
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 
+import java.io.Serializable;
+
 /**
  * @author: Szczepan Faber, created at: 7/26/11
  */
-public class DefaultIdeaModuleDependency implements IdeaModuleDependency {
+public class DefaultIdeaModuleDependency implements IdeaModuleDependency, Serializable {
 
     private String scope;
     private String dependencyModuleName;
