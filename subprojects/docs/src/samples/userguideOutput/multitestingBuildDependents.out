@@ -24,6 +24,7 @@
 :services:personService:test
 :services:personService:check
 :services:personService:build
+:services:personService:buildDependents
 :api:buildDependents
 
 BUILD SUCCESSFUL
