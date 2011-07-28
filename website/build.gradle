@@ -73,7 +73,11 @@ task configureReleases << {
     assert releasesFile.exists() : "$releasesFile does not exist. Please run :docs:websiteDocs"
     def releaseXml = new XmlParser().parse(releasesFile)
     def current = releaseXml.current[0]
-    releases << new CurrentRelease(version: current.'@version', versionInfo: versionInfo)
+    def currentRelease = new CurrentRelease(version: current.'@version', versionInfo: versionInfo)
+    println "Is release version: $versionInfo.release"
+    println "Current release distribution url: ${currentRelease.allDistributionUrl}"
+    println "Current release distribution base: ${currentRelease.distributionBase}"
+    releases << currentRelease
     releaseXml.release.each {
         releases << new Release(version: it.'@version', versionInfo: versionInfo)
     }
