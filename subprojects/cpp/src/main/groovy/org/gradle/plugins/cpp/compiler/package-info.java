@@ -15,7 +15,7 @@
  */
 
 /**
- * Objects responsible for some step in turning source code into a usable binary.
+ * Utility classes for compiler impls.
  */
 package org.gradle.plugins.cpp.compiler;
 

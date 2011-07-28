@@ -25,31 +25,31 @@ class CppDslSpec extends CppProjectSpec {
         when:
         cpp {
             sourceSets {
-                main {}
-            }
-            library {
-                source sourceSets.main
-            }
-            executable {
-                libs libraries.main
+                main {
+                    outputs {
+                        exe {
+                            sourceDirSet "cpp"
+                            includeDirSet "headers"
+                        }
+                        lib {
+                            sourceDirSet "cpp"
+                            includeDirSet "headers"
+                            sharedLibrary()
+                        }
+                    }
+                }
             }
         }
 
         then:
-        tasks.all*.name.find { it == "compileMainLibrary" }
-        tasks.all*.name.find { it == "linkMainLibrary" }
-        tasks.all*.name.find { it == "linkMainExecutable" }
+        tasks.all*.name.find { it == "compileMainExe" }
+        tasks.all*.name.find { it == "compileMainLib" }
 
         and:
-        def library = cpp.libraries.main
-        library.file == file("$buildDir/binaries/main.so")
+        cpp.sourceSets.main.outputs.exe.outputFile == file("$buildDir/binaries/mainExe")
 
         and:
-        def executable = cpp.executables.main
-        executable.file == file("$buildDir/binaries/main")
-
-        and:
-        cpp.libraries.main.includes.size() == 1
+        cpp.sourceSets.main.outputs.lib.outputFile == file("$buildDir/binaries/mainLib.so")
     }
 
 }

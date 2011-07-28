@@ -34,7 +34,16 @@ class CppPlugin implements Plugin<Project> {
         extension.sourceSets.all { sourceSet ->
             sourceSet.cpp.srcDir "src/${sourceSet.name}/cpp"
             sourceSet.headers.srcDir "src/${sourceSet.name}/headers"
+            
+            sourceSet.outputs.create("main")
+            
+            sourceSet.outputs.all { compileSpec ->
+                includeDirSet "headers"
+                sourceDirSet "cpp"
+            }
         }
+        
+        extension.sourceSets.create("main")
     }
 
 }

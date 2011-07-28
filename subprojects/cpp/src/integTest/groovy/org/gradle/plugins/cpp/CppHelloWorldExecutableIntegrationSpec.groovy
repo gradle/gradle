@@ -30,15 +30,6 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildFile << """
             apply plugin: "cpp"
-
-            cpp {
-                sourceSets {
-                    main { }
-                }
-                executable {
-                    source sourceSets.main
-                }
-            }
         """
 
         and:
@@ -52,10 +43,10 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        run "linkMainExecutable"
+        run "compileMainMain"
 
         then:
-        def executable = file("build/binaries/main")
+        def executable = file("build/binaries/mainMain")
         executable.exists()
         executable.exec().out == HELLO_WORLD
     }
@@ -68,21 +59,30 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
             
             cpp {
                 sourceSets {
-                    main { }
-                    lib { }
-                }
-                library("hello") {
-                    source sourceSets.lib
-                }
-                executable {
-                    libs libraries.hello
-                    source sourceSets.main
+                    hello {
+                        outputs {
+                            main { 
+                                sharedLibrary()
+                            }
+                        }
+                    }
+                    
+                    main {
+                        // headers.srcDir 
+
+                        outputs {
+                            main {
+                                lib project.cpp.sourceSets.hello.outputs.main
+                                includes project.cpp.sourceSets.hello.headers.srcDirs
+                            }
+                        }
+                    }
                 }
             }
         """
 
         and:
-        file("src", "lib", "cpp", "hello.cpp") << """
+        file("src", "hello", "cpp", "hello.cpp") << """
             #include <iostream>
 
             void hello () {
@@ -91,7 +91,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         and:
-        file("src", "lib", "headers", "hello.h") << """
+        file("src", "hello", "headers", "hello.h") << """
             void hello();
         """
         
@@ -106,10 +106,10 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
         
         when:
-        run "linkMainExecutable"
+        run "compileMainMain"
 
         then:
-        file("build/binaries/main").exec().out == HELLO_WORLD
+        file("build/binaries/mainMain").exec().out == HELLO_WORLD
     }
 
 }

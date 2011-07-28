@@ -31,10 +31,10 @@ class CppSamplesSpec extends AbstractIntegrationSpec {
         run "build"
         
         then:
-        ":exe:linkMainExecutable" in executedTasks
+        ":exe:compileMainMain" in executedTasks
         
         and:
-        file("cpp", "exewithlib", "exe", "build", "binaries", "main").exec().out == "Hello, World!\n"
+        file("cpp", "exewithlib", "exe", "build", "binaries", "mainMain").exec().out == "Hello, World!\n"
     }
     
     

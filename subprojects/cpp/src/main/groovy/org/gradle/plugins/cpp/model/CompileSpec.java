@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.compiler;
+package org.gradle.plugins.cpp.model;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
-
+import org.gradle.api.Named;
 import java.io.File;
 
 /**
- * A compiler of CPP source files (and headers).
+ * @param T The compiler implementation this spec works with
  */
-public interface CppCompiler extends Compiler {
-
-    /**
-     * The include roots to use for the compile operation.
-     */
-    void setIncludes(Iterable<File> includes);
-
+public interface CompileSpec<T extends Compiler> extends Named {
+    
+    File getOutputFile();
+    T getCompiler();
+    
 }

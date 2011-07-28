@@ -23,18 +23,9 @@ import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.ConfigureUtil;
 
 import org.gradle.plugins.cpp.model.NativeSourceSet;
 import org.gradle.plugins.cpp.model.internal.DefaultNativeSourceSet;
-import org.gradle.plugins.cpp.model.CppExecutable;
-import org.gradle.plugins.cpp.model.internal.DefaultCppExecutable;
-import org.gradle.plugins.cpp.model.CppLibrary;
-import org.gradle.plugins.cpp.model.internal.DefaultCppLibrary;
-
-
-import org.gradle.plugins.cpp.dsl.LibraryDsl;
-import org.gradle.plugins.cpp.dsl.ExecutableDsl;
 
 import groovy.lang.Closure;
 
@@ -48,8 +39,6 @@ public class CppProjectExtension {
     final private ProjectInternal project;
 
     final private NamedDomainObjectContainer<NativeSourceSet> sourceSets;
-    final private NamedDomainObjectContainer<CppLibrary> libraries;
-    final private NamedDomainObjectContainer<CppExecutable> executables;
 
     public CppProjectExtension(Project project) {
         this.project = (ProjectInternal)project;
@@ -64,7 +53,7 @@ public class CppProjectExtension {
                         DefaultNativeSourceSet.class, 
                         classGenerator,
                         classGenerator,
-                        this.project.getFileResolver()
+                        this.project
                 )
         );
         
@@ -81,9 +70,6 @@ public class CppProjectExtension {
                 });
             }
         });
-        
-        this.libraries = classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, DefaultCppLibrary.class, classGenerator);
-        this.executables = classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, DefaultCppExecutable.class, classGenerator);
     }
 
     public Project getProject() {
@@ -98,35 +84,4 @@ public class CppProjectExtension {
         return sourceSets.configure(closure);
     }
 
-    public CppExecutable executable(Closure closure) {
-        return executable(DEFAULT_NAME, closure);
-    }
-
-    public CppExecutable executable(String name, Closure closure) {
-        ExecutableDsl dsl = new ExecutableDsl(this, name);
-        ConfigureUtil.configure(closure, dsl);
-        CppExecutable executable = dsl.create();
-        executables.add(executable);
-        return executable;
-    }
-
-    public NamedDomainObjectContainer<CppExecutable> getExecutables() {
-        return executables;
-    }
-
-    public CppLibrary library(Closure closure) {
-        return library(DEFAULT_NAME, closure);
-    }
-
-    public CppLibrary library(String name, Closure closure) {
-        LibraryDsl dsl = new LibraryDsl(this, name);
-        ConfigureUtil.configure(closure, dsl);
-        CppLibrary library = dsl.create();
-        libraries.add(library);
-        return library;
-    }
-
-    public NamedDomainObjectContainer<CppLibrary> getLibraries() {
-        return libraries;
-    }
 }

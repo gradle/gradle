@@ -13,20 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.model;
+package org.gradle.plugins.cpp.tasks
 
-import org.gradle.api.Named;
-import org.gradle.api.Buildable;
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.DefaultTask
 
-import java.io.File;
+import org.gradle.plugins.cpp.model.CompileSpec
 
-/**
- * An executable binary that can be built.
- */
-public interface CppExecutable extends Buildable, Named {
+class Compile extends DefaultTask {
 
-    String getName();
+    CompileSpec spec
 
-    File getFile();
+    @TaskAction
+    void compile() {
+        def outputFile = spec.outputFile
+
+        if (outputFile) {
+            def parentFile = outputFile.parentFile
+            assert parentFile.exists() || parentFile.mkdirs()
+        }
+
+        // question: should this just be spec.compile? i.e. do we need to know how to start the specs compile?
+        spec.compiler.compile()
+    }
 
 }
