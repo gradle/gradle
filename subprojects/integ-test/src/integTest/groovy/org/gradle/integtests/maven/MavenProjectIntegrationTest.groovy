@@ -19,13 +19,10 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.MavenRepository
 
 class MavenProjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final TestResources testResources = new TestResources()
 
     @Test
     public void handlesSubProjectsWithoutTheMavenPluginApplied() {
@@ -34,31 +31,7 @@ class MavenProjectIntegrationTest {
             apply plugin: 'java'
             apply plugin: 'maven'
         '''
-        executer.withTaskList().run();
+        executer.run();
     }
 
-    @Test
-    public void canDeployAProjectWithDependencyInMappedAndUnMappedConfiguration() {
-        executer.withTasks('uploadArchives').run()
-        def module = repo().module('group', 'root', 1.0)
-        module.assertArtifactsDeployed('root-1.0.jar')
-    }
-
-    @Test
-    public void canDeployAProjectWithNoMainArtifact() {
-        executer.withTasks('uploadArchives').run()
-        def module = repo().module('group', 'root', 1.0)
-        module.assertArtifactsDeployed('root-1.0-source.jar')
-    }
-
-    @Test
-    public void canDeployAProjectWithMetadataArtifacts() {
-        executer.withTasks('uploadArchives').run()
-        def module = repo().module('group', 'root', 1.0)
-        module.assertArtifactsDeployed('root-1.0.jar', 'root-1.0.jar.sig', 'root-1.0.pom', 'root-1.0.pom.sig')
-    }
-
-    def MavenRepository repo() {
-        new MavenRepository(dist.testFile('mavenRepo'))
-    }
 }
