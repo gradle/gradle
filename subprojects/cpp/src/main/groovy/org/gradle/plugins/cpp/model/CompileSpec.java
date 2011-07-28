@@ -19,11 +19,20 @@ import org.gradle.api.Named;
 import java.io.File;
 
 /**
- * @param T The compiler implementation this spec works with
+ * A high level interface to the compiler, specifying what is to be compiled and how.
+ *
+ * @param <T> The compiler implementation this spec works with
  */
 public interface CompileSpec<T extends Compiler> extends Named {
-    
+
+    /**
+     * The ultimate output of the compilation.
+     */
     File getOutputFile();
+
+    /**
+     * The compiler that will be doing the compiling.
+     */
     T getCompiler();
-    
+
 }

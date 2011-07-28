@@ -15,8 +15,14 @@
  */
 package org.gradle.plugins.cpp.model;
 
+/**
+ * Base interface for compiler implementations.
+ */
 public interface Compiler {
 
+    /**
+     * Go ahead and compile.
+     */
     void compile();
 
 }
