@@ -18,6 +18,7 @@ package org.gradle.plugins.ear.descriptor.internal
 
 import spock.lang.Specification
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * @author: Szczepan Faber, created at: 6/3/11
@@ -32,9 +33,13 @@ class DefaultDeploymentDescriptorTest extends Specification {
         descriptor.writeTo(out)
 
         then:
-        out.toString() == toPlatformLineSeparators("""<?xml version="1.0"?>
-<application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6"/>
-""")
+        def root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(out.toString().getBytes("utf-8"))).documentElement
+        root.nodeName == 'application'
+        root.getAttribute("xmlns") == "http://java.sun.com/xml/ns/javaee"
+        root.getAttribute("xmlns:xsi") == "http://www.w3.org/2001/XMLSchema-instance"
+        root.getAttribute("xsi:schemaLocation") == "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd"
+        root.getAttribute("version") == "6"
+        root.childNodes.length == 0
     }
 
     def "writes version 1.3 default descriptor"() {
@@ -50,9 +55,9 @@ class DefaultDeploymentDescriptorTest extends Specification {
 """)
     }
 
-    def "writes values"() {
+    def "writes customized descriptor"() {
         descriptor.fileName = "myApp.xml"
-        descriptor.version = "5"
+        descriptor.version = "1.3"
         descriptor.applicationName = "myapp"
         descriptor.initializeInOrder = true
         descriptor.displayName = "My App"
@@ -69,7 +74,8 @@ class DefaultDeploymentDescriptorTest extends Specification {
 
         then:
         out.toString() == toPlatformLineSeparators("""<?xml version="1.0"?>
-<application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_5.xsd" version="5">
+<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">
+<application version="1.3">
   <application-name>myapp</application-name>
   <description>My Application</description>
   <display-name>My App</display-name>
