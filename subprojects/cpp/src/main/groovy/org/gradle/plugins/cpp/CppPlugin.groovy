@@ -26,7 +26,7 @@ class CppPlugin implements Plugin<Project> {
 
         def extension = new CppProjectExtension(project)
         configureSourceSetDefaults(extension)
-
+        
         project.extensions.add('cpp', extension)
     }
 
@@ -34,16 +34,20 @@ class CppPlugin implements Plugin<Project> {
         extension.sourceSets.all { sourceSet ->
             sourceSet.cpp.srcDir "src/${sourceSet.name}/cpp"
             sourceSet.headers.srcDir "src/${sourceSet.name}/headers"
-            
-            sourceSet.outputs.create("main")
-            
-            sourceSet.outputs.all { compileSpec ->
-                includeDirSet "headers"
-                sourceDirSet "cpp"
+        }
+
+        // Wire up all binaries to their matching source set
+        extension.binaries.all { binary ->
+            extension.sourceSets.matching { it.name == binary.name }.all { sourceSet ->
+                binary.spec {
+                    includes sourceSet.headers
+                    source sourceSet.cpp
+                }
             }
         }
-        
+
         extension.sourceSets.create("main")
+        extension.binaries.create("main")
     }
 
 }

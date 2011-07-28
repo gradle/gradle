@@ -19,52 +19,52 @@ import org.gradle.plugins.cpp.model.*
 import org.gradle.plugins.cpp.tasks.Compile
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.SourceDirectorySet
+
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.process.internal.DefaultExecAction
 
-import org.gradle.util.Configurable
-import org.gradle.util.ConfigureUtil
-
-class GppCompileSpec implements CompileSpec<Gpp>, Configurable<GppCompileSpec> {
+class GppCompileSpec implements CompileSpec {
 
     // likely common to all compile specs
     final String name
     final ProjectInternal project
-    final NativeSourceSet sourceSet
-    final Gpp compiler
 
-    // specific to gpp
     final Compile task
-
-    GppCompileSpec(String name, NativeSourceSet sourceSet, Gpp compiler, ProjectInternal project) {
-        this.name = name
-        this.sourceSet = sourceSet
-        this.compiler = compiler
-        this.project = project
-        this.task = createTask()
-
-        init()
-    }
-
-    // note: might only need to accept a task container instead of project
-    protected Compile createTask() {
-        project.task(getActionName("compile"), type: Compile) { task ->
-            spec = this
-        }
-    }
-
-    def workDir = { "$project.buildDir/compileWork/$uniqueName" }
-    def outputFile = { "$project.buildDir/binaries/${getOutputFileName()}" }
+    List<Closure> settings = []
 
     String outputFileName
     String baseName
     String extension
 
+    GppCompileSpec(String name, ProjectInternal project) {
+        this.name = name
+        this.project = project
+        this.task = project.task("compile${name.capitalize()}", type: Compile) { spec = this }
+
+        init()
+    }
+
+    protected init() {
+        setting {
+            def outputFile = getOutputFile()
+            if (outputFile) {
+                it.args "-o", outputFile.absolutePath
+            }
+        }
+        setting {
+            it.args "-fPIC"
+        }
+
+        task.outputs.file { getOutputFile() }
+    }
+
     File getWorkDir() {
-        project.file(workDir)
+        project.file "$project.buildDir/compileWork/$name"
     }
 
     File getOutputFile() {
-        project.file(outputFile)
+        project.file "$project.buildDir/binaries/${getOutputFileName()}"
     }
 
     String getOutputFileName() {
@@ -76,79 +76,78 @@ class GppCompileSpec implements CompileSpec<Gpp>, Configurable<GppCompileSpec> {
     }
 
     String getBaseName() {
-        baseName ?: uniqueName
-    }
-    
-    String getUniqueName() {
-        sourceSet.name + name.capitalize()
+        baseName ?: name
     }
 
-    String getActionName(String verb) {
-        verb + uniqueName.capitalize()
+    void setting(Closure closure) {
+        settings << closure
     }
 
-    void includeDirSet(String sourceDirectorySetName) {
-        // problem: not lazy - can't mod the source directory set after this
-        includes sourceSet[sourceDirectorySetName].srcDirs.toList()
+    void includes(SourceDirectorySet dirs) {
+        task.inputs.files dirs
+        setting {
+            it.args(*dirs.srcDirs.collect { "-I${it.absolutePath}" })
+        }
+    }
+
+    void includes(FileCollection files) {
+        task.inputs.files files
+        includes((Iterable<File>)files)
     }
 
     void includes(Iterable<File> files) {
-        files.each { include it.absolutePath }
+        setting {
+            it.args(*files.collect { "-I${it.absolutePath}" })
+        }
     }
 
-    // todo: add as task inputs
-    void includes(File... includes) {
-        includes(*includes*.absolutePath)
-    }
-
-    void includes(String... includes) {
-        includes.each { include(it) }
-    }
-
-    // question: do specs accept arbitrary includes? Or must they be defined in the source set?
-    void include(String include) {
-        args "-I$include"
-    }
-
-    void sourceDirSet(String sourceDirSetName) {
-        source sourceSet[sourceDirSetName]
-    }
-
-    // todo: wire up task dependencies and inputs
     void source(FileCollection files) {
-        // problem: not lazy
-        args(*files*.absolutePath)
+        task.inputs.files files
+        source((Iterable<File>)files)
     }
 
-    protected init() {
-        args "-o", "${{->getOutputFile().absolutePath}}" // closure in gstring to keep the value lazy
+    void source(Iterable<File> files) {
+        setting {
+            it.args(*files*.absolutePath)
+        }
+    }
 
-        // compile position independeny, needed on rhel
-        args "-fPIC"
+    void source(CompileSpec spec) {
+        task.dependsOn spec.task
+        source { spec.outputFile }
+    }
+
+    void source(Closure source) {
+        task.inputs.file source
+        setting { it.args source() }
     }
 
     void args(Object... args) {
-        compiler.args(args)
+        setting {
+            it.args args
+        }
     }
 
     void sharedLibrary() {
-        args "-shared"
+        setting { it.args "-shared" }
         extension = "so" // problem: this will be different on differnt platforms, need a way to “inject” this?
     }
-    
-    void lib(GppCompileSpec libSpec) {
-        // problem: nowhere near general enough
-        task.dependsOn libSpec.task
 
-        // problem: shouldn't need this trickery for laziness
-        args "${{->libSpec.getOutputFile().absolutePath}}"
-    }
-    
-    Gpp getCompiler() {
-        compiler
-    }
-    
-    GppCompileSpec configure(Closure closure) {
-        ConfigureUtil.configure(closure, this, Closure.DELEGATE_ONLY)
+    void compile() {
+        def workDir = getWorkDir()
+        assert (workDir.exists() && workDir.directory) || workDir.mkdirs()
+
+        def outputFile = getOutputFile()
+        def outputFileDir = outputFile.parentFile
+        assert outputFileDir.exists() || outputFileDir.mkdirs()
+
+        def compiler = new DefaultExecAction(project.fileResolver)
+        compiler.executable "g++"
+        compiler.workingDir getWorkDir()
+
+        // Apply all of the settings
+        settings.each { it(compiler) }
+
+        compiler.execute()
     }
 }

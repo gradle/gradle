@@ -31,8 +31,7 @@ public interface CompileSpec<T extends Compiler> extends Named {
     File getOutputFile();
 
     /**
-     * The compiler that will be doing the compiling.
+     * Do the compile
      */
-    T getCompiler();
-
+    void compile();
 }

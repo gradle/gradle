@@ -3,34 +3,35 @@ allprojects {
 }
 
 project(":lib") {
-    cpp.sourceSets.main.outputs.main.sharedLibrary() // configure to build library
-}
-
-project(":exe") {
-
-    evaluationDependsOn ":lib"
-    def libProject = project(":lib")
     cpp {
-        sourceSets {
+        binaries {
             main {
-                libheaders {
-                    source libProject.cpp.sourceSets.main.headers
-                }
-
-                outputs {
-                    main.configure {
-                        // These should be declared as part of the main source set, not as part of the output
-                        // just not supported yet
-
-                        // Need someway to add lib dependencies to source set
-                        lib libProject.cpp.sourceSets.main.outputs.main
-                        
-                        includeDirSet "libheaders"
-                    }
+                spec {
+                    sharedLibrary() // configure to build library
                 }
             }
         }
     }
 }
 
-task build(dependsOn: project(":exe").compileMainMain)
+project(":exe") {
+    cpp {
+        sourceSets {
+            main {
+                headers {
+                    // Include the headers from the lib project
+                    srcDir project(":lib").cpp.sourceSets.main.headers
+                }
+            }
+        }
+        binaries {
+            main {
+                spec {
+                    source project(":lib").cpp.binaries.main.spec
+                }
+            }
+        }
+    }
+}
+
+task build(dependsOn: project(":exe").compileMain)

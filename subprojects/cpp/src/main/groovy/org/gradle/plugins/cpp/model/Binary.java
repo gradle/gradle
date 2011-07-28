@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.gcc
+package org.gradle.plugins.cpp.model;
 
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.IdentityFileResolver
-import org.gradle.plugins.cpp.compiler.ExternalProcessCompiler
+import org.gradle.api.Named;
 
-class Gpp extends ExternalProcessCompiler {
+/**
+ * Something to be created.
+ */
+public interface Binary extends Named {
 
-    public Gpp(FileResolver fileResolver) {
-        super(fileResolver)
-        executable("g++")
-    }
-
-    public Gpp() {
-        super(new IdentityFileResolver())
-    }
+    CompileSpec getSpec();
 
 }

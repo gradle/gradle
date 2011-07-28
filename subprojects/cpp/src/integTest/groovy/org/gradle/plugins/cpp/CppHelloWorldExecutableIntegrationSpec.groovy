@@ -43,10 +43,10 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        run "compileMainMain"
+        run "compileMain"
 
         then:
-        def executable = file("build/binaries/mainMain")
+        def executable = file("build/binaries/main")
         executable.exists()
         executable.exec().out == HELLO_WORLD
     }
@@ -59,22 +59,19 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
             
             cpp {
                 sourceSets {
-                    hello {
-                        outputs {
-                            main { 
-                                sharedLibrary()
-                            }
-                        }
-                    }
-                    
+                    hello {}
                     main {
-                        // headers.srcDir 
-
-                        outputs {
-                            main {
-                                lib project.cpp.sourceSets.hello.outputs.main
-                                includes project.cpp.sourceSets.hello.headers.srcDirs
-                            }
+                        headers.srcDir hello.headers
+                    }
+                }
+                
+                binaries {
+                    hello {
+                        spec { sharedLibrary() }
+                    }
+                    main {
+                        spec {
+                            source project.cpp.binaries.hello.spec
                         }
                     }
                 }
@@ -106,10 +103,10 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         """
         
         when:
-        run "compileMainMain"
+        run "compileMain"
 
         then:
-        file("build/binaries/mainMain").exec().out == HELLO_WORLD
+        file("build/binaries/main").exec().out == HELLO_WORLD
     }
 
 }

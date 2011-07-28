@@ -15,35 +15,28 @@
  */
 package org.gradle.plugins.cpp.model.internal;
 
-import org.gradle.plugins.cpp.model.CompileSpec;
 import org.gradle.plugins.cpp.model.NativeSourceSet;
 
-import org.gradle.api.Project;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.SourceDirectorySet;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileResolver;
 
 import org.gradle.util.GUtil;
-
-import groovy.lang.Closure;
 
 public class DefaultNativeSourceSet extends AbstractNamedDomainObjectContainer<SourceDirectorySet> implements NativeSourceSet {
 
     final private String name;
     final private String displayName;
-    final private ProjectInternal project;
-    final private CompileSpecContainer outputs;
+    final private FileResolver fileResolver;
 
-    public DefaultNativeSourceSet(String name, ClassGenerator classGenerator, ProjectInternal project) {
+    public DefaultNativeSourceSet(String name, ClassGenerator classGenerator, FileResolver fileResolver) {
         super(SourceDirectorySet.class, classGenerator);
         this.name = name;
         this.displayName = GUtil.toWords(this.name);
-        this.project = project;
-        this.outputs = classGenerator.newInstance(CompileSpecContainer.class, project, this, classGenerator);
+        this.fileResolver = fileResolver;
     }
 
     public String getName() {
@@ -59,18 +52,7 @@ public class DefaultNativeSourceSet extends AbstractNamedDomainObjectContainer<S
     }
 
     protected SourceDirectorySet doCreate(String name) {
-        return getClassGenerator().newInstance(DefaultSourceDirectorySet.class, name, String.format("%s > %s source directory set", this, name), project.getFileResolver());
-    }
-    
-    public NamedDomainObjectContainer<CompileSpec<?>> outputs(Closure closure) {
-        return outputs.configure(closure);
+        return getClassGenerator().newInstance(DefaultSourceDirectorySet.class, name, String.format("%s > %s source directory set", this, name), fileResolver);
     }
 
-    public NamedDomainObjectContainer<CompileSpec<?>> getOutputs() {
-        return outputs;
-    }
-    
-    public Project getProject() {
-        return project;
-    }
 }

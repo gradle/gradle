@@ -26,15 +26,7 @@ class Compile extends DefaultTask {
 
     @TaskAction
     void compile() {
-        def outputFile = spec.outputFile
-
-        if (outputFile) {
-            def parentFile = outputFile.parentFile
-            assert parentFile.exists() || parentFile.mkdirs()
-        }
-
-        // question: should this just be spec.compile? i.e. do we need to know how to start the specs compile?
-        spec.compiler.compile()
+        spec.compile()
     }
 
 }

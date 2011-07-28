@@ -16,11 +16,8 @@
 package org.gradle.plugins.cpp.model;
 
 import org.gradle.api.Named;
-import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.NamedDomainObjectContainer;
-
-import groovy.lang.Closure;
 
 /**
  * A {@code NativeSourceSet} represents a logical group of source that is compiled together.
@@ -33,13 +30,10 @@ public interface NativeSourceSet extends NamedDomainObjectContainer<SourceDirect
      * @return The name. Never returns null.
      */
     String getName();
-
+    
     /**
-     * outputs
+     * A more user friendly name
      */
-    NamedDomainObjectContainer<CompileSpec<?>> outputs(Closure closure);
-    
-    NamedDomainObjectContainer<CompileSpec<?>> getOutputs();
-    
-    Project getProject();
+    String getDisplayName();
+
 }

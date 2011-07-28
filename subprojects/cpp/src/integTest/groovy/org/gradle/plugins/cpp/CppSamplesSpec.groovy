@@ -20,22 +20,20 @@ import org.gradle.integtests.fixtures.internal.*
 import org.junit.*
 
 class CppSamplesSpec extends AbstractIntegrationSpec {
-    
+
     @Rule public final Sample exewithlib = new Sample('cpp/exewithlib')
-    
+
     def "exe with lib"() {
         given:
         sample exewithlib
-        
+
         when:
         run "build"
-        
+
         then:
-        ":exe:compileMainMain" in executedTasks
-        
+        ":exe:compileMain" in executedTasks
+
         and:
-        file("cpp", "exewithlib", "exe", "build", "binaries", "mainMain").exec().out == "Hello, World!\n"
+        file("cpp", "exewithlib", "exe", "build", "binaries", "main").exec().out == "Hello, World!\n"
     }
-    
-    
 }
