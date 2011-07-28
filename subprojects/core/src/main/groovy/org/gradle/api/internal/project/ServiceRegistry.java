@@ -27,9 +27,9 @@ public interface ServiceRegistry {
      * @param serviceType The service type.
      * @param <T>         The service type.
      * @return The service instance. Never returns null.
-     * @throws IllegalArgumentException When there is no service of the given type available.
+     * @throws UnknownServiceException When there is no service of the given type available.
      */
-    <T> T get(Class<T> serviceType) throws IllegalArgumentException;
+    <T> T get(Class<T> serviceType) throws UnknownServiceException;
 
     /**
      * Locates a factory which can create services of the given type.
@@ -37,9 +37,9 @@ public interface ServiceRegistry {
      * @param type The service type that the factory should create.
      * @param <T>  The service type that the factory should create.
      * @return The factory. Never returns null.
-     * @throws IllegalArgumentException When there is no factory available for services of the given type.
+     * @throws UnknownServiceException When there is no factory available for services of the given type.
      */
-    <T> Factory<T> getFactory(Class<T> type) throws IllegalArgumentException;
+    <T> Factory<T> getFactory(Class<T> type) throws UnknownServiceException;
 
     /**
      * Creates a new service instance of the given type.
@@ -47,7 +47,7 @@ public interface ServiceRegistry {
      * @param type The service type
      * @param <T>  The service type.
      * @return The instance. Never returns null.
-     * @throws IllegalArgumentException When there is no factory available for services of the given type.
+     * @throws UnknownServiceException When there is no factory available for services of the given type.
      */
-    <T> T newInstance(Class<T> type) throws IllegalArgumentException;
+    <T> T newInstance(Class<T> type) throws UnknownServiceException;
 }

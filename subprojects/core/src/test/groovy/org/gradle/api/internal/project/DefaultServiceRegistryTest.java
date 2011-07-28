@@ -64,7 +64,7 @@ public class DefaultServiceRegistryTest {
 
         context.checking(new Expectations(){{
             one(parent).get(Map.class);
-            will(throwException(new DefaultServiceRegistry.UnknownServiceException(Map.class, "fail")));
+            will(throwException(new UnknownServiceException(Map.class, "fail")));
         }});
 
         try {

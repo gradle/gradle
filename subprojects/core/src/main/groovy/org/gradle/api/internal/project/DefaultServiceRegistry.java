@@ -130,7 +130,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             try {
                 return parent.get(serviceType);
             } catch (UnknownServiceException e) {
-                if (!e.type.equals(serviceType)) {
+                if (!e.getType().equals(serviceType)) {
                     throw e;
                 }
                 // Ignore
@@ -158,7 +158,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             try {
                 return parent.getFactory(type);
             } catch (UnknownServiceException e) {
-                if (!e.type.equals(type)) {
+                if (!e.getType().equals(type)) {
                     throw e;
                 }
                 // Ignore
@@ -329,12 +329,4 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
-    static class UnknownServiceException extends IllegalArgumentException {
-        private final Class<?> type;
-
-        UnknownServiceException(Class<?> type, String message) {
-            super(message);
-            this.type = type;
-        }
-    }
 }

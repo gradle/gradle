@@ -251,8 +251,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected DependencyManagementServices createDependencyManagementServices() {
         ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
-        ServiceLocator serviceLocator = new ServiceLocator();
-        return serviceLocator.getServiceImplementation(DependencyManagementServices.class, coreImplClassLoader, this);
+        ServiceLocator serviceLocator = new ServiceLocator(coreImplClassLoader);
+        return serviceLocator.getFactory(DependencyManagementServices.class).newInstance(this);
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

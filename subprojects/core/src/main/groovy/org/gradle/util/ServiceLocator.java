@@ -15,58 +15,75 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.Instantiator;
+import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.internal.project.UnknownServiceException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Uses the Jar service resource specification to locate service implementations.
  */
-public class ServiceLocator {
-    /**
-     * Locates an implementation for a given service. Returns null when no service implementation is available.
-     */
-    public <T> T findServiceImplementation(Class<T> serviceType, ClassLoader classLoader, Object... params) {
-        try {
-            Class<? extends T> implementationClass = findServiceImplementationClass(serviceType, classLoader);
-            if (implementationClass == null) {
-                return null;
+public class ServiceLocator implements ServiceRegistry {
+    private final ClassLoader classLoader;
+    private final Map<Class<?>, Object> implementations = new ConcurrentHashMap<Class<?>, Object>();
+
+    public ServiceLocator(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
+    public <T> T get(Class<T> serviceType) throws UnknownServiceException {
+        synchronized (implementations) {
+            T implementation = serviceType.cast(implementations.get(serviceType));
+            if (implementation == null) {
+                implementation = getFactory(serviceType).create();
+                implementations.put(serviceType, implementation);
             }
-            Instantiator instantiator = new DirectInstantiator();
-            return instantiator.newInstance(implementationClass, params);
-        } catch (Throwable t) {
-            throw new RuntimeException(String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
+            return implementation;
         }
     }
 
-    /**
-     * Locates an implementation for a given service. Does not return null.
-     */
-    public <T> T getServiceImplementation(Class<T> serviceType, ClassLoader classLoader, Object... params) {
-        T implementation = findServiceImplementation(serviceType, classLoader, params);
-        if (implementation == null) {
-            throw new RuntimeException(String.format("No implementation class specified for service '%s'.", serviceType.getName()));
+    public <T> ServiceFactory<T> getFactory(final Class<T> serviceType) throws UnknownServiceException {
+        ServiceFactory<T> factory = findFactory(serviceType);
+        if (factory == null) {
+            throw new UnknownServiceException(serviceType, String.format("No implementation class specified for service '%s'.", serviceType.getName()));
         }
-        return implementation;
+        return factory;
     }
 
     /**
-     * Locates an implementation class for a given service. Returns null when no service implementation is available.
+     * Locates a factory for a given service. Returns null when no service implementation is available.
      */
-    public <T> Class<? extends T> findServiceImplementationClass(Class<T> serviceType, ClassLoader classLoader) {
+    public <T> ServiceFactory<T> findFactory(Class<T> serviceType) {
+        Class<? extends T> implementationClass = findServiceImplementationClass(serviceType);
+        if (implementationClass == null) {
+            return null;
+        }
+        return new ServiceFactory<T>(serviceType, implementationClass);
+    }
+
+    public <T> T newInstance(Class<T> type) throws UnknownServiceException {
+        return getFactory(type).create();
+    }
+
+    <T> Class<? extends T> findServiceImplementationClass(Class<T> serviceType) {
         String implementationClassName;
         try {
-            implementationClassName = findServiceImplementationClassName(serviceType, classLoader);
+            implementationClassName = findServiceImplementationClassName(serviceType);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not determine implementation class for service '%s'.", serviceType.getName()), e);
         }
+        if (implementationClassName == null) {
+            return null;
+        }
         try {
-            if (implementationClassName == null) {
-                return null;
-            }
             Class<?> implClass = classLoader.loadClass(implementationClassName);
             if (!serviceType.isAssignableFrom(implClass)) {
                 throw new RuntimeException(String.format("Implementation class '%s' is not assignable to service class '%s'.", implementationClassName, serviceType.getName()));
@@ -77,7 +94,7 @@ public class ServiceLocator {
         }
     }
 
-    private String findServiceImplementationClassName(Class<?> serviceType, ClassLoader classLoader) throws IOException {
+    private String findServiceImplementationClassName(Class<?> serviceType) throws IOException {
         String resourceName = "META-INF/services/" + serviceType.getName();
         URL resource = classLoader.getResource(resourceName);
         if (resource == null) {
@@ -98,5 +115,32 @@ public class ServiceLocator {
             inputStream.close();
         }
         throw new RuntimeException(String.format("No implementation class for service '%s' specified in resource '%s'.", serviceType.getName(), resource));
+    }
+
+    public static class ServiceFactory<T> implements Factory<T> {
+        private final Class<T> serviceType;
+        private final Class<? extends T> implementationClass;
+
+        public ServiceFactory(Class<T> serviceType, Class<? extends T> implementationClass) {
+            this.serviceType = serviceType;
+            this.implementationClass = implementationClass;
+        }
+
+        public Class<? extends T> getImplementationClass() {
+            return implementationClass;
+        }
+
+        public T create() {
+            return newInstance();
+        }
+
+        public T newInstance(Object... params) {
+            Instantiator instantiator = new DirectInstantiator();
+            try {
+                return instantiator.newInstance(implementationClass, params);
+            } catch (Throwable t) {
+                throw new RuntimeException(String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
+            }
+        }
     }
 }

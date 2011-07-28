@@ -15,10 +15,21 @@
  */
 package org.gradle.util;
 
+import javax.xml.XMLConstants;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.xpath.XPathFactory;
 
 public class DefaultClassLoaderFactoryTestHelper {
     public void doStuff() throws Exception {
         SAXParserFactory.newInstance().newSAXParser();
+        DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        DatatypeFactory.newInstance().newXMLGregorianCalendar();
+        TransformerFactory.newInstance().newTransformer();
+        SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        XPathFactory.newInstance().newXPath();
     }
 }

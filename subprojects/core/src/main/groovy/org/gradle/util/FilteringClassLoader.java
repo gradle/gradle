@@ -23,8 +23,8 @@ import java.security.PrivilegedAction;
 import java.util.*;
 
 /**
- * A ClassLoader which hides all non-system classes, packages and resources. Allows certain non-system packages and
- * classes to be declared as visible. By default, only the Java system classes, packages and resources are visible.
+ * A ClassLoader which hides all non-system classes, packages and resources. Allows certain non-system packages and classes to be declared as visible. By default, only the Java system classes,
+ * packages and resources are visible.
  */
 public class FilteringClassLoader extends ClassLoader {
     private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
@@ -33,6 +33,7 @@ public class FilteringClassLoader extends ClassLoader {
     private final Set<String> packageNames = new HashSet<String>();
     private final Set<String> packagePrefixes = new HashSet<String>();
     private final Set<String> resourcePrefixes = new HashSet<String>();
+    private final Set<String> resourceNames = new HashSet<String>();
     private final Set<String> classNames = new HashSet<String>();
 
     static {
@@ -111,6 +112,9 @@ public class FilteringClassLoader extends ClassLoader {
     }
 
     private boolean allowed(String resourceName) {
+        if (resourceNames.contains(resourceName)) {
+            return true;
+        }
         for (String resourcePrefix : resourcePrefixes) {
             if (resourceName.startsWith(resourcePrefix)) {
                 return true;
@@ -182,5 +186,14 @@ public class FilteringClassLoader extends ClassLoader {
      */
     public void allowResources(String resourcePrefix) {
         resourcePrefixes.add(resourcePrefix + "/");
+    }
+
+    /**
+     * Marks a single resource as visible
+     *
+     * @param resourceName The resource name
+     */
+    public void allowResource(String resourceName) {
+        resourceNames.add(resourceName);
     }
 }

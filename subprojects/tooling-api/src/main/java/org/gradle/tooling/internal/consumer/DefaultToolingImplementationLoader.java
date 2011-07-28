@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -43,16 +44,16 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
     public ConnectionVersion4 create(Distribution distribution) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
         ClassLoader classLoader = createImplementationClassLoader(distribution);
-        ServiceLocator serviceLocator = new ServiceLocator();
+        ServiceLocator serviceLocator = new ServiceLocator(classLoader);
         try {
-            ConnectionVersion4 implementation = serviceLocator.findServiceImplementation(ConnectionVersion4.class, classLoader);
-            if (implementation == null) {
+            Factory<ConnectionVersion4> factory = serviceLocator.findFactory(ConnectionVersion4.class);
+            if (factory == null) {
                 Matcher m = Pattern.compile("\\w+Version(\\d+)").matcher(ConnectionVersion4.class.getSimpleName());
                 m.matches();
                 String protocolVersion = m.group(1);
                 throw new UnsupportedVersionException(String.format("The specified %s is not supported by this tooling API version (%s, protocol version %s)", distribution.getDisplayName(), GradleVersion.current().getVersion(), protocolVersion));
             }
-            return implementation;
+            return factory.create();
         } catch (UnsupportedVersionException e) {
             throw e;
         } catch (Throwable t) {

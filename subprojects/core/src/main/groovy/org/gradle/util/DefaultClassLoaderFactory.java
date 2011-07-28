@@ -15,6 +15,9 @@
  */
 package org.gradle.util;
 
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParserFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -53,10 +56,17 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         // See the comment for {@link #createIsolatedClassLoader} above
         FilteringClassLoader classLoader = new FilteringClassLoader(parent);
         if (needJaxpImpl()) {
-            // This isn't quite right
-            classLoader.allowPackage("org.apache.xerces");
+            ServiceLocator locator = new ServiceLocator(parent);
+            makeServiceVisible(locator, classLoader, SAXParserFactory.class);
+            makeServiceVisible(locator, classLoader, DocumentBuilderFactory.class);
+            makeServiceVisible(locator, classLoader, DatatypeFactory.class);
         }
         return classLoader;
+    }
+
+    private void makeServiceVisible(ServiceLocator locator, FilteringClassLoader classLoader, Class<?> serviceType) {
+        classLoader.allowClass(locator.getFactory(serviceType).getImplementationClass());
+        classLoader.allowResource("META-INF/services/" + serviceType.getName());
     }
 
     private boolean needJaxpImpl() {
