@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.nativ
+package org.gradle.plugins.binaries.tasks
 
-import org.gradle.api.Project
-import org.gradle.api.Plugin
-import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.DefaultTask
 
-class NativePlugin implements Plugin<Project> {
+import org.gradle.plugins.binaries.model.CompileSpec
 
-    void apply(Project project) {
-        project.plugins.apply(BasePlugin)
-        project.extensions.add('nativ', new NativeProjectExtension(project))
+class Compile extends DefaultTask {
+
+    CompileSpec spec
+
+    @TaskAction
+    void compile() {
+        spec.compile()
     }
 
 }

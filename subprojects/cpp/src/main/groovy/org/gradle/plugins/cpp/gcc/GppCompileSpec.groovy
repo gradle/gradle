@@ -15,14 +15,15 @@
  */
 package org.gradle.plugins.cpp.gcc
 
-import org.gradle.plugins.nativ.model.*
-import org.gradle.plugins.nativ.tasks.Compile
+import org.gradle.plugins.binaries.tasks.Compile
+import org.gradle.plugins.binaries.model.CompileSpec
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.process.internal.DefaultExecAction
+
+import org.gradle.plugins.cpp.CppSourceSet
 
 class GppCompileSpec implements CompileSpec {
 
@@ -52,9 +53,6 @@ class GppCompileSpec implements CompileSpec {
                 it.args "-o", outputFile.absolutePath
             }
         }
-        setting {
-            it.args "-fPIC"
-        }
 
         task.outputs.file { getOutputFile() }
     }
@@ -83,6 +81,11 @@ class GppCompileSpec implements CompileSpec {
         settings << closure
     }
 
+    void from(CppSourceSet sourceSet) {
+        includes sourceSet.headers
+        source sourceSet.source
+    }
+
     void includes(SourceDirectorySet dirs) {
         task.inputs.files dirs
         setting {
@@ -90,38 +93,26 @@ class GppCompileSpec implements CompileSpec {
         }
     }
 
-    void includes(FileCollection files) {
-        task.inputs.files files
-        includes((Iterable<File>)files)
-    }
-
-    void includes(Iterable<File> files) {
+    void includes(Iterable<File> includeRoots) {
+        includeRoots.each { task.inputs.dir(it) }
         setting {
-            it.args(*files.collect { "-I${it.absolutePath}" })
+            it.args(*includeRoots.collect { "-I${it.absolutePath}" })
         }
     }
-
-    void source(FileCollection files) {
-        task.inputs.files files
-        source((Iterable<File>)files)
-    }
-
+    
     void source(Iterable<File> files) {
+        task.inputs.files files
         setting {
             it.args(*files*.absolutePath)
         }
     }
 
-    void source(CompileSpec spec) {
+    // problem: hack for now, to support linking against libs
+    void source(GppCompileSpec spec) {
         task.dependsOn spec.task
-        source { spec.outputFile }
+        source project.files { spec.outputFile }
     }
-
-    void source(Closure source) {
-        task.inputs.file source
-        setting { it.args source() }
-    }
-
+    
     void args(Object... args) {
         setting {
             it.args args
@@ -130,24 +121,30 @@ class GppCompileSpec implements CompileSpec {
 
     void sharedLibrary() {
         setting { it.args "-shared" }
+        setting { it.args "-fPIC" }
+        
         extension = "so" // problem: this will be different on differnt platforms, need a way to “inject” this?
     }
 
     void compile() {
         def workDir = getWorkDir()
-        assert (workDir.exists() && workDir.directory) || workDir.mkdirs()
 
-        def outputFile = getOutputFile()
-        def outputFileDir = outputFile.parentFile
-        assert outputFileDir.exists() || outputFileDir.mkdirs()
-
+        ensureDirsExist(workDir, getOutputFile().parentFile)
+        
         def compiler = new DefaultExecAction(project.fileResolver)
         compiler.executable "g++"
-        compiler.workingDir getWorkDir()
+        compiler.workingDir workDir
 
         // Apply all of the settings
         settings.each { it(compiler) }
 
         compiler.execute()
+    }
+    
+    private ensureDirsExist(File... dirs) {
+        for (dir in dirs) {
+            // todo: not a nice error message
+            assert (dir.exists() && dir.directory) || dir.mkdirs()
+        }
     }
 }

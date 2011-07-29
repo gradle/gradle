@@ -3,32 +3,30 @@ allprojects {
 }
 
 project(":lib") {
-    nativ {
-        binaries {
-            main {
-                spec {
-                    sharedLibrary() // configure to build library
-                }
+    binaries {
+        main {
+            spec {
+                sharedLibrary() // configure to build library
             }
         }
     }
 }
 
 project(":exe") {
-    nativ {
+    cpp {
         sourceSets {
             main {
                 headers {
                     // Include the headers from the lib project
-                    srcDir project(":lib").nativ.sourceSets.main.headers
+                    srcDir project(":lib").cpp.sourceSets.main.headers
                 }
             }
         }
-        binaries {
-            main {
-                spec {
-                    source project(":lib").nativ.binaries.main.spec
-                }
+    }
+    binaries {
+        main {
+            spec {
+                source project(":lib").binaries.main.spec
             }
         }
     }

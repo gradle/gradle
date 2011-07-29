@@ -13,20 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.nativ.tasks
+package org.gradle.plugins.cpp;
 
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.DefaultTask
+import org.gradle.api.Named;
+import org.gradle.api.file.SourceDirectorySet;
 
-import org.gradle.plugins.nativ.model.CompileSpec
+import groovy.lang.Closure;
 
-class Compile extends DefaultTask {
+/**
+ * A representation of a unit of cpp source
+ */
+public interface CppSourceSet extends Named {
 
-    CompileSpec spec
+    /**
+     * The headers.
+     */
+    SourceDirectorySet getHeaders();
 
-    @TaskAction
-    void compile() {
-        spec.compile()
-    }
+    /**
+     * The headers.
+     */
+    CppSourceSet headers(Closure closure);
+
+    /**
+     * The source.
+     */
+    SourceDirectorySet getSource();
+    
+    /**
+     * The source.
+     */
+    CppSourceSet source(Closure closure);
 
 }

@@ -76,7 +76,7 @@ public interface SourceSet {
      *
      * @return The classpath. Never returns null.
      */
-    FileCollection getRuntimeClasspath();
+    FileCollection   getRuntimeClasspath();
 
     /**
      * Sets the classpath used to execute this source.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.nativ.model;
-
-import org.gradle.api.Named;
-import java.io.File;
 
 /**
- * A high level interface to the compiler, specifying what is to be compiled and how.
- *
- * @param <T> The compiler implementation this spec works with
+ * Classes that model aspects of C++ projects.
  */
-public interface CompileSpec<T extends Compiler> extends Named {
-
-    /**
-     * The ultimate output of the compilation.
-     */
-    File getOutputFile();
-
-    /**
-     * Do the compile
-     */
-    void compile();
-}
+package org.gradle.plugins.binaries.model;

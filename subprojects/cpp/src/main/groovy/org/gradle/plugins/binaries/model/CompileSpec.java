@@ -13,15 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.nativ.model;
+package org.gradle.plugins.binaries.model;
 
 import org.gradle.api.Named;
+import java.io.File;
 
 /**
- * Something to be created.
+ * A high level interface to the compiler, specifying what is to be compiled and how.
+ *
+ * @param <T> The compiler implementation this spec works with
  */
-public interface Binary extends Named {
+public interface CompileSpec<T extends Compiler> extends Named {
 
-    CompileSpec getSpec();
+    /**
+     * The ultimate output of the compilation.
+     */
+    File getOutputFile();
 
+    /**
+     * Do the compile
+     */
+    void compile();
 }

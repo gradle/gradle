@@ -56,23 +56,25 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildFile << """
             apply plugin: "cpp"
-            
-            nativ {
+
+            cpp {
                 sourceSets {
                     hello {}
                     main {
                         headers.srcDir hello.headers
                     }
                 }
-                
-                binaries {
-                    hello {
-                        spec { sharedLibrary() }
+            }
+            
+            binaries {
+                hello {
+                    spec {
+                        sharedLibrary()
                     }
-                    main {
-                        spec {
-                            source project.nativ.binaries.hello.spec
-                        }
+                }
+                main {
+                    spec {
+                        source project.binaries.hello.spec
                     }
                 }
             }
@@ -91,7 +93,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         file("src", "hello", "headers", "hello.h") << """
             void hello();
         """
-        
+
         and:
         file("src", "main", "cpp", "main.cpp") << """
             #include "hello.h"
@@ -101,7 +103,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
               return 0;
             }
         """
-        
+
         when:
         run "compileMain"
 

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.nativ
+package org.gradle.plugins.cpp
 
-class SourceSetConfigurationSpec extends NativeProjectSpec {
+class SourceSetConfigurationSpec extends CppProjectSpec {
 
     def setup() {
         applyPlugin()
@@ -23,10 +23,10 @@ class SourceSetConfigurationSpec extends NativeProjectSpec {
 
     def "configure source sets"() {
         when:
-        nativ {
+        cpp {
             sourceSets {
                 ss1 {
-                    cpp {
+                    source {
                         srcDirs "d1", "d2"
                     }
                     headers {
@@ -34,7 +34,7 @@ class SourceSetConfigurationSpec extends NativeProjectSpec {
                     }
                 }
                 ss2 {
-                    cpp {
+                    source {
                         srcDirs "d3"
                     }
                     headers {
@@ -45,15 +45,15 @@ class SourceSetConfigurationSpec extends NativeProjectSpec {
         }
 
         then:
-        def ss1 = nativ.sourceSets.ss1
-        def ss2 = nativ.sourceSets.ss2
+        def ss1 = cpp.sourceSets.ss1
+        def ss2 = cpp.sourceSets.ss2
 
         // cpp dir automatically added by convention
-        ss1.cpp.srcDirs*.name == ["d1", "d2"]
-        ss2.cpp.srcDirs*.name == ["d3"]
+        ss1.source.srcDirs*.name == ["cpp", "d1", "d2"]
+        ss2.source.srcDirs*.name == ["cpp", "d3"]
 
         // headers dir automatically added by convention
-        ss1.headers.srcDirs*.name == ["h1", "h2"]
-        ss2.headers.srcDirs*.name == ["h3"]
+        ss1.headers.srcDirs*.name == ["headers", "h1", "h2"]
+        ss2.headers.srcDirs*.name == ["headers", "h3"]
     }
 }

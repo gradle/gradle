@@ -18,34 +18,32 @@ package org.gradle.plugins.cpp
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 
-import org.gradle.plugins.nativ.NativePlugin
-import org.gradle.plugins.nativ.NativeProjectExtension
-
 class CppPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.plugins.apply(NativePlugin)
-        configureSourceSetDefaults(project.nativ)
+        project.apply(plugin: "binaries")
+        project.extensions.add('cpp', new CppExtension(project))
+
+        configureSourceSetDefaults(project)
     }
 
-    private configureSourceSetDefaults(NativeProjectExtension extension) {
-        extension.sourceSets.all { sourceSet ->
-            sourceSet.cpp.srcDir "src/${sourceSet.name}/cpp"
+    private configureSourceSetDefaults(project) {
+        project.cpp.sourceSets.all { sourceSet ->
+            sourceSet.source.srcDir "src/${sourceSet.name}/cpp"
             sourceSet.headers.srcDir "src/${sourceSet.name}/headers"
         }
 
         // Wire up all binaries to their matching source set
-        extension.binaries.all { binary ->
-            extension.sourceSets.matching { it.name == binary.name }.all { sourceSet ->
+        project.binaries.all { binary ->
+            project.cpp.sourceSets.matching { it.name == binary.name }.all { sourceSet ->
                 binary.spec {
-                    includes sourceSet.headers
-                    source sourceSet.cpp
+                    from sourceSet
                 }
             }
         }
 
-        extension.sourceSets.create("main")
-        extension.binaries.create("main")
+        project.cpp.sourceSets.create("main")
+        project.binaries.create("main")
     }
 
 }

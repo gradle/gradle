@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.binaries.model;
+
+import org.gradle.api.Named;
 
 /**
- * Implementations of the native model classes.
+ * Something to be created.
  */
-package org.gradle.plugins.nativ.model.internal;
+public interface Binary extends Named {
+
+    CompileSpec getSpec();
+
+}

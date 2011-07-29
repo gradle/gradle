@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes that model aspects of C++ projects.
+ * Tasks for building native projects.
  */
-package org.gradle.plugins.nativ.model;
+package org.gradle.plugins.binaries.tasks;
