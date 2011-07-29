@@ -105,4 +105,28 @@ public class ExtensionContainerTest extends Specification {
         ex.message.contains 'FooExtension'
         ex.message.contains 'SomeExtension'
     }
+
+
+    def "types can be retrieved by interface and super types"() {
+        given:
+        def impl = new Impl()
+        def child = new Child()
+        
+        when:
+        container.add('i', impl)
+        container.add('c', child)
+        
+        then:
+        container.findByType(Capability) == impl
+        container.getByType(Impl) == impl
+        container.findByType(Parent) == child
+        container.getByType(Parent) == child
+    }
+
 }
+
+interface Capability {}
+class Impl implements Capability {}
+
+class Parent {}
+class Child extends Parent {}

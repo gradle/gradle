@@ -61,7 +61,7 @@ public class ExtensionsStorage {
         for (Object e : values) {
             Class clazz = e.getClass();
             types.add(clazz.getSimpleName());
-            if (clazz.isAssignableFrom(type)) {
+            if (type.isAssignableFrom(clazz)) {
                 return (T) e;
             }
         }
@@ -71,7 +71,7 @@ public class ExtensionsStorage {
     public <T> T findByType(Class<T> type) {
         Collection<Object> values = extensions.values();
         for (Object e : values) {
-            if (e.getClass().isAssignableFrom(type)) {
+            if (type.isAssignableFrom(e.getClass())) {
                 return (T) e;
             }
         }
