@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.plugins.cpp.gpp
 
-import org.gradle.plugins.binaries.model.Executable;
+import org.gradle.api.Project
+import org.gradle.api.Plugin
 
-import org.gradle.api.internal.project.ProjectInternal;
+class GppCompilerPlugin implements Plugin<Project> {
 
-public class DefaultExecutable extends DefaultBinary implements Executable {
-    public DefaultExecutable(String name, ProjectInternal project) {
-        super(name, project);
+    void apply(Project project) {
+        project.apply(plugin: "binaries")
+        project.compilers << new Gpp()
     }
+
 }

@@ -22,8 +22,9 @@ class CppPlugin implements Plugin<Project> {
 
     void apply(Project project) {
         project.apply(plugin: "binaries")
+        project.apply(plugin: "gpp-compiler")
         project.extensions.add('cpp', new CppExtension(project))
-        
+
         // Defaults for all cpp source sets
         project.cpp.sourceSets.all { sourceSet ->
             sourceSet.source.srcDir "src/${sourceSet.name}/cpp"

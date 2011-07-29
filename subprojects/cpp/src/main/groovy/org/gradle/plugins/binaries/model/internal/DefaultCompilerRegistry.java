@@ -15,12 +15,21 @@
  */
 package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.plugins.binaries.model.Executable;
+import org.gradle.plugins.binaries.model.Compiler;
+import org.gradle.plugins.binaries.model.CompilerRegistry;
 
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 
-public class DefaultExecutable extends DefaultBinary implements Executable {
-    public DefaultExecutable(String name, ProjectInternal project) {
-        super(name, project);
+public class DefaultCompilerRegistry extends DefaultNamedDomainObjectSet<Compiler> implements CompilerRegistry {
+
+    public DefaultCompilerRegistry(ClassGenerator classGenerator) {
+        super(Compiler.class, classGenerator);
     }
+
+    public Compiler<?> getDefaultCompiler() {
+        // lame impl, unsure how this will work in reality
+        return iterator().next();
+    }
+
 }

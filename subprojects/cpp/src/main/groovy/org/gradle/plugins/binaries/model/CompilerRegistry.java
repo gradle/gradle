@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.plugins.binaries.model;
 
-import org.gradle.plugins.binaries.model.Executable;
+import org.gradle.api.NamedDomainObjectSet;
 
-import org.gradle.api.internal.project.ProjectInternal;
+/**
+ * A container for compiler adapters
+ */
+public interface CompilerRegistry extends NamedDomainObjectSet<Compiler> {
 
-public class DefaultExecutable extends DefaultBinary implements Executable {
-    public DefaultExecutable(String name, ProjectInternal project) {
-        super(name, project);
-    }
+    /**
+     * Somehow picks what the default compiler to use is
+     */
+    Compiler<?> getDefaultCompiler();
+
 }

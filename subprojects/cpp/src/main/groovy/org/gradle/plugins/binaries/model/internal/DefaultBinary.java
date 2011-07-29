@@ -17,7 +17,7 @@ package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.CompileSpec;
-import org.gradle.plugins.binaries.model.CompileSpecFactory;
+import org.gradle.plugins.binaries.model.CompilerRegistry;
 
 import org.gradle.api.Project;
 
@@ -31,12 +31,14 @@ public class DefaultBinary implements Binary {
 
     private final String name;
     private final ProjectInternal project;
+    private final CompilerRegistry compilers;
     private final CompileSpec spec;
 
-    public DefaultBinary(String name, ProjectInternal project, CompileSpecFactory specFactory) {
+    public DefaultBinary(String name, ProjectInternal project) {
         this.name = name;
         this.project = project;
-        this.spec = specFactory.create(this);
+        this.compilers = project.getExtensions().getByType(CompilerRegistry.class);
+        this.spec = compilers.getDefaultCompiler().getSpecFactory().create(this);
     }
 
     public String getName() {

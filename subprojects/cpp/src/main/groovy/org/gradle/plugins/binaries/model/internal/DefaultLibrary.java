@@ -16,7 +16,6 @@
 package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.CompileSpecFactory;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
@@ -26,8 +25,8 @@ public class DefaultLibrary extends DefaultBinary implements Library {
 
     final private DefaultSourceDirectorySet headers;
 
-    public DefaultLibrary(String name, ProjectInternal project, CompileSpecFactory specFactory) {
-        super(name, project, specFactory);
+    public DefaultLibrary(String name, ProjectInternal project) {
+        super(name, project);
         this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", name), project.getFileResolver());
     }
 
