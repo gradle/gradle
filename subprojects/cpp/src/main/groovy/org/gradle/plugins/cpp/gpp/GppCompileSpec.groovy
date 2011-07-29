@@ -26,8 +26,9 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.process.internal.DefaultExecAction
 
 import org.gradle.plugins.cpp.CppSourceSet
+import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
 
-class GppCompileSpec implements CompileSpec {
+class GppCompileSpec implements CompileSpec, StandardCppCompiler {
 
     Binary binary
 
