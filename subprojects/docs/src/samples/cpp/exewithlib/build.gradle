@@ -1,18 +1,11 @@
-allprojects {
-    apply plugin: 'cpp'
-}
-
 project(":lib") {
-    binaries {
-        main {
-            spec {
-                sharedLibrary() // configure to build library
-            }
-        }
-    }
+    apply plugin: "cpp-lib"
+    
+    libraries.main.spec.sharedLibrary()
 }
 
 project(":exe") {
+    apply plugin: "cpp-exe"
     cpp {
         sourceSets {
             main {
@@ -23,10 +16,10 @@ project(":exe") {
             }
         }
     }
-    binaries {
+    executables {
         main {
             spec {
-                source project(":lib").binaries.main.spec
+                source project(":lib").libraries.main.spec
             }
         }
     }

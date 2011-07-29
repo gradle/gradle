@@ -16,15 +16,20 @@
 package org.gradle.plugins.binaries;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
+import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 
+import org.gradle.plugins.binaries.model.CompileSpec;
+import org.gradle.plugins.binaries.model.CompileSpecFactory;
 import org.gradle.plugins.binaries.model.Binary;
-import org.gradle.plugins.binaries.model.internal.DefaultBinary;
+import org.gradle.plugins.binaries.model.Executable;
+import org.gradle.plugins.binaries.model.internal.DefaultExecutable;
+import org.gradle.plugins.binaries.model.Library;
+import org.gradle.plugins.binaries.model.internal.DefaultLibrary;
 
 import org.gradle.plugins.cpp.gcc.GppCompileSpec;
 
@@ -32,23 +37,28 @@ import org.gradle.plugins.cpp.gcc.GppCompileSpec;
  * temp plugin, not sure what will provide the binaries container and model elements
  */
 public class BinariesPlugin implements Plugin<ProjectInternal> {
-
+    
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
+    
+        final CompileSpecFactory specFactory = new CompileSpecFactory() {
+            public CompileSpec create(Binary binary) {
+                return new GppCompileSpec(binary);
+            }
+        };
         
         ClassGenerator classGenerator = project.getServices().get(ClassGenerator.class);
-        project.getExtensions().add("binaries", classGenerator.newInstance(
+        project.getExtensions().add("executables", classGenerator.newInstance(
                 FactoryNamedDomainObjectContainer.class,
-                DefaultBinary.class,
+                Executable.class,
                 classGenerator,
-                new NamedDomainObjectFactory<Binary>() {
-                    public Binary create(String name) {
-                        
-                        // note: specs will come from some kind of registry/factory so there won't
-                        // be a link on a compile impl here
-                        return new DefaultBinary(name, new GppCompileSpec(name, project));
-                    }
-                }
+                new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, project, specFactory)
+        ));
+        project.getExtensions().add("libraries", classGenerator.newInstance(
+                FactoryNamedDomainObjectContainer.class,
+                Library.class,
+                classGenerator,
+                new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project, specFactory)
         ));
     }
 

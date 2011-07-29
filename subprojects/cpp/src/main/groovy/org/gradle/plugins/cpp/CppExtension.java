@@ -16,9 +16,9 @@
 package org.gradle.plugins.cpp;
 
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
+import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import org.gradle.plugins.cpp.internal.DefaultCppSourceSet;
@@ -36,13 +36,9 @@ public class CppExtension {
         ClassGenerator classGenerator = project.getServices().get(ClassGenerator.class);
         sourceSets = classGenerator.newInstance(
                 FactoryNamedDomainObjectContainer.class,
-                DefaultCppSourceSet.class,
+                CppSourceSet.class,
                 classGenerator,
-                new NamedDomainObjectFactory<DefaultCppSourceSet>() {
-                    public DefaultCppSourceSet create(String name) {
-                        return new DefaultCppSourceSet(name, project.getFileResolver());
-                    }
-                }
+                new ReflectiveNamedDomainObjectFactory<CppSourceSet>(DefaultCppSourceSet.class, project.getFileResolver())
         );
     }
 

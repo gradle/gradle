@@ -13,18 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.binaries.model;
+package org.gradle.plugins.cpp
 
-import org.gradle.api.Named;
-import org.gradle.api.Project;
+import org.gradle.api.Project
+import org.gradle.api.Plugin
 
-/**
- * Something to be created.
- */
-public interface Binary extends Named {
+class CppExeConventionPlugin implements Plugin<Project> {
 
-    CompileSpec getSpec();
-
-    Project getProject();
+    void apply(Project project) {
+        project.apply(plugin: "cpp")
+        
+        project.with {
+            cpp {
+                sourceSets {
+                    main {}
+                }
+            }
+            executables {
+                main {
+                    spec {
+                        from cpp.sourceSets.main
+                    }
+                }
+            }
+        }
+    }
 
 }

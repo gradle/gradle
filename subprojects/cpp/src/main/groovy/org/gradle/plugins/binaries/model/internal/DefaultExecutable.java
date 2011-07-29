@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.binaries.model;
+package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.api.Named;
-import org.gradle.api.Project;
+import org.gradle.plugins.binaries.model.Executable;
+import org.gradle.plugins.binaries.model.CompileSpecFactory;
 
-/**
- * Something to be created.
- */
-public interface Binary extends Named {
+import org.gradle.api.internal.project.ProjectInternal;
 
-    CompileSpec getSpec();
-
-    Project getProject();
-
+public class DefaultExecutable extends DefaultBinary implements Executable {
+    public DefaultExecutable(String name, ProjectInternal project, CompileSpecFactory specFactory) {
+        super(name, project, specFactory);
+    }
 }

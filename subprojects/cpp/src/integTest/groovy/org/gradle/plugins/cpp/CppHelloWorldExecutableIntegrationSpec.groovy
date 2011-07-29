@@ -29,7 +29,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
     def "build and execute simple hello world cpp program"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
+            apply plugin: "cpp-exe"
         """
 
         and:
@@ -51,11 +51,10 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         executable.exec().out == HELLO_WORLD
     }
 
-    @IgnoreRest
     def "build and execute simple hello world cpp program using header"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
+            apply plugin: "cpp-exe"
 
             cpp {
                 sourceSets {
@@ -66,15 +65,18 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
             
-            binaries {
+            libraries {
                 hello {
                     spec {
+                        from project.cpp.sourceSets.hello
                         sharedLibrary()
                     }
                 }
+            }
+            executables {
                 main {
                     spec {
-                        source project.binaries.hello.spec
+                        source project.libraries.hello.spec
                     }
                 }
             }

@@ -15,16 +15,14 @@
  */
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Named;
-import org.gradle.api.Project;
-
 /**
- * Something to be created.
+ * Producer of compile specs
  */
-public interface Binary extends Named {
-
-    CompileSpec getSpec();
-
-    Project getProject();
+public interface CompileSpecFactory {
+    
+    /**
+     * Create a new spec to compile this binary
+     */
+    CompileSpec create(Binary binary);
 
 }

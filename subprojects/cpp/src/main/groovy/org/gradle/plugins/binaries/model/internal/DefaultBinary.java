@@ -17,6 +17,11 @@ package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.CompileSpec;
+import org.gradle.plugins.binaries.model.CompileSpecFactory;
+
+import org.gradle.api.Project;
+
+import org.gradle.api.internal.project.ProjectInternal;
 
 import org.gradle.util.ConfigureUtil;
 
@@ -25,15 +30,21 @@ import groovy.lang.Closure;
 public class DefaultBinary implements Binary {
 
     private final String name;
+    private final ProjectInternal project;
     private final CompileSpec spec;
 
-    public DefaultBinary(String name, CompileSpec spec) {
+    public DefaultBinary(String name, ProjectInternal project, CompileSpecFactory specFactory) {
         this.name = name;
-        this.spec = spec;
+        this.project = project;
+        this.spec = specFactory.create(this);
     }
 
     public String getName() {
         return name;
+    }
+
+    public Project getProject() {
+        return project;
     }
 
     public CompileSpec getSpec() {

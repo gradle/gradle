@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.cpp.gcc
 
+import org.gradle.plugins.binaries.model.Binary
 import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.plugins.binaries.model.CompileSpec
 
@@ -27,9 +28,7 @@ import org.gradle.plugins.cpp.CppSourceSet
 
 class GppCompileSpec implements CompileSpec {
 
-    // likely common to all compile specs
-    final String name
-    final ProjectInternal project
+    Binary binary
 
     final Compile task
     List<Closure> settings = []
@@ -38,9 +37,8 @@ class GppCompileSpec implements CompileSpec {
     String baseName
     String extension
 
-    GppCompileSpec(String name, ProjectInternal project) {
-        this.name = name
-        this.project = project
+    GppCompileSpec(Binary binary) {
+        this.binary = binary
         this.task = project.task("compile${name.capitalize()}", type: Compile) { spec = this }
 
         init()
@@ -55,6 +53,14 @@ class GppCompileSpec implements CompileSpec {
         }
 
         task.outputs.file { getOutputFile() }
+    }
+
+    String getName() {
+        binary.name
+    }
+
+    protected ProjectInternal getProject() {
+        binary.project
     }
 
     File getWorkDir() {
@@ -99,7 +105,7 @@ class GppCompileSpec implements CompileSpec {
             it.args(*includeRoots.collect { "-I${it.absolutePath}" })
         }
     }
-    
+
     void source(Iterable<File> files) {
         task.inputs.files files
         setting {
@@ -112,7 +118,7 @@ class GppCompileSpec implements CompileSpec {
         task.dependsOn spec.task
         source project.files { spec.outputFile }
     }
-    
+
     void args(Object... args) {
         setting {
             it.args args
@@ -122,7 +128,7 @@ class GppCompileSpec implements CompileSpec {
     void sharedLibrary() {
         setting { it.args "-shared" }
         setting { it.args "-fPIC" }
-        
+
         extension = "so" // problem: this will be different on differnt platforms, need a way to “inject” this?
     }
 
@@ -130,7 +136,7 @@ class GppCompileSpec implements CompileSpec {
         def workDir = getWorkDir()
 
         ensureDirsExist(workDir, getOutputFile().parentFile)
-        
+
         def compiler = new DefaultExecAction(project.fileResolver)
         compiler.executable "g++"
         compiler.workingDir workDir
@@ -140,7 +146,7 @@ class GppCompileSpec implements CompileSpec {
 
         compiler.execute()
     }
-    
+
     private ensureDirsExist(File... dirs) {
         for (dir in dirs) {
             // todo: not a nice error message

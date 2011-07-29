@@ -15,16 +15,9 @@
  */
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Named;
-import org.gradle.api.Project;
-
 /**
- * Something to be created.
+ * An executable binary
  */
-public interface Binary extends Named {
-
-    CompileSpec getSpec();
-
-    Project getProject();
-
+public interface Executable extends Binary {
+    
 }

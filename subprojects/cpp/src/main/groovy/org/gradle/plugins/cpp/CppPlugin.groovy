@@ -23,27 +23,12 @@ class CppPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.apply(plugin: "binaries")
         project.extensions.add('cpp', new CppExtension(project))
-
-        configureSourceSetDefaults(project)
-    }
-
-    private configureSourceSetDefaults(project) {
+        
+        // Defaults for all cpp source sets
         project.cpp.sourceSets.all { sourceSet ->
             sourceSet.source.srcDir "src/${sourceSet.name}/cpp"
             sourceSet.headers.srcDir "src/${sourceSet.name}/headers"
         }
-
-        // Wire up all binaries to their matching source set
-        project.binaries.all { binary ->
-            project.cpp.sourceSets.matching { it.name == binary.name }.all { sourceSet ->
-                binary.spec {
-                    from sourceSet
-                }
-            }
-        }
-
-        project.cpp.sourceSets.create("main")
-        project.binaries.create("main")
     }
 
 }

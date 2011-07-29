@@ -15,16 +15,13 @@
  */
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Named;
-import org.gradle.api.Project;
+import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * Something to be created.
+ * An library
  */
-public interface Binary extends Named {
+public interface Library extends Binary {
 
-    CompileSpec getSpec();
-
-    Project getProject();
+    SourceDirectorySet getHeaders();
 
 }
