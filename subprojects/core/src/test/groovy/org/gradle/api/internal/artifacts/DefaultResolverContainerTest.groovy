@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
-import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
@@ -28,23 +26,25 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.ClassGenerator
-
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.Action
 
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock)
 class DefaultResolverContainerTest {
     static final String TEST_REPO_NAME = 'reponame'
 
     DefaultResolverContainer resolverContainer
 
-    RepositoryCacheManager dummyCacheManager = new DefaultRepositoryCacheManager()
     def expectedUserDescription
     def expectedUserDescription2
     def expectedUserDescription3
@@ -181,6 +181,48 @@ class DefaultResolverContainerTest {
     @Test
     public void createMavenInstaller() {
         assertSame(prepareMavenInstallerTests(), resolverContainer.createMavenInstaller(DefaultResolverContainerTest.TEST_REPO_NAME));
+    }
+
+    @Test
+    public void notificationsAreFiredWhenRepositoryIsAdded() {
+        Action<DependencyResolver> action = context.mock(Action.class)
+
+        context.checking {
+            one(resolverFactoryMock).createResolver(expectedResolver)
+            will(returnValue(expectedResolver))
+            one(action).execute(expectedResolver)
+        }
+
+        resolverContainer.all(action)
+        resolverContainer.add(expectedResolver)
+    }
+
+    @Test
+    public void notificationsAreFiredWhenRepositoryIsAddedToTheHead() {
+        Action<DependencyResolver> action = context.mock(Action.class)
+
+        context.checking {
+            one(resolverFactoryMock).createResolver(expectedResolver)
+            will(returnValue(expectedResolver))
+            one(action).execute(expectedResolver)
+        }
+
+        resolverContainer.all(action)
+        resolverContainer.addFirst(expectedResolver)
+    }
+
+    @Test
+    public void notificationsAreFiredWhenRepositoryIsAddedToTheTail() {
+        Action<DependencyResolver> action = context.mock(Action.class)
+
+        context.checking {
+            one(resolverFactoryMock).createResolver(expectedResolver)
+            will(returnValue(expectedResolver))
+            one(action).execute(expectedResolver)
+        }
+
+        resolverContainer.all(action)
+        resolverContainer.addLast(expectedResolver)
     }
 
     protected GroovyMavenDeployer prepareMavenDeployerTests() {

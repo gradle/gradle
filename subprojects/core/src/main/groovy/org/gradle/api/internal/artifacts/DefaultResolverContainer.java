@@ -171,7 +171,7 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<Depend
             throw new InvalidUserDataException(String.format(
                     "Cannot add a resolver with name '%s' as a resolver with that name already exists.", resolver.getName()));
         }
-        getStore().add(resolver);
+        super.add(resolver);
         orderAction.apply(resolver.getName());
         return resolver;
     }
