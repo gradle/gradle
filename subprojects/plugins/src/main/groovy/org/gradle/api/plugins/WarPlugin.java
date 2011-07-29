@@ -78,7 +78,7 @@ public class WarPlugin implements Plugin<Project> {
         war.setGroup(BasePlugin.BUILD_GROUP);
         Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         disableJarTaskAndRemoveFromArchivesConfiguration(project, archivesConfiguration);
-        archivesConfiguration.addArtifact(new ArchivePublishArtifact(war));
+        archivesConfiguration.getArtifacts().add(new ArchivePublishArtifact(war));
         configureConfigurations(project.getConfigurations());
     }
 
@@ -94,7 +94,7 @@ public class WarPlugin implements Plugin<Project> {
             if (publishArtifact instanceof ArchivePublishArtifact) {
                 ArchivePublishArtifact archivePublishArtifact = (ArchivePublishArtifact) publishArtifact;
                 if (archivePublishArtifact.getArchiveTask() == jar) {
-                    archivesConfiguration.removeArtifact(publishArtifact);
+                    archivesConfiguration.getArtifacts().remove(publishArtifact);
                 }
             }
         }

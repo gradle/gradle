@@ -127,7 +127,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
         ear.setGroup(BasePlugin.BUILD_GROUP);
         Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         disableJarTaskAndRemoveFromArchivesConfiguration(project, archivesConfiguration);
-        archivesConfiguration.addArtifact(new ArchivePublishArtifact(ear));
+        archivesConfiguration.getArtifacts().add(new ArchivePublishArtifact(ear));
     }
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
@@ -172,7 +172,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
             if (publishArtifact instanceof ArchivePublishArtifact) {
                 ArchivePublishArtifact archivePublishArtifact = (ArchivePublishArtifact) publishArtifact;
                 if (archivePublishArtifact.getArchiveTask() == jar) {
-                    archivesConfiguration.removeArtifact(publishArtifact);
+                    archivesConfiguration.getArtifacts().remove(publishArtifact);
                 }
             }
         }

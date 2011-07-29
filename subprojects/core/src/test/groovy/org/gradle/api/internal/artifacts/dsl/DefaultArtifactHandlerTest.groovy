@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.util.JUnit4GroovyMockery
 import spock.lang.Specification
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.DomainObjectSet
 
 /**
  * @author Hans Dockter
@@ -35,11 +36,13 @@ class DefaultArtifactHandlerTest extends Specification {
     private ConfigurationContainer configurationContainerStub = Mock()
     private PublishArtifactFactory artifactFactoryStub = Mock()
     private Configuration configurationMock = Mock()
+    private DomainObjectSet<PublishArtifact> artifactsMock = Mock()
 
     private DefaultArtifactHandler artifactHandler = new DefaultArtifactHandler(configurationContainerStub, artifactFactoryStub)
 
     void setup() {
         configurationContainerStub.findByName(TEST_CONF_NAME) >> configurationMock
+        configurationMock.artifacts >> artifactsMock
     }
 
     void pushOneDependency() {
@@ -51,7 +54,7 @@ class DefaultArtifactHandlerTest extends Specification {
         artifactHandler."$TEST_CONF_NAME"(someNotation)
 
         then:
-        1 * configurationMock.addArtifact(artifactDummy)
+        1 * artifactsMock.add(artifactDummy)
     }
 
     void pushOneDependencyWithClosure() {
@@ -64,7 +67,7 @@ class DefaultArtifactHandlerTest extends Specification {
 
         then:
         artifact.type == 'source'
-        1 * configurationMock.addArtifact(artifact)
+        1 * artifactsMock.add(artifact)
     }
 
     void pushMultipleDependencies() {
@@ -79,8 +82,8 @@ class DefaultArtifactHandlerTest extends Specification {
         artifactHandler."$TEST_CONF_NAME"(someNotation1, someNotation2)
 
         then:
-        1 * configurationMock.addArtifact(artifactDummy1)
-        1 * configurationMock.addArtifact(artifactDummy2)
+        1 * artifactsMock.add(artifactDummy1)
+        1 * artifactsMock.add(artifactDummy2)
 
     }
 

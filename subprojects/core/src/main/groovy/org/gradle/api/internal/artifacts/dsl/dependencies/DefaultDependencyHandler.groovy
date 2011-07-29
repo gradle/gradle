@@ -49,7 +49,7 @@ class DefaultDependencyHandler implements DependencyHandler {
     private Dependency pushDependency(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
         Dependency dependency
         dependency = dependencyFactory.createDependency(notation)
-        configuration.addDependency(dependency)
+        configuration.dependencies.add(dependency)
         ConfigureUtil.configure(configureClosure, dependency)
         dependency
     }

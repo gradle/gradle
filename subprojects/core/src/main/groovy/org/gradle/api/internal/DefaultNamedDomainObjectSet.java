@@ -43,7 +43,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
         super(type, store, eventRegister, classGenerator, namer);
     }
 
-    // should be protected, but use of teh class generator forces it to be public
+    // should be protected, but use of the class generator forces it to be public
     public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, ClassGenerator classGenerator, Namer<? super T> namer) {
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), classGenerator, namer);
     }

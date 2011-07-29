@@ -293,7 +293,9 @@ public interface Configuration extends FileCollection {
      * Adds a dependency to this configuration.
      *
      * @param dependency The dependency to be added.
+     * @deprecated Use {@code add()} on {@link #getDependencies()} instead.
      */
+    @Deprecated
     void addDependency(Dependency dependency);
 
     /**
@@ -345,7 +347,9 @@ public interface Configuration extends FileCollection {
      *
      * @param artifact The artifact.
      * @return this
+     * @deprecated Use {@code add()} on {@link #getArtifacts()} instead.
      */
+    @Deprecated
     Configuration addArtifact(PublishArtifact artifact);
 
     /**
@@ -353,7 +357,9 @@ public interface Configuration extends FileCollection {
      *
      * @param artifact The artifact.
      * @return this
+     * @deprecated Use {@code remove()} on {@link #getArtifacts()} instead.
      */
+    @Deprecated
     Configuration removeArtifact(PublishArtifact artifact);
 
     /**

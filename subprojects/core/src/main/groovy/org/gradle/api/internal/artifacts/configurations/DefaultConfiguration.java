@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -77,6 +78,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.ivyService = ivyService;
+        dependencies.beforeChange(new VetoContainerChangeAction());
+        artifacts.beforeChange(new VetoContainerChangeAction());
     }
 
     public String getName() {
@@ -290,17 +293,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void addDependency(Dependency dependency) {
+        DeprecationLogger.nagUser("Configuration.addDependency()", "getDependencies().add()");
         throwExceptionIfNotInUnresolvedState();
         dependencies.add(dependency);
     }
 
     public Configuration addArtifact(PublishArtifact artifact) {
+        DeprecationLogger.nagUser("Configuration.addArtifact()", "getArtifacts().add()");
         throwExceptionIfNotInUnresolvedState();
         artifacts.add(artifact);
         return this;
     }
 
     public Configuration removeArtifact(PublishArtifact artifact) {
+        DeprecationLogger.nagUser("Configuration.removeArtifact()", "getArtifacts().remove()");
         throwExceptionIfNotInUnresolvedState();
         artifacts.remove(artifact);
         return this;
@@ -378,9 +384,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
 
-        for (PublishArtifact artifact : getAllArtifacts()) {
-            copiedConfiguration.addArtifact(artifact);
-        }
+        copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
         // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
@@ -389,8 +393,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
         }
 
+        DomainObjectSet<Dependency> copiedDependencies = copiedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
-            copiedConfiguration.addDependency(dependency.copy());
+            copiedDependencies.add(dependency.copy());
         }
         return copiedConfiguration;
     }
@@ -559,6 +564,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     SelfResolvingDependency.class)) {
                 context.add(dependency);
             }
+        }
+    }
+
+    private class VetoContainerChangeAction implements Runnable {
+        public void run() {
+            throwExceptionIfNotInUnresolvedState();
         }
     }
 }

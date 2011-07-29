@@ -28,14 +28,12 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestClosure;
 import org.gradle.util.WrapUtil;
-import static org.gradle.util.WrapUtil.asSet;
-import static org.gradle.util.WrapUtil.toDomainObjectSet;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,10 +48,7 @@ import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
-
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
     private IvyService ivyServiceStub = context.mock(IvyService.class);
     private ConfigurationsProvider configurationContainer;
 
@@ -919,12 +914,12 @@ public class DefaultConfigurationTest {
         });
         assertInvalidUserDataException(new Executer() {
             public void execute() {
-                configuration.addArtifact(context.mock(PublishArtifact.class));
+                configuration.addDependency(context.mock(Dependency.class));
             }
         });
         assertInvalidUserDataException(new Executer() {
             public void execute() {
-                configuration.addDependency(context.mock(Dependency.class));
+                configuration.getDependencies().add(context.mock(Dependency.class));
             }
         });
         assertInvalidUserDataException(new Executer() {
@@ -939,7 +934,17 @@ public class DefaultConfigurationTest {
         });
         assertInvalidUserDataException(new Executer() {
             public void execute() {
-                configuration.removeArtifact(context.mock(PublishArtifact.class, "removeeArtifact"));
+                configuration.addArtifact(context.mock(PublishArtifact.class));
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.removeArtifact(context.mock(PublishArtifact.class, "removeArtifact"));
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.getArtifacts().add(context.mock(PublishArtifact.class, "removeArtifact"));
             }
         });
     }

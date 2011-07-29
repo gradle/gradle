@@ -38,7 +38,7 @@ public class CollectionEventRegister<T> {
         return addActions;
     }   
     
-    public ActionBroadcast<T> getRemoveAction() {
+    public Action<T> getRemoveAction() {
         return removeActions;
     }
     

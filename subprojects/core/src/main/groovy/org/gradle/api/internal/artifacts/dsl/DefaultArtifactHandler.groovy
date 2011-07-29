@@ -43,7 +43,7 @@ class DefaultArtifactHandler implements ArtifactHandler {
         } else {
             publishArtifact = publishArtifactFactory.createArtifact(notation)
         }
-        configuration.addArtifact(publishArtifact)
+        configuration.artifacts.add(publishArtifact)
         ConfigureUtil.configure(configureClosure, publishArtifact)
         return publishArtifact
     }
