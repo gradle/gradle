@@ -13,8 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.nativ.model;
+
+import org.gradle.api.Named;
+import java.io.File;
 
 /**
- * Implementations of the native model classes.
+ * A high level interface to the compiler, specifying what is to be compiled and how.
+ *
+ * @param <T> The compiler implementation this spec works with
  */
-package org.gradle.plugins.cpp.model.internal;
+public interface CompileSpec<T extends Compiler> extends Named {
+
+    /**
+     * The ultimate output of the compilation.
+     */
+    File getOutputFile();
+
+    /**
+     * Do the compile
+     */
+    void compile();
+}

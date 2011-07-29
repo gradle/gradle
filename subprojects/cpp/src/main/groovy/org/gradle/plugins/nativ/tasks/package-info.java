@@ -15,6 +15,6 @@
  */
 
 /**
- * Tasks for building C++ projects.
+ * Tasks for building native projects.
  */
-package org.gradle.plugins.cpp.tasks;
+package org.gradle.plugins.nativ.tasks;

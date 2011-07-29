@@ -17,20 +17,18 @@ package org.gradle.plugins.cpp
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
-import org.gradle.api.plugins.BasePlugin
+
+import org.gradle.plugins.nativ.NativePlugin
+import org.gradle.plugins.nativ.NativeProjectExtension
 
 class CppPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.plugins.apply(BasePlugin)
-
-        def extension = new CppProjectExtension(project)
-        configureSourceSetDefaults(extension)
-        
-        project.extensions.add('cpp', extension)
+        project.plugins.apply(NativePlugin)
+        configureSourceSetDefaults(project.nativ)
     }
 
-    private configureSourceSetDefaults(CppProjectExtension extension) {
+    private configureSourceSetDefaults(NativeProjectExtension extension) {
         extension.sourceSets.all { sourceSet ->
             sourceSet.cpp.srcDir "src/${sourceSet.name}/cpp"
             sourceSet.headers.srcDir "src/${sourceSet.name}/headers"

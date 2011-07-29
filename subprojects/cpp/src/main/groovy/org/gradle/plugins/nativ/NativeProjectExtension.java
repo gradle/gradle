@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp;
+package org.gradle.plugins.nativ;
 
 import org.gradle.api.Project;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -23,28 +23,23 @@ import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.project.ProjectInternal;
 
-import org.gradle.plugins.cpp.model.NativeSourceSet;
-import org.gradle.plugins.cpp.model.Binary;
-import org.gradle.plugins.cpp.model.internal.DefaultBinary;
-import org.gradle.plugins.cpp.model.internal.DefaultNativeSourceSet;
+import org.gradle.plugins.nativ.model.NativeSourceSet;
+import org.gradle.plugins.nativ.model.Binary;
+import org.gradle.plugins.nativ.model.internal.DefaultBinary;
+import org.gradle.plugins.nativ.model.internal.DefaultNativeSourceSet;
 
 import org.gradle.plugins.cpp.gcc.GppCompileSpec;
 
 import groovy.lang.Closure;
 
-/**
- * The DSL for C++.
- */
-public class CppProjectExtension {
-
-    static public final String DEFAULT_NAME = "main";
-
+public class NativeProjectExtension {
+    
     final private ProjectInternal project;
 
     final private NamedDomainObjectContainer<NativeSourceSet> sourceSets;
     final private NamedDomainObjectContainer<Binary> binaries;
 
-    public CppProjectExtension(final Project project) {
+    public NativeProjectExtension(final Project project) {
         this.project = (ProjectInternal)project;
 
         ClassGenerator classGenerator = this.project.getServices().get(ClassGenerator.class);
@@ -67,7 +62,7 @@ public class CppProjectExtension {
                 classGenerator,
                 new NamedDomainObjectFactory<Binary>() {
                     public Binary create(String name) {
-                        return new DefaultBinary(name, new GppCompileSpec(name, CppProjectExtension.this.project));
+                        return new DefaultBinary(name, new GppCompileSpec(name, NativeProjectExtension.this.project));
                     }
                 }
         );
@@ -93,5 +88,5 @@ public class CppProjectExtension {
     public NamedDomainObjectContainer<Binary> binaries(Closure closure) {
         return binaries.configure(closure);
     }
-
+    
 }

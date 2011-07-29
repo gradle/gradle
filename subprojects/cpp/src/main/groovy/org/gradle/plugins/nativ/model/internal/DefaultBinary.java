@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.model.internal;
+package org.gradle.plugins.nativ.model.internal;
 
-import org.gradle.plugins.cpp.model.Binary;
-import org.gradle.plugins.cpp.model.CompileSpec;
+import org.gradle.plugins.nativ.model.Binary;
+import org.gradle.plugins.nativ.model.CompileSpec;
 
 import org.gradle.util.ConfigureUtil;
 

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.tasks
+package org.gradle.plugins.nativ.tasks
 
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.DefaultTask
 
-import org.gradle.plugins.cpp.model.CompileSpec
+import org.gradle.plugins.nativ.model.CompileSpec
 
 class Compile extends DefaultTask {
 

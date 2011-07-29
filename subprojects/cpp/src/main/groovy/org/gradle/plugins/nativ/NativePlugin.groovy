@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.model;
+package org.gradle.plugins.nativ
 
-import org.gradle.api.Named;
+import org.gradle.api.Project
+import org.gradle.api.Plugin
+import org.gradle.api.plugins.BasePlugin
 
-/**
- * Something to be created.
- */
-public interface Binary extends Named {
+class NativePlugin implements Plugin<Project> {
 
-    CompileSpec getSpec();
+    void apply(Project project) {
+        project.plugins.apply(BasePlugin)
+        project.extensions.add('nativ', new NativeProjectExtension(project))
+    }
 
 }

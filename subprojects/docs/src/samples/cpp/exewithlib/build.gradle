@@ -3,7 +3,7 @@ allprojects {
 }
 
 project(":lib") {
-    cpp {
+    nativ {
         binaries {
             main {
                 spec {
@@ -15,19 +15,19 @@ project(":lib") {
 }
 
 project(":exe") {
-    cpp {
+    nativ {
         sourceSets {
             main {
                 headers {
                     // Include the headers from the lib project
-                    srcDir project(":lib").cpp.sourceSets.main.headers
+                    srcDir project(":lib").nativ.sourceSets.main.headers
                 }
             }
         }
         binaries {
             main {
                 spec {
-                    source project(":lib").cpp.binaries.main.spec
+                    source project(":lib").nativ.binaries.main.spec
                 }
             }
         }

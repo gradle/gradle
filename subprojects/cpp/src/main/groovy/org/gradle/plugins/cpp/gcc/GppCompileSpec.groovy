@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.cpp.gcc
 
-import org.gradle.plugins.cpp.model.*
-import org.gradle.plugins.cpp.tasks.Compile
+import org.gradle.plugins.nativ.model.*
+import org.gradle.plugins.nativ.tasks.Compile
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet

@@ -13,43 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp
+package org.gradle.plugins.nativ
 
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.plugins.cpp.model.NativeSourceSet
+import org.gradle.plugins.nativ.model.NativeSourceSet
 
 /**
- * Ensures the mechanics of the cpp extension are working.
+ * Ensures the mechanics of the nativ extension are working.
  */
-class CppProjectExtensionSmokeSpec extends CppProjectSpec {
+class NativeProjectExtensionSmokeSpec extends NativeProjectSpec {
 
     def setup() {
         applyPlugin()
     }
 
-    def "cpp extension is available"() {
+    def "native extension is available"() {
         expect:
-        cpp instanceof CppProjectExtension
+        nativ instanceof NativeProjectExtension
 
         and:
-        cpp {
+        nativ {
 
         }
     }
 
     def "source set container is available"() {
         expect:
-        cpp.sourceSets instanceof NamedDomainObjectContainer
+        nativ.sourceSets instanceof NamedDomainObjectContainer
 
         and:
-        cpp {
+        nativ {
             sourceSets {
                 main { }
             }
         }
         
         and:
-        cpp.sourceSets.main instanceof NativeSourceSet
+        nativ.sourceSets.main instanceof NativeSourceSet
     }
 
 }

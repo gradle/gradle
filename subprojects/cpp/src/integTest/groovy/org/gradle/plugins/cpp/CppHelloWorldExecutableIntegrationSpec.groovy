@@ -57,7 +57,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "cpp"
             
-            cpp {
+            nativ {
                 sourceSets {
                     hello {}
                     main {
@@ -71,7 +71,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
                     }
                     main {
                         spec {
-                            source project.cpp.binaries.hello.spec
+                            source project.nativ.binaries.hello.spec
                         }
                     }
                 }

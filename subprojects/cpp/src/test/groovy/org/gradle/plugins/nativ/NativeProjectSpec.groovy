@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp
+package org.gradle.plugins.nativ
 
 import spock.lang.*
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 
-class CppProjectSpec extends Specification {
+class NativeProjectSpec extends Specification {
 
     Project project = HelperUtil.createRootProject()
 
@@ -41,7 +41,7 @@ class CppProjectSpec extends Specification {
     }
 
     def applyPlugin() {
-        apply plugin: "cpp"
+        apply plugin: "native"
     }
 
     def getResourceFile(path) {
