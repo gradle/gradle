@@ -32,6 +32,10 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
         super(type, new TreeSet(new Namer.Comparator(namer)), classGenerator, namer);
     }
 
+    public DefaultNamedDomainObjectSet(Class<T> type, ClassGenerator classGenerator) {
+        this(type, classGenerator, Named.Namer.forType(type));
+    }
+
     /**
      * Subclasses using this constructor must ensure that the {@code store} uses a name based equality strategy as per the contract on NamedDomainObjectContainer.
      */
