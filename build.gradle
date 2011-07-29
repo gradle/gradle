@@ -148,6 +148,10 @@ clean.dependsOn subprojects.collect { "$it.path:clean" }
 
 task check(overwrite: true, dependsOn: groovyProjects()*.check)
 check.dependsOn ':docs:checkstyleApi'
+configure(groovyProjects()) {
+    check.dependsOn ":docs:checkstyleApi"
+}
+
 task test(overwrite: true, dependsOn: groovyProjects()*.test)
 task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
 task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
