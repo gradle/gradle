@@ -34,6 +34,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final Class<T> type;
     private final CollectionEventRegister<T> eventRegister;
     private final Collection<T> store;
+    private final Set<Runnable> mutateActions = new LinkedHashSet<Runnable>();
 
     public DefaultDomainObjectCollection(Class<T> type, Collection<T> store) {
         this(type, store, new CollectionEventRegister<T>());
@@ -173,6 +174,13 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         whenObjectRemoved(toAction(action));
     }
 
+    /**
+     * Adds an action which is executed before this collection is mutated. Any exception thrown by the action will veto the mutation.
+     */
+    public void beforeChange(Runnable action) {
+        mutateActions.add(action);
+    }
+
     private Action<? super T> toAction(final Closure action) {
         return new Action<T>() {
             public void execute(T t) {
@@ -182,6 +190,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean add(T toAdd) {
+        assertMutable();
+        return doAdd(toAdd);
+    }
+
+    private boolean doAdd(T toAdd) {
         if (getStore().add(toAdd)) {
             eventRegister.getAddAction().execute(toAdd);
             return true;
@@ -191,9 +204,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean addAll(Collection<? extends T> c) {
+        assertMutable();
         boolean changed = false;
         for (T o : c) {
-            if (add(o)) {
+            if (doAdd(o)) {
                 changed = true;
             }
         }
@@ -201,6 +215,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public void clear() {
+        assertMutable();
         Object[] c = toArray();
         getStore().clear();
         for (Object o : c) {
@@ -221,6 +236,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean remove(Object o) {
+        assertMutable();
+        return doRemove(o);
+    }
+
+    private boolean doRemove(Object o) {
         if (getStore().remove(o)) {
             eventRegister.getRemoveAction().execute((T)o);
             return true;
@@ -230,9 +250,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean removeAll(Collection<?> c) {
+        assertMutable();
         boolean changed = false;
         for (Object o : c) {
-            if (remove(o)) {
+            if (doRemove(o)) {
                 changed = true;
             }
         }
@@ -240,11 +261,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean retainAll(Collection<?> target) {
+        assertMutable();
         Object[] existingItems = toArray();
         boolean changed = false;
         for (Object existingItem : existingItems) {
             if (!target.contains(existingItem)) {
-                remove(existingItem);
+                doRemove(existingItem);
                 changed = true;
             }
         }
@@ -255,4 +277,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return getStore().size();
     }
 
+    protected void assertMutable() {
+        for (Runnable action : mutateActions) {
+            action.run();
+        }
+    }
 }

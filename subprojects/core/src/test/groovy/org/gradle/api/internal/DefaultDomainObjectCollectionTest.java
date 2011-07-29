@@ -402,7 +402,124 @@ public class DefaultDomainObjectCollectionTest {
     }
 
     @Test
-    public void canremoveAndMaintainOrder() {
+    public void callsVetoActionBeforeObjectIsAdded() {
+        final Runnable action = context.mock(Runnable.class);
+        container.beforeChange(action);
+
+        context.checking(new Expectations() {{
+            one(action).run();
+        }});
+
+        container.add("a");
+    }
+
+    @Test
+    public void objectIsNotAddedWhenVetoActionThrowsAnException() {
+        final Runnable action = context.mock(Runnable.class);
+        final RuntimeException failure = new RuntimeException();
+        container.beforeChange(action);
+
+        context.checking(new Expectations() {{
+            one(action).run();
+            will(throwException(failure));
+        }});
+
+        try {
+            container.add("a");
+            fail();
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure));
+        }
+
+        assertThat(container, not(hasItem((CharSequence) "a")));
+    }
+
+    @Test
+    public void callsVetoActionOnceBeforeCollectionIsAdded() {
+        final Runnable action = context.mock(Runnable.class);
+        container.beforeChange(action);
+
+        context.checking(new Expectations() {{
+            one(action).run();
+        }});
+
+        container.addAll(toList("a", "b"));
+    }
+
+    @Test
+    public void callsVetoActionBeforeObjectIsRemoved() {
+        final Runnable action = context.mock(Runnable.class);
+        container.beforeChange(action);
+
+        context.checking(new Expectations() {{
+            one(action).run();
+        }});
+
+        container.remove("a");
+    }
+
+    @Test
+    public void objectIsNotRemovedWhenVetoActionThrowsAnException() {
+        final Runnable action = context.mock(Runnable.class);
+        final RuntimeException failure = new RuntimeException();
+        container.add("a");
+        container.beforeChange(action);
+        
+        context.checking(new Expectations() {{
+            one(action).run();
+            will(throwException(failure));
+        }});
+
+        try {
+            container.remove("a");
+            fail();
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure));
+        }
+
+        assertThat(container, hasItem((CharSequence) "a"));
+    }
+
+    @Test
+    public void callsVetoActionBeforeCollectionIsCleared() {
+        final Runnable action = context.mock(Runnable.class);
+        container.beforeChange(action);
+
+        context.checking(new Expectations() {{
+            one(action).run();
+        }});
+
+        container.clear();
+    }
+
+    @Test
+    public void callsVetoActionOnceBeforeCollectionIsRemoved() {
+        final Runnable action = context.mock(Runnable.class);
+        container.beforeChange(action);
+
+        context.checking(new Expectations() {{
+            one(action).run();
+        }});
+
+        container.removeAll(toList("a", "b"));
+    }
+
+    @Test
+    public void callsVetoActionOnceBeforeCollectionIsIntersected() {
+        final Runnable action = context.mock(Runnable.class);
+        container.add("a");
+        container.add("b");
+        container.beforeChange(action);
+
+        context.checking(new Expectations() {{
+            one(action).run();
+        }});
+
+        container.retainAll(toList());
+    }
+
+    @Test
+    public void canRemoveAndMaintainOrder() {
         container.add("b");
         container.add("a");
         container.add("c");
@@ -412,7 +529,7 @@ public class DefaultDomainObjectCollectionTest {
     }
 
     @Test
-    public void canremoveNonExistentObject() {
+    public void canRemoveNonExistentObject() {
         assertFalse(container.remove("a"));
     }
     
