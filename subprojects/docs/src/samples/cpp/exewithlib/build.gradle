@@ -1,28 +1,10 @@
 project(":lib") {
     apply plugin: "cpp-lib"
-    
-    libraries.main.spec.sharedLibrary()
 }
 
 project(":exe") {
     apply plugin: "cpp-exe"
-    cpp {
-        sourceSets {
-            main {
-                headers {
-                    // Include the headers from the lib project
-                    srcDir project(":lib").cpp.sourceSets.main.headers
-                }
-            }
-        }
-    }
-    executables {
-        main {
-            spec {
-                source project(":lib").libraries.main.spec
-            }
-        }
-    }
+    cpp.sourceSets.main.libs << project(":lib").libraries.main
 }
 
 task build(dependsOn: project(":exe").compileMain)

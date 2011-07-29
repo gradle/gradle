@@ -17,8 +17,12 @@ package org.gradle.plugins.cpp.internal;
 
 import org.gradle.plugins.cpp.CppSourceSet;
 
+import org.gradle.plugins.binaries.model.Library;
+
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
 
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.util.ConfigureUtil;
@@ -32,6 +36,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
 
     private final DefaultSourceDirectorySet headers;
     private final DefaultSourceDirectorySet source;
+    private final DefaultDomainObjectSet<Library> libs;
 
     public DefaultCppSourceSet(String name, FileResolver fileResolver) {
         this.name = name;
@@ -39,6 +44,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
 
         this.headers = new DefaultSourceDirectorySet("headers", fileResolver);
         this.source = new DefaultSourceDirectorySet("source", fileResolver);
+        this.libs = new DefaultDomainObjectSet<Library>(Library.class);
     }
 
     public String getName() {
@@ -61,5 +67,9 @@ public class DefaultCppSourceSet implements CppSourceSet {
     public DefaultCppSourceSet source(Closure closure) {
         ConfigureUtil.configure(closure, source);
         return this;
+    }
+
+    public DomainObjectSet<Library> getLibs() {
+        return libs;
     }
 }

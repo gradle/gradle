@@ -15,7 +15,10 @@
  */
 package org.gradle.plugins.cpp;
 
+import org.gradle.plugins.binaries.model.Library;
+
 import org.gradle.api.Named;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
 
 import groovy.lang.Closure;
@@ -39,10 +42,15 @@ public interface CppSourceSet extends Named {
      * The source.
      */
     SourceDirectorySet getSource();
-    
+
     /**
      * The source.
      */
     CppSourceSet source(Closure closure);
+
+    /**
+     * Libs this source set requires
+     */
+    DomainObjectSet<Library> getLibs();
 
 }

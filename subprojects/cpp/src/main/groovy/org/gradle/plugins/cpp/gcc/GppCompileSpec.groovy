@@ -16,6 +16,7 @@
 package org.gradle.plugins.cpp.gcc
 
 import org.gradle.plugins.binaries.model.Binary
+import org.gradle.plugins.binaries.model.Library
 import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.plugins.binaries.model.CompileSpec
 
@@ -90,6 +91,7 @@ class GppCompileSpec implements CompileSpec {
     void from(CppSourceSet sourceSet) {
         includes sourceSet.headers
         source sourceSet.source
+        libs sourceSet.libs
     }
 
     void includes(SourceDirectorySet dirs) {
@@ -113,10 +115,10 @@ class GppCompileSpec implements CompileSpec {
         }
     }
 
-    // problem: hack for now, to support linking against libs
-    void source(GppCompileSpec spec) {
-        task.dependsOn spec.task
-        source project.files { spec.outputFile }
+    void libs(Iterable<Library> libs) {
+        task.dependsOn { libs*.spec*.task }
+        source(project.files { libs*.spec*.outputFile })
+        includes(project.files { libs*.headers*.srcDirs })
     }
 
     void args(Object... args) {

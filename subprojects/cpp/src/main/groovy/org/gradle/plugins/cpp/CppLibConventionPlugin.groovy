@@ -31,8 +31,13 @@ class CppLibConventionPlugin implements Plugin<Project> {
             }
             libraries {
                 main {
+                    headers.source cpp.sourceSets.main.headers
+                    
                     spec {
                         from cpp.sourceSets.main
+                        
+                        // Do we default to shared?
+                        sharedLibrary()
                     }
                 }
             }
