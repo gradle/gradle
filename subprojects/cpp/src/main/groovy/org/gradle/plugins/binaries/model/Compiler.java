@@ -15,16 +15,18 @@
  */
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Named;
+
 /**
- * Producer of compile specs
+ * A kind of compiler
  * 
- * @param <T> The type of compile spec produced
+ * @param <T> The kind of CompileSpec this compiler exposes
  */
-public interface CompileSpecFactory<T extends CompileSpec> {
+public interface Compiler<T extends CompileSpec> extends Named {
 
     /**
-     * Create a new spec to compile this binary
+     * Returns a factory for creating compile specs that will compile with this compiler
      */
-    T create(Binary binary);
+    CompileSpecFactory<T> getSpecFactory();
 
 }

@@ -23,15 +23,13 @@ import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 
-import org.gradle.plugins.binaries.model.CompileSpec;
 import org.gradle.plugins.binaries.model.CompileSpecFactory;
-import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.Executable;
 import org.gradle.plugins.binaries.model.internal.DefaultExecutable;
 import org.gradle.plugins.binaries.model.Library;
 import org.gradle.plugins.binaries.model.internal.DefaultLibrary;
 
-import org.gradle.plugins.cpp.gcc.GppCompileSpec;
+import org.gradle.plugins.cpp.gpp.Gpp;
 
 /**
  * temp plugin, not sure what will provide the binaries container and model elements
@@ -41,11 +39,8 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
     
-        final CompileSpecFactory specFactory = new CompileSpecFactory() {
-            public CompileSpec create(Binary binary) {
-                return new GppCompileSpec(binary);
-            }
-        };
+        
+        final CompileSpecFactory<?> specFactory = new Gpp().getSpecFactory();
         
         ClassGenerator classGenerator = project.getServices().get(ClassGenerator.class);
         project.getExtensions().add("executables", classGenerator.newInstance(

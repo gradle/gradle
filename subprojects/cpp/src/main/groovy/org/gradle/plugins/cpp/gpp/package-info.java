@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.binaries.model;
 
 /**
- * Producer of compile specs
- * 
- * @param <T> The type of compile spec produced
+ * Integration with the gpp (gcc frontend) compiler.
  */
-public interface CompileSpecFactory<T extends CompileSpec> {
-
-    /**
-     * Create a new spec to compile this binary
-     */
-    T create(Binary binary);
-
-}
+package org.gradle.plugins.cpp.gpp;
