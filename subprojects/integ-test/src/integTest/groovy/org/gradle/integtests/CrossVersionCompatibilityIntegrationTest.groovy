@@ -33,13 +33,14 @@ class CrossVersionCompatibilityIntegrationTest {
     private final BasicGradleDistribution gradle10Milestone1 = dist.previousVersion('1.0-milestone-1')
     private final BasicGradleDistribution gradle10Milestone2 = dist.previousVersion('1.0-milestone-2')
     private final BasicGradleDistribution gradle10Milestone3 = dist.previousVersion('1.0-milestone-3')
+    private final BasicGradleDistribution gradle10Milestone4 = dist.previousVersion('1.0-milestone-4')
 
     @Test
     public void canBuildJavaProject() {
         dist.testFile('buildSrc/src/main/groovy').assertIsDir()
 
         // Upgrade and downgrade from previous version to current version and back again
-        eachVersion([gradle08, gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3]) { version ->
+        eachVersion([gradle08, gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3, gradle10Milestone4]) { version ->
             version.executer().inDirectory(dist.testDir).withTasks('build').run()
             dist.executer().inDirectory(dist.testDir).withTasks('build').run()
             version.executer().inDirectory(dist.testDir).withTasks('build').run()
@@ -48,7 +49,7 @@ class CrossVersionCompatibilityIntegrationTest {
 
     @Test
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
-        eachVersion([gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3]) { version ->
+        eachVersion([gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3, gradle10Milestone4]) { version ->
             if (!version.wrapperCanExecute(dist.version)) {
                 println "skipping $version as its wrapper cannot execute current version ${dist.version}"
                 return false
@@ -59,7 +60,7 @@ class CrossVersionCompatibilityIntegrationTest {
 
     @Test
     public void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
-        eachVersion([gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3]) { version ->
+        eachVersion([gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3, gradle10Milestone4]) { version ->
             checkWrapperWorksWith(dist, version)
         }
     }
@@ -81,7 +82,10 @@ class CrossVersionCompatibilityIntegrationTest {
                 println "building using $version"
                 cl.call(version)
             } catch (Throwable t) {
-                throw new RuntimeException("Could not build test project using $version.", t)
+                throw new RuntimeException(
+"""Could not build test project using $version.
+Sometimes the zip with distro is malformed (zip errors on the stack trace). In such case remove the failing distro from ./intTestHomeDir and rerun.
+""", t)
             }
         }
     }

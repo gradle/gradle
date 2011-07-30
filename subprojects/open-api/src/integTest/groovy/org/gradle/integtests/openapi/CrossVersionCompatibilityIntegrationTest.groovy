@@ -39,17 +39,18 @@ class CrossVersionCompatibilityIntegrationTest {
     private final BasicGradleDistribution gradle10Milestone1 = dist.previousVersion('1.0-milestone-1')
     private final BasicGradleDistribution gradle10Milestone2 = dist.previousVersion('1.0-milestone-2')
     private final BasicGradleDistribution gradle10Milestone3 = dist.previousVersion('1.0-milestone-3')
+    private final BasicGradleDistribution gradle10Milestone4 = dist.previousVersion('1.0-milestone-4')
 
     @Test
     public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
-        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3].each {
+        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3, gradle10Milestone4].each {
             checkCanBuildUsing(dist, it)
         }
     }
 
     @Test
     public void canUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
-        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3].each {
+        [gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3, gradle10Milestone4].each {
             checkCanBuildUsing(it, dist)
         }
     }
@@ -74,8 +75,10 @@ class CrossVersionCompatibilityIntegrationTest {
             builder.currentDir = dist.testDir
             builder.version = buildVersion.version
             builder.build()
-        } catch (Throwable throwable) {
-            throw new RuntimeException("Failed to build using $buildVersion via the open API of $openApiVersion", throwable)
+        } catch (Throwable t) {
+            throw new RuntimeException("""Failed to build using $buildVersion via the open API of $openApiVersion
+Sometimes the zip with distro is malformed (zip errors on the stack trace). In such case remove the failing distro from ./intTestHomeDir and rerun.
+""", t)
         }
     }
 }
