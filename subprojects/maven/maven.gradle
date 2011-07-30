@@ -22,6 +22,9 @@ configurations {
     compile.exclude module: "netty"
 }
 
+//TODO SF - only temporary until issue is fixed
+idea.module.downloadSources = false
+
 dependencies {
     groovy libraries.groovy_depends
 
