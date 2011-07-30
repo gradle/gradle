@@ -24,7 +24,7 @@ public class Main {
 
             System.out.println("***");
             System.out.println("Project modules: ");
-            for(IdeaModule module: project.getChildren()) {
+            for(IdeaModule module: project.getModules()) {
                 System.out.println("  " + module);
                 System.out.println("  module details:");
 

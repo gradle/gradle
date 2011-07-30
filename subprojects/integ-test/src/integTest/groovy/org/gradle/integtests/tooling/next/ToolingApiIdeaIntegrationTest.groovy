@@ -51,6 +51,7 @@ description = 'this is a project'
         project.description == null
         project.children.size() == 1
         project.children[0] instanceof IdeaModule
+        project.children == project.modules
     }
 
     def "provides basic project information"() {

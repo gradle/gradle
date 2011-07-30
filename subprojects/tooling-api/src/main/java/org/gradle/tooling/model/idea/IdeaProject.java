@@ -41,11 +41,17 @@ public interface IdeaProject extends HierarchicalElement, Element {
 
     /**
      * Returns modules of this idea project. Most projects have at least one module.
+     * Alias to {@link #getModules()}
      *
      * @return modules
      */
     DomainObjectSet<? extends IdeaModule> getChildren();
 
-    //TODO SF - should project also have method getModules() ?
-    //DomainObjectSet<? extends IdeaModule> getModules();
+    /**
+     * Returns modules of this idea project. Most projects have at least one module.
+     * Alias to {@link #getChildren()}
+     *
+     * @return modules
+     */
+    DomainObjectSet<? extends IdeaModule> getModules();
 }

@@ -110,6 +110,10 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
         return new ImmutableDomainObjectSet<IdeaModule>(children);
     }
 
+    public DomainObjectSet<? extends IdeaModule> getModules() {
+        return new ImmutableDomainObjectSet<IdeaModule>(children);
+    }
+
     @Override
     public String toString() {
         return "DefaultIdeaProject{"
