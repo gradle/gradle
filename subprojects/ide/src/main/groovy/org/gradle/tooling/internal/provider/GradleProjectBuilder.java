@@ -54,7 +54,6 @@ public class GradleProjectBuilder implements BuildsModel {
         DefaultGradleProject gradleProject = new DefaultGradleProject()
                 .setName(project.getName())
                 .setDescription(project.getDescription())
-                .setId(project.getPath())
                 .setChildren((List) children);
 
         gradleProject.setTasks(tasks(gradleProject, project.getTasks()));

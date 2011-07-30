@@ -62,15 +62,6 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
         return this;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public DefaultIdeaProject setId(String id) {
-        this.id = id;
-        return this;
-    }
-
     public String getName() {
         return name;
     }
@@ -117,8 +108,7 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
     @Override
     public String toString() {
         return "DefaultIdeaProject{"
-                + "id='" + id + '\''
-                + ", name='" + name + '\''
+                + " name='" + name + '\''
                 + ", description='" + description + '\''
                 + ", children count=" + children.size()
                 + ", languageLevel='" + languageLevel + '\''

@@ -24,14 +24,6 @@ package org.gradle.tooling.model;
 public interface Element {
 
     /**
-     * Returns the unique identifier of this element.
-     * //TODO SF should be path after all
-     *
-     * @return The path.
-     */
-    String getId();
-
-    /**
      * Returns the name. Note that the name is not a unique identifier.
      *
      * @return The name.

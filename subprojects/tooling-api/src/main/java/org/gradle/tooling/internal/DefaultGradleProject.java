@@ -57,15 +57,6 @@ public class DefaultGradleProject implements ProjectVersion3, GradleProject, Ser
         return this;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public DefaultGradleProject setId(String id) {
-        this.id = id;
-        return this;
-    }
-
     public GradleProject getParent() {
         return parent;
     }

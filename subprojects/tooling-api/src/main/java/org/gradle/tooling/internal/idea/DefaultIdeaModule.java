@@ -164,11 +164,6 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return new ImmutableDomainObjectSet<HierarchicalElement>((Set) emptySet());
     }
 
-    public String getId() {
-        //TODO SF should module have an id? It is a bit awkard to get it because at the moment ide idea modules don't have any id.
-        throw new GradleException("IdeaModule does not have an id");
-    }
-
     public String getDescription() {
         return null;
     }
@@ -177,7 +172,6 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     public String toString() {
         return "DefaultIdeaModule{"
                 + "name='" + name + '\''
-                + ", parent path=" + parent.getId()
                 + ", inheritOutputDirs=" + inheritOutputDirs
                 + ", outputDir=" + outputDir
                 + ", testOutputDir=" + testOutputDir

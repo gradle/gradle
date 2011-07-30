@@ -47,7 +47,6 @@ description = 'this is a project'
         then:
         project.parent == null
         project.name == 'test project'
-        project.id   == ':'
         project.description == null
         project.children.size() == 1
         project.children[0] instanceof IdeaModule
