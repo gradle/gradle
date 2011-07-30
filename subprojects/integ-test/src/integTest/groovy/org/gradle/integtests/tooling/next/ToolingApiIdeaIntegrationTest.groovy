@@ -69,7 +69,8 @@ idea.project {
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
 
         then:
-        project.languageLevel == 'JDK_1_5'
+        project.languageLevel.isJDK_1_5()
+        project.languageLevel.level == "JDK_1_5"
         project.jdkName == '1.6'
     }
 

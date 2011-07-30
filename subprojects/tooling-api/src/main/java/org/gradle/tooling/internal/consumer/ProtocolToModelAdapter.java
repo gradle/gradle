@@ -173,6 +173,9 @@ public class ProtocolToModelAdapter {
                 }
             }
             if (targetType instanceof Class) {
+                if (((Class) targetType).isPrimitive()) {
+                    return value;
+                }
                 return adapt((Class) targetType, value);
             }
             throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", value.getClass(), targetType));

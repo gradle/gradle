@@ -35,12 +35,9 @@ public interface IdeaProject extends HierarchicalElement, Element {
     /**
      * Language level to use within the current project.
      *
-     * TODO SF - we need to decide how to model it. I have a POC implementation of modelling it as an enum (with graceful degradation)
-     * but I'm not sure if it's worth the hassle.
-     *
      * @return language level
      */
-    String getLanguageLevel();
+    IdeaLanguageLevel getLanguageLevel();
 
     /**
      * Returns modules of this idea project. Most projects have at least one module.

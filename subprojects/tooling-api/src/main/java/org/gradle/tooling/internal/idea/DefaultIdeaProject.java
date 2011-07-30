@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -40,14 +41,14 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
     private String name;
     private String description;
     private List<? extends IdeaModule> children = new LinkedList<IdeaModule>();
-    private String languageLevel;
+    private IdeaLanguageLevel languageLevel;
     private String jdkName;
 
-    public String getLanguageLevel() {
+    public IdeaLanguageLevel getLanguageLevel() {
         return languageLevel;
     }
 
-    public DefaultIdeaProject setLanguageLevel(String languageLevel) {
+    public DefaultIdeaProject setLanguageLevel(IdeaLanguageLevel languageLevel) {
         this.languageLevel = languageLevel;
         return this;
     }

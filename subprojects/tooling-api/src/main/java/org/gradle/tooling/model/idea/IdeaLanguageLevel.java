@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.idea.model
-
-import org.gradle.api.JavaVersion
+package org.gradle.tooling.model.idea;
 
 /**
- * Java language level used by IDEA projects
- *
- * @author: Szczepan Faber, created at: 7/14/11
+ * Language level setting for IDEA
  */
-class IdeaLanguageLevel {
+public interface IdeaLanguageLevel {
 
-    //TODO SF: change to level
-    String formatted
+    //java 1.4
+    boolean isJDK_1_4();
 
-    IdeaLanguageLevel(Object version) {
-        if (version instanceof String && version =~ /^JDK_/) {
-            formatted = version
-            return
-        }
-        formatted = JavaVersion.toVersion(version).name().replaceFirst("VERSION", "JDK")
-    }
+    //java 1.5
+    boolean isJDK_1_5();
+
+    //java 1.6
+    boolean isJDK_1_6();
+
+    //java 1.7
+    boolean isJDK_1_7();
+
+    //java 1.8
+    boolean isJDK_1_8();
+
+    /**
+     * Gets the level value
+     */
+    String getLevel();
+
 }
