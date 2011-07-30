@@ -38,10 +38,19 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
 
     /**
      * Returns the project of this module.
+     * Alias to {@link #getProject()}
      *
      * @return idea project
      */
     IdeaProject getParent();
+
+    /**
+     * Returns the project of this module.
+     * Alias to {@link #getParent()}
+     *
+     * @return idea project
+     */
+    IdeaProject getProject();
 
     /**
      * the folder containing module file (*.iml)

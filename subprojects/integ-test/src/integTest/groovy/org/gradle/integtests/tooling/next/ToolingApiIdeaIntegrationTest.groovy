@@ -112,6 +112,7 @@ idea.module.testOutputDir = file('someTestDir')
         module.contentRoots == [projectDir]
         module.parent instanceof IdeaProject
         module.parent == project
+        module.parent == module.project
         module.children.empty
         module.description == null
 

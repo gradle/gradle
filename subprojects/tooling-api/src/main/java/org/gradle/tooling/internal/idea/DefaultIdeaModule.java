@@ -75,6 +75,10 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return parent;
     }
 
+    public IdeaProject getProject() {
+        return parent;
+    }
+
     public DefaultIdeaModule setParent(IdeaProject parent) {
         this.parent = parent;
         return this;
