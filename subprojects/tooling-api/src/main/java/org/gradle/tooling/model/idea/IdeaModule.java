@@ -25,6 +25,8 @@ import java.util.List;
 
 /**
  * Represents information about the IntelliJ IDEA module
+ *
+ * @since 1.0-rc-1
  */
 public interface IdeaModule extends BuildableElement, HierarchicalElement {
 

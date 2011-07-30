@@ -20,6 +20,8 @@ import java.io.File;
 
 /**
  * Library dependency, for example, some jar file
+ *
+ * @since 1.0-rc-1
  */
 public interface IdeaLibraryDependency extends IdeaDependency {
 

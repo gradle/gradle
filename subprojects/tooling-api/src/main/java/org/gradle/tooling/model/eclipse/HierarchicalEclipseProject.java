@@ -50,6 +50,7 @@ public interface HierarchicalEclipseProject extends HierarchicalProject {
      * Returns the linked resources for this project.
      *
      * @return The linked resources.
+     * @since 1.0-milestone-3
      */
     DomainObjectSet<? extends EclipseLinkedResource> getLinkedResources();
 }

@@ -18,6 +18,8 @@ package org.gradle.tooling.model;
 
 /**
  * Represents an element which belongs to some hierarchy.
+ *
+ * @since 1.0-rc-1
  */
 public interface HierarchicalElement extends Element {
 

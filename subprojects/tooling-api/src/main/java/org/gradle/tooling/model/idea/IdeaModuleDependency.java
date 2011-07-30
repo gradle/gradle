@@ -18,6 +18,8 @@ package org.gradle.tooling.model.idea;
 
 /**
  * dependency to a module in a project
+ *
+ * @since 1.0-rc-1
  */
 public interface IdeaModuleDependency extends IdeaDependency {
 

@@ -18,6 +18,8 @@ package org.gradle.tooling.model.idea;
 
 /**
  * Language level setting for IDEA
+ *
+ * @since 1.0-rc-1
  */
 public interface IdeaLanguageLevel {
 

@@ -19,14 +19,12 @@ package org.gradle.tooling.model;
 /**
  * Represents a task which is executable by Gradle.
  *
- * TODO SF. It would be nice to decouple gradle tasks from IDEA / Eclipse model.
- * Many things are easier if they are decoupled and it fits our present trend of decoupling gradle project from idea module & eclipse project.
- * Needs discussion. This is the first step towards this idea.
+ * @since 1.0-rc-1
  */
 public interface GradleTask extends Task {
 
     /**
-     * Returns the element which this task belongs to.
+     * Returns the gradle project this task is defined in.
      *
      * @return The element.
      */

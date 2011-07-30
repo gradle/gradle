@@ -22,6 +22,8 @@ import org.gradle.tooling.model.HierarchicalElement;
 
 /**
  * Represents the information about the IntelliJ IDEA project
+ *
+ * @since 1.0-rc-1
  */
 public interface IdeaProject extends HierarchicalElement, Element {
 
