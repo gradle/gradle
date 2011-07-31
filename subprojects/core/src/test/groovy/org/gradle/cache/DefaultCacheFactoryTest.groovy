@@ -27,13 +27,60 @@ class DefaultCacheFactoryTest extends Specification {
     public final TemporaryFolder tmpDir = new TemporaryFolder()
     private final DefaultCacheFactory factory = new DefaultCacheFactory()
 
-    public void createsCache() {
+    public void "creates cache instance"() {
         when:
         def ref = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
 
         then:
         ref.cache instanceof DefaultPersistentDirectoryCache
         ref.cache.baseDir == tmpDir.dir
+    }
+
+    public void "caches instances"() {
+        when:
+        def ref1 = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+        def ref2 = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+
+        then:
+        ref1.is(ref2)
+    }
+
+    public void "releases instance when last reference released"() {
+        given:
+        factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+        def oldRef = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+        oldRef.release()
+        oldRef.release()
+
+        when:
+        def ref = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+
+        then:
+        !ref.is(oldRef)
+    }
+
+    public void "fails when cache is already open with different properties"() {
+        given:
+        factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+
+        when:
+        factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'other'])
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Cache '${tmpDir.dir}' is already open with different state."
+    }
+
+    public void "fails when cache is already open when rebuild is requested"() {
+        given:
+        factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+
+        when:
+        factory.open(tmpDir.dir, CacheUsage.REBUILD, [prop: 'value'])
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Cannot rebuild cache '${tmpDir.dir}' as it is already open."
     }
 }
 

@@ -38,7 +38,6 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
-import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
@@ -97,10 +96,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
         return listenerManager.createChild();
-    }
-
-    protected CacheFactory createCacheFactory(CacheFactory parentFactory) {
-        return new AutoCloseCacheFactory(parentFactory);
     }
 
     protected ClassPathRegistry createClassPathRegistry() {

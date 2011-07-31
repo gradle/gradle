@@ -20,8 +20,8 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
+import org.gradle.cache.DefaultCacheFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.CommandLineConverter;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
@@ -51,7 +51,7 @@ public class GlobalServicesRegistryTest {
 
     @Test
     public void providesACacheFactory() {
-        assertThat(registry.get(CacheFactory.class), instanceOf(AutoCloseCacheFactory.class));
+        assertThat(registry.get(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
     }
 
     @Test

@@ -23,6 +23,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DefaultCacheRepository implements CacheRepository {
     private final GradleVersion version = GradleVersion.current();
@@ -30,6 +32,7 @@ public class DefaultCacheRepository implements CacheRepository {
     private final CacheUsage cacheUsage;
     private final String projectCacheDir;
     private final CacheFactory factory;
+    private final Set<CacheFactory.CacheReference<?>> caches = new CopyOnWriteArraySet<CacheFactory.CacheReference<?>>();
 
     public DefaultCacheRepository(File userHomeDir, String projectCacheDir, CacheUsage cacheUsage, CacheFactory factory) {
         this.projectCacheDir = projectCacheDir;
@@ -40,6 +43,16 @@ public class DefaultCacheRepository implements CacheRepository {
 
     public CacheBuilder<PersistentCache> cache(String key) {
         return new PersistentCacheBuilder(key);
+    }
+
+    public void close() {
+        try {
+            for (CacheFactory.CacheReference<?> reference: caches){
+                reference.release();
+            }
+        } finally {
+            caches.clear();
+        }
     }
 
     private class PersistentCacheBuilder implements CacheBuilder<PersistentCache> {
@@ -94,7 +107,9 @@ public class DefaultCacheRepository implements CacheRepository {
                     properties.put("gradle.version", version.getVersion());
                     break;
             }
-            return factory.open(new File(cacheBaseDir, key), cacheUsage, properties).getCache();
+            CacheFactory.CacheReference<PersistentCache> cacheReference = factory.open(new File(cacheBaseDir, key), cacheUsage, properties);
+            caches.add(cacheReference);
+            return cacheReference.getCache();
         }
 
         private File maybeProjectCacheDir(File potentialParentDir) {

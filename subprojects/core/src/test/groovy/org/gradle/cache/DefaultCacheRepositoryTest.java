@@ -152,4 +152,20 @@ public class DefaultCacheRepositoryTest {
 
         assertThat(repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).forObject(gradle).open(), sameInstance(cache));
     }
+
+    @Test
+    public void releasesCachesOnClose() {
+        context.checking(new Expectations() {{
+            one(cacheFactory).open(sharedCacheDir.file(version, "a"), CacheUsage.ON, Collections.EMPTY_MAP);
+            will(returnValue(cacheReference));
+        }});
+
+        repository.cache("a").open();
+
+        context.checking(new Expectations() {{
+            one(cacheReference).release();
+        }});
+
+        repository.close();
+    }
 }
