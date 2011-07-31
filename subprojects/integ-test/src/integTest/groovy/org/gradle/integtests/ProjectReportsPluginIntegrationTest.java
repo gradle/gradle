@@ -24,7 +24,7 @@ public class ProjectReportsPluginIntegrationTest extends AbstractIntegrationTest
         testFile("build.gradle").writelns(
                 "apply plugin: 'project-report'"
         );
-        inTestDirectory().withTasks("projectReport").run();
+        executer.failingOnDeprecationWarning().inDirectory(getTestDir()).withTasks("projectReport").run();
 
         testFile("build/reports/project/dependencies.txt").assertExists();
         testFile("build/reports/project/properties.txt").assertExists();
