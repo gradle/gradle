@@ -71,7 +71,7 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
     }
 
     def expectCacheOpened() {
-        CacheBuilder builder = Mock()
+        CacheBuilder<PersistentCache> builder = Mock()
         PersistentCache cache = Mock()
         1 * cacheRepository.cache("fileSnapshots") >> builder
         1 * builder.open() >> cache

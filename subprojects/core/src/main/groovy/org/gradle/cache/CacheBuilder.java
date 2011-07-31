@@ -18,7 +18,7 @@ package org.gradle.cache;
 
 import java.util.Map;
 
-public interface CacheBuilder {
+public interface CacheBuilder<T> {
     enum VersionStrategy {
         /**
          * A separate cache instance for each Gradle version. This is the default.
@@ -41,7 +41,7 @@ public interface CacheBuilder {
      * @param properties additional properties for the cache.
      * @return this
      */
-    CacheBuilder withProperties(Map<String, ?> properties);
+    CacheBuilder<T> withProperties(Map<String, ?> properties);
 
     /**
      * Specifies the target domain object.  This might be a task, project, or similar. The cache is scoped for the given target object. The default is to use a globally-scoped cache.
@@ -49,7 +49,7 @@ public interface CacheBuilder {
      * @param target The target domain object which the cache is for.
      * @return this
      */
-    CacheBuilder forObject(Object target);
+    CacheBuilder<T> forObject(Object target);
 
     /**
      * Specifies the versioning strategy for this cache. The default is {@link VersionStrategy#CachePerVersion}.
@@ -57,12 +57,12 @@ public interface CacheBuilder {
      * @param strategy The strategy
      * @return this
      */
-    CacheBuilder withVersionStrategy(VersionStrategy strategy);
+    CacheBuilder<T> withVersionStrategy(VersionStrategy strategy);
 
     /**
-     * Creates the cache.
+     * Opens the cache.
      *
      * @return The cache.
      */
-    PersistentCache open();
+    T open();
 }

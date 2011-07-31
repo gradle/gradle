@@ -23,5 +23,5 @@ public interface CacheRepository {
      * @param key The cache key.
      * @return The builder.
      */
-    CacheBuilder cache(String key);
+    CacheBuilder<PersistentCache> cache(String key);
 }

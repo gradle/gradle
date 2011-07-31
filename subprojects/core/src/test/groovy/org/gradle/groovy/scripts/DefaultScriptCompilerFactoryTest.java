@@ -75,7 +75,7 @@ public class DefaultScriptCompilerFactoryTest {
     ScriptSource source;
     ScriptSource expectedSource;
     ScriptRunner expectedScriptRunner;
-    CacheBuilder cacheBuilder;
+    CacheBuilder<PersistentCache> cacheBuilder;
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();

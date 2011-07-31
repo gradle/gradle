@@ -116,7 +116,7 @@ class BuildSourceBuilderTest {
 
     private expectValueFetchedFromCache(def value) {
         context.checking {
-            CacheBuilder builder = context.mock(CacheBuilder.class)
+            CacheBuilder<PersistentCache> builder = context.mock(CacheBuilder.class)
             PersistentCache cache = context.mock(PersistentCache.class)
             one(cacheRepository).cache('buildSrc')
             will(returnValue(builder))

@@ -66,7 +66,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     @Before
     public void setup() {
         context.checking(new Expectations() {{
-            CacheBuilder builder = context.mock(CacheBuilder.class);
+            CacheBuilder<PersistentCache> builder = context.mock(CacheBuilder.class);
 
             one(cacheRepository).cache("outputFileStates");
             will(returnValue(builder));
@@ -567,8 +567,8 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations() {{
-            CacheBuilder tasksCacheBuilder = context.mock(CacheBuilder.class);
-            CacheBuilder fileSnapshotCacheBuilder = context.mock(CacheBuilder.class);
+            CacheBuilder<PersistentCache> tasksCacheBuilder = context.mock(CacheBuilder.class);
+            CacheBuilder<PersistentCache> fileSnapshotCacheBuilder = context.mock(CacheBuilder.class);
 
             one(cacheRepository).cache("taskArtifacts");
             will(returnValue(tasksCacheBuilder));

@@ -30,11 +30,11 @@ public class AutoCloseCacheFactory implements CacheFactory {
         this.cacheFactory = cacheFactory;
     }
 
-    public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties) {
+    public CacheReference<PersistentCache> open(File cacheDir, CacheUsage usage, Map<String, ?> properties) {
         File canonicalDir = GFileUtils.canonicalise(cacheDir);
         CacheInfo cacheInfo = openCaches.get(canonicalDir);
         if (cacheInfo == null) {
-            PersistentCache cache = cacheFactory.open(cacheDir, usage, properties);
+            CacheReference<PersistentCache> cache = cacheFactory.open(cacheDir, usage, properties);
             cacheInfo = new CacheInfo(cache, properties);
             openCaches.put(canonicalDir, cacheInfo);
         } else {
@@ -43,49 +43,47 @@ public class AutoCloseCacheFactory implements CacheFactory {
             }
         }
         cacheInfo.addReference();
-        return cacheInfo.cache;
-    }
-
-    public void close(PersistentCache cache) {
-        for (CacheInfo cacheInfo : openCaches.values()) {
-            if (cacheInfo.cache == cache) {
-                if (cacheInfo.removeReference()) {
-                    openCaches.values().remove(cacheInfo);
-                    cacheFactory.close(cacheInfo.cache);
-                }
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Attempting to close unknown cache " + cache);
+        return cacheInfo;
     }
 
     public void close() {
         try {
             for (CacheInfo cacheInfo : openCaches.values()) {
-                cacheFactory.close(cacheInfo.cache);
+                cacheInfo.close();
             }
         } finally {
             openCaches.clear();
         }
     }
 
-    private static class CacheInfo {
+    private class CacheInfo implements CacheReference<PersistentCache> {
         int count;
         final Map<String, ?> properties;
-        final PersistentCache cache;
+        final CacheReference<PersistentCache> cache;
 
-        private CacheInfo(PersistentCache cache, Map<String, ?> properties) {
+        private CacheInfo(CacheReference<PersistentCache> cache, Map<String, ?> properties) {
             this.cache = cache;
             this.properties = new HashMap<String, Object>(properties);
+        }
+
+        public PersistentCache getCache() {
+            return cache.getCache();
         }
 
         public void addReference() {
             count++;
         }
 
-        public boolean removeReference() {
+        public void release() {
             count--;
-            return count == 0;
+            if (count == 0) {
+                cache.release();
+                openCaches.values().remove(this);
+            }
+        }
+
+        public void close() {
+            cache.release();
         }
     }
 }

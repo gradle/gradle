@@ -47,6 +47,7 @@ public class DefaultCacheRepositoryTest {
     private final String version = GradleVersion.current().getVersion();
     private final Map<String, ?> properties = GUtil.map("a", "value", "b", "value2");
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
+    private final CacheFactory.CacheReference<PersistentCache> cacheReference = context.mock(CacheFactory.CacheReference.class);
     private final PersistentCache cache = context.mock(PersistentCache.class);
     private final Gradle gradle = context.mock(Gradle.class);
     private final DefaultCacheRepository repository = new DefaultCacheRepository(homeDir, ".gradle", CacheUsage.ON, cacheFactory);
@@ -55,7 +56,8 @@ public class DefaultCacheRepositoryTest {
     public void setup() {
         context.checking(new Expectations() {{
             Project project = context.mock(Project.class);
-
+            allowing(cacheReference).getCache();
+            will(returnValue(cache));
             allowing(cache).getBaseDir();
             will(returnValue(tmpDir.getDir()));
             allowing(gradle).getRootProject();
@@ -69,7 +71,7 @@ public class DefaultCacheRepositoryTest {
     public void createsGlobalCache() {
         context.checking(new Expectations() {{
             one(cacheFactory).open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, Collections.EMPTY_MAP);
-            will(returnValue(cache));
+            will(returnValue(cacheReference));
         }});
 
         assertThat(repository.cache("a/b/c").open(), sameInstance(cache));
@@ -79,7 +81,7 @@ public class DefaultCacheRepositoryTest {
     public void createsGlobalCacheWithProperties() {
         context.checking(new Expectations() {{
             one(cacheFactory).open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, properties);
-            will(returnValue(cache));
+            will(returnValue(cacheReference));
         }});
 
         assertThat(repository.cache("a/b/c").withProperties(properties).open(), sameInstance(cache));
@@ -91,7 +93,7 @@ public class DefaultCacheRepositoryTest {
         context.checking(new Expectations() {{
             one(cacheFactory).open(buildRootDir.file(".gradle", version, "a/b/c"), CacheUsage.ON,
                     Collections.EMPTY_MAP);
-            will(returnValue(cache));
+            will(returnValue(cacheReference));
         }});
 
         assertThat(repository.cache("a/b/c").forObject(gradle).open(), sameInstance(cache));
@@ -103,7 +105,7 @@ public class DefaultCacheRepositoryTest {
 
         context.checking(new Expectations() {{
             one(cacheFactory).open(dir.file(".gradle", version, "a/b/c"), CacheUsage.ON, Collections.EMPTY_MAP);
-            will(returnValue(cache));
+            will(returnValue(cacheReference));
         }});
 
         assertThat(repository.cache("a/b/c").forObject(dir).open(), sameInstance(cache));
@@ -113,7 +115,7 @@ public class DefaultCacheRepositoryTest {
     public void createsCrossVersionCache() {
         context.checking(new Expectations() {{
             one(cacheFactory).open(sharedCacheDir.file("a/b/c"), CacheUsage.ON, Collections.<String, Object>emptyMap());
-            will(returnValue(cache));
+            will(returnValue(cacheReference));
         }});
 
         assertThat(repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open(), sameInstance(cache));
@@ -123,7 +125,7 @@ public class DefaultCacheRepositoryTest {
     public void createsCrossVersionCacheForAGradleInstance() {
         context.checking(new Expectations() {{
             one(cacheFactory).open(buildRootDir.file(".gradle", "a/b/c"), CacheUsage.ON, Collections.<String, Object>emptyMap());
-            will(returnValue(cache));
+            will(returnValue(cacheReference));
         }});
 
         assertThat(repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).forObject(gradle).open(), sameInstance(cache));
@@ -134,7 +136,7 @@ public class DefaultCacheRepositoryTest {
         context.checking(new Expectations() {{
             one(cacheFactory).open(sharedCacheDir.file("noVersion", "a/b/c"), CacheUsage.ON, Collections.singletonMap(
                     "gradle.version", version));
-            will(returnValue(cache));
+            will(returnValue(cacheReference));
         }});
 
         assertThat(repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).open(), sameInstance(cache));
@@ -145,7 +147,7 @@ public class DefaultCacheRepositoryTest {
         context.checking(new Expectations() {{
             one(cacheFactory).open(buildRootDir.file(".gradle", "noVersion", "a/b/c"), CacheUsage.ON,
                     Collections.singletonMap("gradle.version", version));
-            will(returnValue(cache));
+            will(returnValue(cacheReference));
         }});
 
         assertThat(repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).forObject(gradle).open(), sameInstance(cache));

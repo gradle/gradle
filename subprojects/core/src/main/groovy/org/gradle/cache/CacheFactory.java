@@ -21,9 +21,16 @@ import java.io.File;
 import java.util.Map;
 
 public interface CacheFactory {
-    PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties);
+    /**
+     * Opens a cache. It is the caller's responsibility to call {@link org.gradle.cache.CacheFactory.CacheReference#release()} when finished with the cache.
+     */
+    CacheReference<PersistentCache> open(File cacheDir, CacheUsage usage, Map<String, ?> properties);
 
-    void close(PersistentCache cache);
+    interface CacheReference<T> {
+        T getCache();
+
+        void release();
+    }
 }
 
 

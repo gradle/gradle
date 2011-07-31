@@ -29,11 +29,11 @@ class DefaultCacheFactoryTest extends Specification {
 
     public void createsCache() {
         when:
-        PersistentCache cache = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+        def ref = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
 
         then:
-        cache instanceof DefaultPersistentDirectoryCache
-        cache.baseDir == tmpDir.dir
+        ref.cache instanceof DefaultPersistentDirectoryCache
+        ref.cache.baseDir == tmpDir.dir
     }
 }
 

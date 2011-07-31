@@ -47,7 +47,7 @@ public class CachingHasherTest {
     @Before
     public void setup() {
         context.checking(new Expectations(){{
-            CacheBuilder cacheBuilder = context.mock(CacheBuilder.class);
+            CacheBuilder<PersistentCache> cacheBuilder = context.mock(CacheBuilder.class);
             PersistentCache persistentCache = context.mock(PersistentCache.class);
 
             one(cacheRepository).cache("fileHashes");

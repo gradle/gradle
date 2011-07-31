@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
+import org.gradle.cache.PersistentCache;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultScriptPluginFactory;
@@ -129,7 +130,13 @@ public class TopLevelBuildServiceRegistryTest {
     public void providesATaskExecuter() {
         expectListenerManagerCreated();
         context.checking(new Expectations() {{
+            CacheFactory.CacheReference<PersistentCache> ref = context.mock(CacheFactory.CacheReference.class);
+            PersistentCache cache = context.mock(PersistentCache.class);
             allowing(cacheFactory).open(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)));
+            will(returnValue(ref));
+            allowing(ref).getCache();
+            will(returnValue(cache));
+            ignoring(cache);
         }});
         assertThat(factory.get(TaskExecuter.class), instanceOf(ExecuteAtMostOnceTaskExecuter.class));
         assertThat(factory.get(TaskExecuter.class), sameInstance(factory.get(TaskExecuter.class)));

@@ -23,12 +23,17 @@ import java.util.Map;
 
 public class DefaultCacheFactory implements CacheFactory {
 
-    public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties) {
+    public CacheReference<PersistentCache> open(File cacheDir, CacheUsage usage, Map<String, ?> properties) {
         File canonicalDir = GFileUtils.canonicalise(cacheDir);
-        return new DefaultPersistentDirectoryCache(canonicalDir, usage, properties);
-    }
+        final DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(canonicalDir, usage, properties);
+        return new CacheReference<PersistentCache>() {
+            public PersistentCache getCache() {
+                return cache;
+            }
 
-    public void close(PersistentCache cache) {
-        ((DefaultPersistentDirectoryCache) cache).close();
+            public void release() {
+                cache.close();
+            }
+        };
     }
 }

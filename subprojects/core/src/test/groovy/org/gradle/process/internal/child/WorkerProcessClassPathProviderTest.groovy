@@ -36,7 +36,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
     def createsTheWorkerClasspathOnDemand() {
         def cacheDir = tmpDir.dir
         def classesDir = cacheDir.file('classes')
-        CacheBuilder cacheBuilder = Mock()
+        CacheBuilder<PersistentCache> cacheBuilder = Mock()
         PersistentCache cache = Mock()
 
         when:
@@ -56,7 +56,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
     def reusesTheCacheClasspath() {
         def cacheDir = tmpDir.dir
         def classesDir = cacheDir.file('classes')
-        CacheBuilder cacheBuilder = Mock()
+        CacheBuilder<PersistentCache> cacheBuilder = Mock()
         PersistentCache cache = Mock()
 
         when:

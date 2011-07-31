@@ -23,34 +23,47 @@ import java.io.File;
 import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
-    public void close(PersistentCache cache) {
-    }
-
-    public PersistentCache open(final File cacheDir, CacheUsage usage, Map<String, ?> properties) {
+    public CacheReference<PersistentCache> open(final File cacheDir, CacheUsage usage, Map<String, ?> properties) {
         cacheDir.mkdirs();
-        return new PersistentCache() {
-            public File getBaseDir() {
-                return cacheDir;
+        final InMemoryCache cache = new InMemoryCache(cacheDir);
+        return new CacheReference<PersistentCache>() {
+            public PersistentCache getCache() {
+                return cache;
             }
 
-            public boolean isValid() {
-                return false;
-            }
-
-            public void markValid() {
-            }
-
-            public <K, V> PersistentIndexedCache<K, V> openIndexedCache(Serializer<V> serializer) {
-                return new InMemoryIndexedCache<K, V>();
-            }
-
-            public <K, V> PersistentIndexedCache<K, V> openIndexedCache() {
-                return new InMemoryIndexedCache<K, V>();
-            }
-
-            public <T> PersistentStateCache<T> openStateCache() {
-                return new SimpleStateCache<T>(this, new DefaultSerializer<T>());
+            public void release() {
             }
         };
+    }
+
+    private static class InMemoryCache implements PersistentCache {
+        private final File cacheDir;
+
+        public InMemoryCache(File cacheDir) {
+            this.cacheDir = cacheDir;
+        }
+
+        public File getBaseDir() {
+            return cacheDir;
+        }
+
+        public boolean isValid() {
+            return false;
+        }
+
+        public void markValid() {
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> openIndexedCache(Serializer<V> serializer) {
+            return new InMemoryIndexedCache<K, V>();
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> openIndexedCache() {
+            return new InMemoryIndexedCache<K, V>();
+        }
+
+        public <T> PersistentStateCache<T> openStateCache() {
+            return new SimpleStateCache<T>(this, new DefaultSerializer<T>());
+        }
     }
 }

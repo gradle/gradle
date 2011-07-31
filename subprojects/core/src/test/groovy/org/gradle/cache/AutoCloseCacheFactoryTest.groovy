@@ -23,80 +23,107 @@ public class AutoCloseCacheFactoryTest extends Specification {
     private final AutoCloseCacheFactory factory = new AutoCloseCacheFactory(backingFactory)
 
     public void createsCachesUsingBackingFactory() {
+        CacheFactory.CacheReference<PersistentCache> backingRef = Mock()
         PersistentCache cache = Mock()
+
+        given:
+        _ * backingRef.cache >> cache
 
         when:
         def retval = factory.open(new File('dir1'), CacheUsage.ON, [:])
 
         then:
-        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache
-        retval == cache
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> backingRef
+        retval.cache == cache
     }
 
     public void cachesCacheInstanceForAGivenDirectory() {
+        CacheFactory.CacheReference<PersistentCache> backingRef = Mock()
         PersistentCache cache = Mock()
+
+        given:
+        _ * backingRef.cache >> cache
 
         when:
         def cache1 = factory.open(new File('dir1'), CacheUsage.ON, [:])
         def cache2 = factory.open(new File('dir1').canonicalFile, CacheUsage.ON, [:])
 
         then:
-        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> backingRef
         cache1 == cache2
     }
 
     public void closesCacheUsingBackingFactory() {
+        CacheFactory.CacheReference<PersistentCache> backingRef = Mock()
         PersistentCache cache = Mock()
 
-        when:
-        factory.open(new File('dir1'), CacheUsage.ON, [:])
-
-        then:
-        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache
+        given:
+        _ * backingRef.cache >> cache
 
         when:
-        factory.close(cache)
+        def cacheRef = factory.open(new File('dir1'), CacheUsage.ON, [:])
 
         then:
-        1 * backingFactory.close(cache)
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> backingRef
+
+        when:
+        cacheRef.release()
+
+        then:
+        1 * backingRef.release()
     }
 
     public void closesCacheWhenLastReferenceClosed() {
+        CacheFactory.CacheReference<PersistentCache> backingRef = Mock()
         PersistentCache cache = Mock()
 
+        given:
+        _ * backingRef.cache >> cache
+
         when:
-        factory.open(new File('dir1'), CacheUsage.ON, [:])
+        def cacheRef = factory.open(new File('dir1'), CacheUsage.ON, [:])
         factory.open(new File('dir1'), CacheUsage.ON, [:])
 
         then:
-        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> backingRef
 
         when:
-        factory.close(cache)
-        factory.close(cache)
+        cacheRef.release()
 
         then:
-        1 * backingFactory.close(cache)
+        0 * backingRef._
+
+        when:
+        cacheRef.release()
+
+        then:
+        1 * backingRef.release()
     }
     
     public void closesEachOpenCacheOnClose() {
+        CacheFactory.CacheReference<PersistentCache> backingRef1 = Mock()
+        CacheFactory.CacheReference<PersistentCache> backingRef2 = Mock()
         PersistentCache cache1 = Mock()
         PersistentCache cache2 = Mock()
+
+        given:
+        _ * backingRef1.cache >> cache1
+        _ * backingRef2.cache >> cache2
 
         when:
         factory.open(new File('dir1'), CacheUsage.ON, [:])
         factory.open(new File('dir2'), CacheUsage.ON, [:])
 
         then:
-        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache1
-        1 * backingFactory.open(new File('dir2'), CacheUsage.ON, [:]) >> cache2
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> backingRef1
+        1 * backingFactory.open(new File('dir2'), CacheUsage.ON, [:]) >> backingRef2
 
         when:
         factory.close()
 
         then:
-        1 * backingFactory.close(cache1)
-        1 * backingFactory.close(cache2)
+        1 * backingRef1.release()
+        1 * backingRef2.release()
     }
 }
 

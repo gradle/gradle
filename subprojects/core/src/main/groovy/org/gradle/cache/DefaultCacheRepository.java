@@ -38,11 +38,11 @@ public class DefaultCacheRepository implements CacheRepository {
         this.cacheUsage = cacheUsage;
     }
 
-    public CacheBuilder cache(String key) {
+    public CacheBuilder<PersistentCache> cache(String key) {
         return new PersistentCacheBuilder(key);
     }
 
-    private class PersistentCacheBuilder implements CacheBuilder {
+    private class PersistentCacheBuilder implements CacheBuilder<PersistentCache> {
         private final String key;
         private Map<String, ?> properties = Collections.emptyMap();
         private Object target;
@@ -52,17 +52,17 @@ public class DefaultCacheRepository implements CacheRepository {
             this.key = key;
         }
 
-        public CacheBuilder withProperties(Map<String, ?> properties) {
+        public CacheBuilder<PersistentCache> withProperties(Map<String, ?> properties) {
             this.properties = properties;
             return this;
         }
 
-        public CacheBuilder withVersionStrategy(VersionStrategy strategy) {
+        public CacheBuilder<PersistentCache> withVersionStrategy(VersionStrategy strategy) {
             this.versionStrategy = strategy;
             return this;
         }
 
-        public CacheBuilder forObject(Object target) {
+        public CacheBuilder<PersistentCache> forObject(Object target) {
             this.target = target;
             return this;
         }
@@ -94,7 +94,7 @@ public class DefaultCacheRepository implements CacheRepository {
                     properties.put("gradle.version", version.getVersion());
                     break;
             }
-            return factory.open(new File(cacheBaseDir, key), cacheUsage, properties);
+            return factory.open(new File(cacheBaseDir, key), cacheUsage, properties).getCache();
         }
 
         private File maybeProjectCacheDir(File potentialParentDir) {

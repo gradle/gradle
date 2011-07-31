@@ -24,7 +24,7 @@ import org.gradle.cache.PersistentCache
 class IvySettingsFactoryTest extends Specification {
     final File cacheDir = new File('user-dir')
     final CacheRepository cacheRepository = Mock()
-    final CacheBuilder cacheBuilder = Mock()
+    final CacheBuilder<PersistentCache> cacheBuilder = Mock()
     final PersistentCache cache = Mock()
     final IvySettingsFactory factory = new IvySettingsFactory(cacheRepository)
 
