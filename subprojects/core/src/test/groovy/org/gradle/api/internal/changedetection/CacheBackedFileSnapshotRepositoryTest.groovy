@@ -20,6 +20,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.cache.ObjectCacheBuilder
 
 class CacheBackedFileSnapshotRepositoryTest extends Specification {
     final CacheRepository cacheRepository = Mock()
@@ -71,10 +72,8 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
     }
 
     def expectCacheOpened() {
-        CacheBuilder<PersistentCache> builder = Mock()
-        PersistentCache cache = Mock()
-        1 * cacheRepository.cache("fileSnapshots") >> builder
-        1 * builder.open() >> cache
-        1 * cache.openIndexedCache() >> indexedCache
+        ObjectCacheBuilder<Object, PersistentCache> builder = Mock()
+        1 * cacheRepository.indexedCache(Object, Object, "fileSnapshots") >> builder
+        1 * builder.open() >> indexedCache
     }
 }

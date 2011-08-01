@@ -26,6 +26,16 @@ public interface CacheFactory {
      */
     CacheReference<PersistentCache> open(File cacheDir, CacheUsage usage, Map<String, ?> properties);
 
+    /**
+     * Opens a cache. It is the caller's responsibility to call {@link org.gradle.cache.CacheFactory.CacheReference#release()} when finished with the cache.
+     */
+    <E> CacheReference<PersistentStateCache<E>> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<E> serializer);
+
+    /**
+     * Opens a cache. It is the caller's responsibility to call {@link org.gradle.cache.CacheFactory.CacheReference#release()} when finished with the cache.
+     */
+    <K, V> CacheReference<PersistentIndexedCache<K, V>> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<V> serializer);
+
     interface CacheReference<T> {
         T getCache();
 

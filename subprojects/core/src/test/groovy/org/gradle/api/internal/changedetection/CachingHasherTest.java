@@ -15,21 +15,24 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.cache.*;
-
-import static org.gradle.util.Matchers.*;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.ObjectCacheBuilder;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.Serializer;
 import org.gradle.util.TemporaryFolder;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+
+import static org.gradle.util.Matchers.reflectionEquals;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class CachingHasherTest {
@@ -47,16 +50,15 @@ public class CachingHasherTest {
     @Before
     public void setup() {
         context.checking(new Expectations(){{
-            CacheBuilder<PersistentCache> cacheBuilder = context.mock(CacheBuilder.class);
-            PersistentCache persistentCache = context.mock(PersistentCache.class);
+            ObjectCacheBuilder<CachingHasher.FileInfo, PersistentIndexedCache<File, CachingHasher.FileInfo>> cacheBuilder = context.mock(ObjectCacheBuilder.class);
 
-            one(cacheRepository).cache("fileHashes");
+            one(cacheRepository).indexedCache(File.class, CachingHasher.FileInfo.class, "fileHashes");
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).withSerializer(with(notNullValue(Serializer.class)));
             will(returnValue(cacheBuilder));
 
             one(cacheBuilder).open();
-            will(returnValue(persistentCache));
-
-            one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
             will(returnValue(cache));
         }});
         hasher = new CachingHasher(delegate, cacheRepository);

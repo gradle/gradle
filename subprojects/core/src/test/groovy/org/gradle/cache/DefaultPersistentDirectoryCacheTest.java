@@ -16,19 +16,18 @@
 package org.gradle.cache;
 
 import org.gradle.CacheUsage;
-import org.gradle.cache.btree.BTreePersistentIndexedCache;
-import org.gradle.util.TestFile;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
+import org.gradle.util.TestFile;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
 
 public class DefaultPersistentDirectoryCacheTest {
     @Rule
@@ -107,46 +106,6 @@ public class DefaultPersistentDirectoryCacheTest {
 
         assertTrue(cache.isValid());
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
-    }
-
-    @Test
-    public void createsAnIndexedCache() {
-        TestFile dir = tmpDir.getDir().file("dir");
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        assertThat(cache.openIndexedCache(), instanceOf(BTreePersistentIndexedCache.class));
-    }
-
-    @Test
-    public void reusesTheIndexedCache() {
-        TestFile dir = tmpDir.getDir().file("dir");
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        assertThat(cache.openIndexedCache(), sameInstance(cache.openIndexedCache()));
-    }
-
-    @Test
-    public void closesIndexedCacheOnClose() {
-        TestFile dir = tmpDir.getDir().file("dir");
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        
-        BTreePersistentIndexedCache indexedCache = cache.openIndexedCache();
-        assertTrue(indexedCache.isOpen());
-
-        cache.close();
-        assertFalse(indexedCache.isOpen());
-    }
-    
-    @Test
-    public void createsAnStateCache() {
-        TestFile dir = tmpDir.getDir().file("dir");
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        assertThat(cache.openStateCache(), instanceOf(SimpleStateCache.class));
-    }
-
-    @Test
-    public void reusesTheStateCache() {
-        TestFile dir = tmpDir.getDir().file("dir");
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        assertThat(cache.openStateCache(), sameInstance(cache.openStateCache()));
     }
 
     private Map<String, String> loadProperties(TestFile file) {

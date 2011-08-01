@@ -45,6 +45,14 @@ public class DefaultCacheRepository implements CacheRepository {
         return new PersistentCacheBuilder(key);
     }
 
+    public <E> ObjectCacheBuilder<E, PersistentStateCache<E>> stateCache(Class<E> elementType, String key) {
+        return new StateCacheBuilder<E>(key);
+    }
+
+    public <K, V> ObjectCacheBuilder<V, PersistentIndexedCache<K, V>> indexedCache(Class<K> keyType, Class<V> elementType, String key) {
+        return new IndexedCacheBuilder<K, V>(key);
+    }
+
     public void close() {
         try {
             for (CacheFactory.CacheReference<?> reference: caches){
@@ -55,32 +63,32 @@ public class DefaultCacheRepository implements CacheRepository {
         }
     }
 
-    private class PersistentCacheBuilder implements CacheBuilder<PersistentCache> {
+    private abstract class AbstractCacheBuilder<T> implements CacheBuilder<T> {
         private final String key;
         private Map<String, ?> properties = Collections.emptyMap();
         private Object target;
         private VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
 
-        private PersistentCacheBuilder(String key) {
+        protected AbstractCacheBuilder(String key) {
             this.key = key;
         }
 
-        public CacheBuilder<PersistentCache> withProperties(Map<String, ?> properties) {
+        public CacheBuilder<T> withProperties(Map<String, ?> properties) {
             this.properties = properties;
             return this;
         }
 
-        public CacheBuilder<PersistentCache> withVersionStrategy(VersionStrategy strategy) {
+        public CacheBuilder<T> withVersionStrategy(VersionStrategy strategy) {
             this.versionStrategy = strategy;
             return this;
         }
 
-        public CacheBuilder<PersistentCache> forObject(Object target) {
+        public CacheBuilder<T> forObject(Object target) {
             this.target = target;
             return this;
         }
 
-        public PersistentCache open() {
+        public T open() {
             File cacheBaseDir;
             Map<String, Object> properties = new HashMap<String, Object>(this.properties);
             if (target == null) {
@@ -107,16 +115,83 @@ public class DefaultCacheRepository implements CacheRepository {
                     properties.put("gradle.version", version.getVersion());
                     break;
             }
-            CacheFactory.CacheReference<PersistentCache> cacheReference = factory.open(new File(cacheBaseDir, key), cacheUsage, properties);
+            CacheFactory.CacheReference<T> cacheReference = doOpen(new File(cacheBaseDir, key), properties);
             caches.add(cacheReference);
             return cacheReference.getCache();
         }
+
+        protected abstract CacheFactory.CacheReference<T> doOpen(File cacheDir, Map<String, ?> properties);
 
         private File maybeProjectCacheDir(File potentialParentDir) {
             if (new File(projectCacheDir).isAbsolute()) {
                 return new File(projectCacheDir);
             }
             return new File(potentialParentDir, projectCacheDir);
+        }
+    }
+
+    private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> {
+        private PersistentCacheBuilder(String key) {
+            super(key);
+        }
+
+        @Override
+        protected CacheFactory.CacheReference<PersistentCache> doOpen(File cacheDir, Map<String, ?> properties) {
+            return factory.open(cacheDir, cacheUsage, properties);
+        }
+
+    }
+
+    private abstract class AbstractObjectCacheBuilder<E, T> extends AbstractCacheBuilder<T> implements ObjectCacheBuilder<E, T> {
+        protected Serializer<E> serializer = new DefaultSerializer<E>();
+
+        protected AbstractObjectCacheBuilder(String key) {
+            super(key);
+        }
+
+        @Override
+        public ObjectCacheBuilder<E, T> forObject(Object target) {
+            super.forObject(target);
+            return this;
+        }
+
+        @Override
+        public ObjectCacheBuilder<E, T> withProperties(Map<String, ?> properties) {
+            super.withProperties(properties);
+            return this;
+        }
+
+        @Override
+        public ObjectCacheBuilder<E, T> withVersionStrategy(VersionStrategy strategy) {
+            super.withVersionStrategy(strategy);
+            return this;
+        }
+
+        public ObjectCacheBuilder<E, T> withSerializer(Serializer<E> serializer) {
+            this.serializer = serializer;
+            return this;
+        }
+    }
+
+    private class StateCacheBuilder<E> extends AbstractObjectCacheBuilder<E, PersistentStateCache<E>>  {
+        protected StateCacheBuilder(String key) {
+            super(key);
+        }
+
+        @Override
+        protected CacheFactory.CacheReference<PersistentStateCache<E>> doOpen(File cacheDir, Map<String, ?> properties) {
+            return factory.openStateCache(cacheDir, cacheUsage, properties, serializer);
+        }
+    }
+
+    private class IndexedCacheBuilder<K, V> extends AbstractObjectCacheBuilder<V, PersistentIndexedCache<K, V>> {
+        private IndexedCacheBuilder(String key) {
+            super(key);
+        }
+
+        @Override
+        protected CacheFactory.CacheReference<PersistentIndexedCache<K, V>> doOpen(File cacheDir, Map<String, ?> properties) {
+            return factory.openIndexedCache(cacheDir, cacheUsage, properties, serializer);
         }
     }
 }

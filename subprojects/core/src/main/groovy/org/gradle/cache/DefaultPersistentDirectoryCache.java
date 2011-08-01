@@ -16,7 +16,6 @@
 package org.gradle.cache;
 
 import org.gradle.CacheUsage;
-import org.gradle.cache.btree.BTreePersistentIndexedCache;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
@@ -29,8 +28,6 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
     private final File propertiesFile;
     private final Properties properties = new Properties();
     private boolean valid;
-    private BTreePersistentIndexedCache indexedCache;
-    private SimpleStateCache stateCache;
 
     public DefaultPersistentDirectoryCache(File dir, CacheUsage cacheUsage, Map<String, ?> properties) {
         this.dir = dir;
@@ -74,24 +71,6 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
         valid = true;
     }
 
-    public <K, V> BTreePersistentIndexedCache<K, V> openIndexedCache(Serializer<V> serializer) {
-        if (indexedCache == null) {
-            indexedCache = new BTreePersistentIndexedCache<K, V>(this, serializer);
-        }
-        return indexedCache;
-    }
-
-    public <K, V> BTreePersistentIndexedCache<K, V> openIndexedCache() {
-        return openIndexedCache(new DefaultSerializer<V>());
-    }
-
-    public <T> SimpleStateCache<T> openStateCache() {
-        if (stateCache == null) {
-            stateCache = new SimpleStateCache<T>(this, new DefaultSerializer<T>());
-        }
-        return stateCache;
-    }
-
     public Properties getProperties() {
         return properties;
     }
@@ -107,11 +86,5 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
     public void markValid() {
         GUtil.saveProperties(properties, propertiesFile);
         valid = true;
-    }
-
-    public void close() {
-        if (indexedCache != null) {
-            indexedCache.close();
-        }
     }
 }

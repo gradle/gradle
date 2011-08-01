@@ -66,15 +66,12 @@ public class DefaultTaskArtifactStateRepositoryTest {
     @Before
     public void setup() {
         context.checking(new Expectations() {{
-            CacheBuilder<PersistentCache> builder = context.mock(CacheBuilder.class);
+            ObjectCacheBuilder<Long, PersistentIndexedCache<String, Long>> builder = context.mock(ObjectCacheBuilder.class);
 
-            one(cacheRepository).cache("outputFileStates");
+            one(cacheRepository).indexedCache(String.class, Long.class, "outputFileStates");
             will(returnValue(builder));
 
             one(builder).open();
-            will(returnValue(persistentCache));
-
-            one(persistentCache).openIndexedCache();
             will(returnValue(new InMemoryIndexedCache()));
         }});
 
@@ -567,28 +564,28 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations() {{
-            CacheBuilder<PersistentCache> tasksCacheBuilder = context.mock(CacheBuilder.class);
-            CacheBuilder<PersistentCache> fileSnapshotCacheBuilder = context.mock(CacheBuilder.class);
+            ObjectCacheBuilder<?, PersistentIndexedCache<String, ?>> tasksCacheBuilder = context.mock(ObjectCacheBuilder.class);
+            ObjectCacheBuilder<Object, PersistentIndexedCache<String, Object>> fileSnapshotCacheBuilder = context.mock(ObjectCacheBuilder.class);
 
-            one(cacheRepository).cache("taskArtifacts");
+            Matcher<Class> stringClassMatcher = equalTo((Class) String.class);
+            Matcher<Class> notNullClassMatcher = notNullValue();
+            one(cacheRepository).indexedCache(with(stringClassMatcher), with(notNullClassMatcher), with(equalTo("taskArtifacts")));
             will(returnValue(tasksCacheBuilder));
 
             one(tasksCacheBuilder).forObject(gradle);
             will(returnValue(tasksCacheBuilder));
 
-            one(tasksCacheBuilder).open();
-            will(returnValue(persistentCache));
+            Matcher<Serializer> defaultSerializerMatcher = (Matcher) instanceOf(DefaultSerializer.class);
+            one(tasksCacheBuilder).withSerializer(with(defaultSerializerMatcher));
+            will(returnValue(tasksCacheBuilder));
 
-            atMost(1).of(cacheRepository).cache("fileSnapshots");
+            one(tasksCacheBuilder).open();
+            will(returnValue(new InMemoryIndexedCache<String, Object>()));
+
+            atMost(1).of(cacheRepository).indexedCache(Object.class, Object.class, "fileSnapshots");
             will(returnValue(fileSnapshotCacheBuilder));
 
             atMost(1).of(fileSnapshotCacheBuilder).open();
-            will(returnValue(persistentCache));
-
-            one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
-            will(returnValue(new InMemoryIndexedCache()));
-
-            atMost(1).of(persistentCache).openIndexedCache();
             will(returnValue(new InMemoryIndexedCache()));
         }});
     }

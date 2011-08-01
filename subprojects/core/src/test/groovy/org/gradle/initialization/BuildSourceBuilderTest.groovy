@@ -25,7 +25,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.Convention
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.ObjectCacheBuilder
 import org.gradle.cache.PersistentStateCache
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
@@ -116,9 +116,8 @@ class BuildSourceBuilderTest {
 
     private expectValueFetchedFromCache(def value) {
         context.checking {
-            CacheBuilder<PersistentCache> builder = context.mock(CacheBuilder.class)
-            PersistentCache cache = context.mock(PersistentCache.class)
-            one(cacheRepository).cache('buildSrc')
+            ObjectCacheBuilder<Boolean, PersistentStateCache<Boolean>> builder = context.mock(ObjectCacheBuilder.class)
+            one(cacheRepository).stateCache(Boolean.class, 'buildSrc')
             will(returnValue(builder))
 
             one(builder).forObject(testBuildSrcDir)
@@ -128,9 +127,6 @@ class BuildSourceBuilderTest {
             will(returnValue(builder))
 
             one(builder).open()
-            will(returnValue(cache))
-
-            one(cache).openStateCache()
             will(returnValue(stateCache))
 
             one(stateCache).get()

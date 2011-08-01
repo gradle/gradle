@@ -49,7 +49,7 @@ public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository
 
     private void open() {
         if (cache == null) {
-            cache = repository.cache("fileSnapshots").open().openIndexedCache();
+            cache = repository.indexedCache(Object.class, Object.class, "fileSnapshots").open();
         }
     }
 }

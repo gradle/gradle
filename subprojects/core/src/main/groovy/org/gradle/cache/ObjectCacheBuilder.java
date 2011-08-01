@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,23 @@
  */
 package org.gradle.cache;
 
-import java.io.File;
+import java.util.Map;
 
-/**
- * Represents a directory which can be used for caching.
- */
-public interface PersistentCache {
+public interface ObjectCacheBuilder<E, T> extends CacheBuilder<T> {
     /**
-     * Returns the base directory for this cache.
+     * {@inheritDoc}
      */
-    File getBaseDir();
+    ObjectCacheBuilder<E, T> forObject(Object target);
 
     /**
-     * Returns true if this cache is valid. If the cache is valid, its contents can be used. If not, the base directory
-     * will be empty, and the cache contents must be rebuilt. You must call {@link #markValid} to indicate that the
-     * contents have been rebuilt.
+     * {@inheritDoc}
      */
-    boolean isValid();
+    ObjectCacheBuilder<E, T> withProperties(Map<String, ?> properties);
 
     /**
-     * Marks the contents of the cache as valid.
+     * {@inheritDoc}
      */
-    void markValid();
+    ObjectCacheBuilder<E, T> withVersionStrategy(VersionStrategy strategy);
+
+    ObjectCacheBuilder<E, T> withSerializer(Serializer<E> serializer);
 }

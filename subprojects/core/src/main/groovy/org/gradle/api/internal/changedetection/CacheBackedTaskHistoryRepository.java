@@ -41,7 +41,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     public History getHistory(final TaskInternal task) {
         if (taskHistoryCache == null) {
             serializer = new DefaultSerializer<TaskHistory>();
-            taskHistoryCache = repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache(serializer);
+            taskHistoryCache = repository.indexedCache(String.class, TaskHistory.class, "taskArtifacts").forObject(task.getProject().getGradle()).withSerializer(serializer).open();
         }
         final TaskHistory history = loadHistory(task);
         final LazyTaskExecution currentExecution = new LazyTaskExecution();

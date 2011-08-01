@@ -24,10 +24,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
-import org.gradle.cache.CacheFactory;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.DefaultCacheRepository;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.*;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultScriptPluginFactory;
@@ -131,8 +128,8 @@ public class TopLevelBuildServiceRegistryTest {
         expectListenerManagerCreated();
         context.checking(new Expectations() {{
             CacheFactory.CacheReference<PersistentCache> ref = context.mock(CacheFactory.CacheReference.class);
-            PersistentCache cache = context.mock(PersistentCache.class);
-            allowing(cacheFactory).open(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)));
+            PersistentIndexedCache cache = context.mock(PersistentIndexedCache.class);
+            allowing(cacheFactory).openIndexedCache(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)), with(notNullValue(Serializer.class)));
             will(returnValue(ref));
             allowing(ref).getCache();
             will(returnValue(cache));

@@ -83,7 +83,7 @@ public class BuildSourceBuilder {
 
         // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
         // Otherwise, just to a regular build
-        PersistentStateCache<Boolean> stateCache = cacheRepository.cache("buildSrc").forObject(startParameter.getCurrentDir()).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).open().openStateCache();
+        PersistentStateCache<Boolean> stateCache = cacheRepository.stateCache(Boolean.class, "buildSrc").forObject(startParameter.getCurrentDir()).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).open();
         boolean rebuild = stateCache.get() == null;
 
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameterArg);
