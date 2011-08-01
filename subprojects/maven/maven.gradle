@@ -66,9 +66,13 @@ test {
         //We cannot simply remove maven-ant-tasks from the classpath because it is needed by some internal classes unrelated (?) to maven plugin.
 
         def mvnAntTasksJar = classpath.find { it.name.startsWith('maven-ant-tasks-') }
-        //remove mvnAntTasks jar
-        classpath -= files(mvnAntTasksJar)
-        //append it at the end so that the old version of classes is at the end of the classpath :)
-        classpath += files(mvnAntTasksJar)
+        //after changing cache format, this does not work any more:
+        //classpath -= files(mvnAntTasksJar)
+
+        //move mvnAntTasks jar to the end of the classpath
+        def newClasspath = (classpath.files - mvnAntTasksJar) + mvnAntTasksJar
+
+        classpath = files(newClasspath)
     }
+
 }
