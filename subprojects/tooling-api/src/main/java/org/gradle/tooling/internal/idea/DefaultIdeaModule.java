@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.idea;
 
-import org.gradle.api.GradleException;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
