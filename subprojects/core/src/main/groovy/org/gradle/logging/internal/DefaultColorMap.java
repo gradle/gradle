@@ -94,11 +94,6 @@ public class DefaultColorMap implements ColorMap {
 
         if (colorSpec != null) {
             if (colorSpec.equalsIgnoreCase(BOLD)) {
-                String terminalProgram = System.getenv("TERM_PROGRAM");
-                if (terminalProgram != null && terminalProgram.equals("iTerm.app")) {
-                    // iTerm displays bold as red (by default), so don't bother
-                    return noDecoration;
-                }
                 return new AttributeColor(INTENSITY_BOLD, INTENSITY_BOLD_OFF);
             }
             if (colorSpec.equalsIgnoreCase("reverse")) {
