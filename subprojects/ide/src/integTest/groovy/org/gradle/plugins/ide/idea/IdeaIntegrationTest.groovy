@@ -160,7 +160,7 @@ apply plugin: 'idea'
 
 def hookActivated = 0
 
-ideaModule {
+idea.module.iml {
     withXml { hookActivated++ }
 }
 
@@ -230,7 +230,7 @@ dependencies {
 apply plugin: 'java'
 apply plugin: 'idea'
 
-ideaModule {
+idea.module {
     inheritOutputDirs = false
     outputDir = file('foo-out')
     testOutputDir = file('foo-out-test')

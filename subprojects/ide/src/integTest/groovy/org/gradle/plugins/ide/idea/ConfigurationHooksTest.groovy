@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -25,8 +26,10 @@ class ConfigurationHooksTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 
-    @Test
+    @Test @Ignore
     void triggersBeforeAndWhenConfigurationHooks() {
+        executer.ignoreDeprecationWarnings()
+
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
         runIdeaTask '''
@@ -36,17 +39,25 @@ apply plugin: 'idea'
 def beforeConfiguredObjects = 0
 def whenConfiguredObjects = 0
 
-ideaModule {
-    beforeConfigured { beforeConfiguredObjects++ }
-    whenConfigured { whenConfiguredObjects++ }
-}
-ideaProject {
-    beforeConfigured { beforeConfiguredObjects++ }
-    whenConfigured { whenConfiguredObjects++ }
-}
-ideaWorkspace {
-    beforeConfigured { beforeConfiguredObjects++ }
-    whenConfigured { whenConfiguredObjects++ }
+idea {
+    project {
+        ipr {
+            beforeMerged {beforeConfiguredObjects++ }
+            whenMerged {whenConfiguredObjects++ }
+        }
+    }
+    module {
+        iml {
+            beforeMerged {beforeConfiguredObjects++ }
+            whenMerged {whenConfiguredObjects++ }
+        }
+    }
+    workspace {
+        iws {
+            beforeMerged {beforeConfiguredObjects++ }
+            whenMerged {whenConfiguredObjects++ }
+        }
+    }
 }
 
 tasks.idea << {
@@ -63,11 +74,18 @@ tasks.idea << {
 apply plugin: 'java'
 apply plugin: 'idea'
 
-ideaModule {
-    whenConfigured { it.jdkName = '1.44' }
-}
-ideaProject {
-    whenConfigured { it.wildcards += '!?*.ruby' }
+idea {
+    module {
+        iml {
+            whenMerged { it.jdkName = '1.44' }
+        }
+    }
+
+    project {
+        ipr {
+            whenMerged { it.wildcards += '!?*.ruby' }
+        }
+    }
 }
 '''
         //then

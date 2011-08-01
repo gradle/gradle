@@ -8,6 +8,6 @@ dependencies {
     testCompile 'junit:junit:4.8.2'
 }
 
-buildDirName = 'target'
+buildDir = 'target'
 sourceSets.main.output.classesDir = new File(buildDir, 'main-classes')
 sourceSets.test.output.classesDir = new File(buildDir, 'test-classes')

@@ -83,7 +83,7 @@ project(':services:utilities') {
 """
 
         //when
-        executer.failingOnDeprecationWarning().usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
 
         //then
         assertApiProjectContainsCorrectDependencies()
@@ -138,7 +138,7 @@ project(':api') {
 """
 
         //when
-        executer.failingOnDeprecationWarning().usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
 
         //then
         def deps = parseEclipseProjectDependencies(project: 'master/api')

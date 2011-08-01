@@ -40,7 +40,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private GradleDistribution dist;
     private boolean workingDirSet;
     private boolean userHomeSet;
-    private boolean deprecationChecksOn;
+    private boolean deprecationChecksOn = true;
 
     public enum Executer {
         forking, embedded, daemon
@@ -84,7 +84,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         super.reset();
         workingDirSet = false;
         userHomeSet = false;
-        deprecationChecksOn = false;
+        deprecationChecksOn = true;
+        DeprecationLogger.reset();
         return this;
     }
 
@@ -112,9 +113,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return checkResult(configureExecuter().runWithFailure());
     }
 
-    public GradleDistributionExecuter failingOnDeprecationWarning() {
-        deprecationChecksOn = true;
-        DeprecationLogger.reset();
+    public GradleDistributionExecuter ignoreDeprecationWarnings() {
+        deprecationChecksOn = false;
         return this;
     }
 

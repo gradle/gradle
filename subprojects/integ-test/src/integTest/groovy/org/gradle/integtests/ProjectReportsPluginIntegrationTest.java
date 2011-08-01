@@ -21,10 +21,11 @@ import org.junit.Test;
 public class ProjectReportsPluginIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void generatesReportFilesToReportsDirectory() {
+        executer.ignoreDeprecationWarnings();
         testFile("build.gradle").writelns(
                 "apply plugin: 'project-report'"
         );
-        executer.failingOnDeprecationWarning().inDirectory(getTestDir()).withTasks("projectReport").run();
+        inTestDirectory().withTasks("projectReport").run();
 
         testFile("build/reports/project/dependencies.txt").assertExists();
         testFile("build/reports/project/properties.txt").assertExists();

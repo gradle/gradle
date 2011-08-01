@@ -93,5 +93,5 @@ task filter(type: Copy) {
 // END SNIPPET filter-files
 
 task test {
-    dependsOn tasks.findAll { it.name != 'test' }
+    dependsOn tasks.matching { it.name != 'test' }
 }
