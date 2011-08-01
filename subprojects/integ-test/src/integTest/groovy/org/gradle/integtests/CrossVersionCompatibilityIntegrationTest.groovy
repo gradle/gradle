@@ -42,7 +42,7 @@ class CrossVersionCompatibilityIntegrationTest {
         // Upgrade and downgrade from previous version to current version and back again
         eachVersion([gradle08, gradle09rc3, gradle09, gradle091, gradle092, gradle10Milestone1, gradle10Milestone2, gradle10Milestone3, gradle10Milestone4]) { version ->
             version.executer().inDirectory(dist.testDir).withTasks('build').run()
-            dist.executer().inDirectory(dist.testDir).withTasks('build').run()
+            dist.executer().ignoreDeprecationWarnings().inDirectory(dist.testDir).withTasks('build').run()
             version.executer().inDirectory(dist.testDir).withTasks('build').run()
         }
     }
