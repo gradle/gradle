@@ -17,10 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.DefaultClassPathProvider;
-import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.*;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -55,7 +52,7 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         return new DefaultClassPathRegistry();
     }
 
-    protected CacheFactory createCacheFactory() {
+    protected Factory<CacheFactory> createCacheFactory() {
         return new DefaultCacheFactory();
     }
 

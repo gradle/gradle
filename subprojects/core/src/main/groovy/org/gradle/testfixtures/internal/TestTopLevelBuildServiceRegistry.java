@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
+import org.gradle.cache.CacheFactory;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
 
@@ -34,6 +35,11 @@ public class TestTopLevelBuildServiceRegistry extends TopLevelBuildServiceRegist
 
     protected BuildClientMetaData createClientMetaData() {
         return new GradleLauncherMetaData();
+    }
+
+    @Override
+    protected CacheFactory createCacheFactory() {
+        return new InMemoryCacheFactory();
     }
 
     protected GradleDistributionLocator createGradleDistributionLocator() {

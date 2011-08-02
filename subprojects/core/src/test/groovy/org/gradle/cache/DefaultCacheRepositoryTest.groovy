@@ -34,7 +34,6 @@ class DefaultCacheRepositoryTest extends Specification {
     private final Map<String, ?> properties = [a: "value", b: "value2"]
     private final CacheFactory cacheFactory = Mock()
     private final PersistentCache cache = Mock()
-    private final CacheFactory.CacheReference cacheReference = reference(cache)
     private final Gradle gradle = Mock()
     private final DefaultCacheRepository repository = new DefaultCacheRepository(homeDir, ".gradle", CacheUsage.ON, cacheFactory)
 
@@ -51,35 +50,33 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         result == cache
-        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, [:]) >> cacheReference
+        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, [:]) >> cache
         0 * cacheFactory._
     }
 
     public void createsGlobalIndexedCache() {
         given:
         PersistentIndexedCache<String, Integer> indexedCache = Mock()
-        def ref = reference(indexedCache)
 
         when:
         def result = repository.indexedCache(String.class, Integer.class, "key").open()
 
         then:
         result == indexedCache
-        1 * cacheFactory.openIndexedCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, [:], {it instanceof DefaultSerializer}) >> ref
+        1 * cacheFactory.openIndexedCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, [:], {it instanceof DefaultSerializer}) >> indexedCache
         0 * cacheFactory._
     }
 
     public void createsGlobalStateCache() {
         given:
         PersistentStateCache<String> stateCache = Mock()
-        def ref = reference(stateCache)
 
         when:
         def result = repository.stateCache(String.class, "key").open()
 
         then:
         result == stateCache
-        1 * cacheFactory.openStateCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, Collections.EMPTY_MAP, {it instanceof DefaultSerializer}) >> ref
+        1 * cacheFactory.openStateCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, Collections.EMPTY_MAP, {it instanceof DefaultSerializer}) >> stateCache
         0 * cacheFactory._
     }
 
@@ -88,7 +85,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withProperties(properties).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, properties) >> cacheReference
+        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, properties) >> cache
     }
 
     public void createsCacheForAGradleInstance() {
@@ -96,7 +93,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").forObject(gradle).open()
 
         then:
-        1 * cacheFactory.open(buildRootDir.file(".gradle", version, "a/b/c"), CacheUsage.ON, [:]) >> cacheReference
+        1 * cacheFactory.open(buildRootDir.file(".gradle", version, "a/b/c"), CacheUsage.ON, [:]) >> cache
     }
 
     public void createsCacheForAFile() {
@@ -106,7 +103,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").forObject(dir).open()
 
         then:
-        1 * cacheFactory.open(dir.file(".gradle", version, "a/b/c"), CacheUsage.ON, [:]) >> cacheReference
+        1 * cacheFactory.open(dir.file(".gradle", version, "a/b/c"), CacheUsage.ON, [:]) >> cache
     }
 
     public void createsCrossVersionCache() {
@@ -114,7 +111,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir.file("a/b/c"), CacheUsage.ON, [:]) >> cacheReference
+        1 * cacheFactory.open(sharedCacheDir.file("a/b/c"), CacheUsage.ON, [:]) >> cache
     }
 
     public void createsCrossVersionCacheForAGradleInstance() {
@@ -122,7 +119,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).forObject(gradle).open()
 
         then:
-        1 * cacheFactory.open(buildRootDir.file(".gradle", "a/b/c"), CacheUsage.ON, [:]) >> cacheReference
+        1 * cacheFactory.open(buildRootDir.file(".gradle", "a/b/c"), CacheUsage.ON, [:]) >> cache
     }
 
     public void createsCrossVersionCacheThatIsInvalidatedOnVersionChange() {
@@ -130,7 +127,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir.file("noVersion", "a/b/c"), CacheUsage.ON, ["gradle.version": version]) >> cacheReference
+        1 * cacheFactory.open(sharedCacheDir.file("noVersion", "a/b/c"), CacheUsage.ON, ["gradle.version": version]) >> cache
     }
 
     public void createsCrossVersionCacheForAGradleInstanceThatIsInvalidatedOnVersionChange() {
@@ -138,24 +135,6 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).forObject(gradle).open()
 
         then:
-        1 * cacheFactory.open(buildRootDir.file(".gradle", "noVersion", "a/b/c"), CacheUsage.ON, ["gradle.version": version]) >> cacheReference
-    }
-
-    public void releasesCachesOnClose() {
-        given:
-        1 * cacheFactory.open(sharedCacheDir.file(version, "a"), CacheUsage.ON, [:]) >> cacheReference
-        repository.cache("a").open()
-
-        when:
-        repository.close()
-
-        then:
-        1 * cacheReference.release()
-    }
-
-    def reference(Object cache) {
-        CacheFactory.CacheReference ref = Mock()
-        _ * ref.cache >> cache
-        return ref
+        1 * cacheFactory.open(buildRootDir.file(".gradle", "noVersion", "a/b/c"), CacheUsage.ON, ["gradle.version": version]) >> cache
     }
 }

@@ -23,19 +23,19 @@ import java.io.File;
 import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
-    public CacheReference<PersistentCache> open(final File cacheDir, CacheUsage usage, Map<String, ?> properties) {
+    public PersistentCache open(final File cacheDir, CacheUsage usage, Map<String, ?> properties) {
         cacheDir.mkdirs();
-        return new CacheReferenceImpl<PersistentCache>(new InMemoryCache(cacheDir));
+        return new InMemoryCache(cacheDir);
     }
 
-    public <K, V> CacheReference<PersistentIndexedCache<K, V>> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<V> serializer) {
+    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<V> serializer) {
         cacheDir.mkdirs();
-        return new CacheReferenceImpl<PersistentIndexedCache<K, V>>(new InMemoryIndexedCache<K, V>());
+        return new InMemoryIndexedCache<K, V>();
     }
 
-    public <E> CacheReference<PersistentStateCache<E>> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<E> serializer) {
+    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<E> serializer) {
         cacheDir.mkdirs();
-        return new CacheReferenceImpl<PersistentStateCache<E>>(new SimpleStateCache<E>(new InMemoryCache(cacheDir), new DefaultSerializer<E>()));
+        return new SimpleStateCache<E>(new InMemoryCache(cacheDir), new DefaultSerializer<E>());
     }
 
     private static class InMemoryCache implements PersistentCache {
@@ -54,33 +54,6 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         public void markValid() {
-        }
-
-        public <K, V> PersistentIndexedCache<K, V> openIndexedCache(Serializer<V> serializer) {
-            return new InMemoryIndexedCache<K, V>();
-        }
-
-        public <K, V> PersistentIndexedCache<K, V> openIndexedCache() {
-            return new InMemoryIndexedCache<K, V>();
-        }
-
-        public <T> PersistentStateCache<T> openStateCache() {
-            return new SimpleStateCache<T>(this, new DefaultSerializer<T>());
-        }
-    }
-
-    private static class CacheReferenceImpl<T> implements CacheFactory.CacheReference<T> {
-        private final T cache;
-
-        public CacheReferenceImpl(T cache) {
-            this.cache = cache;
-        }
-
-        public T getCache() {
-            return cache;
-        }
-
-        public void release() {
         }
     }
 }

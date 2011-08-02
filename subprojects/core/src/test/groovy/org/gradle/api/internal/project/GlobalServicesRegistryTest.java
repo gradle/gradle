@@ -50,8 +50,8 @@ public class GlobalServicesRegistryTest {
     }
 
     @Test
-    public void providesACacheFactory() {
-        assertThat(registry.get(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
+    public void providesACacheFactoryFactory() {
+        assertThat(registry.getFactory(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
     }
 
     @Test

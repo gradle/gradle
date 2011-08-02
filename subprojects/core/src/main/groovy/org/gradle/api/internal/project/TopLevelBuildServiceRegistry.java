@@ -135,6 +135,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                                                         get(TaskArtifactStateRepository.class)))))));
     }
 
+    protected CacheFactory createCacheFactory() {
+        return getFactory(CacheFactory.class).create();
+    }
+
     protected CacheRepository createCacheRepository() {
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), get(CacheFactory.class));

@@ -58,7 +58,7 @@ public class WorkerProcessIntegrationTest {
     private final MessagingServices messagingServices = new MessagingServices(getClass().getClassLoader());
     private final MessagingServer server = messagingServices.get(MessagingServer.class);
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new WorkerProcessClassPathProvider(new DefaultCacheRepository(tmpDir.getDir(), ".gradle", CacheUsage.ON, new DefaultCacheFactory())));
+    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new WorkerProcessClassPathProvider(new DefaultCacheRepository(tmpDir.getDir(), ".gradle", CacheUsage.ON, new DefaultCacheFactory().create())));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new BaseDirConverter(tmpDir.getTestDir()), new LongIdGenerator());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);

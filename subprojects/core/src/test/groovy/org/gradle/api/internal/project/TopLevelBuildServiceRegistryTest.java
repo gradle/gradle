@@ -66,7 +66,8 @@ public class TopLevelBuildServiceRegistryTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final StartParameter startParameter = new StartParameter();
-    private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
+    private final Factory<CacheFactory> cacheFactoryFactory = context.mock(Factory.class);
+    private final ClosableCacheFactory cacheFactory = context.mock(ClosableCacheFactory.class);
     private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
     private final ClassLoaderRegistry classLoaderRegistry = context.mock(ClassLoaderRegistry.class);
     private final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
@@ -75,7 +76,9 @@ public class TopLevelBuildServiceRegistryTest {
     public void setUp() {
         startParameter.setGradleUserHomeDir(tmpDir.getDir());
         context.checking(new Expectations(){{
-            allowing(parent).get(CacheFactory.class);
+            allowing(parent).getFactory(CacheFactory.class);
+            will(returnValue(cacheFactoryFactory));
+            allowing(cacheFactoryFactory).create();
             will(returnValue(cacheFactory));
             allowing(parent).get(ClassLoaderRegistry.class);
             will(returnValue(classLoaderRegistry));
@@ -127,11 +130,8 @@ public class TopLevelBuildServiceRegistryTest {
     public void providesATaskExecuter() {
         expectListenerManagerCreated();
         context.checking(new Expectations() {{
-            CacheFactory.CacheReference<PersistentCache> ref = context.mock(CacheFactory.CacheReference.class);
             PersistentIndexedCache cache = context.mock(PersistentIndexedCache.class);
             allowing(cacheFactory).openIndexedCache(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)), with(notNullValue(Serializer.class)));
-            will(returnValue(ref));
-            allowing(ref).getCache();
             will(returnValue(cache));
             ignoring(cache);
         }});
@@ -147,9 +147,15 @@ public class TopLevelBuildServiceRegistryTest {
     }
 
     @Test
-    public void providesACacheRepository() {
+    public void providesACacheRepositoryAndCleansUpOnClose() {
         assertThat(factory.get(CacheRepository.class), instanceOf(DefaultCacheRepository.class));
         assertThat(factory.get(CacheRepository.class), sameInstance(factory.get(CacheRepository.class)));
+
+        context.checking(new Expectations() {{
+            one(cacheFactory).close();
+        }});
+
+        factory.close();
     }
 
     @Test
@@ -268,5 +274,9 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(new ClassLoader() {
             }));
         }});
+    }
+
+    public interface ClosableCacheFactory extends CacheFactory {
+        void close();
     }
 }

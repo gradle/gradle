@@ -20,7 +20,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.cache.CacheFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.listener.DefaultListenerManager;
@@ -51,10 +50,6 @@ public class GlobalTestServices extends DefaultServiceRegistry {
 
     protected ClassLoaderRegistry createClassLoaderRegistry() {
         return new DefaultClassLoaderRegistry(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
-    }
-
-    protected CacheFactory createCacheFactory() {
-        return new InMemoryCacheFactory();
     }
 
     protected ProgressLoggerFactory createProgressLoggerFactory() {

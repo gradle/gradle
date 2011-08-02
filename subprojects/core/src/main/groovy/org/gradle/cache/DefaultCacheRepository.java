@@ -23,8 +23,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DefaultCacheRepository implements CacheRepository {
     private final GradleVersion version = GradleVersion.current();
@@ -32,7 +30,6 @@ public class DefaultCacheRepository implements CacheRepository {
     private final CacheUsage cacheUsage;
     private final String projectCacheDir;
     private final CacheFactory factory;
-    private final Set<CacheFactory.CacheReference<?>> caches = new CopyOnWriteArraySet<CacheFactory.CacheReference<?>>();
 
     public DefaultCacheRepository(File userHomeDir, String projectCacheDir, CacheUsage cacheUsage, CacheFactory factory) {
         this.projectCacheDir = projectCacheDir;
@@ -51,16 +48,6 @@ public class DefaultCacheRepository implements CacheRepository {
 
     public <K, V> ObjectCacheBuilder<V, PersistentIndexedCache<K, V>> indexedCache(Class<K> keyType, Class<V> elementType, String key) {
         return new IndexedCacheBuilder<K, V>(key);
-    }
-
-    public void close() {
-        try {
-            for (CacheFactory.CacheReference<?> reference: caches){
-                reference.release();
-            }
-        } finally {
-            caches.clear();
-        }
     }
 
     private abstract class AbstractCacheBuilder<T> implements CacheBuilder<T> {
@@ -115,12 +102,10 @@ public class DefaultCacheRepository implements CacheRepository {
                     properties.put("gradle.version", version.getVersion());
                     break;
             }
-            CacheFactory.CacheReference<T> cacheReference = doOpen(new File(cacheBaseDir, key), properties);
-            caches.add(cacheReference);
-            return cacheReference.getCache();
+            return doOpen(new File(cacheBaseDir, key), properties);
         }
 
-        protected abstract CacheFactory.CacheReference<T> doOpen(File cacheDir, Map<String, ?> properties);
+        protected abstract T doOpen(File cacheDir, Map<String, ?> properties);
 
         private File maybeProjectCacheDir(File potentialParentDir) {
             if (new File(projectCacheDir).isAbsolute()) {
@@ -136,7 +121,7 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        protected CacheFactory.CacheReference<PersistentCache> doOpen(File cacheDir, Map<String, ?> properties) {
+        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
             return factory.open(cacheDir, cacheUsage, properties);
         }
 
@@ -179,7 +164,7 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        protected CacheFactory.CacheReference<PersistentStateCache<E>> doOpen(File cacheDir, Map<String, ?> properties) {
+        protected PersistentStateCache<E> doOpen(File cacheDir, Map<String, ?> properties) {
             return factory.openStateCache(cacheDir, cacheUsage, properties, serializer);
         }
     }
@@ -190,7 +175,7 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        protected CacheFactory.CacheReference<PersistentIndexedCache<K, V>> doOpen(File cacheDir, Map<String, ?> properties) {
+        protected PersistentIndexedCache<K, V> doOpen(File cacheDir, Map<String, ?> properties) {
             return factory.openIndexedCache(cacheDir, cacheUsage, properties, serializer);
         }
     }
