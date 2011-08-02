@@ -280,7 +280,7 @@
                 <title>Disabling merging with a complete overwrite</title>
                 <para>To completely overwrite existing Eclipse files, execute a clean task together with its corresponding generation task,
                     for example <userinput>gradle cleanEclipse eclipse</userinput> (in that order). If you want to make this
-                    the default behavior, add <code>eclipse.dependsOn(cleanEclipse)</code> to your build script. This makes it
+                    the default behavior, add <code>tasks.eclipse.dependsOn(cleanEclipse)</code> to your build script. This makes it
                     unnecessary to execute the clean task explicitly.
                 </para>
                 <para>Complete overwrite works equally well for individual files, for example by executing <userinput> gradle cleanEclipseClasspath eclipseClasspath</userinput>.
