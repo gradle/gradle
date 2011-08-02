@@ -35,7 +35,11 @@ public abstract class AbstractPersistableConfigurationObject implements Persista
 
     public void loadDefaults() {
         try {
-            InputStream inputStream = getClass().getResourceAsStream(getDefaultResourceName());
+            String defaultResourceName = getDefaultResourceName();
+            InputStream inputStream = getClass().getResourceAsStream(defaultResourceName);
+            if (inputStream == null) {
+                throw new IllegalStateException(String.format("Failed to load default resource '%s' of persistable configuration object of type '%s' (resource not found)", defaultResourceName, getClass().getName()));
+            }
             try {
                 load(inputStream);
             } finally {
