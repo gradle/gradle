@@ -92,7 +92,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public Boolean getInheritOutputDirs() {
+    public boolean getInheritOutputDirs() {
         return inheritOutputDirs;
     }
 

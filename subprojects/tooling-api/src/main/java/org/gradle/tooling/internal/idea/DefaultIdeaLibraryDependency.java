@@ -59,7 +59,7 @@ public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Seri
         return this;
     }
 
-    public Boolean getExported() {
+    public boolean getExported() {
         return exported;
     }
 

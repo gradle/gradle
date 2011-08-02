@@ -38,5 +38,5 @@ public interface IdeaDependency extends Dependency {
      *
      * @return <code>true</code> if current dependency is transitive; <code>false</code> otherwise
      */
-    Boolean getExported();
+    boolean getExported();
 }

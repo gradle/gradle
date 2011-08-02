@@ -48,7 +48,7 @@ public class DefaultIdeaModuleDependency implements IdeaModuleDependency, Serial
         return this;
     }
 
-    public Boolean getExported() {
+    public boolean getExported() {
         return exported;
     }
 
