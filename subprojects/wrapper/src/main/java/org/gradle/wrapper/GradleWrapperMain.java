@@ -34,7 +34,7 @@ public class GradleWrapperMain {
         boolean alwaysDownload = Boolean.parseBoolean(System.getenv(ALWAYS_DOWNLOAD_ENV));
         boolean alwaysUnpack = Boolean.parseBoolean(System.getenv(ALWAYS_UNPACK_ENV));
 
-        new Wrapper().execute(
+        new WrapperExecutor(System.out).execute(
                 args,
                 new Install(alwaysDownload, alwaysUnpack, new Download(), new PathAssembler(gradleUserHome())),
                 new BootstrapMainStarter());

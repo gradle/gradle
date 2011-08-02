@@ -15,17 +15,16 @@
  */
 package org.gradle.wrapper;
 
-import org.gradle.util.DeprecationLogger;
-
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Formatter;
 import java.util.Properties;
 
 /**
  * @author Hans Dockter
  */
-public class Wrapper {
+public class WrapperExecutor {
     public static final String WRAPPER_PROPERTIES_PROPERTY = "org.gradle.wrapper.properties";
 
     public static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
@@ -36,18 +35,20 @@ public class Wrapper {
     private final Properties properties;
     private final URI distribution;
     private final File propertiesFile;
+    private final Appendable warningOutput;
 
-    public Wrapper() {
-        this(new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY)), new Properties());
+    public WrapperExecutor(Appendable warningOutput) {
+        this(new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY)), new Properties(), warningOutput);
     }
 
-    public Wrapper(File projectDir) {
-        this(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties());
+    public WrapperExecutor(File projectDir, Appendable warningOutput) {
+        this(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties(), warningOutput);
     }
 
-    Wrapper(File propertiesFile, Properties properties) {
+    WrapperExecutor(File propertiesFile, Properties properties, Appendable warningOutput) {
         this.properties = properties;
         this.propertiesFile = propertiesFile;
+        this.warningOutput = warningOutput;
         if (propertiesFile.exists()) {
             try {
                 loadProperties(propertiesFile, properties);
@@ -78,19 +79,20 @@ public class Wrapper {
         return readDistroUrlDeprecatedWay();
     }
 
-    @Deprecated
     private URI readDistroUrlDeprecatedWay() throws URISyntaxException {
         String distroUrl = null;
         try {
-        distroUrl = getProperty("urlRoot") + "/"
-            + getProperty("distributionName") + "-"
-            + getProperty("distributionVersion") + "-"
-            + getProperty("distributionClassifier") + ".zip";
-        DeprecationLogger.nagUserWith(propertiesFile + " contains deprecated entries: 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier' are deprecated and will be removed soon. Please use '" + DISTRIBUTION_URL_PROPERTY + "' instead.");
-    } catch (Exception e) {
-        //even the deprecated properties are not provided, report error:
-        reportMissingProperty(DISTRIBUTION_URL_PROPERTY);
-    }
+            distroUrl = getProperty("urlRoot") + "/"
+                    + getProperty("distributionName") + "-"
+                    + getProperty("distributionVersion") + "-"
+                    + getProperty("distributionClassifier") + ".zip";
+            Formatter formatter = new Formatter();
+            formatter.format("%s contains deprecated entries: 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier' are deprecated and will be removed soon. Please use '%s' instead.%n", properties, DISTRIBUTION_URL_PROPERTY);
+            warningOutput.append(formatter.toString());
+        } catch (Exception e) {
+            //even the deprecated properties are not provided, report error:
+            reportMissingProperty(DISTRIBUTION_URL_PROPERTY);
+        }
         return new URI(distroUrl);
     }
 

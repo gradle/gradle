@@ -58,7 +58,7 @@ class DistributionIntegrationTest {
         contentsDir.file('src/org/gradle/api/Project.java').assertIsFile()
         contentsDir.file('src/org/gradle/initialization/defaultBuildSourceScript.txt').assertIsFile()
         contentsDir.file('src/org/gradle/gradleplugin/userinterface/swing/standalone/BlockingApplication.java').assertIsFile()
-        contentsDir.file('src/org/gradle/wrapper/Wrapper.java').assertIsFile()
+        contentsDir.file('src/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
 
         // Samples
         contentsDir.file('samples/java/quickstart/build.gradle').assertIsFile()

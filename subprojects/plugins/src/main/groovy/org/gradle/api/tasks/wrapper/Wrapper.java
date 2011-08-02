@@ -25,6 +25,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.DistributionLocator;
 import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
 import org.gradle.util.*;
+import org.gradle.wrapper.Install;
+import org.gradle.wrapper.WrapperExecutor;
 
 import java.io.File;
 import java.net.URL;
@@ -45,14 +47,9 @@ import java.util.Properties;
  * @author Hans Dockter
  */
 public class Wrapper extends DefaultTask {
-    // Properties used by the gradle-wrapper
-    static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
-    static final String DISTRIBUTION_BASE_PROPERTY = "distributionBase";
-    static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
-    static final String DISTRIBUTION_PATH_PROPERTY = "distributionPath";
-    static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
+    static final String DISTRIBUTION_BASE_PROPERTY = WrapperExecutor.DISTRIBUTION_BASE_PROPERTY;
 
-    public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = "wrapper/dists";
+    public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
     public static final String DEFAULT_ARCHIVE_NAME = "gradle";
     public static final String DEFAULT_ARCHIVE_CLASSIFIER = "bin";
 
@@ -128,11 +125,11 @@ public class Wrapper extends DefaultTask {
 
     private void writeProperties(File propertiesFileDestination) {
         Properties wrapperProperties = new Properties();
-        wrapperProperties.put(DISTRIBUTION_URL_PROPERTY, getDistributionUrl());
-        wrapperProperties.put(DISTRIBUTION_BASE_PROPERTY, distributionBase.toString());
-        wrapperProperties.put(DISTRIBUTION_PATH_PROPERTY, distributionPath);
-        wrapperProperties.put(ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
-        wrapperProperties.put(ZIP_STORE_PATH_PROPERTY, archivePath);
+        wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, getDistributionUrl());
+        wrapperProperties.put(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, distributionBase.toString());
+        wrapperProperties.put(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
+        wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
+        wrapperProperties.put(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
         GUtil.saveProperties(wrapperProperties, propertiesFileDestination);
     }
 

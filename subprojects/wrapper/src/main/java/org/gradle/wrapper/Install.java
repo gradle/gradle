@@ -16,11 +16,10 @@
 
 package org.gradle.wrapper;
 
-import org.gradle.util.SystemProperties;
-
 import java.io.*;
 import java.net.URI;
 import java.util.Enumeration;
+import java.util.Formatter;
 import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -29,6 +28,7 @@ import java.util.zip.ZipFile;
  * @author Hans Dockter
  */
 public class Install {
+    public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     private final IDownload download;
     private final boolean alwaysDownload;
     private final boolean alwaysUnpack;
@@ -39,6 +39,10 @@ public class Install {
         this.alwaysUnpack = alwaysUnpack;
         this.download = download;
         this.pathAssembler = pathAssembler;
+    }
+
+    public File createDist(URI distributionUrl) throws Exception {
+        return createDist(distributionUrl, PathAssembler.GRADLE_USER_HOME_STRING, DEFAULT_DISTRIBUTION_PATH, PathAssembler.GRADLE_USER_HOME_STRING, DEFAULT_DISTRIBUTION_PATH);
     }
 
     public File createDist(URI distributionUrl, String distBase, String distPath, String zipBase, String zipPath) throws Exception {
@@ -83,11 +87,12 @@ public class Install {
                 System.out.println("Set executable permissions for: " + gradleCommand.getAbsolutePath());
             } else {
                 BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                errorMessage = "";
+                Formatter stdout = new Formatter();
                 String line;
                 while ((line = is.readLine()) != null) {
-                    errorMessage += line + SystemProperties.getLineSeparator();
+                    stdout.format("%s%n", line);
                 }
+                errorMessage = stdout.toString();
             }
         } catch (IOException e) {
             errorMessage = e.getMessage();

@@ -15,23 +15,14 @@
  */
 apply plugin: 'groovy'
 
+configurations {
+    compile.extendsFrom = []
+}
+
 dependencies {
     groovy libraries.groovy_depends
-    publishCompile project(':core')
 
-    compile libraries.commons_io, libraries.ant
-
+    testCompile libraries.ant
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
-
-task wrapperJar(type: Jar) {
-    dependsOn compileJava, processResources
-    from sourceSets.main.output.classesDir
-    include 'org/gradle/wrapper/**'
-
-    archiveName = 'gradle-wrapper.jar'
-    destinationDir = generatedResourcesDir
-    manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.GradleWrapperMain')
-}
-sourceSets.main.output.dir generatedResourcesDir, buildBy: wrapperJar

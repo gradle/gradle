@@ -44,7 +44,7 @@ public class DistributionFactory {
      * Returns the default distribution to use for the specified project.
      */
     public Distribution getDefaultDistribution(File projectDir) {
-        Wrapper wrapper = new Wrapper(projectDir);
+        WrapperExecutor wrapper = new WrapperExecutor(projectDir, System.out);
         if (wrapper.getDistribution() != null) {
             return getDistribution(wrapper.getDistribution());
         }
@@ -106,7 +106,7 @@ public class DistributionFactory {
                 File installDir;
                 try {
                     Install install = new Install(false, false, new ProgressReportingDownload(progressLoggerFactory), new PathAssembler(userHomeDir));
-                    installDir = install.createDist(gradleDistribution, PathAssembler.GRADLE_USER_HOME_STRING, org.gradle.api.tasks.wrapper.Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, PathAssembler.GRADLE_USER_HOME_STRING, org.gradle.api.tasks.wrapper.Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME);
+                    installDir = install.createDist(gradleDistribution);
                 } catch (FileNotFoundException e) {
                     throw new IllegalArgumentException(String.format("The specified %s does not exist.", getDisplayName()), e);
                 } catch (Exception e) {

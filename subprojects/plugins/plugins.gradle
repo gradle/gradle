@@ -17,12 +17,13 @@
 configurations {
     reports
     testFixtures
+    wrapper
 }
 
 dependencies {
     groovy libraries.groovy_depends
 
-    compile project(':core')
+    compile project(':core'), project(':wrapper')
 
     compile libraries.slf4j_api,
             libraries.commons_lang,
@@ -32,6 +33,7 @@ dependencies {
             'org.testng:testng:5.14.10'
 
     reports 'css3-pie:css3-pie:1.0beta3'
+    wrapper project(':wrapper')
     testCompile libraries.xmlunit, 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 
     testCompile project(path: ':core', configuration: 'testFixtures')
@@ -39,13 +41,18 @@ dependencies {
     testFixtures sourceSets.test.output
 }
 
-task reportResources << {
-    copy {
-        from(configurations.reports)
-        into "$generatedResourcesDir/org/gradle/api/internal/tasks/testing/junit/report"
-    }
+task reportResources(type: Copy) {
+    from configurations.reports
+    into "$generatedResourcesDir/org/gradle/api/internal/tasks/testing/junit/report"
 }
 sourceSets.main.output.dir generatedResourcesDir, buildBy: reportResources
+
+task wrapperJar(type: Copy) {
+    from configurations.wrapper
+    into "$generatedResourcesDir"
+    rename 'gradle-wrapper-(.+)\\.jar', 'gradle-wrapper.jar'
+}
+sourceSets.main.output.dir generatedResourcesDir, buildBy: wrapperJar
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'

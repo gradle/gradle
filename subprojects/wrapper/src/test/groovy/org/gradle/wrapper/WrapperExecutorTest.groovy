@@ -21,7 +21,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 
-class WrapperTest extends Specification {
+class WrapperExecutorTest extends Specification {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     @Rule
@@ -43,32 +43,32 @@ class WrapperTest extends Specification {
         properties.zipStorePath = 'testZipPath'
         propertiesFile.parentFile.mkdirs()
         propertiesFile.withOutputStream { properties.store(it, 'header') }
-        System.setProperty(Wrapper.WRAPPER_PROPERTIES_PROPERTY, propertiesFile.absolutePath)
+        System.setProperty(WrapperExecutor.WRAPPER_PROPERTIES_PROPERTY, propertiesFile.absolutePath)
     }
 
     def "uses system property to locate properties file"() {
-        def wrapper = new Wrapper()
+        def wrapper = new WrapperExecutor(System.out)
 
         expect:
         wrapper.distribution == new URI('http://server/test/gradle.zip')
     }
 
     def "loads wrapper meta data from project directory"() {
-        def wrapper = new Wrapper(projectDir)
+        def wrapper = new WrapperExecutor(projectDir, System.out)
 
         expect:
         wrapper.distribution == new URI('http://server/test/gradle.zip')
     }
 
     def "can query for distribution when properties file does not exist"() {
-        def wrapper = new Wrapper(tmpDir.file('unknown'))
+        def wrapper = new WrapperExecutor(tmpDir.file('unknown'), System.out)
 
         expect:
         wrapper.distribution == null
     }
 
     def "execute installs distribution and launches application"() {
-        def wrapper = new Wrapper()
+        def wrapper = new WrapperExecutor(System.out)
         def installDir = tmpDir.file('install')
 
         when:
@@ -85,7 +85,7 @@ class WrapperTest extends Specification {
         propertiesFile.withOutputStream { properties.store(it, 'header') }
 
         when:
-        new Wrapper()
+        new WrapperExecutor(System.out)
 
         then:
         RuntimeException e = thrown()
@@ -95,7 +95,7 @@ class WrapperTest extends Specification {
 
     def "execute fails when properties file does not exist"() {
         propertiesFile.delete()
-        def wrapper = new Wrapper()
+        def wrapper = new WrapperExecutor(System.out)
 
         when:
         wrapper.execute(['arg'] as String[], install, start)
@@ -122,7 +122,7 @@ class WrapperTest extends Specification {
         propertiesFile.withOutputStream { properties.store(it, 'header') }
 
         when:
-        new Wrapper(propertiesFile, new Properties())
+        new WrapperExecutor(propertiesFile, new Properties(), System.out)
 
         then:
         noExceptionThrown()
@@ -140,7 +140,7 @@ class WrapperTest extends Specification {
         propertiesFile.withOutputStream { properties.store(it, 'header') }
 
         when:
-        new Wrapper(propertiesFile, new Properties())
+        new WrapperExecutor(propertiesFile, new Properties(), System.out)
 
         then:
         Exception e = thrown()
@@ -153,7 +153,7 @@ class WrapperTest extends Specification {
         propertiesFile.withOutputStream { properties.store(it, 'header') }
 
         when:
-        Wrapper wrapper = new Wrapper(propertiesFile, new Properties())
+        WrapperExecutor wrapper = new WrapperExecutor(propertiesFile, new Properties(), System.out)
 
         then:
         //distribution uri should resolve into absolute path

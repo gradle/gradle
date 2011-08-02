@@ -21,6 +21,7 @@ import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
 import org.gradle.util.*;
 import org.gradle.wrapper.GradleWrapperMain;
+import org.gradle.wrapper.WrapperExecutor;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -184,11 +185,11 @@ public class WrapperTest extends AbstractTaskTest {
         expectedTargetWrapperJar.unzipTo(unjarDir);
         unjarDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile();
         Properties properties = GUtil.loadProperties(expectedTargetWrapperProperties);
-        assertEquals(properties.getProperty(Wrapper.DISTRIBUTION_URL_PROPERTY), wrapper.getDistributionUrl());
-        assertEquals(properties.getProperty(Wrapper.DISTRIBUTION_BASE_PROPERTY), wrapper.getDistributionBase().toString());
-        assertEquals(properties.getProperty(Wrapper.DISTRIBUTION_PATH_PROPERTY), wrapper.getDistributionPath());
-        assertEquals(properties.getProperty(Wrapper.ZIP_STORE_BASE_PROPERTY), wrapper.getArchiveBase().toString());
-        assertEquals(properties.getProperty(Wrapper.ZIP_STORE_PATH_PROPERTY), wrapper.getArchivePath());
+        assertEquals(properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY), wrapper.getDistributionUrl());
+        assertEquals(properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY), wrapper.getDistributionBase().toString());
+        assertEquals(properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY), wrapper.getDistributionPath());
+        assertEquals(properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY), wrapper.getArchiveBase().toString());
+        assertEquals(properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY), wrapper.getArchivePath());
     }
 
     private String toNative(String s) {

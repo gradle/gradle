@@ -16,7 +16,6 @@
 
 package org.gradle.wrapper
 
-import org.gradle.api.tasks.wrapper.Wrapper.PathBase
 import org.gradle.util.TemporaryFolder
 import org.junit.Before
 import org.junit.Rule
@@ -49,9 +48,9 @@ class InstallTest {
     @Before public void setUp() {
         downloadCalled = false
         testDir = tmpDir.dir
-        testZipBase = PathBase.PROJECT.toString()
+        testZipBase = PathAssembler.PROJECT_STRING
         testZipPath = 'someZipPath'
-        testDistBase = PathBase.GRADLE_USER_HOME.toString()
+        testDistBase = PathAssembler.GRADLE_USER_HOME_STRING
         testDistPath = 'someDistPath'
         testDistUrl = new URI('http://server/gradle-0.9.zip')
         distributionDir = new File(testDir, testDistPath)
