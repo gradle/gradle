@@ -23,7 +23,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.tooling.internal.DefaultGradleProject;
 import org.gradle.tooling.internal.DefaultGradleTask;
 import org.gradle.tooling.internal.protocol.InternalGradleProject;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.GradleTask;
 
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ public class GradleProjectBuilder implements BuildsModel {
         return type == InternalGradleProject.class;
     }
 
-    public ProjectVersion3 buildAll(GradleInternal gradle) {
+    public DefaultGradleProject buildAll(GradleInternal gradle) {
         DefaultGradleProject root = buildHierarchy(gradle.getRootProject());
         return root;
     }
