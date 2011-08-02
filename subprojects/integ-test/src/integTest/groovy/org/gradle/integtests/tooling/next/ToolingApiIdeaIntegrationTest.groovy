@@ -108,7 +108,8 @@ idea.module.testOutputDir = file('someTestDir')
         def module = project.children[0]
 
         then:
-        module.contentRoots == [projectDir]
+        module.contentRoots.size() == 1
+        module.contentRoots[0].rootDirectory == projectDir
         module.parent instanceof IdeaProject
         module.parent == project
         module.parent == module.project

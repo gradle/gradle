@@ -35,8 +35,7 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      *
      * @return content roots
      */
-    List<File> getContentRoots();
-    //TODO SF - this is no good. It requires better modelling because src/test/exclude folders are per content root
+    DomainObjectSet<? extends IdeaContentRoot> getContentRoots();
 
     /**
      * Returns the project of this module.

@@ -101,7 +101,7 @@ public class IdeaModelBuilder implements BuildsModel {
     private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject) {
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
                 .setName(ideaModule.getName())
-                .setContentRoots(asList(ideaModule.getContentRoot()))
+                .setContentRoots(asList(new DefaultIdeaContentRoot(ideaModule.getContentRoot())))
                 .setParent(ideaProject)
                 .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                 .setOutputDir(ideaModule.getOutputDir())

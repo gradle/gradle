@@ -19,10 +19,7 @@ package org.gradle.tooling.internal.idea;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
-import org.gradle.tooling.model.idea.IdeaDependency;
-import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.idea.IdeaProject;
-import org.gradle.tooling.model.idea.IdeaSourceDirectory;
+import org.gradle.tooling.model.idea.*;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
@@ -41,7 +38,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 //    public static final long serialVersionUID = 1L;
 
     private String name;
-    private List<File> contentRoots = new LinkedList<File>();
+    private List<IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
     private IdeaProject parent;
     boolean inheritOutputDirs;
     File outputDir;
@@ -61,11 +58,11 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public List<File> getContentRoots() {
-        return contentRoots;
+    public DomainObjectSet<? extends IdeaContentRoot> getContentRoots() {
+        return new ImmutableDomainObjectSet<IdeaContentRoot>(contentRoots);
     }
 
-    public DefaultIdeaModule setContentRoots(List<File> contentRoots) {
+    public DefaultIdeaModule setContentRoots(List<IdeaContentRoot> contentRoots) {
         this.contentRoots = contentRoots;
         return this;
     }
@@ -169,8 +166,9 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     @Override
     public String toString() {
-        return "DefaultIdeaModule{"
+        return "IdeaModule{"
                 + "name='" + name + '\''
+                + ", contentRoots=" + contentRoots
                 + ", inheritOutputDirs=" + inheritOutputDirs
                 + ", outputDir=" + outputDir
                 + ", testOutputDir=" + testOutputDir
