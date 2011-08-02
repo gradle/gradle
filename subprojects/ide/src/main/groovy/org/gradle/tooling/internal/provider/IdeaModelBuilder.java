@@ -27,10 +27,7 @@ import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 
@@ -64,31 +61,19 @@ public class IdeaModelBuilder implements BuildsModel {
                 .setJdkName(projectModel.getJdkName())
                 .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getFormatted()));
 
-        List<DefaultIdeaModule> modules = new LinkedList<DefaultIdeaModule>();
+        Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
             appendModule(modules, module, out);
         }
-        out.setChildren(modules);
+        for (IdeaModule module : projectModel.getModules()) {
+            buildDependencies(modules, module);
+        }
+        out.setChildren(modules.values());
 
         return out;
     }
 
-    private void appendModule(Collection<DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject) {
-        DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
-                .setName(ideaModule.getName())
-                .setContentRoots(asList(ideaModule.getContentRoot()))
-                .setParent(ideaProject)
-                .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
-                .setOutputDir(ideaModule.getOutputDir())
-                .setTestOutputDir(ideaModule.getTestOutputDir())
-                .setModuleFileDir(ideaModule.getIml().getGenerateTo())
-                .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
-                .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs()))
-                .setExcludeDirectories(new LinkedList<File>(ideaModule.getExcludeDirs()));
-
-        List<IdeaDependency> deps = new LinkedList<IdeaDependency>();
-        defaultIdeaModule.setDependencies(deps);
-
+    private void buildDependencies(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule) {
         Set<Dependency> resolved = ideaModule.resolveDependencies();
         List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
         for (Dependency dependency : resolved) {
@@ -106,13 +91,27 @@ public class IdeaModelBuilder implements BuildsModel {
                 IdeaDependency defaultDependency = new DefaultIdeaModuleDependency()
                         .setExported(d.getExported())
                         .setScope(d.getScope())
-                        .setDependencyModuleName(d.getName());
+                        .setDependencyModule(modules.get(d.getName()));
                 dependencies.add(defaultDependency);
             }
         }
-        defaultIdeaModule.setDependencies(dependencies);
+        modules.get(ideaModule.getName()).setDependencies(dependencies);
+    }
 
-        modules.add(defaultIdeaModule);
+    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject) {
+        DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
+                .setName(ideaModule.getName())
+                .setContentRoots(asList(ideaModule.getContentRoot()))
+                .setParent(ideaProject)
+                .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
+                .setOutputDir(ideaModule.getOutputDir())
+                .setTestOutputDir(ideaModule.getTestOutputDir())
+                .setModuleFileDir(ideaModule.getIml().getGenerateTo())
+                .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
+                .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs()))
+                .setExcludeDirectories(new LinkedList<File>(ideaModule.getExcludeDirs()));
+
+        modules.put(ideaModule.getName(), defaultIdeaModule);
     }
 
     private List<IdeaSourceDirectory> srcDirs(Set<File> sourceDirs) {

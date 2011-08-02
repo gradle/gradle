@@ -59,7 +59,7 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      *
      * @return module file dir
      */
-    File getModuleFileDir(); //TODO SF - this property is a bit awkward but it seems Denis needs it...
+    File getModuleFileDir();
 
     /**
      * whether current module should inherit project's output directory.
@@ -68,7 +68,7 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      * @see #getOutputDir()
      * @see #getTestOutputDir()
      */
-    Boolean getInheritOutputDirs();
+    Boolean getInheritOutputDirs(); //TODO SF change to boolean (other places as well)
 
     /**
      * directory to store module's production classes and resources.

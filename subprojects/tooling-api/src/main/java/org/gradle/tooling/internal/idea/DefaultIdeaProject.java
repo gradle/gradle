@@ -27,8 +27,8 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * @author: Szczepan Faber, created at: 7/25/11
@@ -40,7 +40,7 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
     private String id;
     private String name;
     private String description;
-    private List<? extends IdeaModule> children = new LinkedList<IdeaModule>();
+    private Collection<? extends IdeaModule> children = new LinkedList<IdeaModule>();
     private IdeaLanguageLevel languageLevel;
     private String jdkName;
 
@@ -92,7 +92,7 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
         throw new GradleException("This method should not be used.");
     }
 
-    public DefaultIdeaProject setChildren(List<? extends IdeaModule> children) {
+    public DefaultIdeaProject setChildren(Collection<? extends IdeaModule> children) {
         this.children = children;
         return this;
     }

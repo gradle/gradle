@@ -24,10 +24,9 @@ package org.gradle.tooling.model.idea;
 public interface IdeaModuleDependency extends IdeaDependency {
 
     /**
-     * returns dependency module name
+     * returns dependency module
      *
-     * @return dependency module name
+     * @return dependency module
      */
-    String getDependencyModuleName();
-    //TODO SF figure out how to serve decent IdeaModule here. Discuss possible implementations (ResolvedModule Vs Module)
+    IdeaModule getDependencyModule();
 }

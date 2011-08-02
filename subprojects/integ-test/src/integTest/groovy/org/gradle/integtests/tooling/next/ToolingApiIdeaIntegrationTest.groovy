@@ -221,6 +221,6 @@ project(':impl') {
         lib.scope.toString() == 'TEST'
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
-        mod.dependencyModuleName == 'api'
+        mod.dependencyModule == project.modules.find { it.name == 'api'}
     }
 }
