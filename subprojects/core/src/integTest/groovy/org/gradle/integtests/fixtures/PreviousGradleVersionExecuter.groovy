@@ -57,7 +57,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         if (version == '0.8') {
             return false
         }
-        if (version == '0.9.1') {
+        if (this.version == GradleVersion.version('0.9.1')) {
             // 0.9.1 couldn't handle anything with a timestamp whose timezone was behind GMT
             return version.matches('.*+\\d{4}')
         }
