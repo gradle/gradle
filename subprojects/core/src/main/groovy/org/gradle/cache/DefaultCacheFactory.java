@@ -30,8 +30,10 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         return new CacheFactoryImpl();
     }
 
-    private DefaultPersistentDirectoryCache createCache(CacheUsage usage, Map<String, ?> properties, File canonicalDir) {
-        return new DefaultPersistentDirectoryCache(canonicalDir, usage, properties);
+    void onOpen(Object cache) {
+    }
+
+    void onClose(Object cache) {
     }
 
     private class CacheFactoryImpl implements CacheFactory {
@@ -41,7 +43,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
             File canonicalDir = GFileUtils.canonicalise(cacheDir);
             DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
             if (dirCacheReference == null) {
-                DefaultPersistentDirectoryCache cache = createCache(usage, properties, canonicalDir);
+                DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(canonicalDir, usage, properties);
                 dirCacheReference = new DirCacheReference(cache, properties);
                 dirCaches.put(canonicalDir, dirCacheReference);
             } else {
@@ -61,20 +63,17 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties) {
             DirCacheReference dirCacheReference = doOpenDir(cacheDir, usage, properties);
-            caches.add(dirCacheReference);
             return dirCacheReference.getCache();
         }
 
         public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<E> serializer) {
             StateCacheReference<E> cacheReference = doOpenDir(cacheDir, usage, properties).getStateCache(serializer);
-            caches.add(cacheReference);
             cacheReference.addReference(this);
             return cacheReference.getCache();
         }
 
         public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<V> serializer) {
             IndexedCacheReference<K, V> cacheReference = doOpenDir(cacheDir, usage, properties).getIndexedCache(serializer);
-            caches.add(cacheReference);
             cacheReference.addReference(this);
             return cacheReference.getCache();
         }
@@ -90,44 +89,51 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
     }
 
-    private abstract class BasicCacheReference {
+    private abstract class BasicCacheReference<T> {
         private Set<CacheFactoryImpl> references = new HashSet<CacheFactoryImpl>();
+        private final T cache;
+
+        protected BasicCacheReference(T cache) {
+            this.cache = cache;
+            onOpen(cache);
+        }
+
+        public T getCache() {
+            return cache;
+        }
 
         public void release(CacheFactoryImpl owner) {
             boolean removed = references.remove(owner);
             assert removed;
             if (references.isEmpty()) {
+                onClose(cache);
                 close();
             }
         }
 
         public void addReference(CacheFactoryImpl owner) {
             references.add(owner);
+            owner.caches.add(this);
         }
 
         public void close() {
         }
     }
 
-    private class DirCacheReference extends BasicCacheReference {
-        private final DefaultPersistentDirectoryCache cache;
+    private class DirCacheReference extends BasicCacheReference<DefaultPersistentDirectoryCache> {
         private final Map<String, ?> properties;
         IndexedCacheReference indexedCache;
         StateCacheReference stateCache;
         CacheFactoryImpl rebuiltBy;
 
         public DirCacheReference(DefaultPersistentDirectoryCache cache, Map<String, ?> properties) {
-            this.cache = cache;
+            super(cache);
             this.properties = properties;
-        }
-
-        public PersistentCache getCache() {
-            return cache;
         }
 
         public <E> StateCacheReference<E> getStateCache(Serializer<E> serializer) {
             if (stateCache == null) {
-                SimpleStateCache<E> stateCache = new SimpleStateCache<E>(cache, serializer);
+                SimpleStateCache<E> stateCache = new SimpleStateCache<E>(getCache(), serializer);
                 this.stateCache = new StateCacheReference<E>(stateCache, this);
             }
             return stateCache;
@@ -135,7 +141,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         public <K, V> IndexedCacheReference<K, V> getIndexedCache(Serializer<V> serializer) {
             if (indexedCache == null) {
-                BTreePersistentIndexedCache<K, V> indexedCache = new BTreePersistentIndexedCache<K, V>(cache, serializer);
+                BTreePersistentIndexedCache<K, V> indexedCache = new BTreePersistentIndexedCache<K, V>(getCache(), serializer);
                 this.indexedCache = new IndexedCacheReference<K, V>(indexedCache, this);
             }
             return indexedCache;
@@ -146,44 +152,31 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
     }
 
-    private abstract class NestedCacheReference extends BasicCacheReference {
+    private abstract class NestedCacheReference<T> extends BasicCacheReference<T> {
         protected final DefaultCacheFactory.DirCacheReference backingCache;
 
-        protected NestedCacheReference(DirCacheReference backingCache) {
+        protected NestedCacheReference(T cache, DirCacheReference backingCache) {
+            super(cache);
             this.backingCache = backingCache;
         }
     }
 
-    private class IndexedCacheReference<K, V> extends NestedCacheReference {
-        private final BTreePersistentIndexedCache<K, V> cache;
-
+    private class IndexedCacheReference<K, V> extends NestedCacheReference<BTreePersistentIndexedCache<K, V>> {
         private IndexedCacheReference(BTreePersistentIndexedCache<K, V> cache, DirCacheReference backingCache) {
-            super(backingCache);
-            this.cache = cache;
-        }
-
-        public PersistentIndexedCache<K, V> getCache() {
-            return cache;
+            super(cache, backingCache);
         }
 
         @Override
         public void close() {
             super.close();
             backingCache.indexedCache = null;
-            cache.close();
+            getCache().close();
         }
     }
 
-    private class StateCacheReference<E> extends NestedCacheReference {
-        private final SimpleStateCache<E> cache;
-
+    private class StateCacheReference<E> extends NestedCacheReference<SimpleStateCache<E>> {
         private StateCacheReference(SimpleStateCache<E> cache, DirCacheReference backingCache) {
-            super(backingCache);
-            this.cache = cache;
-        }
-
-        public PersistentStateCache<E> getCache() {
-            return cache;
+            super(cache, backingCache);
         }
 
         @Override

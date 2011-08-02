@@ -20,11 +20,24 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.cache.btree.BTreePersistentIndexedCache
+import org.gradle.api.Action
 
 class DefaultCacheFactoryTest extends Specification {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder()
-    private final DefaultCacheFactory factoryFactory = new DefaultCacheFactory()
+    final Action<?> opened = Mock()
+    final Action<?> closed = Mock()
+    private final DefaultCacheFactory factoryFactory = new DefaultCacheFactory() {
+        @Override
+        void onOpen(Object cache) {
+            opened.execute(cache)
+        }
+
+        @Override
+        void onClose(Object cache) {
+            closed.execute(cache)
+        }
+    }
 
     public void "creates directory backed cache instance"() {
         when:
@@ -62,6 +75,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         ref1.is(ref2)
+        0 * closed._
     }
 
     public void "reuses directory backed cache instances across multiple sessions"() {
@@ -73,6 +87,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         ref1.is(ref2)
+        0 * closed._
     }
 
     public void "reuses indexed cache instances"() {
@@ -83,6 +98,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         ref1.is(ref2)
+        0 * closed._
     }
 
     public void "reuses indexed cache instances across multiple sessions"() {
@@ -94,6 +110,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         ref1.is(ref2)
+        0 * closed._
     }
 
     public void "reuses state cache instances"() {
@@ -104,6 +121,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         ref1.is(ref2)
+        0 * closed._
     }
 
     public void "reuses state cache instances across multiple sessions"() {
@@ -115,6 +133,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         ref1.is(ref2)
+        0 * closed._
     }
 
     public void "releases directory cache instance when last reference released"() {
@@ -123,8 +142,13 @@ class DefaultCacheFactoryTest extends Specification {
         def factory2 = factoryFactory.create()
         factory1.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
         def oldCache = factory2.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+
+        when:
         factory1.close()
         factory2.close()
+
+        then:
+        1 * closed.execute(!null)
 
         when:
         def factory = factoryFactory.create()
@@ -132,16 +156,23 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         !cache.is(oldCache)
+        1 * opened.execute(!null)
+        0 * closed._
     }
 
-    public void "releases index cache instance when last reference released"() {
+    public void "releases index cache instance and backing directory instance when last reference released"() {
         given:
         def factory1 = factoryFactory.create()
         def factory2 = factoryFactory.create()
         factory1.openIndexedCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], null)
         def oldCache = factory2.openIndexedCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], null)
+
+        when:
         factory1.close()
         factory2.close()
+
+        then:
+        2 * closed.execute(!null)
 
         when:
         def factory = factoryFactory.create()
@@ -149,16 +180,23 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         !cache.is(oldCache)
+        2 * opened.execute(!null)
+        0 * closed._
     }
 
-    public void "releases state cache instance when last reference released"() {
+    public void "releases state cache instance and backing directory instance when last reference released"() {
         given:
         def factory1 = factoryFactory.create()
         def factory2 = factoryFactory.create()
         factory1.openStateCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], null)
         def oldCache = factory2.openStateCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], null)
+
+        when:
         factory1.close()
         factory2.close()
+
+        then:
+        2 * closed.execute(!null)
 
         when:
         def factory = factoryFactory.create()
@@ -166,6 +204,8 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         !cache.is(oldCache)
+        2 * opened.execute(!null)
+        0 * closed._
     }
 
     public void "can open and release cache as directory and indexed and state cache"() {
@@ -176,8 +216,13 @@ class DefaultCacheFactoryTest extends Specification {
         factory2.openIndexedCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], null)
         factory2.openStateCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], null)
         factory2.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
+
+        when:
         factory1.close()
         factory2.close()
+
+        then:
+        3 * closed.execute(!null)
 
         when:
         def factory = factoryFactory.create()
@@ -185,6 +230,8 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         !oldCache.is(cache)
+        1 * opened.execute(!null)
+        0 * closed._
     }
 
     public void "fails when directory cache is already open with different properties"() {
