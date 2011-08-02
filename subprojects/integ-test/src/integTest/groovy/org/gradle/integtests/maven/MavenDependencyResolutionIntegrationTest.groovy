@@ -35,7 +35,8 @@ class MavenDependencyResolutionIntegrationTest {
                 'classifier-1.0-jdk15.jar', 'classifier-dep-1.0.jar', 'jaronly-1.0.jar']
 
         File projectDir = dist.testDir
-        executer.inDirectory(projectDir).withTasks('retrieve').run()
+        // Ignore deprecation warnings, since MavenRepo().allownomd is deprecated and used in test build script
+        executer.ignoreDeprecationWarnings().inDirectory(projectDir).withTasks('retrieve').run()
         expectedFiles.each { new TestFile(projectDir, 'build', it).assertExists() }
     }
 
