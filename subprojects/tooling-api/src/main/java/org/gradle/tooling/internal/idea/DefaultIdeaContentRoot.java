@@ -19,11 +19,12 @@ package org.gradle.tooling.internal.idea;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 
 import java.io.File;
+import java.io.Serializable;
 
 /**
  * @author: Szczepan Faber, created at: 8/3/11
  */
-public class DefaultIdeaContentRoot implements IdeaContentRoot {
+public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
 
     File rootDirectory;
 
