@@ -26,7 +26,7 @@ class ConfigurationHooksTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 
-    @Test @Ignore
+    @Test
     void triggersBeforeAndWhenConfigurationHooks() {
         executer.ignoreDeprecationWarnings()
 
@@ -52,6 +52,29 @@ idea {
             whenMerged {whenConfiguredObjects++ }
         }
     }
+}
+
+tasks.idea << {
+    assert beforeConfiguredObjects == 2 : "beforeConfigured() hooks shoold be fired for domain model objects"
+    assert whenConfiguredObjects == 2 : "whenConfigured() hooks shoold be fired for domain model objects"
+}
+'''
+    }
+
+    // Test ignored: this test exposes a bug where beforeMerged/whenMerged configuration hooks are not called for workspace elements
+    // When fixed, this test could be combined with the previous
+    @Test @Ignore
+    void shouldTriggerBeforeAndWhenConfigurationHooksForWorkspace() {
+        executer.ignoreDeprecationWarnings()
+
+        runIdeaTask '''
+apply plugin: 'java'
+apply plugin: 'idea'
+
+def beforeConfiguredObjects = 0
+def whenConfiguredObjects = 0
+
+idea {
     workspace {
         iws {
             beforeMerged {beforeConfiguredObjects++ }
@@ -61,8 +84,8 @@ idea {
 }
 
 tasks.idea << {
-    assert beforeConfiguredObjects == 3 : "beforeConfigured() hooks shoold be fired for domain model objects"
-    assert whenConfiguredObjects == 3 : "whenConfigured() hooks shoold be fired for domain model objects"
+    assert beforeConfiguredObjects == 1 : "beforeConfigured() hooks shoold be fired for domain model objects"
+    assert whenConfiguredObjects == 1 : "whenConfigured() hooks shoold be fired for domain model objects"
 }
 '''
     }
