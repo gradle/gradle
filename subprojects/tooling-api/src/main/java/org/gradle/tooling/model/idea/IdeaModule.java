@@ -68,7 +68,7 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      * @see #getOutputDir()
      * @see #getTestOutputDir()
      */
-    boolean getInheritOutputDirs();
+    boolean getInheritOutputDirs(); //TODO SF think about modelling as 'CompilerOutput' that contains also surrounding fields.
 
     /**
      * directory to store module's production classes and resources.
