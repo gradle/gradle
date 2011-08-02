@@ -68,7 +68,7 @@ public class IdeaModelBuilder implements BuildsModel {
         for (IdeaModule module : projectModel.getModules()) {
             buildDependencies(modules, module);
         }
-        out.setChildren(modules.values());
+        out.setChildren(new LinkedList(modules.values()));
 
         return out;
     }
