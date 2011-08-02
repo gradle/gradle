@@ -52,6 +52,7 @@ public class GradleProjectBuilder implements BuildsModel {
         }
 
         DefaultGradleProject gradleProject = new DefaultGradleProject()
+                .setPath(project.getPath())
                 .setName(project.getName())
                 .setDescription(project.getDescription())
                 .setChildren((List) children);
