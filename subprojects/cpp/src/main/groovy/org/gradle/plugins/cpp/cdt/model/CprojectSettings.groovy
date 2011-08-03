@@ -20,7 +20,7 @@ package org.gradle.plugins.cpp.cdt.model
  */
 class CprojectSettings {
     
-    void applyTo(CprojectDescriptor) {
+    void applyTo(CprojectDescriptor descriptor) {
         
     }
     
