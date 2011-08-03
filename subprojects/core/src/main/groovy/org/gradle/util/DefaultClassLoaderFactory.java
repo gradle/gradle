@@ -56,7 +56,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         // See the comment for {@link #createIsolatedClassLoader} above
         FilteringClassLoader classLoader = new FilteringClassLoader(parent);
         if (needJaxpImpl()) {
-            ServiceLocator locator = new ServiceLocator(parent);
+            ServiceLocator locator = new ServiceLocator(ClassLoader.getSystemClassLoader());
             makeServiceVisible(locator, classLoader, SAXParserFactory.class);
             makeServiceVisible(locator, classLoader, DocumentBuilderFactory.class);
             makeServiceVisible(locator, classLoader, DatatypeFactory.class);
