@@ -57,8 +57,7 @@ public class IdeaModelBuilder implements BuildsModel {
         for (Project p : allprojects) {
             p.getPlugins().apply(IdeaPlugin.class);
         }
-        //not yet covered:
-//        root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
+        root.getPlugins().getPlugin(IdeaPlugin.class).makeSureModuleNamesAreUnique();
     }
 
     private ProjectVersion3 build(Project project) {

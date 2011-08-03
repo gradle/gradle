@@ -57,9 +57,13 @@ class IdeaPlugin extends IdePlugin {
     void hookDeduplicationToTheRoot(Project project) {
         if (isRoot(project)) {
             project.gradle.projectsEvaluated {
-                new IdeaNameDeduper().configureRoot(project)
+                makeSureModuleNamesAreUnique()
             }
         }
+    }
+
+    public void makeSureModuleNamesAreUnique() {
+        new IdeaNameDeduper().configureRoot(project.rootProject)
     }
 
     private configureIdeaWorkspace(Project project) {

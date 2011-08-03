@@ -223,4 +223,39 @@ project(':impl') {
         mod.dependencyModule == project.modules.find { it.name == 'api'}
         mod.scope.scope == 'COMPILE'
     }
+
+    def "makes sure module names are unique"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = """
+subprojects {
+    apply plugin: 'java'
+}
+
+project(':impl') {
+    dependencies {
+        compile project(':api')
+    }
+}
+
+project(':contrib:impl') {
+    dependencies {
+        compile project(':contrib:api')
+    }
+}
+"""
+        projectDir.file('settings.gradle').text = "include 'api', 'impl', 'contrib:api', 'contrib:impl'"
+
+        when:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+
+        then:
+        def allNames = project.modules*.name
+        allNames.unique().size() == 6
+
+        IdeaModule impl = project.modules.find { it.name == 'impl' }
+        IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
+
+        impl.dependencies[0].dependencyModule        == project.modules.find { it.name == 'api' }
+        contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
+    }
 }
