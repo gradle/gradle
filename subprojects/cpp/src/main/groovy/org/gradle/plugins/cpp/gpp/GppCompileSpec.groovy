@@ -55,6 +55,9 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
         }
 
         task.outputs.file { getOutputFile() }
+        
+        // problem: will break if a source set is removed
+        binary.sourceSets.withType(CppSourceSet).all { from(it) }
     }
 
     String getName() {
@@ -90,7 +93,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
     }
 
     void from(CppSourceSet sourceSet) {
-        includes sourceSet.headers
+        includes sourceSet.exportedHeaders
         source sourceSet.source
         libs sourceSet.libs
     }
@@ -143,7 +146,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
         def compiler = new DefaultExecAction(project.fileResolver)
         compiler.executable "g++"
         compiler.workingDir workDir
-
+        
         // Apply all of the settings
         settings.each { it(compiler) }
 

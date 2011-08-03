@@ -17,6 +17,7 @@ package org.gradle.plugins.binaries.model;
 
 import org.gradle.api.Named;
 import org.gradle.api.Project;
+import org.gradle.api.DomainObjectSet;
 
 /**
  * Something to be created.
@@ -26,5 +27,6 @@ public interface Binary extends Named {
     CompileSpec getSpec();
 
     Project getProject();
-
+    
+    DomainObjectSet<SourceSet> getSourceSets();
 }

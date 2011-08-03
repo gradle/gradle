@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp
+package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Project
-import org.gradle.api.Plugin
+import org.gradle.api.Named;
 
-class CppPlugin implements Plugin<Project> {
-
-    void apply(Project project) {
-        project.apply(plugin: "binaries")
-        project.apply(plugin: "gpp-compiler")
-        project.extensions.add('cpp', new CppExtension(project))
-
-        // Defaults for all cpp source sets
-        project.cpp.sourceSets.all { sourceSet ->
-            sourceSet.source.srcDir "src/${sourceSet.name}/cpp"
-            sourceSet.exportedHeaders.srcDir "src/${sourceSet.name}/headers"
-        }
-    }
-
+/**
+ * A generic model of a collection of source
+ */
+public interface SourceSet extends Named {
+    
 }

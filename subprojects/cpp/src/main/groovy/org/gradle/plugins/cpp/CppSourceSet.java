@@ -16,6 +16,7 @@
 package org.gradle.plugins.cpp;
 
 import org.gradle.plugins.binaries.model.Library;
+import org.gradle.plugins.binaries.model.HeaderExportingSourceSet;
 
 import org.gradle.api.Named;
 import org.gradle.api.DomainObjectSet;
@@ -26,17 +27,17 @@ import groovy.lang.Closure;
 /**
  * A representation of a unit of cpp source
  */
-public interface CppSourceSet extends Named {
+public interface CppSourceSet extends HeaderExportingSourceSet, Named {
 
     /**
      * The headers.
      */
-    SourceDirectorySet getHeaders();
+    SourceDirectorySet getExportedHeaders();
 
     /**
      * The headers.
      */
-    CppSourceSet headers(Closure closure);
+    CppSourceSet exportedHeaders(Closure closure);
 
     /**
      * The source.

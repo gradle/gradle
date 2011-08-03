@@ -22,7 +22,7 @@ class CppLibConventionPlugin implements Plugin<Project> {
 
     void apply(Project project) {
         project.apply(plugin: "cpp")
-        
+
         project.with {
             cpp {
                 sourceSets {
@@ -31,11 +31,8 @@ class CppLibConventionPlugin implements Plugin<Project> {
             }
             libraries {
                 main {
-                    headers.source cpp.sourceSets.main.headers
-                    
+                    sourceSets << cpp.sourceSets.main
                     spec {
-                        from cpp.sourceSets.main
-                        
                         // Do we default to shared?
                         sharedLibrary()
                     }

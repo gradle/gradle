@@ -34,7 +34,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
     private final String name;
     private final FileResolver fileResolver;
 
-    private final DefaultSourceDirectorySet headers;
+    private final DefaultSourceDirectorySet exportedHeaders;
     private final DefaultSourceDirectorySet source;
     private final DefaultDomainObjectSet<Library> libs;
 
@@ -42,7 +42,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
         this.name = name;
         this.fileResolver = fileResolver;
 
-        this.headers = new DefaultSourceDirectorySet("headers", fileResolver);
+        this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", fileResolver);
         this.source = new DefaultSourceDirectorySet("source", fileResolver);
         this.libs = new DefaultDomainObjectSet<Library>(Library.class);
     }
@@ -51,12 +51,12 @@ public class DefaultCppSourceSet implements CppSourceSet {
         return name;
     }
 
-    public SourceDirectorySet getHeaders() {
-        return headers;
+    public SourceDirectorySet getExportedHeaders() {
+        return exportedHeaders;
     }
 
-    public DefaultCppSourceSet headers(Closure closure) {
-        ConfigureUtil.configure(closure, headers);
+    public DefaultCppSourceSet exportedHeaders(Closure closure) {
+        ConfigureUtil.configure(closure, exportedHeaders);
         return this;
     }
 

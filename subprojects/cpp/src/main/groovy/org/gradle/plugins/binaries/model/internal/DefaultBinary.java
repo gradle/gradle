@@ -18,10 +18,13 @@ package org.gradle.plugins.binaries.model.internal;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.CompileSpec;
 import org.gradle.plugins.binaries.model.CompilerRegistry;
+import org.gradle.plugins.binaries.model.SourceSet;
 
 import org.gradle.api.Project;
+import org.gradle.api.DomainObjectSet;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 
 import org.gradle.util.ConfigureUtil;
 
@@ -33,11 +36,14 @@ public class DefaultBinary implements Binary {
     private final ProjectInternal project;
     private final CompilerRegistry compilers;
     private final CompileSpec spec;
+    private final DomainObjectSet<SourceSet> sourceSets;
+    
 
     public DefaultBinary(String name, ProjectInternal project) {
         this.name = name;
         this.project = project;
         this.compilers = project.getExtensions().getByType(CompilerRegistry.class);
+        this.sourceSets = new DefaultDomainObjectSet(SourceSet.class);
         this.spec = compilers.getDefaultCompiler().getSpecFactory().create(this);
     }
 
@@ -53,6 +59,10 @@ public class DefaultBinary implements Binary {
         return spec;
     }
 
+    public DomainObjectSet<SourceSet> getSourceSets() {
+        return sourceSets;
+    }
+    
     public CompileSpec spec(Closure closure) {
         return ConfigureUtil.configure(closure, spec);
     }
