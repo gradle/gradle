@@ -58,4 +58,8 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     protected void store(Node xml) {
         // no-op
     }
+
+    public void transformAction(Closure action) {
+        xmlTransformer.addAction(action)
+    }
 }

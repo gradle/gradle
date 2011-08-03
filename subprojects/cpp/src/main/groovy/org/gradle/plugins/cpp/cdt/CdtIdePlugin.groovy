@@ -22,20 +22,25 @@ import org.gradle.api.tasks.Delete
 
 import org.gradle.plugins.cpp.cdt.model.ProjectSettings
 import org.gradle.plugins.cpp.cdt.model.ProjectDescriptor
+import org.gradle.plugins.cpp.cdt.model.CprojectSettings
+import org.gradle.plugins.cpp.cdt.model.CprojectDescriptor
+
 import org.gradle.plugins.cpp.cdt.tasks.GenerateMetadataFileTask
 
 class CdtIdePlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        configureEclipseProject(project)
-        
+        def metadataFileTasks = [addCreateProjectDescriptor(project), addCreateCprojectDescriptor(project)]
+
         project.task("cleanCdt", type: Delete) {
-            delete ".project"
+            delete metadataFileTasks*.outputs*.files
         }
+
+        project.task("cdt", dependsOn: metadataFileTasks)
     }
-    
-    private configureEclipseProject(Project project) {
-        project.task("createCdtProjectFile", type: GenerateMetadataFileTask) {
+
+    private addCreateProjectDescriptor(Project project) {
+        project.task("cdtProject", type: GenerateMetadataFileTask) {
             inputFile = project.file(".project")
             outputFile = project.file(".project")
             factory { new ProjectDescriptor() }
@@ -43,4 +48,15 @@ class CdtIdePlugin implements Plugin<Project> {
         }
     }
 
-}   
+    private addCreateCprojectDescriptor(Project project) {
+        project.task("cdtCproject", type: GenerateMetadataFileTask) {
+            inputFile = project.file(".cproject")
+            outputFile = project.file(".cproject")
+            factory { new CprojectDescriptor() }
+            onConfigure { descriptor ->
+                new CprojectSettings().applyTo(descriptor)
+            }
+        }
+    }
+
+}
