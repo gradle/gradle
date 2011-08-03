@@ -17,15 +17,9 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest;
-import org.junit.Before;
 import org.junit.Test;
 
 public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
-    @Before
-    public void disableDeprecationChecks() {
-        executer.withDeprecationChecksDisabled();
-    }
-
     @Test
     public void canDefineTasksUsingTaskKeywordAndIdentifier() {
         testFile("build.gradle").writelns(

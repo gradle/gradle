@@ -21,7 +21,6 @@ import org.junit.Test;
 public class ProjectReportsPluginIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void generatesReportFilesToReportsDirectory() {
-        executer.withDeprecationChecksDisabled();
         testFile("build.gradle").writelns(
                 "apply plugin: 'project-report'"
         );

@@ -28,7 +28,6 @@ class ConfigurationHooksTest extends AbstractIdeIntegrationTest {
 
     @Test
     void triggersBeforeAndWhenConfigurationHooks() {
-        executer.withDeprecationChecksDisabled()
 
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
@@ -65,8 +64,6 @@ tasks.idea << {
     // When fixed, this test could be combined with the previous
     @Test @Ignore
     void shouldTriggerBeforeAndWhenConfigurationHooksForWorkspace() {
-        executer.withDeprecationChecksDisabled()
-
         runIdeaTask '''
 apply plugin: 'java'
 apply plugin: 'idea'
