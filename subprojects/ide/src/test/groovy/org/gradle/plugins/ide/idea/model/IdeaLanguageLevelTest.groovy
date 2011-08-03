@@ -25,16 +25,16 @@ class IdeaLanguageLevelTest extends Specification {
 
     def "formats language level in IDEA fancy format"() {
         expect:
-        new IdeaLanguageLevel(JavaVersion.VERSION_1_3).formatted == "JDK_1_3"
-        new IdeaLanguageLevel(JavaVersion.VERSION_1_4).formatted == "JDK_1_4"
-        new IdeaLanguageLevel(JavaVersion.VERSION_1_5).formatted == "JDK_1_5"
-        new IdeaLanguageLevel(JavaVersion.VERSION_1_6).formatted == "JDK_1_6"
-        new IdeaLanguageLevel(JavaVersion.VERSION_1_7).formatted == "JDK_1_7"
+        new IdeaLanguageLevel(JavaVersion.VERSION_1_3).level == "JDK_1_3"
+        new IdeaLanguageLevel(JavaVersion.VERSION_1_4).level == "JDK_1_4"
+        new IdeaLanguageLevel(JavaVersion.VERSION_1_5).level == "JDK_1_5"
+        new IdeaLanguageLevel(JavaVersion.VERSION_1_6).level == "JDK_1_6"
+        new IdeaLanguageLevel(JavaVersion.VERSION_1_7).level == "JDK_1_7"
     }
 
     def "allows arbitrary language level in IDEA's format"() {
         expect:
-        new IdeaLanguageLevel("JDK_1_8").formatted == "JDK_1_8"
+        new IdeaLanguageLevel("JDK_1_8").level == "JDK_1_8"
     }
 
     def "fails when invalid format passed"() {

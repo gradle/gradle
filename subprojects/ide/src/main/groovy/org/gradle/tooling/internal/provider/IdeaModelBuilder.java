@@ -67,7 +67,7 @@ public class IdeaModelBuilder implements BuildsModel {
         DefaultIdeaProject out = new DefaultIdeaProject()
                 .setName(projectModel.getName())
                 .setJdkName(projectModel.getJdkName())
-                .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getFormatted()));
+                .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()));
 
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {

@@ -25,14 +25,13 @@ import org.gradle.api.JavaVersion
  */
 class IdeaLanguageLevel {
 
-    //TODO SF: change to level
-    String formatted
+    String level
 
     IdeaLanguageLevel(Object version) {
         if (version instanceof String && version =~ /^JDK_/) {
-            formatted = version
+            level = version
             return
         }
-        formatted = JavaVersion.toVersion(version).name().replaceFirst("VERSION", "JDK")
+        level = JavaVersion.toVersion(version).name().replaceFirst("VERSION", "JDK")
     }
 }

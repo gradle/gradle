@@ -42,7 +42,7 @@ class IdeaPluginTest extends Specification {
         ideaProjectTask.outputFile == new File(project.projectDir, project.name + ".ipr")
         ideaProjectTask.ideaProject.modules == [project.idea.module, childProject.idea.module]
         ideaProjectTask.ideaProject.jdkName == "1.6"
-        ideaProjectTask.ideaProject.languageLevel.formatted == "JDK_1_6"
+        ideaProjectTask.ideaProject.languageLevel.level == "JDK_1_6"
         ideaProjectTask.wildcards == ['!?*.java', '!?*.groovy'] as Set
 
         childProject.tasks.findByName('ideaProject') == null
@@ -79,7 +79,7 @@ class IdeaPluginTest extends Specification {
 
         then:
         project.idea.project.jdkName == project.sourceCompatibility.toString()
-        project.idea.project.languageLevel.formatted == new IdeaLanguageLevel(project.sourceCompatibility).formatted
+        project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.sourceCompatibility).level
 
         GenerateIdeaModule ideaModuleTask = project.ideaModule
         ideaModuleTask.sourceDirs == project.sourceSets.main.allSource.srcDirs

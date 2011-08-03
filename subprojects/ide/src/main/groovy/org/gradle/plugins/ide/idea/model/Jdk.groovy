@@ -39,7 +39,7 @@ class Jdk {
         else {
             assertKeyword = false
         }
-        languageLevel = ideaLanguageLevel.formatted
+        languageLevel = ideaLanguageLevel.level
         projectJdkName = jdkName
     }
 
