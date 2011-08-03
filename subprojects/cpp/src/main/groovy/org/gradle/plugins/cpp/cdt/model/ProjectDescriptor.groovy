@@ -31,28 +31,15 @@ class ProjectDescriptor extends XmlPersistableConfigurationObject {
         'defaultProject.xml'
     }
 
-    void setName(String name) {
-        getOrCreate("name").value = name
-        
-        // not anywhere close to right at all, very hardcoded.
-        def genMakeBuilderBuildCommand = findBuildCommand { it.name[0].text() == "org.eclipse.cdt.managedbuilder.core.genmakebuilder" }
-        if (genMakeBuilderBuildCommand) {
-            def dict = genMakeBuilderBuildCommand.arguments[0].dictionary.find { it.key[0].text() == "org.eclipse.cdt.make.core.buildLocation" }
-            if (dict) {
-                dict.value[0].value = "\${workspace_loc:/$name/Debug}"
-            }
-        }
-    }
-
-    private getOrCreate(String name) {
+    Node getOrCreate(String name) {
         getOrCreate(xml, name)
     }
 
-    private findBuildCommand(Closure predicate) {
+    Node findBuildCommand(Closure predicate) {
         xml.buildSpec[0].buildCommand.find(predicate)
     }
 
-    private getOrCreate(Node parent, String name) {
+    Node getOrCreate(Node parent, String name) {
         def node = parent.get(name)
         node ? node.first() : parent.appendNode(name)
     }
