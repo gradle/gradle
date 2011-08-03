@@ -83,7 +83,7 @@ assert 'value' == someProp
 
         testFile('external.gradle') << '''
 println 'quiet message'
-captureStandardOutput(LogLevel.ERROR)
+getLogging().captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 new BuildSrcClass()
 assert 'doStuff' == name

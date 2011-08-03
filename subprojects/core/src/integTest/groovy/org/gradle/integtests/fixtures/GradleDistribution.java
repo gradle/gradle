@@ -173,7 +173,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return new PreviousGradleVersionExecuter(this, version);
     }
 
-    public GradleExecuter executer() {
+    public GradleDistributionExecuter executer() {
         return new GradleDistributionExecuter(this);
     }
 

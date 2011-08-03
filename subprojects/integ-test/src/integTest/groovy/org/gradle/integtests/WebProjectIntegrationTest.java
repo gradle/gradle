@@ -50,7 +50,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         buildFile.writelns(
                 "apply plugin: 'war'",
                 "jar.enabled = true",
-                "buildDirName = 'output'",
+                "buildDir = 'output'",
                 "libsDirName = 'archives'",
                 "archivesBaseName = 'test'",
                 "version = '0.5-RC2'"

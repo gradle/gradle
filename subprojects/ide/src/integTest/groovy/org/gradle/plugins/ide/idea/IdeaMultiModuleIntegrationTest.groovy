@@ -237,8 +237,8 @@ allprojects {
 }
 
 project(':contrib') {
-    ideaModule {
-        moduleName = 'cool-contrib'
+    idea.module {
+        name = 'cool-contrib'
     }
 }
 """

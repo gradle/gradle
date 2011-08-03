@@ -107,20 +107,20 @@ dependencies {
 apply plugin: "war"
 apply plugin: "eclipse-wtp"
 
-eclipseProject {
-  projectName = "$nonAscii"
-}
+eclipse {
+    project.name = "$nonAscii"
+    classpath {
+        containers "$nonAscii"
+    }
 
-eclipseClasspath {
-  containers("$nonAscii")
-}
-
-eclipseWtpComponent {
-  deployName = "$nonAscii"
-}
-
-eclipseWtpFacet {
-  facet([name: "$nonAscii"])
+    wtp {
+        component {
+            deployName = "$nonAscii"
+        }
+        facet {
+            facet name: "$nonAscii"
+        }
+    }
 }
         """
 
@@ -142,25 +142,41 @@ apply plugin: 'eclipse-wtp'
 def beforeConfiguredObjects = 0
 def whenConfiguredObjects = 0
 
-eclipseProject {
-    beforeConfigured { beforeConfiguredObjects++ }
-    whenConfigured { whenConfiguredObjects++ }
-}
-eclipseClasspath {
-    beforeConfigured { beforeConfiguredObjects++ }
-    whenConfigured { whenConfiguredObjects++ }
-}
-eclipseWtpFacet {
-    beforeConfigured { beforeConfiguredObjects++ }
-    whenConfigured { whenConfiguredObjects++ }
-}
-eclipseWtpComponent {
-    beforeConfigured { beforeConfiguredObjects++ }
-    whenConfigured { whenConfiguredObjects++ }
-}
-eclipseJdt {
-    beforeConfigured { beforeConfiguredObjects++ }
-    whenConfigured { whenConfiguredObjects++ }
+eclipse {
+    project {
+        file {
+            beforeMerged {beforeConfiguredObjects++ }
+            whenMerged {whenConfiguredObjects++ }
+        }
+    }
+
+    classpath {
+        file {
+            beforeMerged {beforeConfiguredObjects++ }
+            whenMerged {whenConfiguredObjects++ }
+        }
+    }
+
+    wtp.component {
+        file {
+            beforeMerged {beforeConfiguredObjects++ }
+            whenMerged {whenConfiguredObjects++ }
+        }
+    }
+
+    wtp.facet {
+        file {
+            beforeMerged {beforeConfiguredObjects++ }
+            whenMerged {whenConfiguredObjects++ }
+        }
+    }
+
+    jdt {
+        file {
+            beforeMerged {beforeConfiguredObjects++ }
+            whenMerged {whenConfiguredObjects++ }
+        }
+    }
 }
 
 tasks.eclipse << {
@@ -234,9 +250,9 @@ dependencies {
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-eclipseProject {
-    link name: 'one', type: '2', location: '/xyz'
-    link name: 'two', type: '3', locationUri: 'file://xyz'
+eclipse.project {
+    linkedResource name: 'one', type: '2', location: '/xyz'
+    linkedResource name: 'two', type: '3', locationUri: 'file://xyz'
 }
 '''
 
@@ -256,7 +272,7 @@ eclipseProject {
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-eclipseJdt {
+eclipse.jdt {
     sourceCompatibility = '1.4'
     targetCompatibility = 1.3
 }

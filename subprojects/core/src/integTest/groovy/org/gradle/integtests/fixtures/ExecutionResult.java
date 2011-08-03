@@ -27,6 +27,8 @@ public interface ExecutionResult {
 
     void assertErrorHasNoStackTraces();
 
+    void assertOutputHasNoDeprecationWarnings();
+
     /**
      * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.
      */

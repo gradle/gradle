@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -39,6 +40,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private GradleDistribution dist;
     private boolean workingDirSet;
     private boolean userHomeSet;
+    private boolean deprecationChecksOn = true;
 
     public enum Executer {
         forking, embedded, daemon
@@ -82,6 +84,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         super.reset();
         workingDirSet = false;
         userHomeSet = false;
+        deprecationChecksOn = true;
+        DeprecationLogger.reset();
         return this;
     }
 
@@ -109,10 +113,19 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return checkResult(configureExecuter().runWithFailure());
     }
 
+    public GradleDistributionExecuter ignoreDeprecationWarnings() {
+        deprecationChecksOn = false;
+        return this;
+    }
+
     private <T extends ExecutionResult> T checkResult(T result) {
         // Assert that nothing unexpected was logged
         result.assertOutputHasNoStackTraces();
         result.assertErrorHasNoStackTraces();
+        if (deprecationChecksOn) {
+            result.assertOutputHasNoDeprecationWarnings();
+        }
+
         if (getExecutable() == null) {
             // Assert that no temp files are left lying around
             // Note: don't do this if a custom executable is used, as we don't know (and probably don't care) whether the executable cleans up or not

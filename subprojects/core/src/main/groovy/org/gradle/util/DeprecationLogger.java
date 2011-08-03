@@ -25,6 +25,10 @@ public class DeprecationLogger {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeprecationLogger.class);
     private static final Set<String> METHODS = new CopyOnWriteArraySet<String>();
 
+    public static void reset() {
+        METHODS.clear();
+    }
+
     public static void nagUser(String methodName, String replacement) {
         if (METHODS.add(methodName)) {
             LOGGER.warn(String.format(
