@@ -25,7 +25,6 @@ import org.gradle.tooling.model.Dependency;
  */
 public interface IdeaDependency extends Dependency {
 
-    //TODO SF similar to idea project language level. Model.
     /**
      * scope of the current dependency. Not-<code>null</code> all the time
      *
