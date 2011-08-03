@@ -61,10 +61,9 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
                     hello {}
                     main {
                         libs << project.libraries.create('hello') {
-                            headers.source project.cpp.sourceSets.hello.headers
+                            sourceSets << project.cpp.sourceSets.hello
 
                             spec {
-                                from project.cpp.sourceSets.hello
                                 sharedLibrary()
                             }
                         }
