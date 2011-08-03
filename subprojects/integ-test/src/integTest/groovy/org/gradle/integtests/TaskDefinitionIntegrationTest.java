@@ -23,7 +23,7 @@ import org.junit.Test;
 public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
     @Before
     public void disableDeprecationChecks() {
-        executer.ignoreDeprecationWarnings();
+        executer.withDeprecationChecksDisabled();
     }
 
     @Test

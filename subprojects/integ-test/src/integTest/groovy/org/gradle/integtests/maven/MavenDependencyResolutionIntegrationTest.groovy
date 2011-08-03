@@ -36,7 +36,7 @@ class MavenDependencyResolutionIntegrationTest {
 
         File projectDir = dist.testDir
         // Ignore deprecation warnings, since MavenRepo().allownomd is deprecated and used in test build script
-        executer.ignoreDeprecationWarnings().inDirectory(projectDir).withTasks('retrieve').run()
+        executer.withDeprecationChecksDisabled().inDirectory(projectDir).withTasks('retrieve').run()
         expectedFiles.each { new TestFile(projectDir, 'build', it).assertExists() }
     }
 

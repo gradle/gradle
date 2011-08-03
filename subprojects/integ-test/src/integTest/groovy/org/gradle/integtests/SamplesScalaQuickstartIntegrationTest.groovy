@@ -40,7 +40,7 @@ class SamplesScalaQuickstartIntegrationTest {
     @Test
     public void canBuildJar() {
         // Build and test projects
-        executer.ignoreDeprecationWarnings().inDirectory(projectDir).withTasks('clean', 'build').run()
+        executer.withDeprecationChecksDisabled().inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(projectDir)
@@ -58,7 +58,7 @@ class SamplesScalaQuickstartIntegrationTest {
 
     @Test
     public void canBuildScalaDoc() {
-        executer.ignoreDeprecationWarnings().inDirectory(projectDir).withTasks('clean', 'scaladoc').run()
+        executer.withDeprecationChecksDisabled().inDirectory(projectDir).withTasks('clean', 'scaladoc').run()
 
         projectDir.file('build/docs/scaladoc/index.html').assertExists()
         projectDir.file('build/docs/scaladoc/org/gradle/sample/api/Person.html').assertContents(containsString("Defines the interface for a person."))

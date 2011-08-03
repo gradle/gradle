@@ -113,7 +113,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return checkResult(configureExecuter().runWithFailure());
     }
 
-    public GradleDistributionExecuter ignoreDeprecationWarnings() {
+    public GradleDistributionExecuter withDeprecationChecksDisabled() {
         deprecationChecksOn = false;
         return this;
     }

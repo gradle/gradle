@@ -27,7 +27,7 @@ class DynamicObjectIntegrationTest {
 
     @Test
     public void canAddDynamicPropertiesToProject() {
-        executer.ignoreDeprecationWarnings()
+        executer.withDeprecationChecksDisabled()
 
         TestFile testDir = dist.getTestDir();
         testDir.file("settings.gradle").writelns("include 'child'");
@@ -107,7 +107,7 @@ class DynamicObjectIntegrationTest {
 
     @Test
     public void canAddPropertiesToProjectUsingGradlePropertiesFile() {
-        executer.ignoreDeprecationWarnings()
+        executer.withDeprecationChecksDisabled()
 
         TestFile testDir = dist.getTestDir();
         testDir.file("settings.gradle").writelns("include 'child'");

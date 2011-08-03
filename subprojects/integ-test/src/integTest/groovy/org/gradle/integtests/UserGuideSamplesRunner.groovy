@@ -93,7 +93,7 @@ class UserGuideSamplesRunner extends Runner {
             // Ignoring deprecation warnings: 2 samples currently emit deprecation warnings
             // 1. files/copy uses project.properties, which currently uses DomainObjectCollection.getAll()
             // 2. scala/quickstart: Scala plugin + Eclipse plugin uses eclipseProject.buildCommands
-            executer.ignoreDeprecationWarnings().inDirectory(rootProjectDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
+            executer.withDeprecationChecksDisabled().inDirectory(rootProjectDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
 
             ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {

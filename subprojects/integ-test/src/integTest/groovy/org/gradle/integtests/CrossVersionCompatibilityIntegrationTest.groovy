@@ -76,7 +76,7 @@ class CrossVersionCompatibilityIntegrationTest {
     def executer(BasicGradleDistribution dist) {
         def executer = dist.executer();
         if (executer instanceof GradleDistributionExecuter) {
-            executer.ignoreDeprecationWarnings()
+            executer.withDeprecationChecksDisabled()
         }
         return executer;
     }
