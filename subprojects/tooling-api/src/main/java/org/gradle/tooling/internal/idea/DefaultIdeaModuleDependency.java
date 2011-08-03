@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.idea;
 
+import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 
@@ -26,15 +27,15 @@ import java.io.Serializable;
  */
 public class DefaultIdeaModuleDependency implements IdeaModuleDependency, Serializable {
 
-    private String scope;
+    private IdeaDependencyScope scope;
     private IdeaModule dependencyModule;
     private boolean exported;
 
-    public String getScope() {
+    public IdeaDependencyScope getScope() {
         return scope;
     }
 
-    public DefaultIdeaModuleDependency setScope(String scope) {
+    public DefaultIdeaModuleDependency setScope(IdeaDependencyScope scope) {
         this.scope = scope;
         return this;
     }

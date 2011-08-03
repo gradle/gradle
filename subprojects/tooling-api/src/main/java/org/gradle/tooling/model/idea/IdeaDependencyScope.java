@@ -16,27 +16,10 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.tooling.model.Dependency;
-
 /**
- * Idea dependency
- *
- * @since 1.0-rc-1
+ * The scope of the Idea dependency
  */
-public interface IdeaDependency extends Dependency {
+public interface IdeaDependencyScope {
 
-    //TODO SF similar to idea project language level. Model.
-    /**
-     * scope of the current dependency. Not-<code>null</code> all the time
-     *
-     * @return scope
-     */
-    IdeaDependencyScope getScope();
-
-    /**
-     * Allows to check if current dependency is transitive, i.e. is visible to the module which depends on module that has current dependency.
-     *
-     * @return <code>true</code> if current dependency is transitive; <code>false</code> otherwise
-     */
-    boolean getExported();
+    String getScope();
 }

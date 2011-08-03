@@ -83,14 +83,14 @@ public class IdeaModelBuilder implements BuildsModel {
                         .setFile(d.getLibraryFile())
                         .setSource(d.getSourceFile())
                         .setJavadoc(d.getJavadocFile())
-                        .setScope(d.getScope())
+                        .setScope(new DefaultIdeaDependencyScope(d.getScope()))
                         .setExported(d.getExported());
                 dependencies.add(defaultDependency);
             } else if (dependency instanceof ModuleDependency) {
                 ModuleDependency d = (ModuleDependency) dependency;
                 IdeaDependency defaultDependency = new DefaultIdeaModuleDependency()
                         .setExported(d.getExported())
-                        .setScope(d.getScope())
+                        .setScope(new DefaultIdeaDependencyScope(d.getScope()))
                         .setDependencyModule(modules.get(d.getName()));
                 dependencies.add(defaultDependency);
             }

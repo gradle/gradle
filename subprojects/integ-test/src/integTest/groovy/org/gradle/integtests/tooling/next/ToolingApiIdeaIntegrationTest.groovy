@@ -217,9 +217,10 @@ project(':impl') {
         lib.javadoc.exists()
         lib.javadoc.path.endsWith('coolLib-1.0-javadoc.jar')
 
-        lib.scope.toString() == 'TEST'
+        lib.scope.scope == 'TEST'
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
         mod.dependencyModule == project.modules.find { it.name == 'api'}
+        mod.scope.scope == 'COMPILE'
     }
 }

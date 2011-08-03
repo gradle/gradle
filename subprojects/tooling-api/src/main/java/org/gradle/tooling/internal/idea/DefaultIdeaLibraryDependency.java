@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.idea;
 
+import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaLibraryDependency;
 
 import java.io.File;
@@ -30,7 +31,7 @@ public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Seri
     private File source;
     private File javadoc;
     private Boolean exported;
-    private String scope;
+    private IdeaDependencyScope scope;
 
     public File getFile() {
         return file;
@@ -68,11 +69,11 @@ public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Seri
         return this;
     }
 
-    public String getScope() {
+    public IdeaDependencyScope getScope() {
         return scope;
     }
 
-    public DefaultIdeaLibraryDependency setScope(String scope) {
+    public DefaultIdeaLibraryDependency setScope(IdeaDependencyScope scope) {
         this.scope = scope;
         return this;
     }
