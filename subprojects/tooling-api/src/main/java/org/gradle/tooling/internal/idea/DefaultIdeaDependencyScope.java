@@ -41,4 +41,27 @@ public class DefaultIdeaDependencyScope implements IdeaDependencyScope, Serializ
                 + "scope='" + scope + '\''
                 + '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DefaultIdeaDependencyScope)) {
+            return false;
+        }
+
+        DefaultIdeaDependencyScope that = (DefaultIdeaDependencyScope) o;
+
+        if (scope != null ? !scope.equals(that.scope) : that.scope != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return scope != null ? scope.hashCode() : 0;
+    }
 }

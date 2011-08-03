@@ -59,4 +59,27 @@ public class DefaultIdeaLanguageLevel implements IdeaLanguageLevel, Serializable
     public String toString() {
         return "IdeaLanguageLevel{level='" + level + "'}";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DefaultIdeaLanguageLevel)) {
+            return false;
+        }
+
+        DefaultIdeaLanguageLevel that = (DefaultIdeaLanguageLevel) o;
+
+        if (level != null ? !level.equals(that.level) : that.level != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return level != null ? level.hashCode() : 0;
+    }
 }
