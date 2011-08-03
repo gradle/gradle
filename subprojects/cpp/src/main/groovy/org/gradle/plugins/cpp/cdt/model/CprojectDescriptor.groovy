@@ -23,12 +23,53 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
  */
 class CprojectDescriptor extends XmlPersistableConfigurationObject {
 
+    static public final String GNU_COMPILER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.gnu.cpp.compiler"
+    static public final String GNU_COMPILER_TOOL_INCLUDE_PATHS_OPTION_PREFIX = "gnu.cpp.compiler.option.include.paths"
     CprojectDescriptor() {
         super(new XmlTransformer())
     }
 
     protected String getDefaultResourceName() {
         'defaultCproject.xml'
+    }
+
+    NodeList getConfigurations() {
+        new NodeList(xml.storageModule.cconfiguration.storageModule.findAll { it.@moduleId == "cdtBuildSystem" }.collect { it.configuration[0] })
+    }
+
+    NodeList getRootToolChains() {
+        new NodeList(configurations.folderInfo.findAll { it.@resourcePath == "" }).toolChain
+    }
+
+    NodeList getRootCppCompilerTools() {
+        new NodeList(rootToolChains.tool.findAll { isGnuCompilerTool(it) })
+    }
+
+    boolean isGnuCompilerTool(Node node) {
+        node.name() == "tool" && node.@id.startsWith(GNU_COMPILER_TOOL_ID_PREFIX)
+    }
+
+    Node getOrCreateIncludePathsOption(compilerToolNode) {
+        if (!isGnuCompilerTool(compilerToolNode)) {
+            throw new IllegalArgumentException("Arg must be a gnu compiler tool def, was $compilerToolNode")
+        }
+
+        def includePathsOption = compilerToolNode.option.find { it.@id.startsWith(GNU_COMPILER_TOOL_INCLUDE_PATHS_OPTION_PREFIX) }
+        if (!includePathsOption) {
+            includePathsOption = compilerToolNode.appendNode(
+                "option", [
+                    id: createId(GNU_COMPILER_TOOL_INCLUDE_PATHS_OPTION_PREFIX),
+                    superClass: GNU_COMPILER_TOOL_INCLUDE_PATHS_OPTION_PREFIX,
+                    valueType: "includePath"
+                ]
+            )
+        }
+
+        includePathsOption
+    }
+
+    String createId(String prefix) {
+        prefix + "." + new java.text.SimpleDateFormat("yyMMddHHmmssS").format(new Date())
     }
 
     protected void store(Node xml) {

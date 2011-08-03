@@ -50,11 +50,12 @@ class CdtIdePlugin implements Plugin<Project> {
 
     private addCreateCprojectDescriptor(Project project) {
         project.task("cdtCproject", type: GenerateMetadataFileTask) {
+            settings = new CprojectSettings()
             inputFile = project.file(".cproject")
             outputFile = project.file(".cproject")
             factory { new CprojectDescriptor() }
             onConfigure { descriptor ->
-                new CprojectSettings().applyTo(descriptor)
+                settings.applyTo(descriptor)
             }
         }
     }

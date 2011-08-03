@@ -15,13 +15,45 @@
  */
 package org.gradle.plugins.cpp.cdt.model
 
+import org.gradle.plugins.binaries.model.Binary
+import org.gradle.plugins.binaries.model.HeaderExportingSourceSet
+
 /**
  * Exposes a more logical view of the actual .cproject descriptor file
  */
 class CprojectSettings {
-    
+
+    Binary binary
+
     void applyTo(CprojectDescriptor descriptor) {
-        
+        if (binary) { 
+            applyBinaryTo(descriptor) 
+        } else {
+            throw new IllegalStateException("no binary set")
+        }
+    }
+
+    private applyBinaryTo(CprojectDescriptor descriptor) {
+        def includeRoots = getProjectRelativeIncludeRoots()
+
+        descriptor.rootCppCompilerTools.each { compiler ->
+            def includePathsOption = descriptor.getOrCreateIncludePathsOption(compiler)
+            includePathsOption.children().each { includePathsOption.remove(it) }
+            includeRoots.each { includeRoot ->
+                includePathsOption.appendNode("listOptionValue", [builtIn: "false", value: "\"\${workspace_loc:/\${ProjName}/$includeRoot\""])
+            }
+        }
     }
     
+    Set<File> getIncludeRoots() {
+        def includeRoots = new LinkedHashSet()
+        binary.sourceSets.withType(HeaderExportingSourceSet).each {
+            includeRoots.addAll(it.exportedHeaders.srcDirs)
+        }
+        includeRoots
+    }
+
+    Set<String> getProjectRelativeIncludeRoots() {
+        getIncludeRoots().collect { binary.project.relativePath(it) }
+    }
 }
