@@ -19,7 +19,10 @@ package org.gradle.tooling.internal.idea;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
-import org.gradle.tooling.model.idea.*;
+import org.gradle.tooling.model.idea.IdeaContentRoot;
+import org.gradle.tooling.model.idea.IdeaDependency;
+import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
@@ -44,9 +47,6 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     File outputDir;
     File testOutputDir;
     File moduleFileDir;
-    List<IdeaSourceDirectory> sourceDirectories = new LinkedList<IdeaSourceDirectory>();
-    List<IdeaSourceDirectory> testDirectories = new LinkedList<IdeaSourceDirectory>();
-    List<File> excludeDirectories = new LinkedList<File>();
     List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
 
     public String getName() {
@@ -116,33 +116,6 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public DomainObjectSet<? extends IdeaSourceDirectory> getSourceDirectories() {
-        return new ImmutableDomainObjectSet<IdeaSourceDirectory>(sourceDirectories);
-    }
-
-    public DefaultIdeaModule setSourceDirectories(List<IdeaSourceDirectory> sourceDirectories) {
-        this.sourceDirectories = sourceDirectories;
-        return this;
-    }
-
-    public DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories() {
-        return new ImmutableDomainObjectSet<IdeaSourceDirectory>(testDirectories);
-    }
-
-    public DefaultIdeaModule setTestDirectories(List<IdeaSourceDirectory> testDirectories) {
-        this.testDirectories = testDirectories;
-        return this;
-    }
-
-    public List<File> getExcludeDirectories() {
-        return excludeDirectories;
-    }
-
-    public DefaultIdeaModule setExcludeDirectories(List<File> excludeDirectories) {
-        this.excludeDirectories = excludeDirectories;
-        return this;
-    }
-
     public DomainObjectSet<IdeaDependency> getDependencies() {
         return new ImmutableDomainObjectSet<IdeaDependency>(dependencies);
     }
@@ -173,9 +146,6 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
                 + ", outputDir=" + outputDir
                 + ", testOutputDir=" + testOutputDir
                 + ", moduleFileDir=" + moduleFileDir
-                + ", sourceDirectories count=" + sourceDirectories.size()
-                + ", testDirectories count=" + testDirectories.size()
-                + ", excludeDirectories count=" + excludeDirectories.size()
                 + ", dependencies count=" + dependencies.size()
                 + '}';
     }

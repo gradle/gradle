@@ -21,7 +21,6 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Represents information about the IntelliJ IDEA module
@@ -84,27 +83,6 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
      */
     File getTestOutputDir();
-
-    /**
-     * source dirs.
-     *
-     * @return source dirs
-     */
-    DomainObjectSet<? extends IdeaSourceDirectory> getSourceDirectories();
-
-    /**
-     * test dirs.
-     *
-     * @return test dirs
-     */
-    DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories();
-
-    /**
-     * exclude dirs
-     *
-     * @return exclude dirs
-     */
-    List<File> getExcludeDirectories();
 
     /**
      * dependencies of this module (i.e. module dependencies, library dependencies, etc.)

@@ -99,17 +99,20 @@ public class IdeaModelBuilder implements BuildsModel {
     }
 
     private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject) {
+        DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
+            .setRootDirectory(ideaModule.getContentRoot())
+            .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
+            .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs()))
+            .setExcludeDirectories(new LinkedList<File>(ideaModule.getExcludeDirs()));
+
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
                 .setName(ideaModule.getName())
-                .setContentRoots(asList(new DefaultIdeaContentRoot(ideaModule.getContentRoot())))
                 .setParent(ideaProject)
                 .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                 .setOutputDir(ideaModule.getOutputDir())
                 .setTestOutputDir(ideaModule.getTestOutputDir())
                 .setModuleFileDir(ideaModule.getIml().getGenerateTo())
-                .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
-                .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs()))
-                .setExcludeDirectories(new LinkedList<File>(ideaModule.getExcludeDirs()));
+                .setContentRoots(asList(contentRoot));
 
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }

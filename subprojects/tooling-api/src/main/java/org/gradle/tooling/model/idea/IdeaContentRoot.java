@@ -16,12 +16,33 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.tooling.model.DomainObjectSet;
+
 import java.io.File;
+import java.util.List;
 
 /**
  * Contains content root information
  */
 public interface IdeaContentRoot {
 
+    /**
+     * root directory
+     */
     File getRootDirectory();
+
+    /**
+     * source dirs.
+     */
+    DomainObjectSet<? extends IdeaSourceDirectory> getSourceDirectories();
+
+    /**
+     * test dirs.
+     */
+    DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories();
+
+    /**
+     * exclude dirs
+     */
+    List<File> getExcludeDirectories();
 }

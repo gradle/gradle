@@ -15,6 +15,7 @@ public class Main {
             connector.useInstallation(new File(args[0]));
         }
 
+        //TODO SF make it a multimodule project
         ProjectConnection connection = connector.connect();
         try {
             IdeaProject project = connection.getModel(IdeaProject.class);
@@ -28,19 +29,22 @@ public class Main {
                 System.out.println("  " + module);
                 System.out.println("  module details:");
 
-                System.out.println("    source dirs:");
-                for (IdeaSourceDirectory dir: module.getSourceDirectories()) {
-                    System.out.println("      " + dir);
-                }
+                for (IdeaContentRoot root: module.getContentRoots()) {
+                    System.out.println("    Content root: " + root.getRootDirectory());
+                    System.out.println("    source dirs:");
+                    for (IdeaSourceDirectory dir: root.getSourceDirectories()) {
+                        System.out.println("      " + dir);
+                    }
 
-                System.out.println("    test dirs:");
-                for (IdeaSourceDirectory dir: module.getTestDirectories()) {
-                    System.out.println("      " + dir);
-                }
+                    System.out.println("    test dirs:");
+                    for (IdeaSourceDirectory dir: root.getTestDirectories()) {
+                        System.out.println("      " + dir);
+                    }
 
-                System.out.println("    exclude dirs:");
-                for (File dir: module.getExcludeDirectories()) {
-                    System.out.println("      " + dir);
+                    System.out.println("    exclude dirs:");
+                    for (File dir: root.getExcludeDirectories()) {
+                        System.out.println("      " + dir);
+                    }
                 }
 
                 System.out.println("    dependencies:");

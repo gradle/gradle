@@ -17,10 +17,7 @@ package org.gradle.integtests.tooling.next
 
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.idea.IdeaLibraryDependency
-import org.gradle.tooling.model.idea.IdeaModule
-import org.gradle.tooling.model.idea.IdeaModuleDependency
-import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.tooling.model.idea.*
 
 class ToolingApiIdeaModelIntegrationTest extends ToolingApiSpecification {
 
@@ -142,16 +139,17 @@ idea.module.testOutputDir = file('someTestDir')
 
         when:
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-        def module = project.children[0]
+        IdeaModule module = project.children[0]
+        IdeaContentRoot root = module.contentRoots[0]
 
         then:
-        module.sourceDirectories.size() == 2
-        module.sourceDirectories.any { it.directory == projectDir.file('src/main/java') }
-        module.sourceDirectories.any { it.directory == projectDir.file('src/main/resources') }
+        root.sourceDirectories.size() == 2
+        root.sourceDirectories.any { it.directory == projectDir.file('src/main/java') }
+        root.sourceDirectories.any { it.directory == projectDir.file('src/main/resources') }
 
-        module.testDirectories.size() == 2
-        module.testDirectories.any { it.directory == projectDir.file('src/test/java') }
-        module.testDirectories.any { it.directory == projectDir.file('src/test/resources') }
+        root.testDirectories.size() == 2
+        root.testDirectories.any { it.directory == projectDir.file('src/test/java') }
+        root.testDirectories.any { it.directory == projectDir.file('src/test/resources') }
     }
 
     def "provides exclude dir information"() {
@@ -168,7 +166,7 @@ idea.module.excludeDirs += file('foo')
         def module = project.children[0]
 
         then:
-        module.excludeDirectories.any { it.path.endsWith 'foo' }
+        module.contentRoots[0].excludeDirectories.any { it.path.endsWith 'foo' }
     }
 
     def "provides dependencies"() {
