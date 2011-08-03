@@ -189,7 +189,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         if (parent != null) {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }
-        dynamicObjectHelper.addObject(taskContainer.getAsDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
+        dynamicObjectHelper.addObject(taskContainer.getTasksAsDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
     }

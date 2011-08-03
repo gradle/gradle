@@ -22,11 +22,12 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.util.GUtil;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -135,4 +136,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return this;
     }
 
+    public DynamicObject getTasksAsDynamicObject() {
+        return getElementsAsDynamicObject();
+    }
 }

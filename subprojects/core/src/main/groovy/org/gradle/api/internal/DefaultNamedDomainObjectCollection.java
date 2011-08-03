@@ -32,7 +32,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final ClassGenerator classGenerator;
     private final Namer<? super T> namer;
 
-    private final DynamicObject dynamicObject = new ContainerDynamicObject();
+    private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
+    private final ContainerDynamicObject dynamicObject = new ContainerDynamicObject(elementsDynamicObject);
 
     private final List<Rule> rules = new ArrayList<Rule>();
     private Set<String> applyingRulesFor = new HashSet<String>();
@@ -181,6 +182,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return dynamicObject;
     }
 
+    protected DynamicObject getElementsAsDynamicObject() {
+        return elementsDynamicObject;
+    }
+
     private void applyRules(String name) {
         if (applyingRulesFor.contains(name)) {
             return;
@@ -233,9 +238,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     private class ContainerDynamicObject extends CompositeDynamicObject {
-        private ContainerDynamicObject() {
-            setObjects(new BeanDynamicObject(DefaultNamedDomainObjectCollection.this),
-                    new ContainerElementsDynamicObject());
+        private ContainerDynamicObject(ContainerElementsDynamicObject elementsDynamicObject) {
+            setObjects(new BeanDynamicObject(DefaultNamedDomainObjectCollection.this), elementsDynamicObject);
         }
 
         @Override
