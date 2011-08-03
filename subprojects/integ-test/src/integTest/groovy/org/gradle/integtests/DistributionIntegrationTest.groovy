@@ -134,7 +134,7 @@ class DistributionIntegrationTest {
         TestFile contentsDir = dist.testDir.file("gradle-$version")
 
         // Build self using wrapper in source distribution
-        executer.inDirectory(contentsDir).usingExecutable('gradlew').withTasks('binZip').run()
+        executer.ignoreDeprecationWarnings().inDirectory(contentsDir).usingExecutable('gradlew').withTasks('binZip').run()
 
         File binZip = contentsDir.file('build/distributions').listFiles()[0]
         Expand unpack = new Expand()
