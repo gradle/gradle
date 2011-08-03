@@ -61,10 +61,18 @@ public class ModelBuilder implements BuildsModel {
         this.gradle = gradle;
         Project root = gradle.getRootProject();
         tasksFactory.collectTasks(root);
-        new EclipsePluginApplier().apply(root);
+        applyEclipsePlugin(root);
         buildHierarchy(root);
         populate(root);
         return currentProject;
+    }
+
+    private void applyEclipsePlugin(Project root) {
+        Set<Project> allprojects = root.getAllprojects();
+        for (Project p : allprojects) {
+            p.getPlugins().apply(EclipsePlugin.class);
+        }
+        root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
     }
 
     private void addProject(Project project, EclipseProjectVersion3 eclipseProject) {

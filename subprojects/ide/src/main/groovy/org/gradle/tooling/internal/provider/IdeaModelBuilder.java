@@ -48,8 +48,17 @@ public class IdeaModelBuilder implements BuildsModel {
     public ProjectVersion3 buildAll(GradleInternal gradle) {
         Project root = gradle.getRootProject();
         tasksFactory.collectTasks(root);
-        new IdeaPluginApplier().apply(root);
+        applyIdeaPlugin(root);
         return build(root);
+    }
+
+    private void applyIdeaPlugin(Project root) {
+        Set<Project> allprojects = root.getAllprojects();
+        for (Project p : allprojects) {
+            p.getPlugins().apply(IdeaPlugin.class);
+        }
+        //not yet covered:
+//        root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
     }
 
     private ProjectVersion3 build(Project project) {
