@@ -90,9 +90,7 @@ class UserGuideSamplesRunner extends Runner {
             println("Test Id: $run.id, dir: $run.subDir, args: $run.args")
             File rootProjectDir = dist.samplesDir.file(run.subDir)
 
-            // Ignoring deprecation warnings: 1 sample currently emit deprecation warnings
-            // 1. scala/quickstart: Scala plugin + Eclipse plugin uses eclipseProject.buildCommands
-            executer.withDeprecationChecksDisabled().inDirectory(rootProjectDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
+            executer.inDirectory(rootProjectDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
 
             ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
