@@ -24,6 +24,7 @@ import java.io.File;
  * @since 1.0-rc-1
  */
 public interface IdeaLibraryDependency extends IdeaDependency {
+    //TODO SF model better (libraries can contain multiple files, etc.)
 
     /**
      * Returns the file for this dependency.
