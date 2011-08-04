@@ -36,6 +36,8 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      */
     DomainObjectSet<? extends IdeaContentRoot> getContentRoots();
 
+    //TODO SF - should have link to GradleProject
+
     /**
      * Returns the project of this module.
      * Alias to {@link #getProject()}
@@ -51,13 +53,6 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      * @return idea project
      */
     IdeaProject getProject();
-
-    /**
-     * the folder containing module file (*.iml)
-     *
-     * @return module file dir
-     */
-    File getModuleFileDir();
 
     /**
      * whether current module should inherit project's output directory.
