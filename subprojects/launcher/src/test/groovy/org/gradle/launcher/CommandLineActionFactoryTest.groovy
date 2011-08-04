@@ -30,6 +30,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.*
 import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.logging.ProgressLogger
+import org.gradle.logging.ProgressLoggerFactory
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
@@ -57,6 +59,8 @@ class CommandLineActionFactoryTest extends Specification {
     }
 
     def setup() {
+        ProgressLoggerFactory progressLoggerFactory = Mock()
+        _ * loggingServices.get(ProgressLoggerFactory) >> progressLoggerFactory
         _ * loggingServices.get(CommandLineConverter) >> loggingConfigurationConverter
         _ * loggingConfigurationConverter.convert(!null) >> new LoggingConfiguration()
         Factory<LoggingManagerInternal> loggingManagerFactory = Mock()

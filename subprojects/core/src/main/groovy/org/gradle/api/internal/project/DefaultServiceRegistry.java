@@ -21,7 +21,7 @@ import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.util.UncheckedException;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -29,10 +29,9 @@ import java.util.List;
  *
  * <p>Subclasses can register services by:</p>
  *
- * <ul> <li>Calling {@link #add(org.gradle.api.internal.project.DefaultServiceRegistry.Service)} to register a factory
- * for the service.</li>
- *
  * <li>Calling {@link #add(Class, Object)} to register a service instance.</li>
+ *
+ * <li>Calling {@link #add(ServiceRegistry)} to register a set of services.</li>
  *
  * <li>Adding a factory method. A factory method should have a name that starts with 'create', take no parameters, and
  * have a non-void return type. For example, <code>protected SomeService createSomeService() { .... }</code>.</li>
@@ -50,7 +49,8 @@ import java.util.List;
  * its parent registry, if any, to locate the service.</p>
  */
 public class DefaultServiceRegistry implements ServiceRegistry {
-    private final List<Service> services = new ArrayList<Service>();
+    private final List<Provider> providers = new LinkedList<Provider>();
+    private final List<Provider> registeredProviders;
     private final ServiceRegistry parent;
     private boolean closed;
 
@@ -60,6 +60,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
     public DefaultServiceRegistry(ServiceRegistry parent) {
         this.parent = parent;
+        if (parent != null) {
+            providers.add(new ParentServices());
+        }
+        registeredProviders = providers.subList(0, 0);
         for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
             findFactoryMethods(type);
             findDecoratorMethods(type);
@@ -76,7 +80,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             if (method.getName().startsWith("create")
                     && method.getParameterTypes().length == 0
                     && method.getReturnType() != Void.class) {
-                add(new FactoryMethodService(method));
+                registeredProviders.add(0, new FactoryMethodService(method));
             }
         }
     }
@@ -87,17 +91,23 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                     && method.getParameterTypes().length == 1
                     && method.getReturnType() != Void.class
                     && method.getParameterTypes()[0].equals(method.getReturnType())) {
-                add(new DecoratorMethodService(method));
+                registeredProviders.add(0, new DecoratorMethodService(method));
             }
         }
     }
 
-    protected void add(Service service) {
-        services.add(0, service);
+    /**
+     * Adds a set of services to this registry. The given registry is closed when this registry is closed.
+     */
+    public void add(ServiceRegistry nested) {
+        registeredProviders.add(new NestedServices(nested));
     }
 
+    /**
+     * Adds a service to this registry. The given object is closed when this registry is closed.
+     */
     public <T> void add(Class<T> serviceType, final T serviceInstance) {
-        add(new FixedInstanceService<T>(serviceType, serviceInstance));
+        registeredProviders.add(0, new FixedInstanceService<T>(serviceType, serviceInstance));
     }
 
     /**
@@ -106,10 +116,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
      */
     public void close() {
         try {
-            new CompositeStoppable(services).stop();
+            new CompositeStoppable(providers).stop();
         } finally {
             closed = true;
-            services.clear();
+            providers.clear();
         }
     }
 
@@ -119,21 +129,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                     serviceType.getSimpleName(), this));
         }
 
-        for (Service service : services) {
+        for (Provider service : providers) {
             T t = service.getService(serviceType);
             if (t != null) {
                 return t;
-            }
-        }
-
-        if (parent != null) {
-            try {
-                return parent.get(serviceType);
-            } catch (UnknownServiceException e) {
-                if (!e.getType().equals(serviceType)) {
-                    throw e;
-                }
-                // Ignore
             }
         }
 
@@ -147,21 +146,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                     type.getSimpleName(), this));
         }
 
-        for (Service service : services) {
+        for (Provider service : providers) {
             Factory<T> factory = service.getFactory(type);
             if (factory != null) {
                 return factory;
-            }
-        }
-
-        if (parent != null) {
-            try {
-                return parent.getFactory(type);
-            } catch (UnknownServiceException e) {
-                if (!e.getType().equals(type)) {
-                    throw e;
-                }
-                // Ignore
             }
         }
 
@@ -184,12 +172,50 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
-    protected static abstract class Service implements Stoppable {
+    interface Provider extends Stoppable {
+        <T> T getService(Class<T> serviceType);
+
+        <T> Factory<T> getFactory(Class<T> type);
+    }
+
+    private static abstract class ManagedObjectProvider<T> implements Provider {
+        private T instance;
+
+        public T getInstance() {
+            if (instance == null) {
+                instance = create();
+                assert instance != null;
+            }
+            return instance;
+        }
+
+        protected abstract T create();
+
+        public void stop() {
+            try {
+                if (instance != null) {
+                    try {
+                        invoke(instance.getClass().getMethod("stop"), instance);
+                    } catch (NoSuchMethodException e) {
+                        // ignore
+                    }
+                    try {
+                        invoke(instance.getClass().getMethod("close"), instance);
+                    } catch (NoSuchMethodException e) {
+                        // ignore
+                    }
+                }
+            } finally {
+                instance = null;
+            }
+        }
+    }
+
+    private static abstract class SingletonService extends ManagedObjectProvider<Object> {
         final Type serviceType;
         final Class serviceClass;
-        Object service;
 
-        Service(Type serviceType) {
+        SingletonService(Type serviceType) {
             this.serviceType = serviceType;
             serviceClass = toClass(serviceType);
         }
@@ -199,37 +225,13 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             return String.format("Service %s", serviceType);
         }
 
-        <T> T getService(Class<T> serviceType) {
+        public <T> T getService(Class<T> serviceType) {
             if (!serviceType.isAssignableFrom(this.serviceClass)) {
                 return null;
             }
-            if (service == null) {
-                service = create();
-                assert service != null;
-            }
-            return serviceType.cast(service);
+            return serviceType.cast(getInstance());
         }
 
-        protected abstract Object create();
-
-        public void stop() {
-            try {
-                if (service != null) {
-                    try {
-                        invoke(service.getClass().getMethod("stop"), service);
-                    } catch (NoSuchMethodException e) {
-                        // ignore
-                    }
-                    try {
-                        invoke(service.getClass().getMethod("close"), service);
-                    } catch (NoSuchMethodException e) {
-                        // ignore
-                    }
-                }
-            } finally {
-                service = null;
-            }
-        }
 
         public <T> Factory<T> getFactory(Class<T> elementType) {
             if (!Factory.class.isAssignableFrom(serviceClass)) {
@@ -271,7 +273,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
-    private class FactoryMethodService extends Service {
+    private class FactoryMethodService extends SingletonService {
         private final Method method;
 
         public FactoryMethodService(Method method) {
@@ -285,7 +287,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
-    private static class FixedInstanceService<T> extends Service {
+    private static class FixedInstanceService<T> extends SingletonService {
         private final T serviceInstance;
 
         public FixedInstanceService(Class<T> serviceType, T serviceInstance) {
@@ -300,7 +302,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
-    private class DecoratorMethodService extends Service {
+    private class DecoratorMethodService extends SingletonService {
         private final Method method;
 
         public DecoratorMethodService(Method method) {
@@ -329,4 +331,75 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
+    private static class NestedServices extends ManagedObjectProvider<ServiceRegistry> {
+        private final ServiceRegistry nested;
+
+        public NestedServices(ServiceRegistry nested) {
+            this.nested = nested;
+            getInstance();
+        }
+
+        @Override
+        protected ServiceRegistry create() {
+            return nested;
+        }
+
+        public <T> Factory<T> getFactory(Class<T> type) {
+            try {
+                Factory<T> factory = getInstance().getFactory(type);
+                assert factory != null;
+                assert factory != null : String.format("nested registry returned null for factory type '%s'", type.getName());
+                return factory;
+            } catch (UnknownServiceException e) {
+                if (e.getType().equals(type)) {
+                    return null;
+                }
+                throw e;
+            }
+        }
+
+        public <T> T getService(Class<T> serviceType) {
+            try {
+                T service = getInstance().get(serviceType);
+                assert service != null : String.format("nested registry returned null for service type '%s'", serviceType.getName());
+                return service;
+            } catch (UnknownServiceException e) {
+                if (e.getType().equals(serviceType)) {
+                    return null;
+                }
+                throw e;
+            }
+        }
+    }
+
+    private class ParentServices implements Provider {
+        public <T> Factory<T> getFactory(Class<T> type) {
+            try {
+                Factory<T> factory = parent.getFactory(type);
+                assert factory != null : String.format("parent returned null for factory type '%s'", type.getName());
+                return factory;
+            } catch (UnknownServiceException e) {
+                if (e.getType().equals(type)) {
+                    return null;
+                }
+                throw e;
+            }
+        }
+
+        public <T> T getService(Class<T> serviceType) {
+            try {
+                T service = parent.get(serviceType);
+                assert service != null : String.format("parent returned null for service type '%s'", serviceType.getName());
+                return service;
+            } catch (UnknownServiceException e) {
+                if (e.getType().equals(serviceType)) {
+                    return null;
+                }
+                throw e;
+            }
+        }
+
+        public void stop() {
+        }
+    }
 }

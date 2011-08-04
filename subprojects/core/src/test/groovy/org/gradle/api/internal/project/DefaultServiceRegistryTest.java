@@ -16,6 +16,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.Factory;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -26,11 +27,12 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class DefaultServiceRegistryTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final TestRegistry registry = new TestRegistry();
 
     @Test
@@ -84,16 +86,9 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
-    public void createsAndCachesRegisteredServiceInstance() {
-        final BigDecimal value = BigDecimal.TEN;
-        registry.add(new DefaultServiceRegistry.Service(BigDecimal.class) {
-            @Override
-            protected Object create() {
-                return value;
-            }
-        });
-        assertThat(registry.get(BigDecimal.class), sameInstance(value));
-        assertThat(registry.get(Number.class), sameInstance((Object) value));
+    public void cachesRegisteredServiceInstance() {
+        assertThat(registry.get(Integer.class), sameInstance(registry.get(Integer.class)));
+        assertThat(registry.get(Integer.class), sameInstance((Object) registry.get(Integer.class)));
     }
 
     @Test
@@ -180,6 +175,70 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
+    public void returnsServiceInstancesManagedByNestedServiceRegistry() {
+        final ServiceRegistry nested = context.mock(ServiceRegistry.class);
+        final Runnable runnable = context.mock(Runnable.class);
+        registry.add(nested);
+
+        context.checking(new Expectations() {{
+            one(nested).get(Runnable.class);
+            will(returnValue(runnable));
+        }});
+
+        assertThat(registry.get(Runnable.class), sameInstance(runnable));
+    }
+
+    @Test
+    public void throwsExceptionForUnknownServiceInNestedRegistry() {
+        final ServiceRegistry nested = context.mock(ServiceRegistry.class);
+        registry.add(nested);
+
+        context.checking(new Expectations(){{
+            one(nested).get(Runnable.class);
+            will(throwException(new UnknownServiceException(Runnable.class, "fail")));
+        }});
+
+        try {
+            registry.get(Runnable.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), equalTo("No service of type Runnable available in TestRegistry."));
+        }
+    }
+
+    @Test
+    public void returnsServiceFactoriesManagedByNestedServiceRegistry() {
+        final ServiceRegistry nested = context.mock(ServiceRegistry.class);
+        final Factory<Runnable> factory = context.mock(Factory.class);
+        registry.add(nested);
+
+        context.checking(new Expectations() {{
+            one(nested).getFactory(Runnable.class);
+            will(returnValue(factory));
+        }});
+
+        assertThat(registry.getFactory(Runnable.class), sameInstance(factory));
+    }
+
+    @Test
+    public void throwsExceptionForUnknownFactoryInNestedRegistry() {
+        final ServiceRegistry nested = context.mock(ServiceRegistry.class);
+        registry.add(nested);
+
+        context.checking(new Expectations(){{
+            one(nested).getFactory(Runnable.class);
+            will(throwException(new UnknownServiceException(Runnable.class, "fail")));
+        }});
+
+        try {
+            registry.getFactory(Runnable.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), equalTo("No factory for objects of type Runnable available in TestRegistry."));
+        }
+    }
+
+    @Test
     public void servicesCreatedByFactoryMethodsAreVisibleWhenUsingASubClass() {
         ServiceRegistry registry = new SubType();
         assertThat(registry.get(String.class), equalTo("12"));
@@ -199,6 +258,32 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
+    public void prefersServicesCreatedByFactoryMethodsOverNestedServices() {
+        final ServiceRegistry parent = context.mock(ServiceRegistry.class);
+        final ServiceRegistry nested = context.mock(ServiceRegistry.class);
+        final TestRegistry registry = new TestRegistry(parent);
+        registry.add(nested);
+
+        assertThat(registry.get(String.class), equalTo("12"));
+    }
+
+    @Test
+    public void prefersNestedServicesOverParentServices() {
+        final ServiceRegistry parent = context.mock(ServiceRegistry.class);
+        final ServiceRegistry nested = context.mock(ServiceRegistry.class);
+        final TestRegistry registry = new TestRegistry(parent);
+        final Runnable runnable = context.mock(Runnable.class);
+        registry.add(nested);
+
+        context.checking(new Expectations() {{
+            one(nested).get(Runnable.class);
+            will(returnValue(runnable));
+        }});
+
+        assertThat(registry.get(Runnable.class), sameInstance(runnable));
+    }
+
+    @Test
     public void closeInvokesStopMethodOnEachService() {
         final TestStopService service = context.mock(TestStopService.class);
         registry.add(TestStopService.class, service);
@@ -213,6 +298,18 @@ public class DefaultServiceRegistryTest {
     @Test
     public void closeIgnoresServiceWithNoCloseOrStopMethod() {
         registry.add(String.class, "service");
+
+        registry.close();
+    }
+
+    @Test
+    public void closeInvokesCloseMethodOnEachNestedServiceRegistry() {
+        final ClosableServiceRegistry nested = context.mock(ClosableServiceRegistry.class);
+        registry.add(nested);
+
+        context.checking(new Expectations() {{
+            one(nested).close();
+        }});
 
         registry.close();
     }
@@ -293,5 +390,9 @@ public class DefaultServiceRegistryTest {
 
     public interface TestStopService {
         void stop();
+    }
+
+    public interface ClosableServiceRegistry extends ServiceRegistry {
+        void close();
     }
 }

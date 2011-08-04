@@ -30,6 +30,10 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
 import spock.lang.Specification
+import org.gradle.api.internal.Factory
+import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.cache.CacheRepository
+import org.gradle.api.internal.ClassPathRegistry
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -43,10 +47,18 @@ class DefaultDependencyManagementServicesTest extends Specification {
     final StartParameter startParameter = Mock()
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 
-    def "provides a ResolverFactory"() {
-        given:
-        _ * parent.getFactory(LoggingManagerInternal.class)
+    def setup() {
+        Factory<LoggingManagerInternal> loggingFactory = Mock()
+        _ * parent.getFactory(LoggingManagerInternal) >> loggingFactory
+        ProgressLoggerFactory progressLoggerFactory = Mock()
+        _ * parent.get(ProgressLoggerFactory) >> progressLoggerFactory
+        CacheRepository cacheRepository = Mock()
+        _ * parent.get(CacheRepository) >> cacheRepository
+        ClassPathRegistry classPathRegistry = Mock()
+        _ * parent.get(ClassPathRegistry) >> classPathRegistry
+    }
 
+    def "provides a ResolverFactory"() {
         expect:
         services.get(ResolverFactory.class) != null
     }

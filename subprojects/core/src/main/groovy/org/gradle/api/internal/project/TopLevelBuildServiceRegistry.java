@@ -20,14 +20,12 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.maven.MavenFactory;
-import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.changedetection.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -36,8 +34,6 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
-import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.execution.*;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
@@ -122,19 +118,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new InstantiatingBuildLoader(get(IProjectFactory.class)));
     }
 
-    protected TaskExecuter createTaskExecuter() {
-        return new ExecuteAtMostOnceTaskExecuter(
-                new SkipOnlyIfTaskExecuter(
-                        new SkipTaskWithNoActionsExecuter(
-                                new SkipEmptySourceFilesTaskExecuter(
-                                        new ValidatingTaskExecuter(
-                                                new SkipUpToDateTaskExecuter(
-                                                        new PostExecutionAnalysisTaskExecuter(
-                                                                new ExecuteActionsTaskExecuter(
-                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
-                                                        get(TaskArtifactStateRepository.class)))))));
-    }
-
     protected CacheFactory createCacheFactory() {
         return getFactory(CacheFactory.class).create();
     }
@@ -155,23 +138,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new AnnotationProcessingTaskFactory(
                         new TaskFactory(
                                 get(ClassGenerator.class))));
-    }
-
-    protected TaskArtifactStateRepository createTaskArtifactStateRepository() {
-        CacheRepository cacheRepository = get(CacheRepository.class);
-        FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
-                new CachingHasher(
-                        new DefaultHasher(),
-                        cacheRepository));
-
-        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheRepository);
-        return new FileCacheBroadcastTaskArtifactStateRepository(
-                new ShortCircuitTaskArtifactStateRepository(
-                        startParameter,
-                        new DefaultTaskArtifactStateRepository(cacheRepository,
-                                fileSnapshotter,
-                                outputFilesSnapshotter)),
-                new DefaultFileCacheListener());
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory() {
