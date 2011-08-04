@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
@@ -28,21 +29,16 @@ import java.util.List;
 import java.util.Set;
 
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
-    private final CacheRepository repository;
     private final FileSnapshotRepository snapshotRepository;
-    private PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
-    private DefaultSerializer<TaskHistory> serializer;
+    private final PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
+    private final DefaultSerializer<TaskHistory> serializer = new DefaultSerializer<TaskHistory>();
 
-    public CacheBackedTaskHistoryRepository(CacheRepository repository, FileSnapshotRepository snapshotRepository) {
-        this.repository = repository;
+    public CacheBackedTaskHistoryRepository(CacheRepository repository, FileSnapshotRepository snapshotRepository, Gradle gradle) {
         this.snapshotRepository = snapshotRepository;
+        taskHistoryCache = repository.indexedCache(String.class, TaskHistory.class, "taskArtifacts").forObject(gradle).withSerializer(serializer).open();
     }
 
     public History getHistory(final TaskInternal task) {
-        if (taskHistoryCache == null) {
-            serializer = new DefaultSerializer<TaskHistory>();
-            taskHistoryCache = repository.indexedCache(String.class, TaskHistory.class, "taskArtifacts").forObject(task.getProject().getGradle()).withSerializer(serializer).open();
-        }
         final TaskHistory history = loadHistory(task);
         final LazyTaskExecution currentExecution = new LazyTaskExecution();
         currentExecution.snapshotRepository = snapshotRepository;

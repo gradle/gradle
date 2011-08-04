@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
@@ -26,9 +27,9 @@ public class CachingHasher implements Hasher {
     private final Hasher hasher;
     private long timestamp;
 
-    public CachingHasher(Hasher hasher, CacheRepository cacheRepository) {
+    public CachingHasher(Hasher hasher, CacheRepository cacheRepository, Gradle gradle) {
         this.hasher = hasher;
-        cache = cacheRepository.indexedCache(File.class, FileInfo.class, "fileHashes").withSerializer(new FileInfoSerializer()).open();
+        cache = cacheRepository.indexedCache(File.class, FileInfo.class, "fileHashes").forObject(gradle).withSerializer(new FileInfoSerializer()).open();
     }
 
     public byte[] hash(File file) {

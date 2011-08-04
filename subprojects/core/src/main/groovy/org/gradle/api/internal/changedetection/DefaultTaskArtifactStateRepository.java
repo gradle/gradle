@@ -23,7 +23,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.CacheRepository;
 
 import java.util.ArrayList;
 import java.util.Formatter;
@@ -37,8 +36,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final TaskHistoryRepository taskHistoryRepository;
     private final UpToDateRule upToDateRule;
 
-    public DefaultTaskArtifactStateRepository(CacheRepository repository, FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
-        this.taskHistoryRepository = new CacheBackedTaskHistoryRepository(repository, new CacheBackedFileSnapshotRepository(repository));
+    public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
+        this.taskHistoryRepository = taskHistoryRepository;
         upToDateRule = new CompositeUpToDateRule(
                 new TaskTypeChangedUpToDateRule(),
                 new InputPropertiesChangedUpToDateRule(),

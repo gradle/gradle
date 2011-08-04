@@ -22,10 +22,12 @@ import org.gradle.listener.ListenerManager
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.ObjectCacheBuilder
 import org.gradle.StartParameter
+import org.gradle.api.invocation.Gradle
 
 class TaskExecutionServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
-    final TaskExecutionServices services = new TaskExecutionServices(parent)
+    final Gradle gradle = Mock()
+    final TaskExecutionServices services = new TaskExecutionServices(parent, gradle)
 
     def "makes a TaskExecutor available"() {
         given:
@@ -37,6 +39,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(StartParameter) >> startParameter
         _ * parent.get(CacheRepository) >> cacheRepository
         _ * cacheRepository.indexedCache(!null, !null, !null) >> cacheBuilder
+        _ * cacheBuilder.forObject(gradle) >> cacheBuilder
         _ * cacheBuilder.withSerializer(!null) >> cacheBuilder
 
         expect:

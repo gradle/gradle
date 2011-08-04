@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.ObjectCacheBuilder;
 import org.gradle.cache.PersistentIndexedCache;
@@ -40,6 +41,7 @@ public class CachingHasherTest {
     TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Hasher delegate = context.mock(Hasher.class);
+    private final Gradle gradle = context.mock(Gradle.class);
     private final PersistentIndexedCache<File, CachingHasher.FileInfo> cache = context.mock(
             PersistentIndexedCache.class);
     private final CacheRepository cacheRepository = context.mock(CacheRepository.class);
@@ -55,13 +57,16 @@ public class CachingHasherTest {
             one(cacheRepository).indexedCache(File.class, CachingHasher.FileInfo.class, "fileHashes");
             will(returnValue(cacheBuilder));
 
+            one(cacheBuilder).forObject(gradle);
+            will(returnValue(cacheBuilder));
+
             one(cacheBuilder).withSerializer(with(notNullValue(Serializer.class)));
             will(returnValue(cacheBuilder));
 
             one(cacheBuilder).open();
             will(returnValue(cache));
         }});
-        hasher = new CachingHasher(delegate, cacheRepository);
+        hasher = new CachingHasher(delegate, cacheRepository, gradle);
     }
 
     @Test

@@ -16,35 +16,35 @@
 
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.CacheUsage;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.*;
-import org.gradle.util.*;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.DefaultCacheRepository;
+import org.gradle.testfixtures.internal.InMemoryCacheFactory;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.RandomLongIdGenerator;
+import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.hamcrest.Matcher;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import java.io.*;
+import java.io.File;
 import java.util.*;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-@RunWith(JMock.class)
 public class DefaultTaskArtifactStateRepositoryTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
-    private final JUnit4Mockery context = new JUnit4GroovyMockery();
-    private final CacheRepository cacheRepository = context.mock(CacheRepository.class);
+    private CacheRepository cacheRepository;
     private final ProjectInternal project = HelperUtil.createRootProject();
     private final Gradle gradle = project.getGradle();
     private final TestFile outputFile = tmpDir.file("output-file");
@@ -60,30 +60,19 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private final Set<TestFile> inputFiles = toSet(inputFile, inputDir, missingInputFile);
     private final Set<TestFile> outputFiles = toSet(outputFile, outputDir, emptyOutputDir, missingOutputFile);
     private final Set<TestFile> createFiles = toSet(outputFile, outputDirFile, outputDirFile2);
-    private final PersistentCache persistentCache = context.mock(PersistentCache.class);
     private DefaultTaskArtifactStateRepository repository;
 
     @Before
     public void setup() {
-        context.checking(new Expectations() {{
-            ObjectCacheBuilder<Long, PersistentIndexedCache<String, Long>> builder = context.mock(ObjectCacheBuilder.class);
-
-            one(cacheRepository).indexedCache(String.class, Long.class, "outputFileStates");
-            will(returnValue(builder));
-
-            one(builder).open();
-            will(returnValue(new InMemoryIndexedCache()));
-        }});
-
+        cacheRepository = new DefaultCacheRepository(tmpDir.createDir("user-home"), "cache", CacheUsage.ON, new InMemoryCacheFactory());
         FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
-        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheRepository);
-        repository = new DefaultTaskArtifactStateRepository(cacheRepository, inputFilesSnapshotter, outputFilesSnapshotter);
+        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheRepository, gradle);
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheRepository, new CacheBackedFileSnapshotRepository(cacheRepository, gradle), gradle);
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, inputFilesSnapshotter, outputFilesSnapshotter);
     }
 
     @Test
     public void artifactsAreNotUpToDateWhenCacheIsEmpty() {
-        expectEmptyCacheLocated();
-
         TaskArtifactState state = repository.getStateFor(task());
         assertNotNull(state);
         assertFalse(state.isUpToDate());
@@ -307,7 +296,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     @Test
     public void artifactsAreNotUpToDateWhenStateHasNotBeenUpdated() {
-        expectEmptyCacheLocated();
         repository.getStateFor(task());
 
         TaskArtifactState state = repository.getStateFor(task());
@@ -318,7 +306,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
     public void artifactsAreNotUpToDateWhenOutputDirWhichUsedToExistHasBeenDeleted() {
         // Output dir already exists before first execution of task
         outputDirFile.createFile();
-        expectEmptyCacheLocated();
 
         TaskInternal task1 = builder().withOutputFiles(outputDir).createsFiles(outputDirFile).task();
         TaskInternal task2 = builder().withPath("other").withOutputFiles(outputDir).createsFiles(outputDirFile2).task();
@@ -373,8 +360,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     @Test
     public void hasEmptyTaskHistoryWhenTaskHasNeverBeenExecuted() {
-        expectEmptyCacheLocated();
-
         TaskArtifactState state = repository.getStateFor(task());
         assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), isEmpty());
     }
@@ -441,8 +426,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     @Test
     public void considersExistingFileInOutputDirectoryWhichIsUpdatedByTheTaskAsProducedByTask() {
-        expectEmptyCacheLocated();
-
         TestFile otherFile = outputDir.file("other").createFile();
 
         TaskInternal task = task();
@@ -553,41 +536,12 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     private void execute(TaskInternal... tasks) {
-        expectEmptyCacheLocated();
         for (TaskInternal task : tasks) {
             TaskArtifactState state = repository.getStateFor(task);
             state.isUpToDate();
             task.execute();
             state.afterTask();
         }
-    }
-
-    private void expectEmptyCacheLocated() {
-        context.checking(new Expectations() {{
-            ObjectCacheBuilder<?, PersistentIndexedCache<String, ?>> tasksCacheBuilder = context.mock(ObjectCacheBuilder.class);
-            ObjectCacheBuilder<Object, PersistentIndexedCache<String, Object>> fileSnapshotCacheBuilder = context.mock(ObjectCacheBuilder.class);
-
-            Matcher<Class> stringClassMatcher = equalTo((Class) String.class);
-            Matcher<Class> notNullClassMatcher = notNullValue();
-            one(cacheRepository).indexedCache(with(stringClassMatcher), with(notNullClassMatcher), with(equalTo("taskArtifacts")));
-            will(returnValue(tasksCacheBuilder));
-
-            one(tasksCacheBuilder).forObject(gradle);
-            will(returnValue(tasksCacheBuilder));
-
-            Matcher<Serializer> defaultSerializerMatcher = (Matcher) instanceOf(DefaultSerializer.class);
-            one(tasksCacheBuilder).withSerializer(with(defaultSerializerMatcher));
-            will(returnValue(tasksCacheBuilder));
-
-            one(tasksCacheBuilder).open();
-            will(returnValue(new InMemoryIndexedCache<String, Object>()));
-
-            atMost(1).of(cacheRepository).indexedCache(Object.class, Object.class, "fileSnapshots");
-            will(returnValue(fileSnapshotCacheBuilder));
-
-            atMost(1).of(fileSnapshotCacheBuilder).open();
-            will(returnValue(new InMemoryIndexedCache()));
-        }});
     }
 
     private TaskInternal task() {

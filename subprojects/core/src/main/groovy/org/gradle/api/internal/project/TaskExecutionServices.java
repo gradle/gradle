@@ -20,13 +20,17 @@ import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.changedetection.*;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.RandomLongIdGenerator;
 
 public class TaskExecutionServices extends DefaultServiceRegistry {
-    public TaskExecutionServices(ServiceRegistry parent) {
+    private final Gradle gradle;
+
+    public TaskExecutionServices(ServiceRegistry parent, Gradle gradle) {
         super(parent);
+        this.gradle = gradle;
     }
 
     protected TaskExecuter createTaskExecuter() {
@@ -47,13 +51,18 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
         FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
                 new CachingHasher(
                         new DefaultHasher(),
-                        cacheRepository));
+                        cacheRepository,
+                        gradle));
 
-        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheRepository);
+        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheRepository, gradle);
+
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheRepository, new CacheBackedFileSnapshotRepository(cacheRepository, gradle), gradle);
+
         return new FileCacheBroadcastTaskArtifactStateRepository(
                 new ShortCircuitTaskArtifactStateRepository(
                         get(StartParameter.class),
-                        new DefaultTaskArtifactStateRepository(cacheRepository,
+                        new DefaultTaskArtifactStateRepository(
+                                taskHistoryRepository,
                                 fileSnapshotter,
                                 outputFilesSnapshotter)),
                 new DefaultFileCacheListener());

@@ -33,7 +33,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     public GradleInternalServiceRegistry(ServiceRegistry parent, final GradleInternal gradle) {
         super(parent);
         this.gradle = gradle;
-        add(new TaskExecutionServices(parent));
+        add(new TaskExecutionServices(parent, gradle));
     }
 
     protected ProjectFinder createProjectFinder() {

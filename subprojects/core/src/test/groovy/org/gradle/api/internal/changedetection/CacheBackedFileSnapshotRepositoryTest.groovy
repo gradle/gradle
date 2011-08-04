@@ -21,11 +21,22 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.ObjectCacheBuilder
+import org.gradle.api.invocation.Gradle
 
 class CacheBackedFileSnapshotRepositoryTest extends Specification {
     final CacheRepository cacheRepository = Mock()
+    final Gradle gradle = Mock()
     final PersistentIndexedCache<Object, Object> indexedCache = Mock()
-    final FileSnapshotRepository repository = new CacheBackedFileSnapshotRepository(cacheRepository)
+    FileSnapshotRepository repository
+
+    def setup() {
+        ObjectCacheBuilder<Object, PersistentCache> builder = Mock()
+        1 * cacheRepository.indexedCache(Object, Object, "fileSnapshots") >> builder
+        1 * builder.forObject(gradle) >> builder
+        1 * builder.open() >> indexedCache
+
+        repository = new CacheBackedFileSnapshotRepository(cacheRepository, gradle)
+    }
 
     def "assigns an id when a snapshot is added"() {
         FileCollectionSnapshot snapshot = Mock()
@@ -35,9 +46,6 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
 
         then:
         id == 4
-        interaction {
-            expectCacheOpened()
-        }
         1 * indexedCache.get("nextId") >> (4 as Long)
         1 * indexedCache.put("nextId", 5)
         1 * indexedCache.put(4, snapshot)
@@ -52,9 +60,6 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
 
         then:
         result == snapshot
-        interaction {
-            expectCacheOpened()
-        }
         1 * indexedCache.get(4) >> snapshot
         0 * _._
     }
@@ -64,9 +69,6 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
         repository.remove(4)
 
         then:
-        interaction {
-            expectCacheOpened()
-        }
         1 * indexedCache.remove(4)
         0 * _._
     }
