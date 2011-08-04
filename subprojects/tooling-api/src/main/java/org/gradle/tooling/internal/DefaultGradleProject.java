@@ -34,10 +34,16 @@ public class DefaultGradleProject implements ProjectVersion3, GradleProject, Ser
 
     private String name;
     private String description;
-    private String id;
+    private String path;
     private GradleProject parent;
     private List<GradleProject> children = new LinkedList<GradleProject>();
     private List<GradleTask> tasks = new LinkedList<GradleTask>();
+
+    public DefaultGradleProject() {}
+
+    public DefaultGradleProject(String path) {
+        this.path = path;
+    }
 
     public String getName() {
         return name;
@@ -85,15 +91,37 @@ public class DefaultGradleProject implements ProjectVersion3, GradleProject, Ser
     }
 
     public String getPath() {
-        return id;
+        return path;
     }
 
     public DefaultGradleProject setPath(String path) {
-        this.id = path;
+        this.path = path;
         return this;
     }
 
     public File getProjectDirectory() {
         throw new RuntimeException("ProjectVersion3 methods are deprecated.");
+    }
+
+    @Override
+    public GradleProject findByPath(String path) {
+        if (path.equals(this.path)) {
+            return this;
+        }
+        for (GradleProject child : children) {
+            GradleProject found = child.findByPath(path);
+            if (found != null) {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return "GradleProject{"
+                + "path='" + path + '\''
+                + '}';
     }
 }

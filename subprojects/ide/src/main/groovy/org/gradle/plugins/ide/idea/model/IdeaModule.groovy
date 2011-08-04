@@ -302,6 +302,12 @@ class IdeaModule {
         return new IdeaDependenciesProvider().provide(this, getPathFactory())
     }
 
+    /**
+     * An owner of this idea module.
+     * <p>
+     * If IdeaModule requires some information from gradle this field should not be used for this purpose.
+     * IdeaModule instances should be configured with all necessary information by the plugin or user.
+     */
     final org.gradle.api.Project project
     PathFactory pathFactory
 

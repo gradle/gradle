@@ -256,4 +256,33 @@ project(':contrib:impl') {
         impl.dependencies[0].dependencyModule        == project.modules.find { it.name == 'api' }
         contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
     }
+
+    def "module has access to gradle project and its tasks"() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = """
+subprojects {
+    apply plugin: 'java'
+}
+
+task rootTask {}
+
+project(':impl') {
+    task implTask {}
+}
+"""
+        projectDir.file('settings.gradle').text = "include 'api', 'impl'; rootProject.name = 'root'"
+
+        when:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+
+        then:
+        def impl = project.modules.find { it.name == 'impl'}
+        def root = project.modules.find { it.name == 'root'}
+
+        root.gradleProject.tasks.find { it.name == 'rootTask' && it.path == ':rootTask' && it.project == root.gradleProject }
+        !root.gradleProject.tasks.find { it.name == 'implTask' }
+
+        impl.gradleProject.tasks.find { it.name == 'implTask' && it.path == ':impl:implTask' && it.project == impl.gradleProject}
+        !impl.gradleProject.tasks.find { it.name == 'rootTask' }
+    }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
+import org.gradle.tooling.internal.DefaultGradleProject;
 import org.gradle.tooling.internal.idea.*;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
@@ -39,17 +40,13 @@ public class IdeaModelBuilder implements BuildsModel {
         return type == InternalIdeaProject.class;
     }
 
-    private final TasksFactory tasksFactory;
-
-    public IdeaModelBuilder() {
-        this.tasksFactory = new TasksFactory(true);
-    }
+    private final GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {
         Project root = gradle.getRootProject();
-        tasksFactory.collectTasks(root);
         applyIdeaPlugin(root);
-        return build(root);
+        DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildAll(gradle);
+        return build(root, rootGradleProject);
     }
 
     private void applyIdeaPlugin(Project root) {
@@ -60,7 +57,7 @@ public class IdeaModelBuilder implements BuildsModel {
         root.getPlugins().getPlugin(IdeaPlugin.class).makeSureModuleNamesAreUnique();
     }
 
-    private ProjectVersion3 build(Project project) {
+    private ProjectVersion3 build(Project project, DefaultGradleProject rootGradleProject) {
         IdeaModel ideaModel = project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProject projectModel = ideaModel.getProject();
 
@@ -71,7 +68,7 @@ public class IdeaModelBuilder implements BuildsModel {
 
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
-            appendModule(modules, module, out);
+            appendModule(modules, module, out, rootGradleProject);
         }
         for (IdeaModule module : projectModel.getModules()) {
             buildDependencies(modules, module);
@@ -106,7 +103,7 @@ public class IdeaModelBuilder implements BuildsModel {
         modules.get(ideaModule.getName()).setDependencies(dependencies);
     }
 
-    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject) {
+    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject) {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
@@ -116,6 +113,7 @@ public class IdeaModelBuilder implements BuildsModel {
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
                 .setName(ideaModule.getName())
                 .setParent(ideaProject)
+                .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
                 .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                 .setOutputDir(ideaModule.getOutputDir())
                 .setTestOutputDir(ideaModule.getTestOutputDir())

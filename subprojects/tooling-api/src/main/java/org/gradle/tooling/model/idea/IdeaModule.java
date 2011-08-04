@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.tooling.model.BuildableElement;
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 
 import java.io.File;
@@ -27,7 +27,7 @@ import java.io.File;
  *
  * @since 1.0-rc-1
  */
-public interface IdeaModule extends BuildableElement, HierarchicalElement {
+public interface IdeaModule extends HierarchicalElement {
 
     /**
      * All content roots. Most idea modules have a single content root.
@@ -36,7 +36,15 @@ public interface IdeaModule extends BuildableElement, HierarchicalElement {
      */
     DomainObjectSet<? extends IdeaContentRoot> getContentRoots();
 
-    //TODO SF - should have link to GradleProject
+    /**
+     * The gradle project that is associated with this module.
+     * Typically, a single module corresponds to a single gradle project.
+     * <p>
+     * Via the gradle project you can access gradle tasks
+     *
+     * @return associated gradle project
+     */
+    GradleProject getGradleProject();
 
     /**
      * Returns the project of this module.

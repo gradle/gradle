@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.idea;
 
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
@@ -48,6 +49,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     File testOutputDir;
     File moduleFileDir;
     List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
+    GradleProject gradleProject;
 
     public String getName() {
         return name;
@@ -137,10 +139,20 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return null;
     }
 
+    public GradleProject getGradleProject() {
+        return gradleProject;
+    }
+
+    public DefaultIdeaModule setGradleProject(GradleProject gradleProject) {
+        this.gradleProject = gradleProject;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "IdeaModule{"
                 + "name='" + name + '\''
+                + ", gradleProject='" + gradleProject + '\''
                 + ", contentRoots=" + contentRoots
                 + ", inheritOutputDirs=" + inheritOutputDirs
                 + ", outputDir=" + outputDir

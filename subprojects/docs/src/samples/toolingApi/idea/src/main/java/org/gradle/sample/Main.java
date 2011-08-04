@@ -29,6 +29,11 @@ public class Main {
                 System.out.println("  " + module);
                 System.out.println("  module details:");
 
+                System.out.println("    tasks from associated gradle project:");
+                for (GradleTask task: module.getGradleProject().getTasks()) {
+                    System.out.println("      " + task.getName());
+                }
+
                 for (IdeaContentRoot root: module.getContentRoots()) {
                     System.out.println("    Content root: " + root.getRootDirectory());
                     System.out.println("    source dirs:");

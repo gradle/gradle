@@ -46,4 +46,11 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      * @return The path.
      */
     String getPath();
+
+    /**
+     * searches all descendants (children, grand children, etc.), including self, by given path.
+     *
+     * @return gradle project with matching path or null if not found
+     */
+    GradleProject findByPath(String path);
 }
