@@ -40,7 +40,7 @@ public interface IdeaModule extends HierarchicalElement {
      * The gradle project that is associated with this module.
      * Typically, a single module corresponds to a single gradle project.
      * <p>
-     * Via the gradle project you can access gradle tasks
+     * Via the gradle project you can access (list, run, etc.) gradle tasks
      *
      * @return associated gradle project
      */
