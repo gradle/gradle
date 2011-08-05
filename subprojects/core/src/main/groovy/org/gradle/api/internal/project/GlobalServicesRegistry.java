@@ -18,8 +18,8 @@ package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
-import org.gradle.cache.CacheFactory;
-import org.gradle.cache.DefaultCacheFactory;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.CommandLineConverter;
 import org.gradle.initialization.DefaultClassLoaderRegistry;

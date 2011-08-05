@@ -19,6 +19,8 @@ import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.SimpleStateCache;
 
 import java.io.File;
 import java.util.Map;

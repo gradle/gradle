@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache;
+package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.*;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -25,7 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.cache.CacheFactory.LockMode;
+import static org.gradle.cache.internal.CacheFactory.LockMode;
 
 public class DefaultCacheRepository implements CacheRepository {
     private final GradleVersion version = GradleVersion.current();

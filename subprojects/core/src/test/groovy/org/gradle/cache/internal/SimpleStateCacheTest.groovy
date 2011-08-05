@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache
+package org.gradle.cache.internal
 
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
@@ -24,6 +24,7 @@ import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.nullValue
 import static org.junit.Assert.assertThat
+import org.gradle.cache.DefaultSerializer
 
 @RunWith(JMock.class)
 class SimpleStateCacheTest {

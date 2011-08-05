@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache;
+package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.internal.Factory;
-import org.gradle.cache.btree.BTreePersistentIndexedCache;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.Serializer;
+import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

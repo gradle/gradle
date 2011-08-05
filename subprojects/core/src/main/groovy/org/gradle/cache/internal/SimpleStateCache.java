@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.cache;
+package org.gradle.cache.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.Serializer;
 
 import java.io.*;
 

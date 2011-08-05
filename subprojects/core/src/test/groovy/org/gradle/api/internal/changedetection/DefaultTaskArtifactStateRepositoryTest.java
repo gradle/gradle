@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.DefaultCacheRepository;
+import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.testfixtures.internal.InMemoryCacheFactory;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.RandomLongIdGenerator;

@@ -19,7 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
-import org.gradle.cache.CacheFactory;
+import org.gradle.cache.internal.CacheFactory;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
 

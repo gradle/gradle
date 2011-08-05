@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.btree;
+package org.gradle.cache.internal.btree;
 
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.Serializer;

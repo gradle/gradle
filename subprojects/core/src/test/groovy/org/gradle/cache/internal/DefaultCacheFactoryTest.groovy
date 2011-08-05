@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache
+package org.gradle.cache.internal
 
 import org.gradle.CacheUsage
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.cache.btree.BTreePersistentIndexedCache
+import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.api.Action
-import org.gradle.cache.CacheFactory.LockMode
+import org.gradle.cache.internal.CacheFactory.LockMode
+import org.gradle.cache.DefaultSerializer
 
 class DefaultCacheFactoryTest extends Specification {
     @Rule
