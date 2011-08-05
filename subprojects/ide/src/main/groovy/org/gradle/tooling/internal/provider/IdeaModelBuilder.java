@@ -84,7 +84,7 @@ public class IdeaModelBuilder implements BuildsModel {
         for (Dependency dependency : resolved) {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
-                IdeaDependency defaultDependency = new DefaultIdeaLibraryDependency()
+                IdeaDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
                         .setFile(d.getLibraryFile())
                         .setSource(d.getSourceFile())
                         .setJavadoc(d.getJavadocFile())

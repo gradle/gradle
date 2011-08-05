@@ -204,7 +204,7 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-        IdeaLibraryDependency lib = libs.find {it instanceof IdeaLibraryDependency}
+        IdeaSingleEntryLibraryDependency lib = libs.find {it instanceof IdeaSingleEntryLibraryDependency}
 
         lib.file.exists()
         lib.file.path.endsWith('coolLib-1.0.jar')

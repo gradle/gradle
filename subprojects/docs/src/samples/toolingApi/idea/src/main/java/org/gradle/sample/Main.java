@@ -54,11 +54,7 @@ public class Main {
 
                 System.out.println("    dependencies:");
                 for (IdeaDependency dependency: module.getDependencies()) {
-                    if (dependency instanceof IdeaLibraryDependency) {
-                        System.out.println("      library: " + dependency);
-                    } else if (dependency instanceof IdeaModuleDependency) {
-                        System.out.println("      module: " + dependency);
-                    }
+                    System.out.println("      * " + dependency);
                 }
             }
         } finally {

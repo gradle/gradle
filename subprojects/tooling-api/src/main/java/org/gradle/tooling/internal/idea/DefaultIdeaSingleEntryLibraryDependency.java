@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.idea;
 
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.gradle.tooling.model.idea.IdeaLibraryDependency;
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 
 import java.io.File;
 import java.io.Serializable;
@@ -25,7 +25,7 @@ import java.io.Serializable;
 /**
  * @author: Szczepan Faber, created at: 7/26/11
  */
-public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Serializable {
+public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryLibraryDependency, Serializable {
 
     private File file;
     private File source;
@@ -37,7 +37,7 @@ public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Seri
         return file;
     }
 
-    public DefaultIdeaLibraryDependency setFile(File file) {
+    public DefaultIdeaSingleEntryLibraryDependency setFile(File file) {
         this.file = file;
         return this;
     }
@@ -46,7 +46,7 @@ public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Seri
         return source;
     }
 
-    public DefaultIdeaLibraryDependency setSource(File source) {
+    public DefaultIdeaSingleEntryLibraryDependency setSource(File source) {
         this.source = source;
         return this;
     }
@@ -55,7 +55,7 @@ public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Seri
         return javadoc;
     }
 
-    public DefaultIdeaLibraryDependency setJavadoc(File javadoc) {
+    public DefaultIdeaSingleEntryLibraryDependency setJavadoc(File javadoc) {
         this.javadoc = javadoc;
         return this;
     }
@@ -64,7 +64,7 @@ public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Seri
         return exported;
     }
 
-    public DefaultIdeaLibraryDependency setExported(Boolean exported) {
+    public DefaultIdeaSingleEntryLibraryDependency setExported(Boolean exported) {
         this.exported = exported;
         return this;
     }
@@ -73,14 +73,14 @@ public class DefaultIdeaLibraryDependency implements IdeaLibraryDependency, Seri
         return scope;
     }
 
-    public DefaultIdeaLibraryDependency setScope(IdeaDependencyScope scope) {
+    public DefaultIdeaSingleEntryLibraryDependency setScope(IdeaDependencyScope scope) {
         this.scope = scope;
         return this;
     }
 
     @Override
     public String toString() {
-        return "DefaultIdeaLibraryDependency{"
+        return "IdeaLibraryDependency{"
                 + "file=" + file
                 + ", source=" + source
                 + ", javadoc=" + javadoc

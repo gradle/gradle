@@ -16,8 +16,8 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.idea.IdeaLibraryDependency;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.gradle.util.UncheckedException;
 
@@ -29,7 +29,7 @@ public class ProtocolToModelAdapter {
     Map<String, Class> configuredTargetTypes = new HashMap<String, Class>();
 
     public ProtocolToModelAdapter() {
-        configuredTargetTypes.put("org.gradle.tooling.internal.idea.DefaultIdeaLibraryDependency", IdeaLibraryDependency.class);
+        configuredTargetTypes.put("org.gradle.tooling.internal.idea.DefaultIdeaSingleEntryLibraryDependency", IdeaSingleEntryLibraryDependency.class);
         configuredTargetTypes.put("org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency",  IdeaModuleDependency.class);
     }
 

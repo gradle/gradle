@@ -19,13 +19,11 @@ package org.gradle.tooling.model.idea;
 import java.io.File;
 
 /**
- * Library dependency, for example, some jar file
+ * "Single-Entry Module Library" as IDEA calls it. For example a single jar file with sources jar.
  *
  * @since 1.0-rc-1
  */
-public interface IdeaLibraryDependency extends IdeaDependency {
-    //TODO SF model better (libraries can contain multiple files, etc.)
-
+public interface IdeaSingleEntryLibraryDependency extends IdeaDependency {
     /**
      * Returns the file for this dependency.
      *
