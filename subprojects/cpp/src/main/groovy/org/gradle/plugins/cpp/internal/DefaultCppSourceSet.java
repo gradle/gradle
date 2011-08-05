@@ -18,6 +18,7 @@ package org.gradle.plugins.cpp.internal;
 import org.gradle.plugins.cpp.CppSourceSet;
 
 import org.gradle.plugins.binaries.model.Library;
+import org.gradle.plugins.binaries.model.NativeDependencySet;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
@@ -37,6 +38,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
     private final DefaultSourceDirectorySet exportedHeaders;
     private final DefaultSourceDirectorySet source;
     private final DefaultDomainObjectSet<Library> libs;
+    private final DefaultDomainObjectSet<NativeDependencySet> nativeDependencySets;
 
     public DefaultCppSourceSet(String name, FileResolver fileResolver) {
         this.name = name;
@@ -45,6 +47,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", fileResolver);
         this.source = new DefaultSourceDirectorySet("source", fileResolver);
         this.libs = new DefaultDomainObjectSet<Library>(Library.class);
+        this.nativeDependencySets = new DefaultDomainObjectSet<NativeDependencySet>(NativeDependencySet.class);
     }
 
     public String getName() {
@@ -72,4 +75,9 @@ public class DefaultCppSourceSet implements CppSourceSet {
     public DomainObjectSet<Library> getLibs() {
         return libs;
     }
+
+    public DomainObjectSet<NativeDependencySet> getNativeDependencySets() {
+        return nativeDependencySets;
+    }
+
 }

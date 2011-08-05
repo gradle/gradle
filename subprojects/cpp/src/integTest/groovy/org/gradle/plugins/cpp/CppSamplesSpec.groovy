@@ -22,6 +22,7 @@ import org.junit.*
 class CppSamplesSpec extends AbstractIntegrationSpec {
 
     @Rule public final Sample exewithlib = new Sample('cpp/exewithlib')
+    @Rule public final Sample dependencies = new Sample('cpp/dependencies')
 
     def "exe with lib"() {
         given:
@@ -36,4 +37,20 @@ class CppSamplesSpec extends AbstractIntegrationSpec {
         and:
         file("cpp", "exewithlib", "exe", "build", "binaries", "main").exec().out == "Hello, World!\n"
     }
+    
+    def "dependencies"() {
+        given:
+        sample dependencies
+        
+        when:
+        run ":lib:uploadArchives", ":exe:compileMain"
+        
+        then:
+        ":exe:mainExtractHeaders" in nonSkippedTasks
+        ":exe:compileMain" in nonSkippedTasks
+        
+        and:
+        file("cpp", "dependencies", "exe", "build", "binaries", "main").exec().out == "Hello, World!\n"
+    }
+    
 }
