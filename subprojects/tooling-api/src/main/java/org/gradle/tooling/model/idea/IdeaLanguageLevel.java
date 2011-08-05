@@ -23,21 +23,6 @@ package org.gradle.tooling.model.idea;
  */
 public interface IdeaLanguageLevel {
 
-    //java 1.4
-    boolean isJDK_1_4();
-
-    //java 1.5
-    boolean isJDK_1_5();
-
-    //java 1.6
-    boolean isJDK_1_6();
-
-    //java 1.7
-    boolean isJDK_1_7();
-
-    //java 1.8
-    boolean isJDK_1_8();
-
     /**
      * Gets the level value
      */
