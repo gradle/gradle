@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.api.Action;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.HashUtil;
@@ -78,23 +79,37 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
             properties.put("source.filename", source.getFileName());
             properties.put("source.hash", HashUtil.createHash(source.getResource().getText()));
 
-            PersistentCache cache = cacheRepository.cache(String.format("scripts/%s", source.getClassName())).withProperties(properties).open();
-            File classesDir;
+            String cacheName;
             if (transformer != null) {
-                String subdirName = String.format("%s_%s", transformer.getId(), scriptBaseClass.getSimpleName());
-                classesDir = new File(cache.getBaseDir(), subdirName);
+                cacheName = String.format("scripts/%s/%s/%s", source.getClassName(), scriptBaseClass.getSimpleName(), transformer.getId());
             } else {
-                classesDir = new File(cache.getBaseDir(), scriptBaseClass.getSimpleName());
+                cacheName = String.format("scripts/%s/%s", source.getClassName(), scriptBaseClass.getSimpleName());
             }
+            PersistentCache cache = cacheRepository.cache(cacheName).withProperties(properties).withInitializer(new CacheInitializer(scriptBaseClass, classLoader)).open();
 
-            if (!cache.isValid() || !classesDir.exists()) {
-                scriptCompilationHandler.compileToDir(source, classLoader, classesDir, transformer, scriptBaseClass);
-                cache.markValid();
-            }
-            Class<? extends T> scriptClass = scriptCompilationHandler.loadFromDir(source, classLoader, classesDir,
-                    scriptBaseClass);
+            File classesDir = classesDir(cache, scriptBaseClass);
+            Class<? extends T> scriptClass = scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
             Instantiator instantiator = new DirectInstantiator();
             return instantiator.newInstance(scriptClass);
+        }
+
+        private File classesDir(PersistentCache cache, Class<?> scriptBaseClass) {
+            return new File(cache.getBaseDir(), "classes");
+        }
+
+        private class CacheInitializer implements Action<PersistentCache> {
+            private final Class<? extends Script> scriptBaseClass;
+            private final ClassLoader classLoader;
+
+            private CacheInitializer(Class<? extends Script> scriptBaseClass, ClassLoader classLoader) {
+                this.scriptBaseClass = scriptBaseClass;
+                this.classLoader = classLoader;
+            }
+
+            public void execute(PersistentCache cache) {
+                File classesDir = classesDir(cache, scriptBaseClass);
+                scriptCompilationHandler.compileToDir(source, classLoader, classesDir, transformer, scriptBaseClass);
+            }
         }
     }
 }

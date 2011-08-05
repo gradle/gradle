@@ -19,22 +19,15 @@ import java.io.File;
 
 /**
  * Represents a directory which can be used for caching.
+ *
+ * A shared lock is held on this cache by this process, to prevent it being removed or rebuilt by another process while it is in use.
+ * However, it is the caller's responsibility to deal with concurrent access to the contents of the cache. You can use
+ * {@link DirectoryCacheBuilder#withInitializer(org.gradle.api.Action)} to provide an action to initialize the contents of the
+ * cache, for building a read-only cache. An exclusive lock is held by this process while the initializer is running.
  */
 public interface PersistentCache {
     /**
      * Returns the base directory for this cache.
      */
     File getBaseDir();
-
-    /**
-     * Returns true if this cache is valid. If the cache is valid, its contents can be used. If not, the base directory
-     * will be empty, and the cache contents must be rebuilt. You must call {@link #markValid} to indicate that the
-     * contents have been rebuilt.
-     */
-    boolean isValid();
-
-    /**
-     * Marks the contents of the cache as valid.
-     */
-    void markValid();
 }

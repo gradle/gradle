@@ -16,6 +16,7 @@
 package org.gradle.cache;
 
 import org.gradle.CacheUsage;
+import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.util.GradleVersion;
 
@@ -23,6 +24,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.gradle.cache.CacheFactory.LockMode;
 
 public class DefaultCacheRepository implements CacheRepository {
     private final GradleVersion version = GradleVersion.current();
@@ -38,7 +41,7 @@ public class DefaultCacheRepository implements CacheRepository {
         this.cacheUsage = cacheUsage;
     }
 
-    public CacheBuilder<PersistentCache> cache(String key) {
+    public DirectoryCacheBuilder cache(String key) {
         return new PersistentCacheBuilder(key);
     }
 
@@ -115,16 +118,40 @@ public class DefaultCacheRepository implements CacheRepository {
         }
     }
 
-    private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> {
+    private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> implements DirectoryCacheBuilder {
+        private Action<? super PersistentCache> initializer;
+
         private PersistentCacheBuilder(String key) {
             super(key);
         }
 
         @Override
-        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.open(cacheDir, cacheUsage, properties);
+        public DirectoryCacheBuilder forObject(Object target) {
+            super.forObject(target);
+            return this;
         }
 
+        @Override
+        public DirectoryCacheBuilder withProperties(Map<String, ?> properties) {
+            super.withProperties(properties);
+            return this;
+        }
+
+        @Override
+        public DirectoryCacheBuilder withVersionStrategy(VersionStrategy strategy) {
+            super.withVersionStrategy(strategy);
+            return this;
+        }
+
+        public DirectoryCacheBuilder withInitializer(Action<? super PersistentCache> initializer) {
+            this.initializer = initializer;
+            return this;
+        }
+
+        @Override
+        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
+            return factory.open(cacheDir, cacheUsage, properties, LockMode.Shared, initializer);
+        }
     }
 
     private abstract class AbstractObjectCacheBuilder<E, T> extends AbstractCacheBuilder<T> implements ObjectCacheBuilder<E, T> {
@@ -165,7 +192,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentStateCache<E> doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.openStateCache(cacheDir, cacheUsage, properties, serializer);
+            return factory.openStateCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, serializer);
         }
     }
 
@@ -176,7 +203,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentIndexedCache<K, V> doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.openIndexedCache(cacheDir, cacheUsage, properties, serializer);
+            return factory.openIndexedCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, serializer);
         }
     }
 }

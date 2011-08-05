@@ -16,17 +16,12 @@
 package org.gradle.cache.btree;
 
 import org.gradle.cache.DefaultSerializer;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.Serializer;
-import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import org.gradle.util.TestFile;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,26 +29,18 @@ import java.io.RandomAccessFile;
 import java.util.*;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
-@RunWith(JMock.class)
 public class BTreePersistentIndexedCacheTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
-    private final JUnit4Mockery context = new JUnit4Mockery();
-    private final PersistentCache backingCache = context.mock(PersistentCache.class);
     private final Serializer<Integer> serializer = new DefaultSerializer<Integer>();
     private BTreePersistentIndexedCache<String, Integer> cache;
 
     @Before
     public void setup() {
-        context.checking(new Expectations(){{
-            allowing(backingCache).getBaseDir();
-            will(returnValue(tmpDir.getDir()));
-            allowing(backingCache).markValid();
-        }});
-
-        cache = new BTreePersistentIndexedCache<String, Integer>(backingCache, serializer, (short) 4, 100);
+        cache = new BTreePersistentIndexedCache<String, Integer>(tmpDir.getDir(), serializer, (short) 4, 100);
     }
 
     @Test
@@ -122,7 +109,7 @@ public class BTreePersistentIndexedCacheTest {
     @Test
     public void reusesEmptySpaceWhenPuttingEntries() {
         BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(
-                backingCache, new DefaultSerializer<String>(), (short) 4, 100);
+                tmpDir.getDir(), new DefaultSerializer<String>(), (short) 4, 100);
         TestFile cacheFile = tmpDir.getDir().file("cache.bin");
 
         cache.put("key_1", "abcd");
@@ -235,7 +222,7 @@ public class BTreePersistentIndexedCacheTest {
         testFile.assertIsFile();
         testFile.write("some junk");
 
-        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(backingCache, serializer);
+        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(tmpDir.getDir(), serializer);
 
         assertNull(cache.get("key_1"));
         cache.put("key_1", 99);
@@ -252,7 +239,7 @@ public class BTreePersistentIndexedCacheTest {
     @Test
     public void canUseFileAsKey() {
 
-        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(backingCache, serializer);
+        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(tmpDir.getDir(), serializer);
 
         cache.put(new File("file"), 1);
         cache.put(new File("dir/file"), 2);

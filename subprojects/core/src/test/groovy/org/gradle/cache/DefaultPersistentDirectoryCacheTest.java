@@ -16,96 +16,90 @@
 package org.gradle.cache;
 
 import org.gradle.CacheUsage;
+import org.gradle.api.Action;
 import org.gradle.util.GUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
+@RunWith(JMock.class)
 public class DefaultPersistentDirectoryCacheTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
+    private final Action<PersistentCache> action = context.mock(Action.class);
     private final Map<String, String> properties = GUtil.map("prop", "value", "prop2", "other-value");
 
     @Test
-    public void cacheIsInvalidWhenCacheDirDoesNotExist() {
+    public void initialisesCacheWhenCacheDirDoesNotExist() {
         TestFile emptyDir = tmpDir.getDir().file("dir");
         emptyDir.assertDoesNotExist();
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(emptyDir, CacheUsage.ON, properties);
-        assertFalse(cache.isValid());
+        context.checking(new Expectations() {{
+            one(action).execute(with(notNullValue(PersistentCache.class)));
+        }});
 
-        emptyDir.assertIsDir();
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(emptyDir, CacheUsage.ON, properties, action);
+        assertThat(loadProperties(emptyDir.file("cache.properties")), equalTo(properties));
     }
 
     @Test
-    public void cacheIsInvalidWhenPropertiesFileDoesNotExist() {
+    public void initializesCacheWhenPropertiesFileDoesNotExist() {
         TestFile dir = tmpDir.getDir().file("dir").createDir();
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        assertFalse(cache.isValid());
+        context.checking(new Expectations() {{
+            one(action).execute(with(notNullValue(PersistentCache.class)));
+        }});
 
-        dir.assertIsDir();
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, action);
+        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
 
     @Test
     public void rebuildsCacheWhenPropertiesHaveChanged() {
         TestFile dir = createCacheDir("prop", "other-value");
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        assertFalse(cache.isValid());
+        context.checking(new Expectations() {{
+            one(action).execute(with(notNullValue(PersistentCache.class)));
+        }});
 
-        dir.assertHasDescendants();
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, action);
+        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
 
     @Test
     public void rebuildsCacheWhenCacheRebuildRequested() {
         TestFile dir = createCacheDir();
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.REBUILD, properties);
-        assertFalse(cache.isValid());
+        context.checking(new Expectations() {{
+            one(action).execute(with(notNullValue(PersistentCache.class)));
+        }});
 
-        dir.assertHasDescendants();
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.REBUILD, properties, action);
+        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
 
     @Test
-    public void usesExistingCacheDirWhenItIsNotInvalid() {
+    public void doesNotInitializeCacheWhenCacheDirExistsAndIsNotInvalid() {
         TestFile dir = createCacheDir();
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        assertTrue(cache.isValid());
-
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, action);
         dir.file("cache.properties").assertIsFile();
         dir.file("some-file").assertIsFile();
-    }
-
-    @Test
-    public void updateCreatesPropertiesFileWhenItDoesNotExist() {
-        TestFile dir = tmpDir.getDir().file("dir");
-
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        cache.markValid();
-
-        assertTrue(cache.isValid());
-        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
-    }
-
-    @Test
-    public void updatesPropertiesWhenMarkedValid() {
-        TestFile dir = createCacheDir("prop", "some-other-value");
-
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
-        cache.markValid();
-
-        assertTrue(cache.isValid());
-        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
 
     private Map<String, String> loadProperties(TestFile file) {

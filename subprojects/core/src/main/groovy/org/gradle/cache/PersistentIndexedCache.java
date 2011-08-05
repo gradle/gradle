@@ -17,6 +17,8 @@ package org.gradle.cache;
 
 /**
  * A persistent store of objects of type V indexed by a key of type K.
+ *
+ * An exclusive lock is held on this cache by this process, to prevent it being modified by another process.
  */
 public interface PersistentIndexedCache<K, V> {
     V get(K key);

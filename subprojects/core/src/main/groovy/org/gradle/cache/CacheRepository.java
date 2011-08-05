@@ -36,7 +36,7 @@ public interface CacheRepository {
      * @param key The cache key.
      * @return The builder.
      */
-    CacheBuilder<PersistentCache> cache(String key);
+    DirectoryCacheBuilder cache(String key);
 
     /**
      * Returns a builder for the state cache with the given key. Default is a Gradle version-specific cache shared by all

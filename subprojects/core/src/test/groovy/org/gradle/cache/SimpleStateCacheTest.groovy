@@ -15,44 +15,30 @@
  */
 package org.gradle.cache
 
-
-import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.nullValue
+import static org.junit.Assert.assertThat
 
 @RunWith(JMock.class)
 class SimpleStateCacheTest {
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final PersistentCache backingCache = context.mock(PersistentCache.class)
-
-    @Before
-    public void setup() {
-        context.checking {
-            allowing(backingCache).getBaseDir()
-            will(returnValue(tmpDir.dir))
-        }
-    }
 
     @Test
     public void getReturnsNullWhenFileDoesNotExist() {
-        SimpleStateCache<String> cache = new SimpleStateCache<String>(backingCache, new DefaultSerializer<String>())
+        SimpleStateCache<String> cache = new SimpleStateCache<String>(tmpDir.dir, new DefaultSerializer<String>())
         assertThat(cache.get(), nullValue())
     }
     
     @Test
     public void getReturnsLastWrittenValue() {
-        SimpleStateCache<String> cache = new SimpleStateCache<String>(backingCache, new DefaultSerializer<String>())
-
-        context.checking {
-            one(backingCache).markValid()
-        }
+        SimpleStateCache<String> cache = new SimpleStateCache<String>(tmpDir.dir, new DefaultSerializer<String>())
 
         cache.set('some value')
         tmpDir.file('state.bin').assertIsFile()

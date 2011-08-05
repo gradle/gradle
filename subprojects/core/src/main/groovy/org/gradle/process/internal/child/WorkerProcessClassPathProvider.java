@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.child;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.AbstractClassPathProvider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -45,21 +46,26 @@ public class WorkerProcessClassPathProvider extends AbstractClassPathProvider {
 
         synchronized (lock) {
             if (workerClassPath == null) {
-                PersistentCache cache = cacheRepository.cache("workerMain").open();
-                File classesDir = new File(cache.getBaseDir(), "classes");
-                if (!cache.isValid()) {
-                    for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class)) {
-                        String fileName = aClass.getName().replace('.', '/') + ".class";
-                        GFileUtils.copyURLToFile(WorkerProcessClassPathProvider.class.getClassLoader().getResource(fileName),
-                                new File(classesDir, fileName));
-                    }
-
-                    cache.markValid();
-                }
-
-                workerClassPath = Collections.singleton(classesDir);
+                PersistentCache cache = cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
+                workerClassPath = Collections.singleton(classesDir(cache));
             }
             return workerClassPath;
         }
     }
+
+    private static File classesDir(PersistentCache cache) {
+        return new File(cache.getBaseDir(), "classes");
+    }
+
+    private static class CacheInitializer implements Action<PersistentCache> {
+        public void execute(PersistentCache cache) {
+            File classesDir = classesDir(cache);
+            for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class)) {
+                String fileName = aClass.getName().replace('.', '/') + ".class";
+                GFileUtils.copyURLToFile(WorkerProcessClassPathProvider.class.getClassLoader().getResource(fileName),
+                        new File(classesDir, fileName));
+            }
+        }
+    }
+
 }

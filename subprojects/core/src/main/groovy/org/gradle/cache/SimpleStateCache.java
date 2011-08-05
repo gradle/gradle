@@ -23,12 +23,10 @@ import java.io.*;
 public class SimpleStateCache<T> implements PersistentStateCache<T> {
     private final Serializer<T> serializer;
     private final File cacheFile;
-    private PersistentCache cache;
 
-    public SimpleStateCache(PersistentCache cache, Serializer<T> serializer) {
-        this.cache = cache;
+    public SimpleStateCache(File cacheDir, Serializer<T> serializer) {
         this.serializer = serializer;
-        cacheFile = new File(cache.getBaseDir(), "state.bin");
+        cacheFile = new File(cacheDir, "state.bin");
     }
 
     public T get() {
@@ -58,6 +56,5 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
         } catch (Exception e) {
             throw new GradleException(String.format("Could not write cache value to '%s'.", cacheFile), e);
         }
-        cache.markValid();
     }
 }

@@ -16,6 +16,7 @@
 package org.gradle.cache;
 
 import org.gradle.CacheUsage;
+import org.gradle.api.Action;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
@@ -27,14 +28,13 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
     private final File dir;
     private final File propertiesFile;
     private final Properties properties = new Properties();
-    private boolean valid;
 
-    public DefaultPersistentDirectoryCache(File dir, CacheUsage cacheUsage, Map<String, ?> properties) {
+    public DefaultPersistentDirectoryCache(File dir, CacheUsage cacheUsage, Map<String, ?> properties, Action<? super PersistentCache> initAction) {
         this.dir = dir;
         propertiesFile = new File(dir, "cache.properties");
         this.properties.putAll(properties);
-        determineIfCacheIsValid(cacheUsage, properties);
-        buildCacheDir();
+        boolean valid = determineIfCacheIsValid(cacheUsage, properties);
+        buildCacheDir(initAction, valid);
     }
 
     @Override
@@ -42,33 +42,36 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
         return String.format("Cache %s", dir);
     }
 
-    private void buildCacheDir() {
+    private void buildCacheDir(Action<? super PersistentCache> initAction, boolean valid) {
         if (!valid) {
             GFileUtils.deleteDirectory(dir);
         }
-        if (!dir.isDirectory()) {
+        if (!valid) {
             dir.mkdirs();
+            if (initAction != null) {
+                initAction.execute(this);
+            }
+            GUtil.saveProperties(properties, propertiesFile);
+            valid = true;
         }
     }
 
-    private void determineIfCacheIsValid(CacheUsage cacheUsage, Map<String, ?> properties) {
-        valid = false;
-
+    private boolean determineIfCacheIsValid(CacheUsage cacheUsage, Map<String, ?> properties) {
         if (cacheUsage != CacheUsage.ON) {
-            return;
+            return false;
         }
 
         if (!propertiesFile.isFile()) {
-            return;
+            return false;
         }
 
         Properties currentProperties = GUtil.loadProperties(propertiesFile);
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
             if (!entry.getValue().toString().equals(currentProperties.getProperty(entry.getKey()))) {
-                return;
+                return false;
             }
         }
-        valid = true;
+        return true;
     }
 
     public Properties getProperties() {
@@ -77,14 +80,5 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
 
     public File getBaseDir() {
         return dir;
-    }
-
-    public boolean isValid() {
-        return valid;
-    }
-
-    public void markValid() {
-        GUtil.saveProperties(properties, propertiesFile);
-        valid = true;
     }
 }

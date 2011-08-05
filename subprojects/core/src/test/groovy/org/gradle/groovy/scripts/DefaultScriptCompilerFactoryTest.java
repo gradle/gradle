@@ -16,20 +16,23 @@
 
 package org.gradle.groovy.scripts;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.resource.Resource;
-import org.gradle.logging.StandardOutputCapture;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.DirectoryCacheBuilder;
 import org.gradle.cache.PersistentCache;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.GUtil;
 import org.gradle.util.HashUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.action.CustomAction;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
@@ -43,8 +46,9 @@ import java.net.URLClassLoader;
 import java.util.Map;
 
 import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 /**
  * @author Hans Dockter
@@ -75,7 +79,7 @@ public class DefaultScriptCompilerFactoryTest {
     ScriptSource source;
     ScriptSource expectedSource;
     ScriptRunner expectedScriptRunner;
-    CacheBuilder<PersistentCache> cacheBuilder;
+    DirectoryCacheBuilder cacheBuilder;
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -90,11 +94,11 @@ public class DefaultScriptCompilerFactoryTest {
         testClassLoader = new URLClassLoader(new URL[0]);
         testScriptFile = new File(tmpDir.getDir(), "script/mybuild.craidle");
         cacheDir = new File(tmpDir.getDir(), "cache");
-        expectedScriptCacheDir = new TestFile(cacheDir, "Script").createDir();
+        expectedScriptCacheDir = new TestFile(cacheDir, "classes").createDir();
         expectedScriptRunner = context.mock(ScriptRunner.class);
         scriptProcessor = new DefaultScriptCompilerFactory(scriptCompilationHandlerMock, scriptRunnerFactoryMock, cacheRepositoryMock);
         source = context.mock(ScriptSource.class);
-        cacheBuilder = context.mock(CacheBuilder.class);
+        cacheBuilder = context.mock(DirectoryCacheBuilder.class);
 
         context.checking(new Expectations() {{
             Resource resource = context.mock(Resource.class);
@@ -129,37 +133,41 @@ public class DefaultScriptCompilerFactoryTest {
 
     @Test
     public void testWithSourceFileNotCached() {
-        final Collector<TestScript> collector = collector();
+        final Collector<TestScript> testScriptCollector = collector();
+        final Collector<Action<PersistentCache>> initActionCollector = collector();
 
         context.checking(new Expectations() {{
-            one(cacheRepositoryMock).cache("scripts/class-name");
+            one(cacheRepositoryMock).cache("scripts/class-name/Script");
             will(returnValue(cacheBuilder));
 
             one(cacheBuilder).withProperties(expectedCacheProperties);
             will(returnValue(cacheBuilder));
 
-            one(cacheBuilder).open();
-            will(returnValue(cacheMock));
+            one(cacheBuilder).withInitializer(with(notNullValue(Action.class)));
+            will(collectTo(initActionCollector).then(returnValue(cacheBuilder)));
 
-            allowing(cacheMock).isValid();
-            will(returnValue(false));
+            one(cacheBuilder).open();
+            will(new CustomAction("run initializer") {
+                public Object invoke(Invocation invocation) throws Throwable {
+                    initActionCollector.get().execute(cacheMock);
+                    return cacheMock;
+                }
+            });
 
             one(scriptCompilationHandlerMock).compileToDir(expectedSource, testClassLoader, expectedScriptCacheDir, null,
                     expectedScriptBaseClass);
-
-            one(cacheMock).markValid();
 
             one(scriptCompilationHandlerMock).loadFromDir(expectedSource, testClassLoader, expectedScriptCacheDir,
                     expectedScriptBaseClass);
             will(returnValue(TestScript.class));
 
             one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));
-            will(collectTo(collector).then(returnValue(expectedScriptRunner)));
+            will(collectTo(testScriptCollector).then(returnValue(expectedScriptRunner)));
         }});
 
         assertSame(expectedScriptRunner, scriptProcessor.createCompiler(source).compile(expectedScriptBaseClass));
-        assertSame(testClassLoader, collector.get().getContextClassloader());
-        assertEquals(expectedSource, collector.get().getScriptSource());
+        assertSame(testClassLoader, testScriptCollector.get().getContextClassloader());
+        assertEquals(expectedSource, testScriptCollector.get().getScriptSource());
     }
 
     @Test
@@ -167,17 +175,17 @@ public class DefaultScriptCompilerFactoryTest {
         final Collector<TestScript> collector = collector();
 
         context.checking(new Expectations() {{
-            one(cacheRepositoryMock).cache("scripts/class-name");
+            one(cacheRepositoryMock).cache("scripts/class-name/Script");
             will(returnValue(cacheBuilder));
 
             one(cacheBuilder).withProperties(expectedCacheProperties);
             will(returnValue(cacheBuilder));
 
+            one(cacheBuilder).withInitializer(with(notNullValue(Action.class)));
+            will(returnValue(cacheBuilder));
+
             one(cacheBuilder).open();
             will(returnValue(cacheMock));
-
-            allowing(cacheMock).isValid();
-            will(returnValue(true));
 
             one(scriptCompilationHandlerMock).loadFromDir(expectedSource, testClassLoader, expectedScriptCacheDir, expectedScriptBaseClass);
             will(returnValue(TestScript.class));
@@ -198,17 +206,17 @@ public class DefaultScriptCompilerFactoryTest {
         };
 
         context.checking(new Expectations(){{
-            one(cacheRepositoryMock).cache("scripts/class-name");
+            one(cacheRepositoryMock).cache("scripts/class-name/Script");
             will(returnValue(cacheBuilder));
 
             one(cacheBuilder).withProperties(expectedCacheProperties);
             will(returnValue(cacheBuilder));
 
+            one(cacheBuilder).withInitializer(with(notNullValue(Action.class)));
+            will(returnValue(cacheBuilder));
+
             one(cacheBuilder).open();
             will(returnValue(cacheMock));
-
-            allowing(cacheMock).isValid();
-            will(returnValue(true));
 
             one(scriptCompilationHandlerMock).loadFromDir(expectedSource, classLoader, expectedScriptCacheDir,
                     expectedScriptBaseClass);
@@ -225,26 +233,24 @@ public class DefaultScriptCompilerFactoryTest {
     @Test
     public void testUsesSuppliedTransformerToDetermineCacheDirName() {
         final Transformer transformer = context.mock(Transformer.class);
-        final File expectedCacheDir = new TestFile(expectedScriptCacheDir.getParentFile(), "transformer_Script").createDir();
 
         context.checking(new Expectations(){{
             allowing(transformer).getId();
             will(returnValue("transformer"));
 
-            one(cacheRepositoryMock).cache("scripts/class-name");
+            one(cacheRepositoryMock).cache("scripts/class-name/Script/transformer");
             will(returnValue(cacheBuilder));
 
             one(cacheBuilder).withProperties(expectedCacheProperties);
             will(returnValue(cacheBuilder));
 
+            one(cacheBuilder).withInitializer(with(notNullValue(Action.class)));
+            will(returnValue(cacheBuilder));
+
             one(cacheBuilder).open();
             will(returnValue(cacheMock));
 
-            allowing(cacheMock).isValid();
-            will(returnValue(true));
-
-            one(scriptCompilationHandlerMock).loadFromDir(expectedSource, testClassLoader, expectedCacheDir,
-                    expectedScriptBaseClass);
+            one(scriptCompilationHandlerMock).loadFromDir(expectedSource, testClassLoader, expectedScriptCacheDir, expectedScriptBaseClass);
             will(returnValue(TestScript.class));
 
             one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));

@@ -16,22 +16,21 @@
 package org.gradle.cache;
 
 import org.gradle.CacheUsage;
+import org.gradle.api.Action;
 
 import java.io.File;
 import java.util.Map;
 
 public interface CacheFactory {
-    PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties);
-
-    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<E> serializer);
-
-    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<V> serializer);
-
-    interface CacheReference<T> {
-        T getCache();
-
-        void release();
+    enum LockMode {
+        Shared, Exclusive
     }
+
+    PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initializer);
+
+    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<E> serializer);
+
+    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<V> serializer);
 }
 
 

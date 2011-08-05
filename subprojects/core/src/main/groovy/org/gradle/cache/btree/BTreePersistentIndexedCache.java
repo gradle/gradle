@@ -16,7 +16,6 @@
 package org.gradle.cache.btree;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
 import org.slf4j.Logger;
@@ -40,24 +39,22 @@ import java.util.*;
 public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
     private final File cacheFile;
-    private final PersistentCache backingCache;
     private final Serializer<V> serializer;
     private final short maxChildIndexEntries;
     private final int minIndexChildNodes;
     private final StateCheckBlockStore store;
     private HeaderBlock header;
 
-    public BTreePersistentIndexedCache(PersistentCache backingCache, Serializer<V> serializer) {
-        this(backingCache, serializer, (short) 512, 512);
+    public BTreePersistentIndexedCache(File cacheDir, Serializer<V> serializer) {
+        this(cacheDir, serializer, (short) 512, 512);
     }
 
-    public BTreePersistentIndexedCache(PersistentCache backingCache, Serializer<V> serializer,
+    public BTreePersistentIndexedCache(File cacheDir, Serializer<V> serializer,
                                        short maxChildIndexEntries, int maxFreeListEntries) {
-        this.backingCache = backingCache;
         this.serializer = serializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
-        cacheFile = new File(backingCache.getBaseDir(), "cache.bin");
+        cacheFile = new File(cacheDir, "cache.bin");
         BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
         store = new StateCheckBlockStore(new FreeListBlockStore(cachingStore, maxFreeListEntries));
         try {
@@ -101,7 +98,6 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 store.write(header);
                 header.index.newRoot();
                 store.flush();
-                backingCache.markValid();
             }
         };
 

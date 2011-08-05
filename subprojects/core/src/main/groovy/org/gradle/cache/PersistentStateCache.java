@@ -18,6 +18,8 @@ package org.gradle.cache;
 
 /**
  * A persistent store containing an object of type T.
+ *
+ * An exclusive lock is held on this cache by this process, to prevent it being modified by another process.
  */
 public interface PersistentStateCache<T> {
     T get();

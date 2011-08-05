@@ -20,11 +20,12 @@ import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
+import org.gradle.cache.DirectoryCacheBuilder
 
 class IvySettingsFactoryTest extends Specification {
     final File cacheDir = new File('user-dir')
     final CacheRepository cacheRepository = Mock()
-    final CacheBuilder<PersistentCache> cacheBuilder = Mock()
+    final DirectoryCacheBuilder cacheBuilder = Mock()
     final PersistentCache cache = Mock()
     final IvySettingsFactory factory = new IvySettingsFactory(cacheRepository)
 

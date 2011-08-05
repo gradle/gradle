@@ -51,8 +51,8 @@ class CacheProjectIntegrationTest {
         userHomeDir = dist.getUserHomeDir()
         buildFile = projectDir.file('build.gradle')
         ScriptSource source = new UriScriptSource("build file", buildFile)
-        propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/cache.properties")
-        classFile = userHomeDir.file("caches/$version/scripts/$source.className/no_buildscript_ProjectScript/${source.className}.class")
+        propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/cache.properties")
+        classFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/classes/${source.className}.class")
         artifactsCache = projectDir.file(".gradle/$version/taskArtifacts/cache.bin")
     }
 

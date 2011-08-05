@@ -16,6 +16,7 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.CacheUsage;
+import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
 
@@ -23,19 +24,22 @@ import java.io.File;
 import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
-    public PersistentCache open(final File cacheDir, CacheUsage usage, Map<String, ?> properties) {
+    public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initializer) {
         cacheDir.mkdirs();
-        return new InMemoryCache(cacheDir);
+        InMemoryCache cache = new InMemoryCache(cacheDir);
+        if (initializer != null) {
+            initializer.execute(cache);
+        }
+        return cache;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<V> serializer) {
-        cacheDir.mkdirs();
+    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<V> serializer) {
         return new InMemoryIndexedCache<K, V>();
     }
 
-    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, Serializer<E> serializer) {
+    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<E> serializer) {
         cacheDir.mkdirs();
-        return new SimpleStateCache<E>(new InMemoryCache(cacheDir), new DefaultSerializer<E>());
+        return new SimpleStateCache<E>(cacheDir, new DefaultSerializer<E>());
     }
 
     private static class InMemoryCache implements PersistentCache {
