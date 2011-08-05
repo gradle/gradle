@@ -17,6 +17,14 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * See {@link InternalProtocolInterface}
+ * I needed this interface so that it is possible to develop new features incrementally.
+ * In general I'd like to avoid growing VersionX interfaces
+ * because we have an excellent test suite that tells the story of what has changed and when
+ * <p>
+ * A marker interface to document the problem consistently.
+ * The implementators should live only until we gradually remove old VersionX types.
+ *
+ * @author: Szczepan Faber, created at: 8/5/11
  */
-public interface InternalGradleProject extends ProjectVersion3, InternalProtocolInterface {}
+public interface InternalProtocolInterface {
+}
