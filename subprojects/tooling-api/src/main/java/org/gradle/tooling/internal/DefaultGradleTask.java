@@ -66,4 +66,11 @@ public class DefaultGradleTask implements GradleTask, Serializable {
         this.project = project;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "GradleTask{"
+                + "name='" + name + '\''
+                + '}';
+    }
 }

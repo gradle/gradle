@@ -24,7 +24,7 @@ class SamplesToolingApiIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
     @Rule public final Sample sample = new Sample()
 
-    @UsesSample('toolingApi/model')
+    @UsesSample('toolingApi/eclipse')
     def canUseToolingApiToDetermineProjectClasspath() {
         def projectDir = sample.dir
         Properties props = new Properties()

@@ -120,6 +120,7 @@ public class DefaultGradleProject implements ProjectVersion3, GradleProject, Ser
     public String toString() {
         return "GradleProject{"
                 + "path='" + path + '\''
+                + "tasks='" + tasks + '\''
                 + '}';
     }
 }
