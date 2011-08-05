@@ -20,10 +20,10 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
-import org.gradle.tooling.internal.DefaultGradleProject;
 import org.gradle.tooling.internal.idea.*;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 
@@ -45,7 +45,7 @@ public class IdeaModelBuilder implements BuildsModel {
     public ProjectVersion3 buildAll(GradleInternal gradle) {
         Project root = gradle.getRootProject();
         applyIdeaPlugin(root);
-        DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildAll(gradle);
+        GradleProject rootGradleProject = gradleProjectBuilder.buildAll(gradle);
         return build(root, rootGradleProject);
     }
 
@@ -57,7 +57,7 @@ public class IdeaModelBuilder implements BuildsModel {
         root.getPlugins().getPlugin(IdeaPlugin.class).makeSureModuleNamesAreUnique();
     }
 
-    private ProjectVersion3 build(Project project, DefaultGradleProject rootGradleProject) {
+    private ProjectVersion3 build(Project project, GradleProject rootGradleProject) {
         IdeaModel ideaModel = project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProject projectModel = ideaModel.getProject();
 
@@ -103,7 +103,7 @@ public class IdeaModelBuilder implements BuildsModel {
         modules.get(ideaModule.getName()).setDependencies(dependencies);
     }
 
-    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject) {
+    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, GradleProject rootGradleProject) {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
