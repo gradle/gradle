@@ -25,7 +25,6 @@ import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.tooling.internal.*;
 import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
@@ -40,10 +39,9 @@ import java.util.*;
 /**
 * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
 */
-//TODO SF rename to eclipse
-public class ModelBuilder implements BuildsModel {
+public class EclipseModelBuilder implements BuildsModel {
     private boolean projectDependenciesOnly;
-    private ProjectVersion3 currentProject;
+    private EclipseProjectVersion3 currentProject;
     private final Map<String, EclipseProjectVersion3> projectMapping = new HashMap<String, EclipseProjectVersion3>();
     private GradleInternal gradle;
     private TasksFactory tasksFactory;
@@ -61,7 +59,7 @@ public class ModelBuilder implements BuildsModel {
         return false;
     }
 
-    public ProjectVersion3 buildAll(GradleInternal gradle) {
+    public EclipseProjectVersion3 buildAll(GradleInternal gradle) {
         this.gradle = gradle;
         rootGradleProject = gradleProjectBuilder.buildAll(gradle);
         Project root = gradle.getRootProject();
