@@ -103,7 +103,6 @@ public class DefaultGradleProject implements ProjectVersion3, GradleProject, Ser
         throw new RuntimeException("ProjectVersion3 methods are deprecated.");
     }
 
-    @Override
     public GradleProject findByPath(String path) {
         if (path.equals(this.path)) {
             return this;
@@ -118,7 +117,6 @@ public class DefaultGradleProject implements ProjectVersion3, GradleProject, Ser
         return null;
     }
 
-    @Override
     public String toString() {
         return "GradleProject{"
                 + "path='" + path + '\''
