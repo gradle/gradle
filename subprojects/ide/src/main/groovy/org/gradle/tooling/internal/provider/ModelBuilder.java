@@ -30,6 +30,7 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVers
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.util.GUtil;
 import org.gradle.util.ReflectionUtil;
 
@@ -39,12 +40,15 @@ import java.util.*;
 /**
 * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
 */
+//TODO SF rename to eclipse
 public class ModelBuilder implements BuildsModel {
     private boolean projectDependenciesOnly;
     private ProjectVersion3 currentProject;
     private final Map<String, EclipseProjectVersion3> projectMapping = new HashMap<String, EclipseProjectVersion3>();
     private GradleInternal gradle;
     private TasksFactory tasksFactory;
+    private GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
+    private GradleProject rootGradleProject;
 
     public boolean canBuild(Class type) {
         if (type.isAssignableFrom(EclipseProjectVersion3.class)) {
@@ -59,6 +63,7 @@ public class ModelBuilder implements BuildsModel {
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {
         this.gradle = gradle;
+        rootGradleProject = gradleProjectBuilder.buildAll(gradle);
         Project root = gradle.getRootProject();
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root);
@@ -144,7 +149,10 @@ public class ModelBuilder implements BuildsModel {
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
-        EclipseProjectVersion3 eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children);
+        EclipseProjectVersion3 eclipseProject =
+                new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children)
+                .setGradleProject(rootGradleProject.findByPath(project.getPath()));
+
         for (Object child : children) {
             ReflectionUtil.setProperty(child, "parent", eclipseProject);
         }

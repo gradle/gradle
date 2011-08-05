@@ -17,6 +17,7 @@ package org.gradle.tooling.internal;
 
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.*;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -36,6 +37,7 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
     private final File projectDirectory;
     private Iterable<? extends EclipseTaskVersion1> tasks;
     private Iterable<? extends EclipseLinkedResourceVersion1> linkedResources;
+    private GradleProject gradleProject;
 
     public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children) {
         this.name = name;
@@ -119,5 +121,14 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
 
     public void setLinkedResources(Iterable<? extends EclipseLinkedResourceVersion1> linkedResources) {
         this.linkedResources = linkedResources;
+    }
+
+    public GradleProject getGradleProject() {
+        return gradleProject;
+    }
+
+    public DefaultEclipseProject setGradleProject(GradleProject gradleProject) {
+        this.gradleProject = gradleProject;
+        return this;
     }
 }
