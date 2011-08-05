@@ -21,6 +21,7 @@ import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.w3c.dom.Document
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.dsl.TypeNameResolver
+import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
 
 class DslDocModel {
     private final File classDocbookDir
@@ -28,10 +29,10 @@ class DslDocModel {
     private final Iterable<File> classpath
     private final Map<String, ClassDoc> classes = [:]
     private final ClassMetaDataRepository<ClassMetaData> classMetaData
-    private final Map<String, ExtensionMetaData> extensionMetaData
+    private final Map<String, ClassExtensionMetaData> extensionMetaData
     private final JavadocConverter javadocConverter
 
-    DslDocModel(File classDocbookDir, Document document, Iterable<File> classpath, ClassMetaDataRepository<ClassMetaData> classMetaData, Map<String, ExtensionMetaData> extensionMetaData) {
+    DslDocModel(File classDocbookDir, Document document, Iterable<File> classpath, ClassMetaDataRepository<ClassMetaData> classMetaData, Map<String, ClassExtensionMetaData> extensionMetaData) {
         this.classDocbookDir = classDocbookDir
         this.document = document
         this.classpath = classpath
@@ -62,9 +63,9 @@ class DslDocModel {
             classMetaData = new ClassMetaData(className)
         }
         try {
-            ExtensionMetaData extensionMetaData = extensionMetaData[className]
+            ClassExtensionMetaData extensionMetaData = extensionMetaData[className]
             if (!extensionMetaData) {
-                extensionMetaData = new ExtensionMetaData(className)
+                extensionMetaData = new ClassExtensionMetaData(className)
             }
             File classFile = new File(classDocbookDir, "${className}.xml")
             if (!classFile.isFile()) {

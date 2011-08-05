@@ -33,6 +33,7 @@ import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.gradle.build.docs.dsl.LinkMetaData
 import org.gradle.api.Project
 import org.gradle.build.docs.dsl.ClassLinkMetaData
+import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
 
 /**
  * Generates the docbook source for the DSL reference guide.
@@ -86,7 +87,7 @@ class AssembleDslDocTask extends DefaultTask {
 
         use(DOMCategory) {
             use(BuildableDOMCategory) {
-                Map<String, ExtensionMetaData> extensions = loadPluginsMetaData()
+                Map<String, ClassExtensionMetaData> extensions = loadPluginsMetaData()
                 DslDocModel model = new DslDocModel(classDocbookDir, document, classpath, classRepository, extensions)
                 def root = document.documentElement
                 root.section.table.each { Element table ->
@@ -101,18 +102,25 @@ class AssembleDslDocTask extends DefaultTask {
     def loadPluginsMetaData() {
         XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
         provider.parse(pluginsMetaDataFile)
-        Map<String, ExtensionMetaData> extensions = [:]
+        Map<String, ClassExtensionMetaData> extensions = [:]
         provider.root.plugin.each { Element plugin ->
             def pluginId = plugin.'@id'
             plugin.extends.each { Element e ->
                 def targetClass = e.'@targetClass'
-                def extensionClass = e.'@extensionClass'
                 def extension = extensions[targetClass]
                 if (!extension) {
-                    extension = new ExtensionMetaData(targetClass)
+                    extension = new ClassExtensionMetaData(targetClass)
                     extensions[targetClass] = extension
                 }
-                extension.add(pluginId, extensionClass)
+                def mixinClass = e.'@mixinClass'
+                if (mixinClass) {
+                    extension.addMixin(pluginId, mixinClass)
+                }
+                def extensionClass = e.'@extensionClass'
+                if (extensionClass) {
+                    def extensionId = e.'@id'
+                    extension.addExtension(pluginId, extensionId, extensionClass)
+                }
             }
         }
         return extensions

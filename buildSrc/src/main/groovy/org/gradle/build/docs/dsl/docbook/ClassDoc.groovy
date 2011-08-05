@@ -22,6 +22,9 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.gradle.build.docs.dsl.model.MethodMetaData
 import org.w3c.dom.Text
+import org.gradle.build.docs.dsl.model.MixinMetaData
+import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
+import org.gradle.build.docs.dsl.model.ExtensionMetaData
 
 class ClassDoc {
     private final String className
@@ -29,7 +32,7 @@ class ClassDoc {
     private final String simpleName
     final ClassMetaData classMetaData
     private final Element classSection
-    private final ExtensionMetaData extensionMetaData
+    private final ClassExtensionMetaData extensionMetaData
     private final List<PropertyDoc> classProperties = []
     private final List<MethodDoc> classMethods = []
     private final List<BlockDoc> classBlocks = []
@@ -43,7 +46,7 @@ class ClassDoc {
     private List<Element> comment
     private final GenerationListener listener = new DefaultGenerationListener()
 
-    ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslDocModel model, JavadocConverter javadocConverter) {
+    ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ClassExtensionMetaData extensionMetaData, DslDocModel model, JavadocConverter javadocConverter) {
         this.className = className
         id = className
         simpleName = className.tokenize('.').last()
@@ -244,15 +247,27 @@ class ClassDoc {
     }
 
     ClassDoc buildExtensions() {
-        extensionMetaData.extensionClasses.keySet().each { String pluginId ->
-            List<ClassDoc> extensionClasses = []
-            extensionMetaData.extensionClasses.get(pluginId).each { String extensionClass ->
-                extensionClasses << model.getClassDoc(extensionClass)
+        def plugins = [:]
+        extensionMetaData.mixinClasses.each { MixinMetaData mixin ->
+            def pluginId = mixin.pluginId
+            def classExtensionDoc = plugins[pluginId]
+            if (!classExtensionDoc) {
+                classExtensionDoc = new ClassExtensionDoc(pluginId)
+                plugins[pluginId] = classExtensionDoc
             }
-            extensionClasses.sort { it.name }
-            classExtensions << new ClassExtensionDoc(pluginId, extensionClasses)
+            classExtensionDoc.mixinClasses << model.getClassDoc(mixin.mixinClass)
+        }
+        extensionMetaData.extensionClasses.each { ExtensionMetaData extension ->
+            def pluginId = extension.pluginId
+            def classExtensionDoc = plugins[pluginId]
+            if (!classExtensionDoc) {
+                classExtensionDoc = new ClassExtensionDoc(pluginId)
+                plugins[pluginId] = classExtensionDoc
+            }
+            classExtensionDoc.extensionClasses[extension.extensionId] = model.getClassDoc(extension.extensionClass)
         }
 
+        classExtensions.addAll(plugins.values())
         classExtensions.sort { it.pluginId }
 
         return this

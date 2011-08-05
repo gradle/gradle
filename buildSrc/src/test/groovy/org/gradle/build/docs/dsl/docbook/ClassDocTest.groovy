@@ -222,12 +222,12 @@ class ClassDocTest extends XmlSpecification {
         doc.classBlocks[1].multiValued
     }
 
-    def buildsExtensionsForClass() {
+    def buildsExtensionsForClassMixins() {
         ClassMetaData classMetaData = classMetaData()
-        ExtensionMetaData extensionMetaData = new ExtensionMetaData('org.gradle.Class')
-        extensionMetaData.add('a', 'org.gradle.ExtensionA1')
-        extensionMetaData.add('a', 'org.gradle.ExtensionA2')
-        extensionMetaData.add('b', 'org.gradle.ExtensionB')
+        ClassExtensionMetaData extensionMetaData = new ClassExtensionMetaData('org.gradle.Class')
+        extensionMetaData.addMixin('a', 'org.gradle.ExtensionA1')
+        extensionMetaData.addMixin('a', 'org.gradle.ExtensionA2')
+        extensionMetaData.addMixin('b', 'org.gradle.ExtensionB')
         ClassDoc extensionA1 = classDoc('org.gradle.ExtensionA1')
         ClassDoc extensionA2 = classDoc('org.gradle.ExtensionA2')
         ClassDoc extensionB = classDoc('org.gradle.ExtensionB')
@@ -254,10 +254,48 @@ class ClassDocTest extends XmlSpecification {
         doc.classExtensions.size() == 2
 
         doc.classExtensions[0].pluginId == 'a'
-        doc.classExtensions[0].extensionClasses == [extensionA1, extensionA2]
+        doc.classExtensions[0].mixinClasses == [extensionA1, extensionA2] as Set
 
         doc.classExtensions[1].pluginId == 'b'
-        doc.classExtensions[1].extensionClasses == [extensionB]
+        doc.classExtensions[1].mixinClasses == [extensionB] as Set
+    }
+
+    def buildsExtensionsForClassExtensions() {
+        ClassMetaData classMetaData = classMetaData()
+        ClassExtensionMetaData extensionMetaData = new ClassExtensionMetaData('org.gradle.Class')
+        extensionMetaData.addExtension('a', 'n1', 'org.gradle.ExtensionA1')
+        extensionMetaData.addExtension('a', 'n2', 'org.gradle.ExtensionA2')
+        extensionMetaData.addExtension('b', 'n1', 'org.gradle.ExtensionB')
+        ClassDoc extensionA1 = classDoc('org.gradle.ExtensionA1')
+        ClassDoc extensionA2 = classDoc('org.gradle.ExtensionA2')
+        ClassDoc extensionB = classDoc('org.gradle.ExtensionB')
+        _ * docModel.getClassDoc('org.gradle.ExtensionA1') >> extensionA1
+        _ * docModel.getClassDoc('org.gradle.ExtensionA2') >> extensionA2
+        _ * docModel.getClassDoc('org.gradle.ExtensionB') >> extensionB
+
+        def content = parse('''<section>
+                <section><title>Properties</title>
+                    <table><thead><tr><td/></tr></thead></table>
+                </section>
+                <section><title>Methods</title>
+                    <table><thead><tr><td/></tr></thead></table>
+                </section>
+            </section>
+        ''')
+
+        when:
+        ClassDoc doc = withCategories {
+            new ClassDoc('org.gradle.Class', content, document, classMetaData, extensionMetaData, docModel, javadocConverter).buildExtensions()
+        }
+
+        then:
+        doc.classExtensions.size() == 2
+
+        doc.classExtensions[0].pluginId == 'a'
+        doc.classExtensions[0].extensionClasses == [n1: extensionA1, n2: extensionA2]
+
+        doc.classExtensions[1].pluginId == 'b'
+        doc.classExtensions[1].extensionClasses == [n1: extensionB]
     }
 
     def classMetaData(String name = 'org.gradle.Class') {

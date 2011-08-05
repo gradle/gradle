@@ -1,49 +1,53 @@
 <plugins>
     <plugin id="java" description="Java Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.BasePluginConvention"/>
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.ReportingBasePluginConvention"/>
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.JavaPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.BasePluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ReportingBasePluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.JavaPluginConvention"/>
     </plugin>
     <plugin id="groovy" description="Groovy Plugin">
-        <extends targetClass="org.gradle.api.tasks.SourceSet" extensionClass="org.gradle.api.tasks.GroovySourceSet"/>
+        <extends targetClass="org.gradle.api.tasks.SourceSet" mixinClass="org.gradle.api.tasks.GroovySourceSet"/>
     </plugin>
     <plugin id="scala" description="Scala Plugin">
-        <extends targetClass="org.gradle.api.tasks.SourceSet" extensionClass="org.gradle.api.tasks.ScalaSourceSet"/>
+        <extends targetClass="org.gradle.api.tasks.SourceSet" mixinClass="org.gradle.api.tasks.ScalaSourceSet"/>
     </plugin>
     <plugin id="antlr" description="Antlr Plugin">
-        <extends targetClass="org.gradle.api.tasks.SourceSet" extensionClass="org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory"/>
+        <extends targetClass="org.gradle.api.tasks.SourceSet" mixinClass="org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory"/>
     </plugin>
     <plugin id="code-quality" description="Code Quality Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.quality.JavaCodeQualityPluginConvention"/>
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.quality.GroovyCodeQualityPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.quality.JavaCodeQualityPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.quality.GroovyCodeQualityPluginConvention"/>
     </plugin>
     <plugin id="maven" description="Maven Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.MavenPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.MavenPluginConvention"/>
     </plugin>
     <plugin id="war" description="War Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.WarPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.WarPluginConvention"/>
     </plugin>
     <plugin id="ear" description="Ear Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.plugins.ear.EarPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.plugins.ear.EarPluginConvention"/>
     </plugin>
     <plugin id="jetty" description="Jetty Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.jetty.JettyPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.jetty.JettyPluginConvention"/>
     </plugin>
     <plugin id="project-report" description="Project Report Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.ProjectReportsPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ProjectReportsPluginConvention"/>
     </plugin>
     <plugin id="announce" description="Announce Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.announce.AnnouncePluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.announce.AnnouncePluginConvention"/>
     </plugin>
     <plugin id="osgi" description="OSGi Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.osgi.OsgiPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.osgi.OsgiPluginConvention"/>
     </plugin>
     <plugin id="application" description="Application Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.api.plugins.ApplicationPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ApplicationPluginConvention"/>
     </plugin>
-    
     <plugin id="signing" description="Signing Plugin">
-        <extends targetClass="org.gradle.api.Project" extensionClass="org.gradle.plugins.signing.SigningPluginConvention"/>
+        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.plugins.signing.SigningPluginConvention"/>
     </plugin>
-    
+    <plugin id="eclipse" description="Eclipse Plugin">
+        <extends targetClass="org.gradle.api.Project" id="eclipse" extensionClass="org.gradle.plugins.ide.eclipse.model.EclipseModel"/>
+    </plugin>
+    <plugin id="idea" description="Idea Plugin">
+        <extends targetClass="org.gradle.api.Project" id="idea" extensionClass="org.gradle.plugins.ide.idea.model.IdeaModel"/>
+    </plugin>
 </plugins>

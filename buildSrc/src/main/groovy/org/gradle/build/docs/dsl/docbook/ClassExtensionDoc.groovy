@@ -15,33 +15,36 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
+/**
+ * Represents the documentation model for extensions contributed by a given plugin.
+ */
 class ClassExtensionDoc {
-    private final List<ClassDoc> extensionClass
+    private final Set<ClassDoc> mixinClasses = []
+    private final Map<String, ClassDoc> extensionClasses = [:]
     private final String pluginId
 
-    ClassExtensionDoc(String pluginId, List<ClassDoc> extensionClass) {
+    ClassExtensionDoc(String pluginId) {
         this.pluginId = pluginId
-        this.extensionClass = extensionClass
     }
 
     String getPluginId() {
         return pluginId
     }
 
-    List<ClassDoc> getExtensionClasses() {
-        extensionClass
+    Set<ClassDoc> getMixinClasses() {
+        mixinClasses
     }
 
     List<PropertyDoc> getExtensionProperties() {
-        return extensionClass.inject([]) {list, eClass -> eClass.classProperties.inject(list) {x, prop -> x << prop } }.sort { it.name }
+        return mixinClasses.inject([]) {list, eClass -> eClass.classProperties.inject(list) {x, prop -> x << prop } }.sort { it.name }
     }
 
     List<MethodDoc> getExtensionMethods() {
-        return extensionClass.inject([]) {list, eClass -> eClass.classMethods.inject(list) {x, method -> x << method } }.sort { it.name }
+        return mixinClasses.inject([]) {list, eClass -> eClass.classMethods.inject(list) {x, method -> x << method } }.sort { it.name }
     }
 
     List<BlockDoc> getExtensionBlocks() {
-        return extensionClass.inject([]) {list, eClass -> eClass.classBlocks.inject(list) {x, block -> x << block } }.sort { it.name }
+        return mixinClasses.inject([]) {list, eClass -> eClass.classBlocks.inject(list) {x, block -> x << block } }.sort { it.name }
     }
 }
 

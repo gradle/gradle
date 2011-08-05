@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.docbook
-
-import com.google.common.collect.*
+package org.gradle.build.docs.dsl.model
 
 class ExtensionMetaData {
-    final String targetClass
-    final SetMultimap<String, String> extensionClasses = HashMultimap.create()
+    final String pluginId
+    final String extensionId
+    final String extensionClass
 
-    ExtensionMetaData(String targetClass) {
-        this.targetClass = targetClass
-    }
-    
-    def void add(String plugin, String extensionClass) {
-        extensionClasses.put(plugin, extensionClass)
+    ExtensionMetaData(String pluginId, String extensionId, String extensionClass) {
+        this.pluginId = pluginId
+        this.extensionId = extensionId
+        this.extensionClass = extensionClass
     }
 }
