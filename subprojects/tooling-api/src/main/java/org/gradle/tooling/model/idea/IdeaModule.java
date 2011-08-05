@@ -20,8 +20,6 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 
-import java.io.File;
-
 /**
  * Represents information about the IntelliJ IDEA module
  *
@@ -63,29 +61,9 @@ public interface IdeaModule extends HierarchicalElement {
     IdeaProject getProject();
 
     /**
-     * whether current module should inherit project's output directory.
-     *
-     * @return inherit output dirs flag
-     * @see #getOutputDir()
-     * @see #getTestOutputDir()
+     * information about idea compiler output (output dirs, inheritance of output dir, etc.)
      */
-    boolean getInheritOutputDirs(); //TODO SF think about modelling as 'CompilerOutput' that contains also surrounding fields.
-
-    /**
-     * directory to store module's production classes and resources.
-     *
-     * @return directory to store production output. non-<code>null</code> if
-     *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
-     */
-    File getOutputDir();
-
-    /**
-     * directory to store module's test classes and resources.
-     *
-     * @return directory to store test output. non-<code>null</code> if
-     *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
-     */
-    File getTestOutputDir();
+    IdeaCompilerOutput getCompilerOutput();
 
     /**
      * dependencies of this module (i.e. module dependencies, library dependencies, etc.)

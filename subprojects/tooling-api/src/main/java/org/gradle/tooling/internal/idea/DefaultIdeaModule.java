@@ -20,10 +20,7 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.Task;
-import org.gradle.tooling.model.idea.IdeaContentRoot;
-import org.gradle.tooling.model.idea.IdeaDependency;
-import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.idea.*;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
@@ -44,12 +41,12 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     private String name;
     private List<IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
     private IdeaProject parent;
-    boolean inheritOutputDirs;
-    File outputDir;
-    File testOutputDir;
-    File moduleFileDir;
-    List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
-    GradleProject gradleProject;
+
+    private File moduleFileDir;
+    private List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
+    private GradleProject gradleProject;
+
+    private IdeaCompilerOutput compilerOutput;
 
     public String getName() {
         return name;
@@ -91,33 +88,6 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public boolean getInheritOutputDirs() {
-        return inheritOutputDirs;
-    }
-
-    public DefaultIdeaModule setInheritOutputDirs(boolean inheritOutputDirs) {
-        this.inheritOutputDirs = inheritOutputDirs;
-        return this;
-    }
-
-    public File getOutputDir() {
-        return outputDir;
-    }
-
-    public DefaultIdeaModule setOutputDir(File outputDir) {
-        this.outputDir = outputDir;
-        return this;
-    }
-
-    public File getTestOutputDir() {
-        return testOutputDir;
-    }
-
-    public DefaultIdeaModule setTestOutputDir(File testOutputDir) {
-        this.testOutputDir = testOutputDir;
-        return this;
-    }
-
     public DomainObjectSet<IdeaDependency> getDependencies() {
         return new ImmutableDomainObjectSet<IdeaDependency>(dependencies);
     }
@@ -148,15 +118,22 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
+    public IdeaCompilerOutput getCompilerOutput() {
+        return compilerOutput;
+    }
+
+    public DefaultIdeaModule setCompilerOutput(IdeaCompilerOutput compilerOutput) {
+        this.compilerOutput = compilerOutput;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "IdeaModule{"
                 + "name='" + name + '\''
                 + ", gradleProject='" + gradleProject + '\''
                 + ", contentRoots=" + contentRoots
-                + ", inheritOutputDirs=" + inheritOutputDirs
-                + ", outputDir=" + outputDir
-                + ", testOutputDir=" + testOutputDir
+                + ", compilerOutput=" + compilerOutput
                 + ", moduleFileDir=" + moduleFileDir
                 + ", dependencies count=" + dependencies.size()
                 + '}';

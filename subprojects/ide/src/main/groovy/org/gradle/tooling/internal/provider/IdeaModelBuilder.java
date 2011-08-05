@@ -114,11 +114,13 @@ public class IdeaModelBuilder implements BuildsModel {
                 .setName(ideaModule.getName())
                 .setParent(ideaProject)
                 .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
-                .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
-                .setOutputDir(ideaModule.getOutputDir())
-                .setTestOutputDir(ideaModule.getTestOutputDir())
                 .setModuleFileDir(ideaModule.getIml().getGenerateTo())
-                .setContentRoots(asList(contentRoot));
+                .setContentRoots(asList(contentRoot))
+                .setCompilerOutput(new DefaultIdeaCompilerOutput()
+                    .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
+                    .setOutputDir(ideaModule.getOutputDir())
+                    .setTestOutputDir(ideaModule.getTestOutputDir())
+                );
 
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }
