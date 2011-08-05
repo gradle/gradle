@@ -108,7 +108,7 @@ public class IdeaModelBuilder implements BuildsModel {
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
             .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs()))
-            .setExcludeDirectories(new LinkedList<File>(ideaModule.getExcludeDirs()));
+            .setExcludeDirectories(ideaModule.getExcludeDirs());
 
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
                 .setName(ideaModule.getName())
@@ -125,8 +125,8 @@ public class IdeaModelBuilder implements BuildsModel {
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }
 
-    private List<IdeaSourceDirectory> srcDirs(Set<File> sourceDirs) {
-        List<IdeaSourceDirectory> out = new LinkedList<IdeaSourceDirectory>();
+    private Set<IdeaSourceDirectory> srcDirs(Set<File> sourceDirs) {
+        Set<IdeaSourceDirectory> out = new LinkedHashSet<IdeaSourceDirectory>();
         for (File s : sourceDirs) {
             out.add(new DefaultIdeaSourceDirectory().setDirectory(s));
         }

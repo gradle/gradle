@@ -23,8 +23,8 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author: Szczepan Faber, created at: 8/3/11
@@ -32,9 +32,9 @@ import java.util.List;
 public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
 
     File rootDirectory;
-    List<IdeaSourceDirectory> sourceDirectories = new LinkedList<IdeaSourceDirectory>();
-    List<IdeaSourceDirectory> testDirectories = new LinkedList<IdeaSourceDirectory>();
-    List<File> excludeDirectories = new LinkedList<File>();
+    Set<IdeaSourceDirectory> sourceDirectories = new LinkedHashSet<IdeaSourceDirectory>();
+    Set<IdeaSourceDirectory> testDirectories = new LinkedHashSet<IdeaSourceDirectory>();
+    Set<File> excludeDirectories = new LinkedHashSet<File>();
 
     public File getRootDirectory() {
         return rootDirectory;
@@ -49,7 +49,7 @@ public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
         return new ImmutableDomainObjectSet(sourceDirectories);
     }
 
-    public DefaultIdeaContentRoot setSourceDirectories(List<IdeaSourceDirectory> sourceDirectories) {
+    public DefaultIdeaContentRoot setSourceDirectories(Set<IdeaSourceDirectory> sourceDirectories) {
         this.sourceDirectories = sourceDirectories;
         return this;
     }
@@ -58,16 +58,16 @@ public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
         return new ImmutableDomainObjectSet(testDirectories);
     }
 
-    public DefaultIdeaContentRoot setTestDirectories(List<IdeaSourceDirectory> testDirectories) {
+    public DefaultIdeaContentRoot setTestDirectories(Set<IdeaSourceDirectory> testDirectories) {
         this.testDirectories = testDirectories;
         return this;
     }
 
-    public List<File> getExcludeDirectories() {
+    public Set<File> getExcludeDirectories() {
         return excludeDirectories;
     }
 
-    public DefaultIdeaContentRoot setExcludeDirectories(List<File> excludeDirectories) {
+    public DefaultIdeaContentRoot setExcludeDirectories(Set<File> excludeDirectories) {
         this.excludeDirectories = excludeDirectories;
         return this;
     }

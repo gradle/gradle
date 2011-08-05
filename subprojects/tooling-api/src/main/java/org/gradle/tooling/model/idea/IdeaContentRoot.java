@@ -19,7 +19,7 @@ package org.gradle.tooling.model.idea;
 import org.gradle.tooling.model.DomainObjectSet;
 
 import java.io.File;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Contains content root information
@@ -44,5 +44,5 @@ public interface IdeaContentRoot {
     /**
      * exclude dirs
      */
-    List<File> getExcludeDirectories();
+    Set<File> getExcludeDirectories();
 }
