@@ -17,10 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.Serializer;
+import org.gradle.cache.*;
 
 import java.io.File;
 import java.util.Map;
@@ -29,12 +26,18 @@ public interface CacheFactory {
     enum LockMode {
         Shared, Exclusive
     }
+    enum CrossVersionMode {
+        VersionSpecific, CrossVersion
+    }
 
-    PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initializer);
+    PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode,
+                         Action<? super PersistentCache> initializer) throws CacheOpenException;
 
-    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<E> serializer);
+    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode,
+                                               Serializer<E> serializer) throws CacheOpenException;
 
-    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<V> serializer);
+    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode,
+                                                         Serializer<V> serializer) throws CacheOpenException;
 }
 
 

@@ -64,5 +64,5 @@ public interface CacheBuilder<T> {
      *
      * @return The cache.
      */
-    T open();
+    T open() throws CacheOpenException;
 }

@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.cache.internal.CacheFactory.CrossVersionMode;
 import static org.gradle.cache.internal.CacheFactory.LockMode;
 
 public class DefaultCacheRepository implements CacheRepository {
@@ -117,6 +118,10 @@ public class DefaultCacheRepository implements CacheRepository {
             }
             return new File(potentialParentDir, projectCacheDir);
         }
+
+        protected CrossVersionMode getCrossVersionMode() {
+            return versionStrategy == VersionStrategy.CachePerVersion ? CrossVersionMode.VersionSpecific : CrossVersionMode.CrossVersion;
+        }
     }
 
     private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> implements DirectoryCacheBuilder {
@@ -151,7 +156,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.open(cacheDir, cacheUsage, properties, LockMode.Shared, initializer);
+            return factory.open(cacheDir, cacheUsage, properties, LockMode.Shared, getCrossVersionMode(), initializer);
         }
     }
 
@@ -193,7 +198,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentStateCache<E> doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.openStateCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, serializer);
+            return factory.openStateCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, getCrossVersionMode(), serializer);
         }
     }
 
@@ -204,7 +209,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentIndexedCache<K, V> doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.openIndexedCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, serializer);
+            return factory.openIndexedCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, getCrossVersionMode(), serializer);
         }
     }
 }

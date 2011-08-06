@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.gradle.cache.internal.CacheFactory.LockMode;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -54,7 +55,7 @@ public class DefaultPersistentDirectoryCacheTest {
             one(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(emptyDir, CacheUsage.ON, properties, action);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(emptyDir, CacheUsage.ON, properties, LockMode.Shared, action);
         assertThat(loadProperties(emptyDir.file("cache.properties")), equalTo(properties));
     }
 
@@ -66,7 +67,7 @@ public class DefaultPersistentDirectoryCacheTest {
             one(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, action);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, LockMode.Shared, action);
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
 
@@ -78,7 +79,7 @@ public class DefaultPersistentDirectoryCacheTest {
             one(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, action);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, LockMode.Shared, action);
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
 
@@ -90,7 +91,7 @@ public class DefaultPersistentDirectoryCacheTest {
             one(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.REBUILD, properties, action);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.REBUILD, properties, LockMode.Shared, action);
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
 
@@ -98,7 +99,7 @@ public class DefaultPersistentDirectoryCacheTest {
     public void doesNotInitializeCacheWhenCacheDirExistsAndIsNotInvalid() {
         TestFile dir = createCacheDir();
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, action);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, LockMode.Shared, action);
         dir.file("cache.properties").assertIsFile();
         dir.file("some-file").assertIsFile();
     }
