@@ -41,7 +41,7 @@ public class IdeaModelBuilder implements BuildsModel {
     }
 
     private final GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
-    private boolean offlineDependencyResolution = false;
+    private boolean offlineDependencyResolution;
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {
         Project root = gradle.getRootProject();
