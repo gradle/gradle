@@ -15,17 +15,14 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.tooling.model.BuildableProject;
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.ExternalDependency;
-import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.*;
 
 /**
  * The complete model of an Eclipse project.
  *
  * <p>Note that the names of Eclipse projects are unique, and can be used as an identifier for the project.
  */
-public interface EclipseProject extends HierarchicalEclipseProject, BuildableProject {
+public interface EclipseProject extends HierarchicalEclipseProject, BuildableProject, HasGradleProject {
     /**
      * {@inheritDoc}
      */
@@ -40,7 +37,7 @@ public interface EclipseProject extends HierarchicalEclipseProject, BuildablePro
      * The gradle project that is associated with this project.
      * Typically, a single eclipse project corresponds to a single gradle project.
      * <p>
-     * Via the gradle project you can access (list, run, etc.) gradle tasks
+     * See {@link HasGradleProject}
      *
      * @return associated gradle project
      */

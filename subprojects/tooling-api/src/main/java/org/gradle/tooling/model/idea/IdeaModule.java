@@ -18,6 +18,7 @@ package org.gradle.tooling.model.idea;
 
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 
 /**
@@ -25,7 +26,7 @@ import org.gradle.tooling.model.HierarchicalElement;
  *
  * @since 1.0-rc-1
  */
-public interface IdeaModule extends HierarchicalElement {
+public interface IdeaModule extends HierarchicalElement, HasGradleProject {
 
     /**
      * All content roots. Most idea modules have a single content root.
@@ -38,7 +39,7 @@ public interface IdeaModule extends HierarchicalElement {
      * The gradle project that is associated with this module.
      * Typically, a single module corresponds to a single gradle project.
      * <p>
-     * Via the gradle project you can access (list, run, etc.) gradle tasks
+     * See {@link HasGradleProject}
      *
      * @return associated gradle project
      */
