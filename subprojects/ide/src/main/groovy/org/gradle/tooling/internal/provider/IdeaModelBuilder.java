@@ -41,6 +41,7 @@ public class IdeaModelBuilder implements BuildsModel {
     }
 
     private final GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
+    private boolean offlineDependencyResolution = false;
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {
         Project root = gradle.getRootProject();
@@ -79,6 +80,7 @@ public class IdeaModelBuilder implements BuildsModel {
     }
 
     private void buildDependencies(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule) {
+        ideaModule.setOffline(offlineDependencyResolution);
         Set<Dependency> resolved = ideaModule.resolveDependencies();
         List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
         for (Dependency dependency : resolved) {
@@ -131,5 +133,10 @@ public class IdeaModelBuilder implements BuildsModel {
             out.add(new DefaultIdeaSourceDirectory().setDirectory(s));
         }
         return out;
+    }
+
+    public IdeaModelBuilder setOfflineDependencyResolution(boolean offlineDependencyResolution) {
+        this.offlineDependencyResolution = offlineDependencyResolution;
+        return this;
     }
 }

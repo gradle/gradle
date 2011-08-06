@@ -311,6 +311,12 @@ class IdeaModule {
     final org.gradle.api.Project project
     PathFactory pathFactory
 
+    /**
+     * if true then GAV-configured artifacts will not be included in the resulting classpath
+     * (only project and local file dependencies will be included)
+     */
+    boolean offline
+
     Map<String, Collection<File>> singleEntryLibraries
 
     IdeaModule(org.gradle.api.Project project, IdeaModuleIml iml) {

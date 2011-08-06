@@ -37,6 +37,7 @@ class IdeaDependenciesProvider {
     boolean downloadSources
     boolean downloadJavadoc
     PathFactory pathFactory
+    boolean offline
 
     private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
 
@@ -46,6 +47,7 @@ class IdeaDependenciesProvider {
         this.downloadSources = ideaModule.downloadSources
         this.downloadJavadoc = ideaModule.downloadJavadoc
         this.pathFactory = pathFactory
+        this.offline = ideaModule.offline
 
         Set result = new LinkedHashSet()
         ideaModule.singleEntryLibraries.each { scope, files ->
@@ -79,11 +81,14 @@ class IdeaDependenciesProvider {
         if (!scopes[scope]) { return [] }
 
         LinkedHashSet moduleLibraries = []
-        def repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
-                project.configurations, scopes[scope].plus, scopes[scope].minus, downloadSources, downloadJavadoc)
 
-        repoFileDependencies.each {
-            moduleLibraries << new SingleEntryModuleLibrary(getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scope)
+        if (!offline) {
+            def repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
+                    project.configurations, scopes[scope].plus, scopes[scope].minus, downloadSources, downloadJavadoc)
+
+            repoFileDependencies.each {
+                moduleLibraries << new SingleEntryModuleLibrary(getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scope)
+            }
         }
 
         dependenciesExtractor.extractLocalFileDependencies(scopes[scope].plus, scopes[scope].minus).each {

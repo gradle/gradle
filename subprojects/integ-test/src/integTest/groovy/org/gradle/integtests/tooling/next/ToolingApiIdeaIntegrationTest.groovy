@@ -284,4 +284,34 @@ project(':impl') {
         impl.gradleProject.tasks.find { it.name == 'implTask' && it.path == ':impl:implTask' && it.project == impl.gradleProject}
         !impl.gradleProject.tasks.find { it.name == 'rootTask' }
     }
+
+    def "offline model should not resolve GAV dependencies"() {
+        def projectDir = dist.testDir
+
+        projectDir.file('build.gradle').text = """
+subprojects {
+    apply plugin: 'java'
+}
+
+project(':impl') {
+    apply plugin: 'idea'
+
+    dependencies {
+        compile project(':api')
+        testCompile 'i.dont:Exist:2.4'
+    }
+}
+"""
+        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
+
+        when:
+        OfflineIdeaProject project = withConnection { connection -> connection.getModel(OfflineIdeaProject.class) }
+        def impl = project.children.find { it.name == 'impl' }
+
+        then:
+        def libs = impl.dependencies
+        libs.size() == 1
+        IdeaModuleDependency d = libs[0]
+        d.dependencyModule == project.modules.find { it.name == 'api' }
+    }
 }
