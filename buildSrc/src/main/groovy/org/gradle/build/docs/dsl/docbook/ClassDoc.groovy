@@ -252,7 +252,7 @@ class ClassDoc {
             def pluginId = mixin.pluginId
             def classExtensionDoc = plugins[pluginId]
             if (!classExtensionDoc) {
-                classExtensionDoc = new ClassExtensionDoc(pluginId)
+                classExtensionDoc = new ClassExtensionDoc(pluginId, classMetaData)
                 plugins[pluginId] = classExtensionDoc
             }
             classExtensionDoc.mixinClasses << model.getClassDoc(mixin.mixinClass)
@@ -261,13 +261,14 @@ class ClassDoc {
             def pluginId = extension.pluginId
             def classExtensionDoc = plugins[pluginId]
             if (!classExtensionDoc) {
-                classExtensionDoc = new ClassExtensionDoc(pluginId)
+                classExtensionDoc = new ClassExtensionDoc(pluginId, classMetaData)
                 plugins[pluginId] = classExtensionDoc
             }
             classExtensionDoc.extensionClasses[extension.extensionId] = model.getClassDoc(extension.extensionClass)
         }
 
         classExtensions.addAll(plugins.values())
+        classExtensions.each { extension -> extension.buildMetaData(model) }
         classExtensions.sort { it.pluginId }
 
         return this

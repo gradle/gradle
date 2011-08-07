@@ -270,8 +270,11 @@ class ClassDocTest extends XmlSpecification {
         ClassDoc extensionA2 = classDoc('org.gradle.ExtensionA2')
         ClassDoc extensionB = classDoc('org.gradle.ExtensionB')
         _ * docModel.getClassDoc('org.gradle.ExtensionA1') >> extensionA1
+        _ * docModel.isKnownType('org.gradle.ExtensionA1') >> true
         _ * docModel.getClassDoc('org.gradle.ExtensionA2') >> extensionA2
+        _ * docModel.isKnownType('org.gradle.ExtensionA2') >> true
         _ * docModel.getClassDoc('org.gradle.ExtensionB') >> extensionB
+        _ * docModel.isKnownType('org.gradle.ExtensionB') >> true
 
         def content = parse('''<section>
                 <section><title>Properties</title>
@@ -293,9 +296,13 @@ class ClassDocTest extends XmlSpecification {
 
         doc.classExtensions[0].pluginId == 'a'
         doc.classExtensions[0].extensionClasses == [n1: extensionA1, n2: extensionA2]
+        doc.classExtensions[0].extensionProperties.size() == 2
+        doc.classExtensions[0].extensionBlocks.size() == 2
 
         doc.classExtensions[1].pluginId == 'b'
         doc.classExtensions[1].extensionClasses == [n1: extensionB]
+        doc.classExtensions[1].extensionProperties.size() == 1
+        doc.classExtensions[1].extensionBlocks.size() == 1
     }
 
     def classMetaData(String name = 'org.gradle.Class') {
