@@ -88,12 +88,13 @@ if $cygwin ; then
     esac
 fi
 
+function splitJvmOpts() {
+    JVM_OPTS=("$@")
+}
+eval splitJvmOpts $JAVA_OPTS $GRADLE_OPTS
+
 GRADLE_APP_BASE_NAME=`basename "$0"`
 
 STARTER_MAIN_CLASS=org.gradle.launcher.GradleMain
 
-exec "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
-        -classpath "$CLASSPATH" \
-        -Dorg.gradle.appname="$GRADLE_APP_BASE_NAME" \
-        $STARTER_MAIN_CLASS \
-        "$@"
+exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" -Dorg.gradle.appname="$GRADLE_APP_BASE_NAME" $STARTER_MAIN_CLASS "$@"

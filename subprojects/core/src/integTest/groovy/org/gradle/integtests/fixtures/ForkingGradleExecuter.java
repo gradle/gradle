@@ -91,7 +91,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.setErrorOutput(errStream);
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", Jvm.current().getJavaHome());
-        builder.environment("GRADLE_OPTS", GUtil.join(gradleOpts, " "));
+        builder.environment("GRADLE_OPTS", formatGradleOpts());
         builder.environment(getEnvironmentVars());
         builder.workingDir(getWorkingDir());
 
@@ -120,6 +120,24 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             throw new RuntimeException(message);
         }
         return GUtil.map("output", output, "error", error);
+    }
+
+    private String formatGradleOpts() {
+        StringBuilder result = new StringBuilder();
+        for (String gradleOpt : gradleOpts) {
+            if (result.length() > 0) {
+                result.append(" ");
+            }
+            if (gradleOpt.contains(" ")) {
+                assert !gradleOpt.contains("\"");
+                result.append('"');
+                result.append(gradleOpt);
+                result.append('"');
+            } else {
+                result.append(gradleOpt);
+            }
+        }
+        return result.toString();
     }
 
     private interface CommandBuilder {
