@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea
 
+import java.util.regex.Pattern
 import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
@@ -25,7 +26,6 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import java.util.regex.Pattern
 
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -284,6 +284,24 @@ idea.project {
 }
 
 """)
+    }
+
+    @Test
+    void showDecentMessageWhenInputFileWasTinkeredWith() {
+        //given
+        file('root.iml') << 'messed up iml file'
+
+        file('build.gradle') << '''
+apply plugin: "java"
+apply plugin: "idea"
+'''
+        file('settings.gradle') << 'rootProject.name = "root"'
+
+        //when
+        def failure = executer.withTasks('idea').runWithFailure()
+
+        //then
+        failure.output.contains("Perhaps this file was tinkered with?")
     }
 
     private void assertHasExpectedContents(String path) {

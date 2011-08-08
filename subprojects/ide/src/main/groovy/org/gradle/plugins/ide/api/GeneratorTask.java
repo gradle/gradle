@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.api;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
@@ -62,7 +63,13 @@ public class GeneratorTask<T> extends ConventionTask {
     @TaskAction
     void generate() {
         if (getInputFile().exists()) {
-            domainObject = generator.read(getInputFile());
+            try {
+                domainObject = generator.read(getInputFile());
+            } catch (RuntimeException e) {
+                throw new GradleException(String.format("Cannot parse file '%s'.\n"
+                        + "       Perhaps this file was tinkered with? In that case try delete this file and then retry.",
+                        getInputFile()), e);
+            }
         } else {
             domainObject = generator.defaultInstance();
         }
