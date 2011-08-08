@@ -183,6 +183,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     }
 
     private TestFile getTmpDir() {
-        return new TestFile(dist.getUserHomeDir(), "tmp");
+        return dist.getTestDir().file("tmp");
     }
 }
