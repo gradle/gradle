@@ -54,4 +54,14 @@ class IdeaWorkspace {
      * For example see docs for {@link IdeaWorkspace}
      */
     XmlFileContentMerger iws
+
+    void mergeXmlWorkspace(Workspace xmlWorkspace) {
+        iws.beforeMerged.execute(xmlWorkspace)
+
+        //we don't merge anything in the iws, yet.
+        //I kept the logic for the sake of consistency
+        // and compatibility with pre M4 ways of configuring IDEA information.
+
+        iws.whenMerged.execute(xmlWorkspace)
+    }
 }

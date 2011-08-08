@@ -33,6 +33,7 @@ public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
         return new Workspace(xmlTransformer)
     }
 
-    @Override protected void configure(Workspace object) {
+    @Override protected void configure(Workspace xmlWorkspace) {
+        getWorkspace().mergeXmlWorkspace(xmlWorkspace)
     }
 }
