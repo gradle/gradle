@@ -64,6 +64,7 @@ class StartScriptGenerator {
         def templateText = stream.text
         def output = engine.createTemplate(templateText).make(binding)
         def nativeOutput = TextUtil.convertLineSeparators(output as String, lineSeparator)
+        outputFile.parentFile.mkdirs()
         outputFile.write(nativeOutput)
     }
 }
