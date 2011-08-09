@@ -24,12 +24,13 @@ generatedResourcesDir = file("$buildDir/generated-resources/main")
 
 task classpathManifest {
     def manifestFile = new File(generatedResourcesDir, "${archivesBaseName}-classpath.properties")
+    def externalClasspath = configurations.runtime.fileCollection { it instanceof ExternalModuleDependency }
     outputs.file manifestFile
-    inputs.files configurations.runtime
+    inputs.files externalClasspath
     doLast {
         manifestFile.parentFile.mkdirs()
         def properties = new Properties()
-        properties.runtime = configurations.runtime.collect {it.name}.join(',')
+        properties.runtime = externalClasspath.collect {it.name}.join(',')
         manifestFile.withOutputStream { properties.save(it, 'classpath definitions') }
     }
 }
