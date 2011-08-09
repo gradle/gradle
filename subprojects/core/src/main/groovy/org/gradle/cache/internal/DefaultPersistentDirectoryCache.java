@@ -25,6 +25,7 @@ import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -36,6 +37,7 @@ import java.util.Properties;
 import static org.gradle.cache.internal.CacheFactory.LockMode;
 
 public class DefaultPersistentDirectoryCache implements PersistentCache {
+    private static final byte LOCK_PROTOCOL = 1;
     private static final int LOCK_TIMEOUT = 15000;
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final File dir;
@@ -142,6 +144,11 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
     }
 
     private void buildCacheDir(Action<? super PersistentCache> initAction) throws IOException {
+        // Write 'initialising' flag to lock file. Use this later when opening to determine if cache has been initialised
+        lockFileAccess.seek(0);
+        lockFileAccess.writeByte(LOCK_PROTOCOL);
+        lockFileAccess.writeBoolean(false);
+
         for (File file : dir.listFiles()) {
             if (file.equals(lockFile) || file.equals(propertiesFile)) {
                 continue;
@@ -152,20 +159,36 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
             initAction.execute(this);
         }
         GUtil.saveProperties(properties, propertiesFile);
+
+        lockFileAccess.seek(0);
+        lockFileAccess.writeByte(LOCK_PROTOCOL);
+        lockFileAccess.writeBoolean(true);
     }
 
-    private boolean determineIfCacheIsValid(CacheUsage cacheUsage, Map<String, ?> properties) {
+    private boolean determineIfCacheIsValid(CacheUsage cacheUsage, Map<String, ?> properties) throws IOException {
         if (cacheUsage != CacheUsage.ON) {
             return false;
         }
 
-        if (!propertiesFile.isFile()) {
+        lockFileAccess.seek(0);
+        try {
+            if (lockFileAccess.readByte() != LOCK_PROTOCOL) {
+                // Unknown lock protocol -> invalidate cache
+                return false;
+            }
+            if (!lockFileAccess.readBoolean()) {
+                // Process has crashed while initialising the cache -> invalidate cache
+                return false;
+            }
+        } catch (EOFException e) {
+            // Process has crashed writing to lock file -> invalidate cache
             return false;
         }
 
         Properties currentProperties = GUtil.loadProperties(propertiesFile);
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
             if (!entry.getValue().toString().equals(currentProperties.getProperty(entry.getKey()))) {
+                // Mismatched properties -> invalidate cache
                 return false;
             }
         }

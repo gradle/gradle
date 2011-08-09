@@ -17,6 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
+import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -34,9 +35,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.gradle.cache.internal.CacheFactory.LockMode;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class DefaultPersistentDirectoryCacheTest {
@@ -96,6 +97,31 @@ public class DefaultPersistentDirectoryCacheTest {
     }
 
     @Test
+    public void rebuildsCacheWhenInitialiserFailedOnPreviousOpen() {
+        TestFile dir = tmpDir.getDir().file("dir").createDir();
+        final RuntimeException failure = new RuntimeException();
+
+        context.checking(new Expectations() {{
+            one(action).execute(with(notNullValue(PersistentCache.class)));
+            will(throwException(failure));
+        }});
+
+        try {
+            new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, LockMode.Shared, action);
+            fail();
+        } catch (CacheOpenException e) {
+            assertThat(e.getCause(), sameInstance((Throwable) failure));
+        }
+
+        context.checking(new Expectations() {{
+            one(action).execute(with(notNullValue(PersistentCache.class)));
+        }});
+
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, LockMode.Shared, action);
+        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+    }
+    
+    @Test
     public void doesNotInitializeCacheWhenCacheDirExistsAndIsNotInvalid() {
         TestFile dir = createCacheDir();
 
@@ -115,11 +141,14 @@ public class DefaultPersistentDirectoryCacheTest {
 
     private TestFile createCacheDir(String... extraProps) {
         TestFile dir = tmpDir.getDir();
-        Properties properties = new Properties();
+
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.putAll(this.properties);
-        properties.putAll(GUtil.map((Object[])extraProps));
-        GUtil.saveProperties(properties, dir.file("cache.properties"));
+        properties.putAll(GUtil.map((Object[]) extraProps));
+
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties, LockMode.Shared, null);
         dir.file("some-file").touch();
+        cache.close();
 
         return dir;
     }
