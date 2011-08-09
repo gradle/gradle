@@ -25,6 +25,8 @@ import org.gradle.api.file.SourceDirectorySet;
 
 import groovy.lang.Closure;
 
+import java.util.Map;
+
 /**
  * A representation of a unit of cpp source
  */
@@ -54,5 +56,10 @@ public interface CppSourceSet extends HeaderExportingSourceSet, NativeDependency
      * Libs this source set requires
      */
     DomainObjectSet<Library> getLibs();
+    
+    /**
+     * Add a dependency to this source set
+     */
+    void dependency(Map<?, ?> dep);
 
 }

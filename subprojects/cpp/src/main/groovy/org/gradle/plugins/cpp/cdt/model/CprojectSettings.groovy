@@ -15,8 +15,12 @@
  */
 package org.gradle.plugins.cpp.cdt.model
 
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ConfigurableFileCollection
+
 import org.gradle.plugins.binaries.model.Binary
 import org.gradle.plugins.binaries.model.HeaderExportingSourceSet
+import org.gradle.plugins.binaries.model.NativeDependencyCapableSourceSet
 
 /**
  * Exposes a more logical view of the actual .cproject descriptor file
@@ -24,10 +28,30 @@ import org.gradle.plugins.binaries.model.HeaderExportingSourceSet
 class CprojectSettings {
 
     Binary binary
+    private final ConfigurableFileCollection includeRoots
+    private final ConfigurableFileCollection libs
+
+    CprojectSettings(Binary binary) {
+        this.binary = binary
+        includeRoots = binary.project.files()
+        libs = binary.project.files()
+
+        binary.sourceSets.withType(HeaderExportingSourceSet).each {
+            includeRoots.builtBy(it.exportedHeaders) // have to manually add because we use srcDirs in from, not the real collection
+            includeRoots.from(it.exportedHeaders.srcDirs)
+        }
+        
+        binary.sourceSets.withType(NativeDependencyCapableSourceSet).each {
+            it.nativeDependencySets.all {
+                this.includeRoots.from(it.includeRoots)
+                this.libs.from(it.files)
+            }
+        }
+    }
 
     void applyTo(CprojectDescriptor descriptor) {
-        if (binary) { 
-            applyBinaryTo(descriptor) 
+        if (binary) {
+            applyBinaryTo(descriptor)
         } else {
             throw new IllegalStateException("no binary set")
         }
@@ -38,18 +62,23 @@ class CprojectSettings {
 
         descriptor.rootCppCompilerTools.each { compiler ->
             def includePathsOption = descriptor.getOrCreateIncludePathsOption(compiler)
-            includePathsOption.children().each { includePathsOption.remove(it) }
+            new LinkedList(includePathsOption.children()).each { includePathsOption.remove(it) }
             includeRoots.each { includeRoot ->
-                includePathsOption.appendNode("listOptionValue", [builtIn: "false", value: "\"\${workspace_loc:/\${ProjName}/$includeRoot\""])
+                includePathsOption.appendNode("listOptionValue", [builtIn: "false", value: "\"\${workspace_loc:/\${ProjName}/$includeRoot}\""])
             }
         }
-    }
-    
-    Set<File> getIncludeRoots() {
-        def includeRoots = new LinkedHashSet()
-        binary.sourceSets.withType(HeaderExportingSourceSet).each {
-            includeRoots.addAll(it.exportedHeaders.srcDirs)
+        
+        descriptor.rootCppLinkerTools.each { linker ->
+            def libsOption = descriptor.getOrCreateLibsOption(linker)
+            new LinkedList(libsOption.children()).each { libsOption.remove(it) }
+            libs.each { lib ->
+                libsOption.appendNode("listOptionValue", [builtIn: "false", value: lib.absolutePath])
+            }
         }
+        
+    }
+
+    FileCollection getIncludeRoots() {
         includeRoots
     }
 

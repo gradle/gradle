@@ -48,7 +48,7 @@ class ConfigurationBasedNativeDependencySet implements NativeDependencySet {
 
     private initHeaderExtractionTask() {
         def headersConfiguration = getHeadersConfiguration()
-        def dir = project.file("$project.buildDir/headerZips/$baseName")
+        def dir = project.file("$project.buildDir/dependency-headers/$baseName")
         headerExtractionTask = project.task(baseName + "ExtractHeaders") {
             inputs.files headersConfiguration
             outputs.files { dir.listFiles() }
@@ -56,7 +56,7 @@ class ConfigurationBasedNativeDependencySet implements NativeDependencySet {
                 headersConfiguration.each { headerZip ->
                     project.copy {
                         from project.zipTree(headerZip)
-                        into "$dir/$headerZip.name"
+                        into "$dir/${headerZip.name - '.zip'}"
                     }
                 }
             }

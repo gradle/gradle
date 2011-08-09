@@ -19,35 +19,42 @@ import org.gradle.plugins.cpp.CppSourceSet;
 
 import org.gradle.plugins.binaries.model.Library;
 import org.gradle.plugins.binaries.model.NativeDependencySet;
+import org.gradle.plugins.binaries.model.internal.ConfigurationBasedNativeDependencySet;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
 
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.util.ConfigureUtil;
 
 import groovy.lang.Closure;
+import java.util.Map;
 
 public class DefaultCppSourceSet implements CppSourceSet {
 
     private final String name;
-    private final FileResolver fileResolver;
+    private final ProjectInternal project;
 
     private final DefaultSourceDirectorySet exportedHeaders;
     private final DefaultSourceDirectorySet source;
     private final DefaultDomainObjectSet<Library> libs;
     private final DefaultDomainObjectSet<NativeDependencySet> nativeDependencySets;
+    private final ConfigurationBasedNativeDependencySet configurationDependencySet;
 
-    public DefaultCppSourceSet(String name, FileResolver fileResolver) {
+    public DefaultCppSourceSet(String name, ProjectInternal project) {
         this.name = name;
-        this.fileResolver = fileResolver;
+        this.project = project;
 
-        this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", fileResolver);
-        this.source = new DefaultSourceDirectorySet("source", fileResolver);
+        this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());
+        this.source = new DefaultSourceDirectorySet("source", project.getFileResolver());
         this.libs = new DefaultDomainObjectSet<Library>(Library.class);
         this.nativeDependencySets = new DefaultDomainObjectSet<NativeDependencySet>(NativeDependencySet.class);
+        this.configurationDependencySet = new ConfigurationBasedNativeDependencySet(project, name);
+        
+        nativeDependencySets.add(configurationDependencySet);
     }
 
     public String getName() {
@@ -80,4 +87,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
         return nativeDependencySets;
     }
 
+    public void dependency(Map<?, ?> dep) {
+        configurationDependencySet.add(dep);
+    }
 }

@@ -25,6 +25,15 @@ class CprojectDescriptor extends XmlPersistableConfigurationObject {
 
     static public final String GNU_COMPILER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.gnu.cpp.compiler"
     static public final String GNU_COMPILER_TOOL_INCLUDE_PATHS_OPTION_PREFIX = "gnu.cpp.compiler.option.include.paths"
+
+    // linux
+    // static public final String GNU_LINKER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.gnu.cpp.linker"
+    // static public final String GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX = "gnu.cpp.link.option.userobjs"
+
+    // mac
+    static public final String GNU_LINKER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.macosx.cpp.linker.macosx"
+    static public final String GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX = "macosx.cpp.link.option.userobjs"
+
     CprojectDescriptor() {
         super(new XmlTransformer())
     }
@@ -45,8 +54,16 @@ class CprojectDescriptor extends XmlPersistableConfigurationObject {
         new NodeList(rootToolChains.tool.findAll { isGnuCompilerTool(it) })
     }
 
+    NodeList getRootCppLinkerTools() {
+        new NodeList(rootToolChains.tool.findAll { isGnuLinkerTool(it) })
+    }
+
     boolean isGnuCompilerTool(Node node) {
         node.name() == "tool" && node.@id.startsWith(GNU_COMPILER_TOOL_ID_PREFIX)
+    }
+
+    boolean isGnuLinkerTool(Node node) {
+        node.name() == "tool" && node.@id.startsWith(GNU_LINKER_TOOL_ID_PREFIX)
     }
 
     Node getOrCreateIncludePathsOption(compilerToolNode) {
@@ -66,6 +83,25 @@ class CprojectDescriptor extends XmlPersistableConfigurationObject {
         }
 
         includePathsOption
+    }
+
+    Node getOrCreateLibsOption(linkerToolNode) {
+        if (!isGnuLinkerTool(linkerToolNode)) {
+            throw new IllegalArgumentException("Arg must be a gnu linker tool def, was $linkerToolNode")
+        }
+
+        def libsOption = linkerToolNode.option.find { it.@id.startsWith(GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX) }
+        if (!libsOption) {
+            libsOption = linkerToolNode.appendNode(
+                "option", [
+                    id: createId(GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX),
+                    superClass: GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX,
+                    valueType: "userObjs"
+                ]
+            )
+        }
+
+        libsOption
     }
 
     String createId(String prefix) {

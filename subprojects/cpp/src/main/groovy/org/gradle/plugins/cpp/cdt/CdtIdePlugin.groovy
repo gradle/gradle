@@ -17,7 +17,7 @@ package org.gradle.plugins.cpp.cdt
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
-
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.Delete
 
 import org.gradle.plugins.cpp.cdt.model.ProjectSettings
@@ -30,6 +30,7 @@ import org.gradle.plugins.cpp.cdt.tasks.GenerateMetadataFileTask
 class CdtIdePlugin implements Plugin<Project> {
 
     void apply(Project project) {
+        project.apply(plugin: "binaries")
         def metadataFileTasks = [addCreateProjectDescriptor(project), addCreateCprojectDescriptor(project)]
 
         project.task("cleanCdt", type: Delete) {
@@ -49,13 +50,26 @@ class CdtIdePlugin implements Plugin<Project> {
     }
 
     private addCreateCprojectDescriptor(Project project) {
-        project.task("cdtCproject", type: GenerateMetadataFileTask) {
-            settings = new CprojectSettings()
+        project.task("cdtCproject", type: GenerateMetadataFileTask) { task ->
+            
+            [project.executables, project.libraries]*.all { binary ->
+                if (binary.name == "main") {
+                    task.settings = new CprojectSettings(binary)
+                }
+            }
+            
+            doFirst {
+                if (task.settings == null) {
+                    throw new InvalidUserDataException("There is neither a main binary or library")
+                }
+            }
+            
+            inputs.files { task.settings.includeRoots }
             inputFile = project.file(".cproject")
             outputFile = project.file(".cproject")
             factory { new CprojectDescriptor() }
             onConfigure { descriptor ->
-                settings.applyTo(descriptor)
+                task.settings.applyTo(descriptor)
             }
         }
     }

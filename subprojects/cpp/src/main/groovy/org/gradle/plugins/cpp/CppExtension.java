@@ -38,7 +38,7 @@ public class CppExtension {
                 FactoryNamedDomainObjectContainer.class,
                 CppSourceSet.class,
                 classGenerator,
-                new ReflectiveNamedDomainObjectFactory<CppSourceSet>(DefaultCppSourceSet.class, project.getFileResolver())
+                new ReflectiveNamedDomainObjectFactory<CppSourceSet>(DefaultCppSourceSet.class, project)
         );
     }
 

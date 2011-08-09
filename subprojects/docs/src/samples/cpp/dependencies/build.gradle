@@ -1,5 +1,4 @@
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.plugins.binaries.model.internal.ConfigurationBasedNativeDependencySet
 
 project(":lib") {
     apply plugin: "cpp-lib"
@@ -48,20 +47,19 @@ project(":lib") {
 
 project(":exe") {
     apply plugin: "cpp-exe"
+    apply plugin: "eclipse-cdt"
 
     repositories {
         mavenRepo urls: "file://${new File(project(":lib").buildDir, "repo").absolutePath}"
     }
 
-    def depSet = new ConfigurationBasedNativeDependencySet(project, "main")
-    depSet.add(group: "dependencies", name: "lib", version: "1.0")
-
-    task("expand", type: Copy) {
-        from depSet.includeRoots
-        into "$buildDir/deps"
+    cpp {
+        sourceSets {
+            main {
+                dependency group: "dependencies", name: "lib", version: "1.0"
+            }
+        }
     }
-    
-    cpp.sourceSets.main.nativeDependencySets << depSet
 }
 
 task build(dependsOn: project(":exe").compileMain)
