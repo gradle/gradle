@@ -42,7 +42,7 @@ public class ResolveModuleDescriptorConverter extends AbstractModuleDescriptorCo
     }
 
     public ModuleDescriptor convert(Set<Configuration> configurations, Module module, IvySettings settings) {
-        assert configurations.size() > 0;
+        assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
         Clock clock = new Clock();
         DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, settings);
         logger.debug("Timing: Ivy convert for resolve took {}", clock.getTime());
