@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.*
 import org.gradle.integtests.fixtures.internal.*
 
 class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
@@ -45,7 +44,7 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
         distBase.file("dir/r2.txt").text == "r2"
     }
 
-    def "configure the distribution spec to source from a different fir"() {
+    def "configure the distribution spec to source from a different dir"() {
         when:
         file("src/somewhere-else/dir").with {
             file("r1.txt") << "r1"

@@ -15,15 +15,14 @@
  */
 package org.gradle.api.tasks.application
 
-import groovy.text.SimpleTemplateEngine
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.plugins.StartScriptGenerator
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GUtil
-import org.gradle.util.TextUtil
 
 /**
  * <p>A {@link org.gradle.api.Task} for creating OS dependent start scripts.</p>
@@ -98,44 +97,13 @@ class CreateStartScripts extends ConventionTask {
     void generate() {
         getOutputDir().mkdirs()
 
-        //ref all files in classpath
-        def unixLibPath = "\$APP_HOME/lib/"
-        def unixClassPath = new StringBuffer()
-
-        def windowsLibPath = "%APP_HOME%\\lib\\"
-        def windowsClassPath = new StringBuffer()
-
-        classpath.each {
-            unixClassPath << "$unixLibPath${it.name}:"
-            windowsClassPath << "$windowsLibPath${it.name};"
-        }
-
-        generateUnixScript(
-                applicationName: getApplicationName(),
-                optsEnvironmentVar: getOptsEnvironmentVar(),
-                mainClassName: getMainClassName(),
-                classpath: unixClassPath)
-        generateWindowsScript(
-                applicationName: getApplicationName(),
-                optsEnvironmentVar: getOptsEnvironmentVar(),
-                exitEnvironmentVar: getExitEnvironmentVar(),
-                mainClassName: getMainClassName(),
-                classpath: windowsClassPath)
-    }
-
-    private void generateUnixScript(Map binding) {
-        generateScript('unixStartScript.txt', binding, TextUtil.unixLineSeparator, getUnixScript())
-    }
-
-    private void generateWindowsScript(Map binding) {
-        generateScript('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator, getWindowsScript())
-    }
-
-    private void generateScript(String templateName, Map binding, String lineSeparator, File outputFile) {
-        def engine = new SimpleTemplateEngine()
-        def templateText = CreateStartScripts.getResourceAsStream(templateName).text
-        def output = engine.createTemplate(templateText).make(binding)
-        def nativeOutput = TextUtil.convertLineSeparators(output as String, lineSeparator)
-        outputFile.write(nativeOutput)
+        def generator = new StartScriptGenerator()
+        generator.applicationName = getApplicationName()
+        generator.mainClassName = getMainClassName()
+        generator.optsEnvironmentVar = getOptsEnvironmentVar()
+        generator.exitEnvironmentVar = getExitEnvironmentVar()
+        generator.classpath = getClasspath().collect { "lib/${it.name}" }
+        generator.generateUnixScript(getUnixScript())
+        generator.generateWindowsScript(getWindowsScript())
     }
 }

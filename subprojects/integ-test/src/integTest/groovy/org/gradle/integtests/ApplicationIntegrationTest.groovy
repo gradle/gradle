@@ -29,7 +29,7 @@ class ApplicationIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
     @Rule public final GradleExecuter executer = new GradleDistributionExecuter()
 
-    def canUseEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
+    def canUseEnvironmentVariableToPassMultipleOptionsToJvmWhenRunningScript() {
         distribution.testFile('build.gradle') << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
@@ -40,7 +40,13 @@ package org.gradle.test;
 
 class Main {
     public static void main(String[] args) {
-        if (System.getProperty("testValue") == null) {
+        if (!"value".equals(System.getProperty("testValue"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"some value".equals(System.getProperty("testValue2"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"some value".equals(System.getProperty("testValue3"))) {
             throw new RuntimeException("Expected system property not specified");
         }
     }
@@ -53,7 +59,7 @@ class Main {
         def builder = new ScriptExecuter()
         builder.workingDir distribution.testDir.file('build/install/application/bin')
         builder.executable "application"
-        builder.environment('APPLICATION_OPTS', '-DtestValue=value')
+        builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2=\'some value\' -DtestValue3=some\\ value')
 
         def result = builder.run()
 

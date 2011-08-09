@@ -174,7 +174,12 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private class UnixCommandBuilder implements CommandBuilder {
         public void build(ExecHandleBuilder builder) {
             if (getExecutable() != null) {
-                builder.executable(String.format("%s/%s", getWorkingDir().getAbsolutePath(), getExecutable()));
+                File exe = new File(getExecutable());
+                if (exe.isAbsolute()) {
+                    builder.executable(exe.getAbsolutePath());
+                } else {
+                    builder.executable(String.format("%s/%s", getWorkingDir().getAbsolutePath(), getExecutable()));
+                }
             } else {
                 builder.executable(String.format("%s/bin/gradle", gradleHomeDir.getAbsolutePath()));
             }

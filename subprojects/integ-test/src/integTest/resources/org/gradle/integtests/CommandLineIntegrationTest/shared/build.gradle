@@ -16,5 +16,6 @@ task checkJavaHome << {
 }
 
 task checkSystemProperty << {
-    assert System.getProperty('customSystemProperty') == 'custom-value'
+    assert System.getProperty('customProp1') == 'custom-value'
+    assert System.getProperty('customProp2') == 'custom value'
 }

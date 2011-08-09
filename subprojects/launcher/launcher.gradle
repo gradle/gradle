@@ -1,4 +1,6 @@
-import org.gradle.build.startscripts.StartScriptsGenerator
+configurations {
+    startScriptGenerator
+}
 
 dependencies {
     groovy libraries.groovy_depends
@@ -11,6 +13,8 @@ dependencies {
 
     compile libraries.slf4j_api
 
+    startScriptGenerator project(':plugins')
+
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
@@ -20,7 +24,22 @@ jar.doFirst {
     jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name}")
 }
 
-task startScripts << {
-    ant.mkdir(dir: startScriptsDir)
-    StartScriptsGenerator.generate(jar.archiveName, startScriptsDir, 'gradle')
+task startScripts {
+    inputs.files configurations.startScriptGenerator
+    inputs.properties['classpath'] = jar.archiveName
+    outputs.dir startScriptsDir
+
+    doLast {
+        def factory = services.get(ClassLoaderFactory)
+        def classLoader = factory.createIsolatedClassLoader(configurations.startScriptGenerator.collect { it.toURI().toURL() })
+        def generator = classLoader.loadClass('org.gradle.api.internal.plugins.StartScriptGenerator').newInstance()
+        generator.applicationName = 'Gradle'
+        generator.optsEnvironmentVar = 'GRADLE_OPTS'
+        generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
+        generator.mainClassName = 'org.gradle.launcher.GradleMain'
+        generator.classpath = ["lib/${jar.archiveName}" as String]
+        generator.appNameSystemProperty = 'org.gradle.appname'
+        generator.generateUnixScript(file("$startScriptsDir/gradle"))
+        generator.generateWindowsScript(file("$startScriptsDir/gradle.bat"))
+    }
 }
