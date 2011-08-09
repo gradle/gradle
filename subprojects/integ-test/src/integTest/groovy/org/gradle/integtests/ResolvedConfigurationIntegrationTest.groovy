@@ -55,7 +55,7 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
 
         LenientConfiguration compile = project.configurations.compile.resolvedConfiguration.lenientConfiguration
 
-        def unresolved = compile.getUnresolvedModuleDependencies(Specs.SATISFIES_ALL)
+        def unresolved = compile.getUnresolvedModuleDependencies()
         def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
 
         assert resolved.size() == 3
@@ -90,7 +90,7 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
 
         LenientConfiguration compile = project.configurations.compile.resolvedConfiguration.lenientConfiguration
 
-        def unresolved = compile.getUnresolvedModuleDependencies(Specs.SATISFIES_ALL)
+        def unresolved = compile.getUnresolvedModuleDependencies()
         def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
 
         assert resolved.size() == 1
@@ -99,7 +99,7 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
 
         LenientConfiguration someConf = project.configurations.someConf.resolvedConfiguration.lenientConfiguration
 
-        unresolved = someConf.getUnresolvedModuleDependencies(Specs.SATISFIES_ALL)
+        unresolved = someConf.getUnresolvedModuleDependencies()
         resolved = someConf.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
 
         assert resolved.size() == 0
