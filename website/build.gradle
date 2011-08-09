@@ -343,7 +343,7 @@ class Release {
 
 class CurrentRelease extends Release {
     def String getDisplayName() {
-        return "Gradle $version (current release)"
+        return "Gradle $version (current stable)"
     }
 
     def String getDocsUrl() {
