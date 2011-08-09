@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.internal
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.api.artifacts.*
 
 /**
@@ -38,6 +39,10 @@ class IdeDependenciesExtractor {
         File file
         File sourceFile
         File javadocFile
+    }
+
+    static class UnresolvedIdeRepoFileDependency extends IdeRepoFileDependency {
+        Exception problem
     }
 
     static class IdeProjectDependency extends IdeDependency {
@@ -99,12 +104,29 @@ class IdeDependenciesExtractor {
 
         Map<String, File> javadocFiles = downloadJavadoc ? getFiles(confContainer.detachedConfiguration(javadocDependencies as Dependency[]), "javadoc") : [:]
 
-        resolveFiles(plusConfigurations, minusConfigurations).collect { File binaryFile, Configuration conf ->
+        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { File binaryFile, Configuration conf ->
             File sourceFile = sourceFiles[binaryFile.name]
             File javadocFile = javadocFiles[binaryFile.name]
             out << new IdeRepoFileDependency( file: binaryFile, sourceFile: sourceFile, javadocFile: javadocFile, declaredConfiguration: conf)
         }
 
+        unresolvedExternalDependencies(plusConfigurations, minusConfigurations).each {
+            out << new UnresolvedIdeRepoFileDependency(problem: it.problem, file: new File("unresolved dependency - $it.id"), declaredConfiguration: it.gradleConfiguration)
+        }
+
+        out
+    }
+
+    Collection<UnresolvedDependency> unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        def out = []
+        for (c in plusConfigurations) {
+            def deps = c.resolvedConfiguration.lenientConfiguration.getUnresolvedModuleDependencies()
+            out.addAll(deps)
+        }
+        for (c in minusConfigurations) {
+            def deps = c.resolvedConfiguration.lenientConfiguration.getUnresolvedModuleDependencies()
+            out.removeAll { deps*.id.contains(it.id) } //remove by id
+        }
         out
     }
 
@@ -127,15 +149,15 @@ class IdeDependenciesExtractor {
         }
     }
 
-    private Map<File, Configuration> resolveFiles(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+    private Map<File, Configuration> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
         LinkedHashMap<File, Configuration> fileToConf = [:]
         for (plusConfiguration in plusConfigurations) {
-            for (file in plusConfiguration.files { it instanceof ExternalDependency }) {
+            for (file in plusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles( { it instanceof ExternalDependency } as Spec)) {
                 fileToConf[file] = plusConfiguration
             }
         }
         for (minusConfiguration in minusConfigurations) {
-            for (file in minusConfiguration.files { it instanceof ExternalDependency }) {
+            for (file in minusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles({ it instanceof ExternalDependency } as Spec)) {
                 fileToConf.remove(file)
             }
         }
@@ -145,10 +167,10 @@ class IdeDependenciesExtractor {
     private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
         def result = new LinkedHashSet()
         for (plusConfiguration in plusConfigurations) {
-            result.addAll(getAllDeps(plusConfiguration.resolvedConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
+            result.addAll(getAllDeps(plusConfiguration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
         }
         for (minusConfiguration in minusConfigurations) {
-            result.removeAll(getAllDeps(minusConfiguration.resolvedConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
+            result.removeAll(getAllDeps(minusConfiguration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
         }
         result
     }
@@ -192,7 +214,7 @@ class IdeDependenciesExtractor {
     }
 
     private Map getFiles(Configuration configuration, String classifier) {
-        return (Map) configuration.files.inject([:]) { result, sourceFile ->
+        return (Map) configuration.resolvedConfiguration.lenientConfiguration.getFiles(Specs.satisfyAll()).inject([:]) { result, sourceFile ->
             String key = sourceFile.name.replace("-${classifier}.jar", '.jar')
             result[key] = sourceFile
             result

@@ -74,6 +74,10 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 return resolvedConfiguration.hasError();
             }
 
+            public LenientConfiguration getLenientConfiguration() {
+                return resolvedConfiguration.getLenientConfiguration();
+            }
+
             public void rethrowFailure() throws GradleException {
                 resolvedConfiguration.rethrowFailure();
             }

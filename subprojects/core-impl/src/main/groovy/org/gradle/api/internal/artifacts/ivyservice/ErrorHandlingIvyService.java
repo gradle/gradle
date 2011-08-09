@@ -72,6 +72,10 @@ public class ErrorHandlingIvyService implements IvyService {
             return resolvedConfiguration.hasError();
         }
 
+        public LenientConfiguration getLenientConfiguration() {
+            return resolvedConfiguration.getLenientConfiguration();
+        }
+
         public void rethrowFailure() throws ResolveException {
             try {
                 resolvedConfiguration.rethrowFailure();
@@ -124,6 +128,10 @@ public class ErrorHandlingIvyService implements IvyService {
 
         public boolean hasError() {
             return true;
+        }
+
+        public LenientConfiguration getLenientConfiguration() {
+            throw wrapException(e, configuration);
         }
 
         public void rethrowFailure() throws ResolveException {

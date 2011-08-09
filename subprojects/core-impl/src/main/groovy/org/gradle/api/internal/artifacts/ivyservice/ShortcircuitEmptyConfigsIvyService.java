@@ -29,6 +29,22 @@ public class ShortcircuitEmptyConfigsIvyService implements IvyService {
             return false;
         }
 
+        public LenientConfiguration getLenientConfiguration() {
+            return new LenientConfiguration() {
+                public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) {
+                    return Collections.emptySet();
+                }
+
+                public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
+                    return Collections.emptySet();
+                }
+
+                public Set<File> getFiles(Spec<Dependency> dependencySpec) {
+                    return Collections.emptySet();
+                }
+            };
+        }
+
         public void rethrowFailure() throws ResolveException {
         }
 

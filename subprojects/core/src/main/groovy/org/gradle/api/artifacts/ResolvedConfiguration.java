@@ -31,6 +31,11 @@ public interface ResolvedConfiguration {
     boolean hasError();
 
     /**
+     * Provides configuration that does not fail eagerly when some dependencies are not resolved.
+     */
+    LenientConfiguration getLenientConfiguration();
+
+    /**
      * A resolve of a configuration that is not successful does not automatically throws an exception.
      * Such a exception is only thrown if the result of a resolve is accessed. You can force the throwing
      * of such an exception by calling this method.  

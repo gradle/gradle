@@ -249,4 +249,43 @@ idea.module {
         assert !content.contains('niceArtifact-1.0-sources.jar')
         assert !content.contains('niceArtifact-1.0-javadoc.jar')
     }
+
+    @Test
+    void "does not break when dependency unresolved"() {
+        //given
+        def repoDir = file("repo")
+        publishArtifact(repoDir, "groupOne", "artifactTwo")
+
+        file("settings.gradle") << "include 'someApiProject', 'impl'\n"
+        file('someDependency.jar').createFile()
+
+        //when
+        runIdeaTask """
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+
+project(':impl') {
+    repositories {
+        mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+    }
+
+    dependencies {
+        compile 'groupOne:artifactTwo:1.0'
+        compile project(':someApiProject')
+        compile 'i.dont:Exist:1.0'
+        compile files('someDependency.jar')
+    }
+}
+"""
+        def content = getFile([print : true], 'impl/impl.iml').text
+
+        //then
+        assert content.count("someDependency.jar") == 1
+        assert content.count("artifactTwo-1.0.jar") == 1
+        assert content.count("someApiProject") == 1
+        assert content.count("unresolved dependency - i.dont#Exist;1.0") == 1
+        //TODO SF might do similar test for eclipse
+    }
 }

@@ -74,8 +74,17 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         private IvyConversionResult conversionResult;
         private final CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker
                 = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
+        private final ResolveReport resolveReport;
+
+        public LenientConfiguration getLenientConfiguration() {
+            if (!hasError) {
+                return new DelegatingLenientConfiguration(this);
+            }
+            return new LenientConfigurationImpl(this, resolveReport, configuration, ivyReportTranslator);
+        }
 
         public ResolvedConfigurationImpl(ResolveReport resolveReport, Configuration configuration) {
+            this.resolveReport = resolveReport;
             this.hasError = resolveReport.hasError();
             if (this.hasError) {
                 this.problemMessages = resolveReport.getAllProblemMessages();
@@ -102,9 +111,14 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         public Set<File> getFiles(Spec<Dependency> dependencySpec) {
+            Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
+            return getFiles(firstLevelModuleDependencies, this.conversionResult);
+        }
+
+        Set<File> getFiles(Set<ResolvedDependency> firstLevelModuleDependencies, IvyConversionResult conversionResult) {
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
 
-            for (ResolvedDependency resolvedDependency : getFirstLevelModuleDependencies(dependencySpec)) {
+            for (ResolvedDependency resolvedDependency : firstLevelModuleDependencies) {
                 artifacts.addAll(resolvedDependency.getParentArtifacts(conversionResult.getRoot()));
                 walker.add(resolvedDependency);
             }
@@ -130,6 +144,10 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
 
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) {
             rethrowFailure();
+            return getFirstLevelModuleDependencies(dependencySpec, conversionResult);
+        }
+
+        Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec, IvyConversionResult conversionResult) {
             Set<ModuleDependency> allDependencies = configuration.getAllDependencies(ModuleDependency.class);
             Set<ModuleDependency> selectedDependencies = Specs.filterIterable(allDependencies, dependencySpec);
 
