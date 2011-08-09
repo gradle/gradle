@@ -22,24 +22,24 @@ package org.gradle.plugins.ide.idea.model
  */
 class ModuleLibrary implements Dependency {
     /**
-     * A set of {@link org.gradle.plugins.ide.idea.model.Path} instances for class libraries. Can be paths to jars or class folders.
+     * A set of {@link Path} instances for class libraries. Can be paths to jars or class folders.
      */
-    Set classes
+    Set<Path> classes
 
     /**
-     * A set of  {@link org.gradle.plugins.ide.idea.model.JarDirectory}  instances for directories containing jars.
+     * A set of  {@link JarDirectory}  instances for directories containing jars.
      */
-    Set jarDirectories
+    Set<JarDirectory> jarDirectories
 
     /**
-     * A set of  {@link org.gradle.plugins.ide.idea.model.Path}  instances for javadoc associated with the library elements.
+     * A set of  {@link Path}  instances for javadoc associated with the library elements.
      */
-    Set javadoc
+    Set<Path> javadoc
 
     /**
-     * A set of  {@link org.gradle.plugins.ide.idea.model.Path}  instances for source code associated with the library elements.
+     * A set of  {@link Path}  instances for source code associated with the library elements.
      */
-    Set sources
+    Set<Path> sources
 
     /**
      * The scope of this dependency. If null the scope attribute is not added.
@@ -48,11 +48,11 @@ class ModuleLibrary implements Dependency {
 
     boolean exported
 
-    def ModuleLibrary(classes, javadoc, sources, jarDirectories, scope) {
-        this.classes = classes;
-        this.jarDirectories = jarDirectories;
-        this.javadoc = javadoc;
-        this.sources = sources;
+    def ModuleLibrary(Collection<Path> classes, Collection<Path> javadoc, Collection<Path> sources, Collection<JarDirectory> jarDirectories, String scope) {
+        this.classes = classes as Set;
+        this.jarDirectories = jarDirectories as Set;
+        this.javadoc = javadoc as Set;
+        this.sources = sources as Set;
         this.scope = scope
         this.exported = !scope || scope == 'COMPILE' || scope == 'RUNTIME'
     }
@@ -79,7 +79,6 @@ class ModuleLibrary implements Dependency {
     private Map getAttributeMapForScopeAndExported() {
         return (exported ? [exported: ""] : [:]) + ((scope && scope != 'COMPILE') ? [scope: scope] : [:])
     }
-
 
     boolean equals(o) {
         if (this.is(o)) { return true }
