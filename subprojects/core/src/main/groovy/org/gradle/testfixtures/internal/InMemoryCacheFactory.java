@@ -54,12 +54,5 @@ public class InMemoryCacheFactory implements CacheFactory {
         public File getBaseDir() {
             return cacheDir;
         }
-
-        public boolean isValid() {
-            return false;
-        }
-
-        public void markValid() {
-        }
     }
 }
