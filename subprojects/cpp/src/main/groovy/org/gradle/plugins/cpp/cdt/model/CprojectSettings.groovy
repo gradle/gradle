@@ -22,6 +22,8 @@ import org.gradle.plugins.binaries.model.Binary
 import org.gradle.plugins.binaries.model.HeaderExportingSourceSet
 import org.gradle.plugins.binaries.model.NativeDependencyCapableSourceSet
 
+import org.gradle.plugins.cpp.CppSourceSet
+
 /**
  * Exposes a more logical view of the actual .cproject descriptor file
  */
@@ -36,15 +38,23 @@ class CprojectSettings {
         includeRoots = binary.project.files()
         libs = binary.project.files()
 
-        binary.sourceSets.withType(HeaderExportingSourceSet).each {
+        binary.sourceSets.withType(HeaderExportingSourceSet).all {
             includeRoots.builtBy(it.exportedHeaders) // have to manually add because we use srcDirs in from, not the real collection
             includeRoots.from(it.exportedHeaders.srcDirs)
         }
         
-        binary.sourceSets.withType(NativeDependencyCapableSourceSet).each {
+        binary.sourceSets.withType(NativeDependencyCapableSourceSet).all {
             it.nativeDependencySets.all {
                 this.includeRoots.from(it.includeRoots)
                 this.libs.from(it.files)
+            }
+        }
+        
+        binary.sourceSets.withType(CppSourceSet).all { sourceSet ->
+            sourceSet.libs.all { lib ->
+                this.libs.from(lib.spec.outputFile)
+                this.libs.builtBy(lib.spec.task)
+                this.includeRoots.from(lib.headers.srcDirs)
             }
         }
     }
@@ -58,13 +68,11 @@ class CprojectSettings {
     }
 
     private applyBinaryTo(CprojectDescriptor descriptor) {
-        def includeRoots = getProjectRelativeIncludeRoots()
-
         descriptor.rootCppCompilerTools.each { compiler ->
             def includePathsOption = descriptor.getOrCreateIncludePathsOption(compiler)
             new LinkedList(includePathsOption.children()).each { includePathsOption.remove(it) }
             includeRoots.each { includeRoot ->
-                includePathsOption.appendNode("listOptionValue", [builtIn: "false", value: "\"\${workspace_loc:/\${ProjName}/$includeRoot}\""])
+                includePathsOption.appendNode("listOptionValue", [builtIn: "false", value: includeRoot.absolutePath])
             }
         }
         
@@ -75,14 +83,5 @@ class CprojectSettings {
                 libsOption.appendNode("listOptionValue", [builtIn: "false", value: lib.absolutePath])
             }
         }
-        
-    }
-
-    FileCollection getIncludeRoots() {
-        includeRoots
-    }
-
-    Set<String> getProjectRelativeIncludeRoots() {
-        getIncludeRoots().collect { binary.project.relativePath(it) }
     }
 }
