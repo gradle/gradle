@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 
 // very loose test, but I'm not expecting it to stay around
+@Ignore
 class CprojectSettingsSpec extends Specification {
 
     Project project = HelperUtil.createRootProject()

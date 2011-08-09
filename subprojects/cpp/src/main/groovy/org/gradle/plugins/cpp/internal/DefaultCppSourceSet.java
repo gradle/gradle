@@ -26,7 +26,6 @@ import org.gradle.api.file.SourceDirectorySet;
 
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.util.ConfigureUtil;
 

@@ -17,6 +17,10 @@ package org.gradle.plugins.cpp
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.tasks.bundling.Zip
+
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
 class CppLibConventionPlugin implements Plugin<Project> {
 
@@ -37,6 +41,29 @@ class CppLibConventionPlugin implements Plugin<Project> {
                         sharedLibrary()
                     }
                 }
+            }
+
+            def libArtifact = new DefaultPublishArtifact(
+                archivesBaseName, // name
+                "so", // ext
+                "so", // type
+                "so", // classifier
+                null, // date
+
+                // needs to be more general and not peer into the spec
+                libraries.main.spec.outputFile,
+                libraries.main.spec.task
+            )
+
+            task("assembleHeaders", type: Zip) {
+                from libraries.main.headers
+                classifier = "headers"
+            }
+
+            def headerArtifact = new ArchivePublishArtifact(assembleHeaders)
+
+            artifacts {
+                archives libArtifact, headerArtifact
             }
         }
     }
