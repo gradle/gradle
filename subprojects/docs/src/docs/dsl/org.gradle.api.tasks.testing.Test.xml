@@ -129,6 +129,12 @@
                 <td>afterTest</td>
             </tr>
             <tr>
+                <td>include</td>
+            </tr>
+            <tr>
+                <td>exclude</td>
+            </tr>
+            <tr>
                 <td>useJUnit</td>
             </tr>
             <tr>
