@@ -8,14 +8,13 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
-@rem Uncomment those lines to set JVM options. ${optsEnvironmentVar} and JAVA_OPTS can be used together.
-@rem set ${optsEnvironmentVar}=%${optsEnvironmentVar}% -Xmx512m
-@rem set JAVA_OPTS=%JAVA_OPTS% -Xmx512m
+@rem Add default JVM options here. You can also use JAVA_OPTS and ${optsEnvironmentVar} to pass JVM options to this script.
+set DEFAULT_JVM_OPTS=
 
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.\
 
-set APP_HOME=%DIRNAME%..
+set APP_HOME=%DIRNAME%${appHomeRelativePath}
 
 @rem Find java.exe
 set JAVA_EXE=java.exe
@@ -58,11 +57,10 @@ set CMD_LINE_ARGS=%\$
 :execute
 @rem Setup the command line
 
-
 set CLASSPATH=$classpath
 
 @rem Execute ${applicationName}
-"%JAVA_EXE%" %JAVA_OPTS% %${optsEnvironmentVar}% -classpath "%CLASSPATH%" ${mainClassName} %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %${optsEnvironmentVar}% -classpath "%CLASSPATH%" ${mainClassName} %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

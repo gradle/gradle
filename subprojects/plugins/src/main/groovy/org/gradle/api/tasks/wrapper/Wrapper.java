@@ -19,12 +19,12 @@ package org.gradle.api.tasks.wrapper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.DistributionLocator;
-import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
 import org.gradle.util.*;
+import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Install;
 import org.gradle.wrapper.WrapperExecutor;
 
@@ -85,7 +85,6 @@ public class Wrapper extends DefaultTask {
     @Input
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
 
-    private WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator();
     private final DistributionLocator locator = new DistributionLocator();
 
     public Wrapper() {
@@ -101,18 +100,11 @@ public class Wrapper extends DefaultTask {
     @TaskAction
     void generate() {
         File jarFileDestination = getJarFile();
-        File propertiesFileDestination = getPropertiesFile();
-        File scriptFileDestination = getScriptFile();
-        FileResolver resolver = getServices().get(FileResolver.class).withBaseDir(
-                scriptFileDestination.getParentFile());
+        File unixScript = getScriptFile();
+        FileResolver resolver = getServices().get(FileResolver.class).withBaseDir(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
-        String propertiesFileRelativePath = resolver.resolveAsRelativePath(propertiesFileDestination);
 
-        propertiesFileDestination.delete();
-        jarFileDestination.delete();
-        scriptFileDestination.delete();
-
-        writeProperties(propertiesFileDestination);
+        writeProperties(getPropertiesFile());
 
         URL jarFileSource = getClass().getResource("/gradle-wrapper.jar");
         if (jarFileSource == null) {
@@ -120,7 +112,16 @@ public class Wrapper extends DefaultTask {
         }
         GFileUtils.copyURLToFile(jarFileSource, jarFileDestination);
 
-        wrapperScriptGenerator.generate(jarFileRelativePath, scriptFileDestination);
+        StartScriptGenerator generator = new StartScriptGenerator();
+        generator.setApplicationName("Gradle");
+        generator.setMainClassName(GradleWrapperMain.class.getName());
+        generator.setClasspath(WrapUtil.toList(jarFileRelativePath));
+        generator.setOptsEnvironmentVar("GRADLE_OPTS");
+        generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
+        generator.setAppNameSystemProperty("org.gradle.appname");
+        generator.setScriptRelPath(unixScript.getName());
+        generator.generateUnixScript(unixScript);
+        generator.generateWindowsScript(getBatchScript());
     }
 
     private void writeProperties(File propertiesFileDestination) {
@@ -143,6 +144,15 @@ public class Wrapper extends DefaultTask {
 
     public void setScriptFile(Object scriptFile) {
         this.scriptFile = scriptFile;
+    }
+
+    /**
+     * Returns the file to write the wrapper batch script to.
+     */
+    @OutputFile
+    public File getBatchScript() {
+        File scriptFile = getScriptFile();
+        return new File(scriptFile.getParentFile(), scriptFile.getName().replaceFirst("(\\.[^\\.]+)?$", ".bat"));
     }
 
     /**
@@ -377,13 +387,5 @@ public class Wrapper extends DefaultTask {
     public void setArchiveClassifier(String archiveClassifier) {
         DeprecationLogger.nagUser("Wrapper.setArchiveClassifier()", "setDistributionUrl()");
         this.archiveClassifier = archiveClassifier;
-    }
-
-    public WrapperScriptGenerator getUnixWrapperScriptGenerator() {
-        return wrapperScriptGenerator;
-    }
-
-    public void setUnixWrapperScriptGenerator(WrapperScriptGenerator wrapperScriptGenerator) {
-        this.wrapperScriptGenerator = wrapperScriptGenerator;
     }
 }

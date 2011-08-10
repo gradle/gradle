@@ -18,35 +18,27 @@ package org.gradle.api.tasks.wrapper;
 
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
 import org.gradle.util.*;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.WrapperExecutor;
-import org.jmock.Expectations;
-import org.jmock.Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock.class)
 public class WrapperTest extends AbstractTaskTest {
 
     private Wrapper wrapper;
-    private WrapperScriptGenerator wrapperScriptGeneratorMock;
     private String targetWrapperJarPath;
-    private Mockery context = new Mockery();
     private TestFile expectedTargetWrapperJar;
     private File expectedTargetWrapperProperties;
     @Rule
@@ -55,9 +47,7 @@ public class WrapperTest extends AbstractTaskTest {
     @Before
     public void setUp() {
         super.setUp();
-        context.setImposteriser(ClassImposteriser.INSTANCE);
         wrapper = createTask(Wrapper.class);
-        wrapperScriptGeneratorMock = context.mock(WrapperScriptGenerator.class);
         wrapper.setScriptDestinationPath("scriptDestination");
         wrapper.setGradleVersion("1.0");
         targetWrapperJarPath = "jarPath";
@@ -68,7 +58,6 @@ public class WrapperTest extends AbstractTaskTest {
         new File(getProject().getProjectDir(), targetWrapperJarPath).mkdirs();
         wrapper.setJarPath(targetWrapperJarPath);
         wrapper.setDistributionPath("somepath");
-        wrapper.setUnixWrapperScriptGenerator(wrapperScriptGeneratorMock);
     }
 
     public AbstractTask getTask() {
@@ -81,6 +70,7 @@ public class WrapperTest extends AbstractTaskTest {
         assertEquals(new File(getProject().getProjectDir(), "gradle/wrapper/gradle-wrapper.jar"), wrapper.getJarFile());
         assertEquals(toNative("gradle/wrapper"), wrapper.getJarPath());
         assertEquals(new File(getProject().getProjectDir(), "gradlew"), wrapper.getScriptFile());
+        assertEquals(new File(getProject().getProjectDir(), "gradlew.bat"), wrapper.getBatchScript());
         assertEquals(".", wrapper.getScriptDestinationPath());
         assertEquals(GradleVersion.current().getVersion(), wrapper.getGradleVersion());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getDistributionPath());
@@ -93,6 +83,21 @@ public class WrapperTest extends AbstractTaskTest {
         assertNotNull(wrapper.getDistributionUrl());
     }
 
+    @Test
+    public void testDeterminesWindowsScriptPathFromUnixScriptPath() {
+        wrapper.setScriptFile("build/gradle.sh");
+        assertEquals(getProject().file("build/gradle.bat"), wrapper.getBatchScript());
+
+        wrapper.setScriptFile("build/gradle-wrapper");
+        assertEquals(getProject().file("build/gradle-wrapper.bat"), wrapper.getBatchScript());
+    }
+
+    @Test
+    public void testDeterminesPropertiesFilePathFromJarPath() {
+        wrapper.setJarFile("build/gradle-wrapper.jar");
+        assertEquals(getProject().file("build/gradle-wrapper.properties"), wrapper.getPropertiesFile());
+    }
+    
     @Test
     public void testDownloadsFromReleaseRepositoryForReleaseVersions() {
         wrapper.setGradleVersion("0.9.1");
@@ -172,13 +177,6 @@ public class WrapperTest extends AbstractTaskTest {
     }
 
     private void checkExecute() throws IOException {
-        context.checking(new Expectations() {
-            {
-                one(wrapperScriptGeneratorMock).generate(
-                        toNative("../" + targetWrapperJarPath + "/gradle-wrapper.jar"),
-                        wrapper.getScriptFile());
-            }
-        });
         wrapper.execute();
         TestFile unjarDir = tmpDir.createDir("unjar");
         expectedTargetWrapperJar.unzipTo(unjarDir);

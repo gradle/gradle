@@ -103,6 +103,7 @@ class CreateStartScripts extends ConventionTask {
         generator.optsEnvironmentVar = getOptsEnvironmentVar()
         generator.exitEnvironmentVar = getExitEnvironmentVar()
         generator.classpath = getClasspath().collect { "lib/${it.name}" }
+        generator.scriptRelPath = "bin/${getUnixScript().name}"
         generator.generateUnixScript(getUnixScript())
         generator.generateWindowsScript(getWindowsScript())
     }

@@ -30,6 +30,7 @@ task startScripts {
     outputs.dir startScriptsDir
 
     doLast {
+        logging.captureStandardOutput(LogLevel.INFO)
         def factory = services.get(ClassLoaderFactory)
         def classLoader = factory.createIsolatedClassLoader(configurations.startScriptGenerator.collect { it.toURI().toURL() })
         def generator = classLoader.loadClass('org.gradle.api.internal.plugins.StartScriptGenerator').newInstance()
@@ -37,6 +38,7 @@ task startScripts {
         generator.optsEnvironmentVar = 'GRADLE_OPTS'
         generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
         generator.mainClassName = 'org.gradle.launcher.GradleMain'
+        generator.scriptRelPath = 'bin/gradle'
         generator.classpath = ["lib/${jar.archiveName}" as String]
         generator.appNameSystemProperty = 'org.gradle.appname'
         generator.generateUnixScript(file("$startScriptsDir/gradle"))
