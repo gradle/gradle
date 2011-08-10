@@ -1,16 +1,18 @@
 apply plugin: GreetingPlugin
 
-greeting = 'Hi from Gradle'
+greeting.message = 'Hi from Gradle'
 
 class GreetingPlugin implements Plugin<Project> {
-    def void apply(Project project) {
-        project.convention.plugins.greet = new GreetingPluginConvention()
+    void apply(Project project) {
+        // Add the 'greeting' extension object
+        project.extensions.greeting = new GreetingPluginExtension()
+        // Add a task that uses the configuration
         project.task('hello') << {
-            println project.convention.plugins.greet.greeting
+            println project.greeting.message
         }
     }
 }
 
-class GreetingPluginConvention {
-    def String greeting = 'Hello from GreetingPlugin'
+class GreetingPluginExtension {
+    def String message = 'Hello from GreetingPlugin'
 }

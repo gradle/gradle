@@ -15,7 +15,7 @@ task bonjour(type: GreetingTask) {
 class GreetingPlugin implements Plugin<Project> {
     def void apply(Project project) {
         project.tasks.withType(GreetingTask) { task ->
-            task.conventionMapping.map('greeting') { project.greeting }
+            task.conventionMapping.greeting = { project.greeting }
         }
     }
 }
