@@ -33,24 +33,28 @@ class DefaultDependencyHandler implements DependencyHandler {
 
     def DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
                                  ProjectFinder projectFinder) {
-        this.configurationContainer = configurationContainer;
-        this.dependencyFactory = dependencyFactory;
-        this.projectFinder = projectFinder;
+        this.configurationContainer = configurationContainer
+        this.dependencyFactory = dependencyFactory
+        this.projectFinder = projectFinder
     }
 
     public Dependency add(String configurationName, Object dependencyNotation) {
-        pushDependency(configurationContainer[configurationName], dependencyNotation, null)
+        doAdd(configurationContainer[configurationName], dependencyNotation, null)
     }
 
     public Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure) {
-        pushDependency(configurationContainer[configurationName], dependencyNotation, configureClosure)
+        doAdd(configurationContainer[configurationName], dependencyNotation, configureClosure)
     }
 
-    private Dependency pushDependency(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
-        Dependency dependency
-        dependency = dependencyFactory.createDependency(notation)
-        configuration.dependencies.add(dependency)
+    Dependency create(Object dependencyNotation, Closure configureClosure = null) {
+        def dependency = dependencyFactory.createDependency(dependencyNotation)
         ConfigureUtil.configure(configureClosure, dependency)
+        dependency
+    }
+
+    private Dependency doAdd(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
+        def dependency = create(dependencyNotation, configureClosure)
+        configuration.dependencies << dependency
         dependency
     }
 
@@ -74,7 +78,7 @@ class DefaultDependencyHandler implements DependencyHandler {
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
     }
 
-    public def methodMissing(String name, args) {
+    public Object methodMissing(String name, Object args) {
         Configuration configuration = configurationContainer.findByName(name)
         if (configuration == null) {
             if (!getMetaClass().respondsTo(this, name, args.size())) {
@@ -84,12 +88,12 @@ class DefaultDependencyHandler implements DependencyHandler {
 
         Object[] normalizedArgs = GUtil.flatten(args as List, false)
         if (normalizedArgs.length == 2 && normalizedArgs[1] instanceof Closure) {
-            return pushDependency(configuration, normalizedArgs[0], (Closure) normalizedArgs[1])
+            return doAdd(configuration, normalizedArgs[0], (Closure) normalizedArgs[1])
         } else if (normalizedArgs.length == 1) {
-            return pushDependency(configuration, normalizedArgs[0], (Closure) null)
+            return doAdd(configuration, normalizedArgs[0], (Closure) null)
         }
         normalizedArgs.each {notation ->
-            pushDependency(configuration, notation, null)
+            doAdd(configuration, notation, null)
         }
         return null;
     }

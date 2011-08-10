@@ -84,6 +84,31 @@ class DefaultDependencyHandlerTest {
     }
 
     @Test
+    void create() {
+        String someNotation = "someNotation"
+        Dependency dependencyDummy = context.mock(Dependency)
+        context.checking {
+            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(dependencyDummy))
+        }
+
+        assertThat(dependencyHandler.create(someNotation), equalTo(dependencyDummy))
+    }
+
+    @Test
+    void createWithClosure() {
+        String someNotation = "someNotation"
+        DefaultExternalModuleDependency returnedDependency = HelperUtil.createDependency("group", "name", "1.0")
+        context.checking {
+            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(returnedDependency))
+        }
+        def dependency = dependencyHandler.create(someNotation) {
+            force = true
+        }
+        assertThat(dependency, equalTo(returnedDependency))
+        assertThat(dependency.force, equalTo(true))
+    }
+
+    @Test
     void pushOneDependency() {
         String someNotation = "someNotation"
         Dependency dependencyDummy = context.mock(Dependency)

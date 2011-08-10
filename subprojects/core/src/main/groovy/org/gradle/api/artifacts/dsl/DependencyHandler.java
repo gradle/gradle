@@ -120,6 +120,24 @@ public interface DependencyHandler {
     Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
 
     /**
+     * Creates a dependency without adding it to a configuration.
+     *
+     * @param dependencyNotation The dependency notation, in one of the notations described above.
+     * @return The dependency.
+     */
+    Dependency create(Object dependencyNotation);
+
+    /**
+     * Creates a dependency without adding it to a configuration, and configures the dependency using
+     * the given closure.
+     *
+     * @param dependencyNotation The dependency notation, in one of the notations described above.
+     * @param configureClosure The closure to use to configure the dependency.
+     * @return The dependency.
+     */
+    Dependency create(Object dependencyNotation, Closure configureClosure);
+
+    /**
      * Creates a dependency on a client module.
      *
      * @param notation The module notation, in one of the notations described above.
