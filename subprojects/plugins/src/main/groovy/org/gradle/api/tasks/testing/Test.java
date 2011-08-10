@@ -434,11 +434,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public Test include(Spec<FileTreeElement> includeSpec) {
         patternSet.include(includeSpec);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public Test include(Closure includeSpec) {
         patternSet.include(includeSpec);
         return this;
@@ -464,11 +470,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public Test exclude(Spec<FileTreeElement> excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public Test exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
