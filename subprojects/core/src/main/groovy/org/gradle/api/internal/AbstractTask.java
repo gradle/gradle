@@ -34,6 +34,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -330,6 +331,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public void setConvention(Convention convention) {
         dynamicObjectHelper.setConvention(convention);
+    }
+
+    public ExtensionContainer getExtensions() {
+        return getConvention();
     }
 
     public DynamicObject getAsDynamicObject() {

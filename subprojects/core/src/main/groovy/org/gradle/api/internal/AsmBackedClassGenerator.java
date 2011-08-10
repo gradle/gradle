@@ -175,6 +175,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // END
 
+            // GENERATE public ExtensionContainer getExtensions() { return getConvention(); }
+
+            addGetter(DynamicObjectAware.class.getDeclaredMethod("getExtensions"), new MethodCodeBody() {
+                public void add(MethodVisitor visitor) throws Exception {
+
+                    // GENERATE getConvention()
+
+                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    String getterDescriptor = Type.getMethodDescriptor(DynamicObjectHelper.class.getDeclaredMethod(
+                            "getConvention"));
+                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getConvention",
+                            getterDescriptor);
+                }
+            });
+
+            // END
+
             // GENERATE public DynamicObject.getAsDynamicObject() { return dynamicObjectHelper; }
 
             addGetter(DynamicObjectAware.class.getDeclaredMethod("getAsDynamicObject"), new MethodCodeBody() {

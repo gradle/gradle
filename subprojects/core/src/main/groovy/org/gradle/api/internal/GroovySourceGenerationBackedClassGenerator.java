@@ -79,6 +79,7 @@ public class GroovySourceGenerationBackedClassGenerator extends AbstractClassGen
             src.format("private org.gradle.api.internal.DynamicObjectHelper dynamicObject = new org.gradle.api.internal.DynamicObjectHelper(this, new org.gradle.api.internal.plugins.DefaultConvention())%n");
             src.format("public void setConvention(org.gradle.api.plugins.Convention convention) { dynamicObject.setConvention(convention); getConventionMapping().setConvention(convention) }%n");
             src.format("public org.gradle.api.plugins.Convention getConvention() { return dynamicObject.getConvention() }%n");
+            src.format("public org.gradle.api.plugins.ExtensionContainer getExtensions() { return getConvention() }%n");
             src.format("public org.gradle.api.internal.DynamicObject getAsDynamicObject() { return dynamicObject }%n");
         }
 

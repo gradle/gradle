@@ -20,6 +20,7 @@ import groovy.lang.GroovyObject;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
 import org.junit.Before;
@@ -65,9 +66,14 @@ public abstract class AbstractClassGeneratorTest {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
         assertTrue(DynamicObjectAware.class.isAssignableFrom(generatedClass));
         Bean bean = generatedClass.newInstance();
-        ((DynamicObjectAware) bean).getAsDynamicObject().setProperty("prop", "value");
+        DynamicObjectAware dynamicBean = (DynamicObjectAware) bean;
+
+        dynamicBean.getAsDynamicObject().setProperty("prop", "value");
         assertThat(bean.getProp(), equalTo("value"));
         assertThat(bean.doStuff("some value"), equalTo("{some value}"));
+
+        assertThat(dynamicBean.getConvention(), notNullValue());
+        assertThat(dynamicBean.getExtensions(), sameInstance((ExtensionContainer) dynamicBean.getConvention()));
     }
 
     @Test
@@ -450,6 +456,10 @@ public abstract class AbstractClassGeneratorTest {
 
         public void setConvention(Convention convention) {
             this.conv = convention;
+        }
+
+        public ExtensionContainer getExtensions() {
+            return conv;
         }
 
         public DynamicObject getAsDynamicObject() {

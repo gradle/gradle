@@ -83,7 +83,7 @@ public class AbstractConvention implements Convention {
                 return;
             }
         }
-        throw new MissingPropertyException(name, Convention.class);
+        add(name, value);
     }
 
     public Object invokeMethod(String name, Object... args) {

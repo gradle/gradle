@@ -68,12 +68,8 @@ class DefaultConventionTest {
         assertEquals('newvalue', convention1.a)
     }
 
-    @Test (expected = MissingPropertyException) public void testMissingPropertiesWithGet() {
+    @Test(expected = MissingPropertyException) public void testMissingPropertiesWithGet() {
         convention.prop
-    }
-
-    @Test(expected = MissingPropertyException) public void testMissingPropertiesWithSet() {
-        convention.prop = 'newvalue'
     }
 
     @Test public void testMethods() {
@@ -87,7 +83,7 @@ class DefaultConventionTest {
         assertEquals(convention.meth(), convention1.meth())
     }
 
-    @Test (expected = MissingMethodException) public void testMissingMethod() {
+    @Test(expected = MissingMethodException) public void testMissingMethod() {
         convention.methUnknown()
     }
 
@@ -97,7 +93,7 @@ class DefaultConventionTest {
         assertSame(convention1, convention.findPlugin(TestPluginConvention1))
         assertSame(convention2, convention.findPlugin(TestPluginConvention2))
     }
-    
+
     @Test public void testGetPluginFailsWhenMultipleConventionObjectsWithCompatibleType() {
         try {
             convention.getPlugin(Object)
@@ -124,7 +120,7 @@ class DefaultConventionTest {
             assertThat(e.message, equalTo('Could not find any convention object of type String.'))
         }
     }
-    
+
     @Test public void testFindPluginReturnsNullWhenNoConventionObjectsWithCompatibleType() {
         assertNull(convention.findPlugin(String))
     }
@@ -135,6 +131,7 @@ class DefaultConventionTest {
 
     static class FooPluginExtension {
         String foo = "foo"
+
         void foo(Closure closure) {
             fail("should not be called");
         }
@@ -145,6 +142,18 @@ class DefaultConventionTest {
         convention = new DefaultConvention()
         def ext = new FooExtension()
         convention.add("foo", ext)
+
+        //then
+        assertTrue(convention.hasProperty("foo"))
+        assertTrue(convention.hasMethod("foo", {}))
+        assertEquals(convention.getProperties().get("foo"), ext);
+    }
+
+    @Test public void canAddExtensionsUsingDynamicProperty() {
+        //when
+        convention = new DefaultConvention()
+        def ext = new FooExtension()
+        convention.foo = ext
 
         //then
         assertTrue(convention.hasProperty("foo"))
