@@ -44,7 +44,7 @@ public class DistributionFactory {
      * Returns the default distribution to use for the specified project.
      */
     public Distribution getDefaultDistribution(File projectDir) {
-        WrapperExecutor wrapper = new WrapperExecutor(projectDir, System.out);
+        WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(projectDir, System.out);
         if (wrapper.getDistribution() != null) {
             return getDistribution(wrapper.getDistribution());
         }

@@ -1,5 +1,5 @@
 
-set GRADLE_OPTS=%JAVA_OPTS% %GRADLE_OPTS% -Dorg.gradle.wrapper.properties="%WRAPPER_PROPERTIES%"
+set GRADLE_OPTS=%JAVA_OPTS% %GRADLE_OPTS%
 
 @rem Execute Gradle
 "%JAVA_EXE%" %GRADLE_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%

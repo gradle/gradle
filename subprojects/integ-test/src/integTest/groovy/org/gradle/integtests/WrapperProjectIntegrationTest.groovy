@@ -38,7 +38,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationTest {
                 zipPath = 'wrapper'
                 archiveBase = Wrapper.PathBase.PROJECT
                 archivePath = 'dist'
-                distributionUrl = '${distribution.binDistribution.parentFile.toURI().toURL()}/gradle-${distribution.version}-bin.zip'
+                distributionUrl = '${distribution.binDistribution.toURI().toURL()}'
                 distributionBase = Wrapper.PathBase.PROJECT
                 distributionPath = 'dist'
             }

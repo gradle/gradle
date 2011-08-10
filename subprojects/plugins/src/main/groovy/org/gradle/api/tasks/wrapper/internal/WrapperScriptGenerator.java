@@ -37,23 +37,22 @@ public class WrapperScriptGenerator {
     public static final String CURRENT_DIR_WINDOWS = "%DIRNAME%";
     private static final String FULLY_QUALIFIED_WRAPPER_NAME = "org.gradle.wrapper.GradleWrapperMain";
 
-    public void generate(String jarPath, String wrapperPropertiesPath, File scriptFile) {
+    public void generate(String jarPath, File scriptFile) {
         try {
-            createUnixScript(jarPath, scriptFile, wrapperPropertiesPath);
-            createWindowsScript(jarPath, scriptFile, wrapperPropertiesPath);
+            createUnixScript(jarPath, scriptFile);
+            createWindowsScript(jarPath, scriptFile);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void createUnixScript(String jarPath, File scriptFile, String wrapperPropertiesPath) throws IOException {
+    private void createUnixScript(String jarPath, File scriptFile) throws IOException {
         String unixWrapperScriptHead = IOUtils.toString(getClass().getResourceAsStream("unixWrapperScriptHead.txt"));
         String unixWrapperScriptTail = IOUtils.toString(getClass().getResourceAsStream("unixWrapperScriptTail.txt"));
 
         String fillingUnix = "" + UNIX_NL
                 + "STARTER_MAIN_CLASS=" + FULLY_QUALIFIED_WRAPPER_NAME + UNIX_NL
-                + "CLASSPATH=" + CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(jarPath) + UNIX_NL
-                + "WRAPPER_PROPERTIES=" + CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(wrapperPropertiesPath) + UNIX_NL;
+                + "CLASSPATH=" + CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(jarPath) + UNIX_NL;
 
         String unixScript = unixWrapperScriptHead + fillingUnix + unixWrapperScriptTail;
         File unixScriptFile = scriptFile;
@@ -69,13 +68,12 @@ public class WrapperScriptGenerator {
         chmod.execute();
     }
 
-    private void createWindowsScript(String jarPath, File scriptFile, String wrapperPropertiesPath) throws IOException {
+    private void createWindowsScript(String jarPath, File scriptFile) throws IOException {
         String windowsWrapperScriptHead = IOUtils.toString(getClass().getResourceAsStream("windowsWrapperScriptHead.txt"));
         String windowsWrapperScriptTail = IOUtils.toString(getClass().getResourceAsStream("windowsWrapperScriptTail.txt"));
         String fillingWindows = "" + WINDOWS_NL
                 + "set STARTER_MAIN_CLASS=" + FULLY_QUALIFIED_WRAPPER_NAME + WINDOWS_NL
-                + "set CLASSPATH=" + CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(jarPath) + WINDOWS_NL
-                + "set WRAPPER_PROPERTIES=" + CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(wrapperPropertiesPath) + WINDOWS_NL;
+                + "set CLASSPATH=" + CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(jarPath) + WINDOWS_NL;
         String windowsScript = windowsWrapperScriptHead + fillingWindows + windowsWrapperScriptTail;
         File windowsScriptFile = new File(scriptFile.getParentFile(), scriptFile.getName() + ".bat");
         FileUtils.writeStringToFile(windowsScriptFile, transformIntoWindowsNewLines(windowsScript));

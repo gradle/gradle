@@ -25,8 +25,6 @@ import java.util.Properties;
  * @author Hans Dockter
  */
 public class WrapperExecutor {
-    public static final String WRAPPER_PROPERTIES_PROPERTY = "org.gradle.wrapper.properties";
-
     public static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
     public static final String DISTRIBUTION_BASE_PROPERTY = "distributionBase";
     public static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
@@ -37,12 +35,12 @@ public class WrapperExecutor {
     private final File propertiesFile;
     private final Appendable warningOutput;
 
-    public WrapperExecutor(Appendable warningOutput) {
-        this(new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY)), new Properties(), warningOutput);
+    public static WrapperExecutor forProjectDirectory(File projectDir, Appendable warningOutput) {
+        return new WrapperExecutor(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties(), warningOutput);
     }
 
-    public WrapperExecutor(File projectDir, Appendable warningOutput) {
-        this(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties(), warningOutput);
+    public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile, Appendable warningOutput) {
+        return new WrapperExecutor(propertiesFile, new Properties(), warningOutput);
     }
 
     WrapperExecutor(File propertiesFile, Properties properties, Appendable warningOutput) {

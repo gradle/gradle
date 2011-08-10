@@ -176,7 +176,6 @@ public class WrapperTest extends AbstractTaskTest {
             {
                 one(wrapperScriptGeneratorMock).generate(
                         toNative("../" + targetWrapperJarPath + "/gradle-wrapper.jar"),
-                        toNative("../" + targetWrapperJarPath + "/gradle-wrapper.properties"),
                         wrapper.getScriptFile());
             }
         });

@@ -120,7 +120,7 @@ public class Wrapper extends DefaultTask {
         }
         GFileUtils.copyURLToFile(jarFileSource, jarFileDestination);
 
-        wrapperScriptGenerator.generate(jarFileRelativePath, propertiesFileRelativePath, scriptFileDestination);
+        wrapperScriptGenerator.generate(jarFileRelativePath, scriptFileDestination);
     }
 
     private void writeProperties(File propertiesFileDestination) {
