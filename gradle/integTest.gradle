@@ -34,7 +34,6 @@ eclipse {
 }
 
 integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
-rootProject.integTests << integTestTasks
 
 integTestTasks.all {
     dependsOn ':intTestImage', project(":docs").samples
@@ -85,7 +84,6 @@ task integTest(type: Test) {
         systemProperties['org.gradle.integtest.executer'] = integTestMode
     }
 }
-
 
 tasks.findByName("check")?.dependsOn(integTest)
 
