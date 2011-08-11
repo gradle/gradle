@@ -25,6 +25,8 @@ import spock.lang.Issue
  */
 class DaemonIntegrationTest extends AbstractIntegrationTest {
 
+//    @Rule public final MethodRule useDaemon = new UseDaemon()
+
     @Issue("GRADLE-1249")
     @Test
     void "daemon should use the current working dir"() {
@@ -37,6 +39,20 @@ task assertWorkDir << {
 """
         //when
         executer.withTasks('assertWorkDir').run()
+
+        //then no exceptions thrown
+    }
+
+    @Issue("GRADLE-1296")
+    @Test
+    void "daemon should have system properties passed to the client"() {
+        file('build.gradle') << """
+task assertSysProp << {
+    assert System.properties['foo'] == 'bar'
+}
+"""
+        //when
+        executer.withArguments("-Dfoo=bar").withTasks('assertSysProp').run()
 
         //then no exceptions thrown
     }
