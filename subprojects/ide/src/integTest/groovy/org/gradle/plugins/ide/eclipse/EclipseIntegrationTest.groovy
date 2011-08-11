@@ -323,4 +323,22 @@ eclipse {
 }
 '''
     }
+
+    @Test
+    void canHandleDependencyWithoutSourceJar() {
+        runEclipseTask '''
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+	flatDir(name: 'fileRepo', dirs: "/swd/tmp/Testprojects_flatDirRepo/repo") //use a shared flat dir repo
+}
+
+dependencies {
+	compile 'org.myorg:Testproject1:0.1'
+
+	//testCompile 'org.myorg:Testproject1:0.1:tests'
+}
+        '''
+    }
 }

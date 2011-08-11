@@ -82,13 +82,10 @@ dependencies {
 
         when:
         EclipseProject project = toolingApi.withConnection { connection ->
-            //connection.newBuild().forTasks('dependencies').run()
             connection.getModel(EclipseProject.class)
         }
-        project.getClasspath()
 
         then:
         project != null
     }
-
 }
