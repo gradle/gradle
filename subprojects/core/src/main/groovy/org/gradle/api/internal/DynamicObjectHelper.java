@@ -56,7 +56,7 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
             delegates.add(beforeConvention);
         }
         if (convention != null) {
-            delegates.add(convention);
+            delegates.add(convention.getExtensionsAsDynamicObject());
         }
         if (afterConvention != null) {
             delegates.add(afterConvention);

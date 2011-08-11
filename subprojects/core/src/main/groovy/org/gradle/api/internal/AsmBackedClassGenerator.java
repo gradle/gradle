@@ -206,35 +206,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             });
 
             // END
-
-            // GENERATE public void setConvention(Convention c) { dynamicObjectHelper.setConvention(c); getConventionMapping().setConvention(c); }
-
-            addSetter(DynamicObjectAware.class.getDeclaredMethod("setConvention", Convention.class),
-                    new MethodCodeBody() {
-                        public void add(MethodVisitor visitor) {
-                            String setConventionDesc = Type.getMethodDescriptor(Type.VOID_TYPE,
-                                    new Type[]{conventionType});
-
-                            visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                            visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(),
-                                    "dynamicObjectHelper", fieldSignature);
-
-                            visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                            visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, helperType.getInternalName(),
-                                    "setConvention", setConventionDesc);
-
-                            visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                            visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(),
-                                    "getConventionMapping", Type.getMethodDescriptor(conventionMappingType,
-                                            new Type[0]));
-
-                            visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                            visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, conventionMappingType.getInternalName(),
-                                    "setConvention", setConventionDesc);
-                        }
-                    });
-
-            // END
         }
 
         public void mixInConventionAware() throws Exception {

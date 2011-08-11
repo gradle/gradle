@@ -16,8 +16,10 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.UnknownDomainObjectException;
+
 /**
- * Allows adding 'namespaced' DSL extensions to the object.
+ * Allows adding 'namespaced' DSL extensions to the target object.
  *
  * <p>Extensions can be added using a dynamic property accessor: {@code extensions.myExtension = someValue} is the same as {@code extensions.add('myExtension', someValue)}</p>
  *
@@ -35,15 +37,16 @@ public interface ExtensionContainer {
     void add(String name, Object extension);
 
     /**
-     * Looks for the extension of a given type (useful to avoid casting). If none find it will throw an exception.
+     * Looks for the extension of a given type (useful to avoid casting). If none found it will throw an exception.
      *
      * @param type extension type
      * @return extension, never null
+     * @throws UnknownDomainObjectException When the given extension is not found.
      */
-    <T> T getByType(Class<T> type);
+    <T> T getByType(Class<T> type) throws UnknownDomainObjectException;
 
     /**
-     * Looks for the extension of a given type (useful to avoid casting). If none find null is returned.
+     * Looks for the extension of a given type (useful to avoid casting). If none found null is returned.
      *
      * @param type extension type
      * @return extension or null
@@ -51,15 +54,16 @@ public interface ExtensionContainer {
     <T> T findByType(Class<T> type);
 
     /**
-     * Looks for the extension of a given name. If none find it will throw an exception.
+     * Looks for the extension of a given name. If none found it will throw an exception.
      *
      * @param name extension name
      * @return extension, never null
+     * @throws UnknownDomainObjectException When the given extension is not found.
      */
-    Object getByName(String name);
+    Object getByName(String name) throws UnknownDomainObjectException;
 
     /**
-     * Looks for the extension of a given name. If none find null is returned.
+     * Looks for the extension of a given name. If none found null is returned.
      *
      * @param name extension name
      * @return extension or null

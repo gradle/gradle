@@ -20,15 +20,4 @@ package org.gradle.api.internal.plugins
  * @author Hans Dockter
  */
 class DefaultConvention extends AbstractConvention {
-    def propertyMissing(String property) {
-        super.getProperty(property)
-    }
-
-    void setProperty(String property, value) {
-        super.setProperty(property, value)
-    }
-
-    def methodMissing(String method, arguments) {
-        super.invokeMethod(method, arguments)
-    }
 }

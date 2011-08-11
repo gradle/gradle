@@ -41,13 +41,6 @@ public interface DynamicObjectAware {
     ExtensionContainer getExtensions();
 
     /**
-     * Sets the convention object used by this dynamic object.
-     *
-     * @param convention The convention object. Should not be null.
-     */
-    void setConvention(Convention convention);
-
-    /**
      * Returns a {@link DynamicObject} which describes all the static and dynamic properties and methods of this
      * object.
      *

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import groovy.lang.Closure;
-import org.gradle.api.GradleException;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.*;
@@ -30,6 +30,9 @@ public class ExtensionsStorage {
     private final Map<String, Object> extensions = new LinkedHashMap<String, Object>();
 
     public void add(String name, Object extension) {
+        if (extensions.containsKey(name)) {
+            throw new IllegalArgumentException(String.format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
+        }
         extensions.put(name, extension);
     }
 
@@ -43,7 +46,7 @@ public class ExtensionsStorage {
 
     public void checkExtensionIsNotReassigned(String name) {
         if (hasExtension(name)) {
-            throw new GradleException("There's an extension registered with name '%s'. You should not reassign it via a property setter.");
+            throw new IllegalArgumentException(String.format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
         }
     }
 
@@ -65,7 +68,7 @@ public class ExtensionsStorage {
                 return (T) e;
             }
         }
-        throw new GradleException("Extension of type '" + type.getSimpleName() + "' does not exist. Currently registered extension types: " + types);
+        throw new UnknownDomainObjectException("Extension of type '" + type.getSimpleName() + "' does not exist. Currently registered extension types: " + types);
     }
 
     public <T> T findByType(Class<T> type) {
@@ -80,7 +83,7 @@ public class ExtensionsStorage {
 
     public Object getByName(String name) {
         if (!hasExtension(name)) {
-            throw new GradleException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
+            throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
         }
         return extensions.get(name);
     }

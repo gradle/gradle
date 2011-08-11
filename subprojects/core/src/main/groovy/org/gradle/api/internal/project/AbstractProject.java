@@ -376,10 +376,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return dynamicObjectHelper.getConvention();
     }
 
-    public void setConvention(Convention convention) {
-        dynamicObjectHelper.setConvention(convention);
-    }
-
     public String getPath() {
         return path.toString();
     }

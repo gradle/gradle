@@ -6,6 +6,5 @@ task show << {
     println relativePath(project.sourceSets.main.output.classesDir)
 
     // Access the convention property via the convention object
-    println relativePath(project.convention.sourceSets.main.output.classesDir)
     println relativePath(project.convention.plugins.java.sourceSets.main.output.classesDir)
 }

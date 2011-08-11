@@ -329,10 +329,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return dynamicObjectHelper.getConvention();
     }
 
-    public void setConvention(Convention convention) {
-        dynamicObjectHelper.setConvention(convention);
-    }
-
     public ExtensionContainer getExtensions() {
         return getConvention();
     }

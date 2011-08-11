@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * @author Hans Dockter
  */
-public interface Convention extends DynamicObject, ExtensionContainer {
+public interface Convention extends ExtensionContainer {
 
     /**
      * Returns the plugin convention objects contained in this convention.
@@ -54,4 +54,12 @@ public interface Convention extends DynamicObject, ExtensionContainer {
      * @throws IllegalStateException When there there are multiple matching objects.
      */
     <T> T findPlugin(Class<T> type) throws IllegalStateException;
+
+    /**
+     * Returns a dynamic object which represents the properties and methods contributed by the extensions and convention objects contained in this
+     * convention.
+     *
+     * @return The dynamic object
+     */
+    DynamicObject getExtensionsAsDynamicObject();
 }

@@ -263,10 +263,7 @@ public abstract class AbstractClassGeneratorTest {
     public void doesNotOverrideMethodsFromDynamicObjectAwareInterface() throws Exception {
         DynamicObjectAwareBean bean = generator.generate(DynamicObjectAwareBean.class).newInstance();
         assertThat(bean.getConvention(), sameInstance(bean.conv));
-        Convention newConvention = new DefaultConvention();
-        bean.setConvention(newConvention);
-        assertThat(bean.getConvention(), sameInstance(newConvention));
-        assertThat(bean.getAsDynamicObject(), sameInstance((DynamicObject) newConvention));
+        assertThat(bean.getAsDynamicObject(), sameInstance(bean.conv.getExtensionsAsDynamicObject()));
     }
 
     @Test
@@ -290,11 +287,6 @@ public abstract class AbstractClassGeneratorTest {
         IConventionAware conventionAware = (IConventionAware) bean;
         DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
         assertThat(dynamicObjectAware.getConvention(), sameInstance(conventionAware.getConventionMapping().getConvention()));
-
-        Convention newConvention = new DefaultConvention();
-        dynamicObjectAware.setConvention(newConvention);
-        assertThat(dynamicObjectAware.getConvention(), sameInstance(newConvention));
-        assertThat(conventionAware.getConventionMapping().getConvention(), sameInstance(newConvention));
     }
 
     @Test
@@ -348,7 +340,7 @@ public abstract class AbstractClassGeneratorTest {
     }
 
     @Test
-    public void usesExistingDynamicObject() throws Exception {
+    public void usesExistingGetAsDynamicObjectMethod() throws Exception {
         DynamicObjectBean bean = generator.generate(DynamicObjectBean.class).newInstance();
 
         call("{ it.prop = 'value' }", bean);
@@ -454,16 +446,12 @@ public abstract class AbstractClassGeneratorTest {
             return conv;
         }
 
-        public void setConvention(Convention convention) {
-            this.conv = convention;
-        }
-
         public ExtensionContainer getExtensions() {
             return conv;
         }
 
         public DynamicObject getAsDynamicObject() {
-            return conv;
+            return conv.getExtensionsAsDynamicObject();
         }
     }
 

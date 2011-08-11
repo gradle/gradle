@@ -17,8 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 
-import org.gradle.api.GradleException
-import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.UnknownDomainObjectException
 import spock.lang.Specification
 
 /**
@@ -26,7 +25,7 @@ import spock.lang.Specification
  */
 public class ExtensionContainerTest extends Specification {
 
-    def ExtensionContainer container = new DefaultConvention()
+    def container = new DefaultConvention()
     def extension = new FooExtension()
     def barExtension = new BarExtension()
 
@@ -40,7 +39,7 @@ public class ExtensionContainerTest extends Specification {
     def "extension can be accessed and configured"() {
         when:
         container.add("foo", extension)
-        container.foo.message = "Hey!"
+        container.extensionsAsDynamicObject.foo.message = "Hey!"
 
         then:
         extension.message == "Hey!"
@@ -49,7 +48,7 @@ public class ExtensionContainerTest extends Specification {
     def "extension can be configured via script block"() {
         when:
         container.add("foo", extension)
-        container.foo {
+        container.extensionsAsDynamicObject.foo {
             message = "You cool?"
         }
 
@@ -60,10 +59,46 @@ public class ExtensionContainerTest extends Specification {
     def "extension cannot be set as property because we want users to use explicit method to add extensions"() {
         when:
         container.add("foo", extension)
-        container.foo = new FooExtension()
+        container.extensionsAsDynamicObject.foo = new FooExtension()
 
         then:
-        thrown(GradleException)
+        IllegalArgumentException e = thrown()
+        e.message == "There's an extension registered with name 'foo'. You should not reassign it via a property setter."
+    }
+
+    def "can register extensions using dynamic property setter"() {
+        when:
+        container.foo = extension
+
+        then:
+        container.findByName('foo') == extension
+    }
+
+    def "can access extensions using dynamic property getter"() {
+        when:
+        container.add('foo', extension)
+
+        then:
+        container.foo == extension
+    }
+
+    def "cannot replace an extension"() {
+        given:
+        container.add('foo', extension)
+
+        when:
+        container.add('foo', 'other')
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot add extension with name 'foo', as there is an extension already registered with that name."
+
+        when:
+        container.foo = 'other'
+
+        then:
+        IllegalArgumentException e2 = thrown()
+        e2.message == "There's an extension registered with name 'foo'. You should not reassign it via a property setter."
     }
 
     def "knows registered extensions"() {
@@ -89,9 +124,8 @@ public class ExtensionContainerTest extends Specification {
         container.getByName("i don't exist")
 
         then:
-        def ex = thrown(GradleException)
-        ex.message.contains 'foo'
-        ex.message.contains "i don't exist"
+        def ex = thrown(UnknownDomainObjectException)
+        ex.message == "Extension with name 'i don't exist' does not exist. Currently registered extension names: [foo]"
     }
 
     def "throws when unknown extension wanted by type"() {
@@ -101,21 +135,19 @@ public class ExtensionContainerTest extends Specification {
         container.getByType(SomeExtension)
 
         then:
-        def ex = thrown(GradleException)
-        ex.message.contains 'FooExtension'
-        ex.message.contains 'SomeExtension'
+        def ex = thrown(UnknownDomainObjectException)
+        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [FooExtension]"
     }
-
 
     def "types can be retrieved by interface and super types"() {
         given:
         def impl = new Impl()
         def child = new Child()
-        
+
         when:
         container.add('i', impl)
         container.add('c', child)
-        
+
         then:
         container.findByType(Capability) == impl
         container.getByType(Impl) == impl

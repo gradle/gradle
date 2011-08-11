@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.project
 
+// redundant import to make project compile in IDEA (otherwise stub compilation fails)
+
+
 import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
@@ -56,8 +59,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.*
 import org.gradle.api.internal.*
-// redundant import to make project compile in IDEA (otherwise stub compilation fails)
-import org.gradle.api.internal.Factory
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -734,13 +735,12 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testSetPropertyAndPropertyMissingWithConventionProperty() {
-        String propertyName = 'conv'
         String expectedValue = 'somevalue'
         project.convention.plugins.test = new TestConvention()
-        project."$propertyName" = expectedValue
-        assertEquals(expectedValue, project."$propertyName")
-        assertEquals(expectedValue, project.convention."$propertyName")
-        assertEquals(expectedValue, child1."$propertyName")
+        project.conv = expectedValue
+        assertEquals(expectedValue, project.conv)
+        assertEquals(expectedValue, project.convention.plugins.test.conv)
+        assertEquals(expectedValue, child1.conv)
     }
 
     @Test void testSetPropertyAndPropertyMissingWithProjectAndConventionProperty() {
@@ -773,11 +773,7 @@ def scriptMethod(Closure closure) {
         assertFalse(child1.hasProperty(propertyName))
 
         project.convention.plugins.test = new FieldPosition(0)
-        project.convention."$propertyName" = 5
-        assertTrue(project.hasProperty(propertyName))
-        assertTrue(child1.hasProperty(propertyName))
-        project.convention = new DefaultConvention()
-        project."$propertyName" = 4
+        project."$propertyName" = 5
         assertTrue(project.hasProperty(propertyName))
         assertTrue(child1.hasProperty(propertyName))
     }
