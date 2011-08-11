@@ -59,12 +59,23 @@ class MavenModule {
         }
     }
 
+    File getPomFile() {
+        return new File(moduleDir, "$artifactId-${version}.pom")
+    }
+
+
+    File getArtifactFile() {
+        def fileName = "$moduleDir/$artifactId-${version}.jar"
+        if (classifier) {
+            fileName = "$moduleDir/$artifactId-$version-${classifier}.jar"
+        }
+        return new File(fileName)
+    }
+
     File publishArtifact() {
         moduleDir.createDir()
 
-        def pomFile = new File(moduleDir, "$artifactId-${version}.pom")
-        pomFile.text = ''
-
+        pomFile.text = ""
         pomFile << """
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
@@ -86,14 +97,8 @@ class MavenModule {
 
         pomFile << "\n</project>"
 
-        def fileName = "$moduleDir/$artifactId-${version}.jar"
-        if (classifier) {
-            fileName = "$moduleDir/$artifactId-$version-${classifier}.jar"
-        }
-
-        def jarFile = new File(fileName)
+        def jarFile = artifactFile
         jarFile << "add some content so that file size isn't zero"
-
         return jarFile
     }
 

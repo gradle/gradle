@@ -116,6 +116,7 @@ uploadArchives {
     @Test
     public void reportsFailedPublishToHttpRepository() {
         server.start()
+        server.addBroken("/")
 
         dist.testFile("build.gradle") << """
 apply plugin: 'java'
@@ -131,7 +132,7 @@ uploadArchives {
         def result = executer.withTasks("uploadArchives").runWithFailure()
         result.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         result.assertHasCause('Could not publish configuration \':archives\'.')
-        result.assertThatCause(Matchers.containsString('Received status code 404 from server: Not Found'))
+        result.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
 
         server.stop()
 

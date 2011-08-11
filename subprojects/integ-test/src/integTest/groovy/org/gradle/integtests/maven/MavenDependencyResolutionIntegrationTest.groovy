@@ -22,6 +22,8 @@ import org.junit.Rule
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.MavenRepository
+import org.junit.Ignore
 
 class MavenDependencyResolutionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -98,4 +100,62 @@ class MavenDependencyResolutionIntegrationTest {
         jarFile.assertHasChangedSince(snapshot)
     }
 
+    @Test @Ignore
+    public void "can resolve and cache dependencies from HTTP Maven repository"() {
+        def projectA = repo().module('group', 'projectA')
+        projectA.publishArtifact()
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        server.start()
+
+        dist.testFile('build.gradle') << """
+repositories {
+    mavenRepo(name: 'repo', urls: 'http://localhost:${server.port}/repo1')
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.0'
+}
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar']
+}
+"""
+
+        executer.withTasks('listJars').run()
+        executer.withTasks('listJars').run()
+    }
+
+    @Test @Ignore
+    public void "can resolve and cache dependencies from multiple HTTP Maven repositories"() {
+        def projectA = repo().module('group', 'projectA')
+        def projectB = repo().module('group', 'projectB')
+        projectA.publishArtifact()
+        projectB.publishArtifact()
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        server.start()
+
+        dist.testFile('build.gradle') << """
+repositories {
+    mavenRepo(name: 'repo', urls: 'http://localhost:${server.port}/repo1')
+    mavenRepo(name: 'repo2', urls: 'http://localhost:${server.port}/repo2')
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.0', 'group:projectB:1.0'
+}
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
+}
+"""
+
+        executer.withTasks('listJars').run()
+        executer.withTasks('listJars').run()
+    }
+
+    MavenRepository repo() {
+        return new MavenRepository(dist.testFile('repo'))
+    }
 }

@@ -35,11 +35,25 @@ class HttpServer implements MethodRule {
     private Logger logger = LoggerFactory.getLogger(HttpServer.class)
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
+    private Throwable failure
 
     def HttpServer() {
         HandlerCollection handlers = new HandlerCollection()
+        handlers.addHandler(new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                println("handling http request: $request.method $target")
+            }
+        })
         handlers.addHandler(collection)
-        handlers.addHandler(new DefaultHandler())
+        handlers.addHandler(new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                if (request.handled) {
+                    return
+                }
+                failure = new AssertionError("Received unexpected ${request.method} request to ${target}.")
+                response.sendError(404, "'$target' does not exist")
+            }
+        })
         server.setHandler(handlers)
     }
 
@@ -59,6 +73,9 @@ class HttpServer implements MethodRule {
                     base.evaluate()
                 } finally {
                     stop()
+                }
+                if (failure != null) {
+                    throw failure
                 }
             }
         }
@@ -105,14 +122,25 @@ class HttpServer implements MethodRule {
     }
 
     /**
-     * Allow one GET request for the given URL. Reads the request content from the given file.
+     * Allows one GET request for the given URL, which return 404 status code
+     */
+    def expectGetMissing(String path) {
+        allow(path, true, new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                response.sendError(404, "not found")
+            }
+        })
+    }
+
+    /**
+     * Allows one GET request for the given URL. Reads the request content from the given file.
      */
     def expectGet(String path, File srcFile) {
         expect(path, true, fileHandler(path, srcFile))
     }
 
     /**
-     * Allow one PUT request for the given URL. Writes the request content to the given file.
+     * Allows one PUT request for the given URL. Writes the request content to the given file.
      */
     def expectPut(String path, File destFile) {
         expect(path, false, new AbstractHandler() {
@@ -123,7 +151,7 @@ class HttpServer implements MethodRule {
     }
 
     /**
-     * Allow one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
+     * Allows one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
      */
     def expectPut(String path, String username, String password, File destFile) {
         def realm = new TestUserRealm()
