@@ -17,8 +17,8 @@ package org.gradle.api.internal;
 
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.plugins.Convention;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;

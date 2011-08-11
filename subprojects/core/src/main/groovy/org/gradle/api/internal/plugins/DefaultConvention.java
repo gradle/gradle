@@ -27,10 +27,10 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class AbstractConvention implements Convention {
+public class DefaultConvention implements Convention {
 
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
-    private final AbstractConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
+    private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
 
     public Map<String, Object> getPlugins() {
