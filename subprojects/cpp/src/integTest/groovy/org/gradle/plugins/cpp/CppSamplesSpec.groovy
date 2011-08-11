@@ -43,7 +43,7 @@ class CppSamplesSpec extends AbstractIntegrationSpec {
         sample dependencies
         
         when:
-        run ":lib:uploadArchives", ":exe:compileMain"
+        run ":lib:uploadArchives", ":exe:compileMain", ":exe:uploadArchives"
         
         then:
         ":exe:mainExtractHeaders" in nonSkippedTasks
@@ -51,6 +51,7 @@ class CppSamplesSpec extends AbstractIntegrationSpec {
         
         and:
         file("cpp", "dependencies", "exe", "build", "binaries", "main").exec().out == "Hello, World!\n"
+        file("cpp", "dependencies", "exe", "build", "repo", "dependencies", "exe", "1.0", "exe-1.0.exe").exists()
     }
     
 }

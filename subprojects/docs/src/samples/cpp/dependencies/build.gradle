@@ -16,7 +16,10 @@ project(":lib") {
 project(":exe") {
     apply plugin: "cpp-exe"
     apply plugin: "eclipse-cdt"
+    apply plugin: "maven"
 
+    version = 1.0
+    
     repositories {
         mavenRepo urls: "file://${new File(project(":lib").buildDir, "repo").absolutePath}"
     }
@@ -25,6 +28,14 @@ project(":exe") {
         sourceSets {
             main {
                 dependency group: "dependencies", name: "lib", version: "1.0"
+            }
+        }
+    }
+    
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: uri("${buildDir}/repo"))
             }
         }
     }

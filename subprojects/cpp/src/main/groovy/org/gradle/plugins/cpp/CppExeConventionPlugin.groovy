@@ -18,6 +18,8 @@ package org.gradle.plugins.cpp
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+
 class CppExeConventionPlugin implements Plugin<Project> {
 
     void apply(Project project) {
@@ -33,6 +35,22 @@ class CppExeConventionPlugin implements Plugin<Project> {
                 main {
                     sourceSets << cpp.sourceSets.main
                 }
+            }
+            
+            def exeArtifact = new DefaultPublishArtifact(
+                archivesBaseName, // name
+                "exe", // ext
+                "exe", // type
+                null, // classifier
+                null, // date
+
+                // needs to be more general and not peer into the spec
+                executables.main.spec.outputFile,
+                executables.main.spec.task
+            )
+
+            artifacts {
+                archives exeArtifact
             }
         }
     }
