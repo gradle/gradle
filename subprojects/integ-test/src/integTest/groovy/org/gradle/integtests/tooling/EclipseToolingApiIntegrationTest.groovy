@@ -17,20 +17,17 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
 import org.gradle.util.TestFile
+
 import spock.lang.Issue
 
-class ToolingApiJavaProjectIntegrationTest extends ToolingApiSpecification {
+class EclipseToolingApiIntegrationTest extends ToolingApiSpecification {
     TestFile projectDir = dist.testDir
-    @Rule TemporaryFolder folder = new TemporaryFolder()
 
     @Issue("GRADLE-1621")
     def "can get Eclipse model for project with flatDir repo and external dependency without source Jar"() {
-        def repoDir = folder.createDir("repo")
+        def repoDir = projectDir.createDir("repo")
         repoDir.createFile("lib-1.0.jar")
 
         projectDir.file("build.gradle") << """
