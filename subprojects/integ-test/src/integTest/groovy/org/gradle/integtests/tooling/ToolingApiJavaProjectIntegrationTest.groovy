@@ -19,64 +19,29 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
+import org.gradle.util.TestFile
+import spock.lang.Issue
 
 class ToolingApiJavaProjectIntegrationTest extends ToolingApiSpecification {
-    def projectDir = dist.testDir
-    def repoDir = projectDir.file("repo")
+    TestFile projectDir = dist.testDir
+    @Rule TemporaryFolder folder = new TemporaryFolder()
 
-    def "can get model for project with external dependency"() {
-        projectDir.file("src/main/java/org/myorg/MyClass2.java") << """
-package org.myorg;
-
-public class MyClass2 extends MyClass1 {
-
-}
-        """
-
-        projectDir.file("src/test/java/org/myorg/MyTest2.java") << """
-package org.myorg;
-
-public class MyTest2 extends MyTest1 {
-
-}
-        """
+    @Issue("GRADLE-1621")
+    def "can get Eclipse model for project with flatDir repo and external dependency without source Jar"() {
+        def repoDir = folder.createDir("repo")
+        repoDir.createFile("lib-1.0.jar")
 
         projectDir.file("build.gradle") << """
-        apply plugin: 'java'
-apply plugin: 'maven'
-
-group = "org.myorg"
-version = "0.1"
+apply plugin: "java"
 
 repositories {
-	flatDir(name: 'fileRepo', dirs: "/swd/tmp/Testprojects_flatDirRepo/repo") //use a shared flat dir repo
+	flatDir(dirs: "$repoDir")
 }
-
-
-uploadArchives {
-	repositories {
-		add project.repositories.fileRepo
-	}
-}
-
-//generates tests jar
-task packageTests(type: Jar, dependsOn: 'testClasses') {
-	from sourceSets.test.classes
-	classifier = 'tests'
-}
-
-artifacts {
-	/*
-	 * adds test jars to archives to be uploaded
-	 */
-	archives (packageTests)
-}
-
 
 dependencies {
-	compile 'org.myorg:Testproject1:0.1'
-
-	testCompile 'org.myorg:Testproject1:0.1:tests'
+	compile "some:lib:1.0"
 }
         """
 

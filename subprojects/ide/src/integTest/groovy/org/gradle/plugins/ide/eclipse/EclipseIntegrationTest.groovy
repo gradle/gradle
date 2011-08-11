@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     private static String nonAscii = "\\u7777\\u8888\\u9999"
@@ -325,20 +326,22 @@ eclipse {
     }
 
     @Test
-    void canHandleDependencyWithoutSourceJar() {
-        runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+    @Issue("GRADLE-1157")
+    void canHandleDependencyWithoutSourceJarInFlatDirRepo() {
+        def repoDir = testDir.createDir("repo")
+        repoDir.createFile("lib-1.0.jar")
+
+        runEclipseTask """
+apply plugin: "java"
+apply plugin: "eclipse"
 
 repositories {
-	flatDir(name: 'fileRepo', dirs: "/swd/tmp/Testprojects_flatDirRepo/repo") //use a shared flat dir repo
+	flatDir(dirs: "$repoDir")
 }
 
 dependencies {
-	compile 'org.myorg:Testproject1:0.1'
-
-	//testCompile 'org.myorg:Testproject1:0.1:tests'
+	compile "some:lib:1.0"
 }
-        '''
+        """
     }
 }
