@@ -24,6 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.*
+import org.gradle.util.OperatingSystem
 
 class ApplicationIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -59,7 +60,11 @@ class Main {
         def builder = new ScriptExecuter()
         builder.workingDir distribution.testDir.file('build/install/application/bin')
         builder.executable "application"
-        builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2=\'some value\' -DtestValue3=some\\ value')
+        if (OperatingSystem.current().windows) {
+            builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2="some value" -DtestValue3="some value"')
+        } else {
+            builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2=\'some value\' -DtestValue3=some\\ value')
+        }
 
         def result = builder.run()
 

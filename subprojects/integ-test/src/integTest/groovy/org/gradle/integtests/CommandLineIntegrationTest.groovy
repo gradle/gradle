@@ -153,8 +153,8 @@ public class CommandLineIntegrationTest {
     @Test
     public void usesScriptBaseNameAsApplicationNameForUseInLogMessages() {
         def binDir = dist.gradleHomeDir.file('bin')
-        def newScript = binDir.file('my app')
-        binDir.file('gradle').copyTo(newScript)
+        def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
+        binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
         def chmod = new Chmod()
         chmod.file = newScript
         chmod.perm = "700"
