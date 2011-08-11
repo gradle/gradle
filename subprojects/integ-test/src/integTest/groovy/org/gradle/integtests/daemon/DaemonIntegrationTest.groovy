@@ -17,6 +17,8 @@
 package org.gradle.integtests.daemon
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.util.GUtil
+import org.junit.Ignore
 import org.junit.Test
 import spock.lang.Issue
 
@@ -25,11 +27,14 @@ import spock.lang.Issue
  */
 class DaemonIntegrationTest extends AbstractIntegrationTest {
 
+//  Below tests make much more sense when ran against daemon executor (e.g. daemonIntegTest from the console).
+//  For development you can uncomment the useDaemon rule temporarily
+
 //    @Rule public final MethodRule useDaemon = new UseDaemon()
 
     @Issue("GRADLE-1249")
     @Test
-    void "daemon should use the current working dir"() {
+    void "gradle uses the current working dir"() {
         System.properties['user.dir'] = distribution.testDir.absolutePath
 
         file('build.gradle') << """
@@ -45,7 +50,7 @@ task assertWorkDir << {
 
     @Issue("GRADLE-1296")
     @Test
-    void "daemon should have system properties passed to the client"() {
+    void "gradle should know the system properties"() {
         file('build.gradle') << """
 task assertSysProp << {
     assert System.properties['foo'] == 'bar'
@@ -53,6 +58,24 @@ task assertSysProp << {
 """
         //when
         executer.withArguments("-Dfoo=bar").withTasks('assertSysProp').run()
+
+        //then no exceptions thrown
+    }
+
+    @Issue("GRADLE-1296")
+    @Test
+    @Ignore
+    //I don't think it is easily testable with the daemon
+    //the problem is that if the daemon process is already alive we cannot alter its env. variables.
+    void "gradle should know the env variables"() {
+        file('build.gradle') << """
+task assertEnv << {
+    assert System.getenv('foo') == 'bar'
+}
+"""
+        //when
+        executer.reset()
+        executer.withEnvironmentVars(GUtil.map("foo", "bar")).withTasks('assertEnv').run()
 
         //then no exceptions thrown
     }
