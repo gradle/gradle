@@ -219,10 +219,10 @@ class DefaultCacheFactoryTest extends Specification {
         given:
         def factory1 = factoryFactory.create()
         def factory2 = factoryFactory.create()
-        def oldCache = factory1.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'], LockMode.Shared, CrossVersionMode.VersionSpecific, null)
-        factory2.openIndexedCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], LockMode.Shared, CrossVersionMode.VersionSpecific, null)
-        factory2.openStateCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], LockMode.Shared, CrossVersionMode.VersionSpecific, null)
-        factory2.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'], LockMode.Shared, CrossVersionMode.VersionSpecific, null)
+        def oldCache = factory1.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'], LockMode.Exclusive, CrossVersionMode.VersionSpecific, null)
+        factory2.openIndexedCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], LockMode.Exclusive, CrossVersionMode.VersionSpecific, null)
+        factory2.openStateCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], LockMode.Exclusive, CrossVersionMode.VersionSpecific, null)
+        factory2.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'], LockMode.Exclusive, CrossVersionMode.VersionSpecific, null)
 
         when:
         factory1.close()
