@@ -86,7 +86,7 @@ class CprojectSettings {
             }
         }
 
-        def extension = binary.spec.extension
+        def extension = binary.spec.extension ?: ""
         def type 
         if (binary instanceof Library) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.sharedLib"

@@ -27,12 +27,12 @@ class CprojectDescriptor extends XmlPersistableConfigurationObject {
     static public final String GNU_COMPILER_TOOL_INCLUDE_PATHS_OPTION_PREFIX = "gnu.cpp.compiler.option.include.paths"
 
     // linux
-    // static public final String GNU_LINKER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.gnu.cpp.linker"
-    // static public final String GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX = "gnu.cpp.link.option.userobjs"
+    static public final String GNU_LINKER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.gnu.cpp.linker"
+    static public final String GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX = "gnu.cpp.link.option.userobjs"
 
     // mac
-    static public final String GNU_LINKER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.macosx.cpp.linker.macosx"
-    static public final String GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX = "macosx.cpp.link.option.userobjs"
+    // static public final String GNU_LINKER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.macosx.cpp.linker.macosx"
+    // static public final String GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX = "macosx.cpp.link.option.userobjs"
 
     CprojectDescriptor() {
         super(new XmlTransformer())
