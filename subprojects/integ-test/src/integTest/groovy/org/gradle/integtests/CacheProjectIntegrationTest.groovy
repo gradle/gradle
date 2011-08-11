@@ -63,14 +63,14 @@ class CacheProjectIntegrationTest {
         TestFile.Snapshot classFileSnapshot = classFile.snapshot()
         TestFile.Snapshot artifactsCacheSnapshot = artifactsCache.snapshot()
 
-        testBuild("hello2", "Hello 2")
+        testBuild("hello1", "Hello 1")
         classFile.assertHasNotChangedSince(classFileSnapshot)
         artifactsCache.assertHasNotChangedSince(artifactsCacheSnapshot)
 
         modifyLargeBuildScript()
         testBuild("newTask", "I am new")
         classFile.assertHasChangedSince(classFileSnapshot)
-        artifactsCache.assertHasNotChangedSince(artifactsCacheSnapshot)
+        artifactsCache.assertHasChangedSince(artifactsCacheSnapshot)
         classFileSnapshot = classFile.snapshot()
         artifactsCacheSnapshot = artifactsCache.snapshot()
 
@@ -80,7 +80,7 @@ class CacheProjectIntegrationTest {
     }
 
     private def testBuild(String taskName, String expected, String... args) {
-        executer.inDirectory(projectDir).withTasks(taskName).withArguments(args).withQuietLogging().run()
+        executer.inDirectory(projectDir).withTasks(taskName).withArguments(args).run()
         assertEquals(expected, projectDir.file(TEST_FILE).text)
         classFile.assertIsFile()
         propertiesFile.assertIsFile()
@@ -94,10 +94,13 @@ class CacheProjectIntegrationTest {
         File buildFile = projectDir.file('build.gradle')
         String content = ""
         50.times {i ->
-            content += """task 'hello$i' << {
+            content += """task 'hello$i' {
     File file = file('$TEST_FILE')
-    file.parentFile.mkdirs()
-    file.write('Hello $i')
+    outputs.file file
+    doLast {
+        file.parentFile.mkdirs()
+        file.write('Hello $i')
+    }
 }
 
 void someMethod$i() {
@@ -112,10 +115,13 @@ void someMethod$i() {
     def void modifyLargeBuildScript() {
         File buildFile = projectDir.file('build.gradle')
         String newContent = buildFile.text + """
-task newTask << {
+task newTask {
     File file = file('$TEST_FILE')
-    file.parentFile.mkdirs()
-    file.write('I am new')
+    outputs.file file
+    doLast {
+        file.parentFile.mkdirs()
+        file.write('I am new')
+    }
 }
 """
         buildFile.write(newContent)

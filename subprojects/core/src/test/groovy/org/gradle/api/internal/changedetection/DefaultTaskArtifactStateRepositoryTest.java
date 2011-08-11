@@ -44,7 +44,6 @@ import static org.junit.Assert.*;
 public class DefaultTaskArtifactStateRepositoryTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
-    private CacheRepository cacheRepository;
     private final ProjectInternal project = HelperUtil.createRootProject();
     private final Gradle gradle = project.getGradle();
     private final TestFile outputFile = tmpDir.file("output-file");
@@ -64,7 +63,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     @Before
     public void setup() {
-        cacheRepository = new DefaultCacheRepository(tmpDir.createDir("user-home"), "cache", CacheUsage.ON, new InMemoryCacheFactory());
+        CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.createDir("user-home"), "cache", CacheUsage.ON, new InMemoryCacheFactory());
         FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheRepository, gradle);
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheRepository, new CacheBackedFileSnapshotRepository(cacheRepository, gradle), gradle);
@@ -477,25 +476,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void artifactsAreNotUpToDateWhenTaskDoesNotProduceAnyOutputs() {
-        TaskInternal task = builder().doesNotProduceOutput().task();
-        execute(task);
-
-        TaskArtifactState state = repository.getStateFor(task);
-        assertFalse(state.isUpToDate());
-    }
-
-    @Test
-    public void taskHistoryIsEmptyWhenTaskDoesNotProduceAnyOutout() {
-        TaskInternal task = builder().doesNotProduceOutput().task();
-        execute(task);
-
-        TaskArtifactState state = repository.getStateFor(task);
-        assertFalse(state.isUpToDate());
-        assertThat(state.getExecutionHistory().getOutputFiles(), isEmpty());
-    }
-
-    @Test
     public void artifactsAreUpToDateWhenTaskHasNoInputFiles() {
         TaskInternal task = builder().withInputFiles().task();
         execute(task);
@@ -588,11 +568,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
         TaskBuilder doesNotAcceptInput() {
             inputs = null;
             inputProperties = null;
-            return this;
-        }
-
-        public TaskBuilder doesNotProduceOutput() {
-            outputs = null;
             return this;
         }
 

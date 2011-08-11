@@ -26,6 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Chmod
+import org.gradle.util.PosixUtil
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -118,21 +119,20 @@ public class CommandLineIntegrationTest {
     @Test
     public void allowsReconfiguringProjectCacheDirWithRelativeDir() {
         //given
-        dist.testFile("build.gradle").write "task foo << { println 'foo' }"
+        dist.testFile("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
 
         //when
         executer.withTasks("foo").withArguments("--project-cache-dir", ".foo").run()
 
         //then
-        dist.testFile(".foo").assertExists()
+        assert dist.testFile(".foo").exists()
     }
 
     @Test
     public void allowsReconfiguringProjectCacheDirWithAbsoluteDir() {
         //given
-        dist.testFile("build.gradle").write "task foo << { println 'foo' }"
+        dist.testFile("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
         File someAbsoluteDir = dist.testFile("foo/bar/baz").absoluteFile
-        someAbsoluteDir.mkdirs()
         assert someAbsoluteDir.absolute
 
         //when
@@ -148,6 +148,20 @@ public class CommandLineIntegrationTest {
         File gradleUserHomeDir = dist.testFile("customUserHome")
         File systemPropGradleUserHomeDir = dist.testFile("systemPropCustomUserHome")
         executer.withUserHomeDir(null).withArguments("-Dgradle.user.home=" + systemPropGradleUserHomeDir.absolutePath).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkSystemPropertyGradleUserHomeHasPrecedence").run()
+    }
+
+    @Test
+    public void resolvesLinksWhenDeterminingHomeDirectory() {
+        if (OperatingSystem.current().isWindows()) {
+            return
+        }
+
+        def script = dist.testFile('bin/my app')
+        script.parentFile.createDir()
+        PosixUtil.current().symlink(dist.gradleHomeDir.file('bin/gradle').absolutePath, script.absolutePath)
+
+        def result = executer.usingExecutable(script.absolutePath).withTasks("help").run()
+        assert result.output.contains("my app")
     }
 
     @Test

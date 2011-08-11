@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,16 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.StartParameter;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
+    private static final Logger LOGGER = Logging.getLogger(ShortCircuitTaskArtifactStateRepository.class);
     private final StartParameter startParameter;
     private final TaskArtifactStateRepository repository;
 
@@ -29,27 +34,63 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
-        final TaskArtifactState state = repository.getStateFor(task);
-        return new TaskArtifactState() {
-            public boolean isUpToDate() {
-                return !startParameter.isNoOpt() && task.getOutputs().getUpToDateSpec().isSatisfiedBy(task) && state.isUpToDate();
-            }
+        if (task.getOutputs().getHasOutput()) {
+            return new ShortCircuitArtifactState(task, repository.getStateFor(task));
+        }
+        LOGGER.info(String.format("%s has not declared any outputs, assuming that it is out-of-date.", StringUtils.capitalize(task.toString())));
+        return new NoHistoryArtifactState();
+    }
 
-            public TaskExecutionHistory getExecutionHistory() {
-                return state.getExecutionHistory();
-            }
+    private static class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
+        public boolean isUpToDate() {
+            return false;
+        }
 
-            public void beforeTask() {
-                state.beforeTask();
-            }
+        public void beforeTask() {
+        }
 
-            public void afterTask() {
-                state.afterTask();
-            }
+        public void afterTask() {
+        }
 
-            public void finished() {
-                state.finished();
-            }
-        };
+        public void finished() {
+        }
+
+        public TaskExecutionHistory getExecutionHistory() {
+            return this;
+        }
+
+        public FileCollection getOutputFiles() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private class ShortCircuitArtifactState implements TaskArtifactState {
+        private final TaskInternal task;
+        private final TaskArtifactState state;
+
+        public ShortCircuitArtifactState(TaskInternal task, TaskArtifactState state) {
+            this.task = task;
+            this.state = state;
+        }
+
+        public boolean isUpToDate() {
+            return !startParameter.isNoOpt() && task.getOutputs().getUpToDateSpec().isSatisfiedBy(task) && state.isUpToDate();
+        }
+
+        public TaskExecutionHistory getExecutionHistory() {
+            return state.getExecutionHistory();
+        }
+
+        public void beforeTask() {
+            state.beforeTask();
+        }
+
+        public void afterTask() {
+            state.afterTask();
+        }
+
+        public void finished() {
+            state.finished();
+        }
     }
 }

@@ -24,7 +24,6 @@ import org.gradle.api.specs.Spec;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,25 +35,27 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final StartParameter startParameter = new StartParameter();
     private final TaskArtifactStateRepository delegate = context.mock(TaskArtifactStateRepository.class);
-    private final TaskInternal task = context.mock(TaskInternal.class);
     private final TaskArtifactState taskArtifactState = context.mock(TaskArtifactState.class);
     private final TaskOutputsInternal taskOutputsInternal = context.mock(TaskOutputsInternal.class);
     private final Spec<Task> upToDateSpec = context.mock(Spec.class);
     private final ShortCircuitTaskArtifactStateRepository repository = new ShortCircuitTaskArtifactStateRepository(startParameter, delegate);
 
-    @Before
-    public void setup() {
-        context.checking(new Expectations() {{
-            allowing(task).getOutputs();
-            will(returnValue(taskOutputsInternal));
-            allowing(taskOutputsInternal).getUpToDateSpec();
-            will(returnValue(upToDateSpec));
-        }});
-    }
-
     @Test
-    public void delegatesToBackingRepositoryToCreateStateObject() {
-        expectTaskStateCreated();
+    public void doesNotCreateStateObjectWhenTaskHasNotDeclaredAnyOutputs() {
+        TaskInternal task = taskWithNoOutputs();
+        TaskArtifactState state = repository.getStateFor(task);
+        assertNotNull(state);
+
+        assertFalse(state.isUpToDate());
+        state.beforeTask();
+        state.afterTask();
+        state.finished();
+    }
+    
+    @Test
+    public void delegatesToBackingRepositoryToCreateStateObjectForTaskThatHasDeclaredSomeOutputs() {
+        TaskInternal task = taskWithOutputs();
+        expectTaskStateCreated(task);
 
         TaskArtifactState state = repository.getStateFor(task);
         assertNotNull(state);
@@ -77,7 +78,8 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
 
     @Test
     public void taskArtifactsAreOutOfDateWhenStartParameterOverrideIsSet() {
-        expectTaskStateCreated();
+        TaskInternal task = taskWithOutputs();
+        expectTaskStateCreated(task);
 
         TaskArtifactState state = repository.getStateFor(task);
 
@@ -87,7 +89,8 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
 
     @Test
     public void taskArtifactsAreOutOfDateWhenUpToDateSpecIsFalse() {
-        expectTaskStateCreated();
+        final TaskInternal task = taskWithOutputs();
+        expectTaskStateCreated(task);
 
         TaskArtifactState state = repository.getStateFor(task);
 
@@ -101,7 +104,8 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
 
     @Test
     public void determinesWhetherTaskArtifactsAreUpToDateUsingBackingRepository() {
-        expectTaskStateCreated();
+        final TaskInternal task = taskWithOutputs();
+        expectTaskStateCreated(task);
 
         TaskArtifactState state = repository.getStateFor(task);
 
@@ -115,10 +119,36 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
         assertTrue(state.isUpToDate());
     }
 
-    private void expectTaskStateCreated() {
+    private void expectTaskStateCreated(final TaskInternal task) {
         context.checking(new Expectations() {{
             one(delegate).getStateFor(task);
             will(returnValue(taskArtifactState));
         }});
+    }
+
+    private TaskInternal taskWithOutputs() {
+        final TaskInternal task = context.mock(TaskInternal.class);
+        context.checking(new Expectations() {{
+            allowing(task).getOutputs();
+            will(returnValue(taskOutputsInternal));
+            allowing(taskOutputsInternal).getHasOutput();
+            will(returnValue(true));
+            allowing(taskOutputsInternal).getUpToDateSpec();
+            will(returnValue(upToDateSpec));
+        }});
+
+        return task;
+    }
+
+    private TaskInternal taskWithNoOutputs() {
+        final TaskInternal task = context.mock(TaskInternal.class);
+        context.checking(new Expectations() {{
+            allowing(task).getOutputs();
+            will(returnValue(taskOutputsInternal));
+            allowing(taskOutputsInternal).getHasOutput();
+            will(returnValue(false));
+        }});
+
+        return task;
     }
 }
