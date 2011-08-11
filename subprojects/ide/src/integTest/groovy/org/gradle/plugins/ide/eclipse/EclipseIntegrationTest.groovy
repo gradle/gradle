@@ -344,4 +344,24 @@ dependencies {
 }
         """
     }
+
+    @Test
+    @Issue("GRADLE-1706") // doesn't prove that the issue is fixed because the test also passes with 1.0-milestone-4
+    void canHandleDependencyWithoutSourceJarInMavenRepo() {
+        def repoDir = testDir.createDir("repo")
+        publishArtifact(repoDir, "some", "lib")
+
+        runEclipseTask """
+apply plugin: "java"
+apply plugin: "eclipse"
+
+repositories {
+	mavenRepo urls: "${repoDir.toURI()}"
+}
+
+dependencies {
+	compile "some:lib:1.0"
+}
+        """
+    }
 }
