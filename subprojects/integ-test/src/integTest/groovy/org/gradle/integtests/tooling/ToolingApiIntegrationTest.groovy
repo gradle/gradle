@@ -22,8 +22,6 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Project
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
-import org.gradle.tooling.model.eclipse.EclipseProject
-import spock.lang.Issue
 
 class ToolingApiIntegrationTest extends ToolingApiSpecification {
     final BasicGradleDistribution otherVersion = dist.previousVersion('1.0-milestone-3')
