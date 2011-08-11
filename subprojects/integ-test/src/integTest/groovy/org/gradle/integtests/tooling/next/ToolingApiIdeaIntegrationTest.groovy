@@ -21,15 +21,6 @@ import org.gradle.tooling.model.idea.*
 
 class ToolingApiIdeaModelIntegrationTest extends ToolingApiSpecification {
 
-    def setup() {
-//        toolingApi.withConnector {
-//            it.useInstallation(new File(dist.gradleHomeDir.absolutePath))
-//            it.embedded(false)
-//            it.daemonMaxIdleTime(300, TimeUnit.SECONDS)
-//            DaemonGradleExecuter.registerDaemon(dist.userHomeDir)
-//        }
-    }
-
     def "builds the model even if idea plugin not applied"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''

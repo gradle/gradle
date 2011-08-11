@@ -21,15 +21,6 @@ import org.gradle.tooling.model.GradleTask
 
 class ToolingApiGradleProjectIntegrationTest extends ToolingApiSpecification {
 
-    def setup() {
-//        toolingApi.withConnector {
-//            it.useInstallation(new File(dist.gradleHomeDir.absolutePath))
-//            it.embedded(false)
-//            it.daemonMaxIdleTime(300, TimeUnit.SECONDS)
-//            DaemonGradleExecuter.registerDaemon(dist.userHomeDir)
-//        }
-    }
-
     def "provides tasks of a project"() {
         dist.testFile('build.gradle') << '''
 task a {
