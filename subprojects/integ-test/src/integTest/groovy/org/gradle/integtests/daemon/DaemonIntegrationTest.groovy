@@ -18,7 +18,9 @@ package org.gradle.integtests.daemon
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.GUtil
+import org.gradle.util.SetSystemProperties
 import org.junit.Ignore
+import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
 
@@ -31,6 +33,8 @@ class DaemonIntegrationTest extends AbstractIntegrationTest {
 //  For development you can uncomment the useDaemon rule temporarily
 
 //    @Rule public final MethodRule useDaemon = new UseDaemon()
+
+    @Rule public final SetSystemProperties systemProperties = new SetSystemProperties()
 
     @Issue("GRADLE-1249")
     @Test
