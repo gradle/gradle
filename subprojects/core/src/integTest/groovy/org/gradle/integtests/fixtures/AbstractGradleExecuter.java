@@ -232,8 +232,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("--no-search-upward");
         }
         if (userHomeDir != null) {
-            args.add("--gradle-user-home");
-            args.add(userHomeDir.getAbsolutePath());
+            allArgs.add("--gradle-user-home");
+            allArgs.add(userHomeDir.getAbsolutePath());
         }
         allArgs.addAll(args);
         allArgs.addAll(tasks);
