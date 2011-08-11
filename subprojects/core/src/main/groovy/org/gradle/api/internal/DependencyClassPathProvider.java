@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.util.GUtil;
 
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -37,7 +39,12 @@ public class DependencyClassPathProvider extends AbstractClassPathProvider {
     }
 
     private void getRuntimeClasspath(String projectName, ClassLoader classLoader, Collection<Pattern> patterns) {
-        Properties properties = GUtil.loadProperties(classLoader.getResource(String.format("%s-classpath.properties", projectName)));
+        String resource = String.format("%s-classpath.properties", projectName);
+        URL url = classLoader.getResource(resource);
+        if (url == null) {
+            throw new GradleException(String.format("Cannot find classpath resource '%s'.", resource));
+        }
+        Properties properties = GUtil.loadProperties(url);
         patterns.addAll(jarNames(Arrays.asList(properties.getProperty("runtime").split(","))));
         patterns.addAll(toPatterns(projectName));
     }
