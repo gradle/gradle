@@ -16,22 +16,33 @@
 package org.gradle.cache;
 
 /**
- * A repository of persistent caches. There are 3 types of caches:
+ * A repository of persistent caches and stores. A <em>store</em> is a store for persistent data. A <em>cache</em> is a store for persistent cache data. The only real difference
+ * between the two is that a store cannot be invalidated, whereas a cache can be invalidated when things change. For example, running with {@code --cache rebuild} will invalidate
+ * the contents of all caches, but not the contents of any stores.
+ *
+ * <p>There are 3 types of caches and stores:
  *
  * <ul>
  *
- * <li>A directory backed cache, represented by {@link PersistentCache}. The caller is responsible for managing the contents of this directory.</li>
+ * <li>A directory backed store, represented by {@link PersistentCache}. The caller is responsible for managing the contents of this directory.</li>
  *
- * <li>An indexed cache, essentially a persistent Map, represented by {@link PersistentIndexedCache}.</li>
+ * <li>An indexed store, essentially a persistent Map, represented by {@link PersistentIndexedCache}.</li>
  *
- * <li>A state cache, a single persistent value, represented by {@link PersistentStateCache}.</li>
+ * <li>A state store, containing a single persistent value, represented by {@link PersistentStateCache}.</li>
  *
  * </ul>
  */
 public interface CacheRepository {
     /**
-     * Returns a builder for the cache with the given key. Default is a Gradle version-specific cache shared by all
-     * builds, though this can be changed using the given builder.
+     * Returns a builder for the store with the given key. Default is a Gradle version-specific store shared by all builds, though this can be changed using the given builder.
+     *
+     * @param key The cache key.
+     * @return The builder.
+     */
+    DirectoryCacheBuilder store(String key);
+
+    /**
+     * Returns a builder for the cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be changed using the given builder.
      *
      * @param key The cache key.
      * @return The builder.
@@ -39,19 +50,22 @@ public interface CacheRepository {
     DirectoryCacheBuilder cache(String key);
 
     /**
-     * Returns a builder for the state cache with the given key. Default is a Gradle version-specific cache shared by all
-     * builds, though this can be changed using the given builder.
+     * Returns a builder for the state cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be changed using the given
+     * builder.
      *
      * @param key The cache key.
+     * @param elementType The type of element kept in the cache.
      * @return The builder.
      */
     <E> ObjectCacheBuilder<E, PersistentStateCache<E>> stateCache(Class<E> elementType, String key);
 
     /**
-     * Returns a builder for the indexed cache with the given key. Default is a Gradle version-specific cache shared by all
-     * builds, though this can be changed using the given builder.
+     * Returns a builder for the indexed cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be changed using the given
+     * builder.
      *
      * @param key The cache key.
+     * @param keyType The type of key kept in the cache.
+     * @param elementType The type of element kept in the cache.
      * @return The builder.
      */
     <K, V> ObjectCacheBuilder<V, PersistentIndexedCache<K, V>> indexedCache(Class<K> keyType, Class<V> elementType, String key);

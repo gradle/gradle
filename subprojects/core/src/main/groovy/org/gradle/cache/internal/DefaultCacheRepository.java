@@ -43,8 +43,12 @@ public class DefaultCacheRepository implements CacheRepository {
         this.cacheUsage = cacheUsage;
     }
 
+    public DirectoryCacheBuilder store(String key) {
+        return new PersistentCacheBuilder(key, CacheUsage.ON);
+    }
+
     public DirectoryCacheBuilder cache(String key) {
-        return new PersistentCacheBuilder(key);
+        return new PersistentCacheBuilder(key, cacheUsage);
     }
 
     public <E> ObjectCacheBuilder<E, PersistentStateCache<E>> stateCache(Class<E> elementType, String key) {
@@ -126,9 +130,11 @@ public class DefaultCacheRepository implements CacheRepository {
 
     private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> implements DirectoryCacheBuilder {
         private Action<? super PersistentCache> initializer;
+        private final CacheUsage cacheUsage;
 
-        private PersistentCacheBuilder(String key) {
+        private PersistentCacheBuilder(String key, CacheUsage cacheUsage) {
             super(key);
+            this.cacheUsage = cacheUsage;
         }
 
         @Override

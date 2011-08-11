@@ -36,7 +36,7 @@ class IvySettingsFactoryTest extends Specification {
         then:
         settings.defaultCache == cacheDir
         settings.defaultCacheArtifactPattern == ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN
-        1 * cacheRepository.cache("artifacts") >> cacheBuilder
+        1 * cacheRepository.store("artifacts") >> cacheBuilder
         1 * cacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> cacheBuilder
         1 * cacheBuilder.open() >> cache
         _ * cache.baseDir >> cacheDir

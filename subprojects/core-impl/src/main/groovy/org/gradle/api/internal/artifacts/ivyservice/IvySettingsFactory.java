@@ -33,7 +33,7 @@ public class IvySettingsFactory implements Factory<IvySettings> {
 
     public IvySettings create() {
         IvySettings ivySettings = new IvySettings();
-        PersistentCache cache = cacheRepository.cache("artifacts").withVersionStrategy(VersionStrategy.SharedCache).open();
+        PersistentCache cache = cacheRepository.store("artifacts").withVersionStrategy(VersionStrategy.SharedCache).open();
         ivySettings.setDefaultCache(cache.getBaseDir());
         ivySettings.setDefaultCacheIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);

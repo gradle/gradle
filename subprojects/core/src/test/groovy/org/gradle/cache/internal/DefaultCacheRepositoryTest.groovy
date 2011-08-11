@@ -53,6 +53,16 @@ class DefaultCacheRepositoryTest extends Specification {
         _ * project.projectDir >> buildRootDir
     }
 
+    public void createsGlobalDirectoryBackedStore() {
+        when:
+        def result = repository.store("a/b/c").open()
+
+        then:
+        result == cache
+        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
+        0 * cacheFactory._
+    }
+
     public void createsGlobalDirectoryBackedCache() {
         when:
         def result = repository.cache("a/b/c").open()
@@ -173,5 +183,17 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         1 * cacheFactory.open(sharedCacheDir.file(version, "a"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, action) >> cache
+    }
+
+    public void neverRebuildsAStore() {
+        def repository = new DefaultCacheRepository(homeDir, ".gradle", CacheUsage.REBUILD, cacheFactory)
+
+        when:
+        def result = repository.store("store").open()
+
+        then:
+        result == cache
+        1 * cacheFactory.open(sharedCacheDir.file(version, "store"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
+        0 * cacheFactory._
     }
 }
