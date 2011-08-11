@@ -1,5 +1,6 @@
 project(":lib") {
     apply plugin: "cpp-lib"
+    apply plugin: "eclipse-cdt"
     apply plugin: 'maven'
 
     version = 1.0

@@ -19,6 +19,8 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ConfigurableFileCollection
 
 import org.gradle.plugins.binaries.model.Binary
+import org.gradle.plugins.binaries.model.Library
+import org.gradle.plugins.binaries.model.Executable
 import org.gradle.plugins.binaries.model.HeaderExportingSourceSet
 import org.gradle.plugins.binaries.model.NativeDependencyCapableSourceSet
 
@@ -42,14 +44,14 @@ class CprojectSettings {
             includeRoots.builtBy(it.exportedHeaders) // have to manually add because we use srcDirs in from, not the real collection
             includeRoots.from(it.exportedHeaders.srcDirs)
         }
-        
+
         binary.sourceSets.withType(NativeDependencyCapableSourceSet).all {
             it.nativeDependencySets.all {
                 this.includeRoots.from(it.includeRoots)
                 this.libs.from(it.files)
             }
         }
-        
+
         binary.sourceSets.withType(CppSourceSet).all { sourceSet ->
             sourceSet.libs.all { lib ->
                 this.libs.from(lib.spec.outputFile)
@@ -75,13 +77,37 @@ class CprojectSettings {
                 includePathsOption.appendNode("listOptionValue", [builtIn: "false", value: includeRoot.absolutePath])
             }
         }
-        
+
         descriptor.rootCppLinkerTools.each { linker ->
             def libsOption = descriptor.getOrCreateLibsOption(linker)
             new LinkedList(libsOption.children()).each { libsOption.remove(it) }
             libs.each { lib ->
                 libsOption.appendNode("listOptionValue", [builtIn: "false", value: lib.absolutePath])
             }
+        }
+
+        def extension = binary.spec.extension
+        def type 
+        if (binary instanceof Library) {
+            type = "org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
+        } else if (binary instanceof Executable) {
+            type = "org.eclipse.cdt.build.core.buildArtefactType.exe"
+        } else {
+            throw new IllegalStateException("The binary $binary is of a type that we don't know about")
+        }
+        
+        descriptor.configurations.each { conf ->
+            conf.@buildArtefactType = type
+            conf.@artifactExtension = extension
+            def buildPropsPairs = conf.@buildProperties.split(",")
+            def buildProps = [:]
+            buildPropsPairs.each {
+                def parts = it.split("=", 2)
+                buildProps[parts[0]] = parts[1]
+            }
+            buildProps["org.eclipse.cdt.build.core.buildArtefactType"] = type
+            buildPropsPairs = buildProps.collect { k, v -> "$k=$v"}
+            conf.@buildProperties = buildPropsPairs.join(",")
         }
     }
 }
