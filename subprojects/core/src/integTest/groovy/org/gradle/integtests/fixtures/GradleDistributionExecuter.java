@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.GUtil;
+import org.gradle.util.SetSystemProperties;
 import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -36,22 +38,28 @@ import java.io.File;
 public class GradleDistributionExecuter extends AbstractGradleExecuter implements MethodRule {
     private static final String IGNORE_SYS_PROP = "org.gradle.integtest.ignore";
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
-    private static final Executer EXECUTER;
     private GradleDistribution dist;
     private boolean workingDirSet;
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
 
+    /**
+     * Useful at development time when someone wants to explicitly run some test against the daemon from the IDE.
+     * Rather not check-in any test that uses this rule because...
+     * our harness has nice ways of running all integ tests against particular gradle executer using task rules (e.g. daemonIntegTest, forkingIntegTest, etc.)
+     */
+    public static class UseDaemon extends SetSystemProperties implements MethodRule {
+        public UseDaemon() {
+            super(GUtil.map(EXECUTER_SYS_PROP, Executer.daemon.name()));
+        }
+    }
+
     public enum Executer {
         forking, embedded, daemon
     }
 
-    static {
-        EXECUTER = Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()).toLowerCase());
-    }
-
     public static Executer getExecuter() {
-        return EXECUTER;
+        return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()).toLowerCase());
     }
 
     public GradleDistributionExecuter(GradleDistribution dist) {
@@ -155,8 +163,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
         GradleExecuter returnedExecuter = inProcessGradleExecuter;
 
-        if (EXECUTER != Executer.embedded || !inProcessGradleExecuter.canExecute()) {
-            boolean useDaemon = EXECUTER == Executer.daemon && getExecutable() == null;
+        if (getExecuter() != Executer.embedded || !inProcessGradleExecuter.canExecute()) {
+            boolean useDaemon = getExecuter() == Executer.daemon && getExecutable() == null;
             ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist.getGradleHomeDir()) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
             TestFile tmpDir = getTmpDir();
