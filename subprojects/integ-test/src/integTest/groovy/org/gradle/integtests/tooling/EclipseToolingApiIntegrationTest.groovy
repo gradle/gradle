@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.TestFile
+import org.gradle.util.TextUtil
 
 import spock.lang.Issue
 
@@ -34,7 +35,7 @@ class EclipseToolingApiIntegrationTest extends ToolingApiSpecification {
 apply plugin: "java"
 
 repositories {
-	flatDir(dirs: "$repoDir")
+	flatDir(dirs: "${TextUtil.escapeString(repoDir)}")
 }
 
 dependencies {
