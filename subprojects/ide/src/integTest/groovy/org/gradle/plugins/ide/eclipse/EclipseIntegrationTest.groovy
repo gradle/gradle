@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
+import org.gradle.util.TextUtil
 
 class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     private static String nonAscii = "\\u7777\\u8888\\u9999"
@@ -336,7 +337,7 @@ apply plugin: "java"
 apply plugin: "eclipse"
 
 repositories {
-	flatDir(dirs: '${repoDir.absolutePath.replace('\\', '\\\\')}')
+	flatDir(dirs: "${TextUtil.escapeString(repoDir)}")
 }
 
 dependencies {
