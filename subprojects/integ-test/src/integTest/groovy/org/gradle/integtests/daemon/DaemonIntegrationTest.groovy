@@ -43,7 +43,7 @@ class DaemonIntegrationTest extends AbstractIntegrationTest {
 
         file('build.gradle') << """
 task assertWorkDir << {
-    assert new File('').absolutePath == "$distribution.testDir.absolutePath"
+    assert new File('').absolutePath == "${distribution.testDir.absolutePath.replace('\\', '\\\\')}"
 }
 """
         //when
