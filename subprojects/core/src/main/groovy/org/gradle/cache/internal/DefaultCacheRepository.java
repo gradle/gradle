@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.cache.internal.CacheFactory.CrossVersionMode;
-import static org.gradle.cache.internal.CacheFactory.LockMode;
+import static org.gradle.cache.internal.FileLockManager.LockMode;
 
 public class DefaultCacheRepository implements CacheRepository {
     private final GradleVersion version = GradleVersion.current();

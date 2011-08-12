@@ -30,6 +30,7 @@ import java.util.*;
 
 public class DefaultCacheFactory implements Factory<CacheFactory> {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
+    private final FileLockManager lockManager = new DefaultFileLockManager();
 
     public CacheFactory create() {
         return new CacheFactoryImpl();
@@ -50,11 +51,11 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
     private class CacheFactoryImpl implements CacheFactory {
         private final Collection<BasicCacheReference> caches = new HashSet<BasicCacheReference>();
 
-        private DirCacheReference doOpenDir(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> action) {
+        private DirCacheReference doOpenDir(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> action) {
             File canonicalDir = GFileUtils.canonicalise(cacheDir);
             DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
             if (dirCacheReference == null) {
-                DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(canonicalDir, usage, properties, lockMode, action);
+                DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(canonicalDir, usage, properties, lockMode, action, lockManager);
                 dirCacheReference = new DirCacheReference(cache, properties, lockMode);
                 dirCaches.put(canonicalDir, dirCacheReference);
             } else {
@@ -75,28 +76,28 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
             return dirCacheReference;
         }
 
-        public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) {
+        public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) {
             DirCacheReference dirCacheReference = doOpenDir(cacheDir, usage, properties, lockMode, initializer);
             return dirCacheReference.getCache();
         }
 
-        public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<E> serializer) {
-            if (lockMode == LockMode.Shared) {
+        public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<E> serializer) {
+            if (lockMode == FileLockManager.LockMode.Shared) {
                 throw new UnsupportedOperationException("No shared state cache implementation available.");
             }
-            StateCacheReference<E> cacheReference = doOpenDir(cacheDir, usage, properties, LockMode.Exclusive, null).getStateCache(serializer);
+            StateCacheReference<E> cacheReference = doOpenDir(cacheDir, usage, properties, FileLockManager.LockMode.Exclusive, null).getStateCache(serializer);
             cacheReference.addReference(this);
             return cacheReference.getCache();
         }
 
-        public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<V> serializer) {
-            if (lockMode == LockMode.Shared) {
+        public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<V> serializer) {
+            if (lockMode == FileLockManager.LockMode.Shared) {
                 throw new UnsupportedOperationException("No indexed cache implementation is available that can be shared by multiple processes.");
             }
             if (crossVersionMode == CrossVersionMode.CrossVersion) {
                 throw new UnsupportedOperationException("No indexed cache implementation is available that can be used by multiple Gradle versions.");
             }
-            IndexedCacheReference<K, V> cacheReference = doOpenDir(cacheDir, usage, properties, LockMode.Exclusive, null).getIndexedCache(serializer);
+            IndexedCacheReference<K, V> cacheReference = doOpenDir(cacheDir, usage, properties, FileLockManager.LockMode.Exclusive, null).getIndexedCache(serializer);
             cacheReference.addReference(this);
             return cacheReference.getCache();
         }
@@ -145,12 +146,12 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
     private class DirCacheReference extends BasicCacheReference<DefaultPersistentDirectoryCache> {
         private final Map<String, ?> properties;
-        private final CacheFactory.LockMode lockMode;
+        private final FileLockManager.LockMode lockMode;
         IndexedCacheReference indexedCache;
         StateCacheReference stateCache;
         CacheFactoryImpl rebuiltBy;
 
-        public DirCacheReference(DefaultPersistentDirectoryCache cache, Map<String, ?> properties, CacheFactory.LockMode lockMode) {
+        public DirCacheReference(DefaultPersistentDirectoryCache cache, Map<String, ?> properties, FileLockManager.LockMode lockMode) {
             super(cache);
             this.properties = properties;
             this.lockMode = lockMode;

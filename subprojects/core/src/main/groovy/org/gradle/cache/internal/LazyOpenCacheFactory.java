@@ -32,7 +32,7 @@ public class LazyOpenCacheFactory implements CacheFactory {
         this.cacheFactory = cacheFactory;
     }
 
-    public PersistentCache open(final File cacheDir, final CacheUsage usage, final Map<String, ?> properties, final LockMode lockMode, final CrossVersionMode crossVersionMode, final Action<? super PersistentCache> initializer) throws CacheOpenException {
+    public PersistentCache open(final File cacheDir, final CacheUsage usage, final Map<String, ?> properties, final FileLockManager.LockMode lockMode, final CrossVersionMode crossVersionMode, final Action<? super PersistentCache> initializer) throws CacheOpenException {
         Factory<PersistentCache> factory = new Factory<PersistentCache>() {
             public PersistentCache create() {
                 return cacheFactory.open(cacheDir, usage, new HashMap<String, Object>(properties), lockMode, crossVersionMode, initializer);
@@ -41,7 +41,7 @@ public class LazyOpenCacheFactory implements CacheFactory {
         return new LazyCreationProxy<PersistentCache>(PersistentCache.class, factory).getSource();
     }
 
-    public <E> PersistentStateCache<E> openStateCache(final File cacheDir, final CacheUsage usage, final Map<String, ?> properties, final LockMode lockMode, final CrossVersionMode crossVersionMode, final Serializer<E> serializer) throws CacheOpenException {
+    public <E> PersistentStateCache<E> openStateCache(final File cacheDir, final CacheUsage usage, final Map<String, ?> properties, final FileLockManager.LockMode lockMode, final CrossVersionMode crossVersionMode, final Serializer<E> serializer) throws CacheOpenException {
         Factory<PersistentStateCache<E>> factory = new Factory<PersistentStateCache<E>>() {
             public PersistentStateCache<E> create() {
                 return cacheFactory.openStateCache(cacheDir, usage, new HashMap<String, Object>(properties), lockMode, crossVersionMode, serializer);
@@ -50,7 +50,7 @@ public class LazyOpenCacheFactory implements CacheFactory {
         return new LazyCreationProxy<PersistentStateCache>(PersistentStateCache.class, factory).getSource();
     }
 
-    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(final File cacheDir, final CacheUsage usage, final Map<String, ?> properties, final LockMode lockMode, final CrossVersionMode crossVersionMode, final Serializer<V> serializer) throws CacheOpenException {
+    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(final File cacheDir, final CacheUsage usage, final Map<String, ?> properties, final FileLockManager.LockMode lockMode, final CrossVersionMode crossVersionMode, final Serializer<V> serializer) throws CacheOpenException {
         Factory<PersistentIndexedCache<K, V>> factory = new Factory<PersistentIndexedCache<K, V>>() {
             public PersistentIndexedCache<K, V> create() {
                 return cacheFactory.openIndexedCache(cacheDir, usage, new HashMap<String, Object>(properties), lockMode, crossVersionMode, serializer);

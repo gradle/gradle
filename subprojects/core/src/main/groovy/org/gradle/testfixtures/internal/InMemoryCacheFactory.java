@@ -20,13 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.SimpleStateCache;
 
 import java.io.File;
 import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
-    public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) {
+    public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) {
         cacheDir.mkdirs();
         InMemoryCache cache = new InMemoryCache(cacheDir);
         if (initializer != null) {
@@ -35,11 +36,11 @@ public class InMemoryCacheFactory implements CacheFactory {
         return cache;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<V> serializer) {
+    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<V> serializer) {
         return new InMemoryIndexedCache<K, V>();
     }
 
-    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<E> serializer) {
+    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<E> serializer) {
         cacheDir.mkdirs();
         return new SimpleStateCache<E>(cacheDir, new DefaultSerializer<E>());
     }

@@ -23,7 +23,7 @@ import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.cache.internal.CacheFactory.LockMode
+
 import org.gradle.cache.CacheBuilder.VersionStrategy
 import org.gradle.api.Action
 
@@ -59,7 +59,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         result == cache
-        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
         0 * cacheFactory._
     }
 
@@ -69,7 +69,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         result == cache
-        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
         0 * cacheFactory._
     }
 
@@ -82,7 +82,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         result == indexedCache
-        1 * cacheFactory.openIndexedCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, [:], LockMode.Exclusive, CrossVersionMode.VersionSpecific, {it instanceof DefaultSerializer}) >> indexedCache
+        1 * cacheFactory.openIndexedCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, [:], FileLockManager.LockMode.Exclusive, CrossVersionMode.VersionSpecific, {it instanceof DefaultSerializer}) >> indexedCache
         0 * cacheFactory._
     }
 
@@ -95,7 +95,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         result == stateCache
-        1 * cacheFactory.openStateCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, [:], LockMode.Exclusive, CrossVersionMode.VersionSpecific, {it instanceof DefaultSerializer}) >> stateCache
+        1 * cacheFactory.openStateCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, [:], FileLockManager.LockMode.Exclusive, CrossVersionMode.VersionSpecific, {it instanceof DefaultSerializer}) >> stateCache
         0 * cacheFactory._
     }
 
@@ -104,7 +104,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withProperties(properties).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, properties, LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, properties, FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
     }
 
     public void createsCacheForAGradleInstance() {
@@ -112,7 +112,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").forObject(gradle).open()
 
         then:
-        1 * cacheFactory.open(buildRootDir.file(".gradle", version, "a/b/c"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
+        1 * cacheFactory.open(buildRootDir.file(".gradle", version, "a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
     }
 
     public void createsCacheForAFile() {
@@ -122,7 +122,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").forObject(dir).open()
 
         then:
-        1 * cacheFactory.open(dir.file(".gradle", version, "a/b/c"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
+        1 * cacheFactory.open(dir.file(".gradle", version, "a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
     }
 
     public void createsCrossVersionCache() {
@@ -130,7 +130,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withVersionStrategy(VersionStrategy.SharedCache).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir.file("a/b/c"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.CrossVersion, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir.file("a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.CrossVersion, null) >> cache
     }
 
     public void createsCrossVersionIndexedCache() {
@@ -138,7 +138,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.indexedCache(String, String, "a/b/c").withVersionStrategy(VersionStrategy.SharedCache).open()
 
         then:
-        1 * cacheFactory.openIndexedCache(sharedCacheDir.file("a/b/c"), CacheUsage.ON, [:], LockMode.Exclusive, CrossVersionMode.CrossVersion, !null)
+        1 * cacheFactory.openIndexedCache(sharedCacheDir.file("a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Exclusive, CrossVersionMode.CrossVersion, !null)
         0 * cacheFactory._
     }
 
@@ -147,7 +147,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.stateCache(String, "a/b/c").withVersionStrategy(VersionStrategy.SharedCache).open()
 
         then:
-        1 * cacheFactory.openStateCache(sharedCacheDir.file("a/b/c"), CacheUsage.ON, [:], LockMode.Exclusive, CrossVersionMode.CrossVersion, !null)
+        1 * cacheFactory.openStateCache(sharedCacheDir.file("a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Exclusive, CrossVersionMode.CrossVersion, !null)
         0 * cacheFactory._
     }
 
@@ -156,7 +156,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withVersionStrategy(VersionStrategy.SharedCache).forObject(gradle).open()
 
         then:
-        1 * cacheFactory.open(buildRootDir.file(".gradle", "a/b/c"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.CrossVersion, null) >> cache
+        1 * cacheFactory.open(buildRootDir.file(".gradle", "a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.CrossVersion, null) >> cache
     }
 
     public void createsCrossVersionCacheThatIsInvalidatedOnVersionChange() {
@@ -164,7 +164,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withVersionStrategy(VersionStrategy.SharedCacheInvalidateOnVersionChange).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir.file("noVersion", "a/b/c"), CacheUsage.ON, ["gradle.version": version], LockMode.Shared, CrossVersionMode.CrossVersion, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir.file("noVersion", "a/b/c"), CacheUsage.ON, ["gradle.version": version], FileLockManager.LockMode.Shared, CrossVersionMode.CrossVersion, null) >> cache
     }
 
     public void createsCrossVersionCacheForAGradleInstanceThatIsInvalidatedOnVersionChange() {
@@ -172,7 +172,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a/b/c").withVersionStrategy(VersionStrategy.SharedCacheInvalidateOnVersionChange).forObject(gradle).open()
 
         then:
-        1 * cacheFactory.open(buildRootDir.file(".gradle", "noVersion", "a/b/c"), CacheUsage.ON, ["gradle.version": version], LockMode.Shared, CrossVersionMode.CrossVersion, null) >> cache
+        1 * cacheFactory.open(buildRootDir.file(".gradle", "noVersion", "a/b/c"), CacheUsage.ON, ["gradle.version": version], FileLockManager.LockMode.Shared, CrossVersionMode.CrossVersion, null) >> cache
     }
 
     public void canSpecifyInitializerActionForDirectoryCache() {
@@ -182,7 +182,7 @@ class DefaultCacheRepositoryTest extends Specification {
         repository.cache("a").withInitializer(action).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir.file(version, "a"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, action) >> cache
+        1 * cacheFactory.open(sharedCacheDir.file(version, "a"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, action) >> cache
     }
 
     public void neverRebuildsAStore() {
@@ -193,7 +193,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         result == cache
-        1 * cacheFactory.open(sharedCacheDir.file(version, "store"), CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir.file(version, "store"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
         0 * cacheFactory._
     }
 }
