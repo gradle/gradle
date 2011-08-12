@@ -321,7 +321,7 @@ public class TestFile extends File implements TestFileContext {
         return this;
     }
 
-    private String getPermissions() {
+    public String getPermissions() {
         assertExists();
         return new TestFileHelper(this).getPermissions();
     }

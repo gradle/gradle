@@ -54,23 +54,26 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
         }
 
         TestFile dir = testFile('src').createDir()
+        def oldPermissions = dir.permissions
         dir.permissions = '-w-r--r--'
 
-        Assert.assertTrue(dir.isDirectory())
-        Assert.assertTrue(dir.exists())
-        Assert.assertFalse(dir.canRead())
-        Assert.assertTrue(dir.canWrite())
+        try {
+            Assert.assertTrue(dir.isDirectory())
+            Assert.assertTrue(dir.exists())
+            Assert.assertFalse(dir.canRead())
+            Assert.assertTrue(dir.canWrite())
 
-        testFile('build.gradle') << '''
-            task copy(type: Copy) {
-                from 'src'
-                into 'dest'
-            }
-'''
+            testFile('build.gradle') << '''
+                task copy(type: Copy) {
+                    from 'src'
+                    into 'dest'
+                }
+    '''
 
-        ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-        failure.assertHasDescription("Could not list contents of directory '${dir}' as it is not readable.")
-
-        dir.permissions = 'rwxr--r--'
+            ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
+            failure.assertHasDescription("Could not list contents of directory '${dir}' as it is not readable.")
+        } finally {
+            dir.permissions = oldPermissions
+        }
     }
 }
