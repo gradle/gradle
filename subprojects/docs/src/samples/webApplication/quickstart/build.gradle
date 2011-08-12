@@ -14,14 +14,15 @@ dependencies {
     compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
 }
 
+httpPort = 8163
+stopPort = 9451
+stopKey = 'foo'
+
 gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(runTest) || graph.hasTask(runWarTest)) {
         [jettyRun, jettyRunWar]*.daemon = true
     }
 }
-stopKey = 'foo'
-stopPort = 9451
-httpPort = 8163
 
 task runTest(dependsOn: jettyRun) << {
     callServlet()
@@ -29,6 +30,13 @@ task runTest(dependsOn: jettyRun) << {
 
 task runWarTest(dependsOn: jettyRunWar) << {
     callServlet()
+}
+
+def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+
+[jettyRun, jettyRunWar]*.doFirst {
+    project.httpPort = portFinder.nextAvailable
+    project.stopPort = portFinder.nextAvailable
 }
 
 private void callServlet() {
