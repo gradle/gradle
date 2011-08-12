@@ -19,13 +19,13 @@ import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
-import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.SimpleStateCache;
+import org.gradle.cache.internal.*;
+import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class InMemoryCacheFactory implements CacheFactory {
     public PersistentCache openStore(File storeDir, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
@@ -47,7 +47,32 @@ public class InMemoryCacheFactory implements CacheFactory {
 
     public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<E> serializer) {
         cacheDir.mkdirs();
-        return new SimpleStateCache<E>(cacheDir, new DefaultSerializer<E>());
+        return new SimpleStateCache<E>(new File(cacheDir, "state.bin"), new NoOpFileLock(), new DefaultSerializer<E>());
+    }
+
+    private static class NoOpFileLock implements FileLock {
+        public boolean getUnlockedCleanly() {
+            return true;
+        }
+
+        public boolean isLockFile(File file) {
+            return false;
+        }
+
+        public <T> T readFromFile(Callable<T> action) throws LockTimeoutException {
+            try {
+                return action.call();
+            } catch (Exception e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
+        }
+
+        public void writeToFile(Runnable action) throws LockTimeoutException {
+            action.run();
+        }
+
+        public void close() {
+        }
     }
 
     private static class InMemoryCache implements PersistentCache {

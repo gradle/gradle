@@ -91,10 +91,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
 
         public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<E> serializer) {
-            if (lockMode == LockMode.Shared) {
-                throw new UnsupportedOperationException("No shared state cache implementation available.");
-            }
-            StateCacheReference<E> cacheReference = doOpenDir(cacheDir, usage, properties, LockMode.Exclusive, null).getStateCache(serializer);
+            StateCacheReference<E> cacheReference = doOpenDir(cacheDir, usage, properties, lockMode, null).getStateCache(serializer);
             cacheReference.addReference(this);
             return cacheReference.getCache();
         }
@@ -168,7 +165,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         public <E> StateCacheReference<E> getStateCache(Serializer<E> serializer) {
             if (stateCache == null) {
-                SimpleStateCache<E> stateCache = new SimpleStateCache<E>(getCache().getBaseDir(), serializer);
+                SimpleStateCache<E> stateCache = new SimpleStateCache<E>(new File(getCache().getBaseDir(), "state.bin"), getCache().getLock(), serializer);
                 this.stateCache = new StateCacheReference<E>(stateCache, this);
             }
             return stateCache;

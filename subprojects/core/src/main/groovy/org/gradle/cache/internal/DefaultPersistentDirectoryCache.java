@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,12 +32,13 @@ import java.util.Properties;
 import static org.gradle.cache.internal.FileLockManager.LockMode;
 
 public class DefaultPersistentDirectoryCache implements PersistentCache {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final File dir;
     private final File propertiesFile;
     private final Properties properties = new Properties();
     private final FileLock lock;
 
-    public DefaultPersistentDirectoryCache(File dir, CacheUsage cacheUsage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
+    public DefaultPersistentDirectoryCache(File dir, CacheUsage cacheUsage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
         this.dir = dir;
         propertiesFile = new File(dir, "cache.properties");
         this.properties.putAll(properties);
@@ -60,7 +63,7 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
                     });
                 }
             } catch (Throwable throwable) {
-                lock.unlock();
+                lock.close();
                 throw throwable;
             }
             return lock;
@@ -70,7 +73,7 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
     }
 
     public void close() {
-        lock.unlock();
+        lock.close();
     }
 
     @Override
@@ -93,15 +96,17 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
 
     private boolean determineIfCacheIsValid(CacheUsage cacheUsage, Map<String, ?> properties, FileLock lock) throws IOException {
         if (cacheUsage != CacheUsage.ON) {
+            LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
             return false;
         }
         if (!lock.getUnlockedCleanly()) {
+            LOGGER.debug("Invalidating {} as it was not close cleanly.", this);
             return false;
         }
         Properties currentProperties = GUtil.loadProperties(propertiesFile);
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
             if (!entry.getValue().toString().equals(currentProperties.getProperty(entry.getKey()))) {
-                // Mismatched properties -> invalidate cache
+                LOGGER.debug("Invalidating {} as cache property {} has changed value.", this, entry.getKey());
                 return false;
             }
         }
@@ -114,5 +119,9 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
 
     public File getBaseDir() {
         return dir;
+    }
+
+    public FileLock getLock() {
+        return lock;
     }
 }

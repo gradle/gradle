@@ -23,11 +23,12 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.concurrent.Callable;
 
 public class DefaultFileLockManager implements FileLockManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     private static final byte LOCK_PROTOCOL = 1;
     private static final int LOCK_TIMEOUT = 15000;
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
 
     public FileLock lock(File target, LockMode mode, String displayName) {
         return new DefaultFileLock(target, mode, displayName);
@@ -65,22 +66,30 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         public boolean getUnlockedCleanly() {
-            try {
-                lockFileAccess.seek(0);
-                try {
-                    if (lockFileAccess.readByte() != LOCK_PROTOCOL) {
-                        throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
-                    }
-                    if (!lockFileAccess.readBoolean()) {
-                        // Process has crashed while updating target file
+            return readFromFile(new Callable<Boolean>() {
+                public Boolean call() throws Exception {
+                    lockFileAccess.seek(0);
+                    try {
+                        if (lockFileAccess.readByte() != LOCK_PROTOCOL) {
+                            throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
+                        }
+                        if (!lockFileAccess.readBoolean()) {
+                            // Process has crashed while updating target file
+                            return false;
+                        }
+                    } catch (EOFException e) {
+                        // Process has crashed writing to lock file
                         return false;
                     }
-                } catch (EOFException e) {
-                    // Process has crashed writing to lock file
-                    return false;
+                    return true;
                 }
-                return true;
-            } catch (IOException e) {
+            });
+        }
+
+        public <T> T readFromFile(Callable<T> action) throws LockTimeoutException {
+            try {
+                return action.call();
+            } catch (Exception e) {
                 throw UncheckedException.asUncheckedException(e);
             }
         }
@@ -123,7 +132,7 @@ public class DefaultFileLockManager implements FileLockManager {
             lockFileAccess.writeBoolean(false);
         }
 
-        public void unlock() {
+        public void close() {
             try {
                 LOGGER.debug("Releasing lock on {}.", displayName);
                 // Also releases any locks

@@ -15,34 +15,40 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.cache.Serializer
 import org.gradle.util.TemporaryFolder
-import org.jmock.integration.junit4.JMock
 import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.nullValue
-import static org.junit.Assert.assertThat
+import spock.lang.Specification
 import org.gradle.cache.DefaultSerializer
 
-@RunWith(JMock.class)
-class SimpleStateCacheTest {
+class SimpleStateCacheTest extends Specification {
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    final FileLock lock = Mock()
+    final Serializer<String> serializer = new DefaultSerializer<String>()
+    final SimpleStateCache<String> cache = new SimpleStateCache<String>(tmpDir.file("state.bin"), lock, serializer)
 
-    @Test
-    public void getReturnsNullWhenFileDoesNotExist() {
-        SimpleStateCache<String> cache = new SimpleStateCache<String>(tmpDir.dir, new DefaultSerializer<String>())
-        assertThat(cache.get(), nullValue())
+    def "returns null when file does not exist"() {
+        when:
+        def result = cache.get()
+
+        then:
+        result == null
+        1 * lock.readFromFile(!null) >> { it[0].call() }
     }
     
-    @Test
-    public void getReturnsLastWrittenValue() {
-        SimpleStateCache<String> cache = new SimpleStateCache<String>(tmpDir.dir, new DefaultSerializer<String>())
-
+    def "get returns last value written to file"() {
+        when:
         cache.set('some value')
+
+        then:
+        1 * lock.writeToFile(!null) >> { it[0].run() }
         tmpDir.file('state.bin').assertIsFile()
-        assertThat(cache.get(), equalTo('some value'))
+
+        when:
+        def result = cache.get()
+
+        then:
+        result == 'some value'
+        1 * lock.readFromFile(!null) >> { it[0].call() }
     }
 }

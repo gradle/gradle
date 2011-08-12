@@ -20,19 +20,26 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.DefaultSerializer;
+import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.internal.DefaultFileLockManager;
+import org.gradle.cache.internal.OnDemandFileLock;
+import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
-import org.gradle.messaging.remote.internal.*;
+import org.gradle.messaging.remote.internal.ConnectException;
+import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.util.*;
 
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -54,7 +61,7 @@ public class DaemonConnector {
      * @return The connection, or null if not running.
      */
     public Connection<Object> maybeConnect() {
-        Address address = loadDaemonAddress();
+        Address address = openRegistry().get();
         if (address == null) {
             return null;
         }
@@ -66,28 +73,11 @@ public class DaemonConnector {
         }
     }
 
-    private Address loadDaemonAddress() {
-        try {
-            FileInputStream inputStream = new FileInputStream(getRegistryFile());
-            try {
-                // Acquire shared lock on file while reading it
-                inputStream.getChannel().lock(0, Long.MAX_VALUE, true);
-                ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-                return (Address) objectInputStream.readObject();
-            } finally {
-                // Also releases the lock
-                inputStream.close();
-            }
-        } catch (FileNotFoundException e) {
-            // Ignore
-            return null;
-        } catch (EOFException e) {
-            // Daemon has created empty file, but not yet locked it or written anything to it.
-            // Or has crashed while writing the registry file.
-            return null;
-        } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
+    private PersistentStateCache<Address> openRegistry() {
+        File registryFile = new File(userHomeDir, String.format("daemon/%s/registry.bin", GradleVersion.current().getVersion()));
+        return new SimpleStateCache<Address>(registryFile,
+                new OnDemandFileLock(registryFile, "daemon address registry", new DefaultFileLockManager()),
+                new DefaultSerializer<Address>());
     }
 
     /**
@@ -161,7 +151,7 @@ public class DaemonConnector {
         };
         Address address = incomingConnector.accept(connectEvent, false);
 
-        storeDaemonAddress(address);
+        openRegistry().set(address);
 
         boolean stopped = finished.awaitStop();
         if (!stopped) {
@@ -169,31 +159,7 @@ public class DaemonConnector {
         }
         new CompositeStoppable(incomingConnector, executorFactory).stop();
 
-        getRegistryFile().delete();
-    }
-
-    private void storeDaemonAddress(Address address) {
-        try {
-            File registryFile = getRegistryFile();
-            registryFile.getParentFile().mkdirs();
-            FileOutputStream outputStream = new FileOutputStream(registryFile);
-            try {
-                // Lock file while writing to it
-                outputStream.getChannel().lock();
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                objectOutputStream.writeObject(address);
-                objectOutputStream.flush();
-            } finally {
-                // Also releases the lock
-                outputStream.close();
-            }
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-    }
-
-    private File getRegistryFile() {
-        return new File(userHomeDir, String.format("daemon/%s/registry.bin", GradleVersion.current().getVersion()));
+        openRegistry().set(null);
     }
 
     private static class CompletionHandler implements Stoppable {
