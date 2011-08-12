@@ -161,6 +161,7 @@ public class AvailablePortFinder {
             ds.setReuseAddress(true);
             return true;
         } catch (IOException ignored) {
+            /* checkstyle drives me nuts */
         } finally {
             if (ds != null) {
                 ds.close();
@@ -170,6 +171,7 @@ public class AvailablePortFinder {
                 try {
                     ss.close();
                 } catch (IOException ignored) {
+                    /* checkstyle drives me nuts */
                 }
             }
         }
