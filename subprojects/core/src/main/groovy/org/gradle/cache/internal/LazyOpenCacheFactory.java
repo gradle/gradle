@@ -32,6 +32,15 @@ public class LazyOpenCacheFactory implements CacheFactory {
         this.cacheFactory = cacheFactory;
     }
 
+    public PersistentCache openStore(final File storeDir, final FileLockManager.LockMode lockMode, final CrossVersionMode crossVersionMode, final Action<? super PersistentCache> initializer) throws CacheOpenException {
+        Factory<PersistentCache> factory = new Factory<PersistentCache>() {
+            public PersistentCache create() {
+                return cacheFactory.openStore(storeDir, lockMode, crossVersionMode, initializer);
+            }
+        };
+        return new LazyCreationProxy<PersistentCache>(PersistentCache.class, factory).getSource();
+    }
+
     public PersistentCache open(final File cacheDir, final CacheUsage usage, final Map<String, ?> properties, final FileLockManager.LockMode lockMode, final CrossVersionMode crossVersionMode, final Action<? super PersistentCache> initializer) throws CacheOpenException {
         Factory<PersistentCache> factory = new Factory<PersistentCache>() {
             public PersistentCache create() {

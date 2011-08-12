@@ -15,6 +15,9 @@
  */
 package org.gradle.cache.internal;
 
+/**
+ * Thrown on timeout acquiring a lock on a file.
+ */
 public class LockTimeoutException extends RuntimeException {
     public LockTimeoutException(String message) {
         super(message);

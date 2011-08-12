@@ -59,7 +59,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         result == cache
-        1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
+        1 * cacheFactory.openStore(sharedCacheDir.file(version, "a/b/c"), FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
         0 * cacheFactory._
     }
 
@@ -125,6 +125,14 @@ class DefaultCacheRepositoryTest extends Specification {
         1 * cacheFactory.open(dir.file(".gradle", version, "a/b/c"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
     }
 
+    public void createsCrossVersionStore() {
+        when:
+        repository.store("a/b/c").withVersionStrategy(VersionStrategy.SharedCache).open()
+
+        then:
+        1 * cacheFactory.openStore(sharedCacheDir.file("a/b/c"), FileLockManager.LockMode.Shared, CrossVersionMode.CrossVersion, null) >> cache
+    }
+
     public void createsCrossVersionCache() {
         when:
         repository.cache("a/b/c").withVersionStrategy(VersionStrategy.SharedCache).open()
@@ -183,17 +191,5 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         1 * cacheFactory.open(sharedCacheDir.file(version, "a"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, action) >> cache
-    }
-
-    public void neverRebuildsAStore() {
-        def repository = new DefaultCacheRepository(homeDir, ".gradle", CacheUsage.REBUILD, cacheFactory)
-
-        when:
-        def result = repository.store("store").open()
-
-        then:
-        result == cache
-        1 * cacheFactory.open(sharedCacheDir.file(version, "store"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null) >> cache
-        0 * cacheFactory._
     }
 }

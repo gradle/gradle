@@ -24,9 +24,14 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.SimpleStateCache;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
+    public PersistentCache openStore(File storeDir, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
+        return open(storeDir, CacheUsage.ON, Collections.<String, Object>emptyMap(), lockMode, crossVersionMode, initializer);
+    }
+
     public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) {
         cacheDir.mkdirs();
         InMemoryCache cache = new InMemoryCache(cacheDir);

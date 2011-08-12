@@ -44,11 +44,11 @@ public class DefaultCacheRepository implements CacheRepository {
     }
 
     public DirectoryCacheBuilder store(String key) {
-        return new PersistentCacheBuilder(key, CacheUsage.ON);
+        return new PersistentStoreBuilder(key);
     }
 
     public DirectoryCacheBuilder cache(String key) {
-        return new PersistentCacheBuilder(key, cacheUsage);
+        return new PersistentCacheBuilder(key);
     }
 
     public <E> ObjectCacheBuilder<E, PersistentStateCache<E>> stateCache(Class<E> elementType, String key) {
@@ -129,12 +129,10 @@ public class DefaultCacheRepository implements CacheRepository {
     }
 
     private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> implements DirectoryCacheBuilder {
-        private Action<? super PersistentCache> initializer;
-        private final CacheUsage cacheUsage;
+        Action<? super PersistentCache> initializer;
 
-        private PersistentCacheBuilder(String key, CacheUsage cacheUsage) {
+        protected PersistentCacheBuilder(String key) {
             super(key);
-            this.cacheUsage = cacheUsage;
         }
 
         @Override
@@ -163,6 +161,20 @@ public class DefaultCacheRepository implements CacheRepository {
         @Override
         protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
             return factory.open(cacheDir, cacheUsage, properties, LockMode.Shared, getCrossVersionMode(), initializer);
+        }
+    }
+
+    private class PersistentStoreBuilder extends PersistentCacheBuilder {
+        private PersistentStoreBuilder(String key) {
+            super(key);
+        }
+
+        @Override
+        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
+            if (!properties.isEmpty()) {
+                throw new UnsupportedOperationException("Properties are not supported for stores.");
+            }
+            return factory.openStore(cacheDir, LockMode.Shared, getCrossVersionMode(), initializer);
         }
     }
 
