@@ -4,6 +4,7 @@ apply plugin: 'groovy'
 
 archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
 dependencies {
+    compile libraries.jcip
     testCompile libraries.junit, libraries.jmock, libraries.spock
 }
 
