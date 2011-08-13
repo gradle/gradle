@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.Dependency;
-
-public interface DependencyInternal extends Dependency {
+public interface DependencyInternal {
     void resolve(DependencyResolveContext context);
 }
