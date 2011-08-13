@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import groovy.lang.Closure;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
@@ -28,13 +28,12 @@ import org.gradle.api.internal.artifacts.IvyService;
 
 import java.util.Collection;
 import java.util.Set;
-import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultConfigurationContainer extends AbstractNamedDomainObjectContainer<Configuration> 
-        implements ConfigurationContainer, ConfigurationsProvider {
+        implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     
     private final IvyService ivyService;
@@ -67,7 +66,12 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     public Configuration add(String name, Closure closure) {
         return create(name, closure);
     }
-    
+
+    @Override
+    public ConfigurationInternal getByName(String name) {
+        return (ConfigurationInternal) super.getByName(name);
+    }
+
     @Override
     public String getTypeDisplayName() {
         return "configuration";

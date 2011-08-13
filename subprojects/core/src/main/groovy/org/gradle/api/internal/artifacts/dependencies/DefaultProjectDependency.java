@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
@@ -34,15 +35,15 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependency {
-    private Project dependencyProject;
+    private ProjectInternal dependencyProject;
     private final ProjectDependenciesBuildInstruction instruction;
     private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
 
-    public DefaultProjectDependency(Project dependencyProject, ProjectDependenciesBuildInstruction instruction) {
+    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectDependenciesBuildInstruction instruction) {
         this(dependencyProject, null, instruction);
     }
 
-    public DefaultProjectDependency(Project dependencyProject, String configuration,
+    public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration,
                                     ProjectDependenciesBuildInstruction instruction) {
         super(configuration);
         this.dependencyProject = dependencyProject;

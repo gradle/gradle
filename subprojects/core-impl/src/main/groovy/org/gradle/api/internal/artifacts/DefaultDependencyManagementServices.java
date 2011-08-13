@@ -17,11 +17,11 @@ package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.MavenFactory;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
@@ -137,7 +137,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         private final ProjectFinder projectFinder;
         private final DomainObjectContext domainObjectContext;
         private DefaultRepositoryHandler repositoryHandler;
-        private ConfigurationContainer configurationContainer;
+        private ConfigurationContainerInternal configurationContainer;
         private DependencyHandler dependencyHandler;
 
         private DefaultDependencyResolutionServices(ServiceRegistry parent, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
@@ -167,7 +167,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return classGenerator.newInstance(DefaultRepositoryHandler.class, resolverFactory, fileResolver, classGenerator);
         }
 
-        public ConfigurationContainer getConfigurationContainer() {
+        public ConfigurationContainerInternal getConfigurationContainer() {
             if (configurationContainer == null) {
                 ClassGenerator classGenerator = parent.get(ClassGenerator.class);
                 IvyService ivyService = createIvyService(getResolveRepositoryHandler());

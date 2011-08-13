@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
@@ -110,7 +111,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return get(DependencyResolutionServices.class).getResolveRepositoryHandler();
     }
 
-    protected ConfigurationContainer createConfigurationContainer() {
+    protected ConfigurationContainerInternal createConfigurationContainer() {
         return get(DependencyResolutionServices.class).getConfigurationContainer();
     }
 

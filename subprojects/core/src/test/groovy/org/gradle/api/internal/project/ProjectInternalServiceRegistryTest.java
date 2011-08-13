@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.AntBuilder;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -26,6 +25,7 @@ import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
@@ -61,7 +61,7 @@ import static org.junit.Assert.assertThat;
 public class ProjectInternalServiceRegistryTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ProjectInternal project = context.mock(ProjectInternal.class);
-    private final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
+    private final ConfigurationContainerInternal configurationContainer = context.mock(ConfigurationContainerInternal.class);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final DependencyManagementServices dependencyManagementServices = context.mock(DependencyManagementServices.class);
     private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
@@ -146,8 +146,8 @@ public class ProjectInternalServiceRegistryTest {
     public void providesAConfigurationContainer() {
         expectDependencyResolutionServicesCreated();
 
-        assertThat(registry.get(ConfigurationContainer.class), sameInstance(configurationContainer));
-        assertThat(registry.get(ConfigurationContainer.class), sameInstance(registry.get(ConfigurationContainer.class)));
+        assertThat(registry.get(ConfigurationContainerInternal.class), sameInstance(configurationContainer));
+        assertThat(registry.get(ConfigurationContainerInternal.class), sameInstance(registry.get(ConfigurationContainerInternal.class)));
     }
 
     @Test

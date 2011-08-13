@@ -39,7 +39,7 @@ import java.util.*;
 
 import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 
-public class DefaultConfiguration extends AbstractFileCollection implements Configuration {
+public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal {
     private final String path;
     private final String name;
 

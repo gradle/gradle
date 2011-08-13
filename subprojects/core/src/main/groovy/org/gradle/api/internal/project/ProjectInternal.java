@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -40,6 +41,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
     TaskContainerInternal getTasks();
 
     TaskContainerInternal getImplicitTasks();
+
+    ConfigurationContainerInternal getConfigurations();
 
     ScriptSource getBuildScriptSource();
 

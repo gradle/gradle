@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.initialization
 
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.groovy.scripts.ScriptSource
@@ -29,7 +29,7 @@ class DefaultScriptHandlerFactoryTest extends Specification {
     private final DependencyMetaDataProvider metaDataProvider = Mock()
     private final ClassLoader parentClassLoader = new ClassLoader() {}
     private final RepositoryHandler repositoryHandler = Mock()
-    private final ConfigurationContainer configurationContainer = Mock()
+    private final ConfigurationContainerInternal configurationContainer = Mock()
     private final FileResolver fileResolver = Mock()
     private final DependencyManagementServices dependencyManagementServices = Mock()
     private final DefaultScriptHandlerFactory factory = new DefaultScriptHandlerFactory(dependencyManagementServices, fileResolver, metaDataProvider)

@@ -16,24 +16,19 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.StartParameter
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.maven.MavenFactory
-import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistry
-import org.gradle.logging.LoggingManagerInternal
-import spock.lang.Specification
-import org.gradle.api.internal.Factory
-import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.cache.CacheRepository
-import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.logging.LoggingManagerInternal
+import org.gradle.logging.ProgressLoggerFactory
+import spock.lang.Specification
+import org.gradle.api.internal.*
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -43,7 +38,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
     final ClassGenerator classGenerator = Mock()
     final DomainObjectContext domainObjectContext = Mock()
     final TestRepositoryHandler repositoryHandler = Mock()
-    final ConfigurationContainer configurationContainer = Mock()
+    final ConfigurationContainerInternal configurationContainer = Mock()
     final StartParameter startParameter = Mock()
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 

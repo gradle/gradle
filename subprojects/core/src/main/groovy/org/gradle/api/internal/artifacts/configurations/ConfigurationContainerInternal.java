@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.UnknownConfigurationException;
 
-public interface DependencyResolutionServices {
-    RepositoryHandler getResolveRepositoryHandler();
-
-    ConfigurationContainerInternal getConfigurationContainer();
-
-    DependencyHandler getDependencyHandler();
-
-    Factory<ArtifactPublicationServices> getPublishServicesFactory();
+public interface ConfigurationContainerInternal extends ConfigurationContainer {
+    ConfigurationInternal getByName(String name) throws UnknownConfigurationException;
 }

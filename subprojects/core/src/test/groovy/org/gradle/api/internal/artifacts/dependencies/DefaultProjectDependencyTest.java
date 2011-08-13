@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
@@ -34,8 +37,8 @@ import java.util.Set;
 
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.Matchers.strictlyEqual;
-import static org.gradle.util.WrapUtil.toSet;
 import static org.gradle.util.WrapUtil.toDomainObjectSet;
+import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -45,9 +48,9 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     private final ProjectDependenciesBuildInstruction instruction = new ProjectDependenciesBuildInstruction(true);
-    private final Project dependencyProjectStub = context.mock(Project.class);
-    private final ConfigurationContainer projectConfigurationsStub = context.mock(ConfigurationContainer.class);
-    private final Configuration projectConfigurationStub = context.mock(Configuration.class);
+    private final ProjectInternal dependencyProjectStub = context.mock(ProjectInternal.class);
+    private final ConfigurationContainerInternal projectConfigurationsStub = context.mock(ConfigurationContainerInternal.class);
+    private final ConfigurationInternal projectConfigurationStub = context.mock(ConfigurationInternal.class);
     private final TaskContainer dependencyProjectTaskContainerStub = context.mock(TaskContainer.class);
     private final DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, instruction);
 
@@ -104,7 +107,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         }});
 
         DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction);
-        assertThat(projectDependency.getProjectConfiguration(), sameInstance(projectConfigurationStub));
+        assertThat(projectDependency.getProjectConfiguration(), sameInstance((Configuration) projectConfigurationStub));
     }
 
     @Test
@@ -256,7 +259,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
                 dependencyProjectStub, "conf1", instruction)));
         assertThat(new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction), not(equalTo(new DefaultProjectDependency(
                 dependencyProjectStub, "conf2", instruction))));
-        Project otherProject = context.mock(Project.class, "otherProject");
+        ProjectInternal otherProject = context.mock(ProjectInternal.class, "otherProject");
         assertThat(new DefaultProjectDependency(dependencyProjectStub, instruction), not(equalTo(new DefaultProjectDependency(
                 otherProject, instruction))));
         assertThat(new DefaultProjectDependency(dependencyProjectStub, instruction), not(equalTo(new DefaultProjectDependency(

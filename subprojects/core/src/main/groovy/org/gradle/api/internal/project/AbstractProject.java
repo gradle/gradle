@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -31,6 +30,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
@@ -123,7 +123,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private DependencyHandler dependencyHandler;
 
-    private ConfigurationContainer configurationContainer;
+    private ConfigurationContainerInternal configurationContainer;
 
     private ArtifactHandler artifactHandler;
 
@@ -175,7 +175,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         fileOperations = services.get(FileOperations.class);
         projectEvaluator = services.get(ProjectEvaluator.class);
         repositoryHandler = services.get(RepositoryHandler.class);
-        configurationContainer = services.get(ConfigurationContainer.class);
+        configurationContainer = services.get(ConfigurationContainerInternal.class);
         pluginContainer = services.get(PluginContainer.class);
         artifactHandler = services.get(ArtifactHandler.class);
         dependencyHandler = services.get(DependencyHandler.class);
@@ -355,11 +355,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return repositoryHandler;
     }
 
-    public ConfigurationContainer getConfigurations() {
+    public ConfigurationContainerInternal getConfigurations() {
         return configurationContainer;
     }
 
-    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
+    public void setConfigurationContainer(ConfigurationContainerInternal configurationContainer) {
         this.configurationContainer = configurationContainer;
     }
 
