@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
@@ -38,7 +37,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
 
     protected ProjectFinder createProjectFinder() {
         return new ProjectFinder() {
-            public Project getProject(String path) {
+            public ProjectInternal getProject(String path) {
                 return gradle.getRootProject().project(path);
             }
         };

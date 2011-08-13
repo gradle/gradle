@@ -414,15 +414,15 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return this.path.relativePath(path);
     }
 
-    public Project project(String path) {
-        Project project = findProject(path);
+    public ProjectInternal project(String path) {
+        ProjectInternal project = findProject(path);
         if (project == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
         }
         return project;
     }
 
-    public Project findProject(String path) {
+    public ProjectInternal findProject(String path) {
         if (!isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }

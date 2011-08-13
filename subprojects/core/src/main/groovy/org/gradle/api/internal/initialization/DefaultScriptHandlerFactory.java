@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -27,6 +26,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ObservableUrlClassLoader;
 
@@ -41,7 +41,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final Map<Collection<Object>, ObservableUrlClassLoader> classLoaderCache = new HashMap<Collection<Object>, ObservableUrlClassLoader>();
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new ProjectFinder() {
-        public Project getProject(String path) {
+        public ProjectInternal getProject(String path) {
             throw new UnknownProjectException("Cannot use project dependencies in a script classpath definition.");
         }
     };

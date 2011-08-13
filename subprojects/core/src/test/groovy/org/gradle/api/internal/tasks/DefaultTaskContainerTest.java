@@ -16,23 +16,27 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Rule;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Map;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class DefaultTaskContainerTest {
@@ -259,8 +263,8 @@ public class DefaultTaskContainerTest {
     
     private void expectTaskLookupInOtherProject(final String projectPath, final String taskName, final Task task) {
         context.checking(new Expectations() {{
-            Project otherProject = context.mock(Project.class);
-            TaskContainer otherTaskContainer = context.mock(TaskContainer.class);
+            ProjectInternal otherProject = context.mock(ProjectInternal.class);
+            TaskContainerInternal otherTaskContainer = context.mock(TaskContainerInternal.class);
 
             allowing(project).findProject(projectPath);
             will(returnValue(otherProject));

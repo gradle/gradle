@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 
 /**
  * @author Hans Dockter
@@ -26,5 +26,5 @@ public interface ProjectFinder {
      * @param path Can be relative or absolute
      * @return The project belonging to the path
      */
-    Project getProject(String path);
+    ProjectInternal getProject(String path);
 }

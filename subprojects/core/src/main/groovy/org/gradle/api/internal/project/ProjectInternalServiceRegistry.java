@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.AntBuilder;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -129,7 +128,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected ProjectFinder createProjectFinder() {
         return new ProjectFinder() {
-            public Project getProject(String path) {
+            public ProjectInternal getProject(String path) {
                 return project.project(path);
             }
         };

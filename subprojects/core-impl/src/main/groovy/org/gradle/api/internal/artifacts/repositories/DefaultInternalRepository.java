@@ -33,7 +33,6 @@ import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.repository.file.FileResource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -90,8 +89,8 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         if (projectPathValue == null) {
             return null;
         }
-        Project project = projectFinder.getProject(projectPathValue);
-        Module projectModule = ((ProjectInternal) project).getModule();
+        ProjectInternal project = projectFinder.getProject(projectPathValue);
+        Module projectModule = project.getModule();
         ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(
                 project.getConfigurations(),
                 projectModule, IvyContext.getContext().getIvy().getSettings());
