@@ -51,17 +51,18 @@ class HttpServer implements MethodRule {
                     return
                 }
                 failure = new AssertionError("Received unexpected ${request.method} request to ${target}.")
+                logger.error(failure.message)
                 response.sendError(404, "'$target' does not exist")
             }
         })
         server.setHandler(handlers)
     }
 
-    def start() {
+    void start() {
         server.start()
     }
 
-    def stop() {
+    void stop() {
         server.stop()
     }
 
@@ -84,8 +85,8 @@ class HttpServer implements MethodRule {
     /**
      * Adds a given file at the given URL. The source file can be either a file or a directory.
      */
-    def allowGet(String path, File srcFile) {
-        allow(path, true, fileHandler(path, srcFile))
+    void allowGet(String path, File srcFile) {
+        allow(path, true, ['GET', 'HEAD'], fileHandler(path, srcFile))
     }
 
     private AbstractHandler fileHandler(String path, File srcFile) {
@@ -113,8 +114,8 @@ class HttpServer implements MethodRule {
     /**
      * Adds a broken resource at the given URL.
      */
-    def addBroken(String path) {
-        allow(path, true, new AbstractHandler() {
+    void addBroken(String path) {
+        allow(path, true, null, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 response.sendError(500, "broken")
             }
@@ -124,8 +125,20 @@ class HttpServer implements MethodRule {
     /**
      * Allows one GET request for the given URL, which return 404 status code
      */
-    def expectGetMissing(String path) {
-        allow(path, true, new AbstractHandler() {
+    void expectGetMissing(String path) {
+        expect(path, false, ['GET'], new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                response.sendError(404, "not found")
+            }
+        })
+    }
+
+
+    /**
+     * Allows one HEAD request for the given URL, which return 404 status code
+     */
+    void expectHeadMissing(String path) {
+        expect(path, false, ['HEAD'], new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 response.sendError(404, "not found")
             }
@@ -133,17 +146,24 @@ class HttpServer implements MethodRule {
     }
 
     /**
+     * Allows one HEAD request for the given URL.
+     */
+    void expectHead(String path, File srcFile) {
+        expect(path, false, ['HEAD'], fileHandler(path, srcFile))
+    }
+
+    /**
      * Allows one GET request for the given URL. Reads the request content from the given file.
      */
-    def expectGet(String path, File srcFile) {
-        expect(path, true, fileHandler(path, srcFile))
+    void expectGet(String path, File srcFile) {
+        expect(path, false, ['GET'], fileHandler(path, srcFile))
     }
 
     /**
      * Allows one PUT request for the given URL. Writes the request content to the given file.
      */
-    def expectPut(String path, File destFile) {
-        expect(path, false, new AbstractHandler() {
+    void expectPut(String path, File destFile) {
+        expect(path, false, ['PUT'], new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 destFile.bytes = request.inputStream.bytes
             }
@@ -153,7 +173,7 @@ class HttpServer implements MethodRule {
     /**
      * Allows one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
      */
-    def expectPut(String path, String username, String password, File destFile) {
+    void expectPut(String path, String username, String password, File destFile) {
         def realm = new TestUserRealm()
         realm.username = username
         realm.password = password
@@ -170,7 +190,7 @@ class HttpServer implements MethodRule {
         securityHandler.authenticator = new BasicAuthenticator()
         collection.addHandler(securityHandler)
 
-        expect(path, false, new AbstractHandler() {
+        expect(path, false, ['PUT'], new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (request.remoteUser != username) {
                     response.sendError(500, 'unexpected username')
@@ -181,9 +201,9 @@ class HttpServer implements MethodRule {
         })
     }
 
-    def expect(String path, boolean recursive, Handler handler) {
+    private void expect(String path, boolean recursive, Collection<String> methods, Handler handler) {
         boolean run
-        add(path, recursive, new AbstractHandler() {
+        add(path, recursive, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (run) {
                     return
@@ -195,8 +215,8 @@ class HttpServer implements MethodRule {
         })
     }
 
-    def allow(String path, boolean recursive, Handler handler) {
-        add(path, recursive, new AbstractHandler() {
+    private void allow(String path, boolean recursive, Collection<String> methods, Handler handler) {
+        add(path, recursive, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 handler.handle(target, request, response, dispatch)
                 request.handled = true
@@ -204,12 +224,15 @@ class HttpServer implements MethodRule {
         })
     }
 
-    def add(String path, boolean recursive, Handler handler) {
+    private void add(String path, boolean recursive, Collection<String> methods, Handler handler) {
         assert path.startsWith('/')
         assert path == '/' || !path.endsWith('/')
         def prefix = path == '/' ? '/' : path + '/'
         collection.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                if (methods != null && !methods.contains(request.method)) {
+                    return
+                }
                 boolean match = request.pathInfo == path || (recursive && request.pathInfo.startsWith(prefix))
                 if (match && !request.handled) {
                     handler.handle(target, request, response, dispatch)
@@ -218,7 +241,7 @@ class HttpServer implements MethodRule {
         })
     }
 
-    def int getPort() {
+    int getPort() {
         return server.connectors[0].localPort
     }
 
