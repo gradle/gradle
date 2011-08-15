@@ -48,7 +48,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
     }
 
     private class CacheFactoryImpl implements CacheFactory {
-        private final Collection<BasicCacheReference> caches = new HashSet<BasicCacheReference>();
+        private final Set<BasicCacheReference<?>> caches = new LinkedHashSet<BasicCacheReference<?>>();
 
         private DirCacheReference doOpenDir(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> action) {
             File canonicalDir = GFileUtils.canonicalise(cacheDir);
@@ -110,6 +110,8 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         public void close() {
             try {
+                List<BasicCacheReference<?>> caches = new ArrayList<BasicCacheReference<?>>(this.caches);
+                Collections.reverse(caches);
                 for (BasicCacheReference cache : caches) {
                     cache.release(this);
                 }
@@ -173,7 +175,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         public <K, V> IndexedCacheReference<K, V> getIndexedCache(Serializer<V> serializer) {
             if (indexedCache == null) {
-                BTreePersistentIndexedCache<K, V> indexedCache = new BTreePersistentIndexedCache<K, V>(getCache().getBaseDir(), serializer);
+                BTreePersistentIndexedCache<K, V> indexedCache = new BTreePersistentIndexedCache<K, V>(new File(getCache().getBaseDir(), "cache.bin"), getCache().getLock(), serializer);
                 this.indexedCache = new IndexedCacheReference<K, V>(indexedCache, this);
             }
             return indexedCache;
@@ -201,9 +203,9 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         @Override
         public void close() {
-            super.close();
             backingCache.indexedCache = null;
             getCache().close();
+            super.close();
         }
     }
 
@@ -214,8 +216,8 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         @Override
         public void close() {
-            super.close();
             backingCache.stateCache = null;
+            super.close();
         }
     }
 }

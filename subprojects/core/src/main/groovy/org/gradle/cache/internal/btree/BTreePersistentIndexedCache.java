@@ -18,6 +18,7 @@ package org.gradle.cache.internal.btree;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
+import org.gradle.cache.internal.FileLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,17 +46,18 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     private final StateCheckBlockStore store;
     private HeaderBlock header;
 
-    public BTreePersistentIndexedCache(File cacheDir, Serializer<V> serializer) {
-        this(cacheDir, serializer, (short) 512, 512);
+    public BTreePersistentIndexedCache(File cacheFile, FileLock fileLock, Serializer<V> serializer) {
+        this(cacheFile, fileLock, serializer, (short) 512, 512);
     }
 
-    public BTreePersistentIndexedCache(File cacheDir, Serializer<V> serializer,
+    public BTreePersistentIndexedCache(File cacheFile, FileLock fileLock, Serializer<V> serializer,
                                        short maxChildIndexEntries, int maxFreeListEntries) {
+        this.cacheFile = cacheFile;
         this.serializer = serializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
-        cacheFile = new File(cacheDir, "cache.bin");
-        BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
+        BlockStore cachingStore = new CachingBlockStore(new LockingBlockStore(new FileBackedBlockStore(cacheFile), fileLock), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
+//        BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
         store = new StateCheckBlockStore(new FreeListBlockStore(cachingStore, maxFreeListEntries));
         try {
             open();

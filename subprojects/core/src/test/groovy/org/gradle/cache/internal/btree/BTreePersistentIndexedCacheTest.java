@@ -17,8 +17,12 @@ package org.gradle.cache.internal.btree;
 
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.Serializer;
+import org.gradle.cache.internal.DefaultFileLockManager;
+import org.gradle.cache.internal.FileLock;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,10 +41,19 @@ public class BTreePersistentIndexedCacheTest {
     public TemporaryFolder tmpDir = new TemporaryFolder();
     private final Serializer<Integer> serializer = new DefaultSerializer<Integer>();
     private BTreePersistentIndexedCache<String, Integer> cache;
+    private TestFile cacheFile;
+    private FileLock fileLock;
 
     @Before
     public void setup() {
-        cache = new BTreePersistentIndexedCache<String, Integer>(tmpDir.getDir(), serializer, (short) 4, 100);
+        cacheFile = tmpDir.file("cache.bin");
+        fileLock = new DefaultFileLockManager().lock(cacheFile, FileLockManager.LockMode.Exclusive, "cache");
+        cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, fileLock, serializer, (short) 4, 100);
+    }
+
+    @After
+    public void cleanup() {
+        fileLock.close();
     }
 
     @Test
@@ -108,9 +121,7 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void reusesEmptySpaceWhenPuttingEntries() {
-        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(
-                tmpDir.getDir(), new DefaultSerializer<String>(), (short) 4, 100);
-        TestFile cacheFile = tmpDir.getDir().file("cache.bin");
+        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(cacheFile, fileLock, new DefaultSerializer<String>(), (short) 4, 100);
 
         cache.put("key_1", "abcd");
         cache.put("key_2", "abcd");
@@ -147,18 +158,17 @@ public class BTreePersistentIndexedCacheTest {
 
         checkAddsAndRemoves(null, values);
 
-        TestFile testFile = tmpDir.getDir().file("cache.bin");
-        long len = testFile.length();
+        long len = cacheFile.length();
 
         checkAddsAndRemoves(Collections.<Integer>reverseOrder(), values);
 
         // need to make this better
-        assertThat(testFile.length(), lessThan((long)(1.4 * len)));
+        assertThat(cacheFile.length(), lessThan((long)(1.4 * len)));
 
         checkAdds(values);
         
         // need to make this better
-        assertThat(testFile.length(), lessThan((long)(1.4 * 1.4 * len)));
+        assertThat(cacheFile.length(), lessThan((long) (1.4 * 1.4 * len)));
     }
 
     @Test
@@ -217,17 +227,15 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void handlesBadlyFormedCacheFile() throws IOException {
+        cacheFile.assertIsFile();
+        cacheFile.write("some junk");
 
-        TestFile testFile = tmpDir.getDir().file("cache.bin");
-        testFile.assertIsFile();
-        testFile.write("some junk");
-
-        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(tmpDir.getDir(), serializer);
+        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, fileLock, serializer);
 
         assertNull(cache.get("key_1"));
         cache.put("key_1", 99);
 
-        RandomAccessFile file = new RandomAccessFile(testFile, "rw");
+        RandomAccessFile file = new RandomAccessFile(cacheFile, "rw");
         file.setLength(file.length() - 10);
 
         cache.reset();
@@ -238,8 +246,7 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void canUseFileAsKey() {
-
-        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(tmpDir.getDir(), serializer);
+        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(cacheFile, fileLock, serializer);
 
         cache.put(new File("file"), 1);
         cache.put(new File("dir/file"), 2);
