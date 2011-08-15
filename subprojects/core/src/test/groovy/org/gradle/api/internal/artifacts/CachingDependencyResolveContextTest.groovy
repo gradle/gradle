@@ -24,7 +24,7 @@ class CachingDependencyResolveContextTest extends Specification {
     private final CachingDependencyResolveContext context = new CachingDependencyResolveContext(true)
 
     def resolvesAFileCollection() {
-        DependencyInternal dependency = Mock()
+        ResolvableDependency dependency = Mock()
         FileCollection fileCollection = Mock()
 
         when:
@@ -38,8 +38,8 @@ class CachingDependencyResolveContextTest extends Specification {
     }
 
     def resolvesADependencyInternal() {
-        DependencyInternal dependency = Mock()
-        DependencyInternal otherDependency = Mock()
+        ResolvableDependency dependency = Mock()
+        ResolvableDependency otherDependency = Mock()
         FileCollection fileCollection = Mock()
 
         when:
@@ -54,7 +54,7 @@ class CachingDependencyResolveContextTest extends Specification {
     }
 
     def failsToResolveAnyOtherType() {
-        DependencyInternal dependency = Mock()
+        ResolvableDependency dependency = Mock()
 
         when:
         context.add(dependency)
@@ -67,8 +67,8 @@ class CachingDependencyResolveContextTest extends Specification {
     }
 
     def handlesCyclesBetweenDependencies() {
-        DependencyInternal dependency = Mock()
-        DependencyInternal otherDependency = Mock()
+        ResolvableDependency dependency = Mock()
+        ResolvableDependency otherDependency = Mock()
         FileCollection fileCollection = Mock()
 
         when:

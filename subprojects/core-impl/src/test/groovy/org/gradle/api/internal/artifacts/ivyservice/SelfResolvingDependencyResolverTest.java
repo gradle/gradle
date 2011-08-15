@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.DependencyInternal;
+import org.gradle.api.internal.artifacts.ResolvableDependency;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
 import org.gradle.api.specs.Specs;
@@ -61,7 +61,7 @@ public class SelfResolvingDependencyResolverTest {
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).getAllDependencies();
-            will(returnValue(toDomainObjectSet(DependencyInternal.class)));
+            will(returnValue(toDomainObjectSet(ResolvableDependency.class)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});
@@ -87,7 +87,7 @@ public class SelfResolvingDependencyResolverTest {
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).getAllDependencies();
-            will(returnValue(toDomainObjectSet(DependencyInternal.class, dependency)));
+            will(returnValue(toDomainObjectSet(ResolvableDependency.class, dependency)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});
@@ -129,7 +129,7 @@ public class SelfResolvingDependencyResolverTest {
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).getAllDependencies();
-            will(returnValue(toDomainObjectSet(DependencyInternal.class)));
+            will(returnValue(toDomainObjectSet(ResolvableDependency.class)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});
@@ -151,7 +151,7 @@ public class SelfResolvingDependencyResolverTest {
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).getAllDependencies();
-            will(returnValue(toDomainObjectSet(DependencyInternal.class)));
+            will(returnValue(toDomainObjectSet(ResolvableDependency.class)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});

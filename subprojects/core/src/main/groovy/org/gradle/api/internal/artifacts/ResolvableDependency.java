@@ -16,6 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-public interface DependencyInternal {
+public interface ResolvableDependency {
     void resolve(DependencyResolveContext context);
 }

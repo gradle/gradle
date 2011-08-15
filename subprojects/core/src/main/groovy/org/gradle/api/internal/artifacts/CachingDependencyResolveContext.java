@@ -56,10 +56,10 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
             if (node instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) node;
                 values.add(fileCollection);
-            } else if (node instanceof DependencyInternal) {
-                DependencyInternal dependencyInternal = (DependencyInternal) node;
+            } else if (node instanceof ResolvableDependency) {
+                ResolvableDependency resolvableDependency = (ResolvableDependency) node;
                 queue.clear();
-                dependencyInternal.resolve(CachingDependencyResolveContext.this);
+                resolvableDependency.resolve(CachingDependencyResolveContext.this);
                 connectedNodes.addAll(queue);
                 queue.clear();
             } else {
