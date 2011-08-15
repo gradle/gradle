@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  */
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
-
-/**
- * @author Hans Dockter
- */
-public interface ScriptMetaData {
-    void applyMetaData(Script script, Object delegate);
+public interface ScriptClassCompiler {
+    <T extends groovy.lang.Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass);
 }
