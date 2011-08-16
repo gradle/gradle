@@ -76,9 +76,7 @@ class CrossVersionCompatibilityIntegrationTest {
             builder.version = buildVersion.version
             builder.build()
         } catch (Throwable t) {
-            throw new RuntimeException("""Failed to build using $buildVersion via the open API of $openApiVersion
-Sometimes the zip with distro is malformed (zip errors on the stack trace). In such case remove the failing distro from ./intTestHomeDir and rerun.
-""", t)
+            throw new RuntimeException("Failed to build using $buildVersion via the open API of $openApiVersion", t)
         }
     }
 }

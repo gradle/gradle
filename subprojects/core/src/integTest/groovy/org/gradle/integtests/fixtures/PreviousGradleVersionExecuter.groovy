@@ -20,14 +20,27 @@ import org.gradle.util.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.DistributionLocator
 import org.gradle.util.OperatingSystem
+import org.gradle.cache.PersistentCache
+import org.gradle.cache.internal.DefaultCacheFactory
+import org.gradle.CacheUsage
+import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.cache.internal.CacheFactory.CrossVersionMode
+import org.gradle.api.Action
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
     private final GradleDistribution dist
-    def final GradleVersion version
+    final GradleVersion version
+    private final TestFile versionDir
+    private final TestFile zipFile
+    private final TestFile homeDir
+    private PersistentCache cache
 
     PreviousGradleVersionExecuter(GradleDistribution dist, String version) {
         this.dist = dist
         this.version = GradleVersion.version(version)
+        versionDir = dist.previousVersionsDir.file(version)
+        zipFile = versionDir.file("gradle-$version-bin.zip")
+        homeDir = versionDir.file("gradle-$version")
     }
 
     def String toString() {
@@ -76,17 +89,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     TestFile getBinDistribution() {
-        def zipFile = dist.userHomeDir.parentFile.file("gradle-$version.version-bin.zip")
-        if (!zipFile.isFile()) {
-            try {
-                URL url = binDistributionUrl
-                System.out.println("downloading $url");
-                zipFile.copyFrom(url)
-            } catch (Throwable t) {
-                zipFile.delete()
-                throw t
-            }
-        }
+        download()
         return zipFile
     }
 
@@ -95,20 +98,22 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     def TestFile getGradleHomeDir() {
-        return findGradleHome()
+        download()
+        return homeDir
     }
 
-    private TestFile findGradleHome() {
-        // maybe download and unzip distribution
-        TestFile versionsDir = dist.distributionsDir.parentFile.file('previousVersions')
-        TestFile gradleHome = versionsDir.file("gradle-$version.version")
-        TestFile markerFile = gradleHome.file('ok.txt')
-        if (!markerFile.isFile()) {
-            TestFile zipFile = binDistribution
-            zipFile.usingNativeTools().unzipTo(versionsDir)
-            markerFile.touch()
+    private void download() {
+        if (cache == null) {
+            def downloadAction = { cache ->
+                URL url = binDistributionUrl
+                System.out.println("downloading $url");
+                zipFile.copyFrom(url)
+                zipFile.usingNativeTools().unzipTo(versionDir)
+            }
+            cache = new DefaultCacheFactory().create().open(versionDir, CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, downloadAction as Action)
         }
-        return gradleHome
+        zipFile.assertIsFile()
+        homeDir.assertIsDir()
     }
 
     protected ExecutionFailure doRunWithFailure() {

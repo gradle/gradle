@@ -138,6 +138,10 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return LIBS_REPO;
     }
 
+    public TestFile getPreviousVersionsDir() {
+        return USER_HOME_DIR.getParentFile().file("previousVersion");
+    }
+
     /**
      * Returns true if the given file is either part of the distributions, samples, or test files.
      */

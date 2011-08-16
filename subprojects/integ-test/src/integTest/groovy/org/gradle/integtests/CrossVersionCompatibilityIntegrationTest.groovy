@@ -91,10 +91,7 @@ class CrossVersionCompatibilityIntegrationTest {
                 println "building using $version"
                 cl.call(version)
             } catch (Throwable t) {
-                throw new RuntimeException(
-"""Could not build test project using $version.
-Sometimes the zip with distro is malformed (zip errors on the stack trace). In such case remove the failing distro from ./intTestHomeDir and rerun.
-""", t)
+                throw new RuntimeException("Could not build test project using $version.", t)
             }
         }
     }
