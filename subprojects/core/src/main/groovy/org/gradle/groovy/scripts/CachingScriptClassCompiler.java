@@ -17,28 +17,21 @@ package org.gradle.groovy.scripts;
 
 import groovy.lang.Script;
 
-import java.io.File;
 import java.util.*;
 
-public class CachingScriptCompilationHandler implements ScriptCompilationHandler {
-    private final ScriptCompilationHandler handler;
+public class CachingScriptClassCompiler implements ScriptClassCompiler {
     private final Map<Collection<Object>, Class<?>> cachedClasses = new HashMap<Collection<Object>, Class<?>>();
+    private final ScriptClassCompiler scriptClassCompiler;
 
-    public CachingScriptCompilationHandler(ScriptCompilationHandler handler) {
-        this.handler = handler;
+    public CachingScriptClassCompiler(ScriptClassCompiler scriptClassCompiler) {
+        this.scriptClassCompiler = scriptClassCompiler;
     }
 
-    public void compileToDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir, Transformer transformer,
-                             Class<? extends Script> scriptBaseClass) {
-        handler.compileToDir(source, classLoader, scriptCacheDir, transformer, scriptBaseClass);
-    }
-
-    public <T extends Script> Class<? extends T> loadFromDir(ScriptSource source, ClassLoader classLoader,
-                                                             File scriptCacheDir, Class<T> scriptBaseClass) {
-        List<Object> key = Arrays.asList(source.getClassName(), classLoader, scriptCacheDir);
+    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass) {
+        List<Object> key = Arrays.asList(source.getClassName(), classLoader, transformer.getId(), scriptBaseClass.getName());
         Class<?> c = cachedClasses.get(key);
         if (c == null) {
-            c = handler.loadFromDir(source, classLoader, scriptCacheDir, scriptBaseClass);
+            c = scriptClassCompiler.compile(source, classLoader, transformer, scriptBaseClass);
             cachedClasses.put(key, c);
         }
         return c.asSubclass(scriptBaseClass);
