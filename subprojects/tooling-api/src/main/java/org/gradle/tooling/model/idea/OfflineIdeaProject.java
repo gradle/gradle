@@ -21,6 +21,6 @@ package org.gradle.tooling.model.idea;
  * Only project dependencies and local file dependencies are included on the modules' classpath.
  * <p>
  * Useful for 'previewing' the output model of IdeaProject because it supposed to be fast (e.g. does not download dependencies from the web).
- */
+ */                     //TODO SF Basic
 public interface OfflineIdeaProject extends IdeaProject {
 }
