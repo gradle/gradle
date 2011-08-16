@@ -20,39 +20,39 @@ import org.gradle.util.ConfigureUtil
 
 /**
  * DSL-friendly model of the IDEA project information.
- * First point of entry when it comes to customizing the idea generation
+ * First point of entry when it comes to customizing the IDEA generation.
  * <p>
- * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}
+ * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}.
  * <p>
  * @author Szczepan Faber, created at: 3/31/11
  */
 class IdeaModel {
 
     /**
-     * Configures idea module information
+     * Configures IDEA module information.
      * <p>
-     * For examples see docs for {@link IdeaModule}
+     * For examples see docs for {@link IdeaModule}.
      */
     IdeaModule module
 
     /**
-     * Configures idea project information
+     * Configures IDEA project information.
      * <p>
-     * For examples see docs for {@link IdeaProject}
+     * For examples see docs for {@link IdeaProject}.
      */
     IdeaProject project
 
     /**
-     * Configures idea workspace information
+     * Configures IDEA workspace information.
      * <p>
-     * For examples see docs for {@link IdeaWorkspace}
+     * For examples see docs for {@link IdeaWorkspace}.
      */
     IdeaWorkspace workspace = new IdeaWorkspace()
 
     /**
-     * Configures idea module information
+     * Configures IDEA module information.
      * <p>
-     * For examples see docs for {@link IdeaModule}
+     * For examples see docs for {@link IdeaModule}.
      *
      * @param closure
      */
@@ -61,9 +61,9 @@ class IdeaModel {
     }
 
     /**
-     * Configures idea project information
+     * Configures IDEA project information.
      * <p>
-     * For examples see docs for {@link IdeaProject}
+     * For examples see docs for {@link IdeaProject}.
      *
      * @param closure
      */
@@ -72,9 +72,9 @@ class IdeaModel {
     }
 
     /**
-     * Configures idea workspace information
+     * Configures IDEA workspace information.
      * <p>
-     * For examples see docs for {@link IdeaWorkspace}
+     * For examples see docs for {@link IdeaWorkspace}.
      *
      * @param closure
      */
@@ -83,9 +83,9 @@ class IdeaModel {
     }
 
     /**
-     * Adds path variables to be used for replacing absolute paths in resulting files (*.iml, etc.)
+     * Adds path variables to be used for replacing absolute paths in resulting files (*.iml, etc.).
      * <p>
-     * For example see docs for {@link IdeaModule}
+     * For example see docs for {@link IdeaModule}.
      *
      * @param pathVariables A map with String->File pairs.
      */

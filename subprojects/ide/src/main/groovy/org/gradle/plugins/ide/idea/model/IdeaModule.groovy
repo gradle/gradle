@@ -22,16 +22,16 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.util.ConfigureUtil
 
 /**
- * Enables fine-tuning module details (*.iml file) of the Idea plugin
+ * Enables fine-tuning module details (*.iml file) of the IDEA plugin .
  * <p>
  * Example of use with a blend of all possible properties.
- * Bear in mind that usually you don't have configure this model directly because Gradle configures it for free!
+ * Typically you don't have configure this model directly because Gradle configures it for you.
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
- * //for the sake of the example lets have a 'provided' dependency configuration
+ * //for the sake of this example, let's introduce a 'provided' configuration
  * configurations {
  *   provided
  *   provided.extendsFrom(compile)
@@ -56,7 +56,7 @@ import org.gradle.util.ConfigureUtil
  *     //and some extra dirs that should be excluded by IDEA
  *     excludeDirs += file('some-extra-exclude-dir')
  *
- *     //if you don't like the name Gradle have chosen
+ *     //if you don't like the name Gradle has chosen
  *     name = 'some-better-name'
  *
  *     //if you prefer different output folders
@@ -64,16 +64,16 @@ import org.gradle.util.ConfigureUtil
  *     outputDir = file('muchBetterOutputDir')
  *     testOutputDir = file('muchBetterTestOutputDir')
  *
- *     //if you prefer different sdk than inherited from IDEA project
+ *     //if you prefer different SDK than that inherited from IDEA project
  *     jdkName = '1.6'
  *
- *     //if you need to put provided dependencies on the classpath
+ *     //if you need to put 'provided' dependencies on the classpath
  *     scopes.PROVIDED.plus += configurations.provided
  *
  *     //if 'content root' (as IDEA calls it) of the module is different
  *     contentRoot = file('my-module-content-root')
  *
- *     //if you love browsing javadocs
+ *     //if you love browsing Javadoc
  *     downloadJavadoc = true
  *
  *     //and hate reading sources :)
@@ -83,7 +83,7 @@ import org.gradle.util.ConfigureUtil
  * </pre>
  *
  * For tackling edge cases users can perform advanced configuration on resulting xml file.
- * It is also possible to affect the way idea plugin merges the existing configuration
+ * It is also possible to affect the way the IDEA plugin merges the existing configuration
  * via beforeMerged and whenMerged closures.
  * <p>
  * beforeMerged and whenMerged closures receive {@link Module} object
@@ -135,19 +135,19 @@ class IdeaModule {
      * It's <b>optional</b> because the task should configure it correctly for you.
      * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b>
      * to make sure the module name is unique in the scope of a multi-module build.
-     * The 'uniqeness' of a module name is required for correct import
-     * into IntelliJ IDEA and the task will make sure the name is unique.
+     * The 'uniqueness' of a module name is required for correct import
+     * into IDEA and the task will make sure the name is unique.
      * <p>
      * <b>since</b> 1.0-milestone-2
      * <p>
-     * If your project has problems with unique names it is recommended to always run gradle idea from the root, e.g. for all subprojects.
-     * If you run the generation of the idea module only for a single subproject then you may have different results
-     * because the unique names are calculated based on idea modules that are involved in the specific build run.
+     * If your project has problems with unique names it is recommended to always run <tt>gradle idea</tt> from the root, i.e. for all subprojects.
+     * If you run the generation of the IDEA module only for a single subproject then you may have different results
+     * because the unique names are calculated based on IDEA modules that are involved in the specific build run.
      * <p>
-     * If you update the module names then make sure you run gradle idea from the root, e.g. for all subprojects, including generation of idea project.
+     * If you update the module names then make sure you run <tt>gradle idea</tt> from the root, e.g. for all subprojects, including generation of IDEA project.
      * The reason is that there may be subprojects that depend on the subproject with amended module name.
      * So you want them to be generated as well because the module dependencies need to refer to the amended project name.
-     * Basically, for non-trivial projects it is recommended to always run gradle idea from the root.
+     * Basically, for non-trivial projects it is recommended to always run <tt>gradle idea</tt> from the root.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
@@ -294,7 +294,7 @@ class IdeaModule {
     }
 
     /**
-     * resolves and returns the module's dependencies
+     * Resolves and returns the module's dependencies.
      *
      * @return dependencies
      */
@@ -303,7 +303,7 @@ class IdeaModule {
     }
 
     /**
-     * An owner of this idea module.
+     * An owner of this IDEA module.
      * <p>
      * If IdeaModule requires some information from gradle this field should not be used for this purpose.
      * IdeaModule instances should be configured with all necessary information by the plugin or user.
@@ -312,8 +312,8 @@ class IdeaModule {
     PathFactory pathFactory
 
     /**
-     * if true then GAV-configured artifacts will not be included in the resulting classpath
-     * (only project and local file dependencies will be included)
+     * If true then GAV-configured artifacts will not be included in the resulting classpath
+     * (only project and local file dependencies will be included).
      */
     boolean offline
 

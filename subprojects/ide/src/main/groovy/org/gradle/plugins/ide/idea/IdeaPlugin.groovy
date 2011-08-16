@@ -26,10 +26,10 @@ import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.idea.model.*
 
 /**
- * @author Hans Dockter
- *
- * Adds an IdeaModule task. When applied to a root project, also adds an IdeaProject task.
+ * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
+ *
+ *  @author Hans Dockter
  */
 class IdeaPlugin extends IdePlugin {
 
