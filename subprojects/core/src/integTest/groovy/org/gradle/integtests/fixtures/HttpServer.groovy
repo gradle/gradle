@@ -30,6 +30,7 @@ import org.mortbay.jetty.handler.*
 import org.mortbay.jetty.security.*
 import org.mortbay.jetty.HttpHeaders
 import org.mortbay.jetty.MimeTypes
+import org.mortbay.jetty.HttpStatus
 
 class HttpServer implements MethodRule {
     private Logger logger = LoggerFactory.getLogger(HttpServer.class)
@@ -162,10 +163,11 @@ class HttpServer implements MethodRule {
     /**
      * Allows one PUT request for the given URL. Writes the request content to the given file.
      */
-    void expectPut(String path, File destFile) {
+    void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK) {
         expect(path, false, ['PUT'], new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 destFile.bytes = request.inputStream.bytes
+                response.setStatus(statusCode)
             }
         })
     }

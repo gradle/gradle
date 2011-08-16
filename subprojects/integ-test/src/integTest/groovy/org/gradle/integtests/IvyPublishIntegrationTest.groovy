@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.HttpServer
 import org.hamcrest.Matchers
 import org.junit.Rule
 import org.junit.Test
+import org.mortbay.jetty.HttpStatus
 
 public class IvyPublishIntegrationTest {
     @Rule
@@ -72,8 +73,8 @@ uploadArchives {
 """
         def uploadedJar = dist.testFile('uploaded.jar')
         def uploadedIvy = dist.testFile('uploaded.xml')
-        server.expectPut('/org.gradle/publish/2/publish-2.jar', uploadedJar)
-        server.expectPut('/org.gradle/publish/2/ivy-2.xml', uploadedIvy)
+        server.expectPut('/org.gradle/publish/2/publish-2.jar', uploadedJar, HttpStatus.ORDINAL_200_OK)
+        server.expectPut('/org.gradle/publish/2/ivy-2.xml', uploadedIvy, HttpStatus.ORDINAL_201_Created)
 
         executer.withTasks("uploadArchives").run()
 

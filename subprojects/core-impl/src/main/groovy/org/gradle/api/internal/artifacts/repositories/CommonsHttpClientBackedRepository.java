@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpMethodRetryHandler;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
@@ -63,7 +60,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         if (result == 404) {
             return new MissingResource(source);
         }
-        if (result != 200) {
+        if (!wasSuccessful(result)) {
             throw new IOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
         }
 
@@ -113,7 +110,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         configureMethod(method);
         method.setRequestEntity(new FileRequestEntity(source));
         int result = client.executeMethod(method);
-        if (result != 200) {
+        if (!wasSuccessful(result)) {
             throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s", destination, result, method.getStatusText()));
         }
     }
@@ -129,6 +126,10 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
 
     public List list(String parent) throws IOException {
         return Collections.EMPTY_LIST;
+    }
+
+    private boolean wasSuccessful(int result) {
+        return result >= 200 && result < 300;
     }
 
     private class HttpResource implements Resource {
