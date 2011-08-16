@@ -17,19 +17,19 @@ package org.gradle.configuration;
 
 import org.gradle.api.internal.resource.Resource;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class ImportsScriptSourceTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private ScriptSource backingSource;
     private ImportsReader importsReader;
     private ImportsScriptSource source;
@@ -37,7 +37,6 @@ public class ImportsScriptSourceTest {
 
     @Before
     public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
         backingSource = context.mock(ScriptSource.class);
         importsReader = context.mock(ImportsReader.class);
         resource = context.mock(Resource.class);
@@ -71,6 +70,19 @@ public class ImportsScriptSourceTest {
         }});
 
         assertThat(source.getResource().getText(), equalTo(""));
+    }
+
+    @Test
+    public void doesNotPrependImportsWhenScriptContainsOnlyWhitespace() {
+        context.checking(new Expectations(){{
+            one(backingSource).getResource();
+            will(returnValue(resource));
+
+            one(resource).getText();
+            will(returnValue(" \n\t"));
+        }});
+
+        assertThat(source.getResource().getText(), equalTo(" \n\t"));
     }
 
     @Test

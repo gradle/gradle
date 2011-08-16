@@ -25,10 +25,10 @@ import org.objectweb.asm.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AsmBackedEmptyScriptGenerator {
+public class AsmBackedEmptyScriptGenerator implements EmptyScriptGenerator {
     private static final Map<Class<?>, Class<?>> CACHED_CLASSES = new HashMap<Class<?>, Class<?>>();
 
-    <T extends Script> Class<? extends T> generate(Class<T> type) {
+    public <T extends Script> Class<? extends T> generate(Class<T> type) {
         Class<?> subclass = CACHED_CLASSES.get(type);
         if (subclass == null) {
             subclass = generateEmptyScriptClass(type);

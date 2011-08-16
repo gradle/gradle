@@ -43,14 +43,11 @@ public class ImportsScriptSource extends DelegatingScriptSource {
             String text = getResource().getText();
             assert text != null;
 
-            String imports;
-            if (text.length() > 0) {
-                imports = '\n' + importsReader.getImports();
+            if (text.matches("\\s*")) {
+                return text;
             } else {
-                imports = "";
+                return text + '\n' + importsReader.getImports();
             }
-
-            return text + imports;
         }
     }
 }

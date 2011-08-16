@@ -144,11 +144,15 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected ScriptCompilerFactory createScriptCompileFactory() {
         ScriptExecutionListener scriptExecutionListener = get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
+        EmptyScriptGenerator emptyScriptGenerator = new AsmBackedEmptyScriptGenerator();
         return new DefaultScriptCompilerFactory(
-                new FileCacheBackedScriptClassCompiler(
-                        get(CacheRepository.class),
-                        new CachingScriptCompilationHandler(
-                                new DefaultScriptCompilationHandler())),
+                new ShortCircuitEmptyScriptCompiler(
+                        new FileCacheBackedScriptClassCompiler(
+                                get(CacheRepository.class),
+                                new CachingScriptCompilationHandler(
+                                        new DefaultScriptCompilationHandler(
+                                                emptyScriptGenerator))),
+                        emptyScriptGenerator),
                 new DefaultScriptRunnerFactory(scriptExecutionListener));
     }
 

@@ -48,6 +48,11 @@ import java.util.List;
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final String EMPTY_SCRIPT_MARKER_FILE_NAME = "emptyScript.txt";
+    private final EmptyScriptGenerator emptyScriptGenerator;
+
+    public DefaultScriptCompilationHandler(EmptyScriptGenerator emptyScriptGenerator) {
+        this.emptyScriptGenerator = emptyScriptGenerator;
+    }
 
     public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir,
                              Transformer transformer, Class<? extends Script> scriptBaseClass) {
@@ -157,7 +162,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     public <T extends Script> Class<? extends T> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                                               Class<T> scriptBaseClass) {
         if (new File(scriptCacheDir, EMPTY_SCRIPT_MARKER_FILE_NAME).isFile()) {
-            return new AsmBackedEmptyScriptGenerator().generate(scriptBaseClass);
+            return emptyScriptGenerator.generate(scriptBaseClass);
         }
         
         try {

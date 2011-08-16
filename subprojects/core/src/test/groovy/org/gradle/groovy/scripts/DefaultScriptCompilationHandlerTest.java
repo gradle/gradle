@@ -78,7 +78,7 @@ public class DefaultScriptCompilationHandlerTest {
     public void setUp() throws IOException, ClassNotFoundException {
         File testProjectDir = tmpDir.createDir("projectDir");
         classLoader = getClass().getClassLoader();
-        scriptCompilationHandler = new DefaultScriptCompilationHandler();
+        scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator());
         scriptCacheDir = new File(testProjectDir, "cache");
         scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE
                 + "')";
