@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.sonar
 
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.plugins.sonar.internal.PropertyConverter
 
 /**
  * Configuration options for Sonar analysis.
@@ -26,6 +27,8 @@ class SonarModel {
     SonarDatabase database
 
     SonarProject project
+
+    private final List<Closure> propertyProcessors = []
 
     void server(Closure config) {
         ConfigureUtil.configure(config, server)
@@ -39,8 +42,13 @@ class SonarModel {
         ConfigureUtil.configure(config, server)
     }
 
-    void withSonarProperties(Closure block) {
+    void withGlobalProperties(Closure block) {
+        propertyProcessors << block
+    }
 
+    Map<String, String> convertProperties() {
+        def converter = new PropertyConverter(this)
+        converter.convertProperties(GlobalProperty, propertyProcessors)
     }
 }
 
@@ -98,8 +106,19 @@ class SonarProject {
 
     List<SonarProject> subprojects = []
 
+    private final List<Closure> propertyProcessors = []
+
     void java(Closure config) {
         ConfigureUtil.configure(config, java)
+    }
+
+    void withProjectProperties(Closure block) {
+        propertyProcessors << block
+    }
+
+    Map<String, String> convertProperties() {
+        def converter = new PropertyConverter(this)
+        converter.convertProperties(ProjectProperty, propertyProcessors)
     }
 }
 
