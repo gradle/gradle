@@ -34,7 +34,7 @@ class PropertyConverter {
 
         for (field in object.getClass().declaredFields) {
             def annotation = field.getAnnotation(annotationClass)
-            if (!annotation) continue
+            if (!annotation) { continue }
 
             properties.put(annotation.value(), object.getProperty(field.name).toString())
         }
