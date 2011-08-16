@@ -68,8 +68,6 @@ set CLASSPATH=$classpath
 if "%ERRORLEVEL%"=="0" goto mainEnd
 
 :fail
-if not "%OS%"=="Windows_NT" echo 1 > nul | choice /n /c:1
-
 rem Set variable ${exitEnvironmentVar} if you need the _script_ return code instead of
 rem the _cmd.exe /c_ return code!
 if  not "" == "%${exitEnvironmentVar}%" exit 1
