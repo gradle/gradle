@@ -144,6 +144,45 @@ project(':b') {
     }
 
     @Test
+    @Issue("GRADLE-1567")
+    public void resolutionDifferentiatesBetweenArtifactsThatDifferOnlyInClassifier() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier1').publishArtifact().text = "jar:classifier1 content"
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier2').publishArtifact().text = "jar:classifier2 content"
+
+        testFile('settings.gradle') << 'include "a", "b", "c"'
+        testFile('build.gradle') << """
+subprojects {
+    repositories {
+        mavenRepo urls: '${repo.rootDir.toURI()}'
+    }
+    configurations {
+        compile
+    }
+}
+project(':a') {
+    dependencies {
+        compile 'org.gradle.test:external1:1.0:classifier1'
+    }
+    task test(dependsOn: configurations.compile) << {
+        assert configurations.compile.collect { it.text } == ['jar:classifier1 content']
+    }
+}
+project(':b') {
+    dependencies {
+        compile 'org.gradle.test:external1:1.0:classifier2'
+    }
+    task test(dependsOn: configurations.compile) << {
+        assert configurations.compile.collect { it.text } == ['jar:classifier2 content']
+    }
+}
+"""
+
+        inTestDirectory().withTasks('a:test').run()
+        inTestDirectory().withTasks('b:test').run()
+    }
+
+    @Test
     public void reportsUnknownDependencyError() {
         File buildFile = testFile("projectWithUnknownDependency.gradle");
         ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
