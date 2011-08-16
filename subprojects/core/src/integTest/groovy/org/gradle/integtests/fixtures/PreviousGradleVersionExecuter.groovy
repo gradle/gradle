@@ -28,6 +28,7 @@ import org.gradle.cache.internal.CacheFactory.CrossVersionMode
 import org.gradle.api.Action
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
+    private static final CACHE_FACTORY = new DefaultCacheFactory().create()
     private final GradleDistribution dist
     final GradleVersion version
     private final TestFile versionDir
@@ -110,7 +111,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
                 zipFile.copyFrom(url)
                 zipFile.usingNativeTools().unzipTo(versionDir)
             }
-            cache = new DefaultCacheFactory().create().open(versionDir, CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, downloadAction as Action)
+            cache = CACHE_FACTORY.open(versionDir, CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, downloadAction as Action)
         }
         zipFile.assertIsFile()
         homeDir.assertIsDir()
