@@ -234,7 +234,7 @@
                 <td>org.gradle.plugins.signing.Sign</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.sonar.Sonar</td>
+                <td>org.gradle.api.plugins.sonar.SonarTask</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Sync</td>

@@ -23,7 +23,7 @@ import org.gradle.cache.CacheRepository
 
 /**
  * A {@link Plugin} for integrating with <a href="http://www.sonarsource.org">Sonar</a>, a web-based platform
- * for managing code quality. Adds a task named <tt>sonar</tt> with type {@link Sonar} and configures it to
+ * for managing code quality. Adds a task named <tt>sonar</tt> with type {@link SonarTask} and configures it to
  * analyze the Java sources in the main source set.
  */
 class SonarPlugin implements Plugin<ProjectInternal> {
@@ -31,12 +31,12 @@ class SonarPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.plugins.withType(JavaPlugin) {
-            def sonarTask = project.tasks.add(SONAR_TASK_NAME, Sonar)
+            def sonarTask = project.tasks.add(SONAR_TASK_NAME, SonarTask)
             configureConventions(sonarTask, project)
         }
     }
 
-    private void configureConventions(Sonar sonarTask, ProjectInternal project) {
+    private void configureConventions(SonarTask sonarTask, ProjectInternal project) {
         def main = project.sourceSets.main
         def test = project.sourceSets.test
 

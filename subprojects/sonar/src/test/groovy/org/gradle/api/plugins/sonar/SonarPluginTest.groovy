@@ -51,7 +51,7 @@ class SonarPluginTest extends Specification {
         project.plugins.apply(SonarPlugin)
 
         then:
-        def task = (Sonar) project.tasks.getByName("sonar")
+        def task = (SonarTask) project.tasks.getByName("sonar")
         task.serverUrl == "http://localhost:9000"
         task.bootstrapDir.isDirectory()
         task.projectDir == project.projectDir
@@ -88,7 +88,7 @@ class SonarPluginTest extends Specification {
 
         when:
         project.plugins.apply(SonarPlugin)
-        def task = (Sonar) project.tasks.getByName("sonar")
+        def task = (SonarTask) project.tasks.getByName("sonar")
         task.projectProperty(coberturaReportKey, coberturaReportValue)
         task.projectMainSourceDir(project.file("src/resources"))
         task.projectTestSourceDirs(project.file("test/resources"), project.file("testResources"))
