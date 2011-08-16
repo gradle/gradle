@@ -27,6 +27,7 @@ import org.junit.Test
 import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Chmod
 import org.gradle.util.PosixUtil
+import org.gradle.util.TestFile
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -53,13 +54,9 @@ public class CommandLineIntegrationTest {
     }
 
     @Test
-    public void canDefineJavaHomeViaEnvironmentVariable() {
+    public void canDefineJavaHomeUsingEnvironmentVariable() {
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
-
-        // Handle java on the system PATH, with no JAVA_HOME specified
-        String path = String.format('%s%s%s', Jvm.current().javaExecutable.parentFile, File.pathSeparator, System.getenv('PATH'))
-        executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '').withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
 
         // Handle JAVA_HOME specified
         executer.withEnvironmentVars('JAVA_HOME': javaHome).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
@@ -79,9 +76,38 @@ public class CommandLineIntegrationTest {
     }
 
     @Test
+    public void usesJavaCommandFromPathWhenJavaHomeNotSpecified() {
+        String javaHome = Jvm.current().javaHome
+        String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
+
+        String path = String.format('%s%s%s', Jvm.current().javaExecutable.parentFile, File.pathSeparator, System.getenv('PATH'))
+        executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '').withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+    }
+
+    @Test
     public void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
         def failure = executer.withEnvironmentVars('JAVA_HOME': dist.testDir).withTasks('checkJavaHome').runWithFailure()
         assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
+    }
+
+    @Test
+    public void failsWhenJavaHomeNotSetAndPathDoesNotContainJava() {
+        // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
+        def binDir = dist.testFile('fake-bin')
+        ['basename', 'dirname', 'uname', 'which'].each { linkToBinary(it, binDir) }
+
+        def failure = executer.withEnvironmentVars('PATH': binDir.absolutePath, 'JAVA_HOME': '').withTasks('checkJavaHome').runWithFailure()
+        assert failure.output.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
+    }
+
+    def linkToBinary(String command, TestFile binDir) {
+        binDir.mkdirs()
+        def binary = new File("/usr/bin/$command")
+        if (!binary.exists()) {
+            binary = new File("/bin/$command")
+        }
+        assert binary.exists()
+        PosixUtil.current().symlink(binary.absolutePath, binDir.file(command).absolutePath)
     }
 
     @Test
@@ -94,8 +120,7 @@ public class CommandLineIntegrationTest {
     @Test
     public void checkDefaultGradleUserHome() {
         // the actual testing is done in the build script.
-        executer.withUserHomeDir(null).
-                withTasks("checkDefaultGradleUserHome").run();
+        executer.withUserHomeDir(null).withTasks("checkDefaultGradleUserHome").run();
     }
 
     @Test
