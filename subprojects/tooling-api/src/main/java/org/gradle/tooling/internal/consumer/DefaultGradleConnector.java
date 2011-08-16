@@ -63,6 +63,11 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    public GradleConnector useDefaultDistribution() {
+        distribution = null;
+        return this;
+    }
+
     public GradleConnector forProjectDirectory(File projectDir) {
         this.projectDir = projectDir;
         return this;

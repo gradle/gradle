@@ -40,12 +40,13 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
     def "tooling api uses the wrapper properties to determine which version to use"() {
         projectDir.file('build.gradle').text = """
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
-task check << { assert gradle.gradleVersion == '${GradleVersion.current().version}' }
+task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
 """
         dist.executer().withTasks('wrapper').run()
 
         when:
         toolingApi.withConnector { connector ->
+            connector.useDefaultDistribution()
             maybeDisableDaemon(otherVersion, connector)
         }
         toolingApi.withConnection { connection -> connection.newBuild().forTasks('check').run() }
