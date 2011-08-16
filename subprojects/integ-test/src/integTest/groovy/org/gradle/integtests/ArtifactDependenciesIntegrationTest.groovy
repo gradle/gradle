@@ -26,6 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
+import spock.lang.Issue
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -98,6 +99,44 @@ project(':b') {
 }
 """
         repo().module('org.gradle.test', 'external1', '1.0').publishArtifact()
+
+        inTestDirectory().withTasks('a:listDeps').run()
+        def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
+        result.assertThatCause(containsString('unresolved dependency: org.gradle.test#external1;1.0: not found'))
+    }
+
+    @Test
+    @Issue("GRADLE-1342")
+    public void resolutionDoesNotUseCachedArtifactFromDifferentRepository() {
+        def repo1 = new MavenRepository(testFile('repo1'))
+        repo1.module('org.gradle.test', 'external1', '1.0').publishArtifact()
+        def repo2 = new MavenRepository(testFile('repo2'))
+
+        testFile('settings.gradle') << 'include "a", "b"'
+        testFile('build.gradle') << """
+subprojects {
+    configurations {
+        compile
+    }
+    task listDeps << { configurations.compile.each { } }
+}
+project(':a') {
+    repositories {
+        mavenRepo urls: '${repo1.rootDir.toURI()}'
+    }
+    dependencies {
+        compile 'org.gradle.test:external1:1.0'
+    }
+}
+project(':b') {
+    repositories {
+        mavenRepo urls: '${repo2.rootDir.toURI()}'
+    }
+    dependencies {
+        compile 'org.gradle.test:external1:1.0'
+    }
+}
+"""
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
