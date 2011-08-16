@@ -40,6 +40,7 @@ import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.cache.internal.LazyOpenCacheFactory;
 import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
+import org.gradle.groovy.scripts.internal.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;

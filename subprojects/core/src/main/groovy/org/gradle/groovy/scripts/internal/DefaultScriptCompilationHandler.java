@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.groovy.scripts;
+package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
@@ -29,6 +29,8 @@ import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
 import org.gradle.api.ScriptCompilationException;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.Transformer;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.UncheckedException;

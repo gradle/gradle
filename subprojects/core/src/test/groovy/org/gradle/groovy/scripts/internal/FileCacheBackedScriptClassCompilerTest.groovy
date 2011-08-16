@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts
+package org.gradle.groovy.scripts.internal
 
 import spock.lang.Specification
 import org.gradle.cache.CacheRepository
 import org.gradle.api.internal.resource.Resource
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.Transformer
+import org.gradle.groovy.scripts.Script
 
 class FileCacheBackedScriptClassCompilerTest extends Specification {
     final ScriptCompilationHandler scriptCompilationHandler = Mock()

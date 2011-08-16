@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts
+package org.gradle.groovy.scripts.internal
 
 import spock.lang.Specification
 import org.gradle.api.internal.resource.Resource
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.Transformer
+import org.gradle.groovy.scripts.Script
+import org.gradle.groovy.scripts.TestScript
 
 class ShortCircuitEmptyScriptCompilerTest extends Specification {
     final EmptyScriptGenerator emptyScriptGenerator = Mock()

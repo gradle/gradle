@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
+package org.gradle.groovy.scripts.internal;
 
 import org.gradle.api.GradleScriptException;
+import org.gradle.groovy.scripts.Script;
+import org.gradle.groovy.scripts.ScriptExecutionListener;
+import org.gradle.groovy.scripts.ScriptRunner;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.logging.StandardOutputCapture;
 import org.hamcrest.Description;
 import org.jmock.Expectations;

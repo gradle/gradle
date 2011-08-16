@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
+package org.gradle.groovy.scripts.internal;
+
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.Transformer;
 
 public interface ScriptClassCompiler {
     <T extends groovy.lang.Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass);

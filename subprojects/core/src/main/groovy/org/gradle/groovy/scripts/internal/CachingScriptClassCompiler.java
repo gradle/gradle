@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
+package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.Transformer;
 
 import java.util.*;
 

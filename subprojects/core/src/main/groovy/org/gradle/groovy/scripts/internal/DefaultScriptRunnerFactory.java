@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
+package org.gradle.groovy.scripts.internal;
 
 import org.gradle.api.GradleScriptException;
+import org.gradle.groovy.scripts.Script;
+import org.gradle.groovy.scripts.ScriptExecutionListener;
+import org.gradle.groovy.scripts.ScriptRunner;
 
 public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
     private final ScriptExecutionListener listener;

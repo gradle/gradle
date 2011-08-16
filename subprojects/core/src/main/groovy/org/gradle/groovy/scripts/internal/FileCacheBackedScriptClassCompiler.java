@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
+package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.Transformer;
 import org.gradle.util.HashUtil;
 
 import java.io.File;

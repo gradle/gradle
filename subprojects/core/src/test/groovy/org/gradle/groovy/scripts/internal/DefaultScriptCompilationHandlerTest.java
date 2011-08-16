@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.groovy.scripts;
+package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassHelper;
@@ -30,6 +30,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.ScriptCompilationException;
 import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
 import org.gradle.api.internal.resource.Resource;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.groovy.scripts.Transformer;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
