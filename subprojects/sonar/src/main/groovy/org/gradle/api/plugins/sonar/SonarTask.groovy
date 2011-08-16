@@ -29,75 +29,7 @@ import ch.qos.logback.classic.Level
  * Analyzes a project and stores the results in Sonar's database.
  */
 class SonarTask extends ConventionTask {
-    /**
-     * The Sonar server to connect to.
-     */
-    String serverUrl
-
-    /**
-     * The directory to be used for caching files downloaded from the Sonar server.
-     */
-    File bootstrapDir
-
-    /**
-     * The base directory for the project to be analyzed.
-     */
-    File projectDir
-
-    /**
-     * The build output directory for the project to be analyzed.
-     */
-    File buildDir
-
-    /**
-     * The directories containing the production sources of the project to be analyzed.
-     */
-    Set<File> projectMainSourceDirs = []
-
-    /**
-     * The directories containing the test sources of the project to be analyzed.
-     */
-    Set<File> projectTestSourceDirs = []
-
-    /**
-     * The directories containing the class files of the project to be analyzed.
-     */
-    Set<File> projectClassesDirs = []
-
-    /**
-     * The dependencies of the project to be analyzed. Typically these will be Jar files.
-     */
-    Set<File> projectDependencies = []
-
-    /**
-     * A unique key for identifying the project to be analyzed.
-     */
-    String projectKey
-
-    /**
-     * The name of the project to be analyzed.
-     */
-    String projectName
-
-    /**
-     * The description of the project to be analyzed.
-     */
-    String projectDescription
-
-    /**
-     * The version of the project to be analyzed.
-     */
-    String projectVersion
-
-    /**
-     * Global properties for use by the Sonar code analyzer.
-     */
-    Map globalProperties = [:]
-
-    /**
-     * Project-specific properties for use by the Sonar code analyzer.
-     */
-    Map projectProperties = [:]
+    SonarModel sonar
 
     @TaskAction
     void analyze() {

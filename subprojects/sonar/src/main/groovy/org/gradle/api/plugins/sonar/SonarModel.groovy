@@ -15,15 +15,29 @@
  */
 package org.gradle.api.plugins.sonar
 
+import org.gradle.util.ConfigureUtil
+
 /**
  * Configuration options for Sonar analysis.
  */
-class Sonar {
+class SonarModel {
     SonarServer server
 
     SonarDatabase database
 
     SonarProject project
+
+    void server(Closure config) {
+        ConfigureUtil.configure(config, server)
+    }
+
+    void database(Closure config) {
+        ConfigureUtil.configure(config, server)
+    }
+
+    void project(Closure config) {
+        ConfigureUtil.configure(config, server)
+    }
 
     void withSonarProperties(Closure block) {
 
@@ -81,6 +95,12 @@ class SonarProject {
 
     @ProjectProperty("sonar.dynamicAnalysis")
     String analysisMode
+
+    List<SonarProject> subprojects = []
+
+    void java(Closure config) {
+        ConfigureUtil.configure(config, java)
+    }
 }
 
 /**
