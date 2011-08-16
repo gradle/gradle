@@ -38,10 +38,6 @@
 <div id="training" class="homeList">
     <h2>Upcoming training</h2>
     <ul>
-        <li><a href="http://gradleware.com/training.html">July  18-20, 2011, Reston, VA, US</li>
-        <li><a href="http://gradleware.com/training.html">July  19-21, 2011, M&uuml;nchen, DE</li>
-        <li><a href="http://gradleware.com/training.html">July  25-27, 2011, London, UK</li>
-	    <li><a href="http://gradleware.com/training.html">August 17-19, Minneapolis, MN, US</li>
 	    <li><a href="http://gradleware.com/training.html">September 14-15, 2011, Stockholm, SE</li>
 		<li><a href="http://gradleware.com/training.html">September 20-22, 2011, Frankfurt, DE</li>
 		<li><a href="http://gradleware.com/training.html">September 26-28, 2011, Denver, CO, US</li>
