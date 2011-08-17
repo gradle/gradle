@@ -27,6 +27,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 import spock.lang.Issue
+import org.junit.Ignore
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -180,6 +181,35 @@ project(':b') {
 
         inTestDirectory().withTasks('a:test').run()
         inTestDirectory().withTasks('b:test').run()
+    }
+
+    @Test
+    @Ignore
+    @Issue("GRADLE-739")
+    public void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'external1', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier1').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier2').publishArtifact()
+
+        testFile('settings.gradle') << 'include "a", "b", "c"'
+        testFile('build.gradle') << """
+repositories {
+    mavenRepo urls: '${repo.rootDir.toURI()}'
+}
+configurations {
+    compile
+}
+dependencies {
+    compile 'org.gradle.test:external1:1.0'
+    compile 'org.gradle.test:external1:1.0:classifier1'
+    compile 'org.gradle.test:external1:1.0:classifier2'
+}
+task test(dependsOn: configurations.compile) << {
+    assert configurations.compile.collect { it.name } == ['external-1.0.jar', 'external-1.0-classfier1.jar', 'external-1.0-classifier2.jar']
+}
+"""
+        inTestDirectory().withTasks('test').run()
     }
 
     @Test
