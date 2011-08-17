@@ -92,11 +92,17 @@ public class CommandLineIntegrationTest {
 
     @Test
     public void failsWhenJavaHomeNotSetAndPathDoesNotContainJava() {
-        // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
-        def binDir = dist.testFile('fake-bin')
-        ['basename', 'dirname', 'uname', 'which'].each { linkToBinary(it, binDir) }
+        def path
+        if (OperatingSystem.current().windows) {
+            path = ''
+        } else {
+            // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
+            def binDir = dist.testFile('fake-bin')
+            ['basename', 'dirname', 'uname', 'which'].each { linkToBinary(it, binDir) }
+            path = binDir.absolutePath
+        }
 
-        def failure = executer.withEnvironmentVars('PATH': binDir.absolutePath, 'JAVA_HOME': '').withTasks('checkJavaHome').runWithFailure()
+        def failure = executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '').withTasks('checkJavaHome').runWithFailure()
         assert failure.output.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
     }
 
