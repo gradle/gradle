@@ -165,10 +165,19 @@ public interface DomainObjectCollection<T> extends Collection<T> {
     void all(Action<? super T> action);
 
     /**
-     * Executes the given closure against all objects in this collection, and any objects subsequently added to this
-     * collection. The object is passed to the closure as the closure delegate. Alternatively, it is also passed as a parameter.
+     * Executes the given closure against all objects in this collection, and any objects subsequently added to this collection. The object is passed to the closure as the closure
+     * delegate. Alternatively, it is also passed as a parameter.
      *
      * @param action The action to be executed
      */
     void all(Closure action);
+
+    /**
+     * Returns a collection which contains the objects in this collection which meet the given closure specification.
+     *
+     * @param spec The specification to use. The closure gets a collection element as an argument.
+     * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
+     *         collection.
+     */
+    public Collection<T> findAll(Closure spec);
 }

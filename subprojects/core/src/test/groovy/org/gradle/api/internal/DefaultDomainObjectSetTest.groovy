@@ -26,6 +26,6 @@ class DefaultDomainObjectSetTest extends Specification {
         set.add("d")
 
         expect:
-        set.findAll { it != "c" } == ["a", "b", "d"]
+        set.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
     }
 }

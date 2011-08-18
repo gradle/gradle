@@ -28,8 +28,10 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -245,6 +247,29 @@ public class DefaultDomainObjectCollectionTest {
         assertThat(toList(collection), equalTo(toList("a")));
     }
 
+    @Test
+    public void findAllRetainsIterationOrder() {
+        container.add("a");
+        container.add("b");
+        container.add("c");
+
+        Collection<CharSequence> collection = container.findAll(HelperUtil.toClosure("{ it != 'b' }"));
+        assertThat(collection, instanceOf(List.class));
+        assertThat(collection, equalTo((Collection) toList("a", "c")));
+    }
+
+    @Test
+    public void findAllDoesNotReturnALiveCollection() {
+        container.add("a");
+        container.add("b");
+        container.add("c");
+
+        Collection<CharSequence> collection = container.findAll(HelperUtil.toClosure("{ it != 'b' }"));
+
+        container.add("d");
+        assertThat(collection, equalTo((Collection) toList("a", "c")));
+    }
+    
     @Test
     public void callsActionWhenObjectAdded() {
         final Action<CharSequence> action = context.mock(Action.class);

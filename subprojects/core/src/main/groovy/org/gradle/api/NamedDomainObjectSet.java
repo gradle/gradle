@@ -44,4 +44,9 @@ public interface NamedDomainObjectSet<T> extends NamedDomainObjectCollection<T>,
      * {@inheritDoc}
      */
     NamedDomainObjectSet<T> matching(Closure spec);
+
+    /**
+     * {@inheritDoc}
+     */
+    Set<T> findAll(Closure spec);
 }

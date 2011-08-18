@@ -48,6 +48,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), classGenerator, namer);
     }
 
+    @Override
     protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
         return getClassGenerator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getClassGenerator(), getNamer());
     }
@@ -56,23 +57,33 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
         return new FilteredSet<T, S>(this, filter);
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("%s set", getTypeDisplayName());
     }
 
+    @Override
     public <S extends T> NamedDomainObjectSet<S> withType(Class<S> type) {
         return filtered(createFilter(type));
     }
 
+    @Override
     public NamedDomainObjectSet<T> matching(Spec<? super T> spec) {
         return filtered(createFilter(spec));
     }
 
+    @Override
     public NamedDomainObjectSet<T> matching(Closure spec) {
         return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
+    @Override
+    public Set<T> findAll(Closure cl) {
+        return findAll(cl, new LinkedHashSet<T>());
+    }
+
     // Overridden to allow the backing store to enforce uniqueness.
+    @Override
     public boolean add(T o) {
         return super.add(o);
     }

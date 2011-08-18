@@ -42,4 +42,8 @@ public interface DomainObjectSet<T> extends DomainObjectCollection<T>, Set<T> {
      */
     DomainObjectSet<T> matching(Closure spec);
 
+    /**
+     * {@inheritDoc}
+     */
+    Set<T> findAll(Closure spec);
 }

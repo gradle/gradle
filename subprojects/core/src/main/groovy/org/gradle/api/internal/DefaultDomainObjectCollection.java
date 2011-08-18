@@ -18,14 +18,13 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.internal.collections.CollectionEventRegister;
+import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
-
-import org.gradle.api.internal.collections.FilteredCollection;
-import org.gradle.api.internal.collections.CollectionFilter;
-import org.gradle.api.internal.collections.CollectionEventRegister;
 
 import java.util.*;
 
@@ -275,6 +274,17 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public int size() {
         return getStore().size();
+    }
+
+    public Collection<T> findAll(Closure cl) {
+        return findAll(cl, new ArrayList<T>());
+    }
+
+    protected <S extends Collection<? super T>> S findAll(Closure cl, S matches) {
+        for (T t : matching(cl)) {
+            matches.add(t);
+        }
+        return matches;
     }
 
     protected void assertMutable() {

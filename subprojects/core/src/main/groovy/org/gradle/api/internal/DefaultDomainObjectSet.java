@@ -16,16 +16,16 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.collections.CollectionEventRegister;
+import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.FilteredSet;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.internal.collections.FilteredSet;
-import org.gradle.api.internal.collections.CollectionFilter;
-import org.gradle.api.internal.collections.CollectionEventRegister;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> implements DomainObjectSet<T> {
 
@@ -45,33 +45,33 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         super(type, store, eventRegister);
     }
 
+    @Override
     protected <S extends T> DefaultDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
         return new DefaultDomainObjectSet<S>(this, filter);
     }
 
+    @Override
     protected <S extends T> Set<S> filteredStore(CollectionFilter<S> filter) {
         return new FilteredSet<T, S>(this, filter);
     }
 
+    @Override
     public <S extends T> DomainObjectSet<S> withType(Class<S> type) {
         return filtered(createFilter(type));
     }
 
+    @Override
     public DomainObjectSet<T> matching(Spec<? super T> spec) {
         return filtered(createFilter(spec));
     }
 
+    @Override
     public DomainObjectSet<T> matching(Closure spec) {
         return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
-    public Collection<T> findAll(Closure cl) {
-        List<T> result = new ArrayList<T>();
-        for (T t : this) {
-            if (DefaultTypeTransformation.castToBoolean(cl.call(t))) {
-                result.add(t);
-            }
-        }
-        return result;
+    @Override
+    public Set<T> findAll(Closure cl) {
+        return findAll(cl, new LinkedHashSet<T>());
     }
 }
