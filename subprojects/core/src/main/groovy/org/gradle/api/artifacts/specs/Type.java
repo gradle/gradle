@@ -20,23 +20,37 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * Dependency types.
  */
+@Deprecated
 public enum Type implements Spec<Dependency> {
+    /**
+     * @deprecated Use an {@code instanceof ExternalDependency} check instead.
+     */
+    @Deprecated
     EXTERNAL {
         public boolean isSatisfiedBy(Dependency dependency) {
+            DeprecationLogger.nagUserWith("Type.EXTERNAL is deprecated. Use an 'instanceof ExternalDependency' check instead.");
             return dependency instanceof ExternalDependency;
         }
+
         public boolean isOf(Dependency dependency) {
             return isSatisfiedBy(dependency);
         }
     },
+    /**
+     * @deprecated Use an {@code instanceof ProjectDependency} check instead.
+     */
+    @Deprecated
     PROJECT {
         public boolean isSatisfiedBy(Dependency dependency) {
+            DeprecationLogger.nagUserWith("Type.PROJECT is deprecated. Use an 'instanceof ProjectDependency' check instead.");
             return dependency instanceof ProjectDependency;
         }
+
         public boolean isOf(Dependency dependency) {
             return isSatisfiedBy(dependency);
         }

@@ -17,18 +17,21 @@ package org.gradle.api.artifacts.specs;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * Various {@link Spec} implementations for selecting {@link Dependency} instances.
  *
  * @author Hans Dockter
  */
+@Deprecated
 public class DependencySpecs {
     /**
      * Deprecated. Use {@link Type} directly instead (it already implements Spec<Dependency>).
      */
     @Deprecated
     public static Spec<Dependency> type(Type type) {
+        DeprecationLogger.nagUserWith("DependencySpecs.type() is deprecated. Use instanceof ProjectDependency or instanceof ExternalModuleDependency checks instead.");
         return new DependencyTypeSpec<Dependency>(type);
     }
 
