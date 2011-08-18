@@ -261,13 +261,28 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // END
 
-            // GENERATE public ConventionMapping getConventionMapping() { return mapping; }
+            // GENERATE public ConventionMapping getConventionMapping() { if (mapping != null) { return mapping; } else { return new ConventionAwareHelper(this); } }
+            // the null check is for when getConventionMapping() is called by a superclass constructor (eg when the constructor calls a getter method)
 
             addGetter(IConventionAware.class.getDeclaredMethod("getConventionMapping"), new MethodCodeBody() {
                 public void add(MethodVisitor visitor) {
+                    // GENERATE if (mapping != null) {... }
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
                     visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), "mapping",
                             mappingFieldSignature);
+                    visitor.visitInsn(Opcodes.DUP);
+                    Label nullBranch = new Label();
+                    visitor.visitJumpInsn(Opcodes.IFNULL, nullBranch);
+                    visitor.visitInsn(Opcodes.ARETURN);
+                    // GENERATE else { return new ConventionAwareHelper(this); }
+                    visitor.visitLabel(nullBranch);
+                    Type conventionAwareHelperType = Type.getType(ConventionAwareHelper.class);
+                    String constructorDesc = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{Type.getType(IConventionAware.class)});
+                    visitor.visitTypeInsn(Opcodes.NEW, conventionAwareHelperType.getInternalName());
+                    visitor.visitInsn(Opcodes.DUP);
+                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, conventionAwareHelperType.getInternalName(), "<init>", constructorDesc);
+                    visitor.visitInsn(Opcodes.ARETURN);
                 }
             });
 

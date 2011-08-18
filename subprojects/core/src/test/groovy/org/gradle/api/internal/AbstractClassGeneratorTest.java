@@ -353,6 +353,13 @@ public abstract class AbstractClassGeneratorTest {
         assertThat(call("{ it.dynamicProp }", bean), equalTo((Object) "value"));
     }
 
+    @Test
+    public void constructorCanCallGetter() throws Exception {
+        BeanUsesPropertiesInConstructor bean = generator.newInstance(BeanUsesPropertiesInConstructor.class);
+
+        assertThat(bean.name, equalTo("default-name"));
+    }
+
     public static class Bean {
         private String prop;
 
@@ -535,6 +542,18 @@ public abstract class AbstractClassGeneratorTest {
 
         public String getOtherProperty() {
             return null;
+        }
+    }
+
+    public static class BeanUsesPropertiesInConstructor {
+        final String name;
+
+        public BeanUsesPropertiesInConstructor() {
+            name = getName();
+        }
+
+        public String getName() {
+            return "default-name";
         }
     }
 

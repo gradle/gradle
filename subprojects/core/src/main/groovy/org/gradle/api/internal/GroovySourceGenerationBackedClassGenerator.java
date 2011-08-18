@@ -89,7 +89,7 @@ public class GroovySourceGenerationBackedClassGenerator extends AbstractClassGen
                 src.format("private org.gradle.api.internal.ConventionMapping mapping = new org.gradle.api.internal.ConventionAwareHelper(this, new org.gradle.api.internal.plugins.DefaultConvention())%n");
             }
             src.format("public void setConventionMapping(org.gradle.api.internal.ConventionMapping conventionMapping) { this.mapping = conventionMapping }%n");
-            src.format("public org.gradle.api.internal.ConventionMapping getConventionMapping() { return mapping }%n");
+            src.format("public org.gradle.api.internal.ConventionMapping getConventionMapping() { return mapping ?: new org.gradle.api.internal.ConventionAwareHelper(this) }%n");
         }
 
         public void mixInGroovyObject() {

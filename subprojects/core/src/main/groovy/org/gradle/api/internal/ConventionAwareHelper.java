@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ReflectionUtil;
@@ -39,6 +40,11 @@ public class ConventionAwareHelper implements ConventionMapping {
     private IConventionAware source;
 
     private Map<String, ConventionValue> conventionMapping = new HashMap<String, ConventionValue>();
+
+    public ConventionAwareHelper(IConventionAware source) {
+        this.source = source;
+        this.convention = new DefaultConvention();
+    }
 
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this.source = source;
