@@ -28,6 +28,8 @@ import org.gradle.util.DeprecationLogger;
 @Deprecated
 public enum Type implements Spec<Dependency> {
     /**
+     * Matches external dependencies.
+     *
      * @deprecated Use an {@code instanceof ExternalDependency} check instead.
      */
     @Deprecated
@@ -42,6 +44,8 @@ public enum Type implements Spec<Dependency> {
         }
     },
     /**
+     * Matches project dependencies.
+     *
      * @deprecated Use an {@code instanceof ProjectDependency} check instead.
      */
     @Deprecated
