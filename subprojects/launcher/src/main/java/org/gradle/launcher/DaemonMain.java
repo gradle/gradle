@@ -29,7 +29,9 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.LoggingOutputInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
@@ -47,10 +49,16 @@ public class DaemonMain implements Runnable {
     private final DaemonConnector connector;
     private final GradleLauncherFactory launcherFactory;
 
+    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
+
     public DaemonMain(ServiceRegistry loggingServices, DaemonConnector connector) {
+        this(loggingServices, connector, new DefaultGradleLauncherFactory(loggingServices));
+    }
+
+    public DaemonMain(ServiceRegistry loggingServices, DaemonConnector connector, GradleLauncherFactory launcherFactory) {
         this.loggingServices = loggingServices;
         this.connector = connector;
-        launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
+        this.launcherFactory = launcherFactory;
     }
 
     public static void main(String[] args) throws IOException {
@@ -79,10 +87,27 @@ public class DaemonMain implements Runnable {
 
     public void run() {
         connector.accept(new IncomingConnectionHandler() {
-            public void handle(Connection<Object> connection, Stoppable serverControl) {
-                doRun(connection, serverControl);
+            public void handle(final Connection<Object> connection, final DaemonConnector.CompletionHandler serverControl) {
+                //we're spinning a thread to do work to avoid blocking the connection
+                //This means that the Daemon potentially can have multiple build jobs running.
+                // We're avoiding that situation on a different level but even if things go awry and daemon runs multiple jobs nothing serious happens
+                //When the daemon is busy running a build and the Stop command arrives, the stop command gets its own thread, is executed,
+                // stops the main server thread that eventually make the build thread gone as well.
+                StoppableExecutor executor = executorFactory.create("DaemonMain worker");
+                executor.execute(new Runnable() {
+                    public void run() {
+                        try {
+                            serverControl.onStartActivity();
+                            doRun(connection, serverControl);
+                        } finally {
+                            serverControl.onActivityComplete();
+                            connection.stop();
+                        }
+                    }
+                });
             }
         });
+        executorFactory.stop();
     }
 
     private void doRun(final Connection<Object> connection, Stoppable serverControl) {

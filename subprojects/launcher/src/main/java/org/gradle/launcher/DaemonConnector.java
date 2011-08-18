@@ -20,11 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.DefaultSerializer;
-import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.OnDemandFileLock;
-import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
@@ -37,9 +32,12 @@ import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
-import org.gradle.util.*;
+import org.gradle.util.GUtil;
+import org.gradle.util.Jvm;
+import org.gradle.util.UUIDGenerator;
+import org.gradle.util.UncheckedException;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,34 +48,63 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DaemonConnector.class);
     private final File userHomeDir;
+    private DaemonRegistry daemonRegistry;
+    private final int idleDaemonTimeout;
 
     public DaemonConnector(File userHomeDir) {
+        this(userHomeDir, 3 * 60 * 60 * 1000);
+    }
+
+    DaemonConnector(File userHomeDir, int idleDaemonTimeout) {
         this.userHomeDir = userHomeDir;
+        this.daemonRegistry = new DaemonRegistry(userHomeDir);
+        this.idleDaemonTimeout = idleDaemonTimeout;
     }
 
     /**
      * Attempts to connect to the daemon, if it is running.
      *
+     * @param idleOnly - get connections only to idle daemons. TODO SF - this is ugly. Refactor.
      * @return The connection, or null if not running.
      */
-    public Connection<Object> maybeConnect() {
-        Address address = openRegistry().get();
-        if (address == null) {
-            return null;
+    public Connection<Object> maybeConnect(boolean idleOnly) {
+        List<File> registryFiles = idleOnly? daemonRegistry.getIdle() : daemonRegistry.getAll();
+        for (File registryFile : registryFiles) {
+            Address address = loadDaemonAddress(registryFile);
+            if (address == null) {
+                continue;
+            }
+            try {
+                return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(address);
+            } catch (ConnectException e) {
+                // Ignore
+            }
         }
-        try {
-            return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(address);
-        } catch (ConnectException e) {
-            // Ignore
-            return null;
-        }
+        return null;
     }
 
-    private PersistentStateCache<Address> openRegistry() {
-        File registryFile = new File(userHomeDir, String.format("daemon/%s/registry.bin", GradleVersion.current().getVersion()));
-        return new SimpleStateCache<Address>(registryFile,
-                new OnDemandFileLock(registryFile, "daemon address registry", new DefaultFileLockManager()),
-                new DefaultSerializer<Address>());
+    private Address loadDaemonAddress(File file) {
+        try {
+            FileInputStream inputStream = new FileInputStream(file);
+            try {
+                // Acquire shared lock on file while reading it
+                inputStream.getChannel().lock(0, Long.MAX_VALUE, true);
+                ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+                return (Address) objectInputStream.readObject();
+            } finally {
+                // Also releases the lock
+                inputStream.close();
+            }
+        } catch (FileNotFoundException e) {
+            // Ignore
+            return null;
+        } catch (EOFException e) {
+            // Daemon has created empty file, but not yet locked it or written anything to it.
+            // Or has crashed while writing the registry file.
+            return null;
+        } catch (Exception e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
     }
 
     /**
@@ -86,7 +113,7 @@ public class DaemonConnector {
      * @return The connection. Never returns null.
      */
     public Connection<Object> connect() {
-        Connection<Object> connection = maybeConnect();
+        Connection<Object> connection = maybeConnect(true);
         if (connection != null) {
             return connection;
         }
@@ -95,7 +122,7 @@ public class DaemonConnector {
         startDaemon();
         Date expiry = new Date(System.currentTimeMillis() + 30000L);
         do {
-            connection = maybeConnect();
+            connection = maybeConnect(true);
             if (connection != null) {
                 return connection;
             }
@@ -134,43 +161,67 @@ public class DaemonConnector {
     void accept(final IncomingConnectionHandler handler) {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
         TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
-        final CompletionHandler finished = new CompletionHandler();
+
+        final DaemonRegistry.RegistryFile registryFile = daemonRegistry.createRegistryFileHandle();
+
+        final CompletionHandler finished = new CompletionHandler(idleDaemonTimeout, registryFile);
 
         LOGGER.lifecycle("Awaiting requests.");
 
+
         Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
             public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
-                try {
-                    finished.onStartActivity();
-                    handler.handle(connectionConnectEvent.getConnection(), finished);
-                } finally {
-                    finished.onActivityComplete();
-                    connectionConnectEvent.getConnection().stop();
-                }
+                handler.handle(connectionConnectEvent.getConnection(), finished);
             }
         };
         Address address = incomingConnector.accept(connectEvent, false);
 
-        openRegistry().set(address);
+        storeDaemonAddress(address, registryFile.getFile());
 
         boolean stopped = finished.awaitStop();
         if (!stopped) {
             LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
         }
+        registryFile.getFile().delete();
         new CompositeStoppable(incomingConnector, executorFactory).stop();
-
-        openRegistry().set(null);
     }
 
-    private static class CompletionHandler implements Stoppable {
-        private static final int THREE_HOURS = 3 * 60 * 60 * 1000;
+    private void storeDaemonAddress(Address address, File registryFile) {
+        try {
+            registryFile.getParentFile().mkdirs();
+            FileOutputStream outputStream = new FileOutputStream(registryFile);
+            try {
+                // Lock file while writing to it
+                outputStream.getChannel().lock();
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                objectOutputStream.writeObject(address);
+                objectOutputStream.flush();
+            } finally {
+                // Also releases the lock
+                outputStream.close();
+            }
+        } catch (IOException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+    }
+
+    DaemonRegistry getDaemonRegistry() {
+        return daemonRegistry;
+    }
+
+    public static class CompletionHandler implements Stoppable {
+
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
         private boolean running;
         private boolean stopped;
         private long expiry;
+        private final int idleDaemonTimeout;
+        private final DaemonRegistry.RegistryFile registryFile;
 
-        CompletionHandler() {
+        CompletionHandler(int idleDaemonTimeout, DaemonRegistry.RegistryFile registryFile) {
+            this.idleDaemonTimeout = idleDaemonTimeout;
+            this.registryFile = registryFile;
             resetTimer();
         }
 
@@ -216,6 +267,7 @@ public class DaemonConnector {
                 assert !running;
                 running = true;
                 condition.signalAll();
+                registryFile.markBusy();
             } finally {
                 lock.unlock();
             }
@@ -228,13 +280,14 @@ public class DaemonConnector {
                 running = false;
                 resetTimer();
                 condition.signalAll();
+                registryFile.markIdle();
             } finally {
                 lock.unlock();
             }
         }
 
         private void resetTimer() {
-            expiry = System.currentTimeMillis() + THREE_HOURS;
+            expiry = System.currentTimeMillis() + idleDaemonTimeout;
         }
     }
 }

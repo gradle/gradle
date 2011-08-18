@@ -37,11 +37,21 @@ class DaemonClientTest extends Specification {
         client.stop()
 
         then:
-        1 * connector.maybeConnect() >> connection
+        2 * connector.maybeConnect(false) >>> [connection, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new CommandComplete(null)
         1 * connection.stop()
         0 * _._
+    }
+
+    def "stops all daemons"() {
+        when:
+        client.stop()
+
+        then:
+        3 * connector.maybeConnect(false) >>> [connection, connection, null]
+        2 * connection.dispatch({it instanceof Stop})
+        2 * connection.receive() >> new CommandComplete(null)
     }
 
     def stopsTheDaemonWhenNotRunning() {
@@ -49,7 +59,7 @@ class DaemonClientTest extends Specification {
         client.stop()
 
         then:
-        1 * connector.maybeConnect() >> null
+        1 * connector.maybeConnect(false) >> null
         0 * _._
     }
 
@@ -62,7 +72,7 @@ class DaemonClientTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * connector.maybeConnect() >> connection
+        1 * connector.maybeConnect(false) >> connection
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new CommandComplete(failure)
         1 * connection.stop()
