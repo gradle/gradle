@@ -29,13 +29,14 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,14 +45,13 @@ import org.junit.runners.JUnit4;
 import java.io.File;
 import java.io.IOException;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
 public class DefaultGradleTest {
-    private final JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final StartParameter parameter = new StartParameter();
     private final ScriptHandler scriptHandlerMock = context.mock(ScriptHandler.class);
     private final ServiceRegistryFactory serviceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, "parent");
@@ -63,6 +63,8 @@ public class DefaultGradleTest {
     private final Gradle parent = context.mock(Gradle.class, "parentBuild");
     private final MultiParentClassLoader scriptClassLoaderMock = context.mock(MultiParentClassLoader.class);
     private final GradleDistributionLocator gradleDistributionLocatorMock = context.mock(GradleDistributionLocator.class);
+    private final ListenerBroadcast<BuildListener> buildListenerBroadcast = context.mock(ListenerBroadcast.class);
+    private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast = context.mock(ListenerBroadcast.class);
     private DefaultGradle gradle;
 
     @Before
@@ -86,6 +88,10 @@ public class DefaultGradleTest {
             will(returnValue(scriptClassLoaderMock));
             allowing(gradleServiceRegistryMock).get(GradleDistributionLocator.class);
             will(returnValue(gradleDistributionLocatorMock));
+            allowing(listenerManager).createAnonymousBroadcaster(BuildListener.class);
+            will(returnValue(buildListenerBroadcast));
+            allowing(listenerManager).createAnonymousBroadcaster(ProjectEvaluationListener.class);
+            will(returnValue(projectEvaluationListenerBroadcast));
         }});
         gradle = new DefaultGradle(parent, parameter, serviceRegistryFactoryMock);
     }
@@ -124,15 +130,11 @@ public class DefaultGradleTest {
 
     @Test
     public void broadcastsProjectEventsToListeners() {
-        final ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener.class, "listener");
         final ProjectEvaluationListener broadcaster = context.mock(ProjectEvaluationListener.class, "broadcaster");
         context.checking(new Expectations() {{
-            one(listenerManager).addListener(listener);
-            one(listenerManager).getBroadcaster(ProjectEvaluationListener.class);
+            one(projectEvaluationListenerBroadcast).getSource();
             will(returnValue(broadcaster));
         }});
-
-        gradle.addListener(listener);
 
         assertThat(gradle.getProjectEvaluationBroadcaster(), sameInstance(broadcaster));
     }
@@ -141,7 +143,7 @@ public class DefaultGradleTest {
     public void broadcastsBeforeProjectEvaluateEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            one(listenerManager).addListener(ProjectEvaluationListener.class, "beforeEvaluate", closure);
+            one(projectEvaluationListenerBroadcast).add("beforeEvaluate", closure);
         }});
 
         gradle.beforeProject(closure);
@@ -151,7 +153,7 @@ public class DefaultGradleTest {
     public void broadcastsAfterProjectEvaluateEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            one(listenerManager).addListener(ProjectEvaluationListener.class, "afterEvaluate", closure);
+            one(projectEvaluationListenerBroadcast).add("afterEvaluate", closure);
         }});
 
         gradle.afterProject(closure);
@@ -161,7 +163,7 @@ public class DefaultGradleTest {
     public void broadcastsBuildStartedEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            one(listenerManager).addListener(BuildListener.class, "buildStarted", closure);
+            one(buildListenerBroadcast).add("buildStarted", closure);
         }});
 
         gradle.buildStarted(closure);
@@ -171,7 +173,7 @@ public class DefaultGradleTest {
     public void broadcastsSettingsEvaluatedEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            one(listenerManager).addListener(BuildListener.class, "settingsEvaluated", closure);
+            one(buildListenerBroadcast).add("settingsEvaluated", closure);
         }});
 
         gradle.settingsEvaluated(closure);
@@ -181,7 +183,7 @@ public class DefaultGradleTest {
     public void broadcastsProjectsLoadedEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            one(listenerManager).addListener(BuildListener.class, "projectsLoaded", closure);
+            one(buildListenerBroadcast).add("projectsLoaded", closure);
         }});
 
         gradle.projectsLoaded(closure);
@@ -191,7 +193,7 @@ public class DefaultGradleTest {
     public void broadcastsProjectsEvaluatedEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            one(listenerManager).addListener(BuildListener.class, "projectsEvaluated", closure);
+            one(buildListenerBroadcast).add("projectsEvaluated", closure);
         }});
 
         gradle.projectsEvaluated(closure);
@@ -201,7 +203,7 @@ public class DefaultGradleTest {
     public void broadcastsBuildFinishedEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            one(listenerManager).addListener(BuildListener.class, "buildFinished", closure);
+            one(buildListenerBroadcast).add("buildFinished", closure);
         }});
 
         gradle.buildFinished(closure);
