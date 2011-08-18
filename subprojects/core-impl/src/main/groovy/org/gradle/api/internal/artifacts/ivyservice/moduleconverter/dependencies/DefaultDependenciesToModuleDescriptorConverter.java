@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * @author Hans Dockter
@@ -41,7 +41,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
-    public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations,
+    public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations,
                                          IvySettings ivySettings) {
         assert !configurations.isEmpty();
         addDependencies(moduleDescriptor, configurations);
@@ -49,7 +49,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         addConflictManager(moduleDescriptor, ivySettings);
     }
 
-    private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
+    private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ModuleDependency dependency : configuration.getDependencies().withType(ModuleDependency.class)) {
                 dependencyDescriptorFactory.addDependencyDescriptor(configuration.getName(), moduleDescriptor, dependency);
@@ -57,7 +57,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         }
     }
 
-    private void addExcludeRules(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
+    private void addExcludeRules(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
                 org.apache.ivy.core.module.descriptor.ExcludeRule rule = excludeRuleConverter.createExcludeRule(

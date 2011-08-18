@@ -22,6 +22,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -88,8 +89,8 @@ public class DefaultIvyServiceResolveTest {
 
     @Test
     public void testResolve() {
-        final Configuration configurationDummy = context.mock(Configuration.class);
-        final Set<Configuration> configurations = WrapUtil.toSet(configurationDummy);
+        final ConfigurationInternal configurationDummy = context.mock(ConfigurationInternal.class);
+        final Set<? extends Configuration> configurations = WrapUtil.toSet(configurationDummy);
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         final ModuleDescriptor moduleDescriptorDummy = HelperUtil.createModuleDescriptor(WrapUtil.toSet("someConf"));
         final Ivy ivyStub = context.mock(Ivy.class);

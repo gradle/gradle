@@ -42,7 +42,7 @@ public abstract class AbstractModuleDescriptorConverter implements ModuleDescrip
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
     }
 
-    protected DefaultModuleDescriptor createCommonModuleDescriptor(Module module, Set<Configuration> configurations, IvySettings ivySettings) {
+    protected DefaultModuleDescriptor createCommonModuleDescriptor(Module module, Set<? extends Configuration> configurations, IvySettings ivySettings) {
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
         dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations, ivySettings);
