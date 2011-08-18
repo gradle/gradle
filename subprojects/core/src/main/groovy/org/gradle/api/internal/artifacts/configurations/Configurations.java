@@ -16,11 +16,10 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.specs.Spec;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -61,29 +60,5 @@ public class Configurations {
 
     private static String getCapitalName(String configurationName) {
         return configurationName.substring(0, 1).toUpperCase() + configurationName.substring(1);
-    }
-
-    public static Set<Dependency> getDependencies(Set<Configuration> configurations, Spec<Dependency> dependencySpec) {
-        Set<Dependency> dependencies = new LinkedHashSet<Dependency>();
-        for (Configuration configuration : configurations) {
-            for (Dependency dependency : configuration.getDependencies()) {
-                if (dependencySpec.isSatisfiedBy(dependency)) {
-                    dependencies.add(dependency);
-                }
-            }
-        }
-        return dependencies;
-    }
-
-    public static Set<PublishArtifact> getArtifacts(Set<Configuration> configurations, Spec<PublishArtifact> artifactSpec) {
-        Set<PublishArtifact> artifacts = new HashSet<PublishArtifact>();
-        for (Configuration configuration : configurations) {
-            for (PublishArtifact artifact : configuration.getArtifacts()) {
-                if (artifactSpec.isSatisfiedBy(artifact)) {
-                    artifacts.add(artifact);
-                }
-            }
-        }
-        return artifacts;
     }
 }
