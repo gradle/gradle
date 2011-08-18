@@ -16,11 +16,18 @@
 
 package org.gradle.launcher;
 
+import org.gradle.cache.DefaultSerializer;
+import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.internal.DefaultFileLockManager;
+import org.gradle.cache.internal.OnDemandFileLock;
+import org.gradle.cache.internal.SimpleStateCache;
+import org.gradle.messaging.remote.Address;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UUIDGenerator;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
@@ -42,41 +49,70 @@ public class DaemonRegistry {
         this.registryFolder = registryFolder;
     }
 
-    List<File> getAll() {
+    List<DaemonStatus> getAll() {
+        List<DaemonStatus> out = new LinkedList<DaemonStatus>();
+        List<File> files = getAllFiles();
+        for (File file : files) {
+            DaemonStatus daemonStatus = openRegistry(file).get();
+            if (daemonStatus != null) {
+                out.add(daemonStatus);
+            }
+        }
+        return out;
+    }
+
+    List<DaemonStatus> getIdle() {
+        List<DaemonStatus> out = new LinkedList<DaemonStatus>();
+        List<DaemonStatus> all = getAll();
+        for (DaemonStatus d : all) {
+            if (d.isIdle()) {
+                out.add(d);
+            }
+        }
+        return out;
+    }
+
+    List<DaemonStatus> getBusy() {
+        List<DaemonStatus> out = new LinkedList<DaemonStatus>();
+        List<DaemonStatus> all = getAll();
+        for (DaemonStatus d : all) {
+            if (!d.isIdle()) {
+                out.add(d);
+            }
+        }
+        return out;
+    }
+
+    private static PersistentStateCache<DaemonStatus> openRegistry(File registryFile) {
+        return new SimpleStateCache<DaemonStatus>(registryFile,
+                new OnDemandFileLock(registryFile, "daemon address registry", new DefaultFileLockManager()),
+                new DefaultSerializer<DaemonStatus>());
+    }
+
+    private List<File> registryFiles(FilenameFilter filter) {
+        File dir = new File(registryFolder, String.format("daemon/%s", GradleVersion.current().getVersion()));
+        return asList(dir.listFiles(filter));
+    }
+
+    public List<File> getAllFiles() {
         return registryFiles(allFilter);
     }
 
-    List<File> getIdle() {
-        return registryFiles(idleFilter);
-    }
-
-    List<File> getBusy() {
-        return registryFiles(busyFilter);
-    }
-
-    private List<File> registryFiles(FilenameFilter idleFilter) {
-        File dir = new File(registryFolder, String.format("daemon/%s", GradleVersion.current().getVersion()));
-        return asList(dir.listFiles(idleFilter));
-    }
-
-    RegistryFile createRegistryFileHandle() {
+    public Registry newRegistry() {
         //Since there are multiple daemons we need unique name of the registry file
         String uid = new UUIDGenerator().generateId().toString();
         File file = new File(registryFolder, String.format("daemon/%s/registry-%s.bin", GradleVersion.current().getVersion(), uid));
-        //daemon clients work fine even if the registry file exists without working daemon, see maybeConnect() method.
-        //hence if the deleteOnExit fails we don't care
-        file.deleteOnExit();
-        return new RegistryFile(file);
+
+        return new Registry(file);
     }
 
-    public static class RegistryFile {
+    public static class Registry {
 
         private final File file;
-        private final File busyFile;
+        private Address address;
 
-        public RegistryFile(File file) {
+        public Registry(File file) {
             this.file = file;
-            busyFile = new File(file.getParentFile(), file.getName() + ".busy");
         }
 
         public File getFile() {
@@ -84,30 +120,29 @@ public class DaemonRegistry {
         }
 
         public void markBusy() {
-            //TODO SF - the rename logic ignores the failures at the moment. Also, consider making the daemon write the status to the file directly.
-            file.renameTo(busyFile);
+            openRegistry(file).set(new DaemonStatus(address).setIdle(false));
         }
 
         public void markIdle() {
-            busyFile.renameTo(file);
+            openRegistry(file).set(new DaemonStatus(address).setIdle(true));
+        }
+
+        public void store(Address address) {
+            this.address = address;
+            openRegistry(file).set(new DaemonStatus(this.address));
+        }
+
+        public void remove() {
+            openRegistry(file).set(null);
+            //TODO SF - delete should be on the registry
+            file.deleteOnExit();
+            file.delete();
         }
     }
 
     private FilenameFilter allFilter = new FilenameFilter() {
         public boolean accept(File file, String s) {
-            return s.startsWith("registry-");
-        }
-    };
-
-    private FilenameFilter idleFilter = new FilenameFilter() {
-        public boolean accept(File file, String s) {
-            return s.startsWith("registry-") && !s.endsWith(".busy");
-        }
-    };
-
-    private FilenameFilter busyFilter = new FilenameFilter() {
-        public boolean accept(File file, String s) {
-            return s.startsWith("registry-") && s.endsWith(".busy");
+            return s.startsWith("registry-") && s.endsWith(".bin");
         }
     };
 }

@@ -37,7 +37,7 @@ import org.gradle.util.Jvm;
 import org.gradle.util.UUIDGenerator;
 import org.gradle.util.UncheckedException;
 
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -68,43 +68,15 @@ public class DaemonConnector {
      * @return The connection, or null if not running.
      */
     public Connection<Object> maybeConnect(boolean idleOnly) {
-        List<File> registryFiles = idleOnly? daemonRegistry.getIdle() : daemonRegistry.getAll();
-        for (File registryFile : registryFiles) {
-            Address address = loadDaemonAddress(registryFile);
-            if (address == null) {
-                continue;
-            }
+        List<DaemonStatus> statuses = idleOnly? daemonRegistry.getIdle() : daemonRegistry.getAll();
+        for (DaemonStatus status : statuses) {
             try {
-                return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(address);
+                return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(status.getAddress());
             } catch (ConnectException e) {
                 // Ignore
             }
         }
         return null;
-    }
-
-    private Address loadDaemonAddress(File file) {
-        try {
-            FileInputStream inputStream = new FileInputStream(file);
-            try {
-                // Acquire shared lock on file while reading it
-                inputStream.getChannel().lock(0, Long.MAX_VALUE, true);
-                ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-                return (Address) objectInputStream.readObject();
-            } finally {
-                // Also releases the lock
-                inputStream.close();
-            }
-        } catch (FileNotFoundException e) {
-            // Ignore
-            return null;
-        } catch (EOFException e) {
-            // Daemon has created empty file, but not yet locked it or written anything to it.
-            // Or has crashed while writing the registry file.
-            return null;
-        } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
     }
 
     /**
@@ -162,9 +134,9 @@ public class DaemonConnector {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
         TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
 
-        final DaemonRegistry.RegistryFile registryFile = daemonRegistry.createRegistryFileHandle();
+        final DaemonRegistry.Registry registry = daemonRegistry.newRegistry();
 
-        final CompletionHandler finished = new CompletionHandler(idleDaemonTimeout, registryFile);
+        final CompletionHandler finished = new CompletionHandler(idleDaemonTimeout, registry);
 
         LOGGER.lifecycle("Awaiting requests.");
 
@@ -176,33 +148,14 @@ public class DaemonConnector {
         };
         Address address = incomingConnector.accept(connectEvent, false);
 
-        storeDaemonAddress(address, registryFile.getFile());
+        registry.store(address);
 
         boolean stopped = finished.awaitStop();
         if (!stopped) {
             LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
         }
-        registryFile.getFile().delete();
+        registry.remove();
         new CompositeStoppable(incomingConnector, executorFactory).stop();
-    }
-
-    private void storeDaemonAddress(Address address, File registryFile) {
-        try {
-            registryFile.getParentFile().mkdirs();
-            FileOutputStream outputStream = new FileOutputStream(registryFile);
-            try {
-                // Lock file while writing to it
-                outputStream.getChannel().lock();
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                objectOutputStream.writeObject(address);
-                objectOutputStream.flush();
-            } finally {
-                // Also releases the lock
-                outputStream.close();
-            }
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
     }
 
     DaemonRegistry getDaemonRegistry() {
@@ -217,9 +170,9 @@ public class DaemonConnector {
         private boolean stopped;
         private long expiry;
         private final int idleDaemonTimeout;
-        private final DaemonRegistry.RegistryFile registryFile;
+        private final DaemonRegistry.Registry registryFile;
 
-        CompletionHandler(int idleDaemonTimeout, DaemonRegistry.RegistryFile registryFile) {
+        CompletionHandler(int idleDaemonTimeout, DaemonRegistry.Registry registryFile) {
             this.idleDaemonTimeout = idleDaemonTimeout;
             this.registryFile = registryFile;
             resetTimer();

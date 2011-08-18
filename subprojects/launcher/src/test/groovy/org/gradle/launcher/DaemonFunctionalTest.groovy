@@ -19,6 +19,7 @@ package org.gradle.launcher
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.launcher.protocol.Stop
 import org.gradle.logging.internal.OutputEventListener
+import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -111,8 +112,27 @@ class DaemonFunctionalTest extends Specification {
         then: 1==1
     }
 
+    static class AddressStub implements Address {
+        String getDisplayName() {
+            return "foo";
+        }
+    }
+
+    @Ignore //TODO SF add some coverage for the registry
+    def "registry"() {
+        expect:
+        def reg = new DaemonRegistry(temp.dir)
+        def registry = reg.newRegistry();
+
+        registry.store(new AddressStub());
+        registry.remove();
+
+        temp.dir.list().length == 0
+    }
+
     def "cleans up registry"() {
         when:
+        OutputEventListener listener = Mock()
         def connection = connect()
         poll { assert reg.all.size() == 1 }
 
