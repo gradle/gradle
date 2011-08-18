@@ -17,10 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
@@ -59,6 +56,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
+    private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
     // This lock only protects the following fields
@@ -356,13 +354,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return String.format("configuration '%s'", path);
     }
 
-    public Configuration getConfiguration(Dependency dependency) {
-        for (Configuration configuration : getHierarchy()) {
-            if (configuration.getDependencies().contains(dependency)) {
-                return configuration;
-            }
-        }
-        return null;
+    public ResolvableDependencies getIncoming() {
+        return resolvableDependencies;
     }
 
     public Configuration copy() {
@@ -442,6 +435,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             };
         }
 
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return DefaultConfiguration.this.getBuildDependencies();
+        }
+
         public Spec<Dependency> getDependencySpec() {
             return dependencySpec;
         }
@@ -515,6 +513,40 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private class VetoContainerChangeAction implements Runnable {
         public void run() {
             throwExceptionIfNotInUnresolvedState();
+        }
+    }
+
+    private class ConfigurationResolvableDependencies implements ResolvableDependencies {
+        public String getName() {
+            return name;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public FileCollection getFiles() {
+            return DefaultConfiguration.this.fileCollection(Specs.<Dependency>satisfyAll());
+        }
+
+        public DependencySet getDependencies() {
+            return getAllDependencies();
+        }
+
+        public void beforeResolve(Action<? super ResolvableDependencies> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void beforeResolve(Closure action) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void afterResolve(Action<? super ResolvableDependencies> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void afterResolve(Closure action) {
+            throw new UnsupportedOperationException();
         }
     }
 }

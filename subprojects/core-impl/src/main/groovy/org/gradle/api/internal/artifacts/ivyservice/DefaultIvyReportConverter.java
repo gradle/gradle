@@ -65,7 +65,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
                     Collections.EMPTY_SET);
         }
 
-        logger.debug("Timing: Translating report for configuration {} took {}", configuration, clock.getTime());
+        logger.debug("Timing: Translating report for {} took {}", configuration, clock.getTime());
         return new DefaultIvyConversionResult(context.root, context.firstLevelResolvedDependencies, context.resolvedArtifacts);
     }
 

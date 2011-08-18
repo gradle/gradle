@@ -711,27 +711,6 @@ public class DefaultConfigurationTest {
     }
 
     @Test
-    public void getConfiguration() {
-        Dependency configurationDependency = HelperUtil.createDependency("group1", "name1", "version1");
-        Dependency otherConfSimilarDependency = HelperUtil.createDependency("group1", "name1", "version1");
-        Dependency otherConfDependency = HelperUtil.createDependency("group2", "name2", "version2");
-        Configuration otherConf = createNamedConfiguration("otherConf");
-        configuration.extendsFrom(otherConf);
-        otherConf.addDependency(otherConfDependency);
-        otherConf.addDependency(otherConfSimilarDependency);
-        configuration.addDependency(configurationDependency);
-
-        assertThat((DefaultConfiguration) configuration.getConfiguration(configurationDependency), equalTo(configuration));
-        assertThat((DefaultConfiguration) configuration.getConfiguration(otherConfSimilarDependency), equalTo(configuration));
-        assertThat(configuration.getConfiguration(otherConfDependency), equalTo(otherConf));
-    }
-
-    @Test
-    public void getConfigurationWithUnknownDependency() {
-        assertThat(configuration.getConfiguration(HelperUtil.createDependency("group1", "name1", "version1")), equalTo(null));
-    }
-
-    @Test
     public void copy() {
         prepareConfigurationForCopyTest();
 

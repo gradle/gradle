@@ -371,6 +371,13 @@ public interface Configuration extends FileCollection {
     Configuration removeArtifact(PublishArtifact artifact);
 
     /**
+     * Returns the incoming dependencies of this configuration.
+     *
+     * @return The incoming dependencies of this configuration. Never null.
+     */
+    ResolvableDependencies getIncoming();
+
+    /**
      * Creates a copy of this configuration that only contains the dependencies directly in this configuration
      * (without contributions from superconfigurations).  The new configuation will be in the
      * UNRESOLVED state, but will retain all other attributes of this configuration except superconfigurations.

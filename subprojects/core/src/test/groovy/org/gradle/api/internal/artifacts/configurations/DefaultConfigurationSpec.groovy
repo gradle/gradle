@@ -19,14 +19,19 @@ import org.gradle.api.internal.artifacts.IvyService
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
 import spock.lang.*
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskDependency
 
 class DefaultConfigurationSpec extends Specification {
 
-    ConfigurationsProvider configurationsProvider = [:] as ConfigurationsProvider
-    IvyService ivyService = [:] as IvyService
+    ConfigurationsProvider configurationsProvider = Mock()
+    IvyService ivyService = Mock()
 
-    DefaultConfiguration conf(String confName = "conf") {
-        new DefaultConfiguration(confName, confName, configurationsProvider, ivyService)
+    DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
+        new DefaultConfiguration(path, confName, configurationsProvider, ivyService)
     }
     
     DefaultPublishArtifact artifact(String name) {
@@ -110,5 +115,75 @@ class DefaultConfigurationSpec extends Specification {
         allArtifacts.size() == 3
         removed == ["p1p1-1", "p1p2-1"]
     }
-    
+
+    def "incoming dependencies set has same name and path as owner configuration"() {
+        def config = conf("conf", ":path")
+
+        expect:
+        config.incoming.name == "conf"
+        config.incoming.path == ":path"
+    }
+
+    def "incoming dependencies set contains immediate dependencies"() {
+        def config = conf("conf")
+        Dependency dep1 = Mock()
+
+        given:
+        config.dependencies.add(dep1)
+
+        expect:
+        config.incoming.dependencies as List == [dep1]
+    }
+
+    def "incoming dependencies set contains inherited dependencies"() {
+        def parent = conf("conf")
+        def config = conf("conf")
+        Dependency dep1 = Mock()
+
+        given:
+        config.extendsFrom parent
+        parent.dependencies.add(dep1)
+
+        expect:
+        config.incoming.dependencies as List == [dep1]
+    }
+
+    def "incoming dependencies set files are resolved lazily"() {
+        def config = conf("conf")
+        ResolvedConfiguration resolvedConfig = Mock()
+
+        when:
+        def files = config.incoming.files
+
+        then:
+        0 * _._
+
+        when:
+        files.files
+
+        then:
+        1 * ivyService.resolve(config) >> resolvedConfig
+        0 * ivyService._
+    }
+
+    def "incoming dependencies set depends on all self resolving dependencies"() {
+        SelfResolvingDependency dependency = Mock()
+        Task task = Mock()
+        TaskDependency taskDep = Mock()
+        def config = conf("conf")
+
+        given:
+        config.dependencies.add(dependency)
+
+        when:
+        def depTaskDeps = config.incoming.dependencies.buildDependencies.getDependencies(null)
+        def fileTaskDeps = config.incoming.files.buildDependencies.getDependencies(null)
+
+        then:
+        depTaskDeps == [task] as Set
+        fileTaskDeps == [task] as Set
+        _ * dependency.buildDependencies >> taskDep
+        _ * taskDep.getDependencies(_) >> ([task] as Set)
+        0 * _._
+    }
 }
