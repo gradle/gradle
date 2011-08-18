@@ -30,7 +30,7 @@ class PublicationPlugin implements Plugin<Project> {
 
     void apply(Project project) {
         def newPublications = new Publications()
-        project.convention.plugins.publications = newPublications
+        project.extensions.publications = newPublications
 
         project.plugins.withType(MavenPlugin) {
             newPublications.maven = new MavenPublicationBuilder().build(project)

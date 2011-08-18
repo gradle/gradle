@@ -23,13 +23,6 @@ import org.gradle.util.ConfigureUtil
  * @author: Szczepan Faber, created at: 6/16/11
  */
 class Publications {
-
-    Publications publications = this
-
-    void publications(Closure c) {
-        ConfigureUtil.configure(c, this)
-    }
-
     void maven(Closure c) {
         ConfigureUtil.configure(c, getMaven())
     }
