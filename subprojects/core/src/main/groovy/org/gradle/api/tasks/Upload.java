@@ -117,7 +117,7 @@ public class Upload extends ConventionTask {
     @InputFiles
     public FileCollection getArtifacts() {
         Configuration configuration = getConfiguration();
-        return configuration == null ? null : configuration.getAllArtifactFiles();
+        return configuration == null ? null : configuration.getAllArtifacts().getFiles();
     }
 
     void setRepositories(RepositoryHandler repositories) {

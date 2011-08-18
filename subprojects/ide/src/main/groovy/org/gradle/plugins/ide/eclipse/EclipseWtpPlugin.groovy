@@ -198,7 +198,7 @@ class EclipseWtpPlugin extends IdePlugin {
     private void eachDependedUponEclipseProject(Project project, Closure action) {
         def runtimeConfig = project.configurations.findByName("runtime")
         if (runtimeConfig) {
-            def projectDeps = runtimeConfig.getAllDependencies(ProjectDependency)
+            def projectDeps = runtimeConfig.allDependencies.withType(ProjectDependency)
             def dependedUponProjects = projectDeps*.dependencyProject
             for (dependedUponProject in dependedUponProjects) {
                 dependedUponProject.plugins.withType(EclipseWtpPlugin) { action(dependedUponProject) }

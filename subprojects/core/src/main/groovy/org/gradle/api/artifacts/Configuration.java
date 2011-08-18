@@ -244,11 +244,13 @@ public interface Configuration extends FileCollection {
     TaskDependency getTaskDependencyFromProjectDependency(boolean useDependedOn, final String taskName);
 
     /**
-     * Returns a {@code TaskDependency} object containing all required dependencies to build the artifacts
+     * Returns a {@code TaskDependency} object containing all required tasks to build the artifacts
      * belonging to this configuration or to one of its super configurations.
      *
      * @return a task dependency object
+     * @deprecated Use {@link ArtifactSet#getBuildDependencies()} on {@link #getAllArtifacts()} instead.
      */
+    @Deprecated
     TaskDependency getBuildArtifacts();
 
     /**
@@ -257,7 +259,7 @@ public interface Configuration extends FileCollection {
      *
      * @return the set of dependencies
      */
-    DomainObjectSet<Dependency> getDependencies();
+    DependencySet getDependencies();
 
     /**
      * <p>Gets the complete set of dependencies including those contributed by
@@ -265,7 +267,7 @@ public interface Configuration extends FileCollection {
      *
      * @return the (read-only) set of dependencies
      */
-    DomainObjectSet<Dependency> getAllDependencies();
+    DependencySet getAllDependencies();
 
     /**
      * <p>Gets the set of dependencies of type T directly contained in this configuration (ignoring superconfigurations).</p>
@@ -275,7 +277,9 @@ public interface Configuration extends FileCollection {
      * @param type the dependency type
      * @param <T> the dependency type
      * @return The (read-only) set.
+     * @deprecated Use {@link DependencySet#withType(Class)} on {@link #getDependencies()} instead.
      */
+    @Deprecated
     <T extends Dependency> DomainObjectSet<T> getDependencies(Class<T> type);
 
     /**
@@ -286,14 +290,16 @@ public interface Configuration extends FileCollection {
      * @param type the dependency type
      * @param <T> the dependency type
      * @return The (read-only) set.
+     * @deprecated Use {@link DependencySet#withType(Class)} on {@link #getAllDependencies()} instead.
      */
+    @Deprecated
     <T extends Dependency> DomainObjectSet<T> getAllDependencies(Class<T> type);
 
     /**
      * Adds a dependency to this configuration.
      *
      * @param dependency The dependency to be added.
-     * @deprecated Use {@code add()} on {@link #getDependencies()} instead.
+     * @deprecated Use {@link DependencySet#add(Object)} on {@link #getDependencies()} instead.
      */
     @Deprecated
     void addDependency(Dependency dependency);
@@ -303,21 +309,23 @@ public interface Configuration extends FileCollection {
      * 
      * @return The set.
      */
-    DomainObjectSet<PublishArtifact> getArtifacts();
+    ArtifactSet getArtifacts();
 
     /**
      * Returns the artifacts of this configuration including the artifacts of extended configurations.
      * 
      * @return The (read-only) set.
      */
-    DomainObjectSet<PublishArtifact> getAllArtifacts();
+    ArtifactSet getAllArtifacts();
 
     /**
      * Returns the artifacts of this configuration as a {@link FileCollection}, including artifacts of extended
      * configurations.
      *
      * @return the artifact files.
+     * @deprecated Use {@link ArtifactSet#getFiles()} on {@link #getAllArtifacts()} instead.
      */
+    @Deprecated
     FileCollection getAllArtifactFiles();
 
     /**
@@ -347,7 +355,7 @@ public interface Configuration extends FileCollection {
      *
      * @param artifact The artifact.
      * @return this
-     * @deprecated Use {@code add()} on {@link #getArtifacts()} instead.
+     * @deprecated Use {@link ArtifactSet#add(Object)} on {@link #getArtifacts()} instead.
      */
     @Deprecated
     Configuration addArtifact(PublishArtifact artifact);
@@ -357,7 +365,7 @@ public interface Configuration extends FileCollection {
      *
      * @param artifact The artifact.
      * @return this
-     * @deprecated Use {@code remove()} on {@link #getArtifacts()} instead.
+     * @deprecated Use {@link ArtifactSet#remove(Object)} on {@link #getArtifacts()} instead.
      */
     @Deprecated
     Configuration removeArtifact(PublishArtifact artifact);

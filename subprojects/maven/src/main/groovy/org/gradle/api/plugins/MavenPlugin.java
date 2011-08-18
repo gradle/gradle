@@ -109,7 +109,6 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     private void configureInstall(Project project) {
         Upload installUpload = project.getTasks().add(INSTALL_TASK_NAME, Upload.class);
         Configuration configuration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
-        installUpload.dependsOn(configuration.getBuildArtifacts());
         installUpload.setConfiguration(configuration);
         installUpload.getRepositories().mavenInstaller(WrapUtil.toMap("name", RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME));
         installUpload.setDescription("Does a maven install of the archives artifacts into the local .m2 cache.");

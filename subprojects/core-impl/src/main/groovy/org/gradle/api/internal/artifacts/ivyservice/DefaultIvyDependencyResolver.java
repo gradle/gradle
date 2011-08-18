@@ -148,7 +148,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec, IvyConversionResult conversionResult) {
-            Set<ModuleDependency> allDependencies = configuration.getAllDependencies(ModuleDependency.class);
+            Set<ModuleDependency> allDependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
             Set<ModuleDependency> selectedDependencies = Specs.filterIterable(allDependencies, dependencySpec);
 
             Set<ResolvedDependency> result = new LinkedHashSet<ResolvedDependency>();

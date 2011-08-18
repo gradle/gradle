@@ -22,12 +22,14 @@ import org.apache.ivy.plugins.conflict.ConflictManager;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.IvyConverterTestUtil;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -45,7 +47,7 @@ import java.util.Collections;
  */
 @RunWith(JMock.class)
 public class DefaultDependenciesToModuleDescriptorConverterTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private static final ExcludeRule GRADLE_EXCLUDE_RULE_DUMMY_1 = new DefaultExcludeRule(toMap("org", "testOrg"));
     private static final ExcludeRule GRADLE_EXCLUDE_RULE_DUMMY_2 = new DefaultExcludeRule(toMap("org2", "testOrg2"));
@@ -122,8 +124,13 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
     private Configuration createNamedConfigurationStubWithDependenciesAndExcludeRules(final String name, final ExcludeRule excludeRule,
                                                                                       final ModuleDependency... dependencies) {
         final Configuration configurationStub = IvyConverterTestUtil.createNamedConfigurationStub(name, context);
+        final DependencySet dependencySet = context.mock(DependencySet.class);
+
         context.checking(new Expectations() {{
-            allowing(configurationStub).getDependencies(ModuleDependency.class);
+            allowing(configurationStub).getDependencies();
+            will(returnValue(dependencySet));
+
+            allowing(dependencySet).withType(ModuleDependency.class);
             will(returnValue(toDomainObjectSet(ModuleDependency.class, dependencies)));
 
             allowing(configurationStub).getExcludeRules();

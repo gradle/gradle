@@ -260,7 +260,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
 
         public ReportConversionContext(ResolveReport resolveReport, Configuration configuration) {
             configurationResolveReport = resolveReport.getConfigurationReport(configuration.getName());
-            createFirstLevelDependenciesModuleRevisionIds(configuration.getAllDependencies(ModuleDependency.class));
+            createFirstLevelDependenciesModuleRevisionIds(configuration.getAllDependencies().withType(ModuleDependency.class));
             conf = configuration.getName();
         }
 

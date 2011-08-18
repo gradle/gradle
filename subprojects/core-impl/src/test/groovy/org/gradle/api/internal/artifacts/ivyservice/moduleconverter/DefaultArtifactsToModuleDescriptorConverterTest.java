@@ -19,12 +19,14 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.artifacts.ArtifactSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
@@ -44,7 +46,7 @@ import java.util.Map;
  */
 @RunWith(JMock.class)
 public class DefaultArtifactsToModuleDescriptorConverterTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Test
     public void testAddArtifacts() {
@@ -109,9 +111,12 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
 
     private Configuration createConfigurationStub(final PublishArtifact publishArtifact) {
         final Configuration configurationStub = IvyConverterTestUtil.createNamedConfigurationStub(publishArtifact.getName(), context);
+        final ArtifactSet artifacts = context.mock(ArtifactSet.class);
         context.checking(new Expectations() {{
             allowing(configurationStub).getArtifacts();
-            will(returnValue(WrapUtil.toDomainObjectSet(PublishArtifact.class, publishArtifact)));
+            will(returnValue(artifacts));
+            allowing(artifacts).iterator();
+            will(returnIterator(publishArtifact));
         }});
         return configurationStub;
     }

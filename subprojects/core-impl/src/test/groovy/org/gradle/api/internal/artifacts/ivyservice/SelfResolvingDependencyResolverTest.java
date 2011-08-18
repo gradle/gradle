@@ -17,12 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.ResolvableDependency;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
 import org.gradle.api.specs.Specs;
@@ -33,6 +29,7 @@ import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,7 +37,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.WrapUtil.toLinkedSet;
+import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
@@ -52,16 +50,25 @@ public class SelfResolvingDependencyResolverTest {
     private final Configuration configuration = context.mock(Configuration.class);
     private final Ivy ivy = Ivy.newInstance();
     private final ModuleDescriptor moduleDescriptor = context.mock(ModuleDescriptor.class);
+    private final DependencySet dependencies = context.mock(DependencySet.class);
 
     private final SelfResolvingDependencyResolver resolver = new SelfResolvingDependencyResolver(delegate);
+
+    @Before
+    public void setup() {
+        context.checking(new Expectations() {{
+            allowing(configuration).getAllDependencies();
+            will(returnValue(dependencies));
+        }});
+    }
 
     @Test
     public void wrapsResolvedConfigurationProvidedByDelegate() {
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
-            allowing(configuration).getAllDependencies();
-            will(returnValue(toDomainObjectSet(ResolvableDependency.class)));
+            allowing(dependencies).iterator();
+            will(returnIterator());
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});
@@ -86,8 +93,8 @@ public class SelfResolvingDependencyResolverTest {
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
-            allowing(configuration).getAllDependencies();
-            will(returnValue(toDomainObjectSet(ResolvableDependency.class, dependency)));
+            allowing(dependencies).iterator();
+            will(returnIterator(dependency));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});
@@ -128,8 +135,6 @@ public class SelfResolvingDependencyResolverTest {
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
-            allowing(configuration).getAllDependencies();
-            will(returnValue(toDomainObjectSet(ResolvableDependency.class)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});
@@ -150,8 +155,6 @@ public class SelfResolvingDependencyResolverTest {
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
-            allowing(configuration).getAllDependencies();
-            will(returnValue(toDomainObjectSet(ResolvableDependency.class)));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});

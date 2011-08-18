@@ -115,7 +115,7 @@ class BasePlugin implements Plugin<Project> {
                     if (taskName.startsWith(prefix)) {
                         Configuration configuration = project.configurations.findByName(StringUtils.uncapitalize(taskName.substring(prefix.length())))
                         if (configuration != null) {
-                            project.tasks.add(taskName).dependsOn(configuration.getBuildArtifacts()).setDescription(String.format("Builds the artifacts belonging to %s.", configuration))
+                            project.tasks.add(taskName).dependsOn(configuration.getAllArtifacts()).setDescription(String.format("Builds the artifacts belonging to %s.", configuration))
                         }
                     }
                 },

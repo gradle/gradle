@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.*
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
-import org.gradle.api.DomainObjectSet
 
 /**
  * @author Hans Dockter
@@ -41,7 +40,7 @@ class DefaultDependencyHandlerTest {
     private DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory)
     private Configuration configurationMock = context.mock(Configuration)
     private ProjectFinder projectFinderDummy = context.mock(ProjectFinder)
-    private DomainObjectSet<Dependency> dependenciesMock = context.mock(DomainObjectSet)
+    private DependencySet dependenciesMock = context.mock(DependencySet)
 
     private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(
             configurationContainerStub, dependencyFactoryStub, projectFinderDummy)

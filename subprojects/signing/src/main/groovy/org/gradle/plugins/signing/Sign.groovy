@@ -117,7 +117,7 @@ class Sign extends DefaultTask implements SignatureSpec {
      */
     void sign(Configuration... configurations) {
         for (configuration in configurations) {
-            dependsOn(configuration.buildArtifacts)
+            dependsOn(configuration.allArtifacts)
             configuration.allArtifacts.all { PublishArtifact artifact ->
                 sign(artifact)
             }

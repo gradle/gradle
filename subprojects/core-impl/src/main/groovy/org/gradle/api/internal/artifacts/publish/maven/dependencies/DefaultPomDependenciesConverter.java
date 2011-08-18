@@ -68,7 +68,7 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
     }
 
     private ModuleDependency findDependency(ModuleDependency dependency, Configuration configuration) {
-        for (ModuleDependency configurationDependency : configuration.getDependencies(ModuleDependency.class)) {
+        for (ModuleDependency configurationDependency : configuration.getDependencies().withType(ModuleDependency.class)) {
             if (dependency.equals(configurationDependency)) {
                 return configurationDependency;
             }
@@ -83,7 +83,7 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
     private Map<ModuleDependency, Set<Configuration>> createDependencyToConfigurationsMap(Set<Configuration> configurations) {
         Map<ModuleDependency, Set<Configuration>> dependencySetMap = new HashMap<ModuleDependency, Set<Configuration>>();
         for (Configuration configuration : configurations) {
-            for (ModuleDependency dependency : configuration.getDependencies(ModuleDependency.class)) {
+            for (ModuleDependency dependency : configuration.getDependencies().withType(ModuleDependency.class)) {
                 if (dependencySetMap.get(dependency) == null) {
                     dependencySetMap.put(dependency, new HashSet<Configuration>());
                 }

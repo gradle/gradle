@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
+import org.gradle.api.artifacts.ArtifactSet
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.util.JUnit4GroovyMockery
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.DomainObjectSet
 
 /**
  * @author Hans Dockter
@@ -36,7 +36,7 @@ class DefaultArtifactHandlerTest extends Specification {
     private ConfigurationContainer configurationContainerStub = Mock()
     private PublishArtifactFactory artifactFactoryStub = Mock()
     private Configuration configurationMock = Mock()
-    private DomainObjectSet<PublishArtifact> artifactsMock = Mock()
+    private ArtifactSet artifactsMock = Mock()
 
     private DefaultArtifactHandler artifactHandler = new DefaultArtifactHandler(configurationContainerStub, artifactFactoryStub)
 

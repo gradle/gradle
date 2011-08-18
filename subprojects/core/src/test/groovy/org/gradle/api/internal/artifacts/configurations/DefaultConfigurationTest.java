@@ -16,12 +16,16 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -343,23 +347,27 @@ public class DefaultConfigurationTest {
         final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
         final Task artifactTaskMock = context.mock(Task.class, "artifactTask");
         final Configuration otherConfiguration = context.mock(Configuration.class);
-        final TaskDependency otherConfTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
+        final TaskDependency otherArtifactTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
         final TaskDependency artifactTaskDependencyMock = context.mock(TaskDependency.class, "artifactTaskDep");
+        final PublishArtifact otherArtifact = context.mock(PublishArtifact.class, "otherArtifact");
+        final ArtifactSet inheritedArtifacts = new DefaultArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
         DefaultPublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
         artifact.setTaskDependency(artifactTaskDependencyMock);
         configuration.addArtifact(artifact);
 
         context.checking(new Expectations() {{
-            allowing(otherConfiguration).getBuildArtifacts();
-            will(returnValue(otherConfTaskDependencyMock));
-
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toSet()));
 
             allowing(otherConfiguration).getAllArtifacts();
+            will(returnValue(inheritedArtifacts));
+
             allowing(otherConfiguration).getAllDependencies();
+
+            allowing(otherArtifact).getBuildDependencies();
+            will(returnValue(otherArtifactTaskDependencyMock));
             
-            allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
+            allowing(otherArtifactTaskDependencyMock).getDependencies(with(any(Task.class)));
             will(returnValue(toSet(otherConfTaskMock)));
 
             allowing(artifactTaskDependencyMock).getDependencies(with(any(Task.class)));
@@ -381,13 +389,15 @@ public class DefaultConfigurationTest {
         final File artifactFile2 = new File("artifact2");
         final PublishArtifact artifact = context.mock(PublishArtifact.class, "artifact");
         final PublishArtifact otherArtifact = context.mock(PublishArtifact.class, "otherArtifact");
+        final ArtifactSet otherArtifacts = new DefaultArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
 
         context.checking(new Expectations() {{
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toSet()));
 
             allowing(otherConfiguration).getAllArtifacts();
-            will(returnValue(toDomainObjectSet(PublishArtifact.class, otherArtifact)));
+            will(returnValue(otherArtifacts));
+
             allowing(otherConfiguration).getAllDependencies();
 
             allowing(otherConfiguration).getExtendsFrom();
@@ -411,7 +421,7 @@ public class DefaultConfigurationTest {
             allowing(artifact).getBuildDependencies();
             will(returnValue(artifactTaskDependencyMock));
 
-            allowing(otherConfiguration).getBuildArtifacts();
+            allowing(otherArtifact).getBuildDependencies();
             will(returnValue(otherConfTaskDependencyMock));
         }});
 
@@ -459,20 +469,24 @@ public class DefaultConfigurationTest {
     public void buildDependenciesDelegatesToInheritedConfigurations() {
         final Task target = context.mock(Task.class, "target");
         final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
-        final TaskDependency otherConfTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
+        final TaskDependency dependencyTaskDependencyStub = context.mock(TaskDependency.class, "otherConfTaskDep");
         final Configuration otherConfiguration = context.mock(Configuration.class, "otherConf");
+        final FileCollectionDependency fileCollectionDependencyStub = context.mock(FileCollectionDependency.class);
+        final DependencySet inherited = new DefaultDependencySet("dependencies", toDomainObjectSet(Dependency.class, fileCollectionDependencyStub));
 
         context.checking(new Expectations() {{
-            allowing(otherConfiguration).getBuildDependencies();
-            will(returnValue(otherConfTaskDependencyMock));
-
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toSet()));
 
             allowing(otherConfiguration).getAllArtifacts();
+
             allowing(otherConfiguration).getAllDependencies();
-            
-            allowing(otherConfTaskDependencyMock).getDependencies(target);
+            will(returnValue(inherited));
+
+            allowing(fileCollectionDependencyStub).getBuildDependencies();
+            will(returnValue(dependencyTaskDependencyStub));
+
+            allowing(dependencyTaskDependencyStub).getDependencies(target);
             will(returnValue(toSet(otherConfTaskMock)));
         }});
 
@@ -520,7 +534,7 @@ public class DefaultConfigurationTest {
         final Configuration dependentConfig = context.mock(Configuration.class);
         final ProjectDependency projectDependency = context.mock(ProjectDependency.class);
         final Set<ProjectDependency> projectDependencies = toDomainObjectSet(ProjectDependency.class, projectDependency);
-
+        final DependencySet otherDependencies = context.mock(DependencySet.class);
 
         context.checking(new Expectations() {{
             allowing(tdTask).getProject(); will(returnValue(taskProject));
@@ -530,7 +544,8 @@ public class DefaultConfigurationTest {
             allowing(dependentProject).getConfigurations(); will(returnValue(configurationContainer));
             allowing(configurationContainer).findByName(configName); will(returnValue(dependentConfig));
 
-            allowing(dependentConfig).getAllDependencies(ProjectDependency.class); will(returnValue(projectDependencies));
+            allowing(dependentConfig).getAllDependencies(); will(returnValue(otherDependencies));
+            allowing(otherDependencies).withType(ProjectDependency.class); will(returnValue(projectDependencies));
             allowing(projectDependency).getDependencyProject(); will(returnValue(taskProject));
         }});
 
@@ -835,52 +850,6 @@ public class DefaultConfigurationTest {
                 assertThat(otherDependency, not(sameInstance(dependency)));
             }
         }
-    }
-
-    @Test
-    public void allDependencies() {
-        DefaultExternalModuleDependency dependency1 = (DefaultExternalModuleDependency) HelperUtil.createDependency("group1", "name", "version");
-        configuration.addDependency(dependency1);
-        configuration.allDependencies(new Action<Dependency>() {
-            public void execute(Dependency dependency) {
-             ((DefaultExternalModuleDependency) dependency).setForce(true);
-            }
-        });
-        configuration.allDependencies(HelperUtil.toClosure(new TestClosure() {
-            public Object call(Object param) {
-                return ((DefaultExternalModuleDependency) param).setChanging(true);
-            }
-        }));
-        DefaultExternalModuleDependency dependency2 = (DefaultExternalModuleDependency) HelperUtil.createDependency("group2", "name2", "version2");
-        configuration.addDependency(dependency2);
-        
-        assertThat(dependency1.isForce(), equalTo(true));
-        assertThat(dependency1.isForce(), equalTo(true));
-        assertThat(dependency2.isChanging(), equalTo(true));
-        assertThat(dependency2.isChanging(), equalTo(true));
-    }
-
-    @Test
-    public void whenDependencyAdded() {
-        DefaultExternalModuleDependency dependency1 = (DefaultExternalModuleDependency) HelperUtil.createDependency("group1", "name", "version");
-        configuration.addDependency(dependency1);
-        configuration.whenDependencyAdded(new Action<Dependency>() {
-            public void execute(Dependency dependency) {
-             ((DefaultExternalModuleDependency) dependency).setForce(true);
-            }
-        });
-        configuration.whenDependencyAdded(HelperUtil.toClosure(new TestClosure() {
-            public Object call(Object param) {
-                return ((DefaultExternalModuleDependency) param).setChanging(true);
-            }
-        }));
-        DefaultExternalModuleDependency dependency2 = (DefaultExternalModuleDependency) HelperUtil.createDependency("group2", "name2", "version2");
-        configuration.addDependency(dependency2);
-
-        assertThat(dependency1.isForce(), equalTo(false));
-        assertThat(dependency1.isForce(), equalTo(false));
-        assertThat(dependency2.isChanging(), equalTo(true));
-        assertThat(dependency2.isChanging(), equalTo(true));
     }
 
     @Test

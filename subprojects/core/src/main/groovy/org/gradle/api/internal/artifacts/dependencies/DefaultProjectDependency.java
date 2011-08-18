@@ -157,7 +157,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             }
             Configuration configuration = getProjectConfiguration();
             context.add(configuration);
-            context.add(configuration.getBuildArtifacts());
+            context.add(configuration.getAllArtifacts());
         }
     }
 }

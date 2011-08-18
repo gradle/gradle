@@ -40,19 +40,19 @@ class DependenciesConverter {
         //2. It is hard to reconfigure by the user (Imagine the user typing all this code what I did below if he needs to put a dependency from a different configuration)
         //3. I don't want to pass Configurations to the maven model. We went down that path with ide plugins and it bites us hard. We need the DependencySet!
         def out = new LinkedList()
-        project.configurations['compile'].getDependencies(ExternalDependency).each {
+        project.configurations['compile'].dependencies.withType(ExternalDependency).each {
             out << new DefaultMavenDependency(it, MavenScope.COMPILE);
         }
 
-        project.configurations['testCompile'].getDependencies(ExternalDependency).each {
+        project.configurations['testCompile'].dependencies.withType(ExternalDependency).each {
             out << new DefaultMavenDependency(it, MavenScope.TEST);
         }
 
-        project.configurations['runtime'].getDependencies(ExternalDependency).each {
+        project.configurations['runtime'].dependencies.withType(ExternalDependency).each {
             out << new DefaultMavenDependency(it, MavenScope.RUNTIME);
         }
 
-        project.configurations['testRuntime'].getDependencies(ExternalDependency).each {
+        project.configurations['testRuntime'].dependencies.withType(ExternalDependency).each {
             out << new DefaultMavenDependency(it, MavenScope.TEST);
         }
         return out

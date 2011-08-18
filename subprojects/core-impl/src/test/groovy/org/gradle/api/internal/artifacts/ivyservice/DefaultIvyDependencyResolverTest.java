@@ -85,6 +85,7 @@ public class DefaultIvyDependencyResolverTest {
         final ResolvedDependency resolvedDependency2 = context.mock(ResolvedDependency.class, "resolved2");
         ResolvedDependency resolvedDependency3 = context.mock(ResolvedDependency.class, "resolved3");
         final IvyConversionResult conversionResultStub = context.mock(IvyConversionResult.class);
+        final DependencySet dependencies = context.mock(DependencySet.class);
         final Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = GUtil.map(
                 moduleDependencyDummy1,
                 toSet(resolvedDependency1, resolvedDependency2),
@@ -105,8 +106,8 @@ public class DefaultIvyDependencyResolverTest {
             allowing(resolvedDependency2).getChildren();
             will(returnValue(toSet()));
             allowing(configurationStub).getAllDependencies();
-            will(returnValue(toDomainObjectSet(Dependency.class, moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
-            allowing(configurationStub).getAllDependencies(ModuleDependency.class);
+            will(returnValue(dependencies));
+            allowing(dependencies).withType(ModuleDependency.class);
             will(returnValue(toDomainObjectSet(ModuleDependency.class, moduleDependencyDummy1, moduleDependencyDummy2)));
             allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
             will(returnValue(conversionResultStub));
@@ -139,7 +140,6 @@ public class DefaultIvyDependencyResolverTest {
     @Test
     public void testGetModuleDependencies() throws IOException, ParseException {
         prepareResolveReport();
-        final ModuleDependency moduleDependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
         final ResolvedDependency root = context.mock(ResolvedDependency.class, "root");
         final ResolvedDependency resolvedDependency1 = context.mock(ResolvedDependency.class, "resolved1");
         final ResolvedDependency resolvedDependency2 = context.mock(ResolvedDependency.class, "resolved2");
@@ -187,7 +187,6 @@ public class DefaultIvyDependencyResolverTest {
         ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
         context.checking(new Expectations() {{
             allowing(configurationStub).getAllDependencies();
-            allowing(configurationStub).getAllDependencies(ModuleDependency.class);
         }});
         try {
             configuration.getFiles(Specs.SATISFIES_ALL);

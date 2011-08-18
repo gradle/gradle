@@ -17,9 +17,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
@@ -37,7 +35,7 @@ import java.util.Set;
 
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.Matchers.strictlyEqual;
-import static org.gradle.util.WrapUtil.toDomainObjectSet;
+import static org.gradle.util.WrapUtil.toList;
 import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -115,12 +113,16 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
         final Dependency projectSelfResolvingDependency = context.mock(Dependency.class);
         final ProjectDependency transitiveProjectDependencyStub = context.mock(ProjectDependency.class);
+        final DependencySet dependencies = context.mock(DependencySet.class);
         context.checking(new Expectations() {{
             allowing(projectConfigurationsStub).getByName("conf1");
             will(returnValue(projectConfigurationStub));
 
             allowing(projectConfigurationStub).getAllDependencies();
-            will(returnValue(toDomainObjectSet(Dependency.class, projectSelfResolvingDependency, transitiveProjectDependencyStub)));
+            will(returnValue(dependencies));
+
+            allowing(dependencies).iterator();
+            will(returnIterator(toList(projectSelfResolvingDependency, transitiveProjectDependencyStub)));
 
             allowing(resolveContext).isTransitive();
             will(returnValue(true));
@@ -189,9 +191,13 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
 
     private void expectTargetConfigurationHasArtifacts(final Task... tasks) {
         context.checking(new Expectations(){{
+            ArtifactSet artifacts = context.mock(ArtifactSet.class);
             TaskDependency dependencyStub = context.mock(TaskDependency.class, "artifacts");
 
-            allowing(projectConfigurationStub).getBuildArtifacts();
+            allowing(projectConfigurationStub).getAllArtifacts();
+            will(returnValue(artifacts));
+
+            allowing(artifacts).getBuildDependencies();
             will(returnValue(dependencyStub));
 
             allowing(dependencyStub).getDependencies(null);

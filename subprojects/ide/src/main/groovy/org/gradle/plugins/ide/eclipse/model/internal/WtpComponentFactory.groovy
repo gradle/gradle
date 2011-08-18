@@ -22,6 +22,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
+import org.gradle.api.artifacts.Configuration
 
 /**
  * @author Hans Dockter
@@ -72,7 +73,7 @@ class WtpComponentFactory {
     private void collectDependedUponProjects(org.gradle.api.Project project, LinkedHashSet result) {
         def runtimeConfig = project.configurations.findByName("runtime")
         if (runtimeConfig) {
-            def projectDeps = runtimeConfig.getAllDependencies(org.gradle.api.artifacts.ProjectDependency)
+            def projectDeps = runtimeConfig.allDependencies.withType(org.gradle.api.artifacts.ProjectDependency)
             def dependedUponProjects = projectDeps*.dependencyProject
             result.addAll(dependedUponProjects)
             for (dependedUponProject in dependedUponProjects) {
@@ -112,11 +113,11 @@ class WtpComponentFactory {
 
     private LinkedHashSet getDependencies(Set plusConfigurations, Set minusConfigurations, Closure filter) {
         def declaredDependencies = new LinkedHashSet()
-        plusConfigurations.each { configuration ->
-            declaredDependencies.addAll(configuration.allDependencies.findAll(filter))
+        plusConfigurations.each { Configuration configuration ->
+            declaredDependencies.addAll(configuration.allDependencies.matching(filter))
         }
-        minusConfigurations.each { configuration ->
-            declaredDependencies.removeAll(configuration.allDependencies.findAll(filter))
+        minusConfigurations.each { Configuration configuration ->
+            declaredDependencies.removeAll(configuration.allDependencies.matching(filter))
         }
         return declaredDependencies
     }
