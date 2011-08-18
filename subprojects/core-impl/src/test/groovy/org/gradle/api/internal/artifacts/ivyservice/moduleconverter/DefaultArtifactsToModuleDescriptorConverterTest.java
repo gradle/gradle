@@ -19,7 +19,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.ArtifactSet;
+import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -111,7 +111,7 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
 
     private Configuration createConfigurationStub(final PublishArtifact publishArtifact) {
         final Configuration configurationStub = IvyConverterTestUtil.createNamedConfigurationStub(publishArtifact.getName(), context);
-        final ArtifactSet artifacts = context.mock(ArtifactSet.class);
+        final PublishArtifactSet artifacts = context.mock(PublishArtifactSet.class);
         context.checking(new Expectations() {{
             allowing(configurationStub).getArtifacts();
             will(returnValue(artifacts));

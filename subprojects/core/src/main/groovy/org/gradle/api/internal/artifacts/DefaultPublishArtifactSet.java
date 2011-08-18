@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.artifacts.ArtifactSet;
+import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
@@ -30,12 +30,12 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements ArtifactSet {
+public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements PublishArtifactSet {
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
     private final ArtifactsFileCollection files = new ArtifactsFileCollection();
     private final String displayName;
 
-    public DefaultArtifactSet(String displayName, DomainObjectSet<PublishArtifact> backingSet) {
+    public DefaultPublishArtifactSet(String displayName, DomainObjectSet<PublishArtifact> backingSet) {
         super(backingSet);
         this.displayName = displayName;
     }
@@ -66,7 +66,7 @@ public class DefaultArtifactSet extends DelegatingDomainObjectSet<PublishArtifac
 
         public Set<File> getFiles() {
             Set<File> files = new LinkedHashSet<File>();
-            for (PublishArtifact artifact : DefaultArtifactSet.this) {
+            for (PublishArtifact artifact : DefaultPublishArtifactSet.this) {
                 files.add(artifact.getFile());
             }
             return files;
@@ -75,7 +75,7 @@ public class DefaultArtifactSet extends DelegatingDomainObjectSet<PublishArtifac
 
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
         public void resolve(TaskDependencyResolveContext context) {
-            for (PublishArtifact publishArtifact : DefaultArtifactSet.this) {
+            for (PublishArtifact publishArtifact : DefaultPublishArtifactSet.this) {
                 context.add(publishArtifact);
             }
         }

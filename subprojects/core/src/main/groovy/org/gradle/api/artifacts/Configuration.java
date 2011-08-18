@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,7 +248,7 @@ public interface Configuration extends FileCollection {
      * belonging to this configuration or to one of its super configurations.
      *
      * @return a task dependency object
-     * @deprecated Use {@link ArtifactSet#getBuildDependencies()} on {@link #getAllArtifacts()} instead.
+     * @deprecated Use {@link PublishArtifactSet#getBuildDependencies()} on {@link #getAllArtifacts()} instead.
      */
     @Deprecated
     TaskDependency getBuildArtifacts();
@@ -309,21 +309,21 @@ public interface Configuration extends FileCollection {
      * 
      * @return The set.
      */
-    ArtifactSet getArtifacts();
+    PublishArtifactSet getArtifacts();
 
     /**
      * Returns the artifacts of this configuration including the artifacts of extended configurations.
      * 
      * @return The (read-only) set.
      */
-    ArtifactSet getAllArtifacts();
+    PublishArtifactSet getAllArtifacts();
 
     /**
      * Returns the artifacts of this configuration as a {@link FileCollection}, including artifacts of extended
      * configurations.
      *
      * @return the artifact files.
-     * @deprecated Use {@link ArtifactSet#getFiles()} on {@link #getAllArtifacts()} instead.
+     * @deprecated Use {@link PublishArtifactSet#getFiles()} on {@link #getAllArtifacts()} instead.
      */
     @Deprecated
     FileCollection getAllArtifactFiles();
@@ -355,7 +355,7 @@ public interface Configuration extends FileCollection {
      *
      * @param artifact The artifact.
      * @return this
-     * @deprecated Use {@link ArtifactSet#add(Object)} on {@link #getArtifacts()} instead.
+     * @deprecated Use {@link PublishArtifactSet#add(Object)} on {@link #getArtifacts()} instead.
      */
     @Deprecated
     Configuration addArtifact(PublishArtifact artifact);
@@ -365,7 +365,7 @@ public interface Configuration extends FileCollection {
      *
      * @param artifact The artifact.
      * @return this
-     * @deprecated Use {@link ArtifactSet#remove(Object)} on {@link #getArtifacts()} instead.
+     * @deprecated Use {@link PublishArtifactSet#remove(Object)} on {@link #getArtifacts()} instead.
      */
     @Deprecated
     Configuration removeArtifact(PublishArtifact artifact);
@@ -390,8 +390,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Creates a copy of this configuration ignoring superconfigurations (see {@link #copy()} but filtering
-     * the dependencies using the specified dependency spec. {@link org.gradle.api.artifacts.specs.Type}
-     * provides some predefined dependency specs.
+     * the dependencies using the specified dependency spec.
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
@@ -400,8 +399,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Creates a copy of this configuration with dependencies from superconfigurations (see {@link #copyRecursive()})
-     * but filtering the dependencies using the dependencySpec. {@link org.gradle.api.artifacts.specs.Type}
-     * provides some predefined dependency specs.
+     * but filtering the dependencies using the dependencySpec.
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration

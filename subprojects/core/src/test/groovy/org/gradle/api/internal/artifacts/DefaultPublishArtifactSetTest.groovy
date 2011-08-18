@@ -21,9 +21,9 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 
-class DefaultArtifactSetTest extends Specification {
+class DefaultPublishArtifactSetTest extends Specification {
     final store = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact)
-    final set = new DefaultArtifactSet('artifacts', store)
+    final set = new DefaultPublishArtifactSet('artifacts', store)
 
     def "set is built by the union of the tasks that build the publish artifacts"() {
         PublishArtifact artifact1 = Mock()

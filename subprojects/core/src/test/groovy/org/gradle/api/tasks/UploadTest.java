@@ -17,7 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.ArtifactSet;
+import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
@@ -121,7 +121,7 @@ public class UploadTest extends AbstractTaskTest {
 
         upload.setConfiguration(configurationMock);
 
-        final ArtifactSet artifacts = context.mock(ArtifactSet.class);
+        final PublishArtifactSet artifacts = context.mock(PublishArtifactSet.class);
         final FileCollection files = context.mock(FileCollection.class);
         context.checking(new Expectations(){{
             one(configurationMock).getAllArtifacts();

@@ -191,7 +191,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
 
     private void expectTargetConfigurationHasArtifacts(final Task... tasks) {
         context.checking(new Expectations(){{
-            ArtifactSet artifacts = context.mock(ArtifactSet.class);
+            PublishArtifactSet artifacts = context.mock(PublishArtifactSet.class);
             TaskDependency dependencyStub = context.mock(TaskDependency.class, "artifacts");
 
             allowing(projectConfigurationStub).getAllArtifacts();

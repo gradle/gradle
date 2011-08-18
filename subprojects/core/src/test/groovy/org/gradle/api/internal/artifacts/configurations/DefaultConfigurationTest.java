@@ -22,7 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
@@ -350,7 +350,7 @@ public class DefaultConfigurationTest {
         final TaskDependency otherArtifactTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
         final TaskDependency artifactTaskDependencyMock = context.mock(TaskDependency.class, "artifactTaskDep");
         final PublishArtifact otherArtifact = context.mock(PublishArtifact.class, "otherArtifact");
-        final ArtifactSet inheritedArtifacts = new DefaultArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
+        final PublishArtifactSet inheritedArtifacts = new DefaultPublishArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
         DefaultPublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
         artifact.setTaskDependency(artifactTaskDependencyMock);
         configuration.addArtifact(artifact);
@@ -389,7 +389,7 @@ public class DefaultConfigurationTest {
         final File artifactFile2 = new File("artifact2");
         final PublishArtifact artifact = context.mock(PublishArtifact.class, "artifact");
         final PublishArtifact otherArtifact = context.mock(PublishArtifact.class, "otherArtifact");
-        final ArtifactSet otherArtifacts = new DefaultArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
+        final PublishArtifactSet otherArtifacts = new DefaultPublishArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
 
         context.checking(new Expectations() {{
             allowing(otherConfiguration).getHierarchy();

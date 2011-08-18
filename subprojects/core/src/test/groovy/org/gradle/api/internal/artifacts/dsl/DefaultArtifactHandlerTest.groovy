@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-import org.gradle.api.artifacts.ArtifactSet
+import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
@@ -36,7 +36,7 @@ class DefaultArtifactHandlerTest extends Specification {
     private ConfigurationContainer configurationContainerStub = Mock()
     private PublishArtifactFactory artifactFactoryStub = Mock()
     private Configuration configurationMock = Mock()
-    private ArtifactSet artifactsMock = Mock()
+    private PublishArtifactSet artifactsMock = Mock()
 
     private DefaultArtifactHandler artifactHandler = new DefaultArtifactHandler(configurationContainerStub, artifactFactoryStub)
 

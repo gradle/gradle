@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.artifacts.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
@@ -56,9 +56,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
-    private final DefaultArtifactSet artifacts;
+    private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
-    private final DefaultArtifactSet allArtifacts;
+    private final DefaultPublishArtifactSet allArtifacts;
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
     // This lock only protects the following fields
@@ -82,9 +82,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
         ownArtifacts.beforeChange(new VetoContainerChangeAction());
-        artifacts = new DefaultArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
+        artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
         inheritedArtifacts = new CompositeDomainObjectSet<PublishArtifact>(PublishArtifact.class, ownArtifacts);
-        allArtifacts = new DefaultArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
+        allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
     }
 
     public String getName() {
@@ -320,11 +320,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    public ArtifactSet getArtifacts() {
+    public PublishArtifactSet getArtifacts() {
         return artifacts;
     }
 
-    public ArtifactSet getAllArtifacts() {
+    public PublishArtifactSet getAllArtifacts() {
         return allArtifacts;
     }
 
