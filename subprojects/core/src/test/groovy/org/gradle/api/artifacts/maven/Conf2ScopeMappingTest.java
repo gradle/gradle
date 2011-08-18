@@ -15,41 +15,47 @@
  */
 package org.gradle.api.artifacts.maven;
 
-import static org.junit.Assert.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.util.JUnit4GroovyMockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.util.HelperUtil;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
+@RunWith(JUnit4.class)
 public class Conf2ScopeMappingTest {
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private Conf2ScopeMapping conf2ScopeMapping;
     private static final String TEST_SCOPE = "somescope";
     private static final Integer TEST_PRIORITY = 10;
-    private static final Configuration TEST_CONF = HelperUtil.createConfiguration("someconf");
+    private final Configuration configuration = context.mock(Configuration.class);
 
     @Before
     public void setUp() {
-        conf2ScopeMapping = new Conf2ScopeMapping(TEST_PRIORITY, TEST_CONF, TEST_SCOPE);
+        conf2ScopeMapping = new Conf2ScopeMapping(TEST_PRIORITY, configuration, TEST_SCOPE);
     }
 
     @Test
     public void init() {
         assertEquals(TEST_PRIORITY, conf2ScopeMapping.getPriority());
-        assertEquals(TEST_CONF, conf2ScopeMapping.getConfiguration());
+        assertEquals(configuration, conf2ScopeMapping.getConfiguration());
         assertEquals(TEST_SCOPE, conf2ScopeMapping.getScope());
     }
 
     @Test
     public void equality() {
-        assertTrue(conf2ScopeMapping.equals(new Conf2ScopeMapping(TEST_PRIORITY, TEST_CONF, TEST_SCOPE)));
-        assertFalse(conf2ScopeMapping.equals(new Conf2ScopeMapping(TEST_PRIORITY + 10, TEST_CONF, TEST_SCOPE)));
+        assertTrue(conf2ScopeMapping.equals(new Conf2ScopeMapping(TEST_PRIORITY, configuration, TEST_SCOPE)));
+        assertFalse(conf2ScopeMapping.equals(new Conf2ScopeMapping(TEST_PRIORITY + 10, configuration, TEST_SCOPE)));
     }
 
     @Test
     public void hashcode() {
-        assertEquals(conf2ScopeMapping.hashCode(), new Conf2ScopeMapping(TEST_PRIORITY, TEST_CONF, TEST_SCOPE).hashCode());
+        assertEquals(conf2ScopeMapping.hashCode(), new Conf2ScopeMapping(TEST_PRIORITY, configuration, TEST_SCOPE).hashCode());
     }
 }

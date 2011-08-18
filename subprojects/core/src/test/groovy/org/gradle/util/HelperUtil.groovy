@@ -32,7 +32,6 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.project.DefaultProject
@@ -167,10 +166,6 @@ class HelperUtil {
 
     static String createUniqueId() {
         return new UID().toString();
-    }
-
-    static org.gradle.api.artifacts.Configuration createConfiguration(String name) {
-        return new DefaultConfiguration(name, name, null, null)
     }
 }
 

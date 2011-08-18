@@ -25,6 +25,7 @@ import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.listener.ListenerManager;
 
 import java.util.Collection;
 import java.util.Set;
@@ -39,19 +40,21 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final IvyService ivyService;
     private final ClassGenerator classGenerator;
     private final DomainObjectContext context;
+    private final ListenerManager listenerManager;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyService ivyService, ClassGenerator classGenerator, DomainObjectContext context) {
+    public DefaultConfigurationContainer(IvyService ivyService, ClassGenerator classGenerator, DomainObjectContext context, ListenerManager listenerManager) {
         super(Configuration.class, classGenerator, new Configuration.Namer());
         this.ivyService = ivyService;
         this.classGenerator = classGenerator;
         this.context = context;
+        this.listenerManager = listenerManager;
     }
 
     @Override
     protected Configuration doCreate(String name) {
-        return classGenerator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService);
+        return classGenerator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService, listenerManager);
     }
 
     // Override deprecated version from DomainObjectCollection (through AbstractNamedDomainObjectContainer)
@@ -90,7 +93,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(name, name,
-                detachedConfigurationsProvider, ivyService);
+                detachedConfigurationsProvider, ivyService, listenerManager);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

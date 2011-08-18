@@ -29,6 +29,7 @@ import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 import org.gradle.api.internal.*
+import org.gradle.listener.ListenerManager
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -40,6 +41,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
     final TestRepositoryHandler repositoryHandler = Mock()
     final ConfigurationContainerInternal configurationContainer = Mock()
     final StartParameter startParameter = Mock()
+    final ListenerManager listenerManager = Mock()
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 
     def setup() {
@@ -51,6 +53,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(CacheRepository) >> cacheRepository
         ClassPathRegistry classPathRegistry = Mock()
         _ * parent.get(ClassPathRegistry) >> classPathRegistry
+        _ * parent.get(ListenerManager) >> listenerManager
     }
 
     def "provides a ResolverFactory"() {
@@ -68,7 +71,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(ClassGenerator.class) >> classGenerator
         _ * parent.get(StartParameter.class) >> startParameter
         1 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >> repositoryHandler
-        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext) >> configurationContainer
+        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext, listenerManager) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
@@ -87,7 +90,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(StartParameter.class) >> startParameter
         _ * parent.get(ClassGenerator.class) >> classGenerator
         2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
-        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext) >> configurationContainer
+        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext, listenerManager) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
@@ -106,7 +109,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(StartParameter.class) >> startParameter
         _ * parent.get(ClassGenerator.class) >> classGenerator
         2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
-        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext) >> configurationContainer
+        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext, listenerManager) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
