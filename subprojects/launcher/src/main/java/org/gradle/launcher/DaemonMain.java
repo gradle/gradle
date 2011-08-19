@@ -33,7 +33,6 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
 
 import java.io.*;
@@ -73,7 +72,8 @@ public class DaemonMain implements Runnable {
         PrintStream originalOut = System.out;
         PrintStream originalErr = System.err;
 //        InputStream originalIn = System.in;
-        File logOutputFile = new File(startParameter.getGradleUserHomeDir(), String.format("daemon/%s/daemon.out.log", GradleVersion.current().getVersion()));
+        DaemonDir daemonDir = new DaemonDir(startParameter.getGradleUserHomeDir());
+        File logOutputFile = daemonDir.getLog(); //TODO SF each daemon needs his own log file (or potentially his own folder)
         logOutputFile.getParentFile().mkdirs();
         PrintStream printStream = new PrintStream(new FileOutputStream(logOutputFile), true);
         System.setOut(printStream);

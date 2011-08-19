@@ -22,7 +22,6 @@ import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.OnDemandFileLock;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.messaging.remote.Address;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.UUIDGenerator;
 
 import java.io.File;
@@ -40,9 +39,11 @@ import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 public class DaemonRegistry {
 
     final File registryFolder;
+    final DaemonDir daemonDir;
 
-    public DaemonRegistry(File registryFolder) {
-        this.registryFolder = new File(registryFolder, String.format("daemon/%s", GradleVersion.current().getVersion()));
+    public DaemonRegistry(File baseFolder) {
+        this.daemonDir = new DaemonDir(baseFolder);
+        this.registryFolder = daemonDir.getFile();
     }
 
     List<DaemonStatus> getAll() {
@@ -98,7 +99,7 @@ public class DaemonRegistry {
     public Registry newRegistry() {
         //Since there are multiple daemons we need unique name of the registry file
         String uid = new UUIDGenerator().generateId().toString();
-        File file = new File(registryFolder, String.format("registry-%s.bin", uid));
+        File file = new File(registryFolder, String.format("registry-%s.bin", uid)); //TODO SF move to daemon dir
 
         return new Registry(file);
     }
@@ -139,7 +140,7 @@ public class DaemonRegistry {
 
     private FilenameFilter allFilter = new FilenameFilter() {
         public boolean accept(File file, String s) {
-            return s.startsWith("registry-") && s.endsWith(".bin");
+            return s.startsWith("registry-") && s.endsWith(".bin"); //TODO SF move to daemon dir
         }
     };
 }
