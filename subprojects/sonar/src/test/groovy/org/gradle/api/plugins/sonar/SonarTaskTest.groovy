@@ -15,32 +15,29 @@
  */
 package org.gradle.api.plugins.sonar
 
-import org.gradle.util.HelperUtil
-
 import spock.lang.Specification
-import spock.lang.Issue
 
 class SonarTaskTest extends Specification {
-    SonarTask task = HelperUtil.createTask(SonarTask)
-
-    @Issue("GRADLE-1499")
-    def "can configure project properties"() {
-        when:
-        task.projectProperties = [one: "1", two: "2"]
-        task.projectProperties three: "3", four: "4"
-        task.projectProperty "five", "5"
-
-        then:
-        task.projectProperties == [one: "1", two: "2", three: "3", four: "4", five: "5"]
-    }
-
-    def "can configure global properties"() {
-        when:
-        task.globalProperties = [one: "1", two: "2"]
-        task.globalProperties three: "3", four: "4"
-        task.globalProperty "five", "5"
-
-        then:
-        task.globalProperties == [one: "1", two: "2", three: "3", four: "4", five: "5"]
-    }
+//    SonarTask task = HelperUtil.createTask(SonarTask)
+//
+//    @Issue("GRADLE-1499")
+//    def "can configure project properties"() {
+//        when:
+//        task.projectProperties = [one: "1", two: "2"]
+//        task.projectProperties three: "3", four: "4"
+//        task.projectProperty "five", "5"
+//
+//        then:
+//        task.projectProperties == [one: "1", two: "2", three: "3", four: "4", five: "5"]
+//    }
+//
+//    def "can configure global properties"() {
+//        when:
+//        task.globalProperties = [one: "1", two: "2"]
+//        task.globalProperties three: "3", four: "4"
+//        task.globalProperty "five", "5"
+//
+//        then:
+//        task.globalProperties == [one: "1", two: "2", three: "3", four: "4", five: "5"]
+//    }
 }
