@@ -75,7 +75,11 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
 
     private void init(FrameworkMethod method, Object target) {
         if (prefix == null) {
-            prefix = String.format("%s/%s", target.getClass().getSimpleName(), method.getName());
+            String safeMethodName = method.getName().replaceAll("\\s", "_");
+            if (safeMethodName.length() > 64) {
+                safeMethodName = safeMethodName.substring(0, 32) + "..." + safeMethodName.substring(safeMethodName.length() - 32);
+            }
+            prefix = String.format("%s/%s", target.getClass().getSimpleName(), safeMethodName);
         }
     }
 
