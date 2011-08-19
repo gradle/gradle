@@ -33,7 +33,7 @@ public class Jvm {
         return new Jvm(OperatingSystem.current());
     }
 
-    Jvm(OperatingSystem os) {
+    public Jvm(OperatingSystem os) {
         this.os = os;
     }
 
@@ -71,6 +71,12 @@ public class Jvm {
         return GFileUtils.canonicalise(new File(System.getProperty("java.home")));
     }
 
+    public File getRuntimeJar() {
+        File javaHome = getDefaultJavaHome();
+        File runtimeJar = new File(javaHome, "lib/rt.jar");
+        return runtimeJar.exists() ? runtimeJar : null;
+    }
+
     public File getToolsJar() {
         File javaHome = getDefaultJavaHome();
         File toolsJar = new File(javaHome, "lib/tools.jar");
@@ -91,6 +97,7 @@ public class Jvm {
                 return toolsJar;
             }
         }
+
         return null;
     }
 
@@ -98,9 +105,30 @@ public class Jvm {
         return envVars;
     }
 
-    static class AppleJvm extends Jvm {
-        AppleJvm(OperatingSystem os) {
+    /**
+     * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE,
+     * but this is likely an over-simplification.
+     */
+    public static class AppleJvm extends Jvm {
+        public AppleJvm(OperatingSystem os) {
             super(os);
+        }
+
+        @Override
+        public File getJavaHome() {
+            return super.getDefaultJavaHome();
+        }
+
+        @Override
+        public File getRuntimeJar() {
+            File javaHome = super.getDefaultJavaHome();
+            File runtimeJar = new File(javaHome.getParentFile(), "Classes/classes.jar");
+            return runtimeJar.exists() ? runtimeJar : null;
+        }
+
+        @Override
+        public File getToolsJar() {
+            return getRuntimeJar();
         }
 
         @Override
