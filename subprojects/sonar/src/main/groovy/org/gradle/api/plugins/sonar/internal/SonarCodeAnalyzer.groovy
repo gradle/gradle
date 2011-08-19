@@ -22,9 +22,7 @@ import org.sonar.batch.Batch
 import org.sonar.batch.bootstrapper.EnvironmentInformation
 import org.gradle.api.plugins.sonar.model.SonarProject
 import org.gradle.api.plugins.sonar.model.SonarModel
-import org.gradle.api.plugins.sonar.model.SonarProperty
-import org.gradle.api.plugins.sonar.model.IncludeProperties
-import org.gradle.api.plugins.sonar.model.PropertyConverter
+import org.gradle.api.plugins.sonar.model.ModelToPropertiesConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -98,10 +96,9 @@ class SonarCodeAnalyzer {
     }
 
     private Map<String, String> extractProperties(model) {
-        def converter = new PropertyConverter(model, SonarProperty)
-        converter.includePropertiesAnnotationClass = IncludeProperties
+        def converter = new ModelToPropertiesConverter(model)
         converter.propertyProcessors = model.propertyProcessors
-        converter.convertProperties()
+        converter.convert()
     }
 
     private void configureAdditionalGlobalProperties(Map<String, String> globalProperties) {
