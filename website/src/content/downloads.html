@@ -1,4 +1,5 @@
 <h1>Downloads</h1>
+<a name="current"></a>
 <h2>${currentRelease.displayName}</h2>
 <ul>
     <li><a href="${currentRelease.releaseNotesUrl}">Release notes</a></li>
@@ -13,20 +14,22 @@
 
 <h2>Gradle nightly</h2>
 <p>For snapshots we use our <a href="http://repo.gradle.org/gradle/distributions-snapshots">Artifactory snapshot repository</a>.
-    The recommended way to start using the snapshot: First, find the interesting distribution in the artifactory,
+    The recommended way to start using the snapshot: First, find the interesting distribution in the repository,
     then use it to configure the <a href="${currentRelease.userGuideSingleHtmlUrl}#gradle_wrapper">wrapper</a>.
-    Alternatively, you can manually download the snapshot distribution from the artifactory and install it locally.
+    Alternatively, you can manually download the snapshot distribution from the repository and install it locally.
 </p>
 
-<p>Gradle <a href="ci-server.html">Continuous Integration machines</a> build distributions continuously.
-    You can login as guest <a href="http://builds.gradle.org/viewLog.html?buildId=lastSuccessful&amp;buildTypeId=bt2&amp;tab=artifacts">here</a> to
-get the artifact list of the last successful build.</p>
+<p>Note: old snapshots are periodically deleted. It's generally a good idea to copy the snapshot to some other location, and refer to it from
+there.</p>
+
+<h1>Other releases</h1>
 
 <%
     releases.each { release ->
     if (release != currentRelease) {
 %>
 <h2>${release.displayName}</h2>
+<% if (release.broken) { %><div class="caution">Note: this release contains some serious regressions, and we suggest that you use <a href="#current">${currentRelease.version}</a> instead.</div><% } %>
 <ul>
     <li><a href="${release.releaseNotesUrl}">Release notes</a></li>
     <li><a href="${release.allDistributionUrl}">gradle-${release.version}-all.zip</a>.
