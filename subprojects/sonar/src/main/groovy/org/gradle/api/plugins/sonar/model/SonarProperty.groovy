@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.sonar
+package org.gradle.api.plugins.sonar.model
 
-import java.lang.annotation.Documented
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Retention
-import java.lang.annotation.Target
-import java.lang.annotation.ElementType
+import java.lang.annotation.*
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Documented
-public @interface GlobalProperty {
+public @interface SonarProperty {
     String value()
 }

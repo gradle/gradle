@@ -13,22 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.sonar
+package org.gradle.api.plugins.sonar.model
 
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.plugins.sonar.internal.PropertyConverter
+import org.gradle.api.file.FileCollection
 
 /**
  * Configuration options for Sonar analysis.
  */
 class SonarModel {
+    @IncludeProperties
     SonarServer server
 
+    @IncludeProperties
     SonarDatabase database
 
-    SonarProject project
+    @SonarProperty("sonar.branch")
+    String branch
 
-    private final List<Closure> propertyProcessors = []
+    @SonarProperty("sonar.profile")
+    String profile
+
+    File bootstrapDir
+
+    String gradleVersion
+
+    List<Closure> propertyProcessors = []
 
     void server(Closure config) {
         ConfigureUtil.configure(config, server)
@@ -45,18 +55,13 @@ class SonarModel {
     void withGlobalProperties(Closure block) {
         propertyProcessors << block
     }
-
-    Map<String, String> convertProperties() {
-        def converter = new PropertyConverter(this)
-        converter.convertProperties(GlobalProperty, propertyProcessors)
-    }
 }
 
 /**
  * Configuration options for the Sonar server.
  */
 class SonarServer {
-    @GlobalProperty("sonar.host.url")
+    @SonarProperty("sonar.host.url")
     String url
 }
 
@@ -64,13 +69,13 @@ class SonarServer {
  * Configuration options for the Sonar database.
  */
 class SonarDatabase {
-    @GlobalProperty("sonar.jdbc.url")
+    @SonarProperty("sonar.jdbc.url")
     String url
-    @GlobalProperty("sonar.jdbc.driverClassName")
-    String driverClass
-    @GlobalProperty("sonar.jdbc.username")
+    @SonarProperty("sonar.jdbc.driverClassName")
+    String driverClassName
+    @SonarProperty("sonar.jdbc.username")
     String username
-    @GlobalProperty("sonar.jdbc.password")
+    @SonarProperty("sonar.jdbc.password")
     String password
 }
 
@@ -78,35 +83,50 @@ class SonarDatabase {
  * Configuration options for a project to be analyzed with Sonar.
  */
 class SonarProject {
+    String key
+    String name
+    String description
+    String version
+    @SonarProperty("sonar.projectDate")
+    String date
     boolean skip = false
 
-    @ProjectProperty("sonar.projectKey")
-    String key
-    @ProjectProperty("sonar.projectName")
-    String name
-    @ProjectProperty("sonar.projectDescription")
-    String description
-    @ProjectProperty("sonar.projectVersion")
-    String version
+    File baseDir
+    File workDir
+    List<File> sourceDirs = []
+    List<File> testDirs = []
+    List<File> binaryDirs = []
+    FileCollection libraries// = new SimpleFileCollection()
 
-    File projectDir
-    File buildDir
-    List<File> mainSourceDirs
-    List<File> testSourceDirs
-    List<File> classesDirs
-    @ProjectProperty("sonar.surefire.reportsPath")
-    File testReportsDir
+    @SonarProperty("sonar.importSources")
+    boolean importSources = true
+    @SonarProperty("sonar.sourceEncoding")
+    String sourceEncoding
+    @SonarProperty("sonar.exclusions")
+    String sourceExclusions
 
-    Iterable<File> dependencies
+    @SonarProperty("sonar.skipDesign")
+    boolean skipDesignAnalysis = false
 
+    @SonarProperty("sonar.surefire.reportsPath")
+    File testReportPath
+    @SonarProperty("sonar.cobertura.reportPath")
+    File coberturaReportPath
+    @SonarProperty("sonar.clover.reportPath")
+    File cloverReportPath
+
+    @SonarProperty("sonar.language")
+    String language
+
+    @IncludeProperties
     SonarJavaSettings java
 
-    @ProjectProperty("sonar.dynamicAnalysis")
-    String analysisMode
+    @SonarProperty("sonar.dynamicAnalysis")
+    String dynamicAnalysis
 
     List<SonarProject> subprojects = []
 
-    private final List<Closure> propertyProcessors = []
+    List<Closure> propertyProcessors = []
 
     void java(Closure config) {
         ConfigureUtil.configure(config, java)
@@ -115,19 +135,14 @@ class SonarProject {
     void withProjectProperties(Closure block) {
         propertyProcessors << block
     }
-
-    Map<String, String> convertProperties() {
-        def converter = new PropertyConverter(this)
-        converter.convertProperties(ProjectProperty, propertyProcessors)
-    }
 }
 
 /**
  * Configuration options for Java code to be analyzed with Sonar.
  */
 class SonarJavaSettings {
-    @ProjectProperty("sonar.java.source")
+    @SonarProperty("sonar.java.source")
     String sourceCompatibility
-    @ProjectProperty("sonar.java.target")
+    @SonarProperty("sonar.java.target")
     String targetCompatibility
 }
