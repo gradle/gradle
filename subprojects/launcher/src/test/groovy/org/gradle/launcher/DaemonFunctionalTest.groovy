@@ -37,7 +37,8 @@ class DaemonFunctionalTest extends Specification {
     DaemonRegistry reg
     List<Connection> cleanMe = []
 
-    def setup() {
+    //cannot use setup() because temp folder will get the proper name
+    def prepare() {
         //connector with short-lived daemons
         connector = new DaemonConnector(temp.testDir, 10000)
         reg = connector.daemonRegistry
@@ -50,6 +51,8 @@ class DaemonFunctionalTest extends Specification {
     @Ignore //deamons do not seem to expire
     def "daemons expire"() {
         when:
+        prepare()
+
         connector = new DaemonConnector(temp.testDir, 1000) //1 sec expiry time
         def c = connect()
         poll { assert reg.busy.size() == 1 }
@@ -70,6 +73,8 @@ class DaemonFunctionalTest extends Specification {
 
     def "knows status of the daemon"() {
         when:
+        prepare()
+
         assert reg.busy.size() == 0
         assert reg.idle.size() == 0
 
@@ -87,11 +92,13 @@ class DaemonFunctionalTest extends Specification {
             assert reg.idle.size() == 1
         }
 
-        then: 1==1 //TODO SF - to keep spock happy
+        then: 1==1
     }
 
     def "spins new daemon if all are busy"() {
         when:
+        prepare()
+
         assert reg.busy.size() == 0
         assert reg.idle.size() == 0
 
@@ -121,6 +128,8 @@ class DaemonFunctionalTest extends Specification {
     @Ignore //TODO SF add some coverage for the registry
     def "registry"() {
         expect:
+        prepare()
+
         def reg = new DaemonRegistry(temp.dir)
         def registry = reg.newRegistry();
 
@@ -132,7 +141,8 @@ class DaemonFunctionalTest extends Specification {
 
     def "cleans up registry"() {
         when:
-        OutputEventListener listener = Mock()
+        prepare()
+
         def connection = connect()
         poll { assert reg.all.size() == 1 }
 
@@ -148,6 +158,8 @@ class DaemonFunctionalTest extends Specification {
     @Timeout(10) //healthy timeout just in case
     def "stops all daemons"() {
         when:
+        prepare()
+
         OutputEventListener listener = Mock()
 
         def connection = connect()
