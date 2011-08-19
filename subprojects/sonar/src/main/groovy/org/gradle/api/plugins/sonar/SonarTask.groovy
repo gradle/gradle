@@ -19,172 +19,42 @@ import org.sonar.batch.bootstrapper.Bootstrapper
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ClasspathUtil
-import org.gradle.api.plugins.sonar.internal.ClassesOnlyClassLoader
-import org.gradle.util.GradleVersion
-import org.slf4j.LoggerFactory
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.Level
+import org.gradle.api.plugins.sonar.model.SonarProject
+import org.gradle.api.plugins.sonar.model.SonarModel
 
 /**
- * Analyzes a project and stores the results in Sonar's database.
+ * Analyzes a project and stores the results in the Sonar database.
  */
 class SonarTask extends ConventionTask {
-    SonarModel sonar
+    /**
+     * Global configuration for the Sonar analysis.
+     */
+    SonarModel sonarModel
+    /**
+     * Project configuration for the Sonar analysis.
+     */
+    SonarProject sonarProject
 
     @TaskAction
     void analyze() {
-        withErrorSqlLogging {
-            getBootstrapDir().mkdirs()
-            def bootstrapper = new Bootstrapper("Gradle", getServerUrl(), getBootstrapDir())
+        sonarModel.bootstrapDir.mkdirs()
+        def bootstrapper = new Bootstrapper("Gradle", sonarModel.server.url, sonarModel.bootstrapDir)
 
-            def classLoader = bootstrapper.createClassLoader(
-                    [findGradleSonarJar()] as URL[], new ClassesOnlyClassLoader(SonarTask.classLoader),
-                    "groovy", "org.codehaus.groovy", "org.slf4j", "org.apache.log4j", "org.apache.commons.logging")
+        def classLoader = bootstrapper.createClassLoader(
+                [findGradleSonarJar()] as URL[], SonarTask.classLoader,
+                        "groovy", "org.codehaus.groovy", "org.slf4j", "org.apache.log4j", "org.apache.commons.logging",
+                                "org.gradle.api.plugins.sonar.model")
 
-            def analyzerClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
-            def analyzer = analyzerClass.newInstance()
-            analyzer.gradleVersion = GradleVersion.current().version
-            analyzer.sonarTask = this
-            analyzer.execute()
-        }
-    }
-
-    /**
-     * Adds the specified directory to the set of project main source directories.
-     *
-     * @param sourceDirs the main source directory to be added
-     */
-    void projectMainSourceDir(File sourceDir) {
-        projectMainSourceDirs = getProjectMainSourceDirs() << sourceDir
-    }
-
-    /**
-     * Adds the specified directories to the set of project main source directories.
-     *
-     * @param sourceDirs the main source directories to be added
-     */
-    void projectMainSourceDirs(File... sourceDirs) {
-        projectMainSourceDirs = getProjectMainSourceDirs() + (sourceDirs as List)
-    }
-
-    /**
-     * Adds the specified directory to the set of project test source directories.
-     *
-     * @param sourceDirs the testsource directory to be added
-     */
-    void projectTestSourceDir(File sourceDir) {
-        projectTestSourceDirs = getProjectTestSourceDirs() << sourceDir
-    }
-
-    /**
-     * Adds the specified directories to the set of project test source directories.
-     *
-     * @param sourceDirs the test source directories to be added
-     */
-    void projectTestSourceDirs(File... sourceDirs) {
-        projectTestSourceDirs = getProjectTestSourceDirs() + (sourceDirs as List)
-    }
-
-    /**
-     * Adds the specified directory to the set of project classes directories.
-     *
-     * @param classesDir the classes directory to be added
-     */
-    void projectClassesDir(File classesDir) {
-        projectClassesDirs = getProjectClassesDirs() << classesDir
-    }
-
-    /**
-     * Adds the specified directories to the set of project classes directories.
-     *
-     * @param classesDirs the classes directories to be added
-     */
-    void projectClassesDirs(File... classesDirs) {
-        projectClassesDirs = getProjectClassesDirs() + (classesDirs as List)
-    }
-
-    /**
-     * Adds the specified dependency to the set of project dependencies. Typically this will be a Jar file.
-     *
-     * @param dependency the depedency to be added
-     */
-    void projectDependency(File dependency) {
-        projectDependencies = getProjectDependencies() << dependency
-    }
-
-    /**
-     * Adds the specified dependencies to the set of project dependencies. Typically these will be Jar files.
-     *
-     * @param dependencies the dependencies to be added
-     */
-    void projectDependencies(File... dependencies) {
-        projectDependencies = getProjectDependencies() + (dependencies as List)
-    }
-
-    /**
-     * Adds the specified property to the map of global properties.
-     * If a property with the specified name already exists, it will
-     * be overwritten.
-     *
-     * @param name the name of the global property
-     * @param value the value of the global property
-     */
-    void globalProperty(String name, String value) {
-        globalProperties = getGlobalProperties() << [(name): value]
-    }
-
-    /**
-     * Adds the specified properties to the map of global properties.
-     * Existing properties with the same name will be overwritten.
-     *
-     * @param properties the global properties to be added
-     */
-    void globalProperties(Map properties) {
-        globalProperties = getGlobalProperties() << properties
-    }
-
-    /**
-     * Adds the specified property to the map of project properties.
-     * If a property with the specified name already exists, it will
-     * be overwritten.
-     *
-     * @param name the name of the project property
-     * @param value the value of the project property
-     */
-    void projectProperty(String name, String value) {
-        projectProperties = getProjectProperties() << [(name): value]
-    }
-
-    /**
-     * Adds the specified properties to the map of project properties.
-     * Existing properties with the same name will be overwritten.
-     *
-     * @param properties the project properties to be added
-     */
-    void projectProperties(Map properties) {
-        projectProperties = getProjectProperties() << properties
+        def analyzerClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
+        def analyzer = analyzerClass.newInstance()
+        analyzer.sonarModel = sonarModel
+        analyzer.sonarProject = sonarProject
+        analyzer.execute()
     }
 
     protected URL findGradleSonarJar() {
         def url = ClasspathUtil.getClasspath(SonarTask.classLoader).find { it.path.contains("gradle-sonar") }
         assert url != null, "failed to detect file system location of gradle-sonar Jar"
         url
-    }
-
-    // limit Hibernate SQL logging to errors, no matter what the Gradle log level is
-    // this is a workaround for org.sonar.jpa.session.AbstractDatabaseConnector, line 158:
-    // props.put("hibernate.show_sql", Boolean.valueOf(LOG_SQL.isInfoEnabled()).toString());
-    // without this workaround, each SQL statement gets logged even if Gradle log level
-    // is set to QUIET
-    private void withErrorSqlLogging(Closure block) {
-        Logger sqlLogger = (Logger) LoggerFactory.getLogger("org.hibernate.SQL")
-        def oldLevel = sqlLogger.level
-
-        try {
-            sqlLogger.level = Level.ERROR
-            block()
-        } finally {
-            sqlLogger.level = oldLevel
-        }
     }
 }

@@ -16,10 +16,19 @@
 package org.gradle.api.plugins.sonar
 
 import org.gradle.api.Plugin
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.cache.CacheRepository
+import org.gradle.api.Project
+import org.gradle.util.GradleVersion
+import org.gradle.api.plugins.sonar.model.SonarJavaSettings
+import org.gradle.api.plugins.sonar.model.SonarProject
+import org.gradle.api.plugins.sonar.model.SonarDatabase
+import org.gradle.api.plugins.sonar.model.SonarServer
+import org.gradle.api.plugins.sonar.model.SonarModel
+import org.gradle.util.Jvm
 
 /**
  * A {@link Plugin} for integrating with <a href="http://www.sonarsource.org">Sonar</a>, a web-based platform
@@ -29,41 +38,105 @@ import org.gradle.cache.CacheRepository
 class SonarPlugin implements Plugin<ProjectInternal> {
     static final String SONAR_TASK_NAME = "sonar"
 
+    private ProjectInternal project
+    private ClassGenerator classGenerator
+
     void apply(ProjectInternal project) {
+        this.project = project
+        classGenerator = project.services.get(ClassGenerator)
+
+        configureSonarTask()
+    }
+
+    private void configureSonarTask() {
+        def sonarTask = project.tasks.add(SONAR_TASK_NAME, SonarTask)
+        sonarTask.sonarModel = configureSonarModel()
+        sonarTask.sonarProject = configureSonarProject(project)
+    }
+
+    private SonarModel configureSonarModel() {
+        def sonarModel = classGenerator.newInstance(SonarModel)
+        project.extensions.add("sonar", sonarModel)
+
+        sonarModel.conventionMapping.with {
+            bootstrapDir = { new File(project.buildDir, "sonar") }
+            gradleVersion = { GradleVersion.current().version }
+        }
+        sonarModel.server = configureSonarServer()
+        sonarModel.database = configureSonarDatabase()
+
+        sonarModel
+    }
+
+    private SonarServer configureSonarServer() {
+        def sonarServer = classGenerator.newInstance(SonarServer)
+        sonarServer.url = "http://localhost:9000"
+        sonarServer
+    }
+
+    private SonarDatabase configureSonarDatabase() {
+        def sonarDatabase = classGenerator.newInstance(SonarDatabase)
+        sonarDatabase.url = "jdbc:derby://localhost:1527/sonar"
+        sonarDatabase.driverClassName = "org.apache.derby.jdbc.ClientDriver"
+        sonarDatabase.username = "sonar"
+        sonarDatabase.password = "sonar"
+        sonarDatabase
+    }
+
+    private SonarProject configureSonarProject(Project project) {
+        def sonarProject = classGenerator.newInstance(SonarProject)
+        project.extensions.add("sonarProject", sonarProject)
+
+        sonarProject.conventionMapping.with {
+            key = { "$project.group:$project.name" as String }
+            name = { project.name }
+            description = { project.description }
+            version = { project.version.toString() }
+            baseDir = { project.projectDir }
+            workDir = { new File(project.buildDir, "sonar") }
+            dynamicAnalysis = { "false" }
+        }
+
+        def sonarJavaSettings = classGenerator.newInstance(SonarJavaSettings)
+        sonarProject.java = sonarJavaSettings
+
+        sonarProject.subprojects = project.childProjects.values().collect {
+            configureSonarProject(it)
+        }
+
+        project.plugins.withType(JavaBasePlugin) {
+            sonarJavaSettings.conventionMapping.with {
+                sourceCompatibility = { project.sourceCompatibility.toString() }
+                targetCompatibility = { project.targetCompatibility.toString() }
+            }
+        }
+
         project.plugins.withType(JavaPlugin) {
-            def sonarTask = project.tasks.add(SONAR_TASK_NAME, SonarTask)
-            configureConventions(sonarTask, project)
+            def main = project.sourceSets.main
+            def test = project.sourceSets.test
+
+            sonarProject.conventionMapping.with {
+                sourceDirs = { getSourceDirs(main) }
+                testDirs = { getSourceDirs(test) }
+                binaryDirs = { [main.output.classesDir] }
+                libraries = {
+                    def libraries = main.compileClasspath
+                    def runtimeJar = Jvm.current().runtimeJar
+                    if (runtimeJar != null) {
+                        libraries += project.files(runtimeJar)
+                    }
+                    libraries
+                }
+                dynamicAnalysis = { "reuseReports" }
+                testReportPath = { project.test.testResultsDir }
+                language = { "java" }
+            }
         }
+
+        sonarProject
     }
 
-    private void configureConventions(SonarTask sonarTask, ProjectInternal project) {
-        def main = project.sourceSets.main
-        def test = project.sourceSets.test
-
-        sonarTask.conventionMapping.serverUrl = { "http://localhost:9000" }
-        sonarTask.conventionMapping.bootstrapDir = {
-            def cacheRepository = (project as ProjectInternal).services.get(CacheRepository)
-            cacheRepository.cache("sonar-bootstrap").forObject(project.gradle).open().baseDir
-        }
-        sonarTask.conventionMapping.projectDir = { project.projectDir }
-        sonarTask.conventionMapping.buildDir = { project.buildDir }
-        sonarTask.conventionMapping.projectMainSourceDirs = { getSourceDirs(main) }
-        sonarTask.conventionMapping.projectTestSourceDirs = { getSourceDirs(test) }
-        sonarTask.conventionMapping.projectClassesDirs = { [main.output.classesDir] as Set }
-        sonarTask.conventionMapping.projectDependencies = { project.configurations.compile.resolve() }
-        sonarTask.conventionMapping.projectKey = { "$project.group:$project.name" as String }
-        sonarTask.conventionMapping.projectName = { project.name }
-        sonarTask.conventionMapping.projectDescription = { project.description }
-        sonarTask.conventionMapping.projectVersion = { project.version as String }
-        sonarTask.conventionMapping.projectProperties = {
-            ["sonar.java.source": project.sourceCompatibility as String,
-             "sonar.java.target": project.targetCompatibility as String,
-             "sonar.dynamicAnalysis": "reuseReports",
-             "sonar.surefire.reportsPath": project.test.testResultsDir as String]
-        }
-    }
-
-    private Set<File> getSourceDirs(SourceSet sourceSet) {
-        sourceSet.allSource.srcDirs as LinkedHashSet
+    private List<File> getSourceDirs(SourceSet sourceSet) {
+        sourceSet.allSource.srcDirs as List
     }
 }

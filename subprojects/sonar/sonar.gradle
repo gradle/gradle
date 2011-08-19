@@ -24,10 +24,13 @@ dependencies {
 
     compile project(':core')
     compile project(':plugins')
+    compile libraries.guava
     compile libraries.slf4j_api
+    compile "org.codehaus.sonar:sonar-batch-bootstrapper:2.9"
 
-    compile "org.codehaus.sonar:sonar-batch-bootstrapper:2.6"
-    provided "org.codehaus.sonar:sonar-batch:2.6"
+    provided("org.codehaus.sonar:sonar-batch:2.9") {
+        exclude module: "google-collections" // prevent clash with guava at compile time
+    }
 
     testCompile project(path: ':core', configuration: 'testFixtures')
 }
