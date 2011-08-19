@@ -125,18 +125,19 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Ignore //TODO SF add some coverage for the registry
-    def "registry"() {
+    def "registry deletes the bin files"() {
         expect:
         prepare()
 
-        def reg = new DaemonRegistry(temp.dir)
-        def registry = reg.newRegistry();
+        def daemonRegistry = new DaemonRegistry(temp.dir)
+        def reg = daemonRegistry.newRegistry();
 
-        registry.store(new AddressStub());
-        registry.remove();
+        reg.store(new AddressStub());
+        reg.remove();
 
-        temp.dir.list().length == 0
+        daemonRegistry.all.size() == 0
+        //TODO SF - not yet implemented
+        //daemonRegistry.registryFolder.list().length == 0
     }
 
     def "cleans up registry"() {

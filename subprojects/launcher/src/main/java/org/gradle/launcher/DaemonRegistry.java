@@ -39,7 +39,7 @@ import static org.codehaus.groovy.runtime.InvokerHelper.asList;
  */
 public class DaemonRegistry {
 
-    private final File registryFolder;
+    final File registryFolder;
 
     public DaemonRegistry(File registryFolder) {
         this.registryFolder = new File(registryFolder, String.format("daemon/%s", GradleVersion.current().getVersion()));
@@ -129,9 +129,9 @@ public class DaemonRegistry {
 
         public void remove() {
             openRegistry(file).set(null);
-            //TODO SF - delete should be on the registry
-            file.deleteOnExit();
+            //TODO SF - delete should be on the registry and should get rid of the remaining 'lock' files probably
             file.delete();
+            file.deleteOnExit();
         }
     }
 
