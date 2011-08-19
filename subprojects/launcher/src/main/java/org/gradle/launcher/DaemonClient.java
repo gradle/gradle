@@ -57,7 +57,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
      * Stops all daemona, if any is running.
      */
     public void stop() {
-        Connection<Object> connection = connector.maybeConnect(false);
+        Connection<Object> connection = connector.maybeConnect();
         if (connection == null) {
             LOGGER.lifecycle("No Gradle daemons are running.");
             return;
@@ -67,7 +67,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         while (connection != null) {
             run(new Stop(clientMetaData), connection);
             LOGGER.lifecycle("Gradle daemon stopped.");
-            connection = connector.maybeConnect(false);
+            connection = connector.maybeConnect();
         }
     }
 

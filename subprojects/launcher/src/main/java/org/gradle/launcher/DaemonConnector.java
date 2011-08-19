@@ -64,11 +64,13 @@ public class DaemonConnector {
     /**
      * Attempts to connect to the daemon, if it is running.
      *
-     * @param idleOnly - get connections only to idle daemons. TODO SF - this is ugly. Refactor.
      * @return The connection, or null if not running.
      */
-    public Connection<Object> maybeConnect(boolean idleOnly) {
-        List<DaemonStatus> statuses = idleOnly? daemonRegistry.getIdle() : daemonRegistry.getAll();
+    public Connection<Object> maybeConnect() {
+        return findConnection(daemonRegistry.getAll());
+    }
+
+    private Connection<Object> findConnection(List<DaemonStatus> statuses) {
         for (DaemonStatus status : statuses) {
             try {
                 return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(status.getAddress());
@@ -85,7 +87,7 @@ public class DaemonConnector {
      * @return The connection. Never returns null.
      */
     public Connection<Object> connect() {
-        Connection<Object> connection = maybeConnect(true);
+        Connection<Object> connection = findConnection(daemonRegistry.getIdle());
         if (connection != null) {
             return connection;
         }
@@ -94,7 +96,7 @@ public class DaemonConnector {
         startDaemon();
         Date expiry = new Date(System.currentTimeMillis() + 30000L);
         do {
-            connection = maybeConnect(true);
+            connection = findConnection(daemonRegistry.getIdle());
             if (connection != null) {
                 return connection;
             }

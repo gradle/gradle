@@ -57,6 +57,7 @@ public class DaemonRegistry {
         return out;
     }
 
+    //daemons without active connection
     List<DaemonStatus> getIdle() {
         List<DaemonStatus> out = new LinkedList<DaemonStatus>();
         List<DaemonStatus> all = getAll();
@@ -68,6 +69,7 @@ public class DaemonRegistry {
         return out;
     }
 
+    //daemons with active connection.
     List<DaemonStatus> getBusy() {
         List<DaemonStatus> out = new LinkedList<DaemonStatus>();
         List<DaemonStatus> all = getAll();
