@@ -33,11 +33,7 @@ import java.util.List;
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 
 /**
- * TODO SF - temporary stuff. Will be changed into the cache registry stuff recently introduced by Adam.
- *
  * Access to daemon registry files. Useful also for testing.
- * <p>
- * Busy (connected) daemons have different file names. The logic behind that is very simple and needs some more work.
  *
  * @author: Szczepan Faber, created at: 8/18/11
  */
@@ -46,7 +42,7 @@ public class DaemonRegistry {
     private final File registryFolder;
 
     public DaemonRegistry(File registryFolder) {
-        this.registryFolder = registryFolder;
+        this.registryFolder = new File(registryFolder, String.format("daemon/%s", GradleVersion.current().getVersion()));
     }
 
     List<DaemonStatus> getAll() {
@@ -90,8 +86,7 @@ public class DaemonRegistry {
     }
 
     private List<File> registryFiles(FilenameFilter filter) {
-        File dir = new File(registryFolder, String.format("daemon/%s", GradleVersion.current().getVersion()));
-        return asList(dir.listFiles(filter));
+        return asList(registryFolder.listFiles(filter));
     }
 
     public List<File> getAllFiles() {
@@ -101,7 +96,7 @@ public class DaemonRegistry {
     public Registry newRegistry() {
         //Since there are multiple daemons we need unique name of the registry file
         String uid = new UUIDGenerator().generateId().toString();
-        File file = new File(registryFolder, String.format("daemon/%s/registry-%s.bin", GradleVersion.current().getVersion(), uid));
+        File file = new File(registryFolder, String.format("registry-%s.bin", uid));
 
         return new Registry(file);
     }
