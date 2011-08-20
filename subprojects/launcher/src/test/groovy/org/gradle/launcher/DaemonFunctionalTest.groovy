@@ -52,9 +52,9 @@ class DaemonFunctionalTest extends Specification {
     def "daemons expire"() {
         when:
         prepare()
-
         connector = new DaemonConnector(temp.testDir, 1000) //1 sec expiry time
 
+        then:
         def c = connect()
         poll { assert reg.all.size() == 1 }
 
@@ -68,12 +68,10 @@ class DaemonFunctionalTest extends Specification {
         poll(2000) {
             assert reg.all.size() == 0
         }
-
-        then: 1==1 //TODO SF - to keep spock happy
     }
 
     def "knows status of the daemon"() {
-        when:
+        expect:
         prepare()
 
         assert reg.busy.size() == 0
@@ -92,12 +90,10 @@ class DaemonFunctionalTest extends Specification {
             assert reg.busy.size() == 0
             assert reg.idle.size() == 1
         }
-
-        then: 1==1
     }
 
     def "spins new daemon if all are busy"() {
-        when:
+        expect:
         prepare()
 
         assert reg.busy.size() == 0
@@ -116,8 +112,6 @@ class DaemonFunctionalTest extends Specification {
             assert reg.busy.size() == 2
             assert reg.idle.size() == 0
         }
-
-        then: 1==1
     }
 
     static class AddressStub implements Address {
@@ -142,7 +136,7 @@ class DaemonFunctionalTest extends Specification {
     }
 
     def "cleans up registry"() {
-        when:
+        expect:
         prepare()
 
         def connection = connect()
@@ -153,13 +147,11 @@ class DaemonFunctionalTest extends Specification {
         poll {
             assert reg.all.size() == 0
         }
-
-        then: 1==1
     }
 
     @Timeout(10) //healthy timeout just in case
     def "stops all daemons"() {
-        when:
+        expect:
         prepare()
 
         OutputEventListener listener = Mock()
@@ -186,8 +178,6 @@ class DaemonFunctionalTest extends Specification {
         poll {
             assert reg.all.size() == 0
         }
-
-        then: 1==1
     }
 
     private Connection<Object> connect() {
