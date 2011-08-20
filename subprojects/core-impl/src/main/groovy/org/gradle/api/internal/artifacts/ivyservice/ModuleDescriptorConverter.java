@@ -26,5 +26,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface ModuleDescriptorConverter {
-    ModuleDescriptor convert(Set<Configuration> configurations, Module module, IvySettings settings);
+    ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module, IvySettings settings);
 }

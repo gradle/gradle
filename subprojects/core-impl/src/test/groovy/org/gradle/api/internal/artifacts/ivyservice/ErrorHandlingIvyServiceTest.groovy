@@ -27,13 +27,14 @@ import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 
 @RunWith(JMock.class)
 public class ErrorHandlingIvyServiceTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final IvyService ivyServiceMock = context.mock(IvyService.class);
     private final ResolvedConfiguration resolvedConfigurationMock = context.mock(ResolvedConfiguration.class);
-    private final Configuration configurationMock = context.mock(Configuration.class, "<config display name>");
+    private final ConfigurationInternal configurationMock = context.mock(ConfigurationInternal.class, "<config display name>");
     private final Spec<Dependency> specDummy = context.mock(Spec.class);
     private final RuntimeException failure = new RuntimeException();
     private final ErrorHandlingIvyService ivyService = new ErrorHandlingIvyService(ivyServiceMock);

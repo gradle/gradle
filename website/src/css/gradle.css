@@ -370,6 +370,10 @@ table.table td.colHeader {
     list-style: none;
 }
 
+div.caution {
+    font-weight: bold;
+}
+
 #footer {
     padding-top: 20px;
     padding-bottom: 20px;

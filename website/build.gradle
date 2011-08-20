@@ -79,7 +79,8 @@ task configureReleases << {
     println "Current release distribution base: ${currentRelease.distributionBase}"
     releases << currentRelease
     releaseXml.release.each {
-        releases << new Release(version: it.'@version', versionInfo: versionInfo)
+        def broken = it.attributes()['status'] == 'broken'
+        releases << new Release(version: it.'@version', broken: broken, versionInfo: versionInfo)
     }
 }
 
@@ -262,6 +263,7 @@ class Release {
     def String title
     def String version
     def VersionInfo versionInfo
+    def boolean broken
 
     def BigDecimal getMajorVersion() {
         Matcher matcher = version =~ /(\d+\.\d+).*/

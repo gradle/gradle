@@ -17,7 +17,11 @@ package org.gradle.util;
 
 public class DistributionLocator {
     private static final String ARTIFACTORY_RELEASE_REPOSITORY = "http://repo.gradle.org/gradle/distributions";
-    private static final String ARTIFACTORY_SNAPSHOT_REPOSITORY = "http://repo.gradle.org/gradle/distributions/gradle-snapshots";
+
+    //TODO the old one can be deleted at some point when old snapshots are expired
+    private static final String DEPRECATED_ARTIFACTORY_SNAPSHOT_REPOSITORY = "http://repo.gradle.org/gradle/distributions/gradle-snapshots";
+    private static final String ARTIFACTORY_SNAPSHOT_REPOSITORY = "http://repo.gradle.org/gradle/distributions-snapshots";
+
     private static final String CODEHAUS_RELEASE_REPOSITORY = "http://dist.codehaus.org/gradle";
     private static final String CODEHAUS_SNAPSHOT_REPOSITORY = "http://snapshots.dist.codehaus.org/gradle";
 
@@ -28,7 +32,12 @@ public class DistributionLocator {
     public String getDistributionRepository(GradleVersion version) {
         if (version.compareTo(GradleVersion.version("0.9")) >= 0) {
             if (version.isSnapshot()) {
-                return ARTIFACTORY_SNAPSHOT_REPOSITORY;
+                String ver = "1.0-milestone-4-20110623211531+0200"; //last snapshot released to the old snapshot repo
+                if (version.compareTo(GradleVersion.version(ver)) <= 0) {
+                    return DEPRECATED_ARTIFACTORY_SNAPSHOT_REPOSITORY;
+                } else {
+                    return ARTIFACTORY_SNAPSHOT_REPOSITORY;
+                }
             }
             return ARTIFACTORY_RELEASE_REPOSITORY;
         } else {

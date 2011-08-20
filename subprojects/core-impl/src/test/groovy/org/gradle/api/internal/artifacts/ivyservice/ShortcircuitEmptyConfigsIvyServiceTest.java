@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Specs;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -38,7 +38,7 @@ import static org.junit.Assert.assertThat;
 public class ShortcircuitEmptyConfigsIvyServiceTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final IvyService delegate = context.mock(IvyService.class);
-    private final Configuration configuration = context.mock(Configuration.class);
+    private final ConfigurationInternal configuration = context.mock(ConfigurationInternal.class);
     private final DependencySet dependencies = context.mock(DependencySet.class);
     private final ShortcircuitEmptyConfigsIvyService ivyService = new ShortcircuitEmptyConfigsIvyService(delegate);
 

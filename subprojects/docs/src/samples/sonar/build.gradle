@@ -6,12 +6,15 @@ apply plugin: "sonar"
 
 // START SNIPPET connection-settings
 sonar {
-    serverUrl = "http://my.server.com"
-
-    globalProperty "sonar.jdbc.url", "jdbc:mysql://my.server.com/sonar"
-    globalProperty "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
-    globalProperty "sonar.jdbc.username", "myusername"
-    globalProperty "sonar.jdbc.password", "mypassword"
+    server {
+        url = "http://my.server.com"
+    }
+    database {
+        url = "jdbc:mysql://my.server.com/sonar"
+        driverClassName = "com.mysql.jdbc.Driver"
+        username = "Fred Flintstone"
+        password = "very clever"
+    }
 }
 // END SNIPPET connection-settings
 

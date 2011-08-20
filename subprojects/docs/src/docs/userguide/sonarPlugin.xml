@@ -29,7 +29,7 @@
 
     <para>
         Only projects which have the Java plugin applied (possibly by way of another plugin) are affected by the
-        Sonar plugin. Other projects can still declare a task of type <apilink class="org.gradle.api.plugins.sonar.Sonar"/>
+        Sonar plugin. Other projects can still declare a task of type <apilink class="org.gradle.api.plugins.sonar.SonarTask"/>
         and configure it manually.
     </para>
 
@@ -64,7 +64,7 @@
             <tr>
                 <td><literal>sonar</literal></td>
                 <td>-</td>
-                <td><apilink class="org.gradle.api.plugins.sonar.Sonar"/></td>
+                <td><apilink class="org.gradle.api.plugins.sonar.SonarTask"/></td>
                 <td>Analyzes the project's source code and stores results in Sonar's database.</td>
             </tr>
         </table>

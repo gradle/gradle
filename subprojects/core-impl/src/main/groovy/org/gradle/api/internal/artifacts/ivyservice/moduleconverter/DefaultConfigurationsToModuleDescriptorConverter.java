@@ -20,13 +20,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 
 import java.util.Arrays;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultConfigurationsToModuleDescriptorConverter implements ConfigurationsToModuleDescriptorConverter {
-    public void addConfigurations(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
+    public void addConfigurations(DefaultModuleDescriptor moduleDescriptor, Iterable<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             moduleDescriptor.addConfiguration(getIvyConfiguration(configuration));
         }

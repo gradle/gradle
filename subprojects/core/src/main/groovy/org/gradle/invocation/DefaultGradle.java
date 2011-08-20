@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.MultiParentClassLoader;
@@ -44,6 +45,8 @@ public class DefaultGradle implements GradleInternal {
     private final ListenerManager listenerManager;
     private final ServiceRegistryFactory services;
     private final GradleDistributionLocator distributionLocator;
+    private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
+    private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
 
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -54,6 +57,8 @@ public class DefaultGradle implements GradleInternal {
         taskGraph = services.get(TaskGraphExecuter.class);
         scriptClassLoader = services.get(MultiParentClassLoader.class);
         distributionLocator = services.get(GradleDistributionLocator.class);
+        buildListenerBroadcast = listenerManager.createAnonymousBroadcaster(BuildListener.class);
+        projectEvaluationListenerBroadcast = listenerManager.createAnonymousBroadcaster(ProjectEvaluationListener.class);
     }
 
     @Override
@@ -123,31 +128,31 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public void beforeProject(Closure closure) {
-        listenerManager.addListener(ProjectEvaluationListener.class, "beforeEvaluate", closure);
+        projectEvaluationListenerBroadcast.add("beforeEvaluate", closure);
     }
 
     public void afterProject(Closure closure) {
-        listenerManager.addListener(ProjectEvaluationListener.class, "afterEvaluate", closure);
+        projectEvaluationListenerBroadcast.add("afterEvaluate", closure);
     }
 
     public void buildStarted(Closure closure) {
-        listenerManager.addListener(BuildListener.class, "buildStarted", closure);
+        buildListenerBroadcast.add("buildStarted", closure);
     }
 
     public void settingsEvaluated(Closure closure) {
-        listenerManager.addListener(BuildListener.class, "settingsEvaluated", closure);
+        buildListenerBroadcast.add("settingsEvaluated", closure);
     }
 
     public void projectsLoaded(Closure closure) {
-        listenerManager.addListener(BuildListener.class, "projectsLoaded", closure);
+        buildListenerBroadcast.add("projectsLoaded", closure);
     }
 
     public void projectsEvaluated(Closure closure) {
-        listenerManager.addListener(BuildListener.class, "projectsEvaluated", closure);
+        buildListenerBroadcast.add("projectsEvaluated", closure);
     }
 
     public void buildFinished(Closure closure) {
-        listenerManager.addListener(BuildListener.class, "buildFinished", closure);
+        buildListenerBroadcast.add("buildFinished", closure);
     }
 
     public void addListener(Object listener) {
@@ -163,7 +168,7 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
-        return listenerManager.getBroadcaster(ProjectEvaluationListener.class);
+        return projectEvaluationListenerBroadcast.getSource();
     }
 
     public void addBuildListener(BuildListener buildListener) {
@@ -171,7 +176,7 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public BuildListener getBuildListenerBroadcaster() {
-        return listenerManager.getBroadcaster(BuildListener.class);
+        return buildListenerBroadcast.getSource();
     }
 
     public Gradle getGradle() {

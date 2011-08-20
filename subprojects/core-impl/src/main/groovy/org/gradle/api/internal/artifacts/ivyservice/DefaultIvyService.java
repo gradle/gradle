@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -115,7 +116,7 @@ public class DefaultIvyService implements IvyService {
         return dependencyPublisher;
     }
 
-    public ResolvedConfiguration resolve(final Configuration configuration) {
+    public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
         Ivy ivy = ivyForResolve(resolverProvider.getResolvers());
         ModuleDescriptor moduleDescriptor = resolveModuleDescriptorConverter.convert(configuration.getAll(),
                 metaDataProvider.getModule(), ivy.getSettings());

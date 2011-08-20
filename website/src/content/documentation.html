@@ -51,7 +51,7 @@
     <li><a href="${currentRelease.groovydocUrl}">Groovydoc API documentation</a></li>
 </ul>
 
-<h2>Latest Nightly</h2>
+<h2>Latest nightly</h2>
 <p>These are uploaded by the latest successful nightly build</p>
 <ul>
     <li><a href="/releases/latest/docs/userguide/userguide.html">User guide HTML</a> (one page per chapter)</li>
@@ -62,10 +62,13 @@
     <li><a href="/releases/latest/docs/groovydoc/index.html">Groovydoc API documentation</a></li>
 </ul>
 
+<h1>Other releases</h1>
+
 <% releases.each { release -> %>
     <% if ( release != currentRelease ) { %>
     <a name="${release.version}"></a>
     <h2>${release.displayName}</h2>
+<% if (release.broken) { %><div class="caution">Note: this release contains some serious regressions, and we suggest that you use <a href="#${currentRelease.version}">${currentRelease.version}</a> instead.</div><% } %>
     <ul>
         <li><a href="${release.userGuideHtmlUrl}">User guide HTML</a> (one page per chapter)</li>
         <li><a href="${release.userGuideSingleHtmlUrl}">User guide HTML</a> (single page)</li>

@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.idea.model
 import org.gradle.api.JavaVersion
 
 /**
- * Java language level used by IDEA projects
+ * Java language level used by IDEA projects.
  *
  * @author: Szczepan Faber, created at: 7/14/11
  */

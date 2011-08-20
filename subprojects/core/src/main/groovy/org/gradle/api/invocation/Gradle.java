@@ -181,6 +181,8 @@ public interface Gradle {
      *
      * <li>{@link org.gradle.api.tasks.testing.TestListener}
      *
+     * <li>{@link org.gradle.api.artifacts.DependencyResolutionListener}
+     *
      * </ul>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.

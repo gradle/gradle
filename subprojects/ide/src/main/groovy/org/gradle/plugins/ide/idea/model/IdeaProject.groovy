@@ -20,10 +20,10 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
 
 /**
- * Enables fine-tuning project details (*.ipr file) of the Idea plugin
+ * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
  * <p>
  * Example of use with a blend of all possible properties.
- * Bear in mind that usually you don't have configure idea module directly because Gradle configures it for free!
+ * Typically you don't have configure IDEA module directly because Gradle configures it for you.
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
@@ -48,7 +48,7 @@ import org.gradle.util.ConfigureUtil
  * </pre>
  *
  * For tackling edge cases users can perform advanced configuration on resulting xml file.
- * It is also possible to affect the way idea plugin merges the existing configuration
+ * It is also possible to affect the way IDEA plugin merges the existing configuration
  * via beforeMerged and whenMerged closures.
  * <p>
  * beforeMerged and whenMerged closures receive {@link Project} object
@@ -104,9 +104,9 @@ class IdeaProject {
 
     /**
      * The java language level of the project.
-     * Pass a valid java number, i.e: '1.8' or language level in IDEA's format, i.e: 'JDK_1_5'
+     * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
      * <p>
-     * See the examples in the docs for {@link IdeaProject}
+     * See the examples in the docs for {@link IdeaProject}.
      */
     IdeaLanguageLevel languageLevel
 
@@ -117,20 +117,20 @@ class IdeaProject {
     /**
      * The wildcard resource patterns.
      * <p>
-     * See the examples in the docs for {@link IdeaProject}
+     * See the examples in the docs for {@link IdeaProject}.
      */
     Set<String> wildcards
 
     /**
      * Output *.ipr
      * <p>
-     * See the examples in the docs for {@link IdeaProject}
+     * See the examples in the docs for {@link IdeaProject}.
      */
     File outputFile
 
     /**
      * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
-     * In idea, the project name is driven by the name of the 'ipr' file.
+     * In IDEA, the project name is driven by the name of the 'ipr' file.
      */
     String getName() {
        getOutputFile().name.replaceFirst(/\.ipr$/, '')
@@ -138,7 +138,7 @@ class IdeaProject {
 
     /**
      * Enables advanced configuration like tinkering with the output xml
-     * or affecting the way existing *.ipr content is merged with gradle build information
+     * or affecting the way existing *.ipr content is merged with Gradle build information.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */

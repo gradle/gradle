@@ -20,56 +20,51 @@ import spock.lang.Specification
 import org.junit.Rule
 
 class JvmTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
-    @Rule public final SetSystemProperties sysProp = new SetSystemProperties()
-    final OperatingSystem os = Mock()
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule SetSystemProperties sysProp = new SetSystemProperties()
+    OperatingSystem os = Mock()
+    Jvm jvm = new Jvm(os)
 
-    def usesSystemPropertyToDetermineIfCompatibleWithJava5() {
+    def "uses system property to determine if compatible with Java 5"() {
         System.properties['java.version'] = '1.5'
 
         expect:
-        def jvm = Jvm.current()
         jvm.java5Compatible
         !jvm.java6Compatible
     }
 
-    def usesSystemPropertyToDetermineIfCompatibleWithJava6() {
+    def "uses system property to determine if compatible with Java 6"() {
         System.properties['java.version'] = '1.6'
 
         expect:
-        def jvm = Jvm.current()
         jvm.java5Compatible
         jvm.java6Compatible
     }
 
-    def looksForToolsJarInJavaHomeDirectory() {
+    def "looks for runtime Jar in Java home directory"() {
+        TestFile javaHomeDir = tmpDir.createDir('jdk')
+        TestFile runtimeJar = javaHomeDir.file('lib/rt.jar').createFile()
+        System.properties['java.home'] = javaHomeDir.absolutePath
+
+        expect:
+        jvm.javaHome == javaHomeDir
+        jvm.runtimeJar == runtimeJar
+    }
+
+    def "looks for tools Jar in Java home directory"() {
         TestFile javaHomeDir = tmpDir.createDir('jdk')
         TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
         System.properties['java.home'] = javaHomeDir.absolutePath
 
         expect:
-        def jvm = Jvm.current()
         jvm.javaHome == javaHomeDir
         jvm.toolsJar == toolsJar
     }
 
-    def looksForToolsJarInParentOfJavaHomeDirectory() {
+    def "looks for tools Jar in parent of JRE's Java home directory"() {
         TestFile javaHomeDir = tmpDir.createDir('jdk')
         TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
         System.properties['java.home'] = javaHomeDir.file('jre').absolutePath
-
-        expect:
-        def jvm = Jvm.current()
-        jvm.javaHome == javaHomeDir
-        jvm.toolsJar == toolsJar
-    }
-
-    def looksForToolsJarInSiblingOfJavaHomeDirectoryOnWindows() {
-        TestFile javaHomeDir = tmpDir.createDir('jdk1.6.0')
-        TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
-        System.properties['java.home'] = tmpDir.createDir('jre6').absolutePath
-        System.properties['java.version'] = '1.6.0'
-        _ * os.windows >> true
 
         expect:
         def jvm = new Jvm(os)
@@ -77,37 +72,40 @@ class JvmTest extends Specification {
         jvm.toolsJar == toolsJar
     }
 
-    def usesSystemPropertyToLocateJavaHomeWhenToolsJarNotFound() {
+    def "looks for tools Jar in sibling of JRE's Java home directory on Windows"() {
+        TestFile javaHomeDir = tmpDir.createDir('jdk1.6.0')
+        TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
+        System.properties['java.home'] = tmpDir.createDir('jre6').absolutePath
+        System.properties['java.version'] = '1.6.0'
+        _ * os.windows >> true
+
+        expect:
+        jvm.javaHome == javaHomeDir
+        jvm.toolsJar == toolsJar
+    }
+
+    def "uses system property to locate Java home directory when tools Jar not found"() {
         TestFile javaHomeDir = tmpDir.createDir('jdk')
         System.properties['java.home'] = javaHomeDir.absolutePath
 
         expect:
-        def jvm = Jvm.current()
         jvm.javaHome == javaHomeDir
         jvm.toolsJar == null
     }
 
-    def usesSystemPropertyToDetermineIfAppleJvm() {
+    def "uses system property to determine if Apple JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'Apple Inc.'
         def jvm = Jvm.current()
 
         then:
-        jvm.class == Jvm.AppleJvm
+        jvm.getClass() == Jvm.AppleJvm
 
         when:
         System.properties['java.vm.vendor'] = 'Sun'
         jvm = Jvm.current()
 
         then:
-        jvm.class == Jvm
-    }
-
-    def appleJvmFiltersEnvironmentVariables() {
-        Map<String, String> env = ['APP_NAME_1234': 'App', 'JAVA_MAIN_CLASS_1234': 'MainClass', 'OTHER': 'value']
-
-        expect:
-        def jvm = new Jvm.AppleJvm(os)
-        jvm.getInheritableEnvironmentVariables(env) == ['OTHER': 'value']
+        jvm.getClass() == Jvm
     }
 }

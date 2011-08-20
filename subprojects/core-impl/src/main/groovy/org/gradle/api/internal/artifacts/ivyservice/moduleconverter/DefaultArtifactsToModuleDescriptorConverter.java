@@ -26,9 +26,8 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublishe
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -52,7 +51,7 @@ public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToM
         this.artifactsExtraAttributesStrategy = artifactsExtraAttributesStrategy;
     }
 
-    public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
+    public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Iterable<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (PublishArtifact publishArtifact : configuration.getArtifacts()) {
                 Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleDescriptor.getModuleRevisionId());

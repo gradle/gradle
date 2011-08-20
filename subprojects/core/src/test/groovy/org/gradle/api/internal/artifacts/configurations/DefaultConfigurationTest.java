@@ -31,6 +31,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.listener.ListenerManager;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestClosure;
@@ -55,12 +56,15 @@ public class DefaultConfigurationTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
     private IvyService ivyServiceStub = context.mock(IvyService.class);
     private ConfigurationsProvider configurationContainer;
-
+    private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DefaultConfiguration configuration;
 
     @Before
     public void setUp() {
         configurationContainer = context.mock(ConfigurationsProvider.class);
+        context.checking(new Expectations(){{
+            allowing(listenerManager).createAnonymousBroadcaster(DependencyResolutionListener.class);
+        }});
         configuration = createNamedConfiguration("path", "name");
     }
 
@@ -334,11 +338,11 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, confName, configurationContainer, ivyServiceStub);
+        return new DefaultConfiguration(confName, confName, configurationContainer, ivyServiceStub, listenerManager);
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
-        return new DefaultConfiguration(path, confName, configurationContainer, ivyServiceStub);
+        return new DefaultConfiguration(path, confName, configurationContainer, ivyServiceStub, listenerManager);
     }
 
     @SuppressWarnings("unchecked")

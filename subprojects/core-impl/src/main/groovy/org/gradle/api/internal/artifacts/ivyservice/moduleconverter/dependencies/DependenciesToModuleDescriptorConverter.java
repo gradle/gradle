@@ -19,11 +19,11 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.Configuration;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * @author Hans Dockter
  */
 public interface DependenciesToModuleDescriptorConverter {
-    void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations, IvySettings ivySettings);
+    void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations, IvySettings ivySettings);
 }

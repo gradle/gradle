@@ -27,22 +27,22 @@ class ModuleLibrary implements Dependency {
     Set<Path> classes
 
     /**
-     * A set of  {@link JarDirectory}  instances for directories containing jars.
+     * A set of {@link JarDirectory} instances for directories containing jars.
      */
     Set<JarDirectory> jarDirectories
 
     /**
-     * A set of  {@link Path}  instances for javadoc associated with the library elements.
+     * A set of {@link Path} instances for javadoc associated with the library elements.
      */
     Set<Path> javadoc
 
     /**
-     * A set of  {@link Path}  instances for source code associated with the library elements.
+     * A set of {@link Path} instances for source code associated with the library elements.
      */
     Set<Path> sources
 
     /**
-     * The scope of this dependency. If null the scope attribute is not added.
+     * The scope of this dependency. If <tt>null</tt>, the scope attribute is not added.
      */
     String scope
 

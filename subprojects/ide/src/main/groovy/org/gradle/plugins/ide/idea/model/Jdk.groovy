@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.idea.model
 
 /**
- * Represents a the information for the project JavaSDK. This information are attributes of the ProjectRootManager
+ * Represents information for the project Java SDK. This translates to attributes of the ProjectRootManager
  * element in the ipr.
  * 
  * @author Hans Dockter

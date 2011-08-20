@@ -28,6 +28,8 @@ import org.gradle.build.Releases
  * Uploading the userguide and the javadoc to Gradle's website: websiteScpUserName, websiteScpUserPassword
  * Using the build to create a new distribution and install it on the local machine: gradle_installPath
  */
+apply plugin: "sonar"
+//project(":docs") { sonarProject.skip = true }
 
 releases = new Releases(project(':core').file('src/releases.xml'), project)
 version = new Version(project)

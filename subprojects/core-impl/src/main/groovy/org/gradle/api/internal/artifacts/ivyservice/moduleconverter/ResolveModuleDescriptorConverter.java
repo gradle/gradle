@@ -41,7 +41,7 @@ public class ResolveModuleDescriptorConverter extends AbstractModuleDescriptorCo
         super(moduleDescriptorFactory, configurationsToModuleDescriptorConverter, dependenciesToModuleDescriptorConverter);
     }
 
-    public ModuleDescriptor convert(Set<Configuration> configurations, Module module, IvySettings settings) {
+    public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module, IvySettings settings) {
         assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
         Clock clock = new Clock();
         DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, settings);

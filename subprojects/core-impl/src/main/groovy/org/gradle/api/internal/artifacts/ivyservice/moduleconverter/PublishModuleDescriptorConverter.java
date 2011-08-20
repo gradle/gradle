@@ -45,7 +45,7 @@ public class PublishModuleDescriptorConverter implements ModuleDescriptorConvert
         this.artifactsToModuleDescriptorConverter = artifactsToModuleDescriptorConverter;
     }
 
-    public ModuleDescriptor convert(Set<Configuration> configurations, Module module, IvySettings settings) {
+    public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module, IvySettings settings) {
         Clock clock = new Clock();
         DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) resolveModuleDescriptorConverter.convert(configurations, module, settings);
         moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);

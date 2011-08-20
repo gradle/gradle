@@ -32,6 +32,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.ListenerManager;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
@@ -50,6 +52,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String description;
     private ConfigurationsProvider configurationsProvider;
     private final IvyService ivyService;
+    private final ListenerManager listenerManager;
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
@@ -57,6 +60,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
+    private final ListenerBroadcast<DependencyResolutionListener> resolutionListenerBroadcast;
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
     // This lock only protects the following fields
@@ -65,11 +69,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolvedConfiguration cachedResolvedConfiguration;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
-                                IvyService ivyService) {
+                                IvyService ivyService, ListenerManager listenerManager) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.ivyService = ivyService;
+        this.listenerManager = listenerManager;
+        resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(new VetoContainerChangeAction());
@@ -377,7 +383,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, ivyService);
+                configurationsProvider, ivyService, listenerManager);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -408,6 +414,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public Configuration copyRecursive(Closure dependencySpec) {
         return copyRecursive(Specs.<Dependency>convertClosureToSpec(dependencySpec));
+    }
+
+    public DependencyResolutionListener getDependencyResolutionBroadcast() {
+        return resolutionListenerBroadcast.getSource();
     }
 
     private void throwExceptionIfNotInUnresolvedState() {
@@ -534,19 +544,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            throw new UnsupportedOperationException();
+            resolutionListenerBroadcast.add("beforeResolve", action);
         }
 
         public void beforeResolve(Closure action) {
-            throw new UnsupportedOperationException();
+            resolutionListenerBroadcast.add("beforeResolve", action);
         }
 
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            throw new UnsupportedOperationException();
+            resolutionListenerBroadcast.add("afterResolve", action);
         }
 
         public void afterResolve(Closure action) {
-            throw new UnsupportedOperationException();
+            resolutionListenerBroadcast.add("afterResolve", action);
         }
     }
 }
