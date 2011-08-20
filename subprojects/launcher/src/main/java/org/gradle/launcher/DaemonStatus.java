@@ -47,9 +47,9 @@ public class DaemonStatus implements Serializable {
 
     @Override
     public String toString() {
-        return "DaemonStatus{" +
-                "address=" + address +
-                ", idle=" + idle +
-                '}';
+        return "DaemonStatus{"
+                + "address=" + address
+                + ", idle=" + idle
+                + '}';
     }
 }
