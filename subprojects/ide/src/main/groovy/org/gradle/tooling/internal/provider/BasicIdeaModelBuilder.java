@@ -17,15 +17,15 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.tooling.internal.protocol.InternalOfflineIdeaProject;
+import org.gradle.tooling.internal.protocol.InternalBasicIdeaProject;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
 /**
  * @author: Szczepan Faber, created at: 7/23/11
  */
-public class OfflineIdeaModelBuilder implements BuildsModel {
+public class BasicIdeaModelBuilder implements BuildsModel {
     public boolean canBuild(Class type) {
-        return type == InternalOfflineIdeaProject.class;
+        return type == InternalBasicIdeaProject.class;
     }
 
     public ProjectVersion3 buildAll(GradleInternal gradle) {

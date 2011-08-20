@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.idea;
+package org.gradle.tooling.internal.protocol;
 
 /**
- * IdeaProject that does not provide/resolve any GAV dependencies.
- * Only project dependencies and local file dependencies are included on the modules' classpath.
- * <p>
- * Useful for 'previewing' the output model of IdeaProject because it supposed to be fast (e.g. does not download dependencies from the web).
- */                     //TODO SF Basic
-public interface OfflineIdeaProject extends IdeaProject {
-}
+ * See {@link org.gradle.tooling.internal.protocol.InternalProtocolInterface}
+ */
+public interface InternalBasicIdeaProject extends ProjectVersion3, InternalProtocolInterface {}

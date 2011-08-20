@@ -296,7 +296,7 @@ project(':impl') {
         projectDir.file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
-        OfflineIdeaProject project = withConnection { connection -> connection.getModel(OfflineIdeaProject.class) }
+        BasicIdeaProject project = withConnection { connection -> connection.getModel(BasicIdeaProject.class) }
         def impl = project.children.find { it.name == 'impl' }
 
         then:
