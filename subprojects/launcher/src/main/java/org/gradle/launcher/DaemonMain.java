@@ -73,7 +73,7 @@ public class DaemonMain implements Runnable {
         PrintStream originalErr = System.err;
 //        InputStream originalIn = System.in;
         DaemonDir daemonDir = new DaemonDir(startParameter.getGradleUserHomeDir());
-        File logOutputFile = daemonDir.getLog(); //TODO SF each daemon needs his own log file (or potentially his own folder)
+        File logOutputFile = daemonDir.createUniqueLog();
         logOutputFile.getParentFile().mkdirs();
         PrintStream printStream = new PrintStream(new FileOutputStream(logOutputFile), true);
         System.setOut(printStream);
@@ -143,6 +143,8 @@ public class DaemonMain implements Runnable {
 
     private CommandComplete doRunWithLogging(Connection<Object> connection, Stoppable serverControl) {
         Command command = (Command) connection.receive();
+        //TODO SF - theoretically the received object may be null (if the client stops the connection perhaps?)
+        //I was able to reproduce it with some functional tests but not any longer it seems.
         try {
             return doRunWithExceptionHandling(command, serverControl);
         } catch (ReportedException e) {

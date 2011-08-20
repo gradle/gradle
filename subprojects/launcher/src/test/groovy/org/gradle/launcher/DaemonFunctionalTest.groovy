@@ -63,7 +63,7 @@ class DaemonFunctionalTest extends Specification {
             assert reg.all.size() == 1
         }
 
-        printDaemonLog() //TODO SF - this exposes an issue - the stop command actually causes NPE in the daemon thread.
+        printDaemonLog()
 
         poll(2000) {
             assert reg.all.size() == 0
@@ -187,8 +187,13 @@ class DaemonFunctionalTest extends Specification {
     }
 
     void printDaemonLog() {
-        println "*** daemon debug info:"
-        println reg.daemonDir.log.text
+        int i = 1;
+        reg.daemonDir.logs.each {
+            println ""
+            println "*** daemon #$i log:"
+            println it
+            i++
+        }
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout

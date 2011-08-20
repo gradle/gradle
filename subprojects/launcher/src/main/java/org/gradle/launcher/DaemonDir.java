@@ -17,8 +17,13 @@
 package org.gradle.launcher;
 
 import org.gradle.util.GradleVersion;
+import org.gradle.util.UUIDGenerator;
 
 import java.io.File;
+import java.io.FilenameFilter;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * @author: Szczepan Faber, created at: 8/20/11
@@ -26,18 +31,26 @@ import java.io.File;
 public class DaemonDir {
 
     private final File file;
-    private final File log;
 
     public DaemonDir(File baseDir) {
         file = new File(baseDir, String.format("daemon/%s", GradleVersion.current().getVersion()));
-        log = new File(file, "daemon.out.log");
     }
 
     public File getFile() {
         return file;
     }
 
-    public File getLog() {
-        return log;
+    //very simplistic, just making sure each damon has unique log file
+    public File createUniqueLog() {
+        String uid = new UUIDGenerator().generateId().toString();
+        return new File(file, String.format("daemon-%s.out.log", uid));
+    }
+
+    public List<File> getLogs() {
+        return asList(file.listFiles(new FilenameFilter() {
+            public boolean accept(File file, String s) {
+                return s.startsWith("daemon-") && s.endsWith("out.log");
+            }
+        }));
     }
 }
