@@ -29,7 +29,7 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
 
     public BuildModelAction(Class<? extends ProjectVersion3> type) {
         List<? extends BuildsModel> modelBuilders = asList(
-                new EclipseModelBuilder(), new IdeaModelBuilder(), new GradleProjectBuilder(), new OfflineIdeaModelBuilder());
+                new EclipseModelBuilder(), new IdeaModelBuilder(), new GradleProjectBuilder(), new BasicIdeaModelBuilder());
 
         for (BuildsModel builder : modelBuilders) {
             if (builder.canBuild(type)) {
