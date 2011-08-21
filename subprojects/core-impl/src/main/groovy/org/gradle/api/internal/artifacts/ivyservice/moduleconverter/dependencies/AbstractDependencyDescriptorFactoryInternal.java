@@ -45,13 +45,20 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
     public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
         DependencyDescriptor newDescriptor = createDependencyDescriptor(dependency, configuration, moduleDescriptor, moduleRevisionId);
-        DefaultDependencyDescriptor existingDependencyDescriptor = findExistingDescriptor(moduleDescriptor, newDescriptor);
 
-        if (existingDependencyDescriptor == null) {
-            moduleDescriptor.addDependency(newDescriptor);
-        } else {
-            existingDependencyDescriptor.addDependencyConfiguration(configuration, dependency.getConfiguration());
+        DefaultDependencyDescriptor matchingDependencyDescriptor = findMatchingDescriptorForSameConfiguration(moduleDescriptor, newDescriptor);
+        if (matchingDependencyDescriptor != null) {
+            mergeDescriptors(matchingDependencyDescriptor, newDescriptor);
+            return;
         }
+
+        DefaultDependencyDescriptor existingDependencyDescriptor = findExistingDescriptor(moduleDescriptor, newDescriptor);
+        if (existingDependencyDescriptor != null) {
+            existingDependencyDescriptor.addDependencyConfiguration(configuration, dependency.getConfiguration());
+            return;
+        }
+
+        moduleDescriptor.addDependency(newDescriptor);
     }
 
     protected abstract DependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration,
@@ -72,6 +79,36 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
             }
         }
         return null;
+    }
+
+
+    private DefaultDependencyDescriptor findMatchingDescriptorForSameConfiguration(DefaultModuleDescriptor moduleDescriptor, DependencyDescriptor targetDescriptor) {
+        for (DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
+            if (dependencyDescriptor.getDependencyRevisionId().equals(targetDescriptor.getDependencyRevisionId())
+                    && Arrays.equals(dependencyDescriptor.getModuleConfigurations(), targetDescriptor.getModuleConfigurations())) {
+                return (DefaultDependencyDescriptor) dependencyDescriptor;
+            }
+        }
+        return null;
+    }
+
+    private void mergeDescriptors(DefaultDependencyDescriptor matchingDependencyDescriptor, DependencyDescriptor newDescriptor) {
+        // TODO Merge transitive, excludeRules and force flags
+        String masterConfiguration = matchingDependencyDescriptor.getModuleConfigurations()[0];
+
+        // Add 'default' artifact if either configuration has no defined artifacts
+        if (matchingDependencyDescriptor.getAllDependencyArtifacts().length == 0 || newDescriptor.getAllDependencyArtifacts().length == 0) {
+            matchingDependencyDescriptor.addDependencyArtifact(masterConfiguration, createDefaultArtifact(matchingDependencyDescriptor));
+        }
+
+        for (DependencyArtifactDescriptor artifactDescriptor : newDescriptor.getAllDependencyArtifacts()) {
+            matchingDependencyDescriptor.addDependencyArtifact(masterConfiguration, artifactDescriptor);
+        }
+    }
+
+    private DefaultDependencyArtifactDescriptor createDefaultArtifact(DefaultDependencyDescriptor dependencyDescriptor) {
+        return new DefaultDependencyArtifactDescriptor(dependencyDescriptor, dependencyDescriptor.getDependencyId().getName(),
+                DependencyArtifact.DEFAULT_TYPE, DependencyArtifact.DEFAULT_TYPE, null, null);
     }
 
     protected void addExcludesArtifactsAndDependencies(String configuration, ModuleDependency dependency,
