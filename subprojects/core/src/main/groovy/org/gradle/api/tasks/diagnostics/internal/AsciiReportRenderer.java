@@ -35,12 +35,14 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
  */
 public class AsciiReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
+    private boolean hasCyclicDependencies;
     private GraphRenderer renderer;
 
     @Override
     public void startProject(Project project) {
         super.startProject(project);
         hasConfigs = false;
+        hasCyclicDependencies = false;
     }
 
     @Override
@@ -79,25 +81,46 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
             getTextOutput().println();
             return;
         }
-        renderChildren(mergedRoots);
+        renderChildren(mergedRoots, new HashSet<String>());
     }
 
-    private void render(final MergedResolvedDependency resolvedDependency, boolean lastChild) {
+    public void complete() throws IOException {
+        if (hasCyclicDependencies) {
+            getTextOutput().withStyle(Info).println("\n(*) - dependencies omitted (listed previously)");
+        }
+        
+        super.complete();
+    }
+    
+    private void render(final MergedResolvedDependency resolvedDependency, Set<String> visitedDependencyNames, boolean lastChild) {
+        final boolean isFirstVisitOfDependencyInConfiguration = visitedDependencyNames.add(resolvedDependency.getName());
+        if (!isFirstVisitOfDependencyInConfiguration) {
+            hasCyclicDependencies = true;
+        }
+
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput styledTextOutput) {
                 getTextOutput().text(resolvedDependency.getName());
-                getTextOutput().withStyle(Info).format(" [%s]", resolvedDependency.getConfiguration());
+                StyledTextOutput infoStyle = getTextOutput().withStyle(Info);
+                infoStyle.format(" [%s]", resolvedDependency.getConfiguration());
+
+                if (!isFirstVisitOfDependencyInConfiguration) {
+                    infoStyle.append(" (*)");
+                }
             }
         }, lastChild);
-        renderChildren(mergeChildren(resolvedDependency.getChildren()));
+
+        if (isFirstVisitOfDependencyInConfiguration) {
+            renderChildren(mergeChildren(resolvedDependency.getChildren()), visitedDependencyNames);
+        }
     }
 
-    private void renderChildren(Set<MergedResolvedDependency> children) {
+    private void renderChildren(Set<MergedResolvedDependency> children, Set<String> visitedDependencyNames) {
         renderer.startChildren();
         List<MergedResolvedDependency> mergedChildren = new ArrayList<MergedResolvedDependency>(children);
         for (int i = 0; i < mergedChildren.size(); i++) {
             MergedResolvedDependency dependency = mergedChildren.get(i);
-            render(dependency, i == mergedChildren.size() - 1);
+            render(dependency, visitedDependencyNames, i == mergedChildren.size() - 1);
         }
         renderer.completeChildren();
     }
