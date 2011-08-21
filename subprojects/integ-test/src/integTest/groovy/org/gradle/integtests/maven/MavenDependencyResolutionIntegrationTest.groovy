@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
-import org.junit.Ignore
 
 class MavenDependencyResolutionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -37,7 +36,6 @@ class MavenDependencyResolutionIntegrationTest {
                 'classifier-1.0-jdk15.jar', 'classifier-dep-1.0.jar', 'jaronly-1.0.jar']
 
         File projectDir = dist.testDir
-        // Ignore deprecation warnings, since MavenRepo().allownomd is deprecated and used in test build script
         executer.inDirectory(projectDir).withTasks('retrieve').run()
         expectedFiles.each { new TestFile(projectDir, 'build', it).assertExists() }
     }
@@ -70,7 +68,7 @@ class MavenDependencyResolutionIntegrationTest {
     }
 
     @Test
-    public void "can resolve and cache snapshots from HTTP Maven repository"() {
+    public void "uses cached snapshot resolved from a Maven HTTP repository until the snapshot timeout is reached"() {
         dist.requireOwnUserHomeDir()
 
         def producerProject = dist.testFile('producer.gradle')
@@ -159,6 +157,71 @@ class MavenDependencyResolutionIntegrationTest {
 
         executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments("-PnoTimeout", repoUrl).run().assertTasksNotSkipped(':retrieve')
         jarFile.assertHasChangedSince(snapshot)
+    }
+
+    @Test
+    public void "does not download snapshot artifacts after expiry when snapshot has not changed"() {
+        dist.requireOwnUserHomeDir()
+
+        def producerProject = dist.testFile('producer.gradle')
+        def consumerProject = dist.testFile('projectWithMavenSnapshots.gradle')
+
+        // Publish the first snapshot
+        executer.usingBuildScript(producerProject).withTasks('uploadArchives').run()
+
+        // Retrieve the first snapshot
+        def repoDir = dist.testFile('repo/org/gradle/testproject/1.0-SNAPSHOT')
+        repoDir.assertIsDir()
+        def pom = repoDir.listFiles().find { it.name.matches('.*-1.pom') }
+        def jar = repoDir.listFiles().find { it.name.matches('.*-1.jar') }
+        assert pom && jar
+        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
+        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
+        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
+
+        // TODO - it would be nice to defer these
+        server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name.replace('.jar', '-sources.jar')}")
+        server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name.replace('.jar', '-src.jar')}")
+        server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name.replace('.jar', '-javadoc.jar')}")
+
+        // TODO - these should not be here
+        server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
+        5.times {
+            server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
+        }
+        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
+        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
+        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1')
+        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5')
+        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1")
+        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5")
+        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.sha1")
+        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.md5")
+        server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-sources.jar")
+        server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-src.jar")
+        server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-javadoc.jar")
+
+        server.start()
+        String repoUrl = "-PrepoUrl=http://localhost:${server.port}/repo"
+
+        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments(repoUrl).run()
+        def jarFile = dist.testFile('build/testproject-1.0-SNAPSHOT.jar')
+        def snapshot = jarFile.assertIsFile().snapshot()
+
+        // Retrieve again with zero timeout should check for updated snapshot
+        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
+
+        // TODO - these should not be here
+        server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
+        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1')
+        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5')
+        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
+        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1")
+        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5")
+        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
+
+        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments("-PnoTimeout", repoUrl).run().assertTasksSkipped(':retrieve')
+        jarFile.assertHasNotChangedSince(snapshot)
     }
 
     @Test
@@ -265,7 +328,7 @@ task listJars << {
         // TODO - these should not be here
         server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.pom')
         server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
-        
+
         executer.withTasks('listJars').run()
     }
 
