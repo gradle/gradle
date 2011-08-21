@@ -24,6 +24,53 @@ class IvyDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
+    public void "does not cache local artifacts or metadata"() {
+        distribution.requireOwnUserHomeDir()
+
+        given:
+        def repo = ivyRepo()
+        def moduleA = repo.module('group', 'projectA', '1.2')
+        moduleA.publishArtifact()
+        def moduleB = repo.module('group', 'projectB', '9-beta')
+        moduleB.publishArtifact()
+
+        and:
+        buildFile << """
+repositories {
+    ivy {
+        name = 'someRepo'
+        artifactPattern "${repo.rootDir}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        when:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+        file('libs/projectA-1.2.jar').assertIsCopyOf(moduleA.jarFile)
+
+        when:
+        moduleA.dependsOn('group', 'projectB', '9-beta')
+        moduleA.publishArtifact()
+        moduleA.jarFile.text = 'some different content'
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-9-beta.jar')
+        file('libs/projectA-1.2.jar').assertIsCopyOf(moduleA.jarFile)
+        file('libs/projectB-9-beta.jar').assertIsCopyOf(moduleB.jarFile)
+    }
+
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         distribution.requireOwnUserHomeDir()
 
@@ -39,13 +86,13 @@ class IvyDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-apply plugin: 'java'
 repositories {
     ivy {
         name = 'gradleReleases'
         artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
+configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
@@ -87,7 +134,6 @@ task listJars << {
 
         and:
         buildFile << """
-apply plugin: 'java'
 repositories {
     ivy {
         name = 'gradleReleases'
@@ -98,6 +144,7 @@ repositories {
         artifactPattern "http://localhost:${server.port}/repo2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
+configurations { compile }
 dependencies {
     compile 'group:projectA:1.2', 'group:projectB:1.3'
 }
@@ -131,13 +178,13 @@ task listJars << {
 
         and:
         buildFile << """
-apply plugin: 'java'
 repositories {
     ivy {
         name = 'gradleReleases'
         artifactPattern "http://localhost:${server.port}/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
     }
 }
+configurations { compile }
 dependencies {
     compile 'group:org:1.2'
 }
@@ -162,7 +209,7 @@ task show << { println configurations.compile.files }
         failure.assertHasDescription('Execution failed for task \':show\'.')
         failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\':')
     }
-    
+
     IvyRepository ivyRepo() {
         return new IvyRepository(file('ivy-repo'))
     }

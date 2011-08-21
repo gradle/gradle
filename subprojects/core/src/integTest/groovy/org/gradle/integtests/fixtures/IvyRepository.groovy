@@ -39,12 +39,18 @@ class IvyModule {
     final String organisation
     final String module
     final String revision
+    final List dependencies = []
 
     IvyModule(TestFile moduleDir, String organisation, String module, String revision) {
         this.moduleDir = moduleDir
         this.organisation = organisation
         this.module = module
         this.revision = revision
+    }
+
+    IvyModule dependsOn(String organisation, String module, String revision) {
+        dependencies << [organisation: organisation, module: module, revision: revision]
+        return this
     }
 
     File getIvyFile() {
@@ -58,7 +64,7 @@ class IvyModule {
     File publishArtifact() {
         moduleDir.createDir()
 
-        ivyFile << """<?xml version="1.0" encoding="UTF-8"?>
+        ivyFile.text = """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="1.0">
 	<info organisation="${organisation}"
 		module="${module}"
@@ -71,6 +77,15 @@ class IvyModule {
 	<publications>
 		<artifact name="${module}" type="jar" ext="jar" conf="*"/>
 	</publications>
+	<dependencies>
+"""
+        dependencies.each { dep ->
+            ivyFile << """
+        <dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}"/>
+"""
+        }
+        ivyFile << """
+    </dependencies>
 </ivy-module>
         """
 

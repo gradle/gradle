@@ -19,6 +19,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
+import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
@@ -68,7 +69,9 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
     }
 
     private RepositoryResolver file() {
-        return new FileSystemResolver();
+        FileSystemResolver resolver = new FileSystemResolver();
+        resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
+        return resolver;
     }
 
     private RepositoryResolver http() {
