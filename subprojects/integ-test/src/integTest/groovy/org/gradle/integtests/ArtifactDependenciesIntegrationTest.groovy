@@ -24,10 +24,9 @@ import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
-import spock.lang.Issue
-import org.junit.Ignore
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -184,7 +183,6 @@ project(':b') {
     }
 
     @Test
-    @Ignore
     @Issue("GRADLE-739")
     public void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
         def repo = repo()
@@ -220,6 +218,40 @@ task test << {
     checkDeps configurations.extended, ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar', 'external1-1.0.jar']
     checkDeps configurations.justDefault, ['external1-1.0.jar']
     checkDeps configurations.justClassifier, ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+}
+"""
+        inTestDirectory().withTasks('test').run()
+    }
+
+    /*
+     * Originally, we were aliasing dependency descriptors that were identical. This caused alias errors when we subsequently modified one of these descriptors.
+     */
+    @Test
+    public void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'external1', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'withClassifier').publishArtifact()
+
+        testFile('build.gradle') << """
+repositories {
+    mavenRepo urls: '${repo.rootDir.toURI()}'
+}
+configurations {
+    a
+    b
+}
+dependencies {
+    a 'org.gradle.test:external1:1.0'
+    b 'org.gradle.test:external1:1.0', 'org.gradle.test:external1:1.0:withClassifier'
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config.collect({ it.name }).sort() == expectedDependencies
+}
+
+task test << {
+    checkDeps configurations.a, ['external1-1.0.jar']
+    checkDeps configurations.b, ['external1-1.0-withClassifier.jar', 'external1-1.0.jar']
 }
 """
         inTestDirectory().withTasks('test').run()
