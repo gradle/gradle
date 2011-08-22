@@ -18,6 +18,14 @@ sonar {
 }
 // END SNIPPET connection-settings
 
+// START SNIPPET project-settings
+sonar {
+    project {
+        coberturaReportPath = "$buildDir/cobertura.xml"
+    }
+}
+// END SNIPPET project-settings
+
 repositories {
     mavenCentral()
 }

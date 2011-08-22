@@ -17,34 +17,34 @@
     <title>The Sonar Plugin</title>
 
     <para>The Sonar plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
-        a web-based platform for monitoring code quality. The plugin adds a <literal>sonar</literal> task
+        a web-based platform for monitoring code quality. The plugin adds a <literal>sonarAnalyze</literal> task
         to the project, which analyzes the project's source code and stores the results in Sonar's database.
     </para>
 
     <para>
-        The <literal>sonar</literal> task is a standalone task that needs to be executed explicitly. By default,
+        The <literal>sonarAnalyze</literal> task is a standalone task that needs to be executed explicitly. By default,
         it gets configured to analyze the Java code in the main source set. In a typical setup, the task would
         be run once per day on a build server.
     </para>
 
-    <para>
-        Only projects which have the Java plugin applied (possibly by way of another plugin) are affected by the
-        Sonar plugin. Other projects can still declare a task of type <apilink class="org.gradle.api.plugins.sonar.SonarTask"/>
-        and configure it manually.
-    </para>
-
     <section>
         <title>Usage</title>
-        <para>At a minimum, the Sonar plugin has to be applied to the project.</para>
+        <para>At a minimum, the Sonar plugin has to be applied to the root project of the build.</para>
         <sample id="useSonarPlugin" dir="sonar" title="Using the Sonar plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
-        <para>Typically, it is also necessary to configure connection settings for the Sonar server and database.</para>
-        <sample id="useSonarPlugin" dir="sonar" title="Configuring connection settings">
+        <para>Unless Sonar is run locally and with default settings, it is also necessary to configure
+            connection settings for the Sonar server and database. This configuration is only done for
+            the root project.</para>
+        <sample id="useSonarPlugin" dir="sonar" title="Configuring Sonar connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
-        <para>For a complete documentation of all Sonar-specific configuration properties, see the
-            <ulink url= "http://docs.codehaus.org/display/SONAR/Advanced+parameters">Sonar documentation</ulink>.
+        <para>Each project also has project-specific settings, which can be customized.</para>
+        <sample id="useSonarPlugin" dir="sonar" title="Configuring Sonar project settings">
+            <sourcefile file="build.gradle" snippet="project-settings"/>
+        </sample>
+        <para>For a complete documentation of all configuration options, see the
+            <ulink url= "http://gradle.org/current/docs/dsl/org.gradle.api.plugins.sonar.SonarAnalysis.html">DSL reference</ulink>.
         </para>
     </section>
 
@@ -64,7 +64,7 @@
             <tr>
                 <td><literal>sonar</literal></td>
                 <td>-</td>
-                <td><apilink class="org.gradle.api.plugins.sonar.SonarTask"/></td>
+                <td><apilink class="org.gradle.api.plugins.sonar.SonarAnalyze"/></td>
                 <td>Analyzes the project's source code and stores results in Sonar's database.</td>
             </tr>
         </table>

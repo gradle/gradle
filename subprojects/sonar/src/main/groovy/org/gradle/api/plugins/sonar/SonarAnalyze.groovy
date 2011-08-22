@@ -19,41 +19,33 @@ import org.sonar.batch.bootstrapper.Bootstrapper
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ClasspathUtil
-import org.gradle.api.plugins.sonar.model.SonarProject
-import org.gradle.api.plugins.sonar.model.SonarModel
+
+import org.gradle.api.plugins.sonar.model.SonarRootModel
 
 /**
  * Analyzes a project and stores the results in the Sonar database.
  */
-class SonarTask extends ConventionTask {
-    /**
-     * Global configuration for the Sonar analysis.
-     */
-    SonarModel sonarModel
-    /**
-     * Project configuration for the Sonar analysis.
-     */
-    SonarProject sonarProject
+class SonarAnalyze extends ConventionTask {
+    SonarRootModel rootModel
 
     @TaskAction
     void analyze() {
-        sonarModel.bootstrapDir.mkdirs()
-        def bootstrapper = new Bootstrapper("Gradle", sonarModel.server.url, sonarModel.bootstrapDir)
+        rootModel.bootstrapDir.mkdirs()
+        def bootstrapper = new Bootstrapper("Gradle", rootModel.server.url, rootModel.bootstrapDir)
 
         def classLoader = bootstrapper.createClassLoader(
-                [findGradleSonarJar()] as URL[], SonarTask.classLoader,
+                [findGradleSonarJar()] as URL[], SonarAnalyze.classLoader,
                         "groovy", "org.codehaus.groovy", "org.slf4j", "org.apache.log4j", "org.apache.commons.logging",
                                 "org.gradle.api.plugins.sonar.model")
 
         def analyzerClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
         def analyzer = analyzerClass.newInstance()
-        analyzer.sonarModel = sonarModel
-        analyzer.sonarProject = sonarProject
+        analyzer.rootModel = rootModel
         analyzer.execute()
     }
 
     protected URL findGradleSonarJar() {
-        def url = ClasspathUtil.getClasspath(SonarTask.classLoader).find { it.path.contains("gradle-sonar") }
+        def url = ClasspathUtil.getClasspath(SonarAnalyze.classLoader).find { it.path.contains("gradle-sonar") }
         assert url != null, "failed to detect file system location of gradle-sonar Jar"
         url
     }

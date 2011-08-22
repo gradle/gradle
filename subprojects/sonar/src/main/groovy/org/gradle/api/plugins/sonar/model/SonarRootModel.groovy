@@ -18,15 +18,23 @@ package org.gradle.api.plugins.sonar.model
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.file.FileCollection
 
+interface SonarModel {
+    SonarProject getProject()
+
+    List<SonarModel> getChildModels()
+}
+
 /**
- * Configuration options for Sonar analysis.
+ * Entry point for configuring a project that has the <tt>sonar</tt> plugin applied.
  */
-class SonarModel {
+class SonarRootModel implements SonarModel {
     @IncludeProperties
     SonarServer server
 
     @IncludeProperties
     SonarDatabase database
+
+    SonarProject project
 
     @SonarProperty("sonar.branch")
     String branch
@@ -40,16 +48,18 @@ class SonarModel {
 
     List<Closure> propertyProcessors = []
 
+    List<SonarModel> childModels = []
+
     void server(Closure config) {
         ConfigureUtil.configure(config, server)
     }
 
     void database(Closure config) {
-        ConfigureUtil.configure(config, server)
+        ConfigureUtil.configure(config, database)
     }
 
     void project(Closure config) {
-        ConfigureUtil.configure(config, server)
+        ConfigureUtil.configure(config, project)
     }
 
     void withGlobalProperties(Closure block) {
@@ -58,7 +68,20 @@ class SonarModel {
 }
 
 /**
- * Configuration options for the Sonar server.
+ * Entry point for configuring subprojects of a project that has the <tt>sonar</tt> plugin applied.
+ */
+class SonarProjectModel implements SonarModel {
+    SonarProject project
+
+    List<SonarModel> childModels = []
+
+    void project(Closure config) {
+        ConfigureUtil.configure(config, project)
+    }
+}
+
+/**
+ * Global configuration options for the Sonar server.
  */
 class SonarServer {
     @SonarProperty("sonar.host.url")
@@ -66,7 +89,7 @@ class SonarServer {
 }
 
 /**
- * Configuration options for the Sonar database.
+ * Global configuration options for the Sonar database.
  */
 class SonarDatabase {
     @SonarProperty("sonar.jdbc.url")
@@ -80,7 +103,7 @@ class SonarDatabase {
 }
 
 /**
- * Configuration options for a project to be analyzed with Sonar.
+ * Configuration options for a project to be analyzed.
  */
 class SonarProject {
     String key
@@ -124,8 +147,6 @@ class SonarProject {
     @SonarProperty("sonar.dynamicAnalysis")
     String dynamicAnalysis
 
-    List<SonarProject> subprojects = []
-
     List<Closure> propertyProcessors = []
 
     void java(Closure config) {
@@ -138,7 +159,7 @@ class SonarProject {
 }
 
 /**
- * Configuration options for Java code to be analyzed with Sonar.
+ * Java-specific configuration options for a project to be analyzed.
  */
 class SonarJavaSettings {
     @SonarProperty("sonar.java.source")

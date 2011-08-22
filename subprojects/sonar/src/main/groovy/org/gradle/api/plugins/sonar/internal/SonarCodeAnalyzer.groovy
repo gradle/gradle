@@ -21,10 +21,12 @@ import org.sonar.api.batch.bootstrap.ProjectReactor
 import org.sonar.batch.Batch
 import org.sonar.batch.bootstrapper.EnvironmentInformation
 import org.gradle.api.plugins.sonar.model.SonarProject
-import org.gradle.api.plugins.sonar.model.SonarModel
+
 import org.gradle.api.plugins.sonar.model.ModelToPropertiesConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.plugins.sonar.model.SonarRootModel
+import org.gradle.api.plugins.sonar.model.SonarModel
 
 /**
  * Runs Sonar code analysis for a project hierarchy.
@@ -32,25 +34,24 @@ import org.slf4j.LoggerFactory
 class SonarCodeAnalyzer {
     private static final Logger LOGGER = LoggerFactory.getLogger(SonarCodeAnalyzer)
 
-    // global Sonar settings
-    SonarModel sonarModel
-    // root of the project hierarchy to be analyzed
-    SonarProject sonarProject
+    SonarRootModel rootModel
 
     void execute() {
-        def projectDef = configureProject(sonarProject)
+        def projectDef = configureProject(rootModel)
         def reactor = new ProjectReactor(projectDef)
-        def globalProperties = extractProperties(sonarModel)
+        def globalProperties = extractProperties(rootModel)
         configureAdditionalGlobalProperties(globalProperties)
         for (prop in globalProperties) {
             LOGGER.info("adding global property $prop")
         }
-        def environment = new EnvironmentInformation("Gradle", sonarModel.gradleVersion)
+        def environment = new EnvironmentInformation("Gradle", rootModel.gradleVersion)
         def batch = Batch.create(reactor, new MapConfiguration(globalProperties), environment)
         batch.execute()
     }
 
-    ProjectDefinition configureProject(SonarProject sonarProject) {
+    ProjectDefinition configureProject(SonarModel sonarModel) {
+        def sonarProject = sonarModel.project
+
         LOGGER.info("configuring project $sonarProject.name")
 
         def projectProperties = new Properties()
@@ -87,9 +88,9 @@ class SonarCodeAnalyzer {
             projectDef.addLibrary(lib.absolutePath)
         }
 
-        for (subproject in sonarProject.subprojects) {
-            def subprojectDef = configureProject(subproject)
-            projectDef.addSubProject(subprojectDef)
+        for (childModel in sonarModel.childModels) {
+            def childProjectDef = configureProject(childModel)
+            projectDef.addSubProject(childProjectDef)
         }
 
         projectDef
@@ -102,15 +103,15 @@ class SonarCodeAnalyzer {
     }
 
     private void configureAdditionalGlobalProperties(Map<String, String> globalProperties) {
-        globalProperties.skippedModules = getSkippedProjects(sonarProject)*.key.join(",")
+        globalProperties.skippedModules = getSkippedProjects(rootModel)*.key.join(",")
     }
 
-    private List<SonarProject> getSkippedProjects(SonarProject sonarProject, List<SonarProject> skipped = []) {
-        if (sonarProject.skip) {
-            skipped << sonarProject
+    private List<SonarProject> getSkippedProjects(SonarModel sonarModel, List<SonarProject> skipped = []) {
+        if (sonarModel.project.skip) {
+            skipped << sonarModel.project
         }
-        for (subproject in sonarProject.subprojects) {
-            getSkippedProjects(subproject, skipped)
+        for (childModel in sonarModel.childModels) {
+            getSkippedProjects(childModel, skipped)
         }
         skipped
     }

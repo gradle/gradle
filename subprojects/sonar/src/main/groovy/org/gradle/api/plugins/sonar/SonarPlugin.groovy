@@ -28,60 +28,72 @@ import org.gradle.api.plugins.sonar.model.*
 
 /**
  * A {@link Plugin} for integrating with <a href="http://www.sonarsource.org">Sonar</a>, a web-based platform
- * for managing code quality. Adds a task named <tt>sonar</tt> with type {@link SonarTask} and configures it to
- * analyze the Java sources in the main source set.
+ * for managing code quality. Adds a task named <tt>sonarAnalyze</tt> of type {@link SonarAnalyze} that performs the code
+ * analysis. Further adds a model object named <tt>sonar</tt> of type {@type SonarRootModel} that holds all
+ * configuration information. By default, all Java sources in the main source set will be analyzed.
  */
 class SonarPlugin implements Plugin<ProjectInternal> {
-    static final String SONAR_TASK_NAME = "sonar"
+    static final String SONAR_ANALYZE_TASK_NAME = "sonarAnalyze"
 
-    private ProjectInternal project
     private Instantiator instantiator
 
     void apply(ProjectInternal project) {
-        this.project = project
         instantiator = project.services.get(Instantiator)
+        def task = configureSonarTask(project)
+        def model = configureSonarRootModel(project)
+        task.rootModel = model
 
-        configureSonarTask()
+        configureSubprojects(project, model)
     }
 
-    private void configureSonarTask() {
-        def sonarTask = project.tasks.add(SONAR_TASK_NAME, SonarTask)
-        sonarTask.sonarModel = configureSonarModel()
-        sonarTask.sonarProject = configureSonarProject(project)
+    private SonarAnalyze configureSonarTask(Project project) {
+        project.tasks.add(SONAR_ANALYZE_TASK_NAME, SonarAnalyze)
     }
 
-    private SonarModel configureSonarModel() {
-        def sonarModel = instantiator.newInstance(SonarModel)
-        project.extensions.sonar = sonarModel
-
-        sonarModel.conventionMapping.with {
+    private SonarRootModel configureSonarRootModel(Project project) {
+        def model = instantiator.newInstance(SonarRootModel)
+        project.extensions.sonar = model
+        model.conventionMapping.with {
             bootstrapDir = { new File(project.buildDir, "sonar") }
             gradleVersion = { GradleVersion.current().version }
         }
-        sonarModel.server = configureSonarServer()
-        sonarModel.database = configureSonarDatabase()
 
-        sonarModel
+        model.server = configureSonarServer()
+        model.database = configureSonarDatabase()
+        model.project = configureSonarProject(project)
+
+        model
     }
 
     private SonarServer configureSonarServer() {
-        def sonarServer = instantiator.newInstance(SonarServer)
-        sonarServer.url = "http://localhost:9000"
-        sonarServer
+        def server = instantiator.newInstance(SonarServer)
+        server.url = "http://localhost:9000"
+        server
     }
 
     private SonarDatabase configureSonarDatabase() {
-        def sonarDatabase = instantiator.newInstance(SonarDatabase)
-        sonarDatabase.url = "jdbc:derby://localhost:1527/sonar"
-        sonarDatabase.driverClassName = "org.apache.derby.jdbc.ClientDriver"
-        sonarDatabase.username = "sonar"
-        sonarDatabase.password = "sonar"
-        sonarDatabase
+        def database = instantiator.newInstance(SonarDatabase)
+        database.url = "jdbc:derby://localhost:1527/sonar"
+        database.driverClassName = "org.apache.derby.jdbc.ClientDriver"
+        database.username = "sonar"
+        database.password = "sonar"
+        database
+    }
+
+    private void configureSubprojects(Project parentProject, SonarModel parentModel) {
+        for (childProject in parentProject.childProjects.values()) {
+            def childModel = instantiator.newInstance(SonarProjectModel)
+            parentModel.childModels << childModel
+
+            childProject.extensions.sonar = childModel
+            childModel.project = configureSonarProject(childProject)
+
+            configureSubprojects(childProject, childModel)
+        }
     }
 
     private SonarProject configureSonarProject(Project project) {
         def sonarProject = instantiator.newInstance(SonarProject)
-        project.extensions.sonarProject = sonarProject
 
         sonarProject.conventionMapping.with {
             key = { "$project.group:$project.name" as String }
@@ -93,15 +105,11 @@ class SonarPlugin implements Plugin<ProjectInternal> {
             dynamicAnalysis = { "false" }
         }
 
-        def sonarJavaSettings = instantiator.newInstance(SonarJavaSettings)
-        sonarProject.java = sonarJavaSettings
-
-        sonarProject.subprojects = project.childProjects.values().collect {
-            configureSonarProject(it)
-        }
+        def javaSettings = instantiator.newInstance(SonarJavaSettings)
+        sonarProject.java = javaSettings
 
         project.plugins.withType(JavaBasePlugin) {
-            sonarJavaSettings.conventionMapping.with {
+            javaSettings.conventionMapping.with {
                 sourceCompatibility = { project.sourceCompatibility.toString() }
                 targetCompatibility = { project.targetCompatibility.toString() }
             }
@@ -112,8 +120,8 @@ class SonarPlugin implements Plugin<ProjectInternal> {
             def test = project.sourceSets.test
 
             sonarProject.conventionMapping.with {
-                sourceDirs = { getSourceDirs(main) }
-                testDirs = { getSourceDirs(test) }
+                sourceDirs = { main.allSource.srcDirs as List }
+                testDirs = { test.allSource.srcDirs as List }
                 binaryDirs = { [main.output.classesDir] }
                 libraries = {
                     def libraries = main.compileClasspath
@@ -130,9 +138,5 @@ class SonarPlugin implements Plugin<ProjectInternal> {
         }
 
         sonarProject
-    }
-
-    private List<File> getSourceDirs(SourceSet sourceSet) {
-        sourceSet.allSource.srcDirs as List
     }
 }

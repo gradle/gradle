@@ -15,106 +15,119 @@
  */
 package org.gradle.api.plugins.sonar
 
+import org.gradle.api.plugins.sonar.model.SonarRootModel
+import org.gradle.api.plugins.sonar.model.SonarProjectModel
+import org.gradle.api.plugins.sonar.model.SonarProject
+import org.gradle.api.Project
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.util.ConfigureUtil
+import org.gradle.util.HelperUtil
+import org.gradle.util.Jvm
+
 import spock.lang.Specification
 
 class SonarPluginTest extends Specification {
-//    def "only adds Sonar task if Java plugin is present"() {
-//        def project = HelperUtil.createRootProject()
-//
-//        when:
-//        project.plugins.apply(SonarPlugin)
-//
-//        then:
-//        !project.tasks.findByName("sonar")
-//
-//        when:
-//        project.plugins.apply(JavaPlugin)
-//
-//        then:
-//        project.tasks.findByName("sonar")
-//    }
-//
-//    def "provides default configuration for Sonar task"() {
-//        def project = HelperUtil.createRootProject()
-//        project.plugins.apply(JavaPlugin)
-//        project.sourceSets.main.java.srcDir("src/main/other")
-//        project.sourceSets.test.java.srcDir("src/test/other")
-//        project.group = "testGroup"
-//        project.description = "testDescription"
-//        project.sourceCompatibility = "1.6"
-//        project.targetCompatibility = "1.5"
-//
-//        when:
-//        project.plugins.apply(SonarPlugin)
-//
-//        then:
-//        def task = (SonarTask) project.tasks.getByName("sonar")
-//        task.serverUrl == "http://localhost:9000"
-//        task.bootstrapDir.isDirectory()
-//        task.baseDir == project.projectDir
-//        task.workDir == project.buildDir
-//        task.projectMainSourceDirs == [project.file("src/main/java"),
-//                project.file("src/main/resources"), project.file("src/main/other")] as Set
-//        task.projectTestSourceDirs == [project.file("src/test/java"),
-//                project.file("src/test/resources"), project.file("src/test/other")] as Set
-//        task.projectClassesDirs == [project.file("build/classes/main")] as Set
-//        task.projectDependencies.isEmpty() // because our project doesn't have any dependencies defined
-//        task.projectKey == "testGroup:test"
-//        task.projectName == "test"
-//        task.projectDescription == "testDescription"
-//        task.globalProperties.isEmpty()
-//        task.projectProperties.size() == 4
-//        task.projectProperties["sonar.java.source"] == "1.6"
-//        task.projectProperties["sonar.java.target"] == "1.5"
-//        task.projectProperties["sonar.dynamicAnalysis"] == "reuseReports"
-//        task.projectProperties["sonar.surefire.reportsPath"] == project.file("build/test-results") as String
-//    }
-//
-//    def "appends custom configuration to existing default configuration of Sonar task"() {
-//        def project = HelperUtil.createRootProject()
-//        project.plugins.apply(JavaPlugin)
-//        project.sourceSets.main.java.srcDir("src/main/other")
-//        project.sourceSets.test.java.srcDir("src/test/other")
-//        project.group = "testGroup"
-//        project.description = "testDescription"
-//        project.sourceCompatibility = "1.6"
-//        project.targetCompatibility = "1.5"
-//
-//        def coberturaReportKey = 'sonar.cobertura.reportPath'
-//        def coberturaReportValue = "${project.reportsDir}/cobertura/coverage.xml" as String
-//
-//        when:
-//        project.plugins.apply(SonarPlugin)
-//        def task = (SonarTask) project.tasks.getByName("sonar")
-//        task.projectProperty(coberturaReportKey, coberturaReportValue)
-//        task.projectMainSourceDir(project.file("src/resources"))
-//        task.projectTestSourceDirs(project.file("test/resources"), project.file("testResources"))
-//        task.globalProperties([newKey1: 'newVal1', newKey2: 'newVal2'])
-//
-//        then:
-//        task.serverUrl == "http://localhost:9000"
-//        task.bootstrapDir.isDirectory()
-//        task.baseDir == project.projectDir
-//        task.workDir == project.buildDir
-//        task.projectMainSourceDirs == [project.file("src/main/java"),
-//                project.file("src/main/resources"), project.file("src/main/other"),
-//                project.file("src/resources")] as Set
-//        task.projectTestSourceDirs == [project.file("src/test/java"),
-//                project.file("src/test/resources"), project.file("src/test/other"),
-//                project.file("test/resources"), project.file("testResources")] as Set
-//        task.projectClassesDirs == [project.file("build/classes/main")] as Set
-//        task.projectDependencies.isEmpty() // because our project doesn't have any dependencies defined
-//        task.projectKey == "testGroup:test"
-//        task.projectName == "test"
-//        task.projectDescription == "testDescription"
-//        task.globalProperties.size() == 2
-//        task.globalProperties["newKey1"] == "newVal1"
-//        task.globalProperties["newKey2"] == "newVal2"
-//        task.projectProperties.size() == 5
-//        task.projectProperties["sonar.java.source"] == "1.6"
-//        task.projectProperties["sonar.java.target"] == "1.5"
-//        task.projectProperties["sonar.dynamicAnalysis"] == "reuseReports"
-//        task.projectProperties["sonar.surefire.reportsPath"] == project.file("build/test-results") as String
-//        task.projectProperties[coberturaReportKey] == coberturaReportValue
-//    }
+    def "adds model and task to root project"() {
+        def project = HelperUtil.createRootProject()
+
+        when:
+        project.plugins.apply(SonarPlugin)
+
+        then:
+        project.sonar instanceof SonarRootModel
+        project.tasks.findByName("sonarAnalyze")
+    }
+
+    def "adds model to subprojects"() {
+        def project = HelperUtil.createRootProject()
+        def child = HelperUtil.createChildProject(project, "child")
+
+        when:
+        project.plugins.apply(SonarPlugin)
+
+        then:
+        child.sonar instanceof SonarProjectModel
+        !child.tasks.findByName("sonarAnalyze")
+    }
+
+    def "provides defaults for global configuration"() {
+        def project = HelperUtil.createRootProject()
+
+        when:
+        project.plugins.apply(SonarPlugin)
+
+        then:
+        SonarRootModel sonar = project.sonar
+
+        sonar.server.url == "http://localhost:9000"
+
+        def db = sonar.database
+        db.url == "jdbc:derby://localhost:1527/sonar"
+        db.driverClassName == "org.apache.derby.jdbc.ClientDriver"
+        db.username == "sonar"
+        db.password == "sonar"
+
+        sonar.bootstrapDir instanceof File
+        sonar.gradleVersion == project.gradle.gradleVersion
+    }
+
+    def "provides defaults for project configuration"(Project project) {
+        SonarProject sonarProject = project.sonar.project
+
+        expect:
+        sonarProject.key == "$project.group:$project.name"
+        sonarProject.name == project.name
+        sonarProject.description == project.description
+        sonarProject.version == project.version
+        !sonarProject.skip
+        sonarProject.baseDir == project.projectDir
+        sonarProject.workDir == new File(project.buildDir, "sonar")
+        sonarProject.dynamicAnalysis == "false"
+
+        where:
+        project << createRootAndChildProject()
+    }
+
+    def "provides additional defaults for project configuration if java-base plugin is present"(Project project) {
+        SonarProject sonarProject = project.sonar.project
+
+        expect:
+        sonarProject.java.sourceCompatibility == project.sourceCompatibility as String
+        sonarProject.java.targetCompatibility == project.targetCompatibility as String
+
+        where:
+        project << createRootAndChildProject { plugins.apply(JavaBasePlugin) }
+    }
+
+    def "provides additional defaults for project configuration if java plugin is present"(Project project) {
+        SonarProject sonarProject = project.sonar.project
+
+        expect:
+        sonarProject.sourceDirs == project.sourceSets.main.allSource.srcDirs as List
+        sonarProject.testDirs == project.sourceSets.test.allSource.srcDirs as List
+        sonarProject.binaryDirs == [project.sourceSets.main.output.classesDir]
+        sonarProject.libraries.files as List == [Jvm.current().runtimeJar]
+
+        sonarProject.dynamicAnalysis == "reuseReports"
+        sonarProject.testReportPath == project.test.testResultsDir
+        sonarProject.language == "java"
+
+        where:
+        project << createRootAndChildProject { plugins.apply(JavaPlugin) }
+    }
+
+    private createRootAndChildProject(Closure config = {}) {
+        def root = HelperUtil.createRootProject()
+        ConfigureUtil.configure(config, root)
+        root.group = "group"
+
+        def child = HelperUtil.createChildProject(root, "child")
+        ConfigureUtil.configure(config, child)
+        child.group = "group"
+
+        root.plugins.apply(SonarPlugin)
+
+        [root, child]
+    }
 }
