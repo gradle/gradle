@@ -21,8 +21,12 @@ import org.gradle.integtests.fixtures.internal.*
 import spock.lang.*
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
-    
-    @Timeout(10)
+
+    def setup() {
+        distribution.requireOwnUserHomeDir()
+    }
+
+    @Timeout(30)
     def "circular dependencies"() {
         given:
         file("settings.gradle") << "include 'client', 'a', 'b', 'c'"
