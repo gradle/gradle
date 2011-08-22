@@ -16,26 +16,13 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.util.TestFile
-import java.util.regex.Pattern
 
 class EclipseClasspathFixture {
-    final TestFile userHomeDir
     final TestFile projectDir
-    final String userHomeDirVar
     Node classpath
 
-    EclipseClasspathFixture(TestFile userHomeDir, TestFile projectDir) {
-        this(null, userHomeDir, projectDir)
-    }
-
-    private EclipseClasspathFixture(String userHomeDirVar, TestFile userHomeDir, TestFile projectDir) {
-        this.userHomeDirVar = userHomeDirVar
-        this.userHomeDir = userHomeDir
+    EclipseClasspathFixture(TestFile projectDir) {
         this.projectDir = projectDir
-    }
-
-    EclipseClasspathFixture withHomeDir(String homeDirVar) {
-        return new EclipseClasspathFixture(homeDirVar, userHomeDir, projectDir)
     }
 
     Node getClasspath() {
@@ -75,22 +62,28 @@ class EclipseClasspathFixture {
             assert entry.@path == jar
         }
 
-        void assertHasCachedJar(String group, String module, String version) {
-            assert entry.@path ==~ cachedArtifact(group, module, version)
+        void assertHasSource(File jar) {
+            assert entry.@sourcepath == jar.absolutePath.replace(File.separator, '/')
         }
 
-        void assertHasCachedSource(String group, String module, String version) {
-            assert entry.@sourcepath ==~ cachedArtifact(group, module, version, "sources")
+        void assertHasSource(String jar) {
+            assert entry.@sourcepath == jar
         }
 
         void assertHasNoSource() {
             assert !entry.@sourcepath
         }
 
-        void assertHasCachedJavadoc(String group, String module, String version) {
+        void assertHasJavadoc(File file) {
             assert entry.attributes
             assert entry.attributes[0].attribute[0].@name == 'javadoc_location'
-            assert entry.attributes[0].attribute[0].@value ==~ cachedArtifact(group, module, version, "javadoc")
+            assert entry.attributes[0].attribute[0].@value == file.absolutePath.replace(File.separator, '/')
+        }
+
+        void assertHasJavadoc(String file) {
+            assert entry.attributes
+            assert entry.attributes[0].attribute[0].@name == 'javadoc_location'
+            assert entry.attributes[0].attribute[0].@value == file
         }
 
         void assertHasNoJavadoc() {
@@ -103,18 +96,6 @@ class EclipseClasspathFixture {
 
         void assertNotExported() {
             assert !entry.@exported
-        }
-
-        final Pattern cachedArtifact(group, module, version, classifier = null) {
-            def dir
-            if (userHomeDirVar) {
-                dir = userHomeDirVar
-            } else {
-                dir = userHomeDir.absolutePath.replace(File.separator, '/')
-            }
-            def type = classifier == 'javadoc' ? 'javadocs' : classifier ?: "jars"
-            String regexp = Pattern.quote(dir) + Pattern.quote("/caches/artifacts/${group}/${module}/") + '[a-f0-9]+' + Pattern.quote("/${type}/${module}-${version}${classifier ? '-' + classifier : ''}.jar")
-            return Pattern.compile(regexp)
         }
     }
 }
