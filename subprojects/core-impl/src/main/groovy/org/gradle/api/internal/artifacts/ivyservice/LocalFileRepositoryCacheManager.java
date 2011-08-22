@@ -86,6 +86,11 @@ public class LocalFileRepositoryCacheManager implements RepositoryCacheManager {
     }
 
     public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, ResolvedResource originalMetadataRef, DependencyDescriptor dd, Artifact requestedMetadataArtifact, ResourceDownloader downloader, CacheMetadataOptions options) throws ParseException {
+        if (!requestedMetadataArtifact.isMetadata()) {
+            // Nice of ivy to call this method with artifacts that are not meta-data files
+            return null;
+        }
+
         assert originalMetadataRef.getResource().isLocal();
         File file = new File(originalMetadataRef.getResource().getName());
         assert file.isFile();
