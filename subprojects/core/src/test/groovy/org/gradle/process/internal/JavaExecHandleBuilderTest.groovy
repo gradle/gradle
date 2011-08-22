@@ -16,10 +16,8 @@
 package org.gradle.process.internal;
 
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.util.Jvm
 import spock.lang.Specification
 import static java.util.Arrays.asList
@@ -39,8 +37,6 @@ public class JavaExecHandleBuilderTest extends Specification {
     public void buildsCommandLineForJavaProcess() {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
-
-        FileCollection classpath = new DefaultConfigurableFileCollection(fileResolver, null, jar1, jar2)
 
         builder.main = 'mainClass'
         builder.args("arg1", "arg2")
