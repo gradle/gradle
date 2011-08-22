@@ -58,6 +58,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         // Register default loggers 
         ListenerManager listenerManager = sharedServices.get(ListenerManager.class);
         listenerManager.addListener(new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class)));
+        listenerManager.useLogger(new DependencyResolutionLogger(sharedServices.get(ProgressLoggerFactory.class)));
 
         GradleLauncher.injectCustomFactory(this);
     }
