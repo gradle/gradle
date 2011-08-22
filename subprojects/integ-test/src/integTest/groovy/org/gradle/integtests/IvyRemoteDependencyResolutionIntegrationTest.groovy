@@ -20,56 +20,9 @@ import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.HttpServer
 import org.junit.Rule
 
-class IvyDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
+class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
-
-    public void "does not cache local artifacts or metadata"() {
-        distribution.requireOwnUserHomeDir()
-
-        given:
-        def repo = ivyRepo()
-        def moduleA = repo.module('group', 'projectA', '1.2')
-        moduleA.publishArtifact()
-        def moduleB = repo.module('group', 'projectB', '9-beta')
-        moduleB.publishArtifact()
-
-        and:
-        buildFile << """
-repositories {
-    ivy {
-        name = 'someRepo'
-        artifactPattern "${repo.rootDir}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'group:projectA:1.2'
-}
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'libs'
-}
-"""
-
-        when:
-        run 'retrieve'
-
-        then:
-        file('libs').assertHasDescendants('projectA-1.2.jar')
-        file('libs/projectA-1.2.jar').assertIsCopyOf(moduleA.jarFile)
-
-        when:
-        moduleA.dependsOn('group', 'projectB', '9-beta')
-        moduleA.publishArtifact()
-        moduleA.jarFile.text = 'some different content'
-        run 'retrieve'
-
-        then:
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-9-beta.jar')
-        file('libs/projectA-1.2.jar').assertIsCopyOf(moduleA.jarFile)
-        file('libs/projectB-9-beta.jar').assertIsCopyOf(moduleB.jarFile)
-    }
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         distribution.requireOwnUserHomeDir()

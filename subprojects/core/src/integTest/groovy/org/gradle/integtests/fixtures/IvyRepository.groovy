@@ -40,6 +40,7 @@ class IvyModule {
     final String module
     final String revision
     final List dependencies = []
+    int publishCount
 
     IvyModule(TestFile moduleDir, String organisation, String module, String revision) {
         this.moduleDir = moduleDir
@@ -59,6 +60,11 @@ class IvyModule {
 
     File getJarFile() {
         return moduleDir.file("$module-${revision}.jar")
+    }
+
+    void publishWithChangedContent() {
+        publishCount++
+        publishArtifact()
     }
 
     File publishArtifact() {
@@ -89,7 +95,7 @@ class IvyModule {
 </ivy-module>
         """
 
-        jarFile << "add some content so that file size isn't zero"
+        jarFile << "add some content so that file size isn't zero: $publishCount"
 
         return jarFile
     }

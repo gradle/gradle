@@ -20,9 +20,9 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.maven.MavenFactory
 import org.gradle.api.internal.Factory
+import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager
 import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
 import org.gradle.util.JUnit4GroovyMockery
-import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -116,8 +116,9 @@ class DefaultResolverFactoryTest {
         }
 
         def repo = factory.createMavenLocalResolver('name')
-        assert repo instanceof IBiblioWharfResolver
-        assert repo.root == repoDir.toURI().toString() + '/'
+        assert repo instanceof IBiblioResolver
+        assert repo.root == repoDir.toURI().getPath() + '/'
+        assert repo.repositoryCacheManager instanceof LocalFileRepositoryCacheManager
     }
 
     @Test public void createIvyRepository() {

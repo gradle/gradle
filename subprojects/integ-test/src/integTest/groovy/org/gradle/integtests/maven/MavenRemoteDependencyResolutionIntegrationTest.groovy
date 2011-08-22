@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
 
-class MavenDependencyResolutionIntegrationTest {
+class MavenRemoteDependencyResolutionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final TestResources resources = new TestResources()
@@ -38,33 +38,6 @@ class MavenDependencyResolutionIntegrationTest {
         File projectDir = dist.testDir
         executer.inDirectory(projectDir).withTasks('retrieve').run()
         expectedFiles.each { new TestFile(projectDir, 'build', it).assertExists() }
-    }
-
-    @Test
-    public void "can resolve and cache snapshots from local Maven repository"() {
-        dist.requireOwnUserHomeDir()
-        def producerProject = dist.testFile('producer.gradle')
-        def consumerProject = dist.testFile('projectWithMavenSnapshots.gradle')
-
-        // Publish the first snapshot
-        executer.usingBuildScript(producerProject).withTasks('uploadArchives').run()
-
-        // Retrieve the first snapshot
-        executer.usingBuildScript(consumerProject).withTasks('retrieve').run()
-        def jarFile = dist.testFile('build/testproject-1.0-SNAPSHOT.jar')
-        def snapshot = jarFile.assertIsFile().snapshot()
-
-        // Retrieve again should use cached snapshot
-        executer.usingBuildScript(consumerProject).withTasks('retrieve').run().assertTasksSkipped(':retrieve')
-        jarFile.assertHasNotChangedSince(snapshot)
-
-        // Publish the second snapshot
-        Thread.sleep(1100)
-        executer.usingBuildScript(producerProject).withTasks('uploadArchives').withArguments("-PemptyJar").run()
-
-        // Retrieve again should use updated snapshot
-        executer.usingBuildScript(consumerProject).withTasks('retrieve').run().assertTasksNotSkipped(':retrieve')
-        jarFile.assertHasChangedSince(snapshot)
     }
 
     @Test
