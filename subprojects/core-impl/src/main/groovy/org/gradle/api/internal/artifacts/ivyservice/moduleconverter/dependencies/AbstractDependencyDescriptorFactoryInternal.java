@@ -29,7 +29,6 @@ import org.gradle.util.WrapUtil;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -45,33 +44,51 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
     public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
         DependencyDescriptor newDescriptor = createDependencyDescriptor(dependency, configuration, moduleDescriptor, moduleRevisionId);
-        DefaultDependencyDescriptor existingDependencyDescriptor = findExistingDescriptor(moduleDescriptor, newDescriptor);
 
-        if (existingDependencyDescriptor == null) {
-            moduleDescriptor.addDependency(newDescriptor);
-        } else {
-            existingDependencyDescriptor.addDependencyConfiguration(configuration, dependency.getConfiguration());
+        DefaultDependencyDescriptor matchingDependencyDescriptor = findMatchingDescriptorForSameConfiguration(moduleDescriptor, newDescriptor);
+        if (matchingDependencyDescriptor != null) {
+            mergeDescriptors(configuration, matchingDependencyDescriptor, newDescriptor, dependency);
+            return;
         }
+
+        moduleDescriptor.addDependency(newDescriptor);
     }
 
     protected abstract DependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration,
                                                             ModuleDescriptor moduleDescriptor, ModuleRevisionId moduleRevisionId);
 
-    private DefaultDependencyDescriptor findExistingDescriptor(DefaultModuleDescriptor moduleDescriptor, DependencyDescriptor targetDescriptor) {
+    private DefaultDependencyDescriptor findMatchingDescriptorForSameConfiguration(DefaultModuleDescriptor moduleDescriptor, DependencyDescriptor targetDescriptor) {
         for (DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
-
-            if (dependencyDescriptor.getDependencyRevisionId().equals(targetDescriptor.getDependencyRevisionId())) {
-                HashSet<DependencyArtifactDescriptor> nextDependencies =
-                        new HashSet<DependencyArtifactDescriptor>(Arrays.asList(dependencyDescriptor.getAllDependencyArtifacts()));
-                HashSet<DependencyArtifactDescriptor> targetDependencies =
-                        new HashSet<DependencyArtifactDescriptor>(Arrays.asList(targetDescriptor.getAllDependencyArtifacts()));
-
-                if (nextDependencies.equals(targetDependencies)) {
-                    return (DefaultDependencyDescriptor) dependencyDescriptor;
-                }
+            if (dependencyDescriptor.getDependencyRevisionId().equals(targetDescriptor.getDependencyRevisionId())
+                    && Arrays.equals(dependencyDescriptor.getModuleConfigurations(), targetDescriptor.getModuleConfigurations())) {
+                return (DefaultDependencyDescriptor) dependencyDescriptor;
             }
         }
         return null;
+    }
+
+    private void mergeDescriptors(String masterConfiguration, DefaultDependencyDescriptor matchingDependencyDescriptor, DependencyDescriptor newDescriptor, ModuleDependency newDependency) {
+        // TODO Merge transitive, excludeRules and force flags
+
+        // Merge dependency configurations
+        if (newDependency.getConfiguration() != null) {
+            matchingDependencyDescriptor.addDependencyConfiguration(masterConfiguration, newDependency.getConfiguration());
+        }
+
+        // Add 'default' artifact if one configuration has no defined artifacts and the other has defined artifacts - that's the only way we can combine them
+        if (matchingDependencyDescriptor.getAllDependencyArtifacts().length == 0 ^ newDescriptor.getAllDependencyArtifacts().length == 0) {
+            matchingDependencyDescriptor.addDependencyArtifact(masterConfiguration, createDefaultArtifact(matchingDependencyDescriptor));
+        }
+
+        // Copy across all defined artifacts
+        for (DependencyArtifactDescriptor artifactDescriptor : newDescriptor.getAllDependencyArtifacts()) {
+            matchingDependencyDescriptor.addDependencyArtifact(masterConfiguration, artifactDescriptor);
+        }
+    }
+
+    private DefaultDependencyArtifactDescriptor createDefaultArtifact(DefaultDependencyDescriptor dependencyDescriptor) {
+        return new DefaultDependencyArtifactDescriptor(dependencyDescriptor, dependencyDescriptor.getDependencyId().getName(),
+                DependencyArtifact.DEFAULT_TYPE, DependencyArtifact.DEFAULT_TYPE, null, null);
     }
 
     protected void addExcludesArtifactsAndDependencies(String configuration, ModuleDependency dependency,

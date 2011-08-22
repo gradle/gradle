@@ -24,10 +24,9 @@ import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
-import spock.lang.Issue
-import org.junit.Ignore
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -184,29 +183,75 @@ project(':b') {
     }
 
     @Test
-    @Ignore
     @Issue("GRADLE-739")
     public void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
         def repo = repo()
         repo.module('org.gradle.test', 'external1', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier1').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier2').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'baseClassifier').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'extendedClassifier').publishArtifact()
 
-        testFile('settings.gradle') << 'include "a", "b", "c"'
         testFile('build.gradle') << """
 repositories {
     mavenRepo urls: '${repo.rootDir.toURI()}'
 }
 configurations {
-    compile
+    base
+    extended.extendsFrom base
+    justDefault
+    justClassifier
 }
 dependencies {
-    compile 'org.gradle.test:external1:1.0'
-    compile 'org.gradle.test:external1:1.0:classifier1'
-    compile 'org.gradle.test:external1:1.0:classifier2'
+    base 'org.gradle.test:external1:1.0'
+    base 'org.gradle.test:external1:1.0:baseClassifier'
+    extended 'org.gradle.test:external1:1.0:extendedClassifier'
+    justDefault 'org.gradle.test:external1:1.0'
+    justClassifier 'org.gradle.test:external1:1.0:baseClassifier'
+    justClassifier 'org.gradle.test:external1:1.0:extendedClassifier'
 }
-task test(dependsOn: configurations.compile) << {
-    assert configurations.compile.collect { it.name } == ['external-1.0.jar', 'external-1.0-classfier1.jar', 'external-1.0-classifier2.jar']
+
+def checkDeps(config, expectedDependencies) {
+    assert config.collect({ it.name }).sort() == expectedDependencies
+}
+
+task test << {
+    checkDeps configurations.base, ['external1-1.0-baseClassifier.jar', 'external1-1.0.jar']
+    checkDeps configurations.extended, ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar', 'external1-1.0.jar']
+    checkDeps configurations.justDefault, ['external1-1.0.jar']
+    checkDeps configurations.justClassifier, ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+}
+"""
+        inTestDirectory().withTasks('test').run()
+    }
+
+    /*
+     * Originally, we were aliasing dependency descriptors that were identical. This caused alias errors when we subsequently modified one of these descriptors.
+     */
+    @Test
+    public void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'external1', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'withClassifier').publishArtifact()
+
+        testFile('build.gradle') << """
+repositories {
+    mavenRepo urls: '${repo.rootDir.toURI()}'
+}
+configurations {
+    a
+    b
+}
+dependencies {
+    a 'org.gradle.test:external1:1.0'
+    b 'org.gradle.test:external1:1.0', 'org.gradle.test:external1:1.0:withClassifier'
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config.collect({ it.name }).sort() == expectedDependencies
+}
+
+task test << {
+    checkDeps configurations.a, ['external1-1.0.jar']
+    checkDeps configurations.b, ['external1-1.0-withClassifier.jar', 'external1-1.0.jar']
 }
 """
         inTestDirectory().withTasks('test').run()

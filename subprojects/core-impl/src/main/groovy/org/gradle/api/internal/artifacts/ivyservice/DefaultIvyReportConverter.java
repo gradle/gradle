@@ -23,6 +23,7 @@ import org.apache.ivy.core.report.ConfigurationResolveReport;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.IvyNodeCallers;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
@@ -33,6 +34,7 @@ import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -214,8 +216,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
     private Set<String> getCallerConfigurationsByDependencyConfiguration(IvyNodeCallers.Caller caller, IvyNode dependencyNode, String dependencyConfiguration) {
         Map<String, Set<String>> dependency2CallerConfs = new LinkedHashMap<String, Set<String>>();
         for (String callerConf : caller.getCallerConfigurations()) {
-            Set<String> dependencyConfs = getRealConfigurations(dependencyNode
-                    , caller.getDependencyDescriptor().getDependencyConfigurations(callerConf));
+            Set<String> dependencyConfs = getDependencyConfigurationsByCaller(dependencyNode, caller, callerConf);
             for (String dependencyConf : dependencyConfs) {
                 if (!dependency2CallerConfs.containsKey(dependencyConf)) {
                     dependency2CallerConfs.put(dependencyConf, new LinkedHashSet<String>());
@@ -226,12 +227,36 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
         return dependency2CallerConfs.get(dependencyConfiguration);
     }
 
+    private Set<String> getDependencyConfigurationsByCaller(IvyNode dependencyNode, IvyNodeCallers.Caller caller, String callerConf) {
+        Map<String, String[]> confs = getConfigurationsMap(caller);
+        String[] dependencyConfigurations = confs.get(callerConf);
+        return getRealConfigurations(dependencyNode, WrapUtil.toSet(dependencyConfigurations));
+    }
+
     private Set<String> getDependencyConfigurationsByCaller(IvyNode dependencyNode, IvyNodeCallers.Caller caller) {
-        String[] dependencyConfigurations = caller.getDependencyDescriptor().getDependencyConfigurations(caller.getCallerConfigurations());
+        Map<String, String[]> confs = getConfigurationsMap(caller);
+        Set<String> dependencyConfigurations = new HashSet<String>();
+        for (String[] strings : confs.values()) {
+            dependencyConfigurations.addAll(WrapUtil.toSet(strings));
+        }
         return getRealConfigurations(dependencyNode, dependencyConfigurations);
     }
 
-    private Set<String> getRealConfigurations(IvyNode dependencyNode, String[] dependencyConfigurations) {
+    // HORRIBLE HACK: Ivy gives us no way to access the dependency configurations of a caller, so read it from the private field.
+    // We were reading it from the caller.dependencyDescriptor(), but this loses important resolution information
+    private Map<String, String[]> getConfigurationsMap(IvyNodeCallers.Caller caller) {
+        try {
+            Field confsField = IvyNodeCallers.Caller.class.getDeclaredField("confs");
+            confsField.setAccessible(true);
+            return (Map<String, String[]>) confsField.get(caller);
+        } catch (NoSuchFieldException e) {
+            throw new GradleException("Could not find field in ivy class when converting report", e);
+        } catch (IllegalAccessException e) {
+            throw new GradleException("Could not access field in ivy class when converting report", e);
+        }
+    }
+
+    private Set<String> getRealConfigurations(IvyNode dependencyNode, Set<String> dependencyConfigurations) {
         Set<String> realDependencyConfigurations = new LinkedHashSet<String>();
         for (String dependencyConfiguration : dependencyConfigurations) {
             realDependencyConfigurations.addAll(WrapUtil.toSet(dependencyNode.getRealConfs(dependencyConfiguration)));
