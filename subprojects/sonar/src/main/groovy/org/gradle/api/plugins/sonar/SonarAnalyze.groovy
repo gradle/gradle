@@ -26,6 +26,9 @@ import org.gradle.api.plugins.sonar.model.SonarRootModel
  * Analyzes a project and stores the results in the Sonar database.
  */
 class SonarAnalyze extends ConventionTask {
+    /**
+     * Entry point to Sonar configuration.
+     */
     SonarRootModel rootModel
 
     @TaskAction

@@ -44,7 +44,7 @@
             <sourcefile file="build.gradle" snippet="project-settings"/>
         </sample>
         <para>For a complete documentation of all configuration options, see the
-            <ulink url= "http://gradle.org/current/docs/dsl/org.gradle.api.plugins.sonar.SonarAnalysis.html">DSL reference</ulink>.
+            <ulink url= "http://gradle.org/current/docs/dsl/org.gradle.api.plugins.sonar.SonarAnalyze.html">DSL reference</ulink>.
         </para>
     </section>
 
@@ -65,7 +65,7 @@
                 <td><literal>sonar</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.sonar.SonarAnalyze"/></td>
-                <td>Analyzes the project's source code and stores results in Sonar's database.</td>
+                <td>Analyzes the project's source code and stores results in the Sonar database.</td>
             </tr>
         </table>
     </section>

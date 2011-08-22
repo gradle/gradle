@@ -8,10 +8,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>sonarModel</td>
-            </tr>
-            <tr>
-                <td>sonarProject</td>
+                <td>rootModel</td>
             </tr>
         </table>
     </section>
