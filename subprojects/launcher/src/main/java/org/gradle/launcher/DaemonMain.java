@@ -46,18 +46,16 @@ public class DaemonMain implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(Main.class);
     private final ServiceRegistry loggingServices;
     private final DaemonConnector connector;
+    private final StartParameter startParameter;
     private final GradleLauncherFactory launcherFactory;
 
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
 
-    public DaemonMain(ServiceRegistry loggingServices, DaemonConnector connector) {
-        this(loggingServices, connector, new DefaultGradleLauncherFactory(loggingServices));
-    }
-
-    public DaemonMain(ServiceRegistry loggingServices, DaemonConnector connector, GradleLauncherFactory launcherFactory) {
+    public DaemonMain(ServiceRegistry loggingServices, DaemonConnector connector, StartParameter startParameter) {
         this.loggingServices = loggingServices;
         this.connector = connector;
-        this.launcherFactory = launcherFactory;
+        this.startParameter = startParameter;
+        this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 
     public static void main(String[] args) throws IOException {
@@ -65,7 +63,7 @@ public class DaemonMain implements Runnable {
         DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
         redirectOutputsAndInput(startParameter);
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
-        new DaemonMain(loggingServices, connector).run();
+        new DaemonMain(loggingServices, connector, startParameter).run();
     }
 
     private static void redirectOutputsAndInput(StartParameter startParameter) throws IOException {
@@ -86,7 +84,11 @@ public class DaemonMain implements Runnable {
     }
 
     public void run() {
-        connector.accept(new IncomingConnectionHandler() {
+        //TODO SF - very simple/no validation - discuss with Adam potential solutions because I don't like the sys property too much
+        String timeoutProperty = startParameter.getSystemPropertiesArgs().get("idleDaemonTimeout");
+        int idleDaemonTimeout = (timeoutProperty != null)? Integer.parseInt(timeoutProperty) : 3 * 60 * 60 * 1000;
+
+        connector.accept(idleDaemonTimeout, new IncomingConnectionHandler() {
             public void handle(final Connection<Object> connection, final DaemonConnector.CompletionHandler serverControl) {
                 //we're spinning a thread to do work to avoid blocking the connection
                 //This means that the Daemon potentially can have multiple build jobs running.

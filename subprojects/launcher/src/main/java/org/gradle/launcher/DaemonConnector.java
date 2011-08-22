@@ -115,12 +115,16 @@ public class DaemonConnector {
         daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
         daemonArgs.add("-Xmx1024m");
         daemonArgs.add("-XX:MaxPermSize=256m");
+        //TODO SF - remove later
+//        daemonArgs.add("-Xdebug");
+//        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
         daemonArgs.add("-cp");
         daemonArgs.add(GUtil.join(new DefaultClassPathRegistry().getClassPathFiles("GRADLE_RUNTIME"),
                 File.pathSeparator));
         daemonArgs.add(GradleDaemon.class.getName());
         daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.GRADLE_USER_HOME));
         daemonArgs.add(userHomeDir.getAbsolutePath());
+        daemonArgs.add("-DidleDaemonTimeout=" + idleDaemonTimeout);
         DaemonStartAction daemon = new DaemonStartAction();
         daemon.args(daemonArgs);
         daemon.workingDir(userHomeDir);
@@ -130,9 +134,10 @@ public class DaemonConnector {
     /**
      * Starts accepting connections.
      *
+     * @param idleDaemonTimeout
      * @param handler The handler for connections.
      */
-    void accept(final IncomingConnectionHandler handler) {
+    void accept(int idleDaemonTimeout, final IncomingConnectionHandler handler) {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
         TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
 
@@ -141,7 +146,6 @@ public class DaemonConnector {
         final CompletionHandler finished = new CompletionHandler(idleDaemonTimeout, registry);
 
         LOGGER.lifecycle("Awaiting requests.");
-
 
         Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
             public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {

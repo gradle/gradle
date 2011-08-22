@@ -23,7 +23,6 @@ import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Timeout
 
@@ -48,11 +47,10 @@ class DaemonFunctionalTest extends Specification {
         cleanMe.each { it.stop() }
     }
 
-    @Ignore //deamons do not seem to expire
     def "daemons expire"() {
         when:
         prepare()
-        connector = new DaemonConnector(temp.testDir, 1000) //1 sec expiry time
+        connector = new DaemonConnector(temp.testDir, 500) //0.5 sec expiry time
 
         then:
         def c = connect()
@@ -62,8 +60,6 @@ class DaemonFunctionalTest extends Specification {
         poll {
             assert reg.all.size() == 1
         }
-
-        printDaemonLog()
 
         poll(2000) {
             assert reg.all.size() == 0
