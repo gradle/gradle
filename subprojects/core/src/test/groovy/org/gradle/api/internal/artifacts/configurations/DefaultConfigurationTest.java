@@ -80,6 +80,13 @@ public class DefaultConfigurationTest {
     }
 
     @Test
+    public void hasUsefulDisplayName() {
+        assertThat(configuration.getDisplayName(), equalTo("configuration 'path'"));
+        assertThat(configuration.toString(), equalTo("configuration 'path'"));
+        assertThat(configuration.getIncoming().toString(), equalTo("dependencies 'path'"));
+    }
+
+    @Test
     public void withPrivateVisibility() {
         configuration.setVisible(false);
         assertFalse(configuration.isVisible());

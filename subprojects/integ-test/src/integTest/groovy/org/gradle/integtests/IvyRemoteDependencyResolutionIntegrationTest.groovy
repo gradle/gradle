@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.HttpServer
 import org.junit.Rule
 
-class IvyDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
+class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
@@ -39,13 +39,13 @@ class IvyDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-apply plugin: 'java'
 repositories {
     ivy {
         name = 'gradleReleases'
         artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
+configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
@@ -87,7 +87,6 @@ task listJars << {
 
         and:
         buildFile << """
-apply plugin: 'java'
 repositories {
     ivy {
         name = 'gradleReleases'
@@ -98,6 +97,7 @@ repositories {
         artifactPattern "http://localhost:${server.port}/repo2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
+configurations { compile }
 dependencies {
     compile 'group:projectA:1.2', 'group:projectB:1.3'
 }
@@ -131,13 +131,13 @@ task listJars << {
 
         and:
         buildFile << """
-apply plugin: 'java'
 repositories {
     ivy {
         name = 'gradleReleases'
         artifactPattern "http://localhost:${server.port}/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
     }
 }
+configurations { compile }
 dependencies {
     compile 'group:org:1.2'
 }
@@ -162,7 +162,7 @@ task show << { println configurations.compile.files }
         failure.assertHasDescription('Execution failed for task \':show\'.')
         failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\':')
     }
-    
+
     IvyRepository ivyRepo() {
         return new IvyRepository(file('ivy-repo'))
     }

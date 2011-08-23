@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
@@ -23,6 +22,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseProject
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.eclipse.model.Project
 import org.gradle.util.DeprecationLogger
+import org.gradle.api.internal.Instantiator
 
 /**
  * Generates an Eclipse <code>.project</code> file. If you want to fine tune the eclipse configuration
@@ -40,7 +40,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     GenerateEclipseProject() {
         xmlTransformer.indentation = "\t"
-        projectModel = services.get(ClassGenerator).newInstance(EclipseProject, new XmlFileContentMerger(xmlTransformer))
+        projectModel = services.get(Instantiator).newInstance(EclipseProject, new XmlFileContentMerger(xmlTransformer))
     }
 
     @Override protected Project create() {

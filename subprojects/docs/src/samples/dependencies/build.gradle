@@ -142,6 +142,7 @@ def assertFilesForDependencySubsets() {
     assertSubsetFiles(configurations.twoDepsWithDifferentDependencyConfigurations, { dep -> dep.name == 'shark' }, ['tuna-1.0.jar', 'shark-1.0.jar', 'seal-2.0.jar', 'herring-1.0.jar'])
     assertSubsetFiles(configurations.twoDepsWithDifferentDependencyConfigurations, { dep -> dep.name == 'billfish' }, ['tuna-1.0.jar', 'billfish-1.0.jar', 'squid-1.0.jar'])
     assertSubsetFiles(configurations.depWithMultipleConfigurations, { dep -> dep.configuration == 'default' }, ['tuna-1.0.jar', 'herring-1.0.jar'])
+    assertSubsetFiles(configurations.depWithMultipleConfigurations, { dep -> dep.configuration == 'specialWaters' }, ['tuna-1.0.jar', 'squid-1.0.jar'])
     assertSubsetFiles(configurations.extendingWithDifferentConfiguration, { dep -> dep.name != 'seal' }, ['tuna-1.0.jar', 'herring-1.0.jar', 'squid-1.0.jar'])
     assertSubsetFiles(configurations.extendingWithDifferentConfiguration, { dep -> dep.name == 'tuna' && dep.configuration == 'default' }, ['tuna-1.0.jar', 'herring-1.0.jar'])
     assertSubsetFiles(configurations.extending, { dep -> dep.name == 'tuna' }, ['tuna-1.0.jar', 'herring-1.0.jar'])

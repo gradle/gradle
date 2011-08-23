@@ -141,8 +141,7 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
         }
 
         ClientModule that = (ClientModule) o;
-
-        return isKeyEquals(that);
+        return isContentEqualsFor(that);
     }
 
     @Override

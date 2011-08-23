@@ -111,23 +111,23 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected DependencyFactory createDependencyFactory() {
-        ClassGenerator classGenerator = get(ClassGenerator.class);
+        Instantiator instantiator = get(Instantiator.class);
         DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(
                 get(StartParameter.class).getProjectDependenciesBuildInstruction(),
-                classGenerator);
+                instantiator);
         return new DefaultDependencyFactory(
                 WrapUtil.<IDependencyImplementationFactory>toSet(
                         new ModuleDependencyFactory(
-                                classGenerator),
+                                instantiator),
                         new SelfResolvingDependencyFactory(
-                                classGenerator),
+                                instantiator),
                         new ClassPathDependencyFactory(
-                                classGenerator,
+                                instantiator,
                                 get(ClassPathRegistry.class),
                                 new IdentityFileResolver()),
                         projectDependencyFactory),
                 new DefaultClientModuleFactory(
-                        classGenerator),
+                        instantiator),
                 projectDependencyFactory);
     }
 
@@ -163,16 +163,16 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         }
 
         private DefaultRepositoryHandler createRepositoryHandler() {
-            ClassGenerator classGenerator = parent.get(ClassGenerator.class);
+            Instantiator instantiator = parent.get(Instantiator.class);
             ResolverFactory resolverFactory = parent.get(ResolverFactory.class);
-            return classGenerator.newInstance(DefaultRepositoryHandler.class, resolverFactory, fileResolver, classGenerator);
+            return instantiator.newInstance(DefaultRepositoryHandler.class, resolverFactory, fileResolver, instantiator);
         }
 
         public ConfigurationContainerInternal getConfigurationContainer() {
             if (configurationContainer == null) {
-                ClassGenerator classGenerator = parent.get(ClassGenerator.class);
+                Instantiator instantiator = parent.get(Instantiator.class);
                 IvyService ivyService = createIvyService(getResolveRepositoryHandler());
-                configurationContainer = classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext, parent.get(ListenerManager.class));
+                configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class, ivyService, instantiator, domainObjectContext, parent.get(ListenerManager.class));
             }
             return configurationContainer;
         }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalDependency;
-import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
@@ -28,10 +28,10 @@ import java.util.Map;
  * @author Hans Dockter
  */
 class MapModuleNotationParser implements IDependencyImplementationFactory {
-    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
 
-    MapModuleNotationParser(ClassGenerator classGenerator) {
-        this.classGenerator = classGenerator;
+    MapModuleNotationParser(Instantiator instantiator) {
+        this.instantiator = instantiator;
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription)
@@ -41,7 +41,7 @@ class MapModuleNotationParser implements IDependencyImplementationFactory {
         String name = getAndRemove(args, "name");
         String version = getAndRemove(args, "version");
         String configuration = getAndRemove(args, "configuration");
-        ExternalDependency dependency = (ExternalDependency) classGenerator.newInstance(type, group, name, version, configuration);
+        ExternalDependency dependency = (ExternalDependency) instantiator.newInstance(type, group, name, version, configuration);
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args,
                 "classifier"));
         ConfigureUtil.configureByMap(args, dependency);

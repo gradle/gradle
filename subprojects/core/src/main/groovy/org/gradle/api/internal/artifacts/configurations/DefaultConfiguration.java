@@ -535,6 +535,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return path;
         }
 
+        @Override
+        public String toString() {
+            return String.format("dependencies '%s'", path);
+        }
+
         public FileCollection getFiles() {
             return DefaultConfiguration.this.fileCollection(Specs.<Dependency>satisfyAll());
         }

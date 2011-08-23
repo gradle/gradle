@@ -102,4 +102,7 @@ class AbstractIntegrationSpec extends Specification {
         assert result != null : "result is null, you haven't run succeeds()"
     }
 
+    String getOutput() {
+        result.output
+    }
 }

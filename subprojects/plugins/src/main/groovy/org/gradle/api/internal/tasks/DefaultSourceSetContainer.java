@@ -15,31 +15,30 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.file.FileResolver;
+import groovy.lang.Closure;
 import org.gradle.api.Namer;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.Instantiator;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-
-import groovy.lang.Closure;
 
 public class DefaultSourceSetContainer extends AbstractNamedDomainObjectContainer<SourceSet> implements SourceSetContainer {
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
-    private final ClassGenerator generator;
+    private final Instantiator instantiator;
 
-    public DefaultSourceSetContainer(FileResolver fileResolver, TaskResolver taskResolver, ClassGenerator classGenerator) {
+    public DefaultSourceSetContainer(FileResolver fileResolver, TaskResolver taskResolver, Instantiator classGenerator) {
         super(SourceSet.class, classGenerator, new Namer<SourceSet>() { public String determineName(SourceSet ss) { return ss.getName(); }});
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
-        this.generator = classGenerator;
+        this.instantiator = classGenerator;
     }
 
     @Override
     protected SourceSet doCreate(String name) {
-        DefaultSourceSet sourceSet = generator.newInstance(DefaultSourceSet.class, name, fileResolver, taskResolver);
-        sourceSet.setClasses(generator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), fileResolver, taskResolver));
+        DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, fileResolver, taskResolver);
+        sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), fileResolver, taskResolver));
 
         return sourceSet;
     }

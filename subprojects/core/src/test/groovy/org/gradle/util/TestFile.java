@@ -309,8 +309,8 @@ public class TestFile extends File implements TestFileContext {
     public TestFile assertIsCopyOf(TestFile other) {
         assertIsFile();
         other.assertIsFile();
-        assertEquals(other.length(), this.length());
-        assertTrue(Arrays.equals(HashUtil.createHash(this), HashUtil.createHash(other)));
+        assertEquals(String.format("%s is not the same length as %s", this, other), other.length(), this.length());
+        assertTrue(String.format("%s does not have the same content as %s", this, other), Arrays.equals(HashUtil.createHash(this), HashUtil.createHash(other)));
         return this;
     }
 

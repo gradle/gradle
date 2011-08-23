@@ -16,18 +16,16 @@
 package org.gradle.plugins.binaries;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.plugins.BasePlugin;
-
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-
+import org.gradle.api.plugins.BasePlugin;
 import org.gradle.plugins.binaries.model.Executable;
-import org.gradle.plugins.binaries.model.internal.DefaultExecutable;
 import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.internal.DefaultLibrary;
 import org.gradle.plugins.binaries.model.internal.DefaultCompilerRegistry;
+import org.gradle.plugins.binaries.model.internal.DefaultExecutable;
+import org.gradle.plugins.binaries.model.internal.DefaultLibrary;
 
 /**
  * temp plugin, not sure what will provide the binaries container and model elements
@@ -37,23 +35,23 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
 
-        ClassGenerator classGenerator = project.getServices().get(ClassGenerator.class);
-        project.getExtensions().add("executables", classGenerator.newInstance(
+        Instantiator instantiator = project.getServices().get(Instantiator.class);
+        project.getExtensions().add("executables", instantiator.newInstance(
                 FactoryNamedDomainObjectContainer.class,
                 Executable.class,
-                classGenerator,
+                instantiator,
                 new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, project)
         ));
-        project.getExtensions().add("libraries", classGenerator.newInstance(
+        project.getExtensions().add("libraries", instantiator.newInstance(
                 FactoryNamedDomainObjectContainer.class,
                 Library.class,
-                classGenerator,
+                instantiator,
                 new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project)
         ));
 
-        project.getExtensions().add("compilers", classGenerator.newInstance(
+        project.getExtensions().add("compilers", instantiator.newInstance(
                 DefaultCompilerRegistry.class,
-                classGenerator
+                instantiator
         ));
     }
 

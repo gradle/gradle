@@ -19,23 +19,24 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
-import java.util.Set;
 import java.util.Collection;
+import java.util.Set;
+
+import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -48,10 +49,10 @@ public class DefaultConfigurationContainerTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private IvyService ivyServiceDummy = context.mock(IvyService.class);
-    private ClassGenerator classGenerator = context.mock(ClassGenerator.class);
+    private Instantiator instantiator = context.mock(Instantiator.class);
     private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class);
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy, classGenerator, domainObjectContext, listenerManager);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy, instantiator, domainObjectContext, listenerManager);
 
     @Test
     public void init() {
@@ -159,7 +160,7 @@ public class DefaultConfigurationContainerTest {
         context.checking(new Expectations() {{
             one(domainObjectContext).absoluteProjectPath(name);
             will(returnValue(name));
-            one(classGenerator).newInstance(DefaultConfiguration.class, name, name, configurationContainer, ivyServiceDummy, listenerManager);
+            one(instantiator).newInstance(DefaultConfiguration.class, name, name, configurationContainer, ivyServiceDummy, listenerManager);
             will(returnValue(configuration));
             allowing(configuration).getName();
             will(returnValue(name));

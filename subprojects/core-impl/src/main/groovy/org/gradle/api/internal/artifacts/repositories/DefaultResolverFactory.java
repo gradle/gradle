@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -36,6 +37,8 @@ import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 /**
@@ -97,15 +100,34 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     private BasicResolver createIBiblioResolver(String name, String root) {
-        IBiblioWharfResolver iBiblioResolver = new IBiblioWharfResolver();
-        iBiblioResolver.setUsepoms(true);
-        iBiblioResolver.setName(name);
-        iBiblioResolver.setRoot(root);
-        iBiblioResolver.setPattern(ResolverContainer.MAVEN_REPO_PATTERN);
-        iBiblioResolver.setM2compatible(true);
-        iBiblioResolver.setUseMavenMetadata(true);
-        iBiblioResolver.setChecksums("");
-        return iBiblioResolver;
+        IBiblioResolver resolver;
+
+        URI rootUri;
+        try {
+            rootUri = new URI(root);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        if (rootUri.getScheme().equalsIgnoreCase("file")) {
+            resolver = new IBiblioResolver();
+            resolver.setRepository(new FileRepository());
+            resolver.setRoot(rootUri.getPath());
+            resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
+        } else {
+            IBiblioWharfResolver wharfResolver = new IBiblioWharfResolver();
+            wharfResolver.setSnapshotTimeout(IBiblioWharfResolver.DAILY);
+            resolver = wharfResolver;
+            resolver.setRoot(root);
+        }
+
+        resolver.setUsepoms(true);
+        resolver.setName(name);
+        resolver.setPattern(ResolverContainer.MAVEN_REPO_PATTERN);
+        resolver.setM2compatible(true);
+        resolver.setUseMavenMetadata(true);
+        resolver.setChecksums("");
+
+        return resolver;
     }
 
     private DependencyResolver createUrlResolver(String name, String root, String... jarRepoUrls) {

@@ -15,28 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
-
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
 import org.junit.Test
-import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.file.FileCollection
-import org.gradle.api.artifacts.Dependency
+import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.hasItemInArray
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertThat
 
 @RunWith(JMock.class)
 public class ClassPathDependencyFactoryTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final ClassGenerator classGenerator = context.mock(ClassGenerator.class)
+    private final Instantiator instantiator = context.mock(Instantiator.class)
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class)
     private final FileResolver fileResolver = context.mock(FileResolver.class)
-    private final ClassPathDependencyFactory factory = new ClassPathDependencyFactory(classGenerator, classPathRegistry, fileResolver)
+    private final ClassPathDependencyFactory factory = new ClassPathDependencyFactory(instantiator, classPathRegistry, fileResolver)
 
     @Test
     void createsDependencyForAClassPathNotation() {
@@ -52,7 +51,7 @@ public class ClassPathDependencyFactoryTest {
             one(fileResolver).resolveFiles(withParam(hasItemInArray(files)))
             will(returnValue(fileCollection))
 
-            one(classGenerator).newInstance(DefaultSelfResolvingDependency.class, fileCollection)
+            one(instantiator).newInstance(DefaultSelfResolvingDependency.class, fileCollection)
             will(returnValue(dependency))
         }
 

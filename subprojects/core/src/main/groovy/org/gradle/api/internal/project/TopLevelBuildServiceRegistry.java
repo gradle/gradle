@@ -89,7 +89,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected IProjectFactory createProjectFactory() {
         return new ProjectFactory(
                 startParameter.getBuildScriptSource(),
-                get(ClassGenerator.class));
+                get(Instantiator.class));
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {

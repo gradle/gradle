@@ -19,20 +19,20 @@ package org.gradle.plugins.ear;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import java.util.concurrent.Callable;
 
@@ -53,7 +53,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
 
-        final EarPluginConvention pluginConvention = project.getServices().get(ClassGenerator.class).newInstance(EarPluginConvention.class, project.getFileResolver());
+        final EarPluginConvention pluginConvention = project.getServices().get(Instantiator.class).newInstance(EarPluginConvention.class, project.getFileResolver());
         project.getConvention().getPlugins().put("ear", pluginConvention);
         pluginConvention.setLibDirName("lib");
         pluginConvention.setAppDirName("src/main/application");

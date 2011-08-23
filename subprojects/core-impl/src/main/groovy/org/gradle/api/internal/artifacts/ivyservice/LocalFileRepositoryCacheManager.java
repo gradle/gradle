@@ -22,13 +22,20 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
+import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
+import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
+import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
+import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 
 /**
@@ -78,11 +85,38 @@ public class LocalFileRepositoryCacheManager implements RepositoryCacheManager {
         return report;
     }
 
-    public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, ResolvedResource orginalMetadataRef, DependencyDescriptor dd, Artifact requestedMetadataArtifact, ResourceDownloader downloader, CacheMetadataOptions options) throws ParseException {
-        return null;
+    public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, ResolvedResource originalMetadataRef, DependencyDescriptor dd, Artifact requestedMetadataArtifact, ResourceDownloader downloader, CacheMetadataOptions options) throws ParseException {
+        if (!requestedMetadataArtifact.isMetadata()) {
+            // Nice of ivy to call this method with artifacts that are not meta-data files
+            return null;
+        }
+
+        assert originalMetadataRef.getResource().isLocal();
+        File file = new File(originalMetadataRef.getResource().getName());
+        assert file.isFile();
+
+        ArtifactOrigin origin = new ArtifactOrigin(requestedMetadataArtifact, true, file.getAbsolutePath());
+        MetadataArtifactDownloadReport report = new MetadataArtifactDownloadReport(requestedMetadataArtifact);
+        report.setDownloadStatus(DownloadStatus.NO);
+        report.setArtifactOrigin(origin);
+        report.setSize(file.length());
+        report.setLocalFile(file);
+        report.setSearched(false);
+        report.setOriginalLocalFile(file);
+
+        ModuleDescriptorParser parser = ModuleDescriptorParserRegistry.getInstance().getParser(originalMetadataRef.getResource());
+        ParserSettings parserSettings = ((AbstractResolver) resolver).getParserSettings();
+
+        ModuleDescriptor descriptor;
+        try {
+            descriptor = parser.parseDescriptor(parserSettings, file.toURI().toURL(), true);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return new ResolvedModuleRevision(resolver, resolver, descriptor, report);
     }
 
-    public void originalToCachedModuleDescriptor(DependencyResolver resolver, ResolvedResource orginalMetadataRef, Artifact requestedMetadataArtifact, ResolvedModuleRevision rmr, ModuleDescriptorWriter writer) {
+    public void originalToCachedModuleDescriptor(DependencyResolver resolver, ResolvedResource originalMetadataRef, Artifact requestedMetadataArtifact, ResolvedModuleRevision rmr, ModuleDescriptorWriter writer) {
     }
 
     public void clean() {

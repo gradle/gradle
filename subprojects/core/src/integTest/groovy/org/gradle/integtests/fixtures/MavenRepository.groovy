@@ -16,9 +16,10 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
+import java.text.SimpleDateFormat
 
 class MavenRepository {
-    private final TestFile rootDir
+    final TestFile rootDir
 
     MavenRepository(TestFile rootDir) {
         this.rootDir = rootDir
@@ -35,8 +36,11 @@ class MavenModule {
     final String groupId
     final String artifactId
     final String version
-    private final List<String> dependencies = []
+    private final List dependencies = []
     final String classifier
+    int publishCount = 1
+    final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
+    final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
 
     MavenModule(TestFile moduleDir, String groupId, String artifactId, String version, String classifier = null) {
         this.moduleDir = moduleDir
@@ -47,7 +51,12 @@ class MavenModule {
     }
 
     MavenModule dependsOn(String dependencyArtifactId) {
-        this.dependencies << dependencyArtifactId
+        dependsOn(groupId, dependencyArtifactId, '1.0')
+        return this
+    }
+
+    MavenModule dependsOn(String group, String artifactId, String version) {
+        this.dependencies << [groupId: group, artifactId: artifactId, version: version]
         return this
     }
 
@@ -60,20 +69,51 @@ class MavenModule {
     }
 
     File getPomFile() {
-        return new File(moduleDir, "$artifactId-${version}.pom")
+        return new File(moduleDir, "$artifactId-${publishArtifactVersion}.pom")
     }
 
 
-    File getArtifactFile() {
-        def fileName = "$moduleDir/$artifactId-${version}.jar"
+    TestFile getArtifactFile() {
+        def fileName = "$artifactId-${publishArtifactVersion}.jar"
         if (classifier) {
-            fileName = "$moduleDir/$artifactId-$version-${classifier}.jar"
+            fileName = "$artifactId-$publishArtifactVersion-${classifier}.jar"
         }
-        return new File(fileName)
+        return moduleDir.file(fileName)
+    }
+
+    void publishWithChangedContent() {
+        publishCount++
+        publishArtifact()
+    }
+
+    String getPublishArtifactVersion() {
+        return version.endsWith("-SNAPSHOT") ? "${version.replaceFirst('-SNAPSHOT$', '')}-${timestampFormat.format(publishTimestamp)}-${publishCount}" : version
+    }
+
+    Date getPublishTimestamp() {
+        return new Date(updateFormat.parse("20100101120000").time + publishCount * 1000)
     }
 
     File publishArtifact() {
         moduleDir.createDir()
+
+        if (version.endsWith("-SNAPSHOT")) {
+            def metaDataFile = moduleDir.file('maven-metadata.xml')
+            metaDataFile.text = """
+<metadata>
+  <groupId>$groupId</groupId>
+  <artifactId>$artifactId</artifactId>
+  <version>$version</version>
+  <versioning>
+    <snapshot>
+      <timestamp>${timestampFormat.format(publishTimestamp)}</timestamp>
+      <buildNumber>$publishCount</buildNumber>
+    </snapshot>
+    <lastUpdated>${updateFormat.format(publishTimestamp)}</lastUpdated>
+  </versioning>
+</metadata>
+"""
+        }
 
         pomFile.text = ""
         pomFile << """
@@ -88,9 +128,9 @@ class MavenModule {
             pomFile << """
   <dependencies>
     <dependency>
-      <groupId>$groupId</groupId>
-      <artifactId>$dependency</artifactId>
-      <version>1.0</version>
+      <groupId>$dependency.groupId</groupId>
+      <artifactId>$dependency.artifactId</artifactId>
+      <version>$dependency.version</version>
     </dependency>
   </dependencies>"""
         }
@@ -98,7 +138,8 @@ class MavenModule {
         pomFile << "\n</project>"
 
         def jarFile = artifactFile
-        jarFile << "add some content so that file size isn't zero"
+        jarFile << "add some content so that file size isn't zero: $publishCount"
+
         return jarFile
     }
 

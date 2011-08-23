@@ -123,7 +123,7 @@ public class DefaultPomDependenciesConverterTest {
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(false));
         }});
         List<org.apache.maven.model.Dependency> actualMavenDependencies = dependenciesConverter.convert(conf2ScopeMappingContainerMock, configurations);
-        assertEquals(3, actualMavenDependencies.size());
+        assertEquals(4, actualMavenDependencies.size());
         checkCommonMavenDependencies(actualMavenDependencies);
     }
 
@@ -141,7 +141,7 @@ public class DefaultPomDependenciesConverterTest {
         }});
         List<org.apache.maven.model.Dependency> actualMavenDependencies = dependenciesConverter.convert(conf2ScopeMappingContainerMock, toSet(
                 compileConfStub, testCompileConfStub, unmappedConfigurationStub));
-        assertEquals(3, actualMavenDependencies.size());
+        assertEquals(4, actualMavenDependencies.size());
         checkCommonMavenDependencies(actualMavenDependencies);
     }
 
@@ -155,7 +155,7 @@ public class DefaultPomDependenciesConverterTest {
         }});
         List<org.apache.maven.model.Dependency> actualMavenDependencies = dependenciesConverter.convert(conf2ScopeMappingContainerMock, toSet(
                 compileConfStub, testCompileConfStub, unmappedConfigurationStub));
-        assertEquals(4, actualMavenDependencies.size());
+        assertEquals(5, actualMavenDependencies.size());
         checkCommonMavenDependencies(actualMavenDependencies);
         assertTrue(hasDependency(actualMavenDependencies, "org4", "name4", "rev4", null, null, null, false));
     }
@@ -163,6 +163,7 @@ public class DefaultPomDependenciesConverterTest {
     private void checkCommonMavenDependencies(List<org.apache.maven.model.Dependency> actualMavenDependencies) {
         assertTrue(hasDependency(actualMavenDependencies, "org1", "name1", "rev1", null, "compile", null, false));
         assertTrue(hasDependency(actualMavenDependencies, "org2", "name2", "rev2", null, "test", null, false));
+        assertTrue(hasDependency(actualMavenDependencies, "org3", "name3", "rev3", null, "test", null, false));
         assertTrue(hasDependency(actualMavenDependencies, "org3", "artifactName32", "rev3", "type32", "test", "classifier32", false));
     }
 

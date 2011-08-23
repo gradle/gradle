@@ -21,6 +21,7 @@ import org.junit.Rule
 
 class AppleJvmTest extends Specification {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule SetSystemProperties sysProp = new SetSystemProperties()
     AppleJvm jvm = new AppleJvm(Mock(OperatingSystem))
 
     def "looks for runtime Jar in Java home directory"() {

@@ -109,8 +109,7 @@ public class DefaultExternalModuleDependency extends AbstractExternalDependency 
         }
 
         DefaultExternalModuleDependency that = (DefaultExternalModuleDependency) o;
-
-        return isKeyEquals(that);
+        return isContentEqualsFor(that);
     }
 
     @Override

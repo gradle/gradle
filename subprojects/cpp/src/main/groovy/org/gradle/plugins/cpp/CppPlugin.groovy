@@ -15,15 +15,15 @@
  */
 package org.gradle.plugins.cpp
 
-import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.internal.project.ProjectInternal
 
-class CppPlugin implements Plugin<Project> {
+class CppPlugin implements Plugin<ProjectInternal> {
 
-    void apply(Project project) {
+    void apply(ProjectInternal project) {
         project.apply(plugin: "binaries")
         project.apply(plugin: "gpp-compiler")
-        project.extensions.add('cpp', new CppExtension(project))
+        project.extensions.cpp = new CppExtension(project)
 
         // Defaults for all cpp source sets
         project.cpp.sourceSets.all { sourceSet ->

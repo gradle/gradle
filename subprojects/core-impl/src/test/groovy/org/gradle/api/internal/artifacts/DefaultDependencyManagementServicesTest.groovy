@@ -25,18 +25,18 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.cache.CacheRepository
+import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 import org.gradle.api.internal.*
-import org.gradle.listener.ListenerManager
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
     final FileResolver fileResolver = Mock()
     final DependencyMetaDataProvider dependencyMetaDataProvider = Mock()
     final ProjectFinder projectFinder = Mock()
-    final ClassGenerator classGenerator = Mock()
+    final Instantiator instantiator = Mock()
     final DomainObjectContext domainObjectContext = Mock()
     final TestRepositoryHandler repositoryHandler = Mock()
     final ConfigurationContainerInternal configurationContainer = Mock()
@@ -68,10 +68,10 @@ class DefaultDependencyManagementServicesTest extends Specification {
 
     def "can create dependency resolution services"() {
         given:
-        _ * parent.get(ClassGenerator.class) >> classGenerator
+        _ * parent.get(Instantiator.class) >> instantiator
         _ * parent.get(StartParameter.class) >> startParameter
-        1 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >> repositoryHandler
-        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext, listenerManager) >> configurationContainer
+        1 * instantiator.newInstance(DefaultRepositoryHandler.class, _, _, _) >> repositoryHandler
+        1 * instantiator.newInstance(DefaultConfigurationContainer.class, !null, instantiator, domainObjectContext, listenerManager) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
@@ -88,9 +88,9 @@ class DefaultDependencyManagementServicesTest extends Specification {
 
         given:
         _ * parent.get(StartParameter.class) >> startParameter
-        _ * parent.get(ClassGenerator.class) >> classGenerator
-        2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
-        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext, listenerManager) >> configurationContainer
+        _ * parent.get(Instantiator.class) >> instantiator
+        2 * instantiator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
+        1 * instantiator.newInstance(DefaultConfigurationContainer.class, !null, instantiator, domainObjectContext, listenerManager) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
@@ -107,9 +107,9 @@ class DefaultDependencyManagementServicesTest extends Specification {
 
         given:
         _ * parent.get(StartParameter.class) >> startParameter
-        _ * parent.get(ClassGenerator.class) >> classGenerator
-        2 * classGenerator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
-        1 * classGenerator.newInstance(DefaultConfigurationContainer.class, !null, classGenerator, domainObjectContext, listenerManager) >> configurationContainer
+        _ * parent.get(Instantiator.class) >> instantiator
+        2 * instantiator.newInstance(DefaultRepositoryHandler.class, _, _, _) >>> [repositoryHandler, publishRepositoryHandler]
+        1 * instantiator.newInstance(DefaultConfigurationContainer.class, !null, instantiator, domainObjectContext, listenerManager) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
@@ -121,7 +121,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
 }
 
 abstract class TestRepositoryHandler extends DefaultRepositoryHandler implements IConventionAware {
-    TestRepositoryHandler(ResolverFactory resolverFactory, FileResolver fileResolver, ClassGenerator classGenerator) {
-        super(resolverFactory, fileResolver, classGenerator)
+    TestRepositoryHandler(ResolverFactory resolverFactory, FileResolver fileResolver, Instantiator instantiator) {
+        super(resolverFactory, fileResolver, instantiator)
     }
 }

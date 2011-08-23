@@ -17,20 +17,19 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.util.ConfigureUtil;
-
-import org.gradle.api.Namer;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Namer;
+import org.gradle.util.ConfigureUtil;
 
 public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements NamedDomainObjectContainer<T> {
 
-    protected AbstractNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer) {
-        super(type, classGenerator, namer);
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
+        super(type, instantiator, namer);
     }
 
-    protected AbstractNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator) {
-        super(type, classGenerator, Named.Namer.forType(type));
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
+        super(type, instantiator, Named.Namer.forType(type));
     }
 
     /**

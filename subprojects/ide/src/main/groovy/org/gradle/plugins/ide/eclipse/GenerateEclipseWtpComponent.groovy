@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
@@ -39,7 +39,7 @@ class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
     GenerateEclipseWtpComponent() {
         xmlTransformer.indentation = "\t"
-        component = services.get(ClassGenerator).newInstance(EclipseWtpComponent, project, new XmlFileContentMerger(xmlTransformer))
+        component = services.get(Instantiator).newInstance(EclipseWtpComponent, project, new XmlFileContentMerger(xmlTransformer))
     }
 
     @Override protected WtpComponent create() {

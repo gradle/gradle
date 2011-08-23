@@ -18,12 +18,25 @@ apply plugin: 'java'
 
 repositories {
     mavenCentral()
+    ivy {
+        name = 'jfrog'
+        artifactPattern('http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
+//        artifactPattern('http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml')
+    }
 }
 
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
+    compile "commons-httpclient:commons-httpclient:3.0"
+    compile "commons-codec:commons-codec:1.2"
+    compile "org.slf4j:jcl-over-slf4j:1.6.1"
+    compile "org.codehaus.groovy:groovy:1.7.10"
+    compile "commons-codec:commons-codec:1.2"
     testCompile 'junit:junit:4.8.2'
+    compile 'org.jfrog.wharf:wharf-core:1.0-20110727083102@jar'
+    runtime 'com.esotericsoftware:kryo:1.03', 'com.esotericsoftware:minlog:1.2', 'com.googlecode:reflectasm:1.01'
 }
+
 test {
     jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
 //    testReport = false

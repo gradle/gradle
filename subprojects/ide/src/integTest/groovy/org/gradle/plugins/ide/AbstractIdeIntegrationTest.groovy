@@ -57,6 +57,10 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         return module.publishArtifact()
     }
 
+    protected MavenRepository getMavenRepo() {
+        return new MavenRepository(getFile([:], 'repo'))
+    }
+
     protected ExecutionResult runIdeaTask(buildScript) {
         return runTask("idea", buildScript)
     }

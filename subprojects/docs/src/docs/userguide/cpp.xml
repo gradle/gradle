@@ -1,0 +1,143 @@
+<!--
+  ~ Copyright 2010 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id='cpp' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>C++ Support</title>
+
+    <note>
+        <para>
+            The Gradle C++ support is experimental and in very early stages of development so should not be considered stable.
+        </para>
+    </note>
+
+    <para>
+        The C++ plugins add support for building software comprised of C++ source code, and managing the process of building “native” software in general.
+        While many excellent build tools exist for this space of software development, Gradle brings the dependency management practices more traditionally
+        found in the JVM development space to C++ developers.
+    </para>
+    <para>
+        Currently, support is restricted to building with the <literal>g++</literal> (i.e. the C++ focussed frontend to <ulink url="http://gcc.gnu.org/">GCC</ulink>)
+        compiler/linker. Furthermore, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct
+        support for cross platform source configuration (à la <ulink url="http://www.gnu.org/s/autoconf/">autoconf</ulink>) at this time. Support for different
+        compiler chains, managing multiple variants and cross platform source configuration will be added over time, making Gradle a fully capable build tool for C++
+        (and other “native” language) projects.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>
+            The build scripts DSLs, model elements and tasks used to manage C++ projects are added by the <literal>cpp</literal> plugin. However, it is typically
+            more convenient to use either the <literal>cpp-lib</literal> or <literal>cpp-exe</literal> plugins that sit on top of the <literal>cpp</literal>
+            plugin to preconfigure the project to build either a shared library or executable binary respectively.
+        </para>
+        <sample id="useCppExePlugin" dir="cpp/dependencies" title="Using the 'cpp-exe' plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin-exe"/>
+        </sample>
+        <sample id="useCppLibPlugin" dir="cpp/dependencies" title="Using the 'cpp-lib' plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin-lib"/>
+        </sample>
+        <para>
+            The <literal>cpp-exe</literal> plugin configures the project to build a single executable (at <filename>$buildDir/binaries/main</filename>) and
+            the <literal>cpp-lib</literal> plugin configures the project to build a single shared library (at <filename>$buildDir/binaries/main.so</filename>).
+        </para>
+    </section>
+
+    <section>
+        <title>Source code locations</title>
+        <para>
+            Both plugins configure the project to look for <literal>.cpp</literal> source files in <literal>src/main/cpp</literal> and use the <literal>src/main/headers</literal>
+            directory as a header include root. For a library, the header files in <literal>src/main/headers</literal> are considered the “public” or “exported” headers.
+            Header files that should not be exported (but are used internally) should be placed inside the <literal>src/main/cpp</literal> directory (though be aware that
+            such header files should always be referenced in a manner relative to the file including them).
+        </para>
+    </section>
+
+    <section>
+        <title>Compiling</title>
+        <para>
+            For both the <literal>cpp-lib</literal> and <literal>cpp-exe</literal> plugins, you can run the <literal>compileMain</literal> task.
+        </para>
+        <para>
+            As previously stated, the C++ support is currently based on the <literal>g++</literal> tool which must be installed and on the <literal>PATH</literal>
+            for the Gradle process.
+        </para>
+        <para>Arbitrary arguments can be provided to <literal>g++</literal> by using the following syntax:</para>
+        <sample id="gppArgs" dir="cpp/exe" title="Supplying arbitrary args to gpp">
+            <sourcefile file="build.gradle" snippet="args"/>
+        </sample>
+        <para>
+            The above example applies to the <literal>cpp-exe</literal> plugin, to supply arguments for the <literal>cpp-lib</literal> plugin replace
+            “<literal>executables</literal>” with “<literal>libraries</literal>”.
+        </para>
+    </section>
+
+    <section>
+        <title>Dependencies</title>
+        <para>
+            Dependencies for C++ projects are binary libraries that export header files. The header files are used during compilation, with the compiled
+            binary dependency being used during the linking.
+        </para>
+        <section>
+            <title>External Dependencies</title>
+            <para>
+                External dependencies (i.e. from a repository, not a subproject) must be specified using the following syntax:
+            </para>
+            <sample id="gppArgs" dir="cpp/dependencies" title="Declaring dependencies">
+                <sourcefile file="build.gradle" snippet="declaring-dependencies"/>
+            </sample>
+            <para>
+                Each dependency must be specified with the <literal>dependency</literal> method as above and must be declared as part of the source set. The
+                <literal>group</literal>, <literal>name</literal> and <literal>version</literal> arguments <emphasis>must</emphasis> be supplied.
+            </para>
+            <para>
+                For each declared dependency, two actual dependencies are created. One with the classifer “<literal>headers</literal>” and extension
+                “<literal>zip</literal>” which is a zip file of the exported headers, and another with the classifier “<literal>so</literal>” and extension
+                “<literal>so</literal>” which is the compiled library binary to link against (which is supplied as a direct input to the g++ link operation).
+            </para>
+        </section>
+        <section>
+            <title>Project Dependencies</title>
+            <para>
+                The notation for project dependencies is slightly different.
+            </para>
+            <sample id="cppProjectDependencies" dir="cpp/exewithlib" title="Declaring project dependencies">
+                <sourcefile file="build.gradle" snippet="project-dependencies"/>
+            </sample>
+        </section>
+    </section>
+
+    <section>
+        <title>Publishing</title>
+        <para>
+            The <literal>cpp-exe</literal> and <literal>cpp-lib</literal> plugins configure their respective output binaries to be publishable as part of the
+            <literal>archives</literal> configuration. To publish, simply configure the <literal>uploadArchives</literal> task as per usual.
+        </para>
+        <sample id="cppPublish" dir="cpp/dependencies" title="Uploading exe or lib">
+            <sourcefile file="build.gradle" snippet="upload"/>
+        </sample>
+        <para>
+            The <literal>cpp-exe</literal> plugin publishes a single artifact with extension “<literal>exe</literal>”. The <literal>cpp-lib</literal> plugin
+            publishes two artifacts; one with classifier “<literal>headers</literal>” and extension “<literal>zip</literal>”, and one with classifier
+            “<literal>so</literal>” and extension “<literal>so</literal>” (which is the format used when consuming dependencies).
+        </para>
+        <note>
+            <para>
+                Currently, there is no support for publishing the dependencies of artifacts in POM or Ivy files. Future versions will support this.
+            </para>
+        </note>
+    </section>
+
+</chapter>
