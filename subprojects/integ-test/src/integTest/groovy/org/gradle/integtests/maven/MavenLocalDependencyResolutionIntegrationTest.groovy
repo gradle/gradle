@@ -45,8 +45,8 @@ task retrieve(type: Sync) {
 
         then:
         def buildDir = file('build')
-        buildDir.assertHasDescendants('projectA-1.2-SNAPSHOT.jar')
-        buildDir.file('projectA-1.2-SNAPSHOT.jar').assertIsCopyOf(moduleA.artifactFile)
+        buildDir.assertHasDescendants(moduleA.artifactFile.name)
+        buildDir.file(moduleA.artifactFile.name).assertIsCopyOf(moduleA.artifactFile)
 
         when:
         moduleA.dependsOn('group', 'projectB', '9.1')
@@ -54,8 +54,8 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then:
-        buildDir.assertHasDescendants('projectA-1.2-SNAPSHOT.jar', 'projectB-9.1.jar')
-        buildDir.file('projectA-1.2-SNAPSHOT.jar').assertIsCopyOf(moduleA.artifactFile)
+        buildDir.assertHasDescendants(moduleA.artifactFile.name, 'projectB-9.1.jar')
+        buildDir.file(moduleA.artifactFile.name).assertIsCopyOf(moduleA.artifactFile)
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
