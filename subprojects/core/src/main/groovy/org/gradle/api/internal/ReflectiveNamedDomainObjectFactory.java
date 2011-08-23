@@ -16,7 +16,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.util.DirectInstantiator;
 
 public class ReflectiveNamedDomainObjectFactory<T> implements NamedDomainObjectFactory<T> {
     private final Class<? extends T> type;

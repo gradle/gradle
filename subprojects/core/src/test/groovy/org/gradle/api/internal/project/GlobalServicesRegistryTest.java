@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.DefaultClassPathProvider;
-import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.*;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -92,5 +89,15 @@ public class GlobalServicesRegistryTest {
     @Test
     public void providesAMessagingServer() {
         assertThat(registry.get(MessagingServer.class), instanceOf(MessagingServer.class));
+    }
+
+    @Test
+    public void providesAClassGenerator() {
+        assertThat(registry.get(ClassGenerator.class), instanceOf(AsmBackedClassGenerator.class));
+    }
+    
+    @Test
+    public void providesAnInstantiator() {
+        assertThat(registry.get(Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
     }
 }

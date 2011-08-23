@@ -17,14 +17,13 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.Namer;
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.Rule;
-import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.util.*;
+import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.TestClosure;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -33,17 +32,18 @@ import org.junit.runner.RunWith;
 
 import java.util.Iterator;
 
-import static org.gradle.util.HelperUtil.*;
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.HelperUtil.call;
+import static org.gradle.util.HelperUtil.toClosure;
+import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 
 @RunWith(JMock.class)
 public class DefaultNamedDomainObjectSetTest {
-    private final ClassGenerator classGenerator = new AsmBackedClassGenerator();
+    private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator());
     private final Namer<Bean> namer = new Namer<Bean>() { public String determineName(Bean bean) { return bean.name; } };
-    private final DefaultNamedDomainObjectSet<Bean> container = classGenerator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, classGenerator, namer);
+    private final DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer);
     private final JUnit4Mockery context = new JUnit4Mockery();
 
     @Test

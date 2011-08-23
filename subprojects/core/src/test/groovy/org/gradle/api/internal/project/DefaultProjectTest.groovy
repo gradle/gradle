@@ -172,7 +172,7 @@ class DefaultProjectTest {
         }
 
         // TODO - don't decorate the project objects
-        ClassGenerator classGenerator = new AsmBackedClassGenerator()
+        AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
         project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock);
         child1 = classGenerator.newInstance(DefaultProject.class, "child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child1)

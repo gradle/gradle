@@ -18,19 +18,17 @@ package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.IvyService
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.listener.ListenerManager
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.internal.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
-import org.gradle.listener.ListenerManager
-import org.junit.Before
 
 /**
  * @author Hans Dockter
@@ -43,8 +41,8 @@ class DefaultConfigurationHandlerTest {
     private IvyService ivyService = context.mock(IvyService)
     private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class)
     private ListenerManager listenerManager = context.mock(ListenerManager.class)
-    private ClassGenerator classGenerator = new AsmBackedClassGenerator()
-    private DefaultConfigurationContainer configurationHandler = classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, { name -> name } as DomainObjectContext, listenerManager)
+    private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class, ivyService, instantiator, { name -> name } as DomainObjectContext, listenerManager)
 
     @Before
     public void setup() {

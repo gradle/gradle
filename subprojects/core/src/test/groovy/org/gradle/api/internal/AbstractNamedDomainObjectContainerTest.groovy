@@ -21,8 +21,8 @@ import static org.hamcrest.Matchers.*
 import org.junit.Ignore
 
 class AbstractNamedDomainObjectContainerTest {
-    private final ClassGenerator classGenerator = new AsmBackedClassGenerator()
-    private final AbstractNamedDomainObjectContainer container = classGenerator.newInstance(TestContainer.class, classGenerator)
+    private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    private final AbstractNamedDomainObjectContainer container = instantiator.newInstance(TestContainer.class, instantiator)
 
     @Test
     public void canAddObjectWithName() {

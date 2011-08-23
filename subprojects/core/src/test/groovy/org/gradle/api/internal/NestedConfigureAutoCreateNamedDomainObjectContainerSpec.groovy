@@ -19,7 +19,7 @@ import spock.lang.*
 
 class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specification {
 
-    def classGenerator = new AsmBackedClassGenerator()
+    def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
 
     static class Container extends FactoryNamedDomainObjectContainer {
         String parentName
@@ -33,9 +33,9 @@ class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specificat
 
     def "can nest auto creation configure closures"() {
         given:
-        def parent = classGenerator.newInstance(Container, "top", "parent", { name1 ->
-            classGenerator.newInstance(Container, "parent", name1, { name2 ->
-                classGenerator.newInstance(Container, name1, name2, { name3 ->
+        def parent = instantiator.newInstance(Container, "top", "parent", { name1 ->
+            instantiator.newInstance(Container, "parent", name1, { name2 ->
+                instantiator.newInstance(Container, name1, name2, { name3 ->
                     [parentName: name2, name: name3]
                 })
             })
@@ -76,8 +76,8 @@ class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specificat
 
     def "configure like method for object that doesn't support it produces error"() {
         given:
-        def parent = classGenerator.newInstance(Container, "top", "parent", { name1 ->
-            classGenerator.newInstance(Container, "parent", name1, { name2 ->
+        def parent = instantiator.newInstance(Container, "top", "parent", { name1 ->
+            instantiator.newInstance(Container, "parent", name1, { name2 ->
                 [parent: name1, name: name2]
             })
         })

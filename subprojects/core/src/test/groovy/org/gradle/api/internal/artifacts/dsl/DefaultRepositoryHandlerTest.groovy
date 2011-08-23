@@ -28,7 +28,8 @@ import org.gradle.api.artifacts.dsl.IvyArtifactRepository
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
-import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.DirectInstantiator
+import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.util.HashUtil
@@ -49,8 +50,7 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     private DefaultRepositoryHandler repositoryHandler
 
     public ResolverContainer createResolverContainer() {
-        AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
-        repositoryHandler = classGenerator.newInstance(DefaultRepositoryHandler.class, resolverFactoryMock, fileResolver, classGenerator);
+        repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock, fileResolver, new DirectInstantiator());
         return repositoryHandler;
     }
 

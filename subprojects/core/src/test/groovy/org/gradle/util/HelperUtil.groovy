@@ -31,7 +31,6 @@ import org.gradle.BuildResult
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.project.DefaultProject
@@ -54,7 +53,7 @@ class HelperUtil {
 
     public static final Closure TEST_CLOSURE = {}
     public static final Spec TEST_SEPC  = new AndSpec()
-    private static final ClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator()
+    private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator()
     private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(CLASS_GENERATOR))
 
     static <T extends Task> T createTask(Class<T> type) {
