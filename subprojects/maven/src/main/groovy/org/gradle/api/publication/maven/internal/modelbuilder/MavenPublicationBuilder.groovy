@@ -17,7 +17,7 @@
 package org.gradle.api.publication.maven.internal.modelbuilder
 
 import org.gradle.api.Project
-import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
@@ -30,8 +30,8 @@ import org.gradle.api.tasks.bundling.Jar
 class MavenPublicationBuilder {
 
     MavenPublication build(Project project) {
-        DefaultMavenPublication publication = project.services.get(ClassGenerator).newInstance(DefaultMavenPublication)
-        publication.mainArtifact = project.services.get(ClassGenerator).newInstance(DefaultMavenArtifact)
+        DefaultMavenPublication publication = project.services.get(Instantiator).newInstance(DefaultMavenPublication)
+        publication.mainArtifact = project.services.get(Instantiator).newInstance(DefaultMavenArtifact)
         //@Peter, I was prolific with comments because I wasn't sure I'll be able to pair soon. Get rid of comments if you like.
 
         //basic values can be easily extracted from the project:

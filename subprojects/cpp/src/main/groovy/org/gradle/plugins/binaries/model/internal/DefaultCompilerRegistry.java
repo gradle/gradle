@@ -15,16 +15,15 @@
  */
 package org.gradle.plugins.binaries.model.internal;
 
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.plugins.binaries.model.Compiler;
 import org.gradle.plugins.binaries.model.CompilerRegistry;
 
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-
 public class DefaultCompilerRegistry extends DefaultNamedDomainObjectSet<Compiler> implements CompilerRegistry {
 
-    public DefaultCompilerRegistry(ClassGenerator classGenerator) {
-        super(Compiler.class, classGenerator);
+    public DefaultCompilerRegistry(Instantiator instantiator) {
+        super(Compiler.class, instantiator);
     }
 
     public Compiler<?> getDefaultCompiler() {

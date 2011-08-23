@@ -18,19 +18,19 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.file.FileResolver;
 
 public class ClassPathDependencyFactory implements IDependencyImplementationFactory {
     private final ClassPathRegistry classPathRegistry;
-    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
     private final FileResolver fileResolver;
 
-    public ClassPathDependencyFactory(ClassGenerator classGenerator, ClassPathRegistry classPathRegistry,
+    public ClassPathDependencyFactory(Instantiator instantiator, ClassPathRegistry classPathRegistry,
                                       FileResolver fileResolver) {
-        this.classGenerator = classGenerator;
+        this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
     }
@@ -41,7 +41,7 @@ public class ClassPathDependencyFactory implements IDependencyImplementationFact
             DependencyFactory.ClassPathNotation classPathNotation
                     = (DependencyFactory.ClassPathNotation) userDependencyDescription;
             FileCollection files = fileResolver.resolveFiles(classPathRegistry.getClassPathFiles(classPathNotation.name()));
-            return type.cast(classGenerator.newInstance(DefaultSelfResolvingDependency.class, files));
+            return type.cast(instantiator.newInstance(DefaultSelfResolvingDependency.class, files));
         }
         
         throw new IllegalDependencyNotation();

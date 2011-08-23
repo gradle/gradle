@@ -16,12 +16,12 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.Project
-import org.gradle.api.internal.ClassGenerator
-import org.gradle.plugins.ear.EarPlugin
+import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
@@ -51,7 +51,7 @@ class EclipsePlugin extends IdePlugin {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
 
-        project.extensions.add('eclipse', model)
+        project.extensions.eclipse = model
 
         configureEclipseProject(project)
         configureEclipseClasspath(project)
@@ -108,7 +108,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(Project project) {
-        model.classpath = project.services.get(ClassGenerator).newInstance(EclipseClasspath, project)
+        model.classpath = project.services.get(Instantiator).newInstance(EclipseClasspath, project)
         model.classpath.conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
 
         project.plugins.withType(JavaBasePlugin) {

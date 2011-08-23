@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.Instantiator;
+import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.util.ConfigureUtil;
 
@@ -32,16 +32,16 @@ import java.util.Map;
  */
 public class DefaultProjectDependencyFactory implements ProjectDependencyFactory {
     private final ProjectDependenciesBuildInstruction instruction;
-    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
 
-    public DefaultProjectDependencyFactory(ProjectDependenciesBuildInstruction instruction, ClassGenerator classGenerator) {
+    public DefaultProjectDependencyFactory(ProjectDependenciesBuildInstruction instruction, Instantiator instantiator) {
         this.instruction = instruction;
-        this.classGenerator = classGenerator;
+        this.instantiator = instantiator;
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription) throws IllegalDependencyNotation {
         if (userDependencyDescription instanceof Project) {
-            return type.cast(classGenerator.newInstance(DefaultProjectDependency.class, userDependencyDescription, instruction));
+            return type.cast(instantiator.newInstance(DefaultProjectDependency.class, userDependencyDescription, instruction));
         }
         throw new IllegalDependencyNotation();
     }
@@ -51,7 +51,7 @@ public class DefaultProjectDependencyFactory implements ProjectDependencyFactory
         Map<String, Object> args = new HashMap<String, Object>(map);
         String path = getAndRemove(args, "path");
         String configuration = getAndRemove(args, "configuration");
-        ProjectDependency dependency = classGenerator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(path), configuration, instruction);
+        ProjectDependency dependency = instantiator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(path), configuration, instruction);
         ConfigureUtil.configureByMap(args, dependency);
         return dependency;
     }

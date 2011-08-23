@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.DefaultResolverContainer;
 import org.gradle.api.internal.artifacts.ResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
@@ -45,8 +45,8 @@ import java.util.*;
 public class DefaultRepositoryHandler extends DefaultResolverContainer implements RepositoryHandler {
     private final Set<String> repositoryNames = new HashSet<String>();
 
-    public DefaultRepositoryHandler(ResolverFactory resolverFactory, FileResolver fileResolver, ClassGenerator classGenerator) {
-        super(resolverFactory, fileResolver, classGenerator);
+    public DefaultRepositoryHandler(ResolverFactory resolverFactory, FileResolver fileResolver, Instantiator instantiator) {
+        super(resolverFactory, fileResolver, instantiator);
     }
 
     public FileSystemResolver flatDir(Map args) {

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
@@ -30,11 +30,11 @@ import java.io.File;
  */
 public class ProjectFactory implements IProjectFactory {
     private ScriptSource embeddedScript;
-    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
 
-    public ProjectFactory(ScriptSource embeddedScript, ClassGenerator classGenerator) {
+    public ProjectFactory(ScriptSource embeddedScript, Instantiator instantiator) {
         this.embeddedScript = embeddedScript;
-        this.classGenerator = classGenerator;
+        this.instantiator = instantiator;
     }
 
     public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle) {
@@ -48,7 +48,7 @@ public class ProjectFactory implements IProjectFactory {
             source = new UriScriptSource("build file", buildFile);
         }
 
-        DefaultProject project = classGenerator.newInstance(DefaultProject.class,
+        DefaultProject project = instantiator.newInstance(DefaultProject.class,
                 projectDescriptor.getName(),
                 parent,
                 projectDescriptor.getProjectDir(),

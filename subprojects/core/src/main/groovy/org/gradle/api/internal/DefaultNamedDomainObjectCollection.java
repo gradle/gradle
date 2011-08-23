@@ -17,19 +17,21 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.*;
+import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.Namer;
+import org.gradle.api.Rule;
+import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.internal.collections.CollectionEventRegister;
+import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.*;
 
-import org.gradle.api.internal.collections.CollectionFilter;
-import org.gradle.api.internal.collections.CollectionEventRegister;
-
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T> {
 
-    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
     private final Namer<? super T> namer;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
@@ -38,21 +40,21 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final List<Rule> rules = new ArrayList<Rule>();
     private Set<String> applyingRulesFor = new HashSet<String>();
 
-    public DefaultNamedDomainObjectCollection(Class<T> type, Collection<T> store, ClassGenerator classGenerator, Namer<? super T> namer) {
+    public DefaultNamedDomainObjectCollection(Class<T> type, Collection<T> store, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store);
-        this.classGenerator = classGenerator;
+        this.instantiator = instantiator;
         this.namer = namer;
     }
 
-    protected DefaultNamedDomainObjectCollection(Class<T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, ClassGenerator classGenerator, Namer<? super T> namer) {
+    protected DefaultNamedDomainObjectCollection(Class<T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store, eventRegister);
-        this.classGenerator = classGenerator;
+        this.instantiator = instantiator;
         this.namer = namer;
     }
 
     // should be protected, but use of the class generator forces it to be public
-    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, ClassGenerator classGenerator, Namer<? super T> namer) {
-        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), classGenerator, namer);
+    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
+        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), instantiator, namer);
     }
 
     /**
@@ -83,15 +85,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return (Namer)this.namer;
     }
     
-    protected ClassGenerator getClassGenerator() {
-        return classGenerator;
+    protected Instantiator getInstantiator() {
+        return instantiator;
     }
 
     /**
      * Creates a filtered version of this collection.
      */
     protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return classGenerator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, classGenerator, namer);
+        return instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer);
     }
 
     public String getDisplayName() {

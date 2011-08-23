@@ -15,15 +15,13 @@
  */
 package org.gradle.plugins.cpp;
 
+import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-
 import org.gradle.plugins.cpp.internal.DefaultCppSourceSet;
-
-import groovy.lang.Closure;
 
 /**
  * Adds a source set container.
@@ -33,11 +31,11 @@ public class CppExtension {
     final private NamedDomainObjectContainer<CppSourceSet> sourceSets;
 
     public CppExtension(final ProjectInternal project) {
-        ClassGenerator classGenerator = project.getServices().get(ClassGenerator.class);
-        sourceSets = classGenerator.newInstance(
+        Instantiator instantiator = project.getServices().get(Instantiator.class);
+        sourceSets = instantiator.newInstance(
                 FactoryNamedDomainObjectContainer.class,
                 CppSourceSet.class,
-                classGenerator,
+                instantiator,
                 new ReflectiveNamedDomainObjectFactory<CppSourceSet>(DefaultCppSourceSet.class, project)
         );
     }

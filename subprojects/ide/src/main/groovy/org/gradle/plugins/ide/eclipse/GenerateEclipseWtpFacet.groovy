@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
@@ -37,7 +37,7 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
 
     GenerateEclipseWtpFacet() {
         xmlTransformer.indentation = "\t"
-        facet = services.get(ClassGenerator).newInstance(EclipseWtpFacet, new XmlFileContentMerger(xmlTransformer))
+        facet = services.get(Instantiator).newInstance(EclipseWtpFacet, new XmlFileContentMerger(xmlTransformer))
     }
 
     @Override protected WtpFacet create() {

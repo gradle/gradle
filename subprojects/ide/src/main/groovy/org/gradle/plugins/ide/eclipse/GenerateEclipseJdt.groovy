@@ -16,12 +16,12 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt
 import org.gradle.plugins.ide.eclipse.model.Jdt
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
 import org.gradle.util.DeprecationLogger
+import org.gradle.api.internal.Instantiator
 
 /**
  * Generates the Eclipse JDT configuration file. If you want to fine tune the eclipse configuration
@@ -83,6 +83,6 @@ class GenerateEclipseJdt extends GeneratorTask<Jdt> {
                 jdtModel.file.whenMerged.execute(jdtContent)
             }
         }
-        jdt = services.get(ClassGenerator).newInstance(EclipseJdt)
+        jdt = services.get(Instantiator).newInstance(EclipseJdt)
     }
 }

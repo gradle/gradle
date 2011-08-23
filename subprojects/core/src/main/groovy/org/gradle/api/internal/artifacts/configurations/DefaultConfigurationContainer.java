@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.listener.ListenerManager;
 
@@ -38,23 +38,23 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     
     private final IvyService ivyService;
-    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
     private final DomainObjectContext context;
     private final ListenerManager listenerManager;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyService ivyService, ClassGenerator classGenerator, DomainObjectContext context, ListenerManager listenerManager) {
-        super(Configuration.class, classGenerator, new Configuration.Namer());
+    public DefaultConfigurationContainer(IvyService ivyService, Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager) {
+        super(Configuration.class, instantiator, new Configuration.Namer());
         this.ivyService = ivyService;
-        this.classGenerator = classGenerator;
+        this.instantiator = instantiator;
         this.context = context;
         this.listenerManager = listenerManager;
     }
 
     @Override
     protected Configuration doCreate(String name) {
-        return classGenerator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService, listenerManager);
+        return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService, listenerManager);
     }
 
     // Override deprecated version from DomainObjectCollection (through AbstractNamedDomainObjectContainer)
