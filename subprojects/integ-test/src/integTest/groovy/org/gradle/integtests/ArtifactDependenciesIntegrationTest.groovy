@@ -197,19 +197,25 @@ repositories {
 }
 configurations {
     base
-    extended.extendsFrom base
+    extendedWithClassifier.extendsFrom base
     extendedWithOther.extendsFrom base
     justDefault
     justClassifier
+    rawBase
+    rawExtended.extendsFrom rawBase
+    cBase
+    cExtended.extendsFrom cBase
 }
 dependencies {
     base 'org.gradle.test:external1:1.0'
     base 'org.gradle.test:external1:1.0:baseClassifier'
-    extended 'org.gradle.test:external1:1.0:extendedClassifier'
+    extendedWithClassifier 'org.gradle.test:external1:1.0:extendedClassifier'
     extendedWithOther 'org.gradle.test:other:1.0'
     justDefault 'org.gradle.test:external1:1.0'
     justClassifier 'org.gradle.test:external1:1.0:baseClassifier'
     justClassifier 'org.gradle.test:external1:1.0:extendedClassifier'
+    rawBase 'org.gradle.test:external1:1.0'
+    rawExtended 'org.gradle.test:external1:1.0:extendedClassifier'
 }
 
 def checkDeps(config, expectedDependencies) {
@@ -219,9 +225,11 @@ def checkDeps(config, expectedDependencies) {
 task test << {
     checkDeps configurations.base, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar']
     checkDeps configurations.extendedWithOther, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar', 'other-1.0.jar']
-    checkDeps configurations.extended, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+    checkDeps configurations.extendedWithClassifier, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
     checkDeps configurations.justDefault, ['external1-1.0.jar']
     checkDeps configurations.justClassifier, ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+    checkDeps configurations.rawBase, ['external1-1.0.jar']
+    checkDeps configurations.rawExtended, ['external1-1.0.jar', 'external1-1.0-extendedClassifier.jar']
 }
 """
         inTestDirectory().withTasks('test').run()

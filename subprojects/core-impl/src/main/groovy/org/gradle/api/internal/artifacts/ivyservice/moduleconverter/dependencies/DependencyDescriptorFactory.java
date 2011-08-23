@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleDependency;
 
 /**
@@ -25,8 +27,11 @@ import org.gradle.api.artifacts.ModuleDependency;
 public interface DependencyDescriptorFactory {
     String PROJECT_PATH_KEY = "org.gradle.projectPath";
 
-    void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
-                                 ModuleDependency dependency);
+    /** Adds a dependency descriptor, using information in the configuration object to work around ivy limitations */
+    DefaultDependencyDescriptor addDependencyDescriptor(Configuration configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency);
+
+    /** Adds a dependency descriptor where no configuration object is available */
+    DefaultDependencyDescriptor addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency);
 
     ModuleRevisionId createModuleRevisionId(ModuleDependency dependency);
 }
