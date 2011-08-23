@@ -34,7 +34,7 @@ class IvyLocalDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
 repositories {
     ivy {
         name = 'someRepo'
-        artifactPattern "${repo.rootDir}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        artifactPattern "${repo.rootDir.toURI()}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
 configurations { compile }
