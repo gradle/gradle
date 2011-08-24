@@ -409,8 +409,12 @@ def publishedProjects() {
     [project(':core'), project(':toolingApi'), project(':wrapper')]
 }
 
+def internalProjects() {
+    subprojects.findAll { it.name.startsWith("internal-") } + [project(":integTest")]
+}
+
 def runtimeProjects() {
-    groovyProjects() - pluginProjects() - [project(':integTest'), project(':coreImpl'), project(":testing")]
+    groovyProjects() - pluginProjects() - internalProjects() - [project(':coreImpl')]
 }
 
 def pluginProjects() {

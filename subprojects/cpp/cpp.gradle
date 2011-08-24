@@ -19,7 +19,7 @@ apply from: "$rootDir/gradle/integTest.gradle"
 dependencies {
     groovy libraries.groovy_depends
     compile project(':core'), project(":plugins"), project(":ide")
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
     testRuntime project(":maven")
 }
 

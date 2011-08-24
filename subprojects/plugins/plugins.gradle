@@ -36,7 +36,7 @@ dependencies {
     wrapper project(':wrapper')
     testCompile libraries.xmlunit, 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
     testFixtures sourceSets.test.output
 }
 

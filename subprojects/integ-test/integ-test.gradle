@@ -7,7 +7,7 @@ dependencies {
     // TODO - don't include the runtime at compile time. This is here because the Groovy compiler needs the runtime classpath
 //    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
 //    integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
-    integTestCompile project(":testing")
+    integTestCompile project(":internalTesting")
 
     integTestCompile project(':toolingApi')
     integTestCompile project(':launcher')

@@ -19,7 +19,7 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
 
-    testCompile project(":testing"), libraries.slf4j_api
+    testCompile project(":internalTesting"), libraries.slf4j_api
 }
 
 

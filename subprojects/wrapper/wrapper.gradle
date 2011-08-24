@@ -22,5 +22,5 @@ configurations {
 dependencies {
     groovy libraries.groovy_depends
 
-    testCompile project(":testing"), libraries.ant
+    testCompile project(":internalTesting"), libraries.ant
 }

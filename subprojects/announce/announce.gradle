@@ -20,5 +20,5 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
 }

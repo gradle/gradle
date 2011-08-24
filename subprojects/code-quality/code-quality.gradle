@@ -32,5 +32,5 @@ dependencies {
             libraries.antlr,
             "commons-beanutils:commons-beanutils-core:1.8.3@jar"
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
 }

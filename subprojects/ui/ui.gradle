@@ -28,7 +28,7 @@ dependencies {
 
     runtime libraries.jaxen
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
 }
 
 test {

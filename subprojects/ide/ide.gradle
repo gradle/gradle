@@ -28,5 +28,5 @@ dependencies {
     compile libraries.slf4j_api, libraries.jaxen
     compile 'dom4j:dom4j:1.6.1@jar'
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
 }

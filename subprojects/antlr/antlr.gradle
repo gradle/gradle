@@ -26,5 +26,5 @@ dependencies {
             libraries.ant_antlr,
             libraries.antlr
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
 }

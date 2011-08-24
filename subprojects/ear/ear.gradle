@@ -20,5 +20,5 @@ dependencies {
     groovy libraries.groovy_depends
     compile project(':core'), project(":plugins")
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
 }

@@ -52,7 +52,7 @@ dependencies {
 
     compile libraries.ant_launcher
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
 
     excludedInEclipse project(":coreImpl")
 }

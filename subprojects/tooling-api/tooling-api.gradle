@@ -5,5 +5,5 @@ dependencies {
 
     publishCompile project(':core'), project(':wrapper')
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
 }

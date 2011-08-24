@@ -23,6 +23,6 @@ dependencies {
 
     compile 'biz.aQute:bndlib:1.15.0@jar'
 
-    testCompile project(":testing")
+    testCompile project(":internalTesting")
 }
 
