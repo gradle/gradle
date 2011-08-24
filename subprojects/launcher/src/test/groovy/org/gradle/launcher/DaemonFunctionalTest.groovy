@@ -53,14 +53,17 @@ class DaemonFunctionalTest extends Specification {
         when:
         prepare()
         connector = new DaemonConnector(temp.testDir, 500) //0.5 sec expiry time
+        def c = connect()
 
         then:
-        def c = connect()
         poll { assert reg.all.size() == 1 }
 
+        when:
         c.stop()
+
+        then:
         poll {
-            assert reg.all.size() == 1
+            assert reg.idle.size() == 1
         }
 
         poll(2000) {
@@ -98,21 +101,26 @@ class DaemonFunctionalTest extends Specification {
 
     @Timeout(5)
     def "spins new daemon if all are busy"() {
-        expect:
+        when:
         prepare()
 
+        then:
         assert reg.busy.size() == 0
         assert reg.idle.size() == 0
 
+        when:
         def connection = connect()
 
+        then:
         poll {
             assert reg.busy.size() == 1
             assert reg.idle.size() == 0
         }
 
+        when:
         def connectionTwo = connect()
 
+        then:
         poll {
             assert reg.busy.size() == 2
             assert reg.idle.size() == 0
@@ -127,15 +135,18 @@ class DaemonFunctionalTest extends Specification {
 
     @Timeout(5)
     def "registry deletes the bin files"() {
-        expect:
         prepare()
 
         def daemonRegistry = new DaemonRegistry(temp.dir)
         def reg = daemonRegistry.newRegistry();
 
+
         reg.store(new AddressStub());
+
+        when:
         reg.remove();
 
+        then:
         daemonRegistry.all.size() == 0
         //TODO SF - not yet implemented
         //daemonRegistry.registryFolder.list().length == 0
@@ -143,14 +154,17 @@ class DaemonFunctionalTest extends Specification {
 
     @Timeout(5)
     def "cleans up registry"() {
-        expect:
         prepare()
 
+        when:
         def connection = connect()
+        then:
         poll { assert reg.all.size() == 1 }
 
+        when:
         connection.dispatch(new Stop(new GradleLauncherMetaData()))
 
+        then:
         poll {
             assert reg.all.size() == 0
         }
@@ -158,9 +172,10 @@ class DaemonFunctionalTest extends Specification {
 
     @Timeout(5)
     def "stops all daemons"() {
-        when:
         prepare()
         OutputEventListener listener = Mock()
+
+        when:
         def connection = connect()
 
         then:
