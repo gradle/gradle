@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -104,6 +105,7 @@ public class DaemonMain implements Runnable {
                                 LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
                                 unlock(serverControl);
                                 connection.stop();
+                                return;
                             }
                         } catch (BusyException e) {
                             connection.dispatch(new CommandComplete(e));
@@ -185,7 +187,9 @@ public class DaemonMain implements Runnable {
         } catch (ReportedException e) {
             throw e;
         } catch (Throwable throwable) {
-            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter(), command.getClientMetaData());
+            StyledTextOutputFactory outputFactory = loggingServices.get(StyledTextOutputFactory.class);
+            BuildClientMetaData clientMetaData = command.getClientMetaData();
+            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(outputFactory, new StartParameter(), clientMetaData);
             exceptionReporter.reportException(throwable);
             throw new ReportedException(throwable);
         }

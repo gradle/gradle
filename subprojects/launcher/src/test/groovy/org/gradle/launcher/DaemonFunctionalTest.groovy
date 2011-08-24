@@ -171,6 +171,43 @@ class DaemonFunctionalTest extends Specification {
     }
 
     @Timeout(5)
+    def "stops idle daemon"() {
+        prepare()
+        OutputEventListener listener = Mock()
+
+        when:
+        def connection = connect()
+        connection.stop()
+
+        then:
+        poll { assert reg.idle.size() == 1 }
+
+        when:
+        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+
+        then:
+        poll { assert reg.all.size() == 0 }
+    }
+
+    @Timeout(5)
+    def "stops busy daemon"() {
+        prepare()
+        OutputEventListener listener = Mock()
+
+        when:
+        def connection = connect()
+
+        then:
+        poll { assert reg.busy.size() == 1 }
+
+        when:
+        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+
+        then:
+        poll { assert reg.all.size() == 0 }
+    }
+
+    @Timeout(5)
     def "stops all daemons"() {
         prepare()
         OutputEventListener listener = Mock()
