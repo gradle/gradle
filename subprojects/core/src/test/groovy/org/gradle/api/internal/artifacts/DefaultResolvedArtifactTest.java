@@ -15,22 +15,17 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.report.ArtifactDownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.core.resolve.ResolveEngine;
 import org.gradle.api.artifacts.ResolvedDependency;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
-import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import java.io.File;
 
-import static org.gradle.api.artifacts.ArtifactsTestUtils.*;
+import static org.gradle.api.artifacts.ArtifactsTestUtils.createResolvedArtifact;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
