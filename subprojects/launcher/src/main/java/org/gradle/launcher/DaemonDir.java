@@ -24,6 +24,7 @@ import java.io.FilenameFilter;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 /**
  * @author: Szczepan Faber, created at: 8/20/11
@@ -47,10 +48,14 @@ public class DaemonDir {
     }
 
     public List<File> getLogs() {
-        return asList(file.listFiles(new FilenameFilter() {
+        File[] files = file.listFiles(new FilenameFilter() {
             public boolean accept(File file, String s) {
                 return s.startsWith("daemon-") && s.endsWith("out.log");
             }
-        }));
+        });
+        if (files != null) {
+            return asList(files);
+        }
+        return emptyList();
     }
 }

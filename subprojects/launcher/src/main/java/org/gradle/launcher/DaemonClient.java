@@ -80,9 +80,16 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
         LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
         LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
-        Connection<Object> connection = connector.connect();
-        Result result = (Result) run(new Build(action, parameters), connection);
-        return (T) result.getResult();
+        //TODO SF - this needs some sanity check to avoid endless loop in some edge case we don't know about yet
+        while(true) {
+            Connection<Object> connection = connector.connect();
+            try {
+                Result result = (Result) run(new Build(action, parameters), connection);
+                return (T) result.getResult();
+            } catch (BusyException e) {
+                continue;
+            }
+        }
     }
 
     private CommandComplete run(Command command, Connection<Object> connection) {

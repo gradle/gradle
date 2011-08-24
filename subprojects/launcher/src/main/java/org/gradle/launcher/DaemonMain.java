@@ -88,49 +88,68 @@ public class DaemonMain implements Runnable {
         String timeoutProperty = startParameter.getSystemPropertiesArgs().get("idleDaemonTimeout");
         int idleDaemonTimeout = (timeoutProperty != null)? Integer.parseInt(timeoutProperty) : 3 * 60 * 60 * 1000;
 
+        final StoppableExecutor executor = executorFactory.create("DaemonMain executor");
+
         connector.accept(idleDaemonTimeout, new IncomingConnectionHandler() {
-            public void handle(final Connection<Object> connection, final DaemonConnector.CompletionHandler serverControl) {
+            public void handle(final Connection<Object> connection, final CompletionHandler serverControl) {
                 //we're spinning a thread to do work to avoid blocking the connection
-                //This means that the Daemon potentially can have multiple build jobs running.
-                // We're avoiding that situation on a different level but even if things go awry and daemon runs multiple jobs nothing serious happens
-                //When the daemon is busy running a build and the Stop command arrives, the stop command gets its own thread, is executed,
-                // stops the main server thread that eventually make the build thread gone as well.
-                StoppableExecutor executor = executorFactory.create("DaemonMain worker");
+                //This means that the Daemon potentially can have multiple jobs running.
+                //We only allow 2 threads max - one for the build, second for potential Stop request
                 executor.execute(new Runnable() {
                     public void run() {
+                        Command command = null;
                         try {
-                            serverControl.onStartActivity();
-                            doRun(connection, serverControl);
+                            command = lockAndReceive(connection, serverControl);
+                            if (command == null) {
+                                LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
+                                unlock(serverControl);
+                                connection.stop();
+                            }
+                        } catch (BusyException e) {
+                            connection.dispatch(new CommandComplete(e));
+                            return;
+                        }
+                        try {
+                            doRun(connection, serverControl, command);
                         } finally {
-                            serverControl.onActivityComplete();
+                            unlock(serverControl);
                             connection.stop();
                         }
                     }
                 });
             }
         });
+
         executorFactory.stop();
     }
 
-    private void doRun(final Connection<Object> connection, Stoppable serverControl) {
+    private void unlock(CompletionHandler serverControl) {
+        serverControl.onActivityComplete();
+    }
+
+    private void doRun(final Connection<Object> connection, CompletionHandler serverControl, Command command) {
         CommandComplete result = null;
         Throwable failure = null;
         try {
             LoggingOutputInternal loggingOutput = loggingServices.get(LoggingOutputInternal.class);
             OutputEventListener listener = new OutputEventListener() {
                 public void onOutput(OutputEvent event) {
-                    connection.dispatch(event);
+                    try {
+                        connection.dispatch(event);
+                    } catch (Exception e) {
+                        //TODO SF think about it. Do we need this? I was getting 'broken pipe' problems very rarely
+                    }
                 }
             };
 
             // Perform as much as possible of the interaction while the logging is routed to the client
             loggingOutput.addOutputEventListener(listener);
             try {
-                result = doRunWithLogging(connection, serverControl);
+                result = doRunWithLogging(serverControl, command);
             } finally {
                 loggingOutput.removeOutputEventListener(listener);
             }
-        } catch (ReportedException e) {
+         } catch (ReportedException e) {
             failure = e;
         } catch (Throwable throwable) {
             LOGGER.error("Could not execute build.", throwable);
@@ -143,10 +162,24 @@ public class DaemonMain implements Runnable {
         connection.dispatch(result);
     }
 
-    private CommandComplete doRunWithLogging(Connection<Object> connection, Stoppable serverControl) {
-        Command command = (Command) connection.receive();
-        //TODO SF - theoretically the received object may be null (if the client stops the connection perhaps?)
-        //I was able to reproduce it with some functional tests but not any longer it seems.
+    private Command lockAndReceive(Connection<Object> connection, CompletionHandler serverControl) {
+        try {
+            serverControl.onStartActivity();
+            return (Command) connection.receive();
+        } catch (BusyException busy) {
+            Command command = (Command) connection.receive();
+            if (command instanceof Stop) {
+                //that's ok, if the daemon is busy we still want to be able to stop it
+                LOGGER.info("The daemon is busy and Stop command was received. Stopping...");
+                return command;
+            }
+            //otherwise it is a build request and we are already busy
+            LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
+            throw busy;
+        }
+    }
+
+    private CommandComplete doRunWithLogging(Stoppable serverControl, Command command) {
         try {
             return doRunWithExceptionHandling(command, serverControl);
         } catch (ReportedException e) {

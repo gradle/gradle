@@ -23,7 +23,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.ConnectException;
@@ -41,9 +40,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DaemonConnector.class);
@@ -133,9 +129,6 @@ public class DaemonConnector {
 
     /**
      * Starts accepting connections.
-     *
-     * @param idleDaemonTimeout
-     * @param handler The handler for connections.
      */
     void accept(int idleDaemonTimeout, final IncomingConnectionHandler handler) {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
@@ -166,87 +159,5 @@ public class DaemonConnector {
 
     DaemonRegistry getDaemonRegistry() {
         return daemonRegistry;
-    }
-
-    public static class CompletionHandler implements Stoppable {
-
-        private final Lock lock = new ReentrantLock();
-        private final Condition condition = lock.newCondition();
-        private boolean running;
-        private boolean stopped;
-        private long expiry;
-        private final int idleDaemonTimeout;
-        private final DaemonRegistry.Registry registryFile;
-
-        CompletionHandler(int idleDaemonTimeout, DaemonRegistry.Registry registryFile) {
-            this.idleDaemonTimeout = idleDaemonTimeout;
-            this.registryFile = registryFile;
-            resetTimer();
-        }
-
-        /**
-         * Waits until stopped, or timeout.
-         *
-         * @return true if stopped, false if timeout
-         */
-        public boolean awaitStop() {
-            lock.lock();
-            try {
-                while (running || (!stopped && System.currentTimeMillis() < expiry)) {
-                    try {
-                        if (running) {
-                            condition.await();
-                        } else {
-                            condition.awaitUntil(new Date(expiry));
-                        }
-                    } catch (InterruptedException e) {
-                        throw UncheckedException.asUncheckedException(e);
-                    }
-                }
-                assert !running;
-                return stopped;
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        public void stop() {
-            lock.lock();
-            try {
-                stopped = true;
-                condition.signalAll();
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        public void onStartActivity() {
-            lock.lock();
-            try {
-                assert !running;
-                running = true;
-                condition.signalAll();
-                registryFile.markBusy();
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        public void onActivityComplete() {
-            lock.lock();
-            try {
-                assert running;
-                running = false;
-                resetTimer();
-                condition.signalAll();
-                registryFile.markIdle();
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        private void resetTimer() {
-            expiry = System.currentTimeMillis() + idleDaemonTimeout;
-        }
     }
 }

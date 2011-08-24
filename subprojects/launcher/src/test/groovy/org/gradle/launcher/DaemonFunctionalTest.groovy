@@ -45,8 +45,10 @@ class DaemonFunctionalTest extends Specification {
 
     def cleanup() {
         cleanMe.each { it.stop() }
+        printDaemonLog()
     }
 
+    @Timeout(5) //healthy timeout just in case
     def "daemons expire"() {
         when:
         prepare()
@@ -66,28 +68,35 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
+    @Timeout(5)
     def "knows status of the daemon"() {
-        expect:
+        when:
         prepare()
 
+        then:
         assert reg.busy.size() == 0
         assert reg.idle.size() == 0
 
+        when:
         def connection = connect()
 
+        then:
         poll {
             assert reg.busy.size() == 1
             assert reg.idle.size() == 0
         }
 
+        when:
         connection.stop();
 
+        then:
         poll {
             assert reg.busy.size() == 0
             assert reg.idle.size() == 1
         }
     }
 
+    @Timeout(5)
     def "spins new daemon if all are busy"() {
         expect:
         prepare()
@@ -116,6 +125,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
+    @Timeout(5)
     def "registry deletes the bin files"() {
         expect:
         prepare()
@@ -131,6 +141,7 @@ class DaemonFunctionalTest extends Specification {
         //daemonRegistry.registryFolder.list().length == 0
     }
 
+    @Timeout(5)
     def "cleans up registry"() {
         expect:
         prepare()
@@ -145,32 +156,42 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(10) //healthy timeout just in case
+    @Timeout(5)
     def "stops all daemons"() {
-        expect:
+        when:
         prepare()
-
         OutputEventListener listener = Mock()
-
         def connection = connect()
+
+        then:
         poll { assert reg.busy.size() == 1 }
 
+        when:
         def connectionTwo = connect()
+
+        then:
         poll { assert reg.busy.size() == 2 }
 
+        when:
         def connectionThree = connect()
+
+        then:
         poll { assert reg.busy.size() == 3 }
 
+        when:
         connectionTwo.stop()
         connectionThree.stop()
 
+        then:
         poll {
             assert reg.idle.size() == 2
             assert reg.busy.size() == 1
         }
 
+        when:
         new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
 
+        then:
         poll {
             assert reg.all.size() == 0
         }
@@ -187,7 +208,7 @@ class DaemonFunctionalTest extends Specification {
         reg.daemonDir.logs.each {
             println ""
             println "*** daemon #$i log:"
-            println it
+            println it.text
             i++
         }
     }
