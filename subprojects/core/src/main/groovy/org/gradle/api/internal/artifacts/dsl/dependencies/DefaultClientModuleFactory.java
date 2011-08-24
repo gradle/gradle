@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import groovy.lang.GString;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 
 import java.util.Map;
@@ -28,11 +28,11 @@ import java.util.Map;
  */
 public class DefaultClientModuleFactory implements IDependencyImplementationFactory {
     private final MapModuleNotationParser mapNotationParser;
-    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
 
-    public DefaultClientModuleFactory(ClassGenerator classGenerator) {
-        this.classGenerator = classGenerator;
-        mapNotationParser = new MapModuleNotationParser(classGenerator);
+    public DefaultClientModuleFactory(Instantiator instantiator) {
+        this.instantiator = instantiator;
+        mapNotationParser = new MapModuleNotationParser(instantiator);
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
@@ -47,7 +47,7 @@ public class DefaultClientModuleFactory implements IDependencyImplementationFact
 
     private DefaultClientModule createDependencyFromString(String notation) {
         ParsedModuleStringNotation parsedNotation = new ParsedModuleStringNotation(notation, null);
-        DefaultClientModule clientModule = classGenerator.newInstance(DefaultClientModule.class,
+        DefaultClientModule clientModule = instantiator.newInstance(DefaultClientModule.class,
                 parsedNotation.getGroup(), parsedNotation.getName(), parsedNotation.getVersion());
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(clientModule, null, parsedNotation.getClassifier());
         return clientModule;

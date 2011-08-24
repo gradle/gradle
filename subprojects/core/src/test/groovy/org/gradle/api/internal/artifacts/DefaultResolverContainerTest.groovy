@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts
 
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolverContainer
@@ -25,7 +26,6 @@ import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
-import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
@@ -34,7 +34,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.Action
+import org.gradle.api.internal.Instantiator
 
 /**
  * @author Hans Dockter
@@ -62,7 +62,7 @@ class DefaultResolverContainerTest {
     FileResolver fileResolver = context.mock(FileResolver.class)
 
     ResolverContainer createResolverContainer() {
-        return new DefaultResolverContainer(resolverFactoryMock, fileResolver, context.mock(ClassGenerator.class))
+        return new DefaultResolverContainer(resolverFactoryMock, fileResolver, context.mock(Instantiator.class))
     }
 
     @Before public void setUp() {

@@ -15,70 +15,37 @@
  */
 package org.gradle.integtests.maven
 
-import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
-
-import spock.lang.*
+import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class BadPomFileDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("http://issues.gradle.org/browse/GRADLE-1005")
     def "can handle self referencing dependency"() {
         given:
-        file("settings.gradle") << "include 'producer', 'client'"
+        file("settings.gradle") << "include 'client'"
 
         and:
-        file("producer", "build.gradle") << """
-            apply plugin: "java"
-            group = "group"
-            archivesBaseName = "artifact"
-            version = 1.0
-        """
+        mavenRepo.module('group', 'artifact', '1.0').dependsOn('group', 'artifact', '1.0').publishArtifact()
 
-        file("producer", "src", "main", "java", "pkg", "Hello.java") << "package pkg; public class Hello { public static final String HELLO = \"hello\"; }"
-
-        expect:
-        succeeds "producer:jar"
-
-        when:
-        def repoDir = file("repo/group/artifact/1.0")
-        repoDir.mkdirs()
-
-        file("producer/build/libs/artifact-1.0.jar").copyTo(repoDir.file("artifact-1.0.jar"))
-
-        repoDir.file("artifact-1.0.pom") << """
-            <project>
-              <modelVersion>4.0.0</modelVersion>
-              <groupId>group</groupId>
-              <artifactId>artifact</artifactId>
-              <name>artifact</name>
-              <version>1.0</version>
-              <dependencies>
-                <dependency>
-                  <groupId>group</groupId>
-                  <artifactId>artifact</artifactId>
-                  <version>1.0</version>
-                </dependency>
-              </dependencies>
-            </project>
-        """
-
-        file("client", "build.gradle") << """
-            apply plugin: "java"
+        and:
+        buildFile << """
             repositories {
-                mavenRepo urls: "file://\${new File(rootDir, "repo").absolutePath}"
+                mavenRepo urls: "${mavenRepo.rootDir.toURI()}"
             }
+            configurations { compile }
             dependencies {
                 compile "group:artifact:1.0"
             }
+            task libs << { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar'] }
         """
 
-        file("client", "src", "main", "java", "Test.java") << """public class Test {
-            public static final String CONST = pkg.Hello.HELLO;
-        }"""
-
-        then:
-        succeeds ":client:classes"
+        expect:
+        succeeds ":libs"
     }
 
+    MavenRepository getMavenRepo() {
+        return new MavenRepository(file('repo'))
+    }
 }

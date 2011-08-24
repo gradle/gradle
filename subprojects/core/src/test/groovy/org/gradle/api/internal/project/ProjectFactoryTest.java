@@ -20,9 +20,9 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -62,7 +62,7 @@ public class ProjectFactoryTest {
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
     private StartParameter startParameterStub = new StartParameter();
     private ServiceRegistryFactory serviceRegistryFactory = new TestTopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameterStub, rootDir);
-    private ClassGenerator classGeneratorMock = serviceRegistryFactory.get(ClassGenerator.class);
+    private Instantiator instantiatorMock = serviceRegistryFactory.get(Instantiator.class);
     private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;
@@ -89,7 +89,7 @@ public class ProjectFactoryTest {
             ignoring(gradle).getProjectEvaluationBroadcaster();
         }});
 
-        projectFactory = new ProjectFactory(null, classGeneratorMock);
+        projectFactory = new ProjectFactory(null, instantiatorMock);
     }
 
     @Test
@@ -167,7 +167,7 @@ public class ProjectFactoryTest {
     public void testConstructsRootProjectWithEmbeddedBuildScript() {
         ScriptSource expectedScriptSource = new StringScriptSource("script", "content");
 
-        ProjectFactory projectFactory = new ProjectFactory(expectedScriptSource, classGeneratorMock);
+        ProjectFactory projectFactory = new ProjectFactory(expectedScriptSource, instantiatorMock);
 
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, gradle);
 

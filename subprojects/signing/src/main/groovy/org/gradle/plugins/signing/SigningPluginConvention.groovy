@@ -16,13 +16,9 @@
 package org.gradle.plugins.signing
 
 import org.gradle.api.artifacts.PublishArtifact
-
-import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.ClassGenerator
-
-import org.gradle.plugins.signing.signatory.*
-
 import org.gradle.api.artifacts.maven.MavenDeployment
+import org.gradle.api.internal.Instantiator
+import org.gradle.util.ConfigureUtil
 
 class SigningPluginConvention {
     
@@ -171,7 +167,7 @@ class SigningPluginConvention {
     }
     
     protected SignOperation doSignOperation(Closure setup) {
-        def operation = settings.project.services.get(ClassGenerator).newInstance(SignOperation)
+        def operation = settings.project.services.get(Instantiator).newInstance(SignOperation)
         settings.addSignatureSpecConventions(operation)
         operation.configure(setup)
         operation.execute()

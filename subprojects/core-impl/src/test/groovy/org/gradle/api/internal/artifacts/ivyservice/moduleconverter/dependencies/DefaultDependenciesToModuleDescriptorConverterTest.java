@@ -114,9 +114,8 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
 
     private void associateDependencyWithDescriptor(final ModuleDependency dependency, final DefaultModuleDescriptor parent,
                                                    final Configuration configuration) {
-        final String configurationName = configuration.getName();
         context.checking(new Expectations() {{
-            allowing(dependencyDescriptorFactoryStub).addDependencyDescriptor(with(equal(configurationName)),
+            allowing(dependencyDescriptorFactoryStub).addDependencyDescriptor(with(sameInstance(configuration)),
                     with(equal(parent)), with(sameInstance(dependency)));
         }});
     }

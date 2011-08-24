@@ -43,12 +43,32 @@ class MavenRemoteDependencyResolutionIntegrationTest {
     @Test
     public void "uses cached snapshot resolved from a Maven HTTP repository until the snapshot timeout is reached"() {
         dist.requireOwnUserHomeDir()
+        server.start()
 
-        def producerProject = dist.testFile('producer.gradle')
-        def consumerProject = dist.testFile('projectWithMavenSnapshots.gradle')
+        dist.testFile('build.gradle') << """
+repositories {
+    mavenRepo(urls: "http://localhost:${server.port}/repo") {
+        if (project.hasProperty('noTimeout')) {
+            setSnapshotTimeout(0)
+        }
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile "org.gradle:testproject:1.0-SNAPSHOT"
+}
+
+task retrieve(type: Sync) {
+    into 'build'
+    from configurations.compile
+}
+"""
 
         // Publish the first snapshot
-        executer.usingBuildScript(producerProject).withTasks('uploadArchives').run()
+        def module = repo().module("org.gradle", "testproject", "1.0-SNAPSHOT")
+        module.publishArtifact()
 
         // Retrieve the first snapshot
         def repoDir = dist.testFile('repo/org/gradle/testproject/1.0-SNAPSHOT')
@@ -82,19 +102,16 @@ class MavenRemoteDependencyResolutionIntegrationTest {
         server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-src.jar")
         server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-javadoc.jar")
 
-        server.start()
-        String repoUrl = "-PrepoUrl=http://localhost:${server.port}/repo"
-
-        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments(repoUrl).run()
+        executer.withTasks('retrieve').run()
         def jarFile = dist.testFile('build/testproject-1.0-SNAPSHOT.jar')
-        def snapshot = jarFile.assertIsFile().snapshot()
+        jarFile.assertIsCopyOf(module.artifactFile)
+        def snapshot = jarFile.snapshot()
 
         // Publish the second snapshot
-        Thread.sleep(1100)
-        executer.usingBuildScript(producerProject).withTasks('uploadArchives').withArguments("-PemptyJar").run()
+        module.publishWithChangedContent()
 
         // Retrieve again should use cached snapshot, and should not hit the server
-        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments(repoUrl).run().assertTasksSkipped(':retrieve')
+        executer.withTasks('retrieve').run().assertTasksSkipped(':retrieve')
         jarFile.assertHasNotChangedSince(snapshot)
 
         // Retrieve again with zero timeout should download and use updated snapshot
@@ -128,19 +145,37 @@ class MavenRemoteDependencyResolutionIntegrationTest {
         server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-src.jar")
         server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-javadoc.jar")
 
-        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments("-PnoTimeout", repoUrl).run().assertTasksNotSkipped(':retrieve')
-        jarFile.assertHasChangedSince(snapshot)
+        executer.withTasks('retrieve').withArguments("-PnoTimeout").run().assertTasksNotSkipped(':retrieve')
+        jarFile.assertIsCopyOf(module.artifactFile)
     }
 
     @Test
     public void "does not download snapshot artifacts after expiry when snapshot has not changed"() {
         dist.requireOwnUserHomeDir()
+        server.start()
 
-        def producerProject = dist.testFile('producer.gradle')
-        def consumerProject = dist.testFile('projectWithMavenSnapshots.gradle')
+        dist.testFile('build.gradle') << """
+repositories {
+    mavenRepo(urls: "http://localhost:${server.port}/repo") {
+        setSnapshotTimeout(0)
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile "org.gradle:testproject:1.0-SNAPSHOT"
+}
+
+task retrieve(type: Sync) {
+    into 'build'
+    from configurations.compile
+}
+"""
 
         // Publish the first snapshot
-        executer.usingBuildScript(producerProject).withTasks('uploadArchives').run()
+        def module = repo().module("org.gradle", "testproject", "1.0-SNAPSHOT")
+        module.publishArtifact()
 
         // Retrieve the first snapshot
         def repoDir = dist.testFile('repo/org/gradle/testproject/1.0-SNAPSHOT')
@@ -174,11 +209,9 @@ class MavenRemoteDependencyResolutionIntegrationTest {
         server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-src.jar")
         server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-javadoc.jar")
 
-        server.start()
-        String repoUrl = "-PrepoUrl=http://localhost:${server.port}/repo"
-
-        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments(repoUrl).run()
+        executer.withTasks('retrieve').run()
         def jarFile = dist.testFile('build/testproject-1.0-SNAPSHOT.jar')
+        jarFile.assertIsCopyOf(module.artifactFile)
         def snapshot = jarFile.assertIsFile().snapshot()
 
         // Retrieve again with zero timeout should check for updated snapshot
@@ -193,7 +226,7 @@ class MavenRemoteDependencyResolutionIntegrationTest {
         server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5")
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
 
-        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments("-PnoTimeout", repoUrl).run().assertTasksSkipped(':retrieve')
+        executer.withTasks('retrieve').run().assertTasksSkipped(':retrieve')
         jarFile.assertHasNotChangedSince(snapshot)
     }
 

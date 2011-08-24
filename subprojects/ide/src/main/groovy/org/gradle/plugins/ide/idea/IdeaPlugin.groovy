@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
@@ -44,7 +44,7 @@ class IdeaPlugin extends IdePlugin {
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
 
         model = new IdeaModel()
-        project.extensions.add('idea', model)
+        project.extensions.idea = model
 
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
@@ -80,7 +80,7 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaModule(Project project) {
         def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) {
             def iml = new IdeaModuleIml(xmlTransformer, project.projectDir)
-            module = services.get(ClassGenerator).newInstance(IdeaModule, project, iml)
+            module = services.get(Instantiator).newInstance(IdeaModule, project, iml)
 
             model.module = module
 
@@ -107,7 +107,7 @@ class IdeaPlugin extends IdePlugin {
         if (isRoot(project)) {
             def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
                 def ipr = new XmlFileContentMerger(xmlTransformer)
-                ideaProject = services.get(ClassGenerator).newInstance(IdeaProject, ipr)
+                ideaProject = services.get(Instantiator).newInstance(IdeaProject, ipr)
 
                 model.project = ideaProject
 

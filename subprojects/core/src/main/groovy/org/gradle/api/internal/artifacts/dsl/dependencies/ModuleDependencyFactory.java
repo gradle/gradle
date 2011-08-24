@@ -16,26 +16,26 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.GString;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class ModuleDependencyFactory implements IDependencyImplementationFactory {
     private final MapModuleNotationParser mapNotationParser;
-    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
 
-    public ModuleDependencyFactory(ClassGenerator classGenerator) {
-        this.classGenerator = classGenerator;
-        mapNotationParser = new MapModuleNotationParser(classGenerator);
+    public ModuleDependencyFactory(Instantiator instantiator) {
+        this.instantiator = instantiator;
+        mapNotationParser = new MapModuleNotationParser(instantiator);
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
@@ -52,7 +52,7 @@ public class ModuleDependencyFactory implements IDependencyImplementationFactory
 
     private DefaultExternalModuleDependency createDependencyFromString(String notation) {
         ParsedModuleStringNotation parsedNotation = splitDescriptionIntoModuleNotationAndArtifactType(notation);
-        DefaultExternalModuleDependency moduleDependency = classGenerator.newInstance(
+        DefaultExternalModuleDependency moduleDependency = instantiator.newInstance(
                 DefaultExternalModuleDependency.class, parsedNotation.getGroup(), parsedNotation.getName(),
                 parsedNotation.getVersion());
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(),

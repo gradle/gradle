@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.Namer;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Namer;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolverContainer;
@@ -27,8 +27,8 @@ import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
@@ -55,8 +55,8 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<Depend
 
     private ConfigurationContainer configurationContainer;
 
-    public DefaultResolverContainer(ResolverFactory resolverFactory, FileResolver fileResolver, ClassGenerator classGenerator) {
-        super(DependencyResolver.class, classGenerator, new DependencyResolverNamer());
+    public DefaultResolverContainer(ResolverFactory resolverFactory, FileResolver fileResolver, Instantiator instantiator) {
+        super(DependencyResolver.class, instantiator, new DependencyResolverNamer());
         this.resolverFactory = resolverFactory;
         this.fileResolver = fileResolver;
     }

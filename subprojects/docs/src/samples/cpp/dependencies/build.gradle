@@ -1,21 +1,31 @@
 project(":lib") {
+    // START SNIPPET use-plugin-lib
     apply plugin: "cpp-lib"
+    // END SNIPPET use-plugin-lib
     apply plugin: "eclipse-cdt"
     apply plugin: 'maven'
 
-    version = 1.0
 
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                repository(url: uri("${buildDir}/repo"))
-            }
+// START SNIPPET upload
+group = "some-org"
+archivesBaseName = "some-lib"
+version = 1.0
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri("${buildDir}/repo"))
         }
     }
 }
+// END SNIPPET upload
+
+}
 
 project(":exe") {
+    // START SNIPPET use-plugin-exe
     apply plugin: "cpp-exe"
+    // END SNIPPET use-plugin-exe
     apply plugin: "eclipse-cdt"
     apply plugin: "maven"
 
@@ -25,13 +35,15 @@ project(":exe") {
         mavenRepo urls: "file://${new File(project(":lib").buildDir, "repo").absolutePath}"
     }
 
-    cpp {
-        sourceSets {
-            main {
-                dependency group: "dependencies", name: "lib", version: "1.0"
-            }
+// START SNIPPET declaring-dependencies
+cpp {
+    sourceSets {
+        main {
+            dependency group: "some-org", name: "some-lib", version: "1.0"
         }
     }
+}
+// END SNIPPET declaring-dependencies
     
     uploadArchives {
         repositories {

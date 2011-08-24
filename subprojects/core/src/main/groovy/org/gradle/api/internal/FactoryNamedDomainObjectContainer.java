@@ -30,44 +30,44 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * <p>The type must implement the {@link Named} interface as a {@link Namer} will be created based on this type.</p>
      *
      * @param type The concrete type of element in the container (must implement {@link Named})
-     * @param classGenerator The class generator to use to create any other collections based on this one
+     * @param instantiator The instantiator to use to create any other collections based on this one
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator) {
-        this(type, classGenerator, Named.Namer.forType(type));
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
+        this(type, instantiator, Named.Namer.forType(type));
     }
 
     /**
      * <p>Creates a container that instantiates reflectively, expecting a 1 arg constructor taking the name.<p>
      *
      * @param type The concrete type of element in the container (must implement {@link Named})
-     * @param classGenerator The class generator to use to create any other collections based on this one
+     * @param instantiator The instantiator to use to create any other collections based on this one
      * @param namer The naming strategy to use
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer) {
-        this(type, classGenerator, namer, new ReflectiveNamedDomainObjectFactory<T>(type));
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
+        this(type, instantiator, namer, new ReflectiveNamedDomainObjectFactory<T>(type));
     }
 
     /**
      * <p>Creates a container that instantiates using the given factory.<p>
      *
      * @param type The concrete type of element in the container (must implement {@link Named})
-     * @param classGenerator The class generator to use to create any other collections based on this one
+     * @param instantiator The instantiator to use to create any other collections based on this one
      * @param factory The factory responsible for creating new instances on demand
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, NamedDomainObjectFactory<T> factory) {
-        this(type, classGenerator, Named.Namer.forType(type), factory);
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, NamedDomainObjectFactory<T> factory) {
+        this(type, instantiator, Named.Namer.forType(type), factory);
     }
 
     /**
      * <p>Creates a container that instantiates using the given factory.<p>
      *
      * @param type The concrete type of element in the container
-     * @param classGenerator The class generator to use to create any other collections based on this one
+     * @param instantiator The instantiator to use to create any other collections based on this one
      * @param namer The naming strategy to use
      * @param factory The factory responsible for creating new instances on demand
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, NamedDomainObjectFactory<T> factory) {
-        super(type, classGenerator, namer);
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, NamedDomainObjectFactory<T> factory) {
+        super(type, instantiator, namer);
         this.factory = factory;
     }
 
@@ -75,23 +75,23 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * <p>Creates a container that instantiates using the given factory.<p>
      *
      * @param type The concrete type of element in the container (must implement {@link Named})
-     * @param classGenerator The class generator to use to create any other collections based on this one
+     * @param instantiator The instantiator to use to create any other collections based on this one
      * @param factoryClosure The closure responsible for creating new instances on demand
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, final Closure factoryClosure) {
-        this(type, classGenerator, Named.Namer.forType(type), factoryClosure);
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, final Closure factoryClosure) {
+        this(type, instantiator, Named.Namer.forType(type), factoryClosure);
     }
 
     /**
      * <p>Creates a container that instantiates using the given factory.<p>
      *
      * @param type The concrete type of element in the container
-     * @param classGenerator The class generator to use to create any other collections based on this one
+     * @param instantiator The instantiator to use to create any other collections based on this one
      * @param namer The naming strategy to use
-     * @param factory The factory responsible for creating new instances on demand
+     * @param factoryClosure The factory responsible for creating new instances on demand
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, Namer<? super T> namer, final Closure factoryClosure) {
-        this(type, classGenerator, namer, new ClosureObjectFactory<T>(type, factoryClosure));
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, final Closure factoryClosure) {
+        this(type, instantiator, namer, new ClosureObjectFactory<T>(type, factoryClosure));
     }
 
     @Override

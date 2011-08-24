@@ -15,17 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 
 public class SelfResolvingDependencyFactory implements IDependencyImplementationFactory {
-    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
 
-    public SelfResolvingDependencyFactory(ClassGenerator classGenerator) {
-        this.classGenerator = classGenerator;
+    public SelfResolvingDependencyFactory(Instantiator instantiator) {
+        this.instantiator = instantiator;
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription)
@@ -35,6 +35,6 @@ public class SelfResolvingDependencyFactory implements IDependencyImplementation
         }
 
         FileCollection fileCollection = (FileCollection) userDependencyDescription;
-        return type.cast(classGenerator.newInstance(DefaultSelfResolvingDependency.class, fileCollection));
+        return type.cast(instantiator.newInstance(DefaultSelfResolvingDependency.class, fileCollection));
     }
 }

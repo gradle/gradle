@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal
 
-import spock.lang.Specification
+import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer
-import org.gradle.api.Named
+import spock.lang.Specification
 
 class FactoryNamedDomainObjectContainerSpec extends Specification {
     final NamedDomainObjectFactory<String> factory = Mock()
-    final ClassGenerator classGenerator = Mock()
+    final Instantiator instantiator = Mock()
     final namer = { it } as Namer
     
     def usesFactoryToCreateContainerElements() {
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, classGenerator, namer, factory)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory)
 
         when:
         def result = container.create('a')
@@ -38,7 +38,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     def usesPublicConstructorWhenNoFactorySupplied() {
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, classGenerator, namer)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer)
 
         when:
         def result = container.create('a')
@@ -50,7 +50,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
 
     def usesClosureToCreateContainerElements() {
         def cl = { name -> "element $name" as String }
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, classGenerator, namer, cl)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, cl)
 
         when:
         def result = container.create('a')
@@ -71,7 +71,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     protected getInstance(name) {
-        new FactoryNamedDomainObjectContainer(type, classGenerator, new ReflectiveNamedDomainObjectFactory(type, *extraArgs)).create(name)
+        new FactoryNamedDomainObjectContainer(type, instantiator, new ReflectiveNamedDomainObjectFactory(type, *extraArgs)).create(name)
     }
 
     static class JustName implements Named {

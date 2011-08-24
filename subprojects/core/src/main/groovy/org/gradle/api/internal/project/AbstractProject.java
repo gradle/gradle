@@ -928,18 +928,18 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
-        ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
-        return classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, type, classGenerator, new DynamicPropertyNamer());
+        Instantiator instantiator = getServices().get(Instantiator.class);
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer());
     }
 
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
-        ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
-        return classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, type, classGenerator, new DynamicPropertyNamer(), factory);
+        Instantiator instantiator = getServices().get(Instantiator.class);
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factory);
     }
 
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
-        ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
-        return classGenerator.newInstance(FactoryNamedDomainObjectContainer.class, type, classGenerator, new DynamicPropertyNamer(), factoryClosure);
+        Instantiator instantiator = getServices().get(Instantiator.class);
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure);
     }
 
     public ExtensionContainer getExtensions() {

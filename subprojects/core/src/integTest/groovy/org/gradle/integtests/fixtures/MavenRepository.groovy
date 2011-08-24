@@ -16,9 +16,10 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
+import java.text.SimpleDateFormat
 
 class MavenRepository {
-    private final TestFile rootDir
+    final TestFile rootDir
 
     MavenRepository(TestFile rootDir) {
         this.rootDir = rootDir
@@ -38,7 +39,9 @@ class MavenModule {
     final String type
     private final List dependencies = []
     final String classifier
-    int publishCount = 0
+    int publishCount = 1
+    final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
+    final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
 
     MavenModule(TestFile moduleDir, String groupId, String artifactId, String version, String classifier = null, String type = 'jar') {
         this.moduleDir = moduleDir
@@ -68,14 +71,14 @@ class MavenModule {
     }
 
     File getPomFile() {
-        return new File(moduleDir, "$artifactId-${version}.pom")
+        return new File(moduleDir, "$artifactId-${publishArtifactVersion}.pom")
     }
 
 
     TestFile getArtifactFile() {
-        def fileName = "$artifactId-${version}.${type}"
+        def fileName = "$artifactId-${publishArtifactVersion}.${type}"
         if (classifier) {
-            fileName = "$artifactId-$version-${classifier}.${type}"
+            fileName = "$artifactId-$publishArtifactVersion-${classifier}.${type}"
         }
         return moduleDir.file(fileName)
     }
@@ -85,8 +88,34 @@ class MavenModule {
         publishArtifact()
     }
 
+    String getPublishArtifactVersion() {
+        return version.endsWith("-SNAPSHOT") ? "${version.replaceFirst('-SNAPSHOT$', '')}-${timestampFormat.format(publishTimestamp)}-${publishCount}" : version
+    }
+
+    Date getPublishTimestamp() {
+        return new Date(updateFormat.parse("20100101120000").time + publishCount * 1000)
+    }
+
     File publishArtifact() {
         moduleDir.createDir()
+
+        if (version.endsWith("-SNAPSHOT")) {
+            def metaDataFile = moduleDir.file('maven-metadata.xml')
+            metaDataFile.text = """
+<metadata>
+  <groupId>$groupId</groupId>
+  <artifactId>$artifactId</artifactId>
+  <version>$version</version>
+  <versioning>
+    <snapshot>
+      <timestamp>${timestampFormat.format(publishTimestamp)}</timestamp>
+      <buildNumber>$publishCount</buildNumber>
+    </snapshot>
+    <lastUpdated>${updateFormat.format(publishTimestamp)}</lastUpdated>
+  </versioning>
+</metadata>
+"""
+        }
 
         pomFile.text = ""
         pomFile << """
