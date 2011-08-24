@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/integTest.gradle"
-
-dependencies {
-    compile project(':core')
-    compile project(':openApi')
-
-    groovy libraries.groovy_depends
-
-    compile libraries.dom4j,
-            libraries.commons_io,
-            libraries.slf4j_api
-
-    runtime libraries.jaxen
-
-    testCompile project(":testing")
-}
-
-test {
-    jvmArgs '-Xms128m', '-Xmx256m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
-}
+/**
+ * Utilities for testing
+ */
+package org.gradle.api.util;

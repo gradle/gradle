@@ -15,8 +15,7 @@ dependencies {
 
     startScriptGenerator project(':plugins')
 
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+    testCompile project(":testing")
 }
 
 jar.manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")

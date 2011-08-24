@@ -23,10 +23,10 @@ import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifactTest;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
+import static org.gradle.api.artifacts.ArtifactsTestUtils.createResolvedArtifact;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -94,15 +94,15 @@ public class DefaultIvyDependencyResolverTest {
 
         context.checking(new Expectations() {{
             allowing(resolvedDependency1).getParentArtifacts(root);
-            will(returnValue(toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "dep1parent", "someType", "someExtension", new File("dep1parent")))));
+            will(returnValue(toSet(createResolvedArtifact(context, "dep1parent", "someType", "someExtension", new File("dep1parent")))));
             allowing(resolvedDependency1).getModuleArtifacts();
-            will(returnValue(toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "dep1", "someType", "someExtension", new File("dep1")))));
+            will(returnValue(toSet(createResolvedArtifact(context, "dep1", "someType", "someExtension", new File("dep1")))));
             allowing(resolvedDependency1).getChildren();
             will(returnValue(toSet()));
             allowing(resolvedDependency2).getParentArtifacts(root);
             will(returnValue(toSet()));
             allowing(resolvedDependency2).getModuleArtifacts();
-            will(returnValue(toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "dep2", "someType", "someExtension", new File("dep2")))));
+            will(returnValue(toSet(createResolvedArtifact(context, "dep2", "someType", "someExtension", new File("dep2")))));
             allowing(resolvedDependency2).getChildren();
             will(returnValue(toSet()));
             allowing(configurationStub).getAllDependencies();

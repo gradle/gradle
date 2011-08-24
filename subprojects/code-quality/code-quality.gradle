@@ -32,6 +32,5 @@ dependencies {
             libraries.antlr,
             "commons-beanutils:commons-beanutils-core:1.8.3@jar"
 
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+    testCompile project(":testing")
 }

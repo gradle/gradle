@@ -22,7 +22,6 @@ dependencies {
     compile "org.bouncycastle:bcpg-jdk15:1.45"
     compile project(":plugins")
     
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime'), project(":maven")
-    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    testCompile project(":testing")
+    testRuntime project(":maven")
 }

@@ -20,16 +20,6 @@ apply plugin: 'groovy'
 apply from: "$rootDir/gradle/integTest.gradle"
 
 configurations {
-    testFixtures
-    testFixturesRuntime {
-        extendsFrom testFixtures, testRuntime
-    }
-    integTestFixtures {
-        extendsFrom testFixtures
-    }
-    integTestFixturesRuntime {
-        extendsFrom integTestFixtures, integTestRuntime
-    }
     excludedInEclipse
 }
 
@@ -60,18 +50,9 @@ dependencies {
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 
-    // tried with scope 'runtime' but this gives a cyclic task dependency
-    testRuntime project(":coreImpl")
-    testRuntime 'xerces:xercesImpl:2.9.1'
-
-    testCompile libraries.xmlunit
-
     compile libraries.ant_launcher
 
-    integTestCompile libraries.jetty_depends
-
-    testFixtures sourceSets.test.output, sourceSets.main.output, project(':coreImpl')
-    integTestFixtures sourceSets.integTest.output
+    testCompile project(":testing")
 
     excludedInEclipse project(":coreImpl")
 }

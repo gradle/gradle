@@ -20,7 +20,5 @@ dependencies {
     groovy libraries.groovy_depends
     compile project(':core'), project(":plugins")
 
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
-    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    testCompile project(":testing")
 }

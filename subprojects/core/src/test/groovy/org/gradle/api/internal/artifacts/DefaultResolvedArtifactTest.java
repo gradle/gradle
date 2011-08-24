@@ -30,6 +30,8 @@ import org.junit.Test;
 
 import java.io.File;
 
+import static org.gradle.api.artifacts.ArtifactsTestUtils.*;
+
 /**
  * @author Hans Dockter
  */
@@ -80,23 +82,4 @@ public class DefaultResolvedArtifactTest {
         assertThat(resolvedArtifact.getDependencyName(), equalTo(someDependencyName));
     }
 
-    public static DefaultResolvedArtifact createResolvedArtifact(Mockery context, final String name, final String type, final String extension, File file) {
-        final Artifact artifactStub = context.mock(Artifact.class, "artifact" + name);
-        context.checking(new Expectations() {{
-            allowing(artifactStub).getName();
-            will(returnValue(name));
-            allowing(artifactStub).getType();
-            will(returnValue(type));
-            allowing(artifactStub).getExt();
-            will(returnValue(extension));
-        }});
-        final ResolveEngine resolveEngineMock = context.mock(ResolveEngine.class, "engine" + name);
-        final ArtifactDownloadReport artifactDownloadReport = new ArtifactDownloadReport(artifactStub);
-        artifactDownloadReport.setLocalFile(file);
-        context.checking(new Expectations() {{
-            one(resolveEngineMock).download(with(equal(artifactStub)), with(any(DownloadOptions.class)));
-            will(returnValue(artifactDownloadReport));
-        }});
-        return new DefaultResolvedArtifact(artifactStub, resolveEngineMock);
-    }
 }

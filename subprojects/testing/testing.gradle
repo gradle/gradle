@@ -1,0 +1,48 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+    Provides classes useful for testing parts of Gradle (i.e. fixture classes). This module is internal
+    and its classes are not distributed with Gradle.
+    
+    This module also contains the classes for unit testing and integration testing. These may be separated in
+    the future.
+    
+    It is intended that eventually, publicly usable test support will be extracted from this module into 
+    a usable format for people wanting to test their Gradle tasks/plugins etc.
+    
+    This module should only contain test fixtures and utilities for working with types from the core project.
+    Going forward, common testing utilities for plugins/other modules should NOT be part of this module. If
+    a module provides classes that its clients may find useful for testing they should be packaged as their
+    own testing support module.
+*/
+
+dependencies {
+    groovy libraries.groovy_depends
+    
+    // We depend on the classes of core as opposed to the jar because of the way AbstractClassPathProvider
+    // determines how to construct the classpath to start Gradle (i.e. to support testing from IDE)
+    compile project(":core").sourceSets.main.output, project(":core").configurations.compile
+    
+    // AbstractCompileTest defined in here has a dependency on AbstractCompile from the plugins project
+    // and the scala plugin uses AbstractCompileTest. The classes that are common to compiler impls should
+    // be extracted out into a separate module and any testing utilities like AbstractCompileTest should 
+    // also be extracted out into a separate module.
+    compile project(":plugins")
+     
+    compile libraries.xmlunit, libraries.jetty_depends, libraries.junit, libraries.jmock, libraries.spock
+    runtime project(":coreImpl"), "xerces:xercesImpl:2.9.1"
+}

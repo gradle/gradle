@@ -28,10 +28,5 @@ dependencies {
     compile libraries.slf4j_api, libraries.jaxen
     compile 'dom4j:dom4j:1.6.1@jar'
 
-    testCompile libraries.xmlunit
-
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
-
-    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    testCompile project(":testing")
 }

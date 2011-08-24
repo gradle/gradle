@@ -20,6 +20,9 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+
+import static org.gradle.api.artifacts.ArtifactsTestUtils.*;
+
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
@@ -86,7 +89,7 @@ public class DefaultResolvedDependencyTest {
     }
 
     private ResolvedArtifact createArtifact(String name) {
-        return DefaultResolvedArtifactTest.createResolvedArtifact(context, name, "someType", "someExt", new File("pathTo" + name));
+        return createResolvedArtifact(context, name, "someType", "someExt", new File("pathTo" + name));
     }
 
     private DefaultResolvedDependency createResolvedDependency(Set<ResolvedArtifact> moduleArtifacts) {

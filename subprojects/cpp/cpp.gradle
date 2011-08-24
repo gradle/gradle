@@ -19,10 +19,8 @@ apply from: "$rootDir/gradle/integTest.gradle"
 dependencies {
     groovy libraries.groovy_depends
     compile project(':core'), project(":plugins"), project(":ide")
-    
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime'), project(":maven")
-    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    testCompile project(":testing")
+    testRuntime project(":maven")
 }
 
 integTest.onlyIf {

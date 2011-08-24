@@ -410,7 +410,7 @@ def publishedProjects() {
 }
 
 def runtimeProjects() {
-    groovyProjects() - pluginProjects() - [project(':integTest'), project(':coreImpl')]
+    groovyProjects() - pluginProjects() - [project(':integTest'), project(':coreImpl'), project(":testing")]
 }
 
 def pluginProjects() {

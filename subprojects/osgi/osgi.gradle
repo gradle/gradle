@@ -23,7 +23,6 @@ dependencies {
 
     compile 'biz.aQute:bndlib:1.15.0@jar'
 
-    testCompile project(path: ':core', configuration: 'testFixtures')
-    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+    testCompile project(":testing")
 }
 

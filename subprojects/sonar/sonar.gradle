@@ -32,7 +32,7 @@ dependencies {
         exclude module: "google-collections" // prevent clash with guava at compile time
     }
 
-    testCompile project(path: ':core', configuration: 'testFixtures')
+    testCompile project(":testing")
 }
 
 sourceSets {

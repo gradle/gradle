@@ -18,4 +18,9 @@
     <!-- Use windows C naming scheme for these -->
     <suppress checks="MethodName"
               files=".*[/\\]subprojects[/\\]launcher[/\\]src[/\\]main[/\\]java[/\\].+[/\\]DaemonStartAction.java"/>
+
+    <!-- Don't bother with docs for the internal testing support project -->
+    <suppress checks="Javadoc.*"
+              files=".*[/\\]subprojects[/\\]testing[/\\]src[/\\]main[/\\].+"/>
+    
 </suppressions>
