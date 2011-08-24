@@ -25,7 +25,7 @@ class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specificat
         String parentName
         String name
         Container(String parentName, String name, Closure factory) {
-            super(Object, new AsmBackedClassGenerator(), new DynamicPropertyNamer(), factory)
+            super(Object, new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator()), new DynamicPropertyNamer(), factory)
             this.parentName = parentName
             this.name = name
         }

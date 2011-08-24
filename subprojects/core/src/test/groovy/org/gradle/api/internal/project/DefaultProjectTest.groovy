@@ -52,7 +52,6 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
 import org.jmock.integration.junit4.JMock
-import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -107,12 +106,12 @@ class DefaultProjectTest {
     Convention convention = new DefaultConvention();
     FileOperations fileOperationsMock
     LoggingManagerInternal loggingManagerMock;
+    Instantiator instantiatorMock = context.mock(Instantiator)
 
     @Before
     void setUp() {
         rootDir = new File("/path/root").absoluteFile
 
-        context.imposteriser = ClassImposteriser.INSTANCE
         dependencyFactoryMock = context.mock(DependencyFactory.class)
         loggingManagerMock = context.mock(LoggingManagerInternal.class)
         taskContainerMock = context.mock(TaskContainerInternal.class);
@@ -161,7 +160,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
-            allowing(serviceRegistryMock).get(Instantiator); will(returnValue(new AsmBackedClassGenerator()))
+            allowing(serviceRegistryMock).get(Instantiator); will(returnValue(instantiatorMock))
             allowing(serviceRegistryMock).get(FileOperations);
             will(returnValue(fileOperationsMock))
             allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
@@ -1035,12 +1034,14 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void createsADomainObjectContainer() {
-        assertThat(project.container(String.class), instanceOf(FactoryNamedDomainObjectContainer.class))
-        assertThat(project.container(String.class), instanceOf(IConventionAware.class))
-
-        assertThat(project.container(String.class, context.mock(NamedDomainObjectFactory.class)), instanceOf(FactoryNamedDomainObjectContainer.class))
-
-        assertThat(project.container(String.class, { }), instanceOf(FactoryNamedDomainObjectContainer.class))
+        def container = context.mock(FactoryNamedDomainObjectContainer)
+        context.checking {
+            allowing(instantiatorMock).newInstance(withParam(equalTo(FactoryNamedDomainObjectContainer)), withParam(notNullValue()))
+            will(returnValue(container))
+        }
+        assertThat(project.container(String.class), sameInstance(container))
+        assertThat(project.container(String.class, context.mock(NamedDomainObjectFactory.class)), sameInstance(container))
+        assertThat(project.container(String.class, { }), sameInstance(container))
     }
 
 }
