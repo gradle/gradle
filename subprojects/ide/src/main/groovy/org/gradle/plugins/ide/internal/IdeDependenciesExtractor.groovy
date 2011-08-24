@@ -114,6 +114,10 @@ class IdeDependenciesExtractor {
             out << new UnresolvedIdeRepoFileDependency(problem: it.problem, file: new File("unresolved dependency - $it.id"), declaredConfiguration: it.gradleConfiguration)
         }
 
+        out.sort {
+            it.file
+        }
+
         out
     }
 

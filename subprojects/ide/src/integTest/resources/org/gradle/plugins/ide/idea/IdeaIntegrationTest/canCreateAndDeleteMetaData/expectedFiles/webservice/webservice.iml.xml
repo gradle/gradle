@@ -32,19 +32,6 @@
     <orderEntry type="module-library" exported="" scope="RUNTIME">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/@REPO@/jars/commons-lang-2.4.jar!/"/>
-        </CLASSES>
-        <JAVADOC>
-          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/@REPO@/javadocs/commons-lang-2.4-javadoc.jar!/"/>
-        </JAVADOC>
-        <SOURCES>
-          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/@REPO@/sources/commons-lang-2.4-sources.jar!/"/>
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="RUNTIME">
-      <library>
-        <CLASSES>
           <root url="jar://@CACHE_DIR@/commons-io/commons-io/@REPO@/jars/commons-io-1.2.jar!/"/>
         </CLASSES>
         <JAVADOC>
@@ -52,6 +39,19 @@
         </JAVADOC>
         <SOURCES>
           <root url="jar://@CACHE_DIR@/commons-io/commons-io/@REPO@/sources/commons-io-1.2-sources.jar!/"/>
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="" scope="RUNTIME">
+      <library>
+        <CLASSES>
+          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/@REPO@/jars/commons-lang-2.4.jar!/"/>
+        </CLASSES>
+        <JAVADOC>
+          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/@REPO@/javadocs/commons-lang-2.4-javadoc.jar!/"/>
+        </JAVADOC>
+        <SOURCES>
+          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/@REPO@/sources/commons-lang-2.4-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>

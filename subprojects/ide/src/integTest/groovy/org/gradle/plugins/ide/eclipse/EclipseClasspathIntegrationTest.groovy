@@ -70,6 +70,7 @@ dependencies {
         def baseJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publishArtifact()
         def extraJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'extra').publishArtifactOnly()
         def testsJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'tests').publishArtifactOnly()
+        def anotherJar = mavenRepo.module('coolGroup', 'another', '1.0').publishArtifact()
 
         when:
         runEclipseTask """
@@ -83,16 +84,18 @@ repositories {
 dependencies {
     compile 'coolGroup:niceArtifact:1.0'
     compile 'coolGroup:niceArtifact:1.0:extra'
+    testCompile 'coolGroup:another:1.0'
     testCompile 'coolGroup:niceArtifact:1.0:tests'
 }
 """
 
         then:
         def libraries = classpath.libs
-        assert libraries.size() == 3
-        assert libraries.find { it.hasJar(baseJar) }
-        assert libraries.find { it.hasJar(extraJar) }
-        assert libraries.find { it.hasJar(testsJar) }
+        assert libraries.size() == 4
+        libraries[0].assertHasJar(anotherJar)
+        libraries[1].assertHasJar(extraJar)
+        libraries[2].assertHasJar(testsJar)
+        libraries[3].assertHasJar(baseJar)
     }
 
     @Test

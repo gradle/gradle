@@ -55,11 +55,7 @@ class EclipseClasspathFixture {
         }
 
         void assertHasJar(File jar) {
-            assert hasJar(jar)
-        }
-
-        boolean hasJar(File jar) {
-            entry.@path == jar.absolutePath.replace(File.separator, '/')
+            assert entry.@path == jar.absolutePath.replace(File.separator, '/')
         }
 
         void assertHasJar(String jar) {
