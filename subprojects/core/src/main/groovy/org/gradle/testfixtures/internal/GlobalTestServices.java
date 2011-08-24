@@ -16,9 +16,7 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.*;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
@@ -80,4 +78,11 @@ public class GlobalTestServices extends DefaultServiceRegistry {
         };
     }
 
+    protected ClassGenerator createClassGenerator() {
+        return new AsmBackedClassGenerator();
+    }
+
+    protected Instantiator createInstantiator() {
+        return new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DirectInstantiator());
+    }
 }

@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.util.WrapUtil;
 
 import java.util.Map;
@@ -45,7 +44,7 @@ public class ClientModuleDependencyDescriptorFactory extends AbstractDependencyD
                 WrapUtil.toMap(getClientModule(dependency).CLIENT_MODULE_KEY, getClientModule(dependency).getId()));
     }
 
-    public DependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
+    public DefaultDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
         DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
                 moduleRevisionId, getClientModule(dependency).isForce(),

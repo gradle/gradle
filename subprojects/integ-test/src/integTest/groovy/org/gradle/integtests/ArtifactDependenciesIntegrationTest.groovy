@@ -187,8 +187,63 @@ project(':b') {
     public void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
         def repo = repo()
         repo.module('org.gradle.test', 'external1', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'baseClassifier').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'extendedClassifier').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'baseClassifier').publishArtifactOnly()
+        repo.module('org.gradle.test', 'external1', '1.0', 'extendedClassifier').publishArtifactOnly()
+        repo.module('org.gradle.test', 'other', '1.0').publishArtifact()
+
+        testFile('build.gradle') << """
+repositories {
+    mavenRepo urls: '${repo.rootDir.toURI()}'
+}
+configurations {
+    base
+    extendedWithClassifier.extendsFrom base
+    extendedWithOther.extendsFrom base
+    justDefault
+    justClassifier
+    rawBase
+    rawExtended.extendsFrom rawBase
+    cBase
+    cExtended.extendsFrom cBase
+}
+dependencies {
+    base 'org.gradle.test:external1:1.0'
+    base 'org.gradle.test:external1:1.0:baseClassifier'
+    extendedWithClassifier 'org.gradle.test:external1:1.0:extendedClassifier'
+    extendedWithOther 'org.gradle.test:other:1.0'
+    justDefault 'org.gradle.test:external1:1.0'
+    justClassifier 'org.gradle.test:external1:1.0:baseClassifier'
+    justClassifier 'org.gradle.test:external1:1.0:extendedClassifier'
+    rawBase 'org.gradle.test:external1:1.0'
+    rawExtended 'org.gradle.test:external1:1.0:extendedClassifier'
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config.collect({ it.name }) as Set == expectedDependencies as Set
+}
+
+task test << {
+    checkDeps configurations.base, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar']
+    checkDeps configurations.extendedWithOther, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar', 'other-1.0.jar']
+    checkDeps configurations.extendedWithClassifier, ['external1-1.0.jar', 'external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+    checkDeps configurations.justDefault, ['external1-1.0.jar']
+    checkDeps configurations.justClassifier, ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+    checkDeps configurations.rawBase, ['external1-1.0.jar']
+    checkDeps configurations.rawExtended, ['external1-1.0.jar', 'external1-1.0-extendedClassifier.jar']
+}
+"""
+        inTestDirectory().withTasks('test').run()
+    }
+
+    @Test
+    @Issue("GRADLE-739")
+    public void canUseClassifiersCombinedWithArtifactWithNonStandardPackaging() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'external1', '1.0', null, 'zip').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'baseClassifier').publishArtifactOnly()
+        repo.module('org.gradle.test', 'external1', '1.0', 'extendedClassifier').publishArtifactOnly()
+        repo.module('org.gradle.test', 'external1', '1.0', null, 'txt').publishArtifactOnly()
+        repo.module('org.gradle.test', 'other', '1.0').publishArtifact()
 
         testFile('build.gradle') << """
 repositories {
@@ -197,27 +252,106 @@ repositories {
 configurations {
     base
     extended.extendsFrom base
-    justDefault
-    justClassifier
+    extendedWithClassifier.extendsFrom base
+    extendedWithType.extendsFrom base
 }
 dependencies {
     base 'org.gradle.test:external1:1.0'
     base 'org.gradle.test:external1:1.0:baseClassifier'
-    extended 'org.gradle.test:external1:1.0:extendedClassifier'
-    justDefault 'org.gradle.test:external1:1.0'
-    justClassifier 'org.gradle.test:external1:1.0:baseClassifier'
-    justClassifier 'org.gradle.test:external1:1.0:extendedClassifier'
+    extended 'org.gradle.test:other:1.0'
+    extendedWithClassifier 'org.gradle.test:external1:1.0:extendedClassifier'
+    extendedWithType 'org.gradle.test:external1:1.0@txt'
 }
 
 def checkDeps(config, expectedDependencies) {
-    assert config.collect({ it.name }).sort() == expectedDependencies
+    assert config.collect({ it.name }) as Set == expectedDependencies as Set
 }
 
 task test << {
-    checkDeps configurations.base, ['external1-1.0-baseClassifier.jar', 'external1-1.0.jar']
-    checkDeps configurations.extended, ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar', 'external1-1.0.jar']
-    checkDeps configurations.justDefault, ['external1-1.0.jar']
-    checkDeps configurations.justClassifier, ['external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+    checkDeps configurations.base, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar']
+    checkDeps configurations.extended, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'other-1.0.jar']
+    checkDeps configurations.extendedWithClassifier, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'external1-1.0-extendedClassifier.jar']
+    checkDeps configurations.extendedWithType, ['external1-1.0.zip', 'external1-1.0-baseClassifier.jar', 'external1-1.0.txt']
+}
+"""
+        inTestDirectory().withTasks('test').run()
+    }
+
+    @Test
+    @Issue("GRADLE-739")
+    public void configurationCanContainMultipleArtifactsThatOnlyDifferByType() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'external1', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', null, 'zip').publishArtifactOnly()
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier').publishArtifactOnly()
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier', 'bin').publishArtifactOnly()
+
+        testFile('build.gradle') << """
+repositories {
+    mavenRepo urls: '${repo.rootDir.toURI()}'
+}
+configurations {
+    base
+    extended.extendsFrom base
+    extended2.extendsFrom base
+}
+dependencies {
+    base 'org.gradle.test:external1:1.0'
+    base 'org.gradle.test:external1:1.0@zip'
+    extended 'org.gradle.test:external1:1.0:classifier'
+    extended2 'org.gradle.test:external1:1.0:classifier@bin'
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config.collect({ it.name }) as Set == expectedDependencies as Set
+}
+
+task test << {
+    checkDeps configurations.base, ['external1-1.0.jar', 'external1-1.0.zip']
+    checkDeps configurations.extended, ['external1-1.0.jar', 'external1-1.0.zip', 'external1-1.0-classifier.jar']
+    checkDeps configurations.extended2, ['external1-1.0.jar', 'external1-1.0.zip', 'external1-1.0-classifier.bin']
+}
+"""
+        inTestDirectory().withTasks('test').run()
+    }
+
+
+    @Test
+    public void excludedDependenciesAreNotRetrieved() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'one', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'two', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0').dependsOn('org.gradle.test', 'one', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier').publishArtifactOnly()
+
+        testFile('build.gradle') << """
+repositories {
+    mavenRepo urls: '${repo.rootDir.toURI()}'
+}
+configurations {
+    reference
+    base
+    extended.extendsFrom base
+    extendedWithClassifier.extendsFrom base
+}
+dependencies {
+    reference 'org.gradle.test:external1:1.0'
+    base 'org.gradle.test:external1:1.0', {
+        exclude module: 'one'
+    }
+    extended 'org.gradle.test:two:1.0'
+    extendedWithClassifier 'org.gradle.test:external1:1.0:classifier'
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config.collect({ it.name }) as Set == expectedDependencies as Set
+}
+
+task test << {
+    checkDeps configurations.reference, ['external1-1.0.jar', 'one-1.0.jar']
+    checkDeps configurations.base, ['external1-1.0.jar']
+    checkDeps configurations.extended, ['external1-1.0.jar', 'two-1.0.jar']
+    checkDeps configurations.extendedWithClassifier, ['external1-1.0.jar', 'external1-1.0-classifier.jar']
 }
 """
         inTestDirectory().withTasks('test').run()
@@ -246,7 +380,7 @@ dependencies {
 }
 
 def checkDeps(config, expectedDependencies) {
-    assert config.collect({ it.name }).sort() == expectedDependencies
+    assert config.collect({ it.name }) as Set == expectedDependencies as Set
 }
 
 task test << {

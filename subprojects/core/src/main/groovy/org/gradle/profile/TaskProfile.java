@@ -22,10 +22,8 @@ import org.gradle.api.tasks.TaskState;
  * Container for task profiling information.
  * This includes timestamps around task execution and the resulting TaskState.
  */
-public class TaskProfile {
-    private Task task;
-    private long start;
-    private long finish;
+public class TaskProfile extends ContinuousOperation {
+    private final Task task;
     private TaskState state;
 
     public TaskProfile(Task task) {
@@ -38,30 +36,6 @@ public class TaskProfile {
      */
     public String getPath() {
         return task.getPath();
-    }
-
-    /**
-     * Should be called with a time right before task execution begins.
-     * @param start
-     */
-    public void setStart(long start) {
-        this.start = start;
-    }
-
-    /**
-     * Should be called with a time right after task execution finishes.
-     * @param finish
-     */
-    public void setFinish(long finish) {
-        this.finish = finish;
-    }
-
-    /**
-     * Gets the elapsed task execution time (in mSec).
-     * @return
-     */
-    public long getElapsedExecution() {
-        return finish - start;
     }
 
     public TaskState getState() {

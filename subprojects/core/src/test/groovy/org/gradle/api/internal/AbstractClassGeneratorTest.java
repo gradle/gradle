@@ -37,14 +37,14 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public abstract class AbstractClassGeneratorTest {
-    private ClassGenerator generator;
+    private AbstractClassGenerator generator;
 
     @Before
     public void setUp() {
         generator = createGenerator();
     }
 
-    protected abstract ClassGenerator createGenerator();
+    protected abstract AbstractClassGenerator createGenerator();
 
     @Test
     public void mixesInConventionAwareInterface() throws Exception {

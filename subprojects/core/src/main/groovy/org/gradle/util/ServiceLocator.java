@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.project.ServiceRegistry;

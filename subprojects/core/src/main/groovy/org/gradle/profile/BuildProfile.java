@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 package org.gradle.profile;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.invocation.Gradle;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Root container for profile information about a build.  This includes summary
@@ -36,14 +40,15 @@ import java.util.*;
  * </ul>
  */
 public class BuildProfile {
-    private Gradle gradle;
-    Map<Project, ProjectProfile> projects = new HashMap<Project, ProjectProfile>();
-    long profilingStarted;
-    long buildStarted;
-    long settingsEvaluated;
-    long projectsLoaded;
-    long projectsEvaluated;
-    long buildFinished;
+    private final Gradle gradle;
+    private final Map<Project, ProjectProfile> projects = new LinkedHashMap<Project, ProjectProfile>();
+    private final Map<String, DependencyResolveProfile> dependencySets = new LinkedHashMap<String, DependencyResolveProfile>();
+    private long profilingStarted;
+    private long buildStarted;
+    private long settingsEvaluated;
+    private long projectsLoaded;
+    private long projectsEvaluated;
+    private long buildFinished;
 
     public BuildProfile(Gradle gradle) {
         this.gradle = gradle;
@@ -91,6 +96,27 @@ public class BuildProfile {
      */
     public List<ProjectProfile> getProjects() {
         return new ArrayList<ProjectProfile>(projects.values());
+    }
+
+    public CompositeOperation<Operation> getProjectConfiguration() {
+        List<Operation> operations = new ArrayList<Operation>();
+        for (ProjectProfile projectProfile : projects.values()) {
+            operations.add(projectProfile.getEvaluation());
+        }
+        return new CompositeOperation<Operation>(operations);
+    }
+
+    public DependencyResolveProfile getDependencySetProfile(ResolvableDependencies dependencySet) {
+        DependencyResolveProfile profile = dependencySets.get(dependencySet.getPath());
+        if (profile == null) {
+            profile = new DependencyResolveProfile(dependencySet);
+            dependencySets.put(dependencySet.getPath(), profile);
+        }
+        return profile;
+    }
+
+    public CompositeOperation<DependencyResolveProfile> getDependencySets() {
+        return new CompositeOperation<DependencyResolveProfile>(dependencySets.values());
     }
 
     /**

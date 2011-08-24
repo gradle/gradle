@@ -18,6 +18,8 @@ package org.gradle.profile;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.DependencyResolutionListener;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
@@ -28,7 +30,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class ProfileListener implements BuildListener, ProjectEvaluationListener, TaskExecutionListener {
+public class ProfileListener implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, DependencyResolutionListener {
     private BuildProfile buildProfile;
     private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private long profileStarted;
@@ -72,12 +74,12 @@ public class ProfileListener implements BuildListener, ProjectEvaluationListener
 
     // ProjectEvaluationListener
     public void beforeEvaluate(Project project) {
-        buildProfile.getProjectProfile(project).setBeforeEvaluate(System.currentTimeMillis());
+        buildProfile.getProjectProfile(project).getEvaluation().setStart(System.currentTimeMillis());
     }
 
     public void afterEvaluate(Project project, ProjectState state) {
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project);
-        projectProfile.setAfterEvaluate(System.currentTimeMillis());
+        projectProfile.getEvaluation().setFinish(System.currentTimeMillis());
         projectProfile.setState(state);
     }
 
@@ -94,6 +96,17 @@ public class ProfileListener implements BuildListener, ProjectEvaluationListener
         TaskProfile taskProfile = projectProfile.getTaskProfile(task);
         taskProfile.setFinish(System.currentTimeMillis());
         taskProfile.setState(state);
+    }
+
+    // DependencyResolutionListener
+    public void beforeResolve(ResolvableDependencies dependencies) {
+        DependencyResolveProfile profile = buildProfile.getDependencySetProfile(dependencies);
+        profile.setStart(System.currentTimeMillis());
+    }
+
+    public void afterResolve(ResolvableDependencies dependencies) {
+        DependencyResolveProfile profile = buildProfile.getDependencySetProfile(dependencies);
+        profile.setFinish(System.currentTimeMillis());
     }
 }
 

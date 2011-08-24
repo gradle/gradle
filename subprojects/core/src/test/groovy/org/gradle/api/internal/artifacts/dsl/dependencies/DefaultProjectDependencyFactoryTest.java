@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
@@ -41,7 +41,7 @@ public class DefaultProjectDependencyFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     private final ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(false);
-    private ProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(projectDependenciesBuildInstruction, new AsmBackedClassGenerator());
+    private ProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(projectDependenciesBuildInstruction, new DirectInstantiator());
     private ProjectFinder projectFinder = context.mock(ProjectFinder.class);
 
     @Test

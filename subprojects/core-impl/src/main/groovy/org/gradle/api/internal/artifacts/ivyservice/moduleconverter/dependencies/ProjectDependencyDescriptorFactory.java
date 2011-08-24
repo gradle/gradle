@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Module;
@@ -61,7 +60,7 @@ public class ProjectDependencyDescriptorFactory extends AbstractDependencyDescri
         this.projectDependencyDescriptorStrategy = projectDependencyDescriptorStrategy;
     }
 
-    public DependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
+    public DefaultDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
         DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
                 moduleRevisionId, false, projectDependencyDescriptorStrategy.isChanging(), dependency.isTransitive());

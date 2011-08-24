@@ -17,12 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.id.ArtifactId;
+import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
+import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.util.WrapUtil;
 
@@ -41,20 +44,33 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
-    public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
+    public DefaultDependencyDescriptor addDependencyDescriptor(Configuration configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
+        DefaultDependencyDescriptor descriptor = addDependencyDescriptor(configuration.getName(), moduleDescriptor, dependency);
+        workAroundIvyLimitationsByCopyingDefaultIncludesForExtendedDependencies(configuration, descriptor, dependency);
+        return descriptor;
+    }
+
+    protected void workAroundIvyLimitationsByCopyingDefaultIncludesForExtendedDependencies(Configuration configuration,
+                                                                                           DefaultDependencyDescriptor dependencyDescriptor,
+                                                                                           ModuleDependency newDependency) {
+        // Do nothing by default - only required for external dependencies
+    }
+
+    public DefaultDependencyDescriptor addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
-        DependencyDescriptor newDescriptor = createDependencyDescriptor(dependency, configuration, moduleDescriptor, moduleRevisionId);
+        DefaultDependencyDescriptor newDescriptor = createDependencyDescriptor(dependency, configuration, moduleDescriptor, moduleRevisionId);
 
         DefaultDependencyDescriptor matchingDependencyDescriptor = findMatchingDescriptorForSameConfiguration(moduleDescriptor, newDescriptor);
         if (matchingDependencyDescriptor != null) {
             mergeDescriptors(configuration, matchingDependencyDescriptor, newDescriptor, dependency);
-            return;
+            return matchingDependencyDescriptor;
         }
 
         moduleDescriptor.addDependency(newDescriptor);
+        return newDescriptor;
     }
 
-    protected abstract DependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration,
+    protected abstract DefaultDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration,
                                                             ModuleDescriptor moduleDescriptor, ModuleRevisionId moduleRevisionId);
 
     private DefaultDependencyDescriptor findMatchingDescriptorForSameConfiguration(DefaultModuleDescriptor moduleDescriptor, DependencyDescriptor targetDescriptor) {
@@ -69,26 +85,31 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
 
     private void mergeDescriptors(String masterConfiguration, DefaultDependencyDescriptor matchingDependencyDescriptor, DependencyDescriptor newDescriptor, ModuleDependency newDependency) {
         // TODO Merge transitive, excludeRules and force flags
-
         // Merge dependency configurations
         if (newDependency.getConfiguration() != null) {
             matchingDependencyDescriptor.addDependencyConfiguration(masterConfiguration, newDependency.getConfiguration());
-        }
-
-        // Add 'default' artifact if one configuration has no defined artifacts and the other has defined artifacts - that's the only way we can combine them
-        if (matchingDependencyDescriptor.getAllDependencyArtifacts().length == 0 ^ newDescriptor.getAllDependencyArtifacts().length == 0) {
-            matchingDependencyDescriptor.addDependencyArtifact(masterConfiguration, createDefaultArtifact(matchingDependencyDescriptor));
         }
 
         // Copy across all defined artifacts
         for (DependencyArtifactDescriptor artifactDescriptor : newDescriptor.getAllDependencyArtifacts()) {
             matchingDependencyDescriptor.addDependencyArtifact(masterConfiguration, artifactDescriptor);
         }
+
+        // Copy across inclusion of default artifacts
+        if (newDescriptor.getIncludeRules(masterConfiguration).length != 0) {
+            includeDefaultArtifacts(masterConfiguration, matchingDependencyDescriptor);
+        }
     }
 
-    private DefaultDependencyArtifactDescriptor createDefaultArtifact(DefaultDependencyDescriptor dependencyDescriptor) {
-        return new DefaultDependencyArtifactDescriptor(dependencyDescriptor, dependencyDescriptor.getDependencyId().getName(),
-                DependencyArtifact.DEFAULT_TYPE, DependencyArtifact.DEFAULT_TYPE, null, null);
+    protected void includeDefaultArtifacts(String configuration, DefaultDependencyDescriptor dependencyDescriptor) {
+        // Only add the default include rule once
+        if (dependencyDescriptor.getIncludeRules(configuration).length == 0) {
+            // Add '*' include rule if if one configuration has no defined artifacts and the other has defined artifacts
+            ArtifactId aid = new ArtifactId(new ModuleId(PatternMatcher.ANY_EXPRESSION, PatternMatcher.ANY_EXPRESSION),
+                    PatternMatcher.ANY_EXPRESSION, PatternMatcher.ANY_EXPRESSION, PatternMatcher.ANY_EXPRESSION);
+            IncludeRule includeRule = new DefaultIncludeRule(aid, ExactPatternMatcher.INSTANCE, null);
+            dependencyDescriptor.addIncludeRule(configuration, includeRule);
+        }
     }
 
     protected void addExcludesArtifactsAndDependencies(String configuration, ModuleDependency dependency,
@@ -113,6 +134,10 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
                 throw new InvalidUserDataException("URL for artifact can't be parsed: " + artifact.getUrl(), e);
             }
             dependencyDescriptor.addDependencyArtifact(configuration, artifactDescriptor);
+        }
+
+        if (dependencyDescriptor.getAllDependencyArtifacts().length == 0) {
+            includeDefaultArtifacts(configuration, dependencyDescriptor);
         }
     }
 

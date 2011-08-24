@@ -25,9 +25,9 @@ class MavenRepository {
         this.rootDir = rootDir
     }
 
-    MavenModule module(String groupId, String artifactId, Object version = '1.0', String classifier = null) {
+    MavenModule module(String groupId, String artifactId, Object version = '1.0', String classifier = null, String type = 'jar') {
         def artifactDir = rootDir.file("${groupId.replace('.', '/')}/$artifactId/$version")
-        return new MavenModule(artifactDir, groupId, artifactId, version as String, classifier)
+        return new MavenModule(artifactDir, groupId, artifactId, version as String, classifier, type)
     }
 }
 
@@ -36,18 +36,20 @@ class MavenModule {
     final String groupId
     final String artifactId
     final String version
+    final String type
     private final List dependencies = []
     final String classifier
     int publishCount = 1
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
     final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
 
-    MavenModule(TestFile moduleDir, String groupId, String artifactId, String version, String classifier = null) {
+    MavenModule(TestFile moduleDir, String groupId, String artifactId, String version, String classifier = null, String type = 'jar') {
         this.moduleDir = moduleDir
         this.groupId = groupId
         this.artifactId = artifactId
         this.version = version
         this.classifier = classifier
+        this.type = type
     }
 
     MavenModule dependsOn(String dependencyArtifactId) {
@@ -74,9 +76,9 @@ class MavenModule {
 
 
     TestFile getArtifactFile() {
-        def fileName = "$artifactId-${publishArtifactVersion}.jar"
+        def fileName = "$artifactId-${publishArtifactVersion}.${type}"
         if (classifier) {
-            fileName = "$artifactId-$publishArtifactVersion-${classifier}.jar"
+            fileName = "$artifactId-$publishArtifactVersion-${classifier}.${type}"
         }
         return moduleDir.file(fileName)
     }
@@ -121,7 +123,7 @@ class MavenModule {
   <modelVersion>4.0.0</modelVersion>
   <groupId>$groupId</groupId>
   <artifactId>$artifactId</artifactId>
-  <packaging>jar</packaging>
+  <packaging>$type</packaging>
   <version>$version</version>"""
 
         dependencies.each { dependency ->
@@ -137,6 +139,10 @@ class MavenModule {
 
         pomFile << "\n</project>"
 
+        return publishArtifactOnly()
+    }
+
+    File publishArtifactOnly() {
         def jarFile = artifactFile
         jarFile << "add some content so that file size isn't zero: $publishCount"
 

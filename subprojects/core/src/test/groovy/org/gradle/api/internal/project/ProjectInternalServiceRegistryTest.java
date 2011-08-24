@@ -94,7 +94,7 @@ public class ProjectInternalServiceRegistryTest {
             allowing(parent).get(DependencyManagementServices.class);
             will(returnValue(dependencyManagementServices));
             allowing(parent).get(Instantiator.class);
-            will(returnValue(new AsmBackedClassGenerator()));
+            will(returnValue(new DirectInstantiator()));
         }});
     }
 

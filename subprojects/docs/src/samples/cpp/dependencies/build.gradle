@@ -1,4 +1,6 @@
 project(":lib") {
+    archivesBaseName = "some-lib"
+
     // START SNIPPET use-plugin-lib
     apply plugin: "cpp-lib"
     // END SNIPPET use-plugin-lib
