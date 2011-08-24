@@ -16,8 +16,8 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.Action;
+import org.gradle.reporting.DomReportRenderer;
 import org.gradle.util.GradleVersion;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.text.DateFormat;
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-abstract class PageRenderer<T extends CompositeTestResults> {
+abstract class PageRenderer<T extends CompositeTestResults> extends DomReportRenderer<T> {
     private T results;
     private List<TabDefinition> tabs = new ArrayList<TabDefinition>();
 
@@ -117,18 +117,19 @@ abstract class PageRenderer<T extends CompositeTestResults> {
         return element;
     }
 
-    void render(Document document, T results) {
+    public void render(T results, Element html) {
         this.results = results;
 
         registerTabs();
-
-        Element html = document.createElement("html");
-        document.appendChild(html);
 
         // <head>
         Element head = append(html, "head");
         appendWithText(head, "title", String.format("Test results - %s", results.getTitle()));
         Element link = append(head, "link");
+        link.setAttribute("rel", "stylesheet");
+        link.setAttribute("href", "base-style.css");
+        link.setAttribute("type", "text/css");
+        link = append(head, "link");
         link.setAttribute("rel", "stylesheet");
         link.setAttribute("href", "style.css");
         link.setAttribute("type", "text/css");

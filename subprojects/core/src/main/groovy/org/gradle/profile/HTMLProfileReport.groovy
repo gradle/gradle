@@ -16,40 +16,27 @@
 package org.gradle.profile
 
 import java.text.SimpleDateFormat
-import org.gradle.api.UncheckedIOException
+
 import groovy.text.SimpleTemplateEngine
+import org.gradle.reporting.TextReportRenderer
+import org.gradle.reporting.DurationFormatter
 
-
-class HTMLProfileReport {
-    private BuildProfile profile;
+class HTMLProfileReport extends TextReportRenderer<BuildProfile> {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
-    private static final ElapsedTimeFormatter TIME_FORMAT = new ElapsedTimeFormatter();
+    private static final DurationFormatter DURATION_FORMAT = new DurationFormatter()
 
-    public HTMLProfileReport(BuildProfile profile) {
-        this.profile = profile
-    }
-
-    public void writeTo(PrintWriter out) {
+    protected void writeTo(BuildProfile profile, Writer out) {
+        def templateStream = getClass().getResourceAsStream('/org/gradle/profile/ProfileTemplate.html')
+        def template
         try {
-            InputStream templateStream = getClass().getResourceAsStream('/org/gradle/profile/ProfileTemplate.html')
             SimpleTemplateEngine engine = new SimpleTemplateEngine()
-            def binding = ['build': profile, 'time': TIME_FORMAT, 'date':DATE_FORMAT]
-            def result = engine.createTemplate(new InputStreamReader(templateStream)).make(binding)
-            result.writeTo(out)
+            template = engine.createTemplate(new InputStreamReader(templateStream))
+        } finally {
+            templateStream.close()
         }
-        finally {
-            out.close();
-        }
+
+        def binding = ['build': profile, 'time': DURATION_FORMAT, 'date': DATE_FORMAT]
+        def result = template.make(binding)
+        result.writeTo(out)
     }
-
-    public void writeTo(File file) {
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            writeTo(new PrintWriter(new BufferedOutputStream(out)));
-        } catch (FileNotFoundException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-
 }

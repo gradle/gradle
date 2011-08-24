@@ -228,7 +228,7 @@ public class BuildProfile {
     public long getElapsedTotalExecutionTime() {
         long result = 0;
         for (ProjectProfile projectProfile : projects.values()) {
-            result += projectProfile.getElapsedTaskExecution();
+            result += projectProfile.getTasks().getElapsedTime();
         }
         return result;
     }

@@ -21,6 +21,7 @@ apply from: "$rootDir/gradle/integTest.gradle"
 
 configurations {
     excludedInEclipse
+    reports
 }
 
 dependencies {
@@ -55,12 +56,20 @@ dependencies {
     testCompile project(":internalTesting")
 
     excludedInEclipse project(":coreImpl")
+
+    reports 'css3-pie:css3-pie:1.0beta3'
 }
 
 task releasesResource(type: GenerateReleasesXml) {
     destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
 }
 sourceSets.main.output.dir generatedResourcesDir, buildBy: releasesResource
+
+task reportResources(type: Copy) {
+    from configurations.reports
+    into "$generatedResourcesDir/org/gradle/reporting"
+}
+sourceSets.main.output.dir generatedResourcesDir, buildBy: reportResources
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

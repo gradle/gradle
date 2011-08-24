@@ -22,11 +22,11 @@ import org.gradle.api.tasks.TaskState;
  * Container for task profiling information.
  * This includes timestamps around task execution and the resulting TaskState.
  */
-public class TaskProfile extends ContinuousOperation {
+public class TaskExecution extends ContinuousOperation {
     private final Task task;
     private TaskState state;
 
-    public TaskProfile(Task task) {
+    public TaskExecution(Task task) {
         this.task = task;
     }
 

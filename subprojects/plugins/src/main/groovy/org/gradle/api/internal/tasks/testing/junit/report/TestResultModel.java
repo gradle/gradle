@@ -16,14 +16,10 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.tasks.testing.TestResult;
-
-import java.math.BigDecimal;
+import org.gradle.reporting.DurationFormatter;
 
 public abstract class TestResultModel {
-    public static final int MILLIS_PER_SECOND = 1000;
-    public static final int MILLIS_PER_MINUTE = 60 * MILLIS_PER_SECOND;
-    public static final int MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE;
-    public static final int MILLIS_PER_DAY = 24 * MILLIS_PER_HOUR;
+    public static final DurationFormatter DURATION_FORMATTER = new DurationFormatter();
 
     public abstract TestResult.ResultType getResultType();
 
@@ -32,35 +28,7 @@ public abstract class TestResultModel {
     public abstract String getTitle();
 
     public String getFormattedDuration() {
-        Long duration = getDuration();
-        if (duration == 0) {
-            return "0s";
-        }
-
-        StringBuilder result = new StringBuilder();
-
-        long days = duration / MILLIS_PER_DAY;
-        duration = duration % MILLIS_PER_DAY;
-        if (days > 0) {
-            result.append(days);
-            result.append("d");
-        }
-        long hours = duration / MILLIS_PER_HOUR;
-        duration = duration % MILLIS_PER_HOUR;
-        if (hours > 0 || result.length() > 0) {
-            result.append(hours);
-            result.append("h");
-        }
-        long minutes = duration / MILLIS_PER_MINUTE;
-        duration = duration % MILLIS_PER_MINUTE;
-        if (minutes > 0 || result.length() > 0) {
-            result.append(minutes);
-            result.append("m");
-        }
-        int secondsScale = result.length() > 0 ? 2 : 3;
-        result.append(BigDecimal.valueOf(duration).divide(BigDecimal.valueOf(MILLIS_PER_SECOND)).setScale(secondsScale, BigDecimal.ROUND_HALF_UP));
-        result.append("s");
-        return result.toString();
+        return DURATION_FORMATTER.format(getDuration());
     }
 
     public String getStatusClass() {

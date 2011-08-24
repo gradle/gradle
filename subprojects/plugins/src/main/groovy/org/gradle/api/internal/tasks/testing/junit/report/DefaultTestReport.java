@@ -15,28 +15,30 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
+import org.gradle.reporting.HtmlReportRenderer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 
 public class DefaultTestReport implements TestReporter {
+    private final HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
     private File resultDir;
     private File reportDir;
-    private DocumentBuilder documentBuilder;
-    private Transformer transformer;
+
+    public DefaultTestReport() {
+        htmlRenderer.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
+        htmlRenderer.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
+        htmlRenderer.requireResource(getClass().getResource("/org/gradle/reporting/css3-pie-1.0beta3.htc"));
+        htmlRenderer.requireResource(getClass().getResource("style.css"));
+    }
 
     public void setTestResultsDir(File resultDir) {
         this.resultDir = resultDir;
@@ -118,57 +120,12 @@ public class DefaultTestReport implements TestReporter {
                     generatePage(classResults, new ClassPageRenderer(), new File(reportDir, classResults.getName() + ".html"));
                 }
             }
-
-            copyResources();
-
         } catch (Exception e) {
             throw new GradleException(String.format("Could not generate test report to '%s'.", reportDir), e);
         }
     }
 
     private <T extends CompositeTestResults> void generatePage(T model, PageRenderer<T> renderer, File outputFile) throws Exception {
-        if (documentBuilder == null) {
-            documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        }
-        Document document = documentBuilder.newDocument();
-        renderer.render(document, model);
-
-        if (transformer == null) {
-            TransformerFactory factory = TransformerFactory.newInstance();
-            transformer = factory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.METHOD, "html");
-            transformer.setOutputProperty(OutputKeys.MEDIA_TYPE, "text/html");
-        }
-
-        outputFile.getParentFile().mkdirs();
-        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "utf-8"));
-        try {
-            writer.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n");
-            transformer.transform(new DOMSource(document), new StreamResult(writer));
-        } finally {
-            writer.close();
-        }
-    }
-
-    private void copyResources() throws IOException {
-        copyResource("style.css");
-        copyResource("report.js");
-        copyResource("css3-pie-1.0beta3.htc");
-    }
-
-    private void copyResource(String resourceName) throws IOException {
-        File cssFile = new File(reportDir, resourceName);
-        OutputStream outputStream = new FileOutputStream(cssFile);
-        try {
-            InputStream cssResource = getClass().getResourceAsStream(resourceName);
-            try {
-                IOUtils.copy(cssResource, outputStream);
-            } finally {
-                cssResource.close();
-            }
-        } finally {
-            outputStream.close();
-        }
+        htmlRenderer.renderer(renderer).writeTo(model, outputFile);
     }
 }

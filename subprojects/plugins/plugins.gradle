@@ -15,7 +15,6 @@
  */
 
 configurations {
-    reports
     testFixtures
     wrapper
 }
@@ -32,19 +31,12 @@ dependencies {
             libraries.ant,
             'org.testng:testng:5.14.10'
 
-    reports 'css3-pie:css3-pie:1.0beta3'
     wrapper project(':wrapper')
     testCompile libraries.xmlunit, 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 
     testCompile project(":internalTesting")
     testFixtures sourceSets.test.output
 }
-
-task reportResources(type: Copy) {
-    from configurations.reports
-    into "$generatedResourcesDir/org/gradle/api/internal/tasks/testing/junit/report"
-}
-sourceSets.main.output.dir generatedResourcesDir, buildBy: reportResources
 
 task wrapperJar(type: Copy) {
     from configurations.wrapper

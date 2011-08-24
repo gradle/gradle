@@ -17,16 +17,19 @@ package org.gradle.profile;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.api.*;
+import org.gradle.api.Project;
+import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.ProjectState;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.reporting.HtmlReportRenderer;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -61,15 +64,12 @@ public class ProfileListener implements BuildListener, ProjectEvaluationListener
     public void buildFinished(BuildResult result) {
         buildProfile.setBuildFinished(System.currentTimeMillis());
 
-        HTMLProfileReport report = new HTMLProfileReport(buildProfile);
+        HtmlReportRenderer renderer = new HtmlReportRenderer();
+        renderer.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
+        renderer.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
+        renderer.requireResource(getClass().getResource("/org/gradle/reporting/css3-pie-1.0beta3.htc"));
         File file = new File(result.getGradle().getRootProject().getBuildDir(), "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(profileStarted)) + ".html");
-        file.getParentFile().mkdirs();
-        try {
-            file.createNewFile();
-            report.writeTo(file);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        renderer.renderer(new HTMLProfileReport()).writeTo(buildProfile, file);
     }
 
     // ProjectEvaluationListener
@@ -93,9 +93,9 @@ public class ProfileListener implements BuildListener, ProjectEvaluationListener
     public void afterExecute(Task task, TaskState state) {
         Project project = task.getProject();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project);
-        TaskProfile taskProfile = projectProfile.getTaskProfile(task);
-        taskProfile.setFinish(System.currentTimeMillis());
-        taskProfile.setState(state);
+        TaskExecution taskExecution = projectProfile.getTaskProfile(task);
+        taskExecution.setFinish(System.currentTimeMillis());
+        taskExecution.setState(state);
     }
 
     // DependencyResolutionListener
