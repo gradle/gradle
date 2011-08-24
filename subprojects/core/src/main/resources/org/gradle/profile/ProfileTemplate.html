@@ -75,16 +75,42 @@
                 <div id="config">
                     <div class="heading">Configuration</div>
                     <table cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td>Total</td>
+                            <td class="et">${time.format(build.projectConfiguration.elapsedTime)}</td>
+                        </tr>
                         <%
-                            def projects = build.projects
-                            projects.sort { it. elapsedEvaluation }
+                            def projects = build.projectConfiguration.operations
+                            projects.sort { it.elapsedTime }
                             projects = projects.reverse()
 
                             for (def project : projects) {
                         %>
                         <tr>
                             <td>$project.path</td>
-                            <td class="et">${time.format(project.elapsedEvaluation)}</td>
+                            <td class="et">${time.format(project.elapsedTime)}</td>
+                        </tr>
+                        <% } %>
+                    </table>
+                </div>
+            </td>
+            <td>
+                <div id="dependencyResolution">
+                    <div class="heading">Dependency Resolution</div>
+                    <table cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td>Total</td>
+                            <td class="et">${time.format(build.dependencySets.elapsedTime)}</td>
+                        </tr>
+                        <%
+                            def dependencySets = build.dependencySets.operations
+                            dependencySets.sort { it.elapsedTime }
+                            dependencySets = dependencySets.reverse()
+                            for (def dependencySet : dependencySets) {
+                        %>
+                        <tr>
+                            <td>$dependencySet.path</td>
+                            <td class="et">${time.format(dependencySet.elapsedTime)}</td>
                         </tr>
                         <% } %>
                     </table>
@@ -95,6 +121,7 @@
                     <div class="heading">Task Execution</div>
                     <table cellpadding="0" cellspacing="0">
                         <%
+                            projects = build.projects
                             projects.sort { it.elapsedTaskExecution }
                             projects = projects.reverse()
                             for (def project : projects) {
@@ -106,13 +133,13 @@
                         </tr>
                         <%
                             def profiles = project.taskProfiles
-                            profiles.sort { it.elapsedExecution }
+                            profiles.sort { it.elapsedTime }
                             profiles = profiles.reverse()
                             for (def task : profiles) {
                         %>
                         <tr>
                             <td class="indentPath">${task.path}</td>
-                            <td class="et">${time.format(task.elapsedExecution)}</td>
+                            <td class="et">${time.format(task.elapsedTime)}</td>
                             <td><%= task.state.getSkipped() ? task.state.skipMessage : (task.state.didWork ? '&nbsp;' : 'Did No Work')%></td>
                         </tr>
                         <%
