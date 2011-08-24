@@ -16,21 +16,23 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
-import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class SelfResolvingDependencyFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final SelfResolvingDependencyFactory factory = new SelfResolvingDependencyFactory(new AsmBackedClassGenerator());
+    private final SelfResolvingDependencyFactory factory = new SelfResolvingDependencyFactory(new DirectInstantiator());
 
     @Test
     public void createsADependencyFromAFileCollectionNotation() {

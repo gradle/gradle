@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,16 @@
  */
 package org.gradle.api.internal;
 
-public class GroovySourceGenerationBackedClassGeneratorTest extends AbstractClassGeneratorTest {
-    @Override
-    protected GroovySourceGenerationBackedClassGenerator createGenerator() {
-        return new GroovySourceGenerationBackedClassGenerator();
+public class ClassGeneratorBackedInstantiator implements Instantiator {
+    private final ClassGenerator classGenerator;
+    private final Instantiator instantiator;
+
+    public ClassGeneratorBackedInstantiator(ClassGenerator classGenerator, Instantiator instantiator) {
+        this.classGenerator = classGenerator;
+        this.instantiator = instantiator;
+    }
+
+    public <T> T newInstance(Class<T> type, Object... parameters) {
+        return instantiator.newInstance(classGenerator.generate(type), parameters);
     }
 }

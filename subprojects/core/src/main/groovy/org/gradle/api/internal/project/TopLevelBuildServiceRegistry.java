@@ -34,12 +34,14 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
-import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.cache.internal.LazyOpenCacheFactory;
 import org.gradle.configuration.*;
-import org.gradle.groovy.scripts.*;
+import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
+import org.gradle.groovy.scripts.ScriptCompilerFactory;
+import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.internal.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.ListenerManager;
@@ -73,9 +75,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected ImportsReader createImportsReader() {
         return new ImportsReader();
-    }
-    protected ClassGenerator createClassGenerator() {
-        return new AsmBackedClassGenerator();
     }
 
     protected TimeProvider createTimeProvider() {

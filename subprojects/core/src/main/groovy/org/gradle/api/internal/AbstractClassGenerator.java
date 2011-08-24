@@ -18,7 +18,6 @@ package org.gradle.api.internal;
 
 import groovy.lang.*;
 import org.gradle.api.GradleException;
-import org.gradle.util.DirectInstantiator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;

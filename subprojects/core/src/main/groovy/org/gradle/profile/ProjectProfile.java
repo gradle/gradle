@@ -24,11 +24,14 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ProjectProfile {
-    private Project project;
-    private long beforeEvaluate;
-    private long afterEvaluate;
+    private final Project project;
     private ProjectState state;
     private HashMap<Task, TaskProfile> tasks = new HashMap<Task, TaskProfile>();
+    private final ContinuousOperation evaluation = new ContinuousOperation() {
+        public String getPath() {
+            return project.getPath();
+        }
+    };
 
     public ProjectProfile(Project project) {
         this.project = project;
@@ -64,20 +67,8 @@ public class ProjectProfile {
         return project.getPath();
     }
 
-    /**
-     * Should be set with a timestamp right before project evaluation begins.
-     * @param beforeEvaluate
-     */
-    public void setBeforeEvaluate(long beforeEvaluate) {
-        this.beforeEvaluate = beforeEvaluate;
-    }
-
-    /**
-     * Should be set with a timestamp right after proejct evaluation finishes.
-     * @param afterEvaluate
-     */
-    public void setAfterEvaluate(long afterEvaluate) {
-        this.afterEvaluate = afterEvaluate;
+    public ContinuousOperation getEvaluation() {
+        return evaluation;
     }
 
     /**
@@ -93,21 +84,13 @@ public class ProjectProfile {
     }
 
     /**
-     * Get the elapsed time (in mSec) for project evaluation (configuration phase).
-     * @return
-     */
-    public long getElapsedEvaluation() {
-        return afterEvaluate - beforeEvaluate;
-    }
-
-    /**
      * Get the elapsed time (in mSec) for execution of all tasks.
      * @return
      */
     public long getElapsedTaskExecution() {
         long result = 0;
         for (TaskProfile taskProfile : tasks.values()) {
-            result += taskProfile.getElapsedExecution();
+            result += taskProfile.getElapsedTime();
         }
         return result;
     }

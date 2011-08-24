@@ -15,21 +15,21 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.tasks.SourceSet;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
+
 public class DefaultSourceSetContainerTest {
-    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(null, null, new AsmBackedClassGenerator());
+    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(null, null, new DirectInstantiator());
 
     @Test
     public void createsASourceSet() {
         SourceSet set = container.create("main");
         assertThat(set, instanceOf(DefaultSourceSet.class));
-        assertThat(set, instanceOf(IConventionAware.class));
         assertThat(set.getName(), equalTo("main"));
     }
 }

@@ -15,9 +15,8 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.internal.Connection;
 
 public interface IncomingConnectionHandler {
-    void handle(Connection<Object> connection, Stoppable serverControl);
+    void handle(Connection<Object> connection, CompletionHandler serverControl);
 }

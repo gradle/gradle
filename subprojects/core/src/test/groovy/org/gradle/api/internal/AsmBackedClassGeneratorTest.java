@@ -17,7 +17,7 @@ package org.gradle.api.internal;
 
 public class AsmBackedClassGeneratorTest extends AbstractClassGeneratorTest {
     @Override
-    protected ClassGenerator createGenerator() {
+    protected AsmBackedClassGenerator createGenerator() {
         return new AsmBackedClassGenerator();
     }
 }

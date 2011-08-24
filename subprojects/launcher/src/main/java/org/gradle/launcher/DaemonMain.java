@@ -29,9 +29,10 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.LoggingOutputInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
 
 import java.io.*;
@@ -45,12 +46,16 @@ public class DaemonMain implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(Main.class);
     private final ServiceRegistry loggingServices;
     private final DaemonConnector connector;
+    private final StartParameter startParameter;
     private final GradleLauncherFactory launcherFactory;
 
-    public DaemonMain(ServiceRegistry loggingServices, DaemonConnector connector) {
+    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
+
+    public DaemonMain(ServiceRegistry loggingServices, DaemonConnector connector, StartParameter startParameter) {
         this.loggingServices = loggingServices;
         this.connector = connector;
-        launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
+        this.startParameter = startParameter;
+        this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 
     public static void main(String[] args) throws IOException {
@@ -58,14 +63,15 @@ public class DaemonMain implements Runnable {
         DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
         redirectOutputsAndInput(startParameter);
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
-        new DaemonMain(loggingServices, connector).run();
+        new DaemonMain(loggingServices, connector, startParameter).run();
     }
 
     private static void redirectOutputsAndInput(StartParameter startParameter) throws IOException {
         PrintStream originalOut = System.out;
         PrintStream originalErr = System.err;
 //        InputStream originalIn = System.in;
-        File logOutputFile = new File(startParameter.getGradleUserHomeDir(), String.format("daemon/%s/daemon.out.log", GradleVersion.current().getVersion()));
+        DaemonDir daemonDir = new DaemonDir(startParameter.getGradleUserHomeDir());
+        File logOutputFile = daemonDir.createUniqueLog();
         logOutputFile.getParentFile().mkdirs();
         PrintStream printStream = new PrintStream(new FileOutputStream(logOutputFile), true);
         System.setOut(printStream);
@@ -78,32 +84,72 @@ public class DaemonMain implements Runnable {
     }
 
     public void run() {
-        connector.accept(new IncomingConnectionHandler() {
-            public void handle(Connection<Object> connection, Stoppable serverControl) {
-                doRun(connection, serverControl);
+        //TODO SF - very simple/no validation - discuss with Adam potential solutions because I don't like the sys property too much
+        String timeoutProperty = startParameter.getSystemPropertiesArgs().get("idleDaemonTimeout");
+        int idleDaemonTimeout = (timeoutProperty != null)? Integer.parseInt(timeoutProperty) : 3 * 60 * 60 * 1000;
+
+        final StoppableExecutor executor = executorFactory.create("DaemonMain executor");
+
+        connector.accept(idleDaemonTimeout, new IncomingConnectionHandler() {
+            public void handle(final Connection<Object> connection, final CompletionHandler serverControl) {
+                //we're spinning a thread to do work to avoid blocking the connection
+                //This means that the Daemon potentially can have multiple jobs running.
+                //We only allow 2 threads max - one for the build, second for potential Stop request
+                executor.execute(new Runnable() {
+                    public void run() {
+                        Command command = null;
+                        try {
+                            command = lockAndReceive(connection, serverControl);
+                            if (command == null) {
+                                LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
+                                unlock(serverControl);
+                                connection.stop();
+                            }
+                        } catch (BusyException e) {
+                            connection.dispatch(new CommandComplete(e));
+                            return;
+                        }
+                        try {
+                            doRun(connection, serverControl, command);
+                        } finally {
+                            unlock(serverControl);
+                            connection.stop();
+                        }
+                    }
+                });
             }
         });
+
+        executorFactory.stop();
     }
 
-    private void doRun(final Connection<Object> connection, Stoppable serverControl) {
+    private void unlock(CompletionHandler serverControl) {
+        serverControl.onActivityComplete();
+    }
+
+    private void doRun(final Connection<Object> connection, CompletionHandler serverControl, Command command) {
         CommandComplete result = null;
         Throwable failure = null;
         try {
             LoggingOutputInternal loggingOutput = loggingServices.get(LoggingOutputInternal.class);
             OutputEventListener listener = new OutputEventListener() {
                 public void onOutput(OutputEvent event) {
-                    connection.dispatch(event);
+                    try {
+                        connection.dispatch(event);
+                    } catch (Exception e) {
+                        //TODO SF think about it. Do we need this? I was getting 'broken pipe' problems very rarely
+                    }
                 }
             };
 
             // Perform as much as possible of the interaction while the logging is routed to the client
             loggingOutput.addOutputEventListener(listener);
             try {
-                result = doRunWithLogging(connection, serverControl);
+                result = doRunWithLogging(serverControl, command);
             } finally {
                 loggingOutput.removeOutputEventListener(listener);
             }
-        } catch (ReportedException e) {
+         } catch (ReportedException e) {
             failure = e;
         } catch (Throwable throwable) {
             LOGGER.error("Could not execute build.", throwable);
@@ -116,8 +162,24 @@ public class DaemonMain implements Runnable {
         connection.dispatch(result);
     }
 
-    private CommandComplete doRunWithLogging(Connection<Object> connection, Stoppable serverControl) {
-        Command command = (Command) connection.receive();
+    private Command lockAndReceive(Connection<Object> connection, CompletionHandler serverControl) {
+        try {
+            serverControl.onStartActivity();
+            return (Command) connection.receive();
+        } catch (BusyException busy) {
+            Command command = (Command) connection.receive();
+            if (command instanceof Stop) {
+                //that's ok, if the daemon is busy we still want to be able to stop it
+                LOGGER.info("The daemon is busy and Stop command was received. Stopping...");
+                return command;
+            }
+            //otherwise it is a build request and we are already busy
+            LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
+            throw busy;
+        }
+    }
+
+    private CommandComplete doRunWithLogging(Stoppable serverControl, Command command) {
         try {
             return doRunWithExceptionHandling(command, serverControl);
         } catch (ReportedException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.profile;
 
-public class GroovySourceGenerationBackedClassGeneratorTest extends AbstractClassGeneratorTest {
-    @Override
-    protected GroovySourceGenerationBackedClassGenerator createGenerator() {
-        return new GroovySourceGenerationBackedClassGenerator();
+/**
+ * A continuous operation with a start and finish time.
+ */
+public class ContinuousOperation extends Operation {
+    private long start;
+    private long finish;
+
+    public void setStart(long start) {
+        this.start = start;
+    }
+
+    public void setFinish(long finish) {
+        this.finish = finish;
+    }
+
+    public long getElapsedTime() {
+        return finish - start;
     }
 }

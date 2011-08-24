@@ -79,4 +79,12 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     protected MessagingServer createMessagingServer() {
         return get(MessagingServices.class).get(MessagingServer.class);
     }
+
+    protected ClassGenerator createClassGenerator() {
+        return new AsmBackedClassGenerator();
+    }
+
+    protected Instantiator createInstantiator() {
+        return new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DirectInstantiator());
+    }
 }

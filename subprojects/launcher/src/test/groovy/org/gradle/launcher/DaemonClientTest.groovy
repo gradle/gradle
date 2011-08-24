@@ -37,11 +37,21 @@ class DaemonClientTest extends Specification {
         client.stop()
 
         then:
-        1 * connector.maybeConnect() >> connection
+        2 * connector.maybeConnect() >>> [connection, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new CommandComplete(null)
         1 * connection.stop()
         0 * _._
+    }
+
+    def "stops all daemons"() {
+        when:
+        client.stop()
+
+        then:
+        3 * connector.maybeConnect() >>> [connection, connection, null]
+        2 * connection.dispatch({it instanceof Stop})
+        2 * connection.receive() >> new CommandComplete(null)
     }
 
     def stopsTheDaemonWhenNotRunning() {
