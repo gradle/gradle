@@ -73,6 +73,7 @@
                 They didn't want to check-in this repository configuration into the VCS so they kept it configured in the <filename>init.script</filename>.
             </para>
             <sample id="afterEvaluateInInitScript" dir="userguide/initScripts/afterEvaluate" title="Using init script to perform extra configuration after project is evaluated">
+                <sourcefile file="build.gradle"/>
                 <sourcefile file="init.gradle"/>
                 <output args="--init-script init.gradle -q showRepos"/>
             </sample>
