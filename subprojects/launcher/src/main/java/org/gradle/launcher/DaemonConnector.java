@@ -126,6 +126,7 @@ public class DaemonConnector {
         daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.GRADLE_USER_HOME));
         daemonArgs.add(userHomeDir.getAbsolutePath());
         daemonArgs.add("-DidleDaemonTimeout=" + idleDaemonTimeout);
+        //TODO SF standarize the sys property org.gradle.daemon.idletimeout
         DaemonStartAction daemon = new DaemonStartAction();
         daemon.args(daemonArgs);
         daemon.workingDir(userHomeDir);

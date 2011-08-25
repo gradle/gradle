@@ -31,6 +31,8 @@ import spock.lang.Timeout
  */
 class DaemonFunctionalTest extends Specification {
 
+    //TODO SF - same place for the daemon functional/integ tests
+
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
     DaemonConnector connector
     DaemonRegistry reg

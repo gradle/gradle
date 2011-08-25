@@ -88,6 +88,7 @@ public class DaemonMain implements Runnable {
         //TODO SF - very simple/no validation - discuss with Adam potential solutions because I don't like the sys property too much
         String timeoutProperty = startParameter.getSystemPropertiesArgs().get("idleDaemonTimeout");
         int idleDaemonTimeout = (timeoutProperty != null)? Integer.parseInt(timeoutProperty) : 3 * 60 * 60 * 1000;
+        LOGGER.info("Idle daemon timeout is configured to: " + idleDaemonTimeout/1000 + " secs");
 
         final StoppableExecutor executor = executorFactory.create("DaemonMain executor");
 
@@ -103,7 +104,7 @@ public class DaemonMain implements Runnable {
                             command = lockAndReceive(connection, serverControl);
                             if (command == null) {
                                 LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
-                                unlock(serverControl);
+                                unlock(serverControl);  //TODO SF - if receiving is first we don't need this really
                                 connection.stop();
                                 return;
                             }
@@ -139,7 +140,7 @@ public class DaemonMain implements Runnable {
                     try {
                         connection.dispatch(event);
                     } catch (Exception e) {
-                        //TODO SF think about it. Do we need this? I was getting 'broken pipe' problems very rarely
+                        //TODO SF we need handling for this. It means the client disconnected
                     }
                 }
             };
@@ -166,6 +167,7 @@ public class DaemonMain implements Runnable {
 
     private Command lockAndReceive(Connection<Object> connection, CompletionHandler serverControl) {
         try {
+            //TODO SF - receiving can be first and the logic gets simpler
             serverControl.onStartActivity();
             return (Command) connection.receive();
         } catch (BusyException busy) {
