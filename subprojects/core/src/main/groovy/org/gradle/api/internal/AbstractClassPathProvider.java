@@ -134,27 +134,33 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
     // This is used when running from the IDE or junit tests
     private static class ClassPathScanner implements Scanner {
         private final File classesDir;
-        private final Collection<URL> classpath;
+        private final Collection<File> classpath;
 
         private ClassPathScanner(File classesDir) {
             this.classesDir = classesDir;
-            this.classpath = ClasspathUtil.getClasspath(getClass().getClassLoader());
+            this.classpath = new ArrayList<File>();
+            for (URL url : ClasspathUtil.getClasspath(getClass().getClassLoader())) {
+                if (url.getProtocol().equals("file")) {
+                    try {
+                        classpath.add(new File(url.toURI()));
+                    } catch (URISyntaxException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+            }
         }
 
         public void find(Iterable<Pattern> patterns, Collection<File> into) {
             if (matches(patterns, "gradle-core-version.jar")) {
                 into.add(classesDir);
             }
-            for (URL url : classpath) {
-                if (url.getProtocol().equals("file")) {
-                    try {
-                        File file = new File(url.toURI());
-                        if (matches(patterns, file.getName())) {
-                            into.add(file);
-                        }
-                    } catch (URISyntaxException e) {
-                        throw new UncheckedIOException(e);
-                    }
+            if (matches(patterns, "gradle-launcher-version.jar")) {
+                into.addAll(classpath);
+                return;
+            }
+            for (File file : classpath) {
+                if (matches(patterns, file.getName())) {
+                    into.add(file);
                 }
             }
         }

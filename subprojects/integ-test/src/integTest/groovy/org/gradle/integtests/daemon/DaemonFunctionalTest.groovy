@@ -28,12 +28,10 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
-import spock.lang.Ignore
 
 /**
  * @author: Szczepan Faber, created at: 8/18/11
  */
-@Ignore
 class DaemonFunctionalTest extends Specification {
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
@@ -53,7 +51,7 @@ class DaemonFunctionalTest extends Specification {
         printDaemonLog()
     }
 
-    @Timeout(5) //healthy timeout just in case
+    @Timeout(10) //healthy timeout just in case
     def "daemons expire"() {
         when:
         prepare()
@@ -76,7 +74,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "knows status of the daemon"() {
         when:
         prepare()
@@ -104,7 +102,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "spins new daemon if all are busy"() {
         when:
         prepare()
@@ -138,7 +136,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "registry deletes the bin files"() {
         prepare()
 
@@ -157,7 +155,7 @@ class DaemonFunctionalTest extends Specification {
         //daemonRegistry.registryFolder.list().length == 0
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "cleans up registry"() {
         prepare()
 
@@ -175,7 +173,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "stops idle daemon"() {
         prepare()
         OutputEventListener listener = Mock()
@@ -194,7 +192,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "stops busy daemon"() {
         prepare()
         OutputEventListener listener = Mock()
@@ -212,7 +210,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "stops all daemons"() {
         prepare()
         OutputEventListener listener = Mock()
@@ -271,7 +269,7 @@ class DaemonFunctionalTest extends Specification {
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    void poll(int timeout = 1000, Closure assertion) {
+    void poll(int timeout = 2000, Closure assertion) {
         int x = 0;
         while(true) {
             try {
