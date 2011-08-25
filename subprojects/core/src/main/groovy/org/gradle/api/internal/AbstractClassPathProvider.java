@@ -76,6 +76,10 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
 
     public Set<File> findClassPath(String name) {
         Set<File> matches = new LinkedHashSet<File>();
+        if (name.equals("GRADLE_BOOTSTRAP")) {
+            runtimeLibs.find(Arrays.asList(Pattern.compile("^gradle-launcher.+")), matches);
+            return matches;
+        }
         if (name.equals("GRADLE_RUNTIME")) {
             runtimeLibs.find(all, matches);
             return matches;

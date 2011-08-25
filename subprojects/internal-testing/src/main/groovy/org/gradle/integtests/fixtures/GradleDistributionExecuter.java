@@ -42,6 +42,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private boolean workingDirSet;
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
+    private final Executer executerType;
 
     /**
      * Useful at development time when someone wants to explicitly run some test against the daemon from the IDE.
@@ -55,19 +56,41 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     }
 
     public enum Executer {
-        forking, embedded, daemon
+        embedded(false), 
+        forking(true), 
+        daemon(true);
+        
+        final public boolean forks;
+        
+        Executer(boolean forks) {
+            this.forks = forks;
+        }
     }
 
-    public static Executer getExecuter() {
+    public static Executer getSystemPropertyExecuter() {
         return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()).toLowerCase());
     }
 
+    public GradleDistributionExecuter() {
+        this(getSystemPropertyExecuter());
+    }
+
+    public GradleDistributionExecuter(Executer executerType) {
+        this.executerType = executerType;
+    }
+    
     public GradleDistributionExecuter(GradleDistribution dist) {
+        this(getSystemPropertyExecuter(), dist);
+    }
+
+    public GradleDistributionExecuter(Executer executerType, GradleDistribution dist) {
+        this(executerType);
         this.dist = dist;
         reset();
     }
 
-    public GradleDistributionExecuter() {
+    public Executer getType() {
+        return executerType;
     }
 
     public Statement apply(Statement base, final FrameworkMethod method, Object target) {
@@ -163,8 +186,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
         GradleExecuter returnedExecuter = inProcessGradleExecuter;
 
-        if (getExecuter() != Executer.embedded || !inProcessGradleExecuter.canExecute()) {
-            boolean useDaemon = getExecuter() == Executer.daemon && getExecutable() == null;
+        if (executerType != Executer.embedded || !inProcessGradleExecuter.canExecute()) {
+            boolean useDaemon = executerType == Executer.daemon && getExecutable() == null;
             ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist.getGradleHomeDir()) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
             TestFile tmpDir = getTmpDir();

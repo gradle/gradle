@@ -40,6 +40,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public class DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DaemonConnector.class);
@@ -107,6 +108,11 @@ public class DaemonConnector {
     }
 
     private void startDaemon() {
+        Set<File> bootstrapClasspath = new DefaultClassPathRegistry().getClassPathFiles("GRADLE_BOOTSTRAP");
+        if (bootstrapClasspath.isEmpty()) {
+            throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
+        }
+        
         List<String> daemonArgs = new ArrayList<String>();
         daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
         daemonArgs.add("-Xmx1024m");
@@ -115,8 +121,7 @@ public class DaemonConnector {
 //        daemonArgs.add("-Xdebug");
 //        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
         daemonArgs.add("-cp");
-        daemonArgs.add(GUtil.join(new DefaultClassPathRegistry().getClassPathFiles("GRADLE_RUNTIME"),
-                File.pathSeparator));
+        daemonArgs.add(GUtil.join(bootstrapClasspath, File.pathSeparator));
         daemonArgs.add(GradleDaemon.class.getName());
         daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.GRADLE_USER_HOME));
         daemonArgs.add(userHomeDir.getAbsolutePath());

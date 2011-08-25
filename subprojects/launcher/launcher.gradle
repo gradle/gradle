@@ -1,3 +1,5 @@
+apply from: "$rootDir/gradle/integTest.gradle"
+
 configurations {
     startScriptGenerator
 }
