@@ -11,7 +11,7 @@ dependencies {
     compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
     compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
     compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
-    compile 'org.jfrog.wharf:wharf-core:1.0-20110727083102@jar'
+    compile 'org.jfrog.wharf:wharf-core:1.0-20110820123059@jar'
     runtime 'com.esotericsoftware:kryo:1.03', 'com.esotericsoftware:minlog:1.2', 'com.googlecode:reflectasm:1.01', libraries.asm_all, libraries.ivy
 
     testCompile libraries.junit
