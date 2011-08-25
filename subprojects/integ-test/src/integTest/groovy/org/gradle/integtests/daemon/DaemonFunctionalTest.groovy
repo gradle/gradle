@@ -28,10 +28,12 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
+import spock.lang.Ignore
 
 /**
  * @author: Szczepan Faber, created at: 8/18/11
  */
+@Ignore
 class DaemonFunctionalTest extends Specification {
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
