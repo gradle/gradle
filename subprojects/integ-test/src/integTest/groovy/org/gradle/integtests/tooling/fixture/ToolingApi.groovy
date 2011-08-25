@@ -77,7 +77,7 @@ class ToolingApi {
         connector.useGradleUserHomeDir(new File(dist.userHomeDir.absolutePath))
         connector.forProjectDirectory(new File(getProjectDir().absolutePath))
         connector.searchUpwards(false)
-        if (GradleDistributionExecuter.executer == GradleDistributionExecuter.Executer.embedded) {
+        if (GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded) {
             LOGGER.info("Using embedded tooling API provider");
             connector.useClasspathDistribution()
             connector.embedded(true)
