@@ -17,15 +17,13 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.Action;
 import org.gradle.reporting.DomReportRenderer;
-import org.gradle.util.GradleVersion;
+import org.gradle.reporting.TabbedPageRenderer;
 import org.w3c.dom.Element;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-abstract class PageRenderer<T extends CompositeTestResults> extends DomReportRenderer<T> {
+abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRenderer<T> {
     private T results;
     private List<TabDefinition> tabs = new ArrayList<TabDefinition>();
 
@@ -79,30 +77,6 @@ abstract class PageRenderer<T extends CompositeTestResults> extends DomReportRen
         }
     }
 
-    protected Element append(Element parent, String name) {
-        Element element = parent.getOwnerDocument().createElement(name);
-        parent.appendChild(element);
-        return element;
-    }
-
-    protected Element appendWithId(Element parent, String name, String id) {
-        Element element = parent.getOwnerDocument().createElement(name);
-        parent.appendChild(element);
-        element.setAttribute("id", id);
-        return element;
-    }
-
-    protected Element appendWithText(Element parent, String name, Object textContent) {
-        Element element = parent.getOwnerDocument().createElement(name);
-        parent.appendChild(element);
-        appendText(element, textContent);
-        return element;
-    }
-
-    protected void appendText(Element element, Object textContent) {
-        element.appendChild(element.getOwnerDocument().createTextNode(textContent.toString()));
-    }
-
     protected Element appendTableAndRow(Element parent) {
         return append(append(parent, "table"), "tr");
     }
@@ -117,74 +91,73 @@ abstract class PageRenderer<T extends CompositeTestResults> extends DomReportRen
         return element;
     }
 
-    public void render(T results, Element html) {
-        this.results = results;
+    @Override
+    protected String getTitle() {
+        return getModel().getTitle();
+    }
 
-        registerTabs();
+    @Override
+    protected String getPageTitle() {
+        return String.format("Test results - %s", getModel().getTitle());
+    }
 
-        // <head>
-        Element head = append(html, "head");
-        appendWithText(head, "title", String.format("Test results - %s", results.getTitle()));
-        Element link = append(head, "link");
-        link.setAttribute("rel", "stylesheet");
-        link.setAttribute("href", "base-style.css");
-        link.setAttribute("type", "text/css");
-        link = append(head, "link");
-        link.setAttribute("rel", "stylesheet");
-        link.setAttribute("href", "style.css");
-        link.setAttribute("type", "text/css");
-        Element script = append(head, "script");
-        script.setAttribute("src", "report.js");
-        script.setAttribute("type", "text/javascript");
+    @Override
+    protected DomReportRenderer<T> getHeaderRenderer() {
+        return new DomReportRenderer<T>() {
+            @Override
+            public void render(T model, Element content) {
+                PageRenderer.this.results = model;
+                renderBreadcrumbs(content);
 
-        // <body>
-        Element body = append(html, "body");
-        Element content = appendWithId(body, "div", "content");
-        appendWithText(content, "h1", results.getTitle());
-        renderBreadcrumbs(content);
+                // summary
+                Element summary = appendWithId(content, "div", "summary");
+                Element row = appendTableAndRow(summary);
+                Element group = appendCell(row);
+                group.setAttribute("class", "summaryGroup");
+                Element summaryRow = appendTableAndRow(group);
 
-        // summary
-        Element summary = appendWithId(content, "div", "summary");
-        Element row = appendTableAndRow(summary);
-        Element group = appendCell(row);
-        group.setAttribute("class", "summaryGroup");
-        Element summaryRow = appendTableAndRow(group);
+                Element tests = appendCell(summaryRow);
+                tests.setAttribute("id", "tests");
+                tests.setAttribute("class", "infoBox");
+                Element div = appendWithText(tests, "div", results.getTestCount());
+                div.setAttribute("class", "counter");
+                appendWithText(tests, "p", "tests");
 
-        Element tests = appendCell(summaryRow);
-        tests.setAttribute("id", "tests");
-        tests.setAttribute("class", "infoBox");
-        Element div = appendWithText(tests, "div", results.getTestCount());
-        div.setAttribute("class", "counter");
-        appendWithText(tests, "p", "tests");
+                Element failures = appendCell(summaryRow);
+                failures.setAttribute("id", "failures");
+                failures.setAttribute("class", "infoBox");
+                div = appendWithText(failures, "div", results.getFailureCount());
+                div.setAttribute("class", "counter");
+                appendWithText(failures, "p", "failures");
 
-        Element failures = appendCell(summaryRow);
-        failures.setAttribute("id", "failures");
-        failures.setAttribute("class", "infoBox");
-        div = appendWithText(failures, "div", results.getFailureCount());
-        div.setAttribute("class", "counter");
-        appendWithText(failures, "p", "failures");
+                Element duration = appendCell(summaryRow);
+                duration.setAttribute("id", "duration");
+                duration.setAttribute("class", "infoBox");
+                div = appendWithText(duration, "div", results.getFormattedDuration());
+                div.setAttribute("class", "counter");
+                appendWithText(duration, "p", "duration");
 
-        Element duration = appendCell(summaryRow);
-        duration.setAttribute("id", "duration");
-        duration.setAttribute("class", "infoBox");
-        div = appendWithText(duration, "div", results.getFormattedDuration());
-        div.setAttribute("class", "counter");
-        appendWithText(duration, "p", "duration");
+                Element successRate = appendCell(row);
+                successRate.setAttribute("id", "successRate");
+                successRate.setAttribute("class", String.format("infoBox %s", results.getStatusClass()));
+                div = appendWithText(successRate, "div", results.getFormattedSuccessRate());
+                div.setAttribute("class", "percent");
+                appendWithText(successRate, "p", "successful");
+            }
+        };
+    }
 
-        Element successRate = appendCell(row);
-        successRate.setAttribute("id", "successRate");
-        successRate.setAttribute("class", String.format("infoBox %s", results.getStatusClass()));
-        div = appendWithText(successRate, "div", results.getFormattedSuccessRate());
-        div.setAttribute("class", "percent");
-        appendWithText(successRate, "p", "successful");
+    @Override
+    protected DomReportRenderer<T> getContentRenderer() {
+        return new DomReportRenderer<T>() {
+            @Override
+            public void render(T model, Element content) {
+                PageRenderer.this.results = model;
 
-        renderTabs(content);
-
-        Element footer = appendWithId(content, "div", "footer");
-        Element footerText = append(footer, "p");
-        appendText(footerText, "Generated by ");
-        appendLink(footerText, "http://www.gradle.org/", String.format("Gradle %s", GradleVersion.current().getVersion()));
-        appendText(footerText, String.format(" at %s", DateFormat.getDateTimeInstance().format(new Date())));
+                registerTabs();
+                renderTabs(content);
+            }
+        };
     }
 
     private static class TabDefinition {

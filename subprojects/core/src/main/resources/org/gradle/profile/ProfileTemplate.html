@@ -1,131 +1,115 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-<head>
-    <title>Profile Report</title>
-    <link rel="stylesheet" href="base-style.css" type="text/css"/>
-    <script type="text/javascript" src="report.js"></script>
-</head>
 <body>
-<div id="content">
-    <h1>Profile Report</h1>
-    <div class="header">
-        <p>Profiled with tasks: ${build.taskDescription}</p>
-        <p>Run on: ${date.format(build.buildStarted)}</p>
+<div id="tabs">
+    <ul class="tabLinks">
+        <li><a href="#tab0">Summary</a></li>
+        <li><a href="#tab1">Configuration</a></li>
+        <li><a href="#tab2">Dependency Resolution</a></li>
+        <li><a href="#tab3">Task Execution</a></li>
+    </ul>
+    <div class="tab" id="tab0">
+        <h2>Summary</h2>
+        <table>
+            <thead><tr><th>Description</th><th class="numeric">Duration</th></tr></thead>
+            <tr>
+                <td>Total Build Time</td>
+                <td class="numeric">${time.format(build.elapsedTotal)}</td>
+            </tr>
+            <tr>
+                <td>Startup</td>
+                <td class="numeric">${time.format(build.elapsedStartup)}</td>
+            </tr>
+            <tr>
+                <td>Settings and BuildSrc</td>
+                <td class="numeric">${time.format(build.elapsedSettings)}</td>
+            </tr>
+            <tr>
+                <td>Loading Projects</td>
+                <td class="numeric">${time.format(build.elapsedProjectsLoading)}</td>
+            </tr>
+            <tr>
+                <td>Configuring Projects</td>
+                <td class="numeric">${time.format(build.elapsedProjectsEvaluated)}</td>
+            </tr>
+            <tr>
+                <td>Task Execution</td>
+                <td class="numeric">${time.format(build.elapsedTotalExecutionTime)}</td>
+            </tr>
+        </table>
     </div>
-    <div id="tabs">
-        <ul class="tabLinks">
-            <li><a href="#tab0">Summary</a></li>
-            <li><a href="#tab1">Configuration</a></li>
-            <li><a href="#tab2">Dependency Resolution</a></li>
-            <li><a href="#tab3">Task Execution</a></li>
-        </ul>
-        <div class="tab" id="tab0">
-            <h2>Summary</h2>
-            <table>
-                <thead><tr><th>Description</th><th>Duration</th></tr></thead>
-                <tr>
-                    <td>Total Build Time</td>
-                    <td class="et">${time.format(build.elapsedTotal)}</td>
-                </tr>
-                <tr>
-                    <td>Startup</td>
-                    <td class="et">${time.format(build.elapsedStartup)}</td>
-                </tr>
-                <tr>
-                    <td>Settings and BuildSrc</td>
-                    <td class="et">${time.format(build.elapsedSettings)}</td>
-                </tr>
-                <tr>
-                    <td>Loading Projects</td>
-                    <td class="et">${time.format(build.elapsedProjectsLoading)}</td>
-                </tr>
-                <tr>
-                    <td>Configuring Projects</td>
-                    <td class="et">${time.format(build.elapsedProjectsEvaluated)}</td>
-                </tr>
-                <tr>
-                    <td>Total Task Execution</td>
-                    <td class="et">${time.format(build.elapsedTotalExecutionTime)}</td>
-                </tr>
-            </table>
-        </div>
-        <div class="tab" id="tab1">
-            <h2>Configuration</h2>
-            <table>
-                <thead><tr><th>Project</th><th>Duration</th></tr></thead>
-                <tr>
-                    <td>Total</td>
-                    <td class="et">${time.format(build.projectConfiguration.elapsedTime)}</td>
-                </tr>
-                <%
-                def projects = build.projectConfiguration.operations
-                projects.sort { it.elapsedTime }
-                projects = projects.reverse()
+    <div class="tab" id="tab1">
+        <h2>Configuration</h2>
+        <table>
+            <thead><tr><th>Project</th><th class="numeric">Duration</th></tr></thead>
+            <tr>
+                <td>All projects</td>
+                <td class="numeric">${time.format(build.projectConfiguration.elapsedTime)}</td>
+            </tr>
+            <%
+            def projects = build.projectConfiguration.operations
+            projects.sort { it.elapsedTime }
+            projects = projects.reverse()
 
-                for (def project : projects) {
-                %>
-                <tr>
-                    <td>$project.path</td>
-                    <td class="et">${time.format(project.elapsedTime)}</td>
-                </tr>
-                <% } %>
-            </table>
-        </div>
-        <div class="tab" id="tab2">
-            <h2>Dependency Resolution</h2>
-            <table>
-                <thead><tr><th>Dependencies</th><th>Duration</th></tr></thead>
-                <tr>
-                    <td>Total</td>
-                    <td class="et">${time.format(build.dependencySets.elapsedTime)}</td>
-                </tr>
-                <%
-                def dependencySets = build.dependencySets.operations
-                dependencySets.sort { it.elapsedTime }
-                dependencySets = dependencySets.reverse()
-                for (def dependencySet : dependencySets) {
-                %>
-                <tr>
-                    <td>$dependencySet.path</td>
-                    <td class="et">${time.format(dependencySet.elapsedTime)}</td>
-                </tr>
-                <% } %>
-            </table>
-        </div>
-        <div class="tab" id="tab3">
-            <h2>Task Execution</h2>
-            <table cellpadding="0" cellspacing="0">
-                <thead><tr><th>Task</th><th>Duration</th><th>Result</th></tr></thead>
-                <%
-                projects = build.projects
-                projects.sort { it.tasks.elapsedTime }
-                projects = projects.reverse()
-                for (def project : projects) {
-                %>
-                <tr>
-                    <td>$project.path</td>
-                    <td class="et">${time.format(project.tasks.elapsedTime)}</td>
-                    <td>(total)</td>
-                </tr>
-                <%
-                def profiles = project.tasks.operations
-                profiles.sort { it.elapsedTime }
-                profiles = profiles.reverse()
-                for (def task : profiles) {
-                %>
-                <tr>
-                    <td class="indentPath">${task.path}</td>
-                    <td class="et">${time.format(task.elapsedTime)}</td>
-                    <td><%= task.state.getSkipped() ? task.state.skipMessage : (task.state.didWork ? '&nbsp;' : 'Did No Work')%></td>
-                </tr>
-                <%
-                }
-                %>
-                <% } %>
-            </table>
-        </div>
+            for (def project : projects) {
+            %>
+            <tr>
+                <td>$project.path</td>
+                <td class="numeric">${time.format(project.elapsedTime)}</td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
+    <div class="tab" id="tab2">
+        <h2>Dependency Resolution</h2>
+        <table>
+            <thead><tr><th>Dependencies</th><th class="numeric">Duration</th></tr></thead>
+            <tr>
+                <td>All dependencies</td>
+                <td class="numeric">${time.format(build.dependencySets.elapsedTime)}</td>
+            </tr>
+            <%
+            def dependencySets = build.dependencySets.operations
+            dependencySets.sort { it.elapsedTime }
+            dependencySets = dependencySets.reverse()
+            for (def dependencySet : dependencySets) {
+            %>
+            <tr>
+                <td>$dependencySet.path</td>
+                <td class="numeric">${time.format(dependencySet.elapsedTime)}</td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
+    <div class="tab" id="tab3">
+        <h2>Task Execution</h2>
+        <table>
+            <thead><tr><th>Task</th><th class="numeric">Duration</th><th>Result</th></tr></thead>
+            <%
+            projects = build.projects
+            projects.sort { it.tasks.elapsedTime }
+            projects = projects.reverse()
+            for (def project : projects) {
+            %>
+            <tr>
+                <td>Project $project.path</td>
+                <td class="numeric">${time.format(project.tasks.elapsedTime)}</td>
+                <td>(total)</td>
+            </tr>
+            <%
+            def profiles = project.tasks.operations
+            profiles.sort { it.elapsedTime }
+            profiles = profiles.reverse()
+            for (def task : profiles) {
+            %>
+            <tr>
+                <td class="indentPath">${task.path}</td>
+                <td class="numeric">${time.format(task.elapsedTime)}</td>
+                <td><%= task.state.getSkipped() ? task.state.skipMessage : (task.state.didWork ? '' : 'Did No Work')%></td>
+            </tr>
+            <%
+            }
+            %>
+            <% } %>
+        </table>
     </div>
 </div>
 </body>
-</html>

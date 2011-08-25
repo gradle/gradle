@@ -58,6 +58,10 @@ public class BuildProfile {
         return gradle;
     }
 
+    public long getBuildStarted() {
+        return buildStarted;
+    }
+
     /**
      * Get a description of the tasks passed to gradle as targets from the command line
      * @return

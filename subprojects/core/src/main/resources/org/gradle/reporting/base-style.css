@@ -102,7 +102,7 @@ div.deselected {
 }
 
 div.tab table {
-    width: 100%;
+    width: auto;
     border-collapse: collapse;
 }
 
@@ -112,11 +112,25 @@ div.tab th, div.tab table {
 
 div.tab th {
     text-align: left;
+    padding-left: 6em;
+}
+
+div.tab th:first-child {
+    padding-left: 0;
 }
 
 div.tab td {
+    padding-left: 6em;
     padding-top: 5px;
     padding-bottom: 5px;
+}
+
+div.tab td:first-child {
+    padding-left: 0;
+}
+
+div.tab td.numeric, div.tab th.numeric {
+    text-align: right;
 }
 
 div.tab pre {

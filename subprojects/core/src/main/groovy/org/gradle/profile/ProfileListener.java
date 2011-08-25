@@ -27,7 +27,6 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.reporting.HtmlReportRenderer;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -64,12 +63,9 @@ public class ProfileListener implements BuildListener, ProjectEvaluationListener
     public void buildFinished(BuildResult result) {
         buildProfile.setBuildFinished(System.currentTimeMillis());
 
-        HtmlReportRenderer renderer = new HtmlReportRenderer();
-        renderer.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
-        renderer.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
-        renderer.requireResource(getClass().getResource("/org/gradle/reporting/css3-pie-1.0beta3.htc"));
+        ProfileReportRenderer renderer = new ProfileReportRenderer();
         File file = new File(result.getGradle().getRootProject().getBuildDir(), "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(profileStarted)) + ".html");
-        renderer.renderer(new HTMLProfileReport()).writeTo(buildProfile, file);
+        renderer.writeTo(buildProfile, file);
     }
 
     // ProjectEvaluationListener
