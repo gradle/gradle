@@ -19,6 +19,7 @@ import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
@@ -37,8 +38,9 @@ public class TextDomReportRenderer<T> extends DomReportRenderer<T> {
             StringWriter writer = new StringWriter();
             renderer.writeTo(model, writer);
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(writer.toString().getBytes()));
-            while (document.getDocumentElement().getFirstChild() != null) {
-                Node adopted = parent.getOwnerDocument().adoptNode(document.getDocumentElement().getFirstChild());
+            NodeList children = document.getDocumentElement().getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                Node adopted = parent.getOwnerDocument().importNode(children.item(i), true);
                 parent.appendChild(adopted);
             }
         } catch (Exception e) {
