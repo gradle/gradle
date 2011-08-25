@@ -21,7 +21,6 @@ import org.junit.runner.RunWith
 @RunWith(UserGuideSamplesRunner.class)
 class UserGuideSamplesIntegrationTest {
     /*
-
     Important info:
 
      If you're working in samples area there're gradle tasks that you should know of:
