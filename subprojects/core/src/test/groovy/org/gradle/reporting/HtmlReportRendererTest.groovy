@@ -19,6 +19,7 @@ import spock.lang.Specification
 import org.w3c.dom.Element
 import org.junit.Rule
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TextUtil
 
 class HtmlReportRendererTest extends Specification {
     final DomReportRenderer<String> domRenderer = new DomReportRenderer<String>() {
@@ -37,11 +38,11 @@ class HtmlReportRendererTest extends Specification {
         renderer.renderer(domRenderer).writeTo("test", writer)
 
         then:
-        writer.toString() == '''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+        writer.toString() == TextUtil.toPlatformLineSeparators('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <test></test>
 </html>
-'''
+''')
     }
 
     def "copies resources into output directory"() {
