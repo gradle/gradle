@@ -17,6 +17,7 @@ package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.SystemProperties;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -62,7 +63,8 @@ public class HtmlReportRenderer {
                     transformer.setOutputProperty(OutputKeys.MEDIA_TYPE, "text/html");
                 }
 
-                writer.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n");
+                writer.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
+                writer.write(SystemProperties.getLineSeparator());
                 transformer.transform(new DOMSource(document), new StreamResult(writer));
             }
         });
