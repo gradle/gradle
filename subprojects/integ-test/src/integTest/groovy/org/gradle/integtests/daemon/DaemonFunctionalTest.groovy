@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher
+package org.gradle.integtests.daemon
 
 import org.gradle.configuration.GradleLauncherMetaData
+import org.gradle.launcher.DaemonClient
+import org.gradle.launcher.DaemonConnector
+import org.gradle.launcher.DaemonRegistry
 import org.gradle.launcher.protocol.Stop
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.Address
@@ -30,8 +33,6 @@ import spock.lang.Timeout
  * @author: Szczepan Faber, created at: 8/18/11
  */
 class DaemonFunctionalTest extends Specification {
-
-    //TODO SF - same place for the daemon functional/integ tests
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
     DaemonConnector connector
