@@ -15,19 +15,19 @@
  */
 package org.gradle.messaging.remote.internal
 
-import org.gradle.messaging.dispatch.DispatchFailureHandler
-import org.gradle.messaging.remote.internal.protocol.RouteAvailableMessage
-import org.gradle.util.ConcurrentSpecification
 import org.gradle.messaging.dispatch.Dispatch
-import org.gradle.messaging.remote.internal.protocol.RouteUnavailableMessage
-import org.gradle.messaging.remote.internal.protocol.RoutableMessage
+import org.gradle.messaging.dispatch.DispatchFailureHandler
 import org.gradle.messaging.remote.internal.protocol.EndOfStreamEvent
+import org.gradle.messaging.remote.internal.protocol.RoutableMessage
+import org.gradle.messaging.remote.internal.protocol.RouteAvailableMessage
+import org.gradle.messaging.remote.internal.protocol.RouteUnavailableMessage
+import org.gradle.util.ConcurrentSpecification
 
 class RouterTest extends ConcurrentSpecification {
     final DispatchFailureHandler<Message> handler = Mock()
     final Router router = new Router(executor, handler)
 
-    def cleanup() {
+    public cleanup() {
         router?.stop()
     }
 
