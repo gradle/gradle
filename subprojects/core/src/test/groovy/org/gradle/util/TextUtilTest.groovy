@@ -38,5 +38,6 @@ class TextUtilTest extends Specification {
         where:
         original | converted
         "one\rtwo\nthree\r\nfour\n\rfive" | "one${platformSep}two${platformSep}three${platformSep}four${platformSep}${platformSep}five"
+        "\n\n" | "${platformSep}${platformSep}"
     }
 }
