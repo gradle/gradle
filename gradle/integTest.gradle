@@ -10,6 +10,10 @@ configurations {
     }
 }
 
+dependencies {
+    integTestCompile project(":internalIntegTesting")
+}
+
 sourceSets {
     integTest {
         compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.integTestCompile

@@ -36,6 +36,7 @@ include 'signing'
 include 'cpp'
 include 'ear'
 include 'internalTesting'
+include 'internalIntegTesting'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

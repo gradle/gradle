@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-/*
-    Provides generally useful test utilities, used for unit and integration testing.
-*/
-
 dependencies {
     groovy libraries.groovy_depends
-    
-    // We depend on the classes of core as opposed to the jar because of the way AbstractClassPathProvider
-    // determines how to construct the classpath to start Gradle (i.e. to support testing from IDE)
-    compile project(":core").sourceSets.main.output, project(":core").configurations.compile
-         
-    compile libraries.xmlunit, libraries.junit, libraries.jmock, libraries.spock
-    runtime project(":coreImpl"), "xerces:xercesImpl:2.9.1"
+    compile project(":internalTesting"), libraries.jetty_depends
 }
