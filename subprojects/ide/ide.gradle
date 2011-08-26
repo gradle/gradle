@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply from: "$rootDir/gradle/integTest.gradle"
-
 dependencies {
     groovy libraries.groovy_depends
 

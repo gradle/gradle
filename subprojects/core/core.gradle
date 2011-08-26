@@ -16,8 +16,6 @@
 
 import org.gradle.build.GenerateReleasesXml
 
-apply from: "$rootDir/gradle/integTest.gradle"
-
 configurations {
     excludedInEclipse
     reports

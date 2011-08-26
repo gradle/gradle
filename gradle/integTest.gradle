@@ -17,26 +17,30 @@ sourceSets {
     }
 }
 
-idea {
-    module {
-        testSourceDirs += sourceSets.integTest.groovy.srcDirs
-        testSourceDirs += sourceSets.integTest.resources.srcDirs
-        scopes.TEST.plus.add(configurations.integTestCompile)
-        scopes.TEST.plus.add(configurations.integTestRuntime)
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin).all { // lazy as plugin not applied yet
+    idea {
+        module {
+            testSourceDirs += sourceSets.integTest.groovy.srcDirs
+            testSourceDirs += sourceSets.integTest.resources.srcDirs
+            scopes.TEST.plus.add(configurations.integTestCompile)
+            scopes.TEST.plus.add(configurations.integTestRuntime)
+        }
     }
 }
 
-eclipse {
-    classpath {
-        plusConfigurations.add(configurations.integTestCompile)
-        plusConfigurations.add(configurations.integTestRuntime)
+plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin).all { // lazy as plugin not applied yet
+    eclipse {
+        classpath {
+            plusConfigurations.add(configurations.integTestCompile)
+            plusConfigurations.add(configurations.integTestRuntime)
+        }
     }
 }
 
 integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
 
 integTestTasks.all {
-    dependsOn ':intTestImage', project(":docs").samples
+    dependsOn ':intTestImage', project(":docs").tasks.matching { it.name == "samples" } // lazy as doc not eval'd yet
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []

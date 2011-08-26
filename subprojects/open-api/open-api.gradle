@@ -1,5 +1,3 @@
-apply from: "$rootDir/gradle/integTest.gradle"
-
 dependencies {
     groovy libraries.groovy_depends
 
