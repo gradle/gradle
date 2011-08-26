@@ -267,6 +267,16 @@ literal code</programlisting><para> does something.
         format(result.docbook) == '''<para><emphasis>text</emphasis> <emphasis>other</emphasis></para>'''
     }
 
+    def convertsTTElementToALiteralElement() {
+        _ * classMetaData.rawCommentText >> '<tt>text</tt>'
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<para><literal>text</literal></para>'''
+    }
+
     def convertsHeadingsToSections() {
         _ * classMetaData.rawCommentText >> '''
 <h2>section1</h2>

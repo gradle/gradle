@@ -444,6 +444,7 @@ public class JavadocConverter {
             elementToElementMap.put("i", "emphasis");
             elementToElementMap.put("b", "emphasis");
             elementToElementMap.put("code", "literal");
+            elementToElementMap.put("tt", "literal");
         }
 
         public boolean onStartElement(String element, Map<String, String> attributes) {
