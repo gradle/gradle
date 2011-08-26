@@ -16,9 +16,9 @@ dependencies {
     compile libraries.slf4j_api
 
     startScriptGenerator project(':plugins')
-
-    testCompile project(":internalTesting")
 }
+
+useTestFixtures()
 
 jar.manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
 jar.doFirst {

@@ -27,10 +27,10 @@ dependencies {
             libraries.slf4j_api
 
     runtime libraries.jaxen
-
-    testCompile project(":internalTesting")
 }
 
 test {
     jvmArgs '-Xms128m', '-Xmx256m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
 }
+
+useTestFixtures()

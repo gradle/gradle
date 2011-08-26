@@ -52,8 +52,6 @@ dependencies {
 
     compile libraries.ant_launcher
 
-    testCompile project(":internalTesting")
-
     excludedInEclipse project(":coreImpl")
 
     reports 'css3-pie:css3-pie:1.0beta3'

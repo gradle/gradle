@@ -19,6 +19,6 @@ dependencies {
     compile libraries.slf4j_api
     compile project(':core')
     compile project(':plugins')
-
-    testCompile project(":internalTesting")
 }
+
+useTestFixtures()

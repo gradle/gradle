@@ -33,9 +33,6 @@ dependencies {
 
     wrapper project(':wrapper')
     testCompile libraries.xmlunit, 'net.sourceforge.nekohtml:nekohtml:1.9.14'
-
-    testCompile project(":internalTesting")
-    testFixtures sourceSets.test.output
 }
 
 task wrapperJar(type: Copy) {
@@ -50,3 +47,6 @@ test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
     jvmArgs '-Xms128m', '-Xmx256m', '-XX:+HeapDumpOnOutOfMemoryError'
 }
+
+useTestFixtures()
+useTestFixtures(sourceSet: "testFixtures")

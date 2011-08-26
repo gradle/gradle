@@ -3,10 +3,10 @@ apply from: "$rootDir/gradle/integTest.gradle"
 dependencies {
     groovy libraries.groovy_depends
 
-    testCompile project(":internalTesting")
-
     integTestCompile libraries.slf4j_api, libraries.commons_lang
 }
+
+useTestFixtures()
 
 integTestTasks.all {
     jvmArgs '-XX:MaxPermSize=256m'

@@ -2,6 +2,7 @@ dependencies {
     groovy libraries.groovy_depends
 
     publishCompile project(':core'), project(':wrapper')
-
-    testCompile project(":internalTesting")
 }
+
+useTestFixtures()
+

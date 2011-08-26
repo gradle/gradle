@@ -15,5 +15,6 @@ dependencies {
     runtime 'com.esotericsoftware:kryo:1.03', 'com.esotericsoftware:minlog:1.2', 'com.googlecode:reflectasm:1.01', libraries.asm_all, libraries.ivy
 
     testCompile libraries.junit
-    testCompile project(":internalTesting")
 }
+
+useTestFixtures()

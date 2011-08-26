@@ -19,6 +19,6 @@ apply from: "$rootDir/gradle/integTest.gradle"
 dependencies {
     groovy libraries.groovy_depends
     compile project(':core'), project(":plugins")
-
-    testCompile project(":internalTesting")
 }
+
+useTestFixtures()

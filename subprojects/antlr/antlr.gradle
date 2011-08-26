@@ -23,6 +23,6 @@ dependencies {
             libraries.ant,
             libraries.ant_antlr,
             libraries.antlr
-
-    testCompile project(":internalTesting")
 }
+
+useTestFixtures()

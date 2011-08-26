@@ -31,9 +31,9 @@ dependencies {
     provided("org.codehaus.sonar:sonar-batch:2.9") {
         exclude module: "google-collections" // prevent clash with guava at compile time
     }
-
-    testCompile project(":internalTesting")
 }
+
+useTestFixtures()
 
 sourceSets {
     main {

@@ -22,7 +22,6 @@ dependencies {
     compile libraries.slf4j_api
 
     compile 'biz.aQute:bndlib:1.15.0@jar'
-
-    testCompile project(":internalTesting")
 }
 
+useTestFixtures()

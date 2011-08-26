@@ -20,5 +20,8 @@ configurations {
 dependencies {
     groovy libraries.groovy_depends
 
-    testCompile project(":internalTesting"), libraries.ant
+    testCompile libraries.ant
 }
+
+useTestFixtures()
+

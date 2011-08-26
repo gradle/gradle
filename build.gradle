@@ -104,6 +104,8 @@ allprojects {
     }
 
     version = this.version
+    
+    apply from: "$rootDir/gradle/conventions-dsl.gradle"
 }
 
 configure(groovyProjects()) {
