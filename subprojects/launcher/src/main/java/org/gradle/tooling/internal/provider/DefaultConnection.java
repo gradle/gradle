@@ -23,7 +23,7 @@ import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.DaemonClient;
-import org.gradle.launcher.DaemonConnector;
+import org.gradle.launcher.ExternalDaemonConnector;
 import org.gradle.launcher.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -84,7 +84,7 @@ public class DefaultConnection implements ConnectionVersion4 {
             executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
         } else {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
-            DaemonClient client = new DaemonClient(new DaemonConnector(gradleUserHomeDir), new GradleLauncherMetaData(), loggingServices.get(OutputEventListener.class));
+            DaemonClient client = new DaemonClient(new ExternalDaemonConnector(gradleUserHomeDir), new GradleLauncherMetaData(), loggingServices.get(OutputEventListener.class));
             executer = new DaemonGradleLauncherActionExecuter(client);
         }
         return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingServices.getFactory(LoggingManagerInternal.class));

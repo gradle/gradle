@@ -114,7 +114,7 @@ public class CommandLineActionFactory {
 
         StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
-        DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
+        DaemonConnector connector = new ExternalDaemonConnector(startParameter.getGradleUserHomeDir());
         GradleLauncherMetaData clientMetaData = clientMetaData();
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
         DaemonClient client = new DaemonClient(connector, clientMetaData, loggingServices.get(OutputEventListener.class));
