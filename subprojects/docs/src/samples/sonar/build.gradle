@@ -21,7 +21,7 @@ sonar {
 // START SNIPPET project-settings
 sonar {
     project {
-        coberturaReportPath = "$buildDir/cobertura.xml"
+        coberturaReportPath = file("$buildDir/cobertura.xml")
     }
 }
 // END SNIPPET project-settings
