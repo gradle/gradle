@@ -28,6 +28,13 @@ import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 import java.util.List;
 import java.util.Date;
 
+/**
+ * Provides the general connection mechanics of connecting to a daemon, leaving implementations
+ * to define how new daemons should be created if needed.
+ * 
+ * Subclassing instead of delegation with regard to creating new daemons seems more appropriate
+ * as the way that new daemons are launched is likely to be coupled to the DaemonRegistry implementation.
+ */
 abstract public class AbstractDaemonConnector implements DaemonConnector {
 
     private static final Logger LOGGER = Logging.getLogger(AbstractDaemonConnector.class);
