@@ -1,4 +1,3 @@
-apply plugin: 'groovy'
 apply from: "$rootDir/gradle/integTest.gradle"
 
 dependencies {
