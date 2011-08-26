@@ -46,25 +46,25 @@ import java.util.Properties;
 public class DaemonMain implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(Main.class);
     private final ServiceRegistry loggingServices;
-    private final DaemonConnector connector;
+    private final DaemonServer server;
     private final StartParameter startParameter;
     private final GradleLauncherFactory launcherFactory;
 
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
 
-    public DaemonMain(ServiceRegistry loggingServices, DaemonConnector connector, StartParameter startParameter) {
+    public DaemonMain(ServiceRegistry loggingServices, DaemonServer server, StartParameter startParameter) {
         this.loggingServices = loggingServices;
-        this.connector = connector;
+        this.server = server;
         this.startParameter = startParameter;
         this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 
     public static void main(String[] args) throws IOException {
         StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
-        DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
+        DaemonServer server = new DaemonServer(startParameter.getGradleUserHomeDir());
         redirectOutputsAndInput(startParameter);
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
-        new DaemonMain(loggingServices, connector, startParameter).run();
+        new DaemonMain(loggingServices, server, startParameter).run();
     }
 
     private static void redirectOutputsAndInput(StartParameter startParameter) throws IOException {
@@ -92,7 +92,7 @@ public class DaemonMain implements Runnable {
 
         final StoppableExecutor executor = executorFactory.create("DaemonMain executor");
 
-        connector.accept(idleDaemonTimeout, new IncomingConnectionHandler() {
+        server.accept(idleDaemonTimeout, new IncomingConnectionHandler() {
             public void handle(final Connection<Object> connection, final CompletionHandler serverControl) {
                 //we're spinning a thread to do work to avoid blocking the connection
                 //This means that the Daemon potentially can have multiple jobs running.

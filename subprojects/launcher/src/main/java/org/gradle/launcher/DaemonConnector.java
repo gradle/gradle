@@ -21,19 +21,12 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.messaging.concurrent.CompositeStoppable;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
-import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
-import org.gradle.util.UUIDGenerator;
 import org.gradle.util.UncheckedException;
 
 import java.io.File;
@@ -133,37 +126,8 @@ public class DaemonConnector {
         daemon.start();
     }
 
-    /**
-     * Starts accepting connections.
-     */
-    void accept(int idleDaemonTimeout, final IncomingConnectionHandler handler) {
-        DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
-        TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
 
-        final DaemonRegistry.Registry registry = daemonRegistry.newRegistry();
-
-        final CompletionHandler finished = new CompletionHandler(idleDaemonTimeout, registry);
-
-        LOGGER.lifecycle("Awaiting requests.");
-
-        Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
-            public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
-                handler.handle(connectionConnectEvent.getConnection(), finished);
-            }
-        };
-        Address address = incomingConnector.accept(connectEvent, false);
-
-        registry.store(address);
-
-        boolean stopped = finished.awaitStop();
-        if (!stopped) {
-            LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
-        }
-        registry.remove();
-        new CompositeStoppable(incomingConnector, executorFactory).stop();
-    }
-
-    DaemonRegistry getDaemonRegistry() {
+    public DaemonRegistry getDaemonRegistry() {
         return daemonRegistry;
     }
 }
