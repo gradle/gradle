@@ -16,6 +16,8 @@
 
 package org.gradle.launcher;
 
+import org.gradle.messaging.remote.Address;
+
 import java.util.List;
 
 /**
@@ -26,5 +28,29 @@ public interface DaemonRegistry {
     List<DaemonStatus> getAll();
     List<DaemonStatus> getIdle();
     List<DaemonStatus> getBusy();
-
+    
+    /**
+     * Create a new entry object, but do not store it in the registry.
+     * 
+     * Callers should use the store() method on the returned entry object to add this entry to the registry.
+     */
+    Entry newEntry();
+    
+    /**
+     * An entry in a daemon registry (i.e. info about a particular daemon)
+     */
+    public interface Entry {
+        public void markBusy();
+        public void markIdle();
+        
+        /**
+         * Add this entry to the registry that created it, storing address as the address for the daemon.
+         */
+        public void store(Address address);
+        
+        /**
+         * Remove this entry from the registry that it belongs to.
+         */
+        public void remove();
+    }
 }

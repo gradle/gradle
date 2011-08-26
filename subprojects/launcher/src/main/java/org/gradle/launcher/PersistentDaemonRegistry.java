@@ -96,20 +96,20 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         return registryFiles(allFilter);
     }
 
-    public Registry newRegistry() {
+    public Entry newEntry() {
         //Since there are multiple daemons we need unique name of the registry file
         String uid = new UUIDGenerator().generateId().toString();
         File file = new File(registryFolder, String.format("registry-%s.bin", uid)); //TODO SF move to daemon dir
 
-        return new Registry(file);
+        return new PersistentEntry(file);
     }
 
-    public static class Registry {
+    public static class PersistentEntry implements Entry {
 
         private final File file;
         private Address address;
 
-        public Registry(File file) {
+        public PersistentEntry(File file) {
             this.file = file;
         }
 

@@ -61,7 +61,7 @@ public class DaemonMain implements Runnable {
 
     public static void main(String[] args) throws IOException {
         StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
-        DaemonServer server = new DaemonServer(startParameter.getGradleUserHomeDir());
+        DaemonServer server = new DaemonServer(new PersistentDaemonRegistry(startParameter.getGradleUserHomeDir()));
         redirectOutputsAndInput(startParameter);
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
         new DaemonMain(loggingServices, server, startParameter).run();

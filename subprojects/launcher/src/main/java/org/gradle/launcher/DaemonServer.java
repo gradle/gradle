@@ -28,19 +28,13 @@ import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 
-import java.io.File;
-
 public class DaemonServer {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonServer.class);
     
-    final private PersistentDaemonRegistry daemonRegistry;
+    final private DaemonRegistry daemonRegistry;
 
-    public DaemonServer(File userHomeDir) {
-        this(new PersistentDaemonRegistry(userHomeDir));
-    }
-
-    public DaemonServer(PersistentDaemonRegistry daemonRegistry) {
+    public DaemonServer(DaemonRegistry daemonRegistry) {
         this.daemonRegistry = daemonRegistry;
     }
 
@@ -51,9 +45,9 @@ public class DaemonServer {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
         TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
 
-        final PersistentDaemonRegistry.Registry registry = daemonRegistry.newRegistry();
+        final DaemonRegistry.Entry registryEntry = daemonRegistry.newEntry();
 
-        final CompletionHandler finished = new CompletionHandler(idleDaemonTimeout, registry);
+        final CompletionHandler finished = new CompletionHandler(idleDaemonTimeout, registryEntry);
 
         LOGGER.lifecycle("Awaiting requests.");
 
@@ -64,13 +58,13 @@ public class DaemonServer {
         };
         Address address = incomingConnector.accept(connectEvent, false);
 
-        registry.store(address);
+        registryEntry.store(address);
 
         boolean stopped = finished.awaitStop();
         if (!stopped) {
             LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
         }
-        registry.remove();
+        registryEntry.remove();
         new CompositeStoppable(incomingConnector, executorFactory).stop();
     }
 

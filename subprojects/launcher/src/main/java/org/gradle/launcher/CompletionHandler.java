@@ -36,11 +36,11 @@ class CompletionHandler implements Stoppable {
     private boolean stopped;
     private long expiry;
     private final int idleDaemonTimeout;
-    private final PersistentDaemonRegistry.Registry registryFile;
+    private final DaemonRegistry.Entry registryEntry;
 
-    CompletionHandler(int idleDaemonTimeout, PersistentDaemonRegistry.Registry registryFile) {
+    CompletionHandler(int idleDaemonTimeout, DaemonRegistry.Entry registryEntry) {
         this.idleDaemonTimeout = idleDaemonTimeout;
-        this.registryFile = registryFile;
+        this.registryEntry = registryEntry;
         resetTimer();
     }
 
@@ -92,7 +92,7 @@ class CompletionHandler implements Stoppable {
             }
             running = true;
             condition.signalAll();
-            registryFile.markBusy();
+            registryEntry.markBusy();
         } finally {
             lock.unlock();
         }
@@ -104,7 +104,7 @@ class CompletionHandler implements Stoppable {
             running = false;
             resetTimer();
             condition.signalAll();
-            registryFile.markIdle();
+            registryEntry.markIdle();
         } finally {
             lock.unlock();
         }
