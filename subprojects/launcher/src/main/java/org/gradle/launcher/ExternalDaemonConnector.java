@@ -15,84 +15,40 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.messaging.remote.internal.ConnectException;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
-import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 /**
  * A daemon connector that starts daemons by launching new processes.
  */
-public class ExternalDaemonConnector implements DaemonConnector {
-    private static final Logger LOGGER = Logging.getLogger(ExternalDaemonConnector.class);
-    private final File userHomeDir;
-    private DaemonRegistry daemonRegistry;
-    private final int idleDaemonTimeout;
+public class ExternalDaemonConnector extends AbstractDaemonConnector {
 
+    private static final Logger LOGGER = Logging.getLogger(ExternalDaemonConnector.class);
+    public static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
+    
+    private final File userHomeDir;
+    private final int idleDaemonTimeout;
+    
     public ExternalDaemonConnector(File userHomeDir) {
-        this(userHomeDir, 3 * 60 * 60 * 1000);
+        this(userHomeDir, DEFAULT_IDLE_TIMEOUT);
     }
 
     ExternalDaemonConnector(File userHomeDir, int idleDaemonTimeout) {
-        this.userHomeDir = userHomeDir;
-        this.daemonRegistry = new DaemonRegistry(userHomeDir);
+        super(new DaemonRegistry(userHomeDir));
         this.idleDaemonTimeout = idleDaemonTimeout;
+        this.userHomeDir = userHomeDir;
     }
 
-    public Connection<Object> maybeConnect() {
-        return findConnection(daemonRegistry.getAll());
-    }
-
-    private Connection<Object> findConnection(List<DaemonStatus> statuses) {
-        for (DaemonStatus status : statuses) {
-            try {
-                return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(status.getAddress());
-            } catch (ConnectException e) {
-                // Ignore
-            }
-        }
-        return null;
-    }
-
-    public Connection<Object> connect() {
-        Connection<Object> connection = findConnection(daemonRegistry.getIdle());
-        if (connection != null) {
-            return connection;
-        }
-
-        LOGGER.info("Starting Gradle daemon");
-        startDaemon();
-        Date expiry = new Date(System.currentTimeMillis() + 30000L);
-        do {
-            connection = findConnection(daemonRegistry.getIdle());
-            if (connection != null) {
-                return connection;
-            }
-            try {
-                Thread.sleep(200L);
-            } catch (InterruptedException e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
-        } while (System.currentTimeMillis() < expiry.getTime());
-
-        throw new GradleException("Timeout waiting to connect to Gradle daemon.");
-    }
-
-    private void startDaemon() {
+    protected void startDaemon() {
         Set<File> bootstrapClasspath = new DefaultClassPathRegistry().getClassPathFiles("GRADLE_BOOTSTRAP");
         if (bootstrapClasspath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
@@ -118,7 +74,4 @@ public class ExternalDaemonConnector implements DaemonConnector {
         daemon.start();
     }
 
-    public DaemonRegistry getDaemonRegistry() {
-        return daemonRegistry;
-    }
 }
