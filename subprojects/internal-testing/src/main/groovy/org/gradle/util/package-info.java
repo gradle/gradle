@@ -17,4 +17,4 @@
 /**
  * Utilities for testing
  */
-package org.gradle.api.util;
+package org.gradle.util;
