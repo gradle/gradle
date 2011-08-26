@@ -36,9 +36,9 @@ class CompletionHandler implements Stoppable {
     private boolean stopped;
     private long expiry;
     private final int idleDaemonTimeout;
-    private final DaemonRegistry.Registry registryFile;
+    private final PersistentDaemonRegistry.Registry registryFile;
 
-    CompletionHandler(int idleDaemonTimeout, DaemonRegistry.Registry registryFile) {
+    CompletionHandler(int idleDaemonTimeout, PersistentDaemonRegistry.Registry registryFile) {
         this.idleDaemonTimeout = idleDaemonTimeout;
         this.registryFile = registryFile;
         resetTimer();

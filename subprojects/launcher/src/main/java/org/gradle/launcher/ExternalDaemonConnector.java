@@ -43,7 +43,7 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector {
     }
 
     ExternalDaemonConnector(File userHomeDir, int idleDaemonTimeout) {
-        super(new DaemonRegistry(userHomeDir));
+        super(new PersistentDaemonRegistry(userHomeDir));
         this.idleDaemonTimeout = idleDaemonTimeout;
         this.userHomeDir = userHomeDir;
     }
@@ -72,6 +72,10 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector {
         daemon.args(daemonArgs);
         daemon.workingDir(userHomeDir);
         daemon.start();
+    }
+    
+    public PersistentDaemonRegistry getDaemonRegistry() {
+        return (PersistentDaemonRegistry)super.getDaemonRegistry();
     }
 
 }

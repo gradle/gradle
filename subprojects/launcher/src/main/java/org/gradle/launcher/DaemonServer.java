@@ -34,13 +34,13 @@ public class DaemonServer {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonServer.class);
     
-    final private DaemonRegistry daemonRegistry;
+    final private PersistentDaemonRegistry daemonRegistry;
 
     public DaemonServer(File userHomeDir) {
-        this(new DaemonRegistry(userHomeDir));
+        this(new PersistentDaemonRegistry(userHomeDir));
     }
 
-    public DaemonServer(DaemonRegistry daemonRegistry) {
+    public DaemonServer(PersistentDaemonRegistry daemonRegistry) {
         this.daemonRegistry = daemonRegistry;
     }
 
@@ -51,7 +51,7 @@ public class DaemonServer {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
         TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
 
-        final DaemonRegistry.Registry registry = daemonRegistry.newRegistry();
+        final PersistentDaemonRegistry.Registry registry = daemonRegistry.newRegistry();
 
         final CompletionHandler finished = new CompletionHandler(idleDaemonTimeout, registry);
 

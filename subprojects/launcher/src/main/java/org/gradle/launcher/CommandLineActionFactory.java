@@ -120,7 +120,7 @@ public class CommandLineActionFactory {
         DaemonClient client = new DaemonClient(connector, clientMetaData, loggingServices.get(OutputEventListener.class));
 
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new DaemonMain(loggingServices, new DaemonServer(connector.getDaemonRegistry()), startParameter));
+            return new ActionAdapter(new DaemonMain(loggingServices, new DaemonServer(startParameter.getGradleUserHomeDir()), startParameter));
         }
         if (commandLine.hasOption(STOP)) {
             return new ActionAdapter(new StopDaemonAction(client));
