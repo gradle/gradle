@@ -28,6 +28,8 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
+import org.gradle.launcher.ExternalDaemonConnector
+import org.gradle.launcher.PersistentDaemonRegistry
 
 /**
  * @author: Szczepan Faber, created at: 8/18/11
@@ -42,7 +44,7 @@ class DaemonFunctionalTest extends Specification {
     //cannot use setup() because temp folder will get the proper name
     def prepare() {
         //connector with short-lived daemons
-        connector = new DaemonConnector(temp.testDir, 10000)
+        connector = new ExternalDaemonConnector(temp.testDir, 10000)
         reg = connector.daemonRegistry
     }
 
@@ -55,7 +57,7 @@ class DaemonFunctionalTest extends Specification {
     def "daemons expire"() {
         when:
         prepare()
-        connector = new DaemonConnector(temp.testDir, 500) //0.5 sec expiry time
+        connector = new ExternalDaemonConnector(temp.testDir, 500) //0.5 sec expiry time
         def c = connect()
 
         then:
@@ -140,7 +142,7 @@ class DaemonFunctionalTest extends Specification {
     def "registry deletes the bin files"() {
         prepare()
 
-        def daemonRegistry = new DaemonRegistry(temp.dir)
+        def daemonRegistry = new PersistentDaemonRegistry(temp.dir)
         def reg = daemonRegistry.newRegistry();
 
 
