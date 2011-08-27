@@ -143,7 +143,7 @@ class DaemonFunctionalTest extends Specification {
         prepare()
 
         def daemonRegistry = new PersistentDaemonRegistry(temp.dir)
-        def reg = daemonRegistry.newRegistry();
+        def reg = daemonRegistry.newEntry();
 
 
         reg.store(new AddressStub());
