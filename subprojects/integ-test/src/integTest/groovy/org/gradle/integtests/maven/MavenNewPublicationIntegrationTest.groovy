@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven
+package org.gradle.integtests.maven
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.SystemProperties
@@ -27,7 +27,7 @@ import static org.gradle.util.TextUtil.escapeString
 /**
  * @author: Szczepan Faber, created at: 6/16/11
  */
-class MavenPublicationIntegrationTest extends AbstractIntegrationTest {
+class MavenNewPublicationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void "publishes snapshot to a flat dir maven repo"() {
