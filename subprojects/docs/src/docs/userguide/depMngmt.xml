@@ -511,8 +511,8 @@
         <section id='sub:cache'>
             <title>Cache</title>
             <para>When Gradle downloads artifacts from remote repositories it stores them in a local cache located at
-                <literal>USER_HOME/.gradle/cache</literal>. When Gradle downloads artifacts from one of its
-                predefined local resolvers (e.g. flat directory resolver), the cache is not used.
+                <filename><replaceable>USER_HOME</replaceable>/.gradle/caches/artifacts</filename>. When Gradle downloads artifacts from a
+                local repository (e.g. maven local, or a flat directory repository), the cache is not used.
             </para>
         </section>
         <section id='sub:more_about_ivy_resolvers'>
