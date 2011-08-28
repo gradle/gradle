@@ -10,6 +10,7 @@ useTestFixtures = { params = [:] ->
     
     dependencies {
         delegate."${sourceSet}Compile" project(path: projectPath, configuration: "testFixturesUsageCompile")
+        delegate."${sourceSet}Compile" project(':internalTesting')
         delegate."${sourceSet}Runtime" project(path: projectPath, configuration: "testFixturesUsageRuntime")
     }
 }

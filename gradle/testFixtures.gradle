@@ -29,6 +29,25 @@ sourceSets {
 }
 
 dependencies {
-    testFixturesCompile project(":internalTesting")
     testFixturesUsageCompile sourceSets.testFixtures.output
+}
+
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
+    idea {
+        module {
+            testSourceDirs += sourceSets.testFixtures.groovy.srcDirs
+            testSourceDirs += sourceSets.testFixtures.resources.srcDirs
+            scopes.TEST.plus.add(configurations.testFixturesCompile)
+            scopes.TEST.plus.add(configurations.testFixturesRuntime)
+        }
+    }
+}
+
+plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plugin not applied yet
+    eclipse {
+        classpath {
+            plusConfigurations.add(configurations.testFixturesCompile)
+            plusConfigurations.add(configurations.testFixturesRuntime)
+        }
+    }
 }

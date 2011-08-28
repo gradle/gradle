@@ -21,7 +21,7 @@ sourceSets {
     }
 }
 
-plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin).all { // lazy as plugin not applied yet
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
     idea {
         module {
             testSourceDirs += sourceSets.integTest.groovy.srcDirs
@@ -32,7 +32,7 @@ plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin).all { // lazy as plugin
     }
 }
 
-plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin).all { // lazy as plugin not applied yet
+plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plugin not applied yet
     eclipse {
         classpath {
             plusConfigurations.add(configurations.integTestCompile)
