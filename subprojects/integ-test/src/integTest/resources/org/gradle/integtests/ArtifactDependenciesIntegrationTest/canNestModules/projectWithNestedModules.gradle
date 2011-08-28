@@ -3,9 +3,8 @@ configurations {
 }
 dependencies {
     repositories {
-        add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
-            name = 'resolver'
-            addArtifactPattern(projectDir.absolutePath + '/[module]-[revision].jar')
+        ivy {
+            artifactPattern projectDir.absolutePath + '/[module]-[revision].[ext]'
         }
     }
     compile module('test:projectA:1.2') {
