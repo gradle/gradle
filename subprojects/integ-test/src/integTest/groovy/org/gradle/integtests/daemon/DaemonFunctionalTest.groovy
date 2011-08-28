@@ -212,7 +212,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(10)
+    @Timeout(20)
     def "stops all daemons"() {
         prepare()
         OutputEventListener listener = Mock()
