@@ -20,13 +20,12 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
+import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.file.FileResolver;
-
-import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -34,9 +33,9 @@ import java.io.File;
 public interface ResolverFactory {
     DependencyResolver createResolver(Object userDescription);
 
-    FileSystemResolver createFlatDirResolver(String name, File... roots);
+    FileSystemResolver createFlatDirResolver(String name, Object... roots);
 
-    AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls);
+    AbstractResolver createMavenRepoResolver(String name, Object root, Object... jarRepoUrls);
 
     AbstractResolver createMavenLocalResolver(String name);
 
@@ -46,5 +45,7 @@ public interface ResolverFactory {
     MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
                                        Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);
 
-    IvyArtifactRepository createIvyRepository(FileResolver resolver);
+    IvyArtifactRepository createIvyRepository();
+
+    MavenArtifactRepository createMavenRepository();
 }

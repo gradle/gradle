@@ -56,11 +56,6 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(ListenerManager) >> listenerManager
     }
 
-    def "provides a ResolverFactory"() {
-        expect:
-        services.get(ResolverFactory.class) != null
-    }
-
     def "provides a MavenFactory"() {
         expect:
         services.get(MavenFactory.class) != null

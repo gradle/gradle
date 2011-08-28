@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
+import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ResolverFactory;
@@ -33,12 +33,12 @@ import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPom
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
-import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,20 +48,22 @@ public class DefaultResolverFactory implements ResolverFactory {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final MavenFactory mavenFactory;
     private final LocalMavenCacheLocator localMavenCacheLocator;
+    private final FileResolver fileResolver;
 
-    public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, MavenFactory mavenFactory, LocalMavenCacheLocator localMavenCacheLocator) {
+    public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, MavenFactory mavenFactory, LocalMavenCacheLocator localMavenCacheLocator, FileResolver fileResolver) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.mavenFactory = mavenFactory;
         this.localMavenCacheLocator = localMavenCacheLocator;
+        this.fileResolver = fileResolver;
     }
 
     public DependencyResolver createResolver(Object userDescription) {
         DependencyResolver result;
         if (userDescription instanceof String) {
-            result = createMavenRepoResolver((String) userDescription, (String) userDescription);
+            result = createMavenRepoResolver((String) userDescription, userDescription);
         } else if (userDescription instanceof Map) {
-            Map<String, String> userDescriptionMap = (Map<String, String>) userDescription;
-            result = createMavenRepoResolver(userDescriptionMap.get(ResolverContainer.RESOLVER_NAME),
+            Map<String, ?> userDescriptionMap = (Map<String, ?>) userDescription;
+            result = createMavenRepoResolver(userDescriptionMap.get(ResolverContainer.RESOLVER_NAME).toString(),
                     userDescriptionMap.get(ResolverContainer.RESOLVER_URL));
         } else if (userDescription instanceof DependencyResolver) {
             result = (DependencyResolver) userDescription;
@@ -71,12 +73,13 @@ public class DefaultResolverFactory implements ResolverFactory {
         return result;
     }
 
-    public FileSystemResolver createFlatDirResolver(String name, File... roots) {
+    public FileSystemResolver createFlatDirResolver(String name, Object... roots) {
         FileSystemResolver resolver = new FileSystemResolver();
         resolver.setName(name);
-        for (File root : roots) {
-            resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
-            resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
+        for (Object root : roots) {
+            File rootFile = fileResolver.resolve(root);
+            resolver.addArtifactPattern(rootFile.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
+            resolver.addArtifactPattern(rootFile.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
         }
         resolver.setValidate(false);
         resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
@@ -84,60 +87,40 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public AbstractResolver createMavenLocalResolver(String name) {
-        String cacheDir = localMavenCacheLocator.getLocalMavenCache().toURI().toString();
+        File cacheDir = localMavenCacheLocator.getLocalMavenCache();
         return createMavenRepoResolver(name, cacheDir);
     }
 
-    public AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls) {
-        BasicResolver iBiblioResolver = createIBiblioResolver(name, root);
+    public AbstractResolver createMavenRepoResolver(String name, Object root, Object... jarRepoUrls) {
+        URI rootUri = fileResolver.resolveUri(root);
+        BasicResolver iBiblioResolver = createIBiblioResolver(name, rootUri);
         if (jarRepoUrls.length == 0) {
             iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
             return iBiblioResolver;
         }
         iBiblioResolver.setName(iBiblioResolver.getName() + "_poms");
-        DependencyResolver urlResolver = createUrlResolver(name, root, jarRepoUrls);
+        DependencyResolver urlResolver = createUrlResolver(name, rootUri, jarRepoUrls);
         return createDualResolver(name, iBiblioResolver, urlResolver);
     }
 
-    private BasicResolver createIBiblioResolver(String name, String root) {
-        IBiblioResolver resolver;
-
-        URI rootUri;
-        try {
-            rootUri = new URI(root);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-        if (rootUri.getScheme().equalsIgnoreCase("file")) {
-            resolver = new IBiblioResolver();
-            resolver.setRepository(new FileRepository());
-            resolver.setRoot(rootUri.getPath());
-            resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
-        } else {
-            IBiblioWharfResolver wharfResolver = new IBiblioWharfResolver();
-            wharfResolver.setSnapshotTimeout(IBiblioWharfResolver.DAILY);
-            resolver = wharfResolver;
-            resolver.setRoot(root);
-        }
-
-        resolver.setUsepoms(true);
-        resolver.setName(name);
-        resolver.setPattern(ResolverContainer.MAVEN_REPO_PATTERN);
-        resolver.setM2compatible(true);
-        resolver.setUseMavenMetadata(true);
-        resolver.setChecksums("");
-
-        return resolver;
+    private BasicResolver createIBiblioResolver(String name, URI rootUri) {
+        DefaultMavenArtifactRepository repo = new DefaultMavenArtifactRepository(fileResolver);
+        repo.setName(name);
+        repo.setUrl(rootUri);
+        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
+        repo.createResolvers(resolvers);
+        assert resolvers.size() == 1;
+        return (BasicResolver) resolvers.get(0);
     }
 
-    private DependencyResolver createUrlResolver(String name, String root, String... jarRepoUrls) {
+    private DependencyResolver createUrlResolver(String name, URI root, Object... jarRepoUrls) {
         URLResolver urlResolver = new UrlWharfResolver();
         urlResolver.setName(name + "_jars");
         urlResolver.setM2compatible(true);
         urlResolver.setChecksums("");
-        urlResolver.addArtifactPattern(root + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
-        for (String jarRepoUrl : jarRepoUrls) {
-            urlResolver.addArtifactPattern(jarRepoUrl + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
+        urlResolver.addArtifactPattern(root.toString() + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
+        for (Object jarRepoUrl : jarRepoUrls) {
+            urlResolver.addArtifactPattern(fileResolver.resolveUri(jarRepoUrl).toString() + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
         }
         return urlResolver;
     }
@@ -173,8 +156,12 @@ public class DefaultResolverFactory implements ResolverFactory {
                 pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create());
     }
 
-    public IvyArtifactRepository createIvyRepository(FileResolver resolver) {
-        return new DefaultIvyArtifactRepository(resolver);
+    public IvyArtifactRepository createIvyRepository() {
+        return new DefaultIvyArtifactRepository(fileResolver);
+    }
+
+    public MavenArtifactRepository createMavenRepository() {
+        return new DefaultMavenArtifactRepository(fileResolver);
     }
 
     private PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory) {

@@ -1,0 +1,81 @@
+/*
+ * Copyright 2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.internal.artifacts.repositories;
+
+import org.apache.ivy.plugins.repository.file.FileRepository;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.IBiblioResolver;
+import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.file.FileResolver;
+import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
+
+import java.net.URI;
+import java.util.Collection;
+
+public class DefaultMavenArtifactRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
+    private final FileResolver fileResolver;
+    private String name;
+    private Object url;
+
+    public DefaultMavenArtifactRepository(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public URI getUrl() {
+        return fileResolver.resolveUri(url);
+    }
+
+    public void setUrl(Object url) {
+        this.url = url;
+    }
+
+    public void createResolvers(Collection<DependencyResolver> resolvers) {
+        URI rootUri = getUrl();
+
+        IBiblioResolver resolver;
+
+        if (rootUri.getScheme().equalsIgnoreCase("file")) {
+            resolver = new IBiblioResolver();
+            resolver.setRepository(new FileRepository());
+            resolver.setRoot(rootUri.getPath());
+            resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
+        } else {
+            IBiblioWharfResolver wharfResolver = new IBiblioWharfResolver();
+            wharfResolver.setSnapshotTimeout(IBiblioWharfResolver.DAILY);
+            resolver = wharfResolver;
+            resolver.setRoot(rootUri.toString());
+        }
+
+        resolver.setUsepoms(true);
+        resolver.setName(name);
+        resolver.setPattern(ResolverContainer.MAVEN_REPO_PATTERN);
+        resolver.setM2compatible(true);
+        resolver.setUseMavenMetadata(true);
+        resolver.setChecksums("");
+
+        resolvers.add(resolver);
+    }
+}

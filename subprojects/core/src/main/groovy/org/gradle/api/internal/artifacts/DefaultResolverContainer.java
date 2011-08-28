@@ -162,7 +162,12 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<Depend
         if (!GUtil.isTrue(userDescription)) {
             throw new InvalidUserDataException("You must specify userDescription");
         }
-        DependencyResolver resolver = resolverFactory.createResolver(userDescription);
+        DependencyResolver resolver;
+        if (userDescription instanceof DependencyResolver) {
+            resolver = (DependencyResolver) userDescription;
+        } else {
+            resolver = resolverFactory.createResolver(userDescription);
+        }
         ConfigureUtil.configure(configureClosure, resolver);
         if (!GUtil.isTrue(resolver.getName())) {
             throw new InvalidUserDataException("You must specify a name for the resolver. Resolver=" + userDescription);

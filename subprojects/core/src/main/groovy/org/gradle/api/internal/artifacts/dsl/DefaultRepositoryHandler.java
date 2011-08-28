@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.ArtifactRepository;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
+import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
@@ -36,7 +37,6 @@ import org.gradle.util.GUtil;
 import org.gradle.util.HashUtil;
 import org.gradle.util.WrapUtil;
 
-import java.io.File;
 import java.util.*;
 
 /**
@@ -51,14 +51,9 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
 
     public FileSystemResolver flatDir(Map args) {
         Object[] rootDirPaths = getFlatDirRootDirs(args);
-        File[] rootDirs = new File[rootDirPaths.length];
-        for (int i = 0; i < rootDirPaths.length; i++) {
-            Object rootDirPath = rootDirPaths[i];
-            rootDirs[i] = new File(rootDirPath.toString());
-        }
         FileSystemResolver resolver = getResolverFactory().createFlatDirResolver(
                 getNameFromMap(args, HashUtil.createHash(GUtil.join(rootDirPaths, ""))),
-                rootDirs);
+                rootDirPaths);
         return (FileSystemResolver) addLast(resolver);
     }
 
@@ -68,17 +63,17 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
     }
 
     private Object[] getFlatDirRootDirs(Map args) {
-        List dirs = createStringifiedListFromMapArg(args, "dirs");
-        if (dirs == null) {
+        List<Object> dirs = createListFromMapArg(args, "dirs");
+        if (dirs.isEmpty()) {
             throw new InvalidUserDataException("You must specify dirs for the flat dir repository.");
         }
         return dirs.toArray();
     }
 
-    private List<String> createStringifiedListFromMapArg(Map args, String argName) {
+    private List<Object> createListFromMapArg(Map args, String argName) {
         Object dirs = args.get(argName);
         if (dirs == null) {
-            return null;
+            return Collections.emptyList();
         }
         Iterable<Object> iterable;
         if (dirs instanceof Iterable) {
@@ -86,9 +81,9 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
         } else {
             iterable = WrapUtil.toSet(dirs);
         }
-        List<String> list = new ArrayList<String>();
+        List<Object> list = new ArrayList<Object>();
         for (Object o : iterable) {
-            list.add(o.toString());
+            list.add(o);
         }
         return list;
     }
@@ -98,11 +93,11 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
     }
 
     public DependencyResolver mavenCentral(Map args) {
-        List<String> urls = createStringifiedListFromMapArg(args, "urls");
+        List<Object> urls = createListFromMapArg(args, "urls");
         return addLast(getResolverFactory().createMavenRepoResolver(
                 getNameFromMap(args, DEFAULT_MAVEN_CENTRAL_REPO_NAME),
                 MAVEN_CENTRAL_URL,
-                urls == null ? new String[0] : urls.toArray(new String[urls.size()])));
+                urls.toArray()));
     }
 
     public DependencyResolver mavenLocal() {
@@ -114,15 +109,15 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
     }
 
     public DependencyResolver mavenRepo(Map args, Closure configClosure) {
-        List<String> urls = createStringifiedListFromMapArg(args, "urls");
-        if (urls == null) {
-            throw new InvalidUserDataException("You must specify a urls for a Maven repo.");
+        List<Object> urls = createListFromMapArg(args, "urls");
+        if (urls.isEmpty()) {
+            throw new InvalidUserDataException("You must specify the urls for a Maven repo.");
         }
-        List<String> extraUrls = urls.subList(1, urls.size());
+        List<Object> extraUrls = urls.subList(1, urls.size());
         AbstractResolver resolver = getResolverFactory().createMavenRepoResolver(
-                getNameFromMap(args, urls.get(0)),
+                getNameFromMap(args, urls.get(0).toString()),
                 urls.get(0),
-                urls.size() == 1 ? new String[0] : extraUrls.toArray(new String[extraUrls.size()]));
+                extraUrls.toArray());
         return addLast(resolver, configClosure);
     }
 
@@ -178,12 +173,20 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
         return mavenInstaller;
     }
 
+    public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {
+        return addRepository(getResolverFactory().createMavenRepository(), action, "maven");
+    }
+
+    public MavenArtifactRepository maven(Closure closure) {
+        return addRepository(getResolverFactory().createMavenRepository(), closure, "maven");
+    }
+
     public IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action) {
-        return addRepository(getResolverFactory().createIvyRepository(getFileResolver()), action, "ivy");
+        return addRepository(getResolverFactory().createIvyRepository(), action, "ivy");
     }
 
     public IvyArtifactRepository ivy(Closure closure) {
-        return addRepository(getResolverFactory().createIvyRepository(getFileResolver()), closure, "ivy");
+        return addRepository(getResolverFactory().createIvyRepository(), closure, "ivy");
     }
 
     private <T extends ArtifactRepository> T addRepository(T repository, Action<? super T> action, String defaultName) {

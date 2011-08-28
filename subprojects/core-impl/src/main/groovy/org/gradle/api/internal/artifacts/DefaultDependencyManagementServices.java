@@ -57,10 +57,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultDependencyResolutionServices(this, resolver, dependencyMetaDataProvider, projectFinder, domainObjectContext);
     }
 
-    protected ResolverFactory createResolverFactory() {
-        return new DefaultResolverFactory(getFactory(LoggingManagerInternal.class), get(MavenFactory.class), new DefaultLocalMavenCacheLocator());
-    }
-
     protected MavenFactory createMavenFactory() {
         return new DefaultMavenFactory();
     }
@@ -164,7 +160,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         private DefaultRepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = parent.get(Instantiator.class);
-            ResolverFactory resolverFactory = parent.get(ResolverFactory.class);
+            ResolverFactory resolverFactory = new DefaultResolverFactory(
+                    parent.getFactory(LoggingManagerInternal.class),
+                    parent.get(MavenFactory.class),
+                    new DefaultLocalMavenCacheLocator(),
+                    fileResolver);
             return instantiator.newInstance(DefaultRepositoryHandler.class, resolverFactory, fileResolver, instantiator);
         }
 

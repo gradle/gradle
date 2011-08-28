@@ -188,8 +188,6 @@ class DefaultResolverContainerTest {
         Action<DependencyResolver> action = context.mock(Action.class)
 
         context.checking {
-            one(resolverFactoryMock).createResolver(expectedResolver)
-            will(returnValue(expectedResolver))
             one(action).execute(expectedResolver)
         }
 
@@ -202,8 +200,6 @@ class DefaultResolverContainerTest {
         Action<DependencyResolver> action = context.mock(Action.class)
 
         context.checking {
-            one(resolverFactoryMock).createResolver(expectedResolver)
-            will(returnValue(expectedResolver))
             one(action).execute(expectedResolver)
         }
 
@@ -216,8 +212,6 @@ class DefaultResolverContainerTest {
         Action<DependencyResolver> action = context.mock(Action.class)
 
         context.checking {
-            one(resolverFactoryMock).createResolver(expectedResolver)
-            will(returnValue(expectedResolver))
             one(action).execute(expectedResolver)
         }
 

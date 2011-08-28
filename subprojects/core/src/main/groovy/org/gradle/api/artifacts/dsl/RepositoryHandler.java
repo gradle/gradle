@@ -88,7 +88,8 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * <tr><td><code>urls</code></td>
      *     <td>A single jar repository or a collection of jar repositories. Sometimes the artifact
      * lives in a different repository than the POM. In such a case you can specify further locations to look for an artifact.
-     * But be aware that the POM is only looked up in the root repository</td></tr>
+     * But be aware that the POM is only looked up in the root repository. The provided values are evaluated as for
+     * {@link org.gradle.api.Project#uri(Object)}.</td></tr>
      * </table>
      *
      * <p>Examples:
@@ -165,7 +166,8 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * <tr><td><code>urls</code></td>
      *     <td>A single repository url or a list of urls. The first url is the the url of the root repo.
      * Gradle always looks first for the pom in the root repository. After this it looks for the artifact in the root repository.
-     * If the artifact can't be found there, it looks for it in the other repositories.</td></tr>
+     * If the artifact can't be found there, it looks for it in the other repositories. The provided values are evaluated as for
+     * {@link org.gradle.api.Project#uri(Object)}.</td></tr>
      * </table>
      *
      * <p>Examples:
@@ -256,6 +258,22 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * @return The added repository
      */
     MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure);
+
+    /**
+     * Adds and configures a Maven repository.
+     *
+     * @param closure The closure to use to configure the repository.
+     * @return The added repository.
+     */
+    MavenArtifactRepository maven(Closure closure);
+
+    /**
+     * Adds and configures a Maven repository.
+     *
+     * @param action The action to use to configure the repository.
+     * @return The added repository.
+     */
+    MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action);
 
     /**
      * Adds and configures an Ivy repository.

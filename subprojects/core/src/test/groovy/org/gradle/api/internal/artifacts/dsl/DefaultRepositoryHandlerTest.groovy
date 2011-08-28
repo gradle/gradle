@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-//import org.apache.maven.artifact.ant.RemoteRepository
-
 
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.ResolverSettings
@@ -29,7 +27,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.DirectInstantiator
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.util.HashUtil
@@ -39,6 +36,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertSame
+import org.gradle.api.artifacts.dsl.MavenArtifactRepository
 
 /**
  * @author Hans Dockter
@@ -55,27 +53,30 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     }
 
     @Test public void testFlatDirWithNameAndDirs() {
-        String resolverName = 'libs'
-        prepareFlatDirResolverCreation(resolverName, createFlatDirTestDirs())
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert repositoryHandler.flatDir([name: resolverName] + [dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
+        context.checking {
+            one(resolverFactoryMock).createFlatDirResolver('libs', 'a', 'b'); will(returnValue(expectedResolver))
+        }
+
+        assert repositoryHandler.flatDir([name: 'libs'] + [dirs: ['a', 'b']]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.getResolvers())
     }
 
     @Test public void testFlatDirWithNameAndSingleDir() {
-        String resolverName = 'libs'
-        prepareFlatDirResolverCreation(resolverName, ['a' as File] as File[])
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert repositoryHandler.flatDir([name: resolverName] + [dirs: 'a']).is(expectedResolver)
+        context.checking {
+            one(resolverFactoryMock).createFlatDirResolver('libs', 'a'); will(returnValue(expectedResolver))
+        }
+
+        assert repositoryHandler.flatDir([name: 'libs'] + [dirs: 'a']).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.getResolvers())
     }
 
     @Test public void testFlatDirWithoutNameAndWithDirs() {
-        Object[] expectedDirs = createFlatDirTestDirs()
-        String expectedName = HashUtil.createHash(expectedDirs.join(''))
-        prepareFlatDirResolverCreation(expectedName, expectedDirs)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
-        assert repositoryHandler.flatDir([dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
+        String expectedName = HashUtil.createHash(['a', 12].join(''))
+        context.checking {
+            one(resolverFactoryMock).createFlatDirResolver(expectedName, 'a', 12); will(returnValue(expectedResolver))
+        }
+
+        assert repositoryHandler.flatDir([dirs: ['a', 12]]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.getResolvers())
     }
 
@@ -87,7 +88,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     @Test
     public void testMavenCentralWithNoArgs() {
         prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenCentral().is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -96,7 +96,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     public void testMavenCentralWithSingleUrl() {
         String testUrl2 = 'http://www.gradle2.org'
         prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenCentral(urls: testUrl2).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -107,7 +106,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         String testUrl2 = 'http://www.gradle2.org'
         String name = 'customName'
         prepareCreateMavenRepo(name, ResolverContainer.MAVEN_CENTRAL_URL, testUrl1, testUrl2)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenCentral(name: name, urls: [testUrl1, testUrl2]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -118,7 +116,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             one(resolverFactoryMock).createMavenLocalResolver(ResolverContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME)
             will(returnValue(expectedResolver))
         }
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenLocal().is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -134,7 +131,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         String repoRoot = 'http://www.reporoot.org'
         String repoName = 'mavenRepoName'
         prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenRepo([name: repoName, urls: [repoRoot, testUrl2]]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -144,7 +140,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         String repoRoot = 'http://www.reporoot.org'
         String repoName = 'mavenRepoName'
         prepareCreateMavenRepo(repoName, repoRoot)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenRepo([name: repoName, urls: repoRoot]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -154,7 +149,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         String testUrl2 = 'http://www.gradle2.org'
         String repoRoot = 'http://www.reporoot.org'
         prepareCreateMavenRepo(repoRoot, repoRoot, testUrl2)
-        prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenRepo([urls: [repoRoot, testUrl2]]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -163,26 +157,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         context.checking {
             one(resolverFactoryMock).createMavenRepoResolver(name, mavenUrl, jarUrls);
             will(returnValue(expectedResolver))
-        }
-    }
-
-    private def prepareFlatDirResolverCreation(String expectedName, File[] expectedDirs) {
-        context.checking {
-            one(resolverFactoryMock).createFlatDirResolver(expectedName, expectedDirs); will(returnValue(expectedResolver))
-        }
-    }
-
-    private List createFlatDirTestDirsArgs() {
-        return ['a', 'b' as File]
-    }
-
-    private File[] createFlatDirTestDirs() {
-        return ['a' as File, 'b' as File] as File[]
-    }
-
-    private def prepareResolverFactoryToTakeAndReturnExpectedResolver() {
-        context.checking {
-            one(resolverFactoryMock).createResolver(expectedResolver); will(returnValue(expectedResolver))
         }
     }
 
@@ -284,12 +258,10 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         DependencyResolver resolver = resolver()
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository(fileResolver)
+            one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository))
             one(repository).createResolvers(withParam(Matchers.notNullValue()))
             will { arg -> arg << resolver }
-            one(resolverFactoryMock).createResolver(resolver)
-            will(returnValue(resolver))
             allowing(repository).getName()
             will(returnValue("name"))
         }
@@ -311,13 +283,11 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         DependencyResolver resolver = resolver()
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository(fileResolver)
+            one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository))
             one(action).execute(repository)
             one(repository).createResolvers(withParam(Matchers.notNullValue()))
             will { arg -> arg << resolver }
-            one(resolverFactoryMock).createResolver(resolver)
-            will(returnValue(resolver))
             allowing(repository).getName()
             will(returnValue("name"))
         }
@@ -332,7 +302,7 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         IvyArtifactRepository repository1 = context.mock(TestIvyArtifactRepository.class)
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository(fileResolver)
+            one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository1))
             one(repository1).getName()
             will(returnValue(null))
@@ -347,7 +317,7 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         IvyArtifactRepository repository2 = context.mock(TestIvyArtifactRepository.class)
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository(fileResolver)
+            one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository2))
             allowing(repository2).getName()
             will(returnValue("ivy2"))
@@ -359,7 +329,7 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         IvyArtifactRepository repository3 = context.mock(TestIvyArtifactRepository.class)
 
         context.checking {
-            one(resolverFactoryMock).createIvyRepository(fileResolver)
+            one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository3))
             one(repository3).getName()
             will(returnValue(null))
@@ -370,6 +340,51 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         }
 
         repositoryHandler.ivy { }
+    }
+
+    @Test
+    public void createMavenRepositoryUsingClosure() {
+        MavenArtifactRepository repository = context.mock(TestMavenArtifactRepository.class)
+        DependencyResolver resolver = resolver()
+
+        context.checking {
+            one(resolverFactoryMock).createMavenRepository()
+            will(returnValue(repository))
+            one(repository).createResolvers(withParam(Matchers.notNullValue()))
+            will { arg -> arg << resolver }
+            allowing(repository).getName()
+            will(returnValue("name"))
+        }
+
+        def arg
+        def result = repositoryHandler.maven {
+            arg = it
+        }
+
+        assert arg == repository
+        assert result == repository
+        assert repositoryHandler.resolvers.contains(resolver)
+    }
+
+    @Test
+    public void createMavenRepositoryUsingAction() {
+        MavenArtifactRepository repository = context.mock(TestMavenArtifactRepository.class)
+        Action<MavenArtifactRepository> action = context.mock(Action.class)
+        DependencyResolver resolver = resolver()
+
+        context.checking {
+            one(resolverFactoryMock).createMavenRepository()
+            will(returnValue(repository))
+            one(action).execute(repository)
+            one(repository).createResolvers(withParam(Matchers.notNullValue()))
+            will { arg -> arg << resolver }
+            allowing(repository).getName()
+            will(returnValue("name"))
+        }
+
+        def result = repositoryHandler.maven(action)
+        assert result == repository
+        assert repositoryHandler.resolvers.contains(resolver)
     }
 
     private DependencyResolver resolver(String name = 'name') {
@@ -388,5 +403,9 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
 }
 
 interface TestIvyArtifactRepository extends IvyArtifactRepository, ArtifactRepositoryInternal {
+
+}
+
+interface TestMavenArtifactRepository extends MavenArtifactRepository, ArtifactRepositoryInternal {
 
 }
