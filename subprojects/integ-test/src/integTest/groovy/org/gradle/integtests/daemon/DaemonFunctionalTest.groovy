@@ -212,7 +212,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(20)
+    @Timeout(10)
     def "stops all daemons"() {
         prepare()
         OutputEventListener listener = Mock()
@@ -271,7 +271,7 @@ class DaemonFunctionalTest extends Specification {
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    void poll(int timeout = 2000, Closure assertion) {
+    void poll(int timeout = 5000, Closure assertion) {
         int x = 0;
         while(true) {
             try {
