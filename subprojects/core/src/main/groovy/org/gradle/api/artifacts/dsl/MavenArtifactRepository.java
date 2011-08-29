@@ -42,14 +42,14 @@ public interface MavenArtifactRepository extends ArtifactRepository {
     void setUrl(Object url);
 
     /**
-     * Returns the additional URLs to use to find artifact files.
+     * Returns the additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
      *
      * @return The additional URLs. Returns an empty list if there are no such URLs.
      */
     Set<URI> getArtifactUrls();
 
     /**
-     * Adds some additional URLs to use to find artifact files.
+     * Adds some additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
      *
      * <p>The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated
      * relative to the project directory.
@@ -59,7 +59,7 @@ public interface MavenArtifactRepository extends ArtifactRepository {
     void artifactUrls(Object... urls);
 
     /**
-     * Sets the additional URLs to use to find artifact files.
+     * Sets the additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
      *
      * <p>The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated
      * relative to the project directory.
