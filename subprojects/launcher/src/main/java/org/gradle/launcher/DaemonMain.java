@@ -85,8 +85,8 @@ public class DaemonMain implements Runnable {
     }
 
     public void run() {
-        //TODO SF - very simple/no validation - discuss with Adam potential solutions because I don't like the sys property too much
-        String timeoutProperty = startParameter.getSystemPropertiesArgs().get("org.gradle.daemon.idletimeout");
+        //TODO SF - very simple/no validation
+        String timeoutProperty = startParameter.getSystemPropertiesArgs().get(DaemonTimeout.TIMEOUT_PROPERTY);
         int idleTimeout = (timeoutProperty != null)? Integer.parseInt(timeoutProperty) : 3 * 60 * 60 * 1000;
         LOGGER.info("Daemon idle timeout is configured to: " + idleTimeout/1000 + " secs");
 
