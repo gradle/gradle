@@ -19,6 +19,8 @@ import spock.lang.Specification
 import org.gradle.api.internal.file.FileResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
+import org.apache.ivy.plugins.resolver.DualResolver
+import org.apache.ivy.plugins.resolver.URLResolver
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
@@ -40,8 +42,9 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         result.size() == 1
-        result[0] instanceof IBiblioResolver
-        result[0].root == "${file.absolutePath}${File.separatorChar}"
+        def repo = result[0]
+        repo instanceof IBiblioResolver
+        repo.root == "${file.absolutePath}${File.separatorChar}"
     }
 
     def "creates http repository"() {
@@ -59,7 +62,39 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         result.size() == 1
-        result[0] instanceof IBiblioWharfResolver
-        result[0].root == "${uri}/"
+        def repo = result[0]
+        repo instanceof IBiblioWharfResolver
+        repo.root == "${uri}/"
+    }
+
+    def "creates repository with additional artifact URLs"() {
+        given:
+        def uri = new URI("http://localhost:9090/repo")
+        def uri1 = new URI("http://localhost:9090/repo1")
+        def uri2 = new URI("http://localhost:9090/repo2")
+        _ * resolver.resolveUri('repo-dir') >> uri
+        _ * resolver.resolveUri('repo1') >> uri1
+        _ * resolver.resolveUri('repo2') >> uri2
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+        repository.artifactUrls('repo1', 'repo2')
+
+        when:
+        def result = []
+        repository.createResolvers(result)
+
+        then:
+        result.size() == 1
+        def repo = result[0]
+        repo instanceof DualResolver
+        repo.ivyResolver instanceof IBiblioWharfResolver
+        repo.ivyResolver.root == "${uri}/"
+        repo.artifactResolver instanceof URLResolver
+        repo.artifactResolver.artifactPatterns.size() == 3
+        repo.artifactResolver.artifactPatterns.any { it.startsWith uri.toString() }
+        repo.artifactResolver.artifactPatterns.any { it.startsWith uri1.toString() }
+        repo.artifactResolver.artifactPatterns.any { it.startsWith uri2.toString() }
     }
 }

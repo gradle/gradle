@@ -20,7 +20,10 @@ package org.gradle.api.artifacts.dsl;
  */
 public interface ArtifactRepository {
     /**
-     * Returns the name for this repository.
+     * Returns the name for this repository. A name must be unique amongst a repository set. A default name is provided for the repository if none
+     * is provided.
+     *
+     * <p>The name is used in logging output and error reporting to point to information related to this repository.
      *
      * @return The name.
      */

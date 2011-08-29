@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.resolver.*;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolverContainer;
@@ -33,10 +35,8 @@ import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPom
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
-import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -92,46 +92,14 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public AbstractResolver createMavenRepoResolver(String name, Object root, Object... jarRepoUrls) {
-        URI rootUri = fileResolver.resolveUri(root);
-        BasicResolver iBiblioResolver = createIBiblioResolver(name, rootUri);
-        if (jarRepoUrls.length == 0) {
-            iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
-            return iBiblioResolver;
-        }
-        iBiblioResolver.setName(iBiblioResolver.getName() + "_poms");
-        DependencyResolver urlResolver = createUrlResolver(name, rootUri, jarRepoUrls);
-        return createDualResolver(name, iBiblioResolver, urlResolver);
-    }
-
-    private BasicResolver createIBiblioResolver(String name, URI rootUri) {
         DefaultMavenArtifactRepository repo = new DefaultMavenArtifactRepository(fileResolver);
         repo.setName(name);
-        repo.setUrl(rootUri);
+        repo.setUrl(root);
+        repo.artifactUrls(jarRepoUrls);
         List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
         repo.createResolvers(resolvers);
         assert resolvers.size() == 1;
-        return (BasicResolver) resolvers.get(0);
-    }
-
-    private DependencyResolver createUrlResolver(String name, URI root, Object... jarRepoUrls) {
-        URLResolver urlResolver = new UrlWharfResolver();
-        urlResolver.setName(name + "_jars");
-        urlResolver.setM2compatible(true);
-        urlResolver.setChecksums("");
-        urlResolver.addArtifactPattern(root.toString() + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
-        for (Object jarRepoUrl : jarRepoUrls) {
-            urlResolver.addArtifactPattern(fileResolver.resolveUri(jarRepoUrl).toString() + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
-        }
-        return urlResolver;
-    }
-
-    private DualResolver createDualResolver(String name, DependencyResolver ivyResolver, DependencyResolver artifactResolver) {
-        DualResolver dualResolver = new DualResolver();
-        dualResolver.setName(name);
-        dualResolver.setIvyResolver(ivyResolver);
-        dualResolver.setArtifactResolver(artifactResolver);
-        dualResolver.setDescriptor(DualResolver.DESCRIPTOR_OPTIONAL);
-        return dualResolver;
+        return (AbstractResolver) resolvers.get(0);
     }
 
     // todo use MavenPluginConvention pom factory after modularization is done

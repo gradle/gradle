@@ -17,20 +17,26 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
+import org.apache.ivy.plugins.resolver.URLResolver;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.util.GUtil;
 import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
+import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
+import java.io.File;
 import java.net.URI;
-import java.util.Collection;
+import java.util.*;
 
 public class DefaultMavenArtifactRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
     private String name;
     private Object url;
+    private List<Object> additionalUrls = new ArrayList<Object>();
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
@@ -52,6 +58,22 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
         this.url = url;
     }
 
+    public Set<URI> getArtifactUrls() {
+        Set<URI> result = new LinkedHashSet<URI>();
+        for (Object additionalUrl : additionalUrls) {
+            result.add(fileResolver.resolveUri(additionalUrl));
+        }
+        return result;
+    }
+
+    public void artifactUrls(Object... urls) {
+        additionalUrls.addAll(Arrays.asList(urls));
+    }
+
+    public void setArtifactUrls(Iterable<?> urls) {
+        additionalUrls = GUtil.addLists(urls);
+    }
+
     public void createResolvers(Collection<DependencyResolver> resolvers) {
         URI rootUri = getUrl();
 
@@ -60,7 +82,7 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
         if (rootUri.getScheme().equalsIgnoreCase("file")) {
             resolver = new IBiblioResolver();
             resolver.setRepository(new FileRepository());
-            resolver.setRoot(rootUri.getPath());
+            resolver.setRoot(new File(rootUri).getAbsolutePath());
             resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
         } else {
             IBiblioWharfResolver wharfResolver = new IBiblioWharfResolver();
@@ -76,6 +98,30 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
         resolver.setUseMavenMetadata(true);
         resolver.setChecksums("");
 
-        resolvers.add(resolver);
+        Collection<URI> artifactUrls = getArtifactUrls();
+        if (artifactUrls.isEmpty()) {
+            resolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
+            resolvers.add(resolver);
+            return;
+        }
+
+        resolver.setName(name + "_poms");
+
+        URLResolver artifactResolver = new UrlWharfResolver();
+        artifactResolver.setName(name + "_jars");
+        artifactResolver.setM2compatible(true);
+        artifactResolver.setChecksums("");
+        artifactResolver.addArtifactPattern(rootUri.toString() + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
+        for (URI repoUrl : artifactUrls) {
+            artifactResolver.addArtifactPattern(repoUrl.toString() + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
+        }
+
+        DualResolver dualResolver = new DualResolver();
+        dualResolver.setName(name);
+        dualResolver.setIvyResolver(resolver);
+        dualResolver.setArtifactResolver(artifactResolver);
+        dualResolver.setDescriptor(DualResolver.DESCRIPTOR_OPTIONAL);
+
+        resolvers.add(dualResolver);
     }
 }

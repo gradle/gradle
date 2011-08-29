@@ -16,23 +16,55 @@
 package org.gradle.api.artifacts.dsl;
 
 import java.net.URI;
+import java.util.Set;
 
 /**
  * An artifact repository which uses a Maven format to store artifacts and meta-data.
  */
 public interface MavenArtifactRepository extends ArtifactRepository {
     /**
-     * The base URL of this repository.
+     * The base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
+     * #setArtifactUrls(Iterable)}.
      *
      * @return The URL.
      */
     URI getUrl();
 
     /**
-     * Sets the base URL of this repository. The provided value is evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means,
-     * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
+     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
+     * #setArtifactUrls(Iterable)}.
+     *
+     * <p>The provided value is evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
      *
      * @param url The base URL.
      */
     void setUrl(Object url);
+
+    /**
+     * Returns the additional URLs to use to find artifact files.
+     *
+     * @return The additional URLs. Returns an empty list if there are no such URLs.
+     */
+    Set<URI> getArtifactUrls();
+
+    /**
+     * Adds some additional URLs to use to find artifact files.
+     *
+     * <p>The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated
+     * relative to the project directory.
+     *
+     * @param urls The URLs to add.
+     */
+    void artifactUrls(Object... urls);
+
+    /**
+     * Sets the additional URLs to use to find artifact files.
+     *
+     * <p>The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated
+     * relative to the project directory.
+     *
+     * @param urls The URLs.
+     */
+    void setArtifactUrls(Iterable<?> urls);
 }
