@@ -30,6 +30,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.apache.ivy.plugins.resolver.*
+import org.gradle.api.internal.DirectInstantiator
 
 /**
  * @author Hans Dockter
@@ -50,7 +51,7 @@ class DefaultResolverFactoryTest {
     final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     final LocalMavenCacheLocator localMavenCacheLocator = context.mock(LocalMavenCacheLocator.class)
     final FileResolver fileResolver = context.mock(FileResolver.class)
-    final DefaultResolverFactory factory = new DefaultResolverFactory(context.mock(Factory.class), context.mock(MavenFactory.class), localMavenCacheLocator, fileResolver)
+    final DefaultResolverFactory factory = new DefaultResolverFactory(context.mock(Factory.class), context.mock(MavenFactory.class), localMavenCacheLocator, fileResolver, new DirectInstantiator())
 
     @Before public void setup() {
         context.checking {
@@ -116,26 +117,8 @@ class DefaultResolverFactoryTest {
     }
 
     @Test public void testCreateFlatDirResolver() {
-        File dir1 = new File('/rootFolder')
-        File dir2 = new File('/rootFolder2')
-        context.checking {
-            allowing(fileResolver).resolve('a')
-            will(returnValue(dir1))
-            allowing(fileResolver).resolve('b')
-            will(returnValue(dir2))
-        }
-        String expectedName = 'libs'
-        FileSystemResolver resolver = factory.createFlatDirResolver(expectedName, 'a', 'b')
-        def expectedPatterns = [
-                "$dir1.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
-                "$dir1.absolutePath/[artifact](-[classifier]).[ext]",
-                "$dir2.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
-                "$dir2.absolutePath/[artifact](-[classifier]).[ext]"
-        ]
-        assert expectedName == resolver.name
-        assert [] == resolver.ivyPatterns
-        assert expectedPatterns == resolver.artifactPatterns
-        assert resolver.allownomd
+        def repo =factory.createFlatDirRepository()
+        assert repo instanceof DefaultFlatDirArtifactRepository
     }
 
     @Test public void testCreateLocalMavenRepo() {
@@ -150,7 +133,7 @@ class DefaultResolverFactoryTest {
 
         def repo = factory.createMavenLocalResolver('name')
         assert repo instanceof IBiblioResolver
-        assert repo.root == repoDir.toURI().getPath() + '/'
+        assert repo.root == repoDir.getAbsolutePath() + '/'
         assert repo.repositoryCacheManager instanceof LocalFileRepositoryCacheManager
     }
 

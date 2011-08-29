@@ -71,6 +71,22 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
     FileSystemResolver flatDir(Map<String, ?> args);
 
     /**
+     * Adds an configures a repository which will look for dependencies in a number of local directories.
+     *
+     * @param configureClosure The closure to execute to configure the repository.
+     * @return The repository.
+     */
+    FlatDirectoryArtifactRepository flatDir(Closure configureClosure);
+
+    /**
+     * Adds an configures a repository which will look for dependencies in a number of local directories.
+     *
+     * @param action The action to execute to configure the repository.
+     * @return The repository.
+     */
+    FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action);
+
+    /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
      * always {@link org.gradle.api.artifacts.ResolverContainer#MAVEN_CENTRAL_URL}. The behavior of this resolver
      * is otherwise the same as the ones added by {@link #mavenRepo(java.util.Map)}.

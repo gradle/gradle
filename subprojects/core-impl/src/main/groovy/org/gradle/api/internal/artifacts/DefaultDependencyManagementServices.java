@@ -164,7 +164,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     parent.getFactory(LoggingManagerInternal.class),
                     parent.get(MavenFactory.class),
                     new DefaultLocalMavenCacheLocator(),
-                    fileResolver);
+                    fileResolver,
+                    instantiator);
             return instantiator.newInstance(DefaultRepositoryHandler.class, resolverFactory, fileResolver, instantiator);
         }
 

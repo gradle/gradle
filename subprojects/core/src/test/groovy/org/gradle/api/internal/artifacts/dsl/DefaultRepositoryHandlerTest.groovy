@@ -16,27 +16,27 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.ResolverSettings
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository
+import org.gradle.api.artifacts.dsl.MavenArtifactRepository
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
-import org.gradle.util.HashUtil
 import org.hamcrest.Matchers
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.notNullValue
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertSame
-import org.gradle.api.artifacts.dsl.MavenArtifactRepository
 
 /**
  * @author Hans Dockter
@@ -52,9 +52,29 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         return repositoryHandler;
     }
 
-    @Test public void testFlatDirWithNameAndDirs() {
+    @Test public void testFlatDirWithClosure() {
+        def repository = context.mock(TestFlatDirectoryArtifactRepository)
+
         context.checking {
-            one(resolverFactoryMock).createFlatDirResolver('libs', 'a', 'b'); will(returnValue(expectedResolver))
+            one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
+            one(repository).setName('libs')
+            allowing(repository).getName(); will(returnValue('libs'))
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+        }
+
+        assert repositoryHandler.flatDir { name = 'libs' }.is(repository)
+        assertEquals([expectedResolver], repositoryHandler.getResolvers())
+    }
+    
+    @Test public void testFlatDirWithNameAndDirs() {
+        def repository = context.mock(TestFlatDirectoryArtifactRepository)
+
+        context.checking {
+            one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
+            one(repository).setDirs(['a', 'b'])
+            one(repository).setName('libs')
+            allowing(repository).getName(); will(returnValue('libs'))
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
         assert repositoryHandler.flatDir([name: 'libs'] + [dirs: ['a', 'b']]).is(expectedResolver)
@@ -62,8 +82,14 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     }
 
     @Test public void testFlatDirWithNameAndSingleDir() {
+        def repository = context.mock(TestFlatDirectoryArtifactRepository)
+
         context.checking {
-            one(resolverFactoryMock).createFlatDirResolver('libs', 'a'); will(returnValue(expectedResolver))
+            one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
+            one(repository).setDirs(['a'])
+            one(repository).setName('libs')
+            allowing(repository).getName(); will(returnValue('libs'))
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
         assert repositoryHandler.flatDir([name: 'libs'] + [dirs: 'a']).is(expectedResolver)
@@ -71,18 +97,18 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     }
 
     @Test public void testFlatDirWithoutNameAndWithDirs() {
-        String expectedName = HashUtil.createHash(['a', 12].join(''))
+        def repository = context.mock(TestFlatDirectoryArtifactRepository)
+
         context.checking {
-            one(resolverFactoryMock).createFlatDirResolver(expectedName, 'a', 12); will(returnValue(expectedResolver))
+            one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
+            one(repository).setDirs(['a', 12])
+            allowing(repository).getName(); will(returnValue(null))
+            one(repository).setName('flatDir')
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
         assert repositoryHandler.flatDir([dirs: ['a', 12]]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.getResolvers())
-    }
-
-    @Test(expected = InvalidUserDataException)
-    public void testFlatDirWithMissingDirs() {
-        repositoryHandler.flatDir([name: 'someName'])
     }
 
     @Test
@@ -407,5 +433,9 @@ interface TestIvyArtifactRepository extends IvyArtifactRepository, ArtifactRepos
 }
 
 interface TestMavenArtifactRepository extends MavenArtifactRepository, ArtifactRepositoryInternal {
+
+}
+
+interface TestFlatDirectoryArtifactRepository extends FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
 
 }

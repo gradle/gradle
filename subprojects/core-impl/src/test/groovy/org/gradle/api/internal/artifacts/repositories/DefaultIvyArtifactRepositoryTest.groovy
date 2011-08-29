@@ -20,12 +20,13 @@ import org.apache.ivy.plugins.resolver.URLResolver
 import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.internal.file.FileResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.gradle.api.InvalidUserDataException
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver)
 
-    def createsAUrlResolver() {
+    def "creates a resolver for URL patterns"() {
         repository.name = 'name'
         repository.artifactPattern 'pattern'
 
@@ -44,7 +45,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.artifactPatterns == ['scheme:resource'] as List
     }
 
-    def createsARepositoryResolverForHttpPatterns() {
+    def "creates a resolver for HTTP patterns"() {
         repository.name = 'name'
         repository.artifactPattern 'http://host/[organisation]/[artifact]-[revision].[ext]'
 
@@ -64,7 +65,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.artifactPatterns == ['http://host/[organisation]/[artifact]-[revision].[ext]'] as List
     }
 
-    def createsARepositoryResolverForFilePattern() {
+    def "creates a resolver for file patterns"() {
         repository.name = 'name'
         repository.artifactPattern 'repo/[organisation]/[artifact]-[revision].[ext]'
         def file = new File("test").toURI()
@@ -82,5 +83,14 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver instanceof FileSystemResolver
         resolver.name == 'name'
         resolver.artifactPatterns == ["${file.path}/[organisation]/[artifact]-[revision].[ext]"] as List
+    }
+
+    def "fails when no artifact patterns specified"() {
+        when:
+        repository.createResolvers([])
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == 'You must specify at least one artifact pattern for an Ivy repository.'
     }
 }

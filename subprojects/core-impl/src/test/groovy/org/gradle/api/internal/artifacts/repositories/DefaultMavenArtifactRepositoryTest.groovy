@@ -21,11 +21,12 @@ import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
 import org.apache.ivy.plugins.resolver.DualResolver
 import org.apache.ivy.plugins.resolver.URLResolver
+import org.gradle.api.InvalidUserDataException
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver)
-    
+
     def "creates local repository"() {
         given:
         def file = new File('repo')
@@ -44,7 +45,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         result.size() == 1
         def repo = result[0]
         repo instanceof IBiblioResolver
-        repo.root == "${file.absolutePath}${File.separatorChar}"
+        repo.root == "${file.absolutePath}/"
     }
 
     def "creates http repository"() {
@@ -96,5 +97,14 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repo.artifactResolver.artifactPatterns.any { it.startsWith uri.toString() }
         repo.artifactResolver.artifactPatterns.any { it.startsWith uri1.toString() }
         repo.artifactResolver.artifactPatterns.any { it.startsWith uri2.toString() }
+    }
+
+    def "fails when no root url specified"() {
+        when:
+        repository.createResolvers([])
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == 'You must specify a URL for a Maven repository.'
     }
 }

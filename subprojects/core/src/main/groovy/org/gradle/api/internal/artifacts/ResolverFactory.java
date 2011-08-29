@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
@@ -33,7 +33,7 @@ import org.gradle.api.internal.file.FileResolver;
 public interface ResolverFactory {
     DependencyResolver createResolver(Object userDescription);
 
-    FileSystemResolver createFlatDirResolver(String name, Object... roots);
+    FlatDirectoryArtifactRepository createFlatDirRepository();
 
     AbstractResolver createMavenRepoResolver(String name, Object root, Object... jarRepoUrls);
 

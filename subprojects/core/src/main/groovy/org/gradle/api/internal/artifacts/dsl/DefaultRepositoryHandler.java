@@ -21,10 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.dsl.ArtifactRepository;
-import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
-import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.Instantiator;
@@ -34,7 +31,6 @@ import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
-import org.gradle.util.HashUtil;
 import org.gradle.util.WrapUtil;
 
 import java.util.*;
@@ -49,25 +45,32 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
         super(resolverFactory, fileResolver, instantiator);
     }
 
-    public FileSystemResolver flatDir(Map args) {
-        Object[] rootDirPaths = getFlatDirRootDirs(args);
-        FileSystemResolver resolver = getResolverFactory().createFlatDirResolver(
-                getNameFromMap(args, HashUtil.createHash(GUtil.join(rootDirPaths, ""))),
-                rootDirPaths);
-        return (FileSystemResolver) addLast(resolver);
+    public FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action) {
+        return addRepository(getResolverFactory().createFlatDirRepository(), action, "flatDir");
+    }
+
+    public FlatDirectoryArtifactRepository flatDir(Closure configureClosure) {
+        return addRepository(getResolverFactory().createFlatDirRepository(), configureClosure, "flatDir");
+    }
+
+    public FileSystemResolver flatDir(Map<String, ?> args) {
+        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
+        if (modifiedArgs.containsKey("dirs")) {
+            Object value = modifiedArgs.get("dirs");
+            if (!(value instanceof Iterable<?>)) {
+                modifiedArgs.put("dirs", Collections.singletonList(value));
+            }
+        }
+        FlatDirectoryArtifactRepository repository = addRepository(getResolverFactory().createFlatDirRepository(), modifiedArgs, "flatDir");
+        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
+        ((ArtifactRepositoryInternal) repository).createResolvers(resolvers);
+        assert resolvers.size() == 1;
+        return (FileSystemResolver) resolvers.get(0);
     }
 
     private String getNameFromMap(Map args, String defaultName) {
         Object name = args.get("name");
         return name != null ? name.toString() : defaultName;
-    }
-
-    private Object[] getFlatDirRootDirs(Map args) {
-        List<Object> dirs = createListFromMapArg(args, "dirs");
-        if (dirs.isEmpty()) {
-            throw new InvalidUserDataException("You must specify dirs for the flat dir repository.");
-        }
-        return dirs.toArray();
     }
 
     private List<Object> createListFromMapArg(Map args, String argName) {
@@ -197,6 +200,12 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
 
     private <T extends ArtifactRepository> T addRepository(T repository, Closure closure, String defaultName) {
         ConfigureUtil.configure(closure, repository);
+        addRepository(repository, defaultName);
+        return repository;
+    }
+
+    private <T extends ArtifactRepository> T addRepository(T repository, Map<String, ?> args, String defaultName) {
+        ConfigureUtil.configureByMap(args, repository);
         addRepository(repository, defaultName);
         return repository;
     }

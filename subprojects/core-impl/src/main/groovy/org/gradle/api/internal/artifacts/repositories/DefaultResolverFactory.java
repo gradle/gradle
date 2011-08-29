@@ -18,16 +18,16 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ResolverFactory;
-import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.publish.maven.*;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer;
@@ -49,12 +49,14 @@ public class DefaultResolverFactory implements ResolverFactory {
     private final MavenFactory mavenFactory;
     private final LocalMavenCacheLocator localMavenCacheLocator;
     private final FileResolver fileResolver;
+    private final Instantiator instantiator;
 
-    public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, MavenFactory mavenFactory, LocalMavenCacheLocator localMavenCacheLocator, FileResolver fileResolver) {
+    public DefaultResolverFactory(Factory<LoggingManagerInternal> loggingManagerFactory, MavenFactory mavenFactory, LocalMavenCacheLocator localMavenCacheLocator, FileResolver fileResolver, Instantiator instantiator) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.mavenFactory = mavenFactory;
         this.localMavenCacheLocator = localMavenCacheLocator;
         this.fileResolver = fileResolver;
+        this.instantiator = instantiator;
     }
 
     public DependencyResolver createResolver(Object userDescription) {
@@ -73,17 +75,8 @@ public class DefaultResolverFactory implements ResolverFactory {
         return result;
     }
 
-    public FileSystemResolver createFlatDirResolver(String name, Object... roots) {
-        FileSystemResolver resolver = new FileSystemResolver();
-        resolver.setName(name);
-        for (Object root : roots) {
-            File rootFile = fileResolver.resolve(root);
-            resolver.addArtifactPattern(rootFile.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
-            resolver.addArtifactPattern(rootFile.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
-        }
-        resolver.setValidate(false);
-        resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
-        return resolver;
+    public FlatDirectoryArtifactRepository createFlatDirRepository() {
+        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver);
     }
 
     public AbstractResolver createMavenLocalResolver(String name) {
@@ -92,12 +85,12 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public AbstractResolver createMavenRepoResolver(String name, Object root, Object... jarRepoUrls) {
-        DefaultMavenArtifactRepository repo = new DefaultMavenArtifactRepository(fileResolver);
-        repo.setName(name);
-        repo.setUrl(root);
-        repo.artifactUrls(jarRepoUrls);
+        DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(fileResolver);
+        repository.setName(name);
+        repository.setUrl(root);
+        repository.artifactUrls(jarRepoUrls);
         List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
-        repo.createResolvers(resolvers);
+        repository.createResolvers(resolvers);
         assert resolvers.size() == 1;
         return (AbstractResolver) resolvers.get(0);
     }
@@ -125,11 +118,11 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public IvyArtifactRepository createIvyRepository() {
-        return new DefaultIvyArtifactRepository(fileResolver);
+        return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver);
     }
 
     public MavenArtifactRepository createMavenRepository() {
-        return new DefaultMavenArtifactRepository(fileResolver);
+        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver);
     }
 
     private PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory) {

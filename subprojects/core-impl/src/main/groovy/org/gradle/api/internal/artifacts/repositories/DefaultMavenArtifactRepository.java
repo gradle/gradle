@@ -20,6 +20,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.apache.ivy.plugins.resolver.URLResolver;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
@@ -51,7 +52,7 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
     }
 
     public URI getUrl() {
-        return fileResolver.resolveUri(url);
+        return url == null ? null : fileResolver.resolveUri(url);
     }
 
     public void setUrl(Object url) {
@@ -76,6 +77,9 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
 
     public void createResolvers(Collection<DependencyResolver> resolvers) {
         URI rootUri = getUrl();
+        if (rootUri == null) {
+            throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
+        }
 
         IBiblioResolver resolver;
 
