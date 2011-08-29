@@ -15,8 +15,9 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.util.TestFile
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
+import org.gradle.util.TestFile
 
 class MavenRepository {
     final TestFile rootDir
@@ -139,6 +140,8 @@ class MavenModule {
 
         pomFile << "\n</project>"
 
+        createHashFiles(pomFile)
+
         return publishArtifactOnly()
     }
 
@@ -146,7 +149,19 @@ class MavenModule {
         def jarFile = artifactFile
         jarFile << "add some content so that file size isn't zero: $publishCount"
 
+        createHashFiles(jarFile)
+
         return jarFile
     }
 
+    private void createHashFiles(File file) {
+        moduleDir.file("${file.name}.sha1").text = getHash(file, "SHA1")
+        moduleDir.file("${file.name}.md5").text = getHash(file, "MD5")
+    }
+
+    private String getHash(File file, String algorithm) {
+        MessageDigest messageDigest = MessageDigest.getInstance(algorithm)
+        messageDigest.update(file.bytes)
+        return new BigInteger(1, messageDigest.digest()).toString(16)
+    }
 }

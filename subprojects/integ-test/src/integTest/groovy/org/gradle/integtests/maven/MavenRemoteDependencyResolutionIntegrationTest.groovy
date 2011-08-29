@@ -87,7 +87,7 @@ task retrieve(type: Sync) {
 
         // TODO - these should not be here
         server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
-        5.times {
+        7.times {
             server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
         }
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
@@ -104,11 +104,18 @@ task retrieve(type: Sync) {
 
         executer.withTasks('retrieve').run()
         def jarFile = dist.testFile('build/testproject-1.0-SNAPSHOT.jar')
+
         jarFile.assertIsCopyOf(module.artifactFile)
         def snapshot = jarFile.snapshot()
 
         // Publish the second snapshot
         module.publishWithChangedContent()
+
+        // TODO - these should not be here
+        server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
+        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
+        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1')
+        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5')
 
         // Retrieve again should use cached snapshot, and should not hit the server
         executer.withTasks('retrieve').run().assertTasksSkipped(':retrieve')
@@ -130,7 +137,7 @@ task retrieve(type: Sync) {
 
         // TODO - these should not be here
         server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
-        5.times {
+        7.times {
             server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
         }
         server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1')
@@ -178,7 +185,7 @@ task retrieve(type: Sync) {
         module.publishArtifact()
 
         // Retrieve the first snapshot
-        def repoDir = dist.testFile('repo/org/gradle/testproject/1.0-SNAPSHOT')
+        def repoDir = module.moduleDir
         repoDir.assertIsDir()
         def pom = repoDir.listFiles().find { it.name.matches('.*-1.pom') }
         def jar = repoDir.listFiles().find { it.name.matches('.*-1.jar') }
@@ -194,17 +201,17 @@ task retrieve(type: Sync) {
 
         // TODO - these should not be here
         server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
-        5.times {
+        7.times {
             server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
         }
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
         server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1')
         server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5')
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.sha1")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.md5")
+        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1", repoDir.file("${pom.name}.sha1"))
+        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5", repoDir.file("${pom.name}.md5"))
+        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.sha1", repoDir.file("${jar.name}.sha1"))
+        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.md5", repoDir.file("${jar.name}.md5"))
         server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-sources.jar")
         server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-src.jar")
         server.expectHeadMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/testproject-1.0-SNAPSHOT-javadoc.jar")
@@ -218,12 +225,15 @@ task retrieve(type: Sync) {
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
 
         // TODO - these should not be here
+        1.times {
+            server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
+        }
         server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
         server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1')
         server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5')
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5")
+        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1", repoDir.file("${pom.name}.sha1"))
+        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5", repoDir.file("${pom.name}.md5"))
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
 
         executer.withTasks('retrieve').run().assertTasksSkipped(':retrieve')
