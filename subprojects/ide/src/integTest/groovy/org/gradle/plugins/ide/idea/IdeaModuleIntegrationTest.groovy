@@ -231,7 +231,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -268,7 +268,7 @@ subprojects {
 
 project(':impl') {
     repositories {
-        mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+        maven { url = "${repoDir.toURI()}" }
     }
 
     dependencies {

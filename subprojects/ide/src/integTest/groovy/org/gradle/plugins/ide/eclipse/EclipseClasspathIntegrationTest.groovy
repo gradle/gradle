@@ -43,7 +43,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    mavenRepo(name: "repo", urls: "${mavenRepo.rootDir.toURI()}")
+    maven { url = "${mavenRepo.rootDir.toURI()}" }
 }
 
 dependencies {
@@ -76,7 +76,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    mavenRepo(name: "repo", urls: "${mavenRepo.rootDir.toURI()}")
+    maven { url = "${mavenRepo.rootDir.toURI()}" }
 }
 
 dependencies {
@@ -239,7 +239,7 @@ configurations {
 }
 
 repositories {
-    mavenRepo(name: "repo", urls: "${mavenRepo.rootDir.toURI()}")
+    maven { url = "${mavenRepo.rootDir.toURI()}" }
 }
 
 dependencies {
@@ -272,7 +272,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    mavenRepo(name: "repo", urls: "${mavenRepo.rootDir.toURI()}")
+    maven { url = "${mavenRepo.rootDir.toURI()}" }
 }
 
 dependencies {
@@ -306,7 +306,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    mavenRepo(name: "repo", urls: "${mavenRepo.rootDir.toURI()}")
+    maven { url = "${mavenRepo.rootDir.toURI()}" }
 }
 
 dependencies {

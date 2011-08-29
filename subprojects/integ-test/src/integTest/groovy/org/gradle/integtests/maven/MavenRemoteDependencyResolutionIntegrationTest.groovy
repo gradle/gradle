@@ -255,7 +255,7 @@ task retrieve(type: Sync) {
 
         dist.testFile('build.gradle') << """
 repositories {
-    mavenRepo(name: 'repo', urls: 'http://localhost:${server.port}/repo1')
+    maven { url = 'http://localhost:${server.port}/repo1' }
 }
 configurations { compile }
 dependencies {
@@ -317,8 +317,8 @@ task listJars << {
 
         dist.testFile('build.gradle') << """
 repositories {
-    mavenRepo(name: 'repo', urls: 'http://localhost:${server.port}/repo1')
-    mavenRepo(name: 'repo2', urls: 'http://localhost:${server.port}/repo2')
+    maven { url = 'http://localhost:${server.port}/repo1' }
+    maven { url = 'http://localhost:${server.port}/repo2' }
 }
 configurations { compile }
 dependencies {

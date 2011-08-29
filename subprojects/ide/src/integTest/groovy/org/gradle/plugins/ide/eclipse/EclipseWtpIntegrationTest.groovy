@@ -126,7 +126,7 @@ apply plugin: "eclipse-wtp"
 apply plugin: "war"
 
 repositories {
-    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -144,7 +144,7 @@ apply plugin: "eclipse-wtp"
 apply plugin: "java"
 
 repositories {
-    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -161,7 +161,7 @@ apply plugin: "eclipse-wtp"
 apply plugin: "java"
 
 repositories {
-    mavenRepo(name: "repo", urls: "${repoDir.toURI()}")
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
