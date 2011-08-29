@@ -84,6 +84,13 @@ daemonIntegTest {
           "**/MavenPublicationIntegrationTest.class", "**/SamplesMavenPomGenerationIntegrationTest.class",
           "**/SamplesMavenQuickstartIntegrationTest.class", "**/PluginsAutoTestedSamplesTest.class",
           "**/SampleTestNGIntegrationTest.class", "**/TestNGIntegrationTest.class"
+
+  doLast {
+      if (project.hasProperty("waitForDaemonsToDieMillis")) {
+         println "Property 'waitForDaemonsToDieMillis' passed so I'm waiting $project.waitForDaemonsToDieMillis millis so that deamons can die with honor..."
+         Thread.sleep(Integer.parseInt(project.waitForDaemonsToDieMillis));
+      }
+  }
 }
 
 
