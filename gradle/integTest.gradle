@@ -75,7 +75,7 @@ integTestTasks.all {
 
 //exclude some of the daemon tests until we stabilize daemon and fix the tests
 daemonIntegTest {
-  exclude "**/SigningSamplesSpec.class", "**/CppHelloWorldExecutableIntegrationSpec", "**/CppSamplesSpec.class", "**/CodeQualityIntegrationTest.class",
+  exclude "**/SigningSamplesSpec.class", "**/CppHelloWorldExecutableIntegrationSpec.class", "**/CppSamplesSpec.class", "**/CodeQualityIntegrationTest.class",
           "**/CommandLineIntegrationTest.class", "**/IncrementalBuildIntegrationTest.class", "**/EarPluginIntegrationTest.class",
           "**/IncrementalTestIntegrationTest.class", "**/JUnitIntegrationTest.class", "**/JavaProjectIntegrationTest.class",
           "**/LoggingIntegrationTest.class", "**/ProjectLayoutIntegrationTest.class",
