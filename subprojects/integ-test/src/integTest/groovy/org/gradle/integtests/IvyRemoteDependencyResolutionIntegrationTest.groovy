@@ -134,7 +134,7 @@ task listJars << {
 repositories {
     ivy {
         name = 'gradleReleases'
-        username = 'username'
+        userName = 'username'
         password = 'password'
         artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }

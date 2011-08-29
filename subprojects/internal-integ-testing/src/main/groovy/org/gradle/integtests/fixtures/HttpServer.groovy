@@ -37,6 +37,7 @@ class HttpServer implements MethodRule {
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
     private Throwable failure
+    private TestUserRealm realm
 
     def HttpServer() {
         HandlerCollection handlers = new HandlerCollection()
@@ -195,21 +196,26 @@ class HttpServer implements MethodRule {
     }
 
     private Handler withAuthentication(String path, String username, String password, Handler handler) {
-        def realm = new TestUserRealm()
-        realm.username = username
-        realm.password = password
-        def constraint = new Constraint()
-        constraint.name = Constraint.__BASIC_AUTH
-        constraint.authenticate = true
-        constraint.roles = ['*'] as String[]
-        def constraintMapping = new ConstraintMapping()
-        constraintMapping.pathSpec = path
-        constraintMapping.constraint = constraint
-        def securityHandler = new SecurityHandler()
-        securityHandler.userRealm = realm
-        securityHandler.constraintMappings = [constraintMapping] as ConstraintMapping[]
-        securityHandler.authenticator = new BasicAuthenticator()
-        collection.addHandler(securityHandler)
+        if (realm != null) {
+            assert realm.username == username
+            assert realm.password == password
+        } else {
+            realm = new TestUserRealm()
+            realm.username = username
+            realm.password = password
+            def constraint = new Constraint()
+            constraint.name = Constraint.__BASIC_AUTH
+            constraint.authenticate = true
+            constraint.roles = ['*'] as String[]
+            def constraintMapping = new ConstraintMapping()
+            constraintMapping.pathSpec = path
+            constraintMapping.constraint = constraint
+            def securityHandler = new SecurityHandler()
+            securityHandler.userRealm = realm
+            securityHandler.constraintMappings = [constraintMapping] as ConstraintMapping[]
+            securityHandler.authenticator = new BasicAuthenticator()
+            collection.addHandler(securityHandler)
+        }
 
         return new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
