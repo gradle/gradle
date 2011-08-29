@@ -54,12 +54,9 @@ task listJars << {
 }
 """
 
-        when:
-        run('listJars')
-        run('listJars')
-
-        then:
-        notThrown(Throwable)
+        expect:
+        succeeds('listJars')
+        succeeds('listJars')
     }
 
     public void "can resolve and cache dependencies from multiple HTTP Ivy repositories"() {
@@ -106,30 +103,59 @@ task listJars << {
 }
 """
 
-        when:
-        run('listJars')
+        expect:
+        succeeds('listJars')
 
-        then:
-        notThrown(Throwable)
-
-        // given:
+//        given:
         // TODO - it should not be doing these
         server.expectGetMissing('/repo/group/projectB/1.3/ivy-1.3.xml')
         server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
         server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
 
-        when:
-        run('listJars')
-
-        then:
-        notThrown(Throwable)
+//        expect:
+        succeeds('listJars')
     }
 
-    public void "reports missing and failed HTTP downloads"() {
+    public void "can resolve dependencies from password protected HTTP Ivy repository"() {
+        distribution.requireOwnUserHomeDir()
+
         given:
+        def repo = ivyRepo()
+        def module = repo.module('group', 'projectA', '1.2')
+        module.publishArtifact()
+
+        and:
+        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
         server.start()
 
         and:
+        buildFile << """
+repositories {
+    ivy {
+        name = 'gradleReleases'
+        username = 'username'
+        password = 'password'
+        artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+
+        expect:
+        succeeds('listJars')
+    }
+
+    public void "reports missing and failed HTTP downloads"() {
+        server.start()
+
+        given:
         buildFile << """
 repositories {
     ivy {

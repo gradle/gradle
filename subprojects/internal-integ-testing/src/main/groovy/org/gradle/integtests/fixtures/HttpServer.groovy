@@ -161,6 +161,13 @@ class HttpServer implements MethodRule {
     }
 
     /**
+     * Allows one GET request for the given URL, with the given credentials. Reads the request content from the given file.
+     */
+    void expectGet(String path, String username, String password, File srcFile) {
+        expect(path, false, ['GET'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
+    }
+
+    /**
      * Allows one PUT request for the given URL. Writes the request content to the given file.
      */
     void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK) {
@@ -176,6 +183,18 @@ class HttpServer implements MethodRule {
      * Allows one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
      */
     void expectPut(String path, String username, String password, File destFile) {
+        expect(path, false, ['PUT'], withAuthentication(path, username, password, new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                if (request.remoteUser != username) {
+                    response.sendError(500, 'unexpected username')
+                    return
+                }
+                destFile.bytes = request.inputStream.bytes
+            }
+        }))
+    }
+
+    private Handler withAuthentication(String path, String username, String password, Handler handler) {
         def realm = new TestUserRealm()
         realm.username = username
         realm.password = password
@@ -192,15 +211,15 @@ class HttpServer implements MethodRule {
         securityHandler.authenticator = new BasicAuthenticator()
         collection.addHandler(securityHandler)
 
-        expect(path, false, ['PUT'], new AbstractHandler() {
+        return new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (request.remoteUser != username) {
                     response.sendError(500, 'unexpected username')
                     return
                 }
-                destFile.bytes = request.inputStream.bytes
+                handler.handle(target, request, response, dispatch)
             }
-        })
+        }
     }
 
     private void expect(String path, boolean recursive, Collection<String> methods, Handler handler) {
