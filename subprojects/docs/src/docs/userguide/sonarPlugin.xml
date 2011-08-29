@@ -43,8 +43,8 @@
         <sample id="useSonarPlugin" dir="sonar" title="Configuring Sonar project settings">
             <sourcefile file="build.gradle" snippet="project-settings"/>
         </sample>
-        <para>For a complete documentation of all configuration options, see the
-            <ulink url= "http://gradle.org/current/docs/dsl/org.gradle.api.plugins.sonar.SonarAnalyze.html">DSL reference</ulink>.
+        <para>For a complete documentation of all configuration options, see the DSL rerence for
+            <apilink class="org.gradle.api.plugins.sonar.SonarAnalyze"/>
         </para>
     </section>
 
