@@ -65,7 +65,7 @@ abstract class PageInfoImpl implements PageInfo {
         }
 
         URI resolved = uri.resolve(path)
-        resolved = new URI(resolved.scheme, resolved.authority, resolved.path, null, null)
+        resolved = new URI(resolved.scheme, resolved.authority, resolved.path, resolved.query, null)
 
         for (docPattern in layout.docPatterns) {
             if (path.matches(docPattern)) {
