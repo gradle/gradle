@@ -17,7 +17,7 @@
 package org.gradle.tooling.model;
 
 /**
- * Described element of something :)
+ * Described model element
  *
  * @since 1.0-rc-1
  */
