@@ -236,7 +236,9 @@ task retrieve(type: Sync) {
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5", repoDir.file("${pom.name}.md5"))
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
 
+        println "---> RETRIEVE"
         executer.withTasks('retrieve').run().assertTasksSkipped(':retrieve')
+        println "---> DONE"
         jarFile.assertHasNotChangedSince(snapshot)
     }
 
