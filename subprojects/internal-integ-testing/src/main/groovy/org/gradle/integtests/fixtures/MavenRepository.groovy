@@ -116,6 +116,7 @@ class MavenModule {
   </versioning>
 </metadata>
 """
+            createHashFiles(metaDataFile)
         }
 
         pomFile.text = ""

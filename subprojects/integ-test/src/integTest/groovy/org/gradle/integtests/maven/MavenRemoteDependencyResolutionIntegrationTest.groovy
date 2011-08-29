@@ -206,8 +206,8 @@ task retrieve(type: Sync) {
         }
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
-        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1')
-        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5')
+        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1', repoDir.file("maven-metadata.xml.sha1"))
+        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5', repoDir.file("maven-metadata.xml.md5"))
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1", repoDir.file("${pom.name}.sha1"))
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5", repoDir.file("${pom.name}.md5"))
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.sha1", repoDir.file("${jar.name}.sha1"))
@@ -229,8 +229,8 @@ task retrieve(type: Sync) {
             server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
         }
         server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
-        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1')
-        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5')
+        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1', repoDir.file("maven-metadata.xml.sha1"))
+        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5', repoDir.file("maven-metadata.xml.md5"))
         server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1", repoDir.file("${pom.name}.sha1"))
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5", repoDir.file("${pom.name}.md5"))
