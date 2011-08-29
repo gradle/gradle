@@ -94,6 +94,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
     private CommandComplete run(Command command, Connection<Object> connection) {
         try {
+            //TODO SF - this may fail
             connection.dispatch(command);
             while (true) {
                 Object object = connection.receive();

@@ -26,6 +26,7 @@ import org.gradle.util.UUIDGenerator;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.nio.channels.OverlappingFileLockException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -131,8 +132,11 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
 
         public void remove() {
-            openRegistry(file).set(null);
-            //TODO SF - delete should be on the registry and should get rid of the remaining 'lock' files probably
+            try {
+                openRegistry(file).set(null);
+            } catch (OverlappingFileLockException e) {
+//                TODO SF - ignore for now. Once the single registry file refactoring is complete this part will change anyway
+            }
             file.delete();
             file.deleteOnExit();
         }

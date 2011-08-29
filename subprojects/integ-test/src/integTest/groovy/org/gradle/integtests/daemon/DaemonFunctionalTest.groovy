@@ -40,6 +40,7 @@ class DaemonFunctionalTest extends Specification {
     DaemonConnector connector
     DaemonRegistry reg
     List<Connection> cleanMe = []
+    OutputEventListener listener = Mock()
 
     //cannot use setup() because temp folder will get the proper name
     def prepare() {
@@ -51,6 +52,8 @@ class DaemonFunctionalTest extends Specification {
     def cleanup() {
         cleanMe.each { it.stop() }
         printDaemonLog()
+//        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+//      TODO SF not sure if needed, comented out for now
     }
 
     @Timeout(10) //healthy timeout just in case
@@ -178,7 +181,6 @@ class DaemonFunctionalTest extends Specification {
     @Timeout(10)
     def "stops idle daemon"() {
         prepare()
-        OutputEventListener listener = Mock()
 
         when:
         def connection = connect()
@@ -261,13 +263,19 @@ class DaemonFunctionalTest extends Specification {
     }
 
     void printDaemonLog() {
+        print(getDaemonLog())
+    }
+
+    String getDaemonLog() {
+        String out = ''
         int i = 1;
         reg.daemonDir.logs.each {
-            println ""
-            println "*** daemon #$i log:"
-            println it.text
+            out += "\n"
+            out += "*** daemon #$i log:\n"
+            out += "$it.text\n"
             i++
         }
+        return out
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
@@ -278,8 +286,8 @@ class DaemonFunctionalTest extends Specification {
                 assertion()
                 return
             } catch (Throwable t) {
-                Thread.sleep(100);
-                x += 100;
+                Thread.sleep(200);
+                x += 200;
                 if (x > timeout) {
                     throw t;
                 }
