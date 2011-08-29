@@ -18,14 +18,12 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 import org.gradle.api.Action;
 import org.gradle.reporting.DomReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
+import org.gradle.reporting.TabsRenderer;
 import org.w3c.dom.Element;
-
-import java.util.ArrayList;
-import java.util.List;
 
 abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRenderer<T> {
     private T results;
-    private List<TabDefinition> tabs = new ArrayList<TabDefinition>();
+    private final TabsRenderer<T> tabsRenderer = new TabsRenderer<T>();
 
     protected T getResults() {
         return results;
@@ -35,25 +33,17 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
 
     protected abstract void registerTabs();
 
-    protected void addTab(String title, Action<Element> contentRenderer) {
-        tabs.add(new TabDefinition(title, contentRenderer));
+    protected void addTab(String title, final Action<Element> contentRenderer) {
+        tabsRenderer.add(title, new DomReportRenderer<T>() {
+            @Override
+            public void render(T model, Element parent) {
+                contentRenderer.execute(parent);
+            }
+        });
     }
 
     protected void renderTabs(Element element) {
-        Element tabs = appendWithId(element, "div", "tabs");
-        Element ul = append(tabs, "ul");
-        ul.setAttribute("class", "tabLinks");
-        for (int i = 0; i < this.tabs.size(); i++) {
-            TabDefinition tab = this.tabs.get(i);
-            Element li = append(ul, "li");
-            Element a = appendWithText(li, "a", tab.title);
-            String tabId = String.format("tab%s", i);
-            a.setAttribute("href", "#" + tabId);
-            Element tabDiv = appendWithId(tabs, "div", tabId);
-            tabDiv.setAttribute("class", "tab");
-            appendWithText(tabDiv, "h2", tab.title);
-            tab.renderer.execute(tabDiv);
-        }
+        tabsRenderer.render(getModel(), element);
     }
 
     protected void addFailuresTab() {
@@ -85,10 +75,14 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
         return append(append(parent, "td"), "div");
     }
 
-    protected Element appendLink(Element parent, String href, Object textContent) {
-        Element element = appendWithText(parent, "a", textContent);
-        element.setAttribute("href", href);
-        return element;
+    protected <T extends TestResultModel> DomReportRenderer<T> withStatus(final DomReportRenderer<T> renderer) {
+        return new DomReportRenderer<T>() {
+            @Override
+            public void render(T model, Element parent) {
+                parent.setAttribute("class", model.getStatusClass());
+                renderer.render(model, parent);
+            }
+        };
     }
 
     @Override
@@ -153,20 +147,10 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
             @Override
             public void render(T model, Element content) {
                 PageRenderer.this.results = model;
-
+                tabsRenderer.clear();
                 registerTabs();
                 renderTabs(content);
             }
         };
-    }
-
-    private static class TabDefinition {
-        private final String title;
-        private final Action<Element> renderer;
-
-        public TabDefinition(String title, Action<Element> renderer) {
-            this.title = title;
-            this.renderer = renderer;
-        }
     }
 }

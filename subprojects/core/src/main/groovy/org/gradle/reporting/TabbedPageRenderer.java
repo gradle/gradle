@@ -38,36 +38,6 @@ public abstract class TabbedPageRenderer<T> extends DomReportRenderer<T> {
 
     protected abstract DomReportRenderer<T> getContentRenderer();
 
-    protected Element append(Element parent, String name) {
-        Element element = parent.getOwnerDocument().createElement(name);
-        parent.appendChild(element);
-        return element;
-    }
-
-    protected Element appendWithId(Element parent, String name, String id) {
-        Element element = parent.getOwnerDocument().createElement(name);
-        parent.appendChild(element);
-        element.setAttribute("id", id);
-        return element;
-    }
-
-    protected Element appendWithText(Element parent, String name, Object textContent) {
-        Element element = parent.getOwnerDocument().createElement(name);
-        parent.appendChild(element);
-        appendText(element, textContent);
-        return element;
-    }
-
-    protected void appendText(Element element, Object textContent) {
-        element.appendChild(element.getOwnerDocument().createTextNode(textContent.toString()));
-    }
-
-    protected Element appendLink(Element parent, String href, Object textContent) {
-        Element element = appendWithText(parent, "a", textContent);
-        element.setAttribute("href", href);
-        return element;
-    }
-
     @Override
     public void render(T model, Element parent) {
         this.model = model;

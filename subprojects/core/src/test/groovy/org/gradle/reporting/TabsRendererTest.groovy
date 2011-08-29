@@ -16,22 +16,26 @@
 package org.gradle.reporting
 
 import spock.lang.Specification
-import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
-import org.w3c.dom.Text
+import javax.xml.parsers.DocumentBuilderFactory
 
-class TextDomReportRendererTest extends Specification {
-    final TextReportRenderer<String> textRenderer = new TextReportRenderer<String>() {
-        @Override protected void writeTo(String model, Writer out) {
-            out.write("<html><p>$model</p></html>")
+class TabsRendererTest extends Specification {
+    final DomReportRenderer<String> contentRenderer = new DomReportRenderer<String>() {
+        @Override
+        void render(String model, Element parent) {
+            parent.appendChild(parent.ownerDocument.createTextNode(model))
         }
     }
-    final TextDomReportRenderer<String> renderer = new TextDomReportRenderer<String>(textRenderer)
+    final TabsRenderer renderer = new TabsRenderer()
 
-    def "converts text to DOM elements"() {
+    def "renders tabs"() {
         given:
         def doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
         def parent = doc.createElement("parent")
+
+        and:
+        renderer.add('tab 1', contentRenderer)
+        renderer.add('tab 2', contentRenderer)
 
         when:
         renderer.render("test", parent)
@@ -39,9 +43,6 @@ class TextDomReportRendererTest extends Specification {
         then:
         parent.childNodes.length == 1
         parent.childNodes.item(0) instanceof Element
-        parent.childNodes.item(0).nodeName == 'p'
-        parent.childNodes.item(0).childNodes.length == 1
-        parent.childNodes.item(0).childNodes.item(0) instanceof Text
-        parent.childNodes.item(0).childNodes.item(0).nodeValue == "test"
+        parent.childNodes.item(0).nodeName == 'div'
     }
 }
