@@ -21,10 +21,7 @@ import org.gradle.api.GradleException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class, Map<Class, Class>> GENERATED_CLASSES = new HashMap<Class, Map<Class, Class>>();
@@ -117,6 +114,22 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     }
 
                     builder.addSetter(metaBeanProperty);
+
+                    if (Iterable.class.isAssignableFrom(property.getType())) {
+                        continue;
+                    }
+
+                    boolean hasSetMethod = false;
+                    for (MetaMethod metaMethod : metaClass.getMethods()) {
+                        if (metaMethod.getName().equals(property.getName()) && metaMethod.getParameterTypes().length == 1) {
+                            builder.overrideSetMethod(metaBeanProperty, metaMethod);
+                            hasSetMethod = true;
+                        }
+                    }
+
+                    if (!hasSetMethod) {
+                        builder.addSetMethod(metaBeanProperty);
+                    }
                 }
             }
 
@@ -132,6 +145,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         cache.put(type, subclass);
+        cache.put(subclass, subclass);
         return subclass;
     }
 
@@ -153,6 +167,10 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         void addGetter(MetaBeanProperty property) throws Exception;
 
         void addSetter(MetaBeanProperty property) throws Exception;
+
+        void overrideSetMethod(MetaBeanProperty property, MetaMethod metaMethod) throws Exception;
+
+        void addSetMethod(MetaBeanProperty property) throws Exception;
 
         Class<? extends T> generate() throws Exception;
     }

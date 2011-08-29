@@ -336,6 +336,23 @@ assert 'overridden value' == global
     }
 
     @Test
+    public void mixesDslMethodsIntoCoreDomainObjects() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file('build.gradle') << '''
+            class GroovyTask extends DefaultTask {
+                def String prop
+            }
+            tasks.withType(GroovyTask) { conventionMapping.prop = { '[default]' } }
+            task test(type: GroovyTask)
+            assert test.prop == '[default]'
+            test { prop 'value' }
+            assert test.prop == 'value'
+'''
+
+        executer.inDirectory(testDir).withTasks("test").run();
+    }
+    
+    @Test
     public void canInjectMethodsFromParentProject() {
         TestFile testDir = dist.getTestDir();
         testDir.file("settings.gradle").writelns("include 'child'");

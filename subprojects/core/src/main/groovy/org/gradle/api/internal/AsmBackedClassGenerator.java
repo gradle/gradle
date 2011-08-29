@@ -555,10 +555,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             Type paramType = Type.getType(setter.getParameterTypes()[0].getTheClass());
             Type returnType = Type.getType(setter.getReturnType());
-            boolean isVoid = setter.getReturnType().equals(Void.TYPE);
-            String methodDescriptor = Type.getMethodDescriptor(returnType, new Type[]{paramType});
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, setter.getName(), methodDescriptor,
-                    null, new String[0]);
+            String setterDescriptor = Type.getMethodDescriptor(returnType, new Type[]{paramType});
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, setter.getName(), setterDescriptor, null, new String[0]);
             methodVisitor.visitCode();
 
             // GENERATE super.<setter>(v)
@@ -566,8 +564,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
 
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), setter.getName(),
-                    methodDescriptor);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), setter.getName(), setterDescriptor);
 
             // END
 
@@ -577,6 +574,54 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitLdcInsn(true);
             methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), String.format("%sSet",
                     property.getName()), Type.BOOLEAN_TYPE.getDescriptor());
+
+            // END
+
+            methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        public void addSetMethod(MetaBeanProperty property) throws Exception {
+            MetaMethod setter = property.getSetter();
+            Type paramType = Type.getType(setter.getParameterTypes()[0].getTheClass());
+            Type returnType = Type.getType(setter.getReturnType());
+            String setterDescriptor = Type.getMethodDescriptor(returnType, new Type[]{paramType});
+
+            // GENERATE public void <propName>(<type> v) { <setter>(v) }
+            String setMethodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{paramType});
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, property.getName(), setMethodDescriptor, null, new String[0]);
+            methodVisitor.visitCode();
+
+            // GENERATE <setter>(v)
+
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), setterDescriptor);
+
+            // END
+
+            methodVisitor.visitInsn(Opcodes.RETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        public void overrideSetMethod(MetaBeanProperty property, MetaMethod metaMethod) throws Exception {
+            Type paramType = Type.getType(metaMethod.getParameterTypes()[0].getTheClass());
+            Type returnType = Type.getType(metaMethod.getReturnType());
+            String methodDescriptor = Type.getMethodDescriptor(returnType, new Type[]{paramType});
+
+            // GENERATE public <returnType> <propName>(<type> v) { val = super.<propName>(v); <prop>Set = true; return val; }
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, metaMethod.getName(), methodDescriptor, null, new String[0]);
+            methodVisitor.visitCode();
+
+            // GENERATE super.<propName>(v)
+
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), metaMethod.getName(), methodDescriptor);
 
             // END
 

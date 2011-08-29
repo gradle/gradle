@@ -124,6 +124,26 @@ public class GroovySourceGenerationBackedClassGenerator extends AbstractClassGen
             }
         }
 
+        public void addSetMethod(MetaBeanProperty property) throws Exception {
+            src.format("public void %s(%s v) { %s(v); }%n",
+                    property.getName(),
+                    property.getSetter().getParameterTypes()[0].getTheClass().getCanonicalName(),
+                    property.getSetter().getName());
+        }
+
+        public void overrideSetMethod(MetaBeanProperty property, MetaMethod metaMethod) throws Exception {
+            if (metaMethod.getReturnType().equals(Void.TYPE)) {
+                src.format("public void %s(%s v) { super.%s(v); %sSet = true; }%n", metaMethod.getName(),
+                        metaMethod.getParameterTypes()[0].getTheClass().getCanonicalName(), metaMethod.getName(),
+                        property.getName());
+            } else {
+                String returnTypeName = metaMethod.getReturnType().getCanonicalName();
+                src.format("public %s %s(%s v) { %s r = super.%s(v); %sSet = true; return r; }%n", returnTypeName,
+                        metaMethod.getName(), metaMethod.getParameterTypes()[0].getTheClass().getCanonicalName(),
+                        returnTypeName, metaMethod.getName(), property.getName());
+            }
+        }
+
         public Class<? extends T> generate() {
             src.format("}");
 

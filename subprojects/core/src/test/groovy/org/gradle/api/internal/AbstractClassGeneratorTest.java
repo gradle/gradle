@@ -96,6 +96,12 @@ public abstract class AbstractClassGeneratorTest {
     }
 
     @Test
+    public void doesNotDecorateAlreadyDecoratedClass() {
+        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
+        assertSame(generatedClass, generator.generate(generatedClass));
+    }
+
+    @Test
     public void overridesPublicConstructors() throws Exception {
         Class<? extends Bean> generatedClass = generator.generate(BeanWithConstructor.class);
         Bean bean = generatedClass.getConstructor(String.class).newInstance("value");
@@ -360,6 +366,73 @@ public abstract class AbstractClassGeneratorTest {
         assertThat(bean.name, equalTo("default-name"));
     }
 
+    @Test
+    public void mixesInSetValueMethodForProperty() throws Exception {
+        Bean bean = generator.generate(Bean.class).newInstance();
+
+        call("{ it.prop 'value'}", bean);
+        assertThat(bean.getProp(), equalTo("value"));
+    }
+
+    @Test
+    public void doesNotUseConventionValueOnceSetValueMethodHasBeenCalled() throws Exception {
+        Bean bean = generator.generate(Bean.class).newInstance();
+        IConventionAware conventionAware = (IConventionAware) bean;
+        conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
+            public Object call() throws Exception {
+                return "[default]";
+            }
+        });
+
+        assertThat(bean.getProp(), equalTo("[default]"));
+
+        call("{ it.prop 'value'}", bean);
+        assertThat(bean.getProp(), equalTo("value"));
+    }
+
+    @Test
+    public void doesNotMixInSetValueMethodForReadOnlyProperty() throws Exception {
+        BeanWithReadOnlyProperties bean = generator.generate(BeanWithReadOnlyProperties.class).newInstance();
+
+        try {
+            call("{ it.prop 'value'}", bean);
+            fail();
+        } catch (MissingMethodException e) {
+            assertThat(e.getMethod(), equalTo("prop"));
+        }
+    }
+
+    @Test
+    public void doesNotMixInSetValueMethodForMultiValueProperty() throws Exception {
+        CollectionBean bean = generator.generate(CollectionBean.class).newInstance();
+
+        try {
+            call("{ def val = ['value']; it.prop val}", bean);
+            fail();
+        } catch (MissingMethodException e) {
+            assertThat(e.getMethod(), equalTo("prop"));
+        }
+    }
+
+    @Test
+    public void overridesExistingSetValueMethod() throws Exception {
+        BeanWithDslMethods bean = generator.generate(BeanWithDslMethods.class).newInstance();
+        IConventionAware conventionAware = (IConventionAware) bean;
+        conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
+            public Object call() throws Exception {
+                return "[default]";
+            }
+        });
+
+        assertThat(bean.getProp(), equalTo("[default]"));
+
+        assertThat(call("{ it.prop 'value'}", bean), sameInstance((Object) bean));
+        assertThat(bean.getProp(), equalTo("[value]"));
+
+        assertThat(call("{ it.prop 1.2}", bean), sameInstance((Object) bean));
+        assertThat(bean.getProp(), equalTo("<1.2>"));
+    }
+
     public static class Bean {
         private String prop;
 
@@ -373,6 +446,12 @@ public abstract class AbstractClassGeneratorTest {
 
         public String doStuff(String value) {
             return "{" + value + "}";
+        }
+    }
+
+    public static class BeanWithReadOnlyProperties {
+        public String getProp() {
+            return "value";
         }
     }
 
@@ -395,6 +474,28 @@ public abstract class AbstractClassGeneratorTest {
 
         public BeanWithConstructor(String value) {
             setProp(value);
+        }
+    }
+
+    public static class BeanWithDslMethods extends Bean {
+        private String prop;
+
+        public String getProp() {
+            return prop;
+        }
+
+        public void setProp(String prop) {
+            this.prop = prop;
+        }
+
+        public BeanWithDslMethods prop(String property) {
+            this.prop = String.format("[%s]", property);
+            return this;
+        }
+
+        public BeanWithDslMethods prop(Object property) {
+            this.prop = String.format("<%s>", property);
+            return this;
         }
     }
 
