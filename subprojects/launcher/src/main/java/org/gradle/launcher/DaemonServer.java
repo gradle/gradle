@@ -18,15 +18,15 @@ package org.gradle.launcher;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.UUIDGenerator;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
+import org.gradle.util.UUIDGenerator;
 
 public class DaemonServer {
 
@@ -41,13 +41,13 @@ public class DaemonServer {
     /**
      * Starts accepting connections.
      */
-    void accept(int idleDaemonTimeout, final IncomingConnectionHandler handler) {
+    void accept(int idleTimeout, final IncomingConnectionHandler handler) {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
         TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
 
         final DaemonRegistry.Entry registryEntry = daemonRegistry.newEntry();
 
-        final CompletionHandler finished = new CompletionHandler(idleDaemonTimeout, registryEntry);
+        final CompletionHandler finished = new CompletionHandler(idleTimeout, registryEntry);
 
         LOGGER.lifecycle("Awaiting requests.");
 

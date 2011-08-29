@@ -36,15 +36,15 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector {
     public static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     
     private final File userHomeDir;
-    private final int idleDaemonTimeout;
+    private final int idleTimeout;
     
     public ExternalDaemonConnector(File userHomeDir) {
         this(userHomeDir, DEFAULT_IDLE_TIMEOUT);
     }
 
-    ExternalDaemonConnector(File userHomeDir, int idleDaemonTimeout) {
+    ExternalDaemonConnector(File userHomeDir, int idleTimeout) {
         super(new PersistentDaemonRegistry(userHomeDir));
-        this.idleDaemonTimeout = idleDaemonTimeout;
+        this.idleTimeout = idleTimeout;
         this.userHomeDir = userHomeDir;
     }
 
@@ -66,8 +66,7 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector {
         daemonArgs.add(GradleDaemon.class.getName());
         daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.GRADLE_USER_HOME));
         daemonArgs.add(userHomeDir.getAbsolutePath());
-        daemonArgs.add("-DidleDaemonTimeout=" + idleDaemonTimeout);
-        //TODO SF standarize the sys property org.gradle.daemon.idletimeout
+        daemonArgs.add("-Dorg.gradle.daemon.idletimeout=" + idleTimeout);
         DaemonStartAction daemon = new DaemonStartAction();
         daemon.args(daemonArgs);
         daemon.workingDir(userHomeDir);

@@ -194,6 +194,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             if (tmpDir != null) {
                 tmpDir.deleteDir().createDir();
                 forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
+                forkingGradleExecuter.addGradleOpts(String.format("-Dorg.gradle.daemon.idletimeout=%s", 5 * 60 * 1000));
             }
             returnedExecuter = forkingGradleExecuter;
         }

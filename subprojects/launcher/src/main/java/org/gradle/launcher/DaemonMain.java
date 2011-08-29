@@ -86,13 +86,13 @@ public class DaemonMain implements Runnable {
 
     public void run() {
         //TODO SF - very simple/no validation - discuss with Adam potential solutions because I don't like the sys property too much
-        String timeoutProperty = startParameter.getSystemPropertiesArgs().get("idleDaemonTimeout");
-        int idleDaemonTimeout = (timeoutProperty != null)? Integer.parseInt(timeoutProperty) : 3 * 60 * 60 * 1000;
-        LOGGER.info("Idle daemon timeout is configured to: " + idleDaemonTimeout/1000 + " secs");
+        String timeoutProperty = startParameter.getSystemPropertiesArgs().get("org.gradle.daemon.idletimeout");
+        int idleTimeout = (timeoutProperty != null)? Integer.parseInt(timeoutProperty) : 3 * 60 * 60 * 1000;
+        LOGGER.info("Daemon idle timeout is configured to: " + idleTimeout/1000 + " secs");
 
         final StoppableExecutor executor = executorFactory.create("DaemonMain executor");
 
-        server.accept(idleDaemonTimeout, new IncomingConnectionHandler() {
+        server.accept(idleTimeout, new IncomingConnectionHandler() {
             public void handle(final Connection<Object> connection, final CompletionHandler serverControl) {
                 //we're spinning a thread to do work to avoid blocking the connection
                 //This means that the Daemon potentially can have multiple jobs running.
