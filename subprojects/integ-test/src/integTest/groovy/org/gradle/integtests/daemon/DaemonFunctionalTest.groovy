@@ -56,7 +56,7 @@ class DaemonFunctionalTest extends Specification {
 //      TODO SF not sure if needed, comented out for now
     }
 
-    @Timeout(10) //healthy timeout just in case
+    @Timeout(30) //healthy timeout just in case
     def "daemons expire"() {
         when:
         prepare()
@@ -79,7 +79,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(10)
+    @Timeout(30)
     def "knows status of the daemon"() {
         when:
         prepare()
@@ -107,7 +107,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(10)
+    @Timeout(30)
     def "spins new daemon if all are busy"() {
         when:
         prepare()
@@ -141,7 +141,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(10)
+    @Timeout(30)
     def "registry deletes the bin files"() {
         prepare()
 
@@ -160,7 +160,7 @@ class DaemonFunctionalTest extends Specification {
         //daemonRegistry.registryFolder.list().length == 0
     }
 
-    @Timeout(10)
+    @Timeout(30)
     def "cleans up registry"() {
         prepare()
 
@@ -178,7 +178,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(10)
+    @Timeout(30)
     def "stops idle daemon"() {
         prepare()
 
@@ -196,7 +196,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(10)
+    @Timeout(30)
     def "stops busy daemon"() {
         prepare()
         OutputEventListener listener = Mock()
@@ -214,7 +214,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(20)
+    @Timeout(30)
     def "stops all daemons"() {
         prepare()
         OutputEventListener listener = Mock()
@@ -279,7 +279,7 @@ class DaemonFunctionalTest extends Specification {
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    void poll(int timeout = 5000, Closure assertion) {
+    void poll(int timeout = 15000, Closure assertion) {
         int x = 0;
         while(true) {
             try {
