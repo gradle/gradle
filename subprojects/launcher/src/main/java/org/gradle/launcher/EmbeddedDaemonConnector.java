@@ -37,7 +37,7 @@ public class EmbeddedDaemonConnector extends AbstractDaemonConnector<EmbeddedDae
 
     protected void startDaemon() {
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newCommandLineProcessLogging();
-        DaemonServer server = new DaemonServer(getDaemonRegistry());
+        DaemonServerConnector server = new DaemonServerConnector(getDaemonRegistry());
         StartParameter startParameter = new StartParameter();
         startParameter.setGradleUserHomeDir(userHomeDir);
         

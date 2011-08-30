@@ -28,13 +28,13 @@ import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.util.UUIDGenerator;
 
-public class DaemonServer {
+public class DaemonServerConnector {
 
-    private static final Logger LOGGER = Logging.getLogger(DaemonServer.class);
+    private static final Logger LOGGER = Logging.getLogger(DaemonServerConnector.class);
     
     final private DaemonRegistry daemonRegistry;
 
-    public DaemonServer(DaemonRegistry daemonRegistry) {
+    public DaemonServerConnector(DaemonRegistry daemonRegistry) {
         this.daemonRegistry = daemonRegistry;
     }
 
