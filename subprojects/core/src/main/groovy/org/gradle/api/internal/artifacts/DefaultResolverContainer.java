@@ -24,12 +24,14 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
+import org.gradle.api.artifacts.dsl.ArtifactRepository;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
@@ -166,7 +168,8 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<Depend
         if (userDescription instanceof DependencyResolver) {
             resolver = (DependencyResolver) userDescription;
         } else {
-            resolver = resolverFactory.createResolver(userDescription);
+            ArtifactRepository repository = resolverFactory.createRepository(userDescription);
+            resolver = toResolver(DependencyResolver.class, repository);
         }
         ConfigureUtil.configure(configureClosure, resolver);
         if (!GUtil.isTrue(resolver.getName())) {
@@ -241,5 +244,12 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<Depend
 
     public void setMavenPomDir(File mavenPomDir) {
         this.mavenPomDir = mavenPomDir;
+    }
+
+    protected <T extends DependencyResolver> T toResolver(Class<T> type, ArtifactRepository repository) {
+        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
+        ((ArtifactRepositoryInternal) repository).createResolvers(resolvers);
+        assert resolvers.size() == 1;
+        return type.cast(resolvers.get(0));
     }
 }

@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
+import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.artifacts.dsl.ArtifactRepository
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.maven.MavenFactory
+import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.Factory
-import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager
 import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
@@ -29,8 +31,6 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.apache.ivy.plugins.resolver.*
-import org.gradle.api.internal.DirectInstantiator
 
 /**
  * @author Hans Dockter
@@ -38,11 +38,6 @@ import org.gradle.api.internal.DirectInstantiator
 @RunWith(JMock.class)
 class DefaultResolverFactoryTest {
     static final URI RESOLVER_URL = new URI('http://a.b.c/')
-    static final IBiblioResolver TEST_RESOLVER = new IBiblioResolver()
-    static {
-        TEST_RESOLVER.name = 'ivyResolver'
-    }
-
     static final String TEST_REPO_NAME = 'reponame'
     static final String TEST_REPO = 'http://www.gradle.org'
     static final URI TEST_REPO_URL = new URI('http://www.gradle.org/')
@@ -67,53 +62,41 @@ class DefaultResolverFactoryTest {
     }
 
     @Test public void testCreateResolverWithStringDescription() {
-        checkMavenResolver(factory.createResolver('uri'), 'uri', RESOLVER_URL)
+        def repository = factory.createRepository('uri')
+
+        assert repository instanceof DefaultMavenArtifactRepository
+        assert repository.url == RESOLVER_URL
+        assert repository.name == null
+        assert repository.artifactUrls.isEmpty()
     }
 
     @Test public void testCreateResolverWithMapDescription() {
-        checkMavenResolver(factory.createResolver([name: 'name', url: 'uri']), 'name', RESOLVER_URL)
+        def repository = factory.createRepository([name: 'name', url: 'uri'])
+
+        assert repository instanceof DefaultMavenArtifactRepository
+        assert repository.url == RESOLVER_URL
+        assert repository.name == 'name'
+        assert repository.artifactUrls.isEmpty()
     }
 
     @Test public void testCreateResolverWithResolverDescription() {
-        DependencyResolver resolver = factory.createResolver(TEST_RESOLVER)
-        assert resolver.is(TEST_RESOLVER)
+        DependencyResolver resolver = context.mock(DependencyResolver)
+        
+        ArtifactRepository repository = factory.createRepository(resolver)
+
+        assert repository instanceof FixedResolverArtifactRepository
+        assert repository.resolver == resolver
+    }
+
+    @Test public void testCreateResolverWithArtifactRepositoryDescription() {
+        ArtifactRepository repo = context.mock(ArtifactRepository)
+
+        assert factory.createRepository(repo) == repo
     }
 
     @Test(expected = InvalidUserDataException) public void testCreateResolverForUnknownDescription() {
         def someIllegalDescription = new NullPointerException()
-        factory.createResolver(someIllegalDescription)
-    }
-
-    private void checkMavenResolver(IBiblioResolver resolver, String name, URI url) {
-        assert url.toString() == resolver.root
-        assert name == resolver.name
-        assert resolver.allownomd
-    }
-
-    @Test
-    public void testCreateMavenRepoWithAdditionalJarUrls() {
-        DualResolver dualResolver = factory.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO, 'uri2')
-        assert dualResolver.allownomd
-        checkIBiblio(dualResolver.ivyResolver, "_poms")
-        URLResolver urlResolver = dualResolver.artifactResolver
-        assert urlResolver.m2compatible
-        assert urlResolver.artifactPatterns.contains("$TEST_REPO_URL/$ResolverContainer.MAVEN_REPO_PATTERN" as String)
-        assert urlResolver.artifactPatterns.contains("$TEST_REPO2_URL/$ResolverContainer.MAVEN_REPO_PATTERN" as String)
-        assert "${TEST_REPO_NAME}_jars" == urlResolver.name
-    }
-
-    @Test
-    public void testCreateMavenRepoWithNoAdditionalJarUrls() {
-        checkIBiblio(factory.createMavenRepoResolver(TEST_REPO_NAME, TEST_REPO_URL), "")
-    }
-
-    private void checkIBiblio(IBiblioResolver iBiblioResolver, String expectedNameSuffix) {
-        assert iBiblioResolver.usepoms
-        assert iBiblioResolver.m2compatible
-        assert iBiblioResolver.allownomd
-        assert TEST_REPO_URL.toString() == iBiblioResolver.root
-        assert ResolverContainer.MAVEN_REPO_PATTERN == iBiblioResolver.pattern
-        assert "${TEST_REPO_NAME}$expectedNameSuffix" == iBiblioResolver.name
+        factory.createRepository(someIllegalDescription)
     }
 
     @Test public void testCreateFlatDirResolver() {
@@ -127,14 +110,26 @@ class DefaultResolverFactoryTest {
         context.checking {
             one(localMavenCacheLocator).getLocalMavenCache()
             will(returnValue(repoDir))
-                allowing(fileResolver).resolveUri(repoDir)
-                will(returnValue(repoDir.toURI()))
+            allowing(fileResolver).resolveUri(repoDir)
+            will(returnValue(repoDir.toURI()))
         }
 
-        def repo = factory.createMavenLocalResolver('name')
-        assert repo instanceof IBiblioResolver
-        assert repo.root == repoDir.getAbsolutePath() + '/'
-        assert repo.repositoryCacheManager instanceof LocalFileRepositoryCacheManager
+        def repo = factory.createMavenLocalRepository()
+        assert repo instanceof DefaultMavenArtifactRepository
+        assert repo.url == repoDir.toURI()
+    }
+
+    @Test public void testCreateMavenCentralRepo() {
+        def centralUrl = new URI(RepositoryHandler.MAVEN_CENTRAL_URL)
+
+        context.checking {
+            allowing(fileResolver).resolveUri(RepositoryHandler.MAVEN_CENTRAL_URL)
+            will(returnValue(centralUrl))
+        }
+
+        def repo = factory.createMavenCentralRepository()
+        assert repo instanceof DefaultMavenArtifactRepository
+        assert repo.url == centralUrl
     }
 
     @Test public void createIvyRepository() {

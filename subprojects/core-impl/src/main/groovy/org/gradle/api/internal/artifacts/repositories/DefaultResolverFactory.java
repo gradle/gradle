@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ResolverContainer;
-import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository;
-import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
-import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
+import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.Instantiator;
@@ -35,10 +31,8 @@ import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPom
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.util.ConfigureUtil;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,40 +53,45 @@ public class DefaultResolverFactory implements ResolverFactory {
         this.instantiator = instantiator;
     }
 
-    public DependencyResolver createResolver(Object userDescription) {
-        DependencyResolver result;
+    public ArtifactRepository createRepository(Object userDescription) {
+        if (userDescription instanceof ArtifactRepository) {
+            return (ArtifactRepository) userDescription;
+        }
+
         if (userDescription instanceof String) {
-            result = createMavenRepoResolver((String) userDescription, userDescription);
+            MavenArtifactRepository repository = createMavenRepository();
+            repository.setUrl(userDescription);
+            return repository;
         } else if (userDescription instanceof Map) {
             Map<String, ?> userDescriptionMap = (Map<String, ?>) userDescription;
-            result = createMavenRepoResolver(userDescriptionMap.get(ResolverContainer.RESOLVER_NAME).toString(),
-                    userDescriptionMap.get(ResolverContainer.RESOLVER_URL));
-        } else if (userDescription instanceof DependencyResolver) {
+            MavenArtifactRepository repository = createMavenRepository();
+            ConfigureUtil.configureByMap(userDescriptionMap, repository);
+            return repository;
+        }
+        
+        DependencyResolver result;
+        if (userDescription instanceof DependencyResolver) {
             result = (DependencyResolver) userDescription;
         } else {
-            throw new InvalidUserDataException("Illegal Resolver type");
+            throw new InvalidUserDataException(String.format("Cannot create a DependencyResolver instance from %s", userDescription));
         }
-        return result;
+        return new FixedResolverArtifactRepository(result);
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver);
     }
 
-    public AbstractResolver createMavenLocalResolver(String name) {
-        File cacheDir = localMavenCacheLocator.getLocalMavenCache();
-        return createMavenRepoResolver(name, cacheDir);
+    public MavenArtifactRepository createMavenLocalRepository() {
+        MavenArtifactRepository mavenRepository = createMavenRepository();
+        mavenRepository.setUrl(localMavenCacheLocator.getLocalMavenCache());
+        return mavenRepository;
     }
 
-    public AbstractResolver createMavenRepoResolver(String name, Object root, Object... jarRepoUrls) {
-        DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(fileResolver);
-        repository.setName(name);
-        repository.setUrl(root);
-        repository.artifactUrls(jarRepoUrls);
-        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
-        repository.createResolvers(resolvers);
-        assert resolvers.size() == 1;
-        return (AbstractResolver) resolvers.get(0);
+    public MavenArtifactRepository createMavenCentralRepository() {
+        MavenArtifactRepository mavenRepository = createMavenRepository();
+        mavenRepository.setUrl(RepositoryHandler.MAVEN_CENTRAL_URL);
+        return mavenRepository;
     }
 
     // todo use MavenPluginConvention pom factory after modularization is done

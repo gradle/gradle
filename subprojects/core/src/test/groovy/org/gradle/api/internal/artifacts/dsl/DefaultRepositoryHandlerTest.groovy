@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.dsl
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.ResolverSettings
 import org.gradle.api.Action
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository
@@ -113,7 +112,17 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
 
     @Test
     public void testMavenCentralWithNoArgs() {
-        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL)
+        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+
+        context.checking {
+            one(resolverFactoryMock).createMavenCentralRepository()
+            will(returnValue(repository))
+            allowing(repository).getName()
+            will(returnValue(null))
+            one(repository).setName(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+        }
+
         assert repositoryHandler.mavenCentral().is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -121,7 +130,19 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     @Test
     public void testMavenCentralWithSingleUrl() {
         String testUrl2 = 'http://www.gradle2.org'
-        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2)
+
+        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+
+        context.checking {
+            one(resolverFactoryMock).createMavenCentralRepository()
+            will(returnValue(repository))
+            allowing(repository).getName()
+            will(returnValue(null))
+            one(repository).setName(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
+            one(repository).setArtifactUrls([testUrl2])
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+        }
+
         assert repositoryHandler.mavenCentral(urls: testUrl2).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -131,24 +152,38 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         String testUrl1 = 'http://www.gradle1.org'
         String testUrl2 = 'http://www.gradle2.org'
         String name = 'customName'
-        prepareCreateMavenRepo(name, ResolverContainer.MAVEN_CENTRAL_URL, testUrl1, testUrl2)
+
+        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+
+        context.checking {
+            one(resolverFactoryMock).createMavenCentralRepository()
+            will(returnValue(repository))
+            one(repository).setName('customName')
+            one(repository).getName()
+            will(returnValue('customName'))
+            one(repository).setArtifactUrls([testUrl1, testUrl2])
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+        }
+
         assert repositoryHandler.mavenCentral(name: name, urls: [testUrl1, testUrl2]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test
     public void testMavenLocalWithNoArgs() {
-        context.checking {
-            one(resolverFactoryMock).createMavenLocalResolver(ResolverContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME)
-            will(returnValue(expectedResolver))
-        }
-        assert repositoryHandler.mavenLocal().is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
-    }
+        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
 
-    @Test(expected = InvalidUserDataException)
-    public void testMavenRepoWithMissingUrls() {
-        repositoryHandler.mavenRepo([name: 'someName'])
+        context.checking {
+            one(resolverFactoryMock).createMavenLocalRepository()
+            will(returnValue(repository))
+            allowing(repository).getName()
+            will(returnValue(null))
+            one(repository).setName(ResolverContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME)
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+        }
+
+        assert repositoryHandler.mavenLocal() == expectedResolver
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
     @Test
@@ -156,7 +191,20 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         String testUrl2 = 'http://www.gradle2.org'
         String repoRoot = 'http://www.reporoot.org'
         String repoName = 'mavenRepoName'
-        prepareCreateMavenRepo(repoName, repoRoot, testUrl2)
+
+        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+
+        context.checking {
+            one(resolverFactoryMock).createMavenRepository()
+            will(returnValue(repository))
+            one(repository).setName(repoName)
+            allowing(repository).getName()
+            will(returnValue(repoName))
+            one(repository).setUrl(repoRoot)
+            one(repository).setArtifactUrls([testUrl2])
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+        }
+
         assert repositoryHandler.mavenRepo([name: repoName, urls: [repoRoot, testUrl2]]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -165,7 +213,20 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     public void testMavenRepoWithNameAndRootUrlOnly() {
         String repoRoot = 'http://www.reporoot.org'
         String repoName = 'mavenRepoName'
-        prepareCreateMavenRepo(repoName, repoRoot)
+
+        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+
+        context.checking {
+            one(resolverFactoryMock).createMavenRepository()
+            will(returnValue(repository))
+            one(repository).setName(repoName)
+            allowing(repository).getName()
+            will(returnValue(repoName))
+            one(repository).setUrl(repoRoot)
+            one(repository).setArtifactUrls([])
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+        }
+
         assert repositoryHandler.mavenRepo([name: repoName, urls: repoRoot]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
@@ -174,16 +235,22 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     public void testMavenRepoWithoutName() {
         String testUrl2 = 'http://www.gradle2.org'
         String repoRoot = 'http://www.reporoot.org'
-        prepareCreateMavenRepo(repoRoot, repoRoot, testUrl2)
+
+        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+
+        context.checking {
+            one(resolverFactoryMock).createMavenRepository()
+            will(returnValue(repository))
+            allowing(repository).getName()
+            will(returnValue(null))
+            one(repository).setName('maven')
+            one(repository).setUrl(repoRoot)
+            one(repository).setArtifactUrls([testUrl2])
+            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+        }
+
         assert repositoryHandler.mavenRepo([urls: [repoRoot, testUrl2]]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
-    }
-
-    private prepareCreateMavenRepo(String name, String mavenUrl, String[] jarUrls) {
-        context.checking {
-            one(resolverFactoryMock).createMavenRepoResolver(name, mavenUrl, jarUrls);
-            will(returnValue(expectedResolver))
-        }
     }
 
     @Test
@@ -429,13 +496,10 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
 }
 
 interface TestIvyArtifactRepository extends IvyArtifactRepository, ArtifactRepositoryInternal {
-
 }
 
 interface TestMavenArtifactRepository extends MavenArtifactRepository, ArtifactRepositoryInternal {
-
 }
 
 interface TestFlatDirectoryArtifactRepository extends FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
-
 }

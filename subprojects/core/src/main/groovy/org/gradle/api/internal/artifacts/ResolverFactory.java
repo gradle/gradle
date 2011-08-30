@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.plugins.resolver.AbstractResolver;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.ArtifactRepository;
 import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
@@ -31,13 +30,13 @@ import org.gradle.api.internal.file.FileResolver;
  * @author Hans Dockter
  */
 public interface ResolverFactory {
-    DependencyResolver createResolver(Object userDescription);
+    ArtifactRepository createRepository(Object userDescription);
 
     FlatDirectoryArtifactRepository createFlatDirRepository();
 
-    AbstractResolver createMavenRepoResolver(String name, Object root, Object... jarRepoUrls);
+    MavenArtifactRepository createMavenLocalRepository();
 
-    AbstractResolver createMavenLocalResolver(String name);
+    MavenArtifactRepository createMavenCentralRepository();
 
     GroovyMavenDeployer createMavenDeployer(String name, MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
                                            Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);

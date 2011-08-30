@@ -23,9 +23,12 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.UnknownRepositoryException
+import org.gradle.api.artifacts.dsl.ArtifactRepository
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
@@ -34,7 +37,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.Instantiator
+import org.hamcrest.Matchers
 
 /**
  * @author Hans Dockter
@@ -79,10 +82,16 @@ class DefaultResolverContainerTest {
         expectedResolver2.name = expectedName2
         expectedResolver3.name = expectedName3
         resolverFactoryMock = context.mock(ResolverFactory)
+        TestArtifactRepository repo1 = context.mock(TestArtifactRepository)
+        TestArtifactRepository repo2 = context.mock(TestArtifactRepository)
+        TestArtifactRepository repo3 = context.mock(TestArtifactRepository)
         context.checking {
-            allowing(resolverFactoryMock).createResolver(expectedUserDescription); will(returnValue(expectedResolver))
-            allowing(resolverFactoryMock).createResolver(expectedUserDescription2); will(returnValue(expectedResolver2))
-            allowing(resolverFactoryMock).createResolver(expectedUserDescription3); will(returnValue(expectedResolver3))
+            allowing(resolverFactoryMock).createRepository(expectedUserDescription); will(returnValue(repo1))
+            allowing(resolverFactoryMock).createRepository(expectedUserDescription2); will(returnValue(repo2))
+            allowing(resolverFactoryMock).createRepository(expectedUserDescription3); will(returnValue(repo3))
+            allowing(repo1).createResolvers(withParam(Matchers.notNullValue())); will { arg -> arg << expectedResolver }
+            allowing(repo2).createResolvers(withParam(Matchers.notNullValue())); will { arg -> arg << expectedResolver2 }
+            allowing(repo3).createResolvers(withParam(Matchers.notNullValue())); will { arg -> arg << expectedResolver3 }
         }
         resolverContainer = createResolverContainer()
     }
@@ -244,9 +253,10 @@ class DefaultResolverContainerTest {
                     withParam(same(conf2ScopeMappingContainer)),
                     withParam(same(fileResolver)));
             will(returnValue(expectedResolver))
-            allowing(resolverFactoryMock).createResolver(expectedResolver);
-            will(returnValue(expectedResolver))
         }
         expectedResolver
     }
+}
+
+interface TestArtifactRepository extends ArtifactRepository, ArtifactRepositoryInternal {
 }

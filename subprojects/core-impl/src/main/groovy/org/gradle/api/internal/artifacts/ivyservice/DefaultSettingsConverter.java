@@ -26,11 +26,8 @@ import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 
 import java.util.ArrayList;
@@ -42,8 +39,6 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultSettingsConverter implements SettingsConverter {
-    private static Logger logger = Logging.getLogger(DefaultSettingsConverter.class);
-
     private final ProgressLoggerFactory progressLoggerFactory;
     private final Factory<IvySettings> settingsFactory;
     private final DependencyResolver internalRepository;
@@ -79,20 +74,16 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     public IvySettings convertForPublish(List<DependencyResolver> publishResolvers) {
-        Clock clock = new Clock();
         if (publishSettings == null) {
             publishSettings = settingsFactory.create();
         } else {
             publishSettings.getResolvers().clear();
         }
         initializeResolvers(publishSettings, publishResolvers);
-        logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
         return publishSettings;
     }
 
     public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers) {
-        Clock clock = new Clock();
-
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
@@ -103,7 +94,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
         replaceResolvers(dependencyResolvers, userResolverChain);
         initializeResolvers(resolveSettings, dependencyResolvers);
         resolveSettings.setDefaultResolver(outerChain.getName());
-        logger.debug("Timing: Ivy convert for resolve took {}", clock.getTime());
         return resolveSettings;
     }
 
