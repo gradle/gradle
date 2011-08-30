@@ -21,7 +21,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
-import org.gradle.launcher.bootstrap.GradleDaemon;
 
 import java.io.File;
 import java.util.ArrayList;

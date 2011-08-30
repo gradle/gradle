@@ -28,7 +28,7 @@ public class BootstrapMainStarter {
         File gradleJar = findLauncherJar(gradleHome);
         URLClassLoader contextClassLoader = new URLClassLoader(new URL[]{gradleJar.toURI().toURL()});
         Thread.currentThread().setContextClassLoader(contextClassLoader);
-        Class<?> mainClass = contextClassLoader.loadClass("org.gradle.launcher.bootstrap.GradleMain");
+        Class<?> mainClass = contextClassLoader.loadClass("org.gradle.launcher.GradleMain");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, new Object[]{args});
     }
