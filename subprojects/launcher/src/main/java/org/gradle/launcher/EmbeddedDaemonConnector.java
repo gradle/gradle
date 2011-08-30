@@ -23,7 +23,7 @@ import java.io.File;
 /**
  * A daemon connector that starts daemons by launching new daemons in the same jvm.
  */
-public class EmbeddedDaemonConnector extends AbstractDaemonConnector {
+public class EmbeddedDaemonConnector extends AbstractDaemonConnector<EmbeddedDaemonRegistry> {
     private final File userHomeDir;
     
     public EmbeddedDaemonConnector(File userHomeDir) {
@@ -49,8 +49,4 @@ public class EmbeddedDaemonConnector extends AbstractDaemonConnector {
         daemonThread.start();
     }
     
-    public EmbeddedDaemonRegistry getDaemonRegistry() {
-        return (EmbeddedDaemonRegistry)super.getDaemonRegistry();
-    }
-
 }

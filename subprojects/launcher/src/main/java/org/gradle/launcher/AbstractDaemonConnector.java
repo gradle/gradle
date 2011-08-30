@@ -35,13 +35,13 @@ import java.util.Date;
  * Subclassing instead of delegation with regard to creating new daemons seems more appropriate
  * as the way that new daemons are launched is likely to be coupled to the DaemonRegistry implementation.
  */
-abstract public class AbstractDaemonConnector implements DaemonConnector {
+abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implements DaemonConnector {
 
     private static final Logger LOGGER = Logging.getLogger(AbstractDaemonConnector.class);
 
-    private final DaemonRegistry daemonRegistry;
+    private final T daemonRegistry;
 
-    protected AbstractDaemonConnector(DaemonRegistry daemonRegistry) {
+    protected AbstractDaemonConnector(T daemonRegistry) {
         this.daemonRegistry = daemonRegistry;
     }
 
@@ -84,7 +84,7 @@ abstract public class AbstractDaemonConnector implements DaemonConnector {
         throw new GradleException("Timeout waiting to connect to Gradle daemon.");
     }
 
-    public DaemonRegistry getDaemonRegistry() {
+    public T getDaemonRegistry() {
         return daemonRegistry;
     }
 

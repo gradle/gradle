@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * A daemon connector that starts daemons by launching new processes.
  */
-public class ExternalDaemonConnector extends AbstractDaemonConnector {
+public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentDaemonRegistry> {
 
     private static final Logger LOGGER = Logging.getLogger(ExternalDaemonConnector.class);
     public static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
@@ -76,10 +76,6 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector {
         daemon.args(daemonArgs);
         daemon.workingDir(userHomeDir);
         daemon.start();
-    }
-    
-    public PersistentDaemonRegistry getDaemonRegistry() {
-        return (PersistentDaemonRegistry)super.getDaemonRegistry();
     }
 
 }
