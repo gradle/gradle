@@ -30,10 +30,12 @@ import spock.lang.Specification
 import spock.lang.Timeout
 import org.gradle.launcher.ExternalDaemonConnector
 import org.gradle.launcher.PersistentDaemonRegistry
+import spock.lang.Ignore
 
 /**
  * @author: Szczepan Faber, created at: 8/18/11
  */
+@Ignore
 class DaemonFunctionalTest extends Specification {
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
