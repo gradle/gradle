@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import spock.lang.Specification
-import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
@@ -35,7 +35,7 @@ class IvySettingsFactoryTest extends Specification {
 
         then:
         settings.defaultCache == cacheDir
-        settings.defaultCacheArtifactPattern == ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN
+        settings.defaultCacheArtifactPattern == ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN
         1 * cacheRepository.store("artifacts") >> cacheBuilder
         1 * cacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> cacheBuilder
         1 * cacheBuilder.open() >> cache

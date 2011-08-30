@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.dsl
 
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.Action
-import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository
 import org.gradle.api.artifacts.dsl.MavenArtifactRepository
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.DirectInstantiator
-import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
+import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
@@ -38,12 +38,12 @@ import static org.junit.Assert.assertSame
  * @author Hans Dockter
  */
 @RunWith(JMock)
-class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
+class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTest {
     static final String TEST_REPO_URL = 'http://www.gradle.org'
 
     private DefaultRepositoryHandler repositoryHandler
 
-    public ResolverContainer createResolverContainer() {
+    public ArtifactRepositoryContainer createResolverContainer() {
         repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock, fileResolver, new DirectInstantiator());
         return repositoryHandler;
     }
@@ -114,7 +114,7 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             will(returnValue(repository))
             allowing(repository).getName()
             will(returnValue(null))
-            one(repository).setName(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
+            one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
@@ -133,7 +133,7 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             will(returnValue(repository))
             allowing(repository).getName()
             will(returnValue(null))
-            one(repository).setName(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
+            one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
             one(repository).setArtifactUrls([testUrl2])
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
@@ -173,7 +173,7 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             will(returnValue(repository))
             allowing(repository).getName()
             will(returnValue(null))
-            one(repository).setName(ResolverContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME)
+            one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME)
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 

@@ -34,7 +34,7 @@ import org.apache.ivy.plugins.repository.file.FileResource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
@@ -60,7 +60,7 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
     public DefaultInternalRepository(ProjectFinder projectFinder, ModuleDescriptorConverter moduleDescriptorConverter) {
         this.projectFinder = projectFinder;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
-        setName(ResolverContainer.INTERNAL_REPOSITORY_NAME);
+        setName(ArtifactRepositoryContainer.INTERNAL_REPOSITORY_NAME);
         setRepositoryCacheManager(new NoOpRepositoryCacheManager(getName()));
     }
 

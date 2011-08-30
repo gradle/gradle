@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.artifacts.DefaultResolverContainer;
+import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.api.internal.artifacts.ResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultRepositoryHandler extends DefaultResolverContainer implements RepositoryHandler {
+public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler {
     public DefaultRepositoryHandler(ResolverFactory resolverFactory, FileResolver fileResolver, Instantiator instantiator) {
         super(resolverFactory, fileResolver, instantiator);
     }

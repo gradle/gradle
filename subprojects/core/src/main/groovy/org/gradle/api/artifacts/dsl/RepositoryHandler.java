@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -31,7 +31,7 @@ import java.util.Map;
  *
  * @author Hans Dockter
  */
-public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
+public interface RepositoryHandler extends ArtifactRepositoryContainer, ResolverProvider {
     final String DEFAULT_MAVEN_DEPLOYER_NAME = "mavenDeployer";
     final String DEFAULT_MAVEN_INSTALLER_NAME = "mavenInstaller";
 
@@ -88,7 +88,7 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * always {@link org.gradle.api.artifacts.ResolverContainer#MAVEN_CENTRAL_URL}. The behavior of this resolver
+     * always {@link org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The behavior of this resolver
      * is otherwise the same as the ones added by {@link #mavenRepo(java.util.Map)}.
      *
      * The following parameter are accepted as keys for the map:
@@ -98,7 +98,7 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
      *     <td><em>(optional)</em> The name of the repository. The default is
-     * {@value org.gradle.api.artifacts.ResolverContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME} is used as the name. A name
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME} is used as the name. A name
      * must be unique amongst a repository group.
      * </td></tr>
      * <tr><td><code>urls</code></td>
@@ -125,8 +125,8 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * {@value org.gradle.api.artifacts.ResolverContainer#MAVEN_CENTRAL_URL}. The name of the repository is
-     * {@value org.gradle.api.artifacts.ResolverContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
      * <p>Examples:
      * <pre>
@@ -144,7 +144,7 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
 
     /**
      * Adds a repository which looks in the local Maven cache for dependencies. The name of the repository is
-     * {@value org.gradle.api.artifacts.ResolverContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
      *
      * <p>Examples:
      * <pre>

@@ -22,8 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Namer;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.dsl.ArtifactRepository;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
@@ -45,8 +45,8 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<ArtifactRepository>
-        implements ResolverContainer, MavenPomMetaInfoProvider {
+public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectSet<ArtifactRepository>
+        implements ArtifactRepositoryContainer, MavenPomMetaInfoProvider {
     private final ResolverFactory resolverFactory;
 
     private final LinkedList<ArtifactRepository> repositories = new LinkedList<ArtifactRepository>();
@@ -65,7 +65,7 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<Artifa
         }
     };
 
-    public DefaultResolverContainer(ResolverFactory resolverFactory, FileResolver fileResolver, Instantiator instantiator) {
+    public DefaultArtifactRepositoryContainer(ResolverFactory resolverFactory, FileResolver fileResolver, Instantiator instantiator) {
         super(ArtifactRepository.class, instantiator, new RepositoryNamer());
         this.resolverFactory = resolverFactory;
         this.fileResolver = fileResolver;
@@ -82,7 +82,7 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectSet<Artifa
         return "repository";
     }
 
-    public DefaultResolverContainer configure(Closure closure) {
+    public DefaultArtifactRepositoryContainer configure(Closure closure) {
         return ConfigureUtil.configure(closure, this, false);
     }
     

@@ -21,7 +21,7 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.dsl.ArtifactRepository
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
@@ -42,10 +42,10 @@ import static org.junit.Assert.*
  * @author Hans Dockter
  */
 @RunWith(JMock)
-class DefaultResolverContainerTest {
+class DefaultArtifactRepositoryContainerTest {
     static final String TEST_REPO_NAME = 'reponame'
 
-    DefaultResolverContainer resolverContainer
+    DefaultArtifactRepositoryContainer resolverContainer
 
     def expectedUserDescription
     def expectedUserDescription2
@@ -66,8 +66,8 @@ class DefaultResolverContainerTest {
     ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
     Conf2ScopeMappingContainer conf2ScopeMappingContainer = context.mock(Conf2ScopeMappingContainer.class)
 
-    ResolverContainer createResolverContainer() {
-        return new DefaultResolverContainer(resolverFactoryMock, fileResolver, context.mock(Instantiator.class))
+    ArtifactRepositoryContainer createResolverContainer() {
+        return new DefaultArtifactRepositoryContainer(resolverFactoryMock, fileResolver, context.mock(Instantiator.class))
     }
 
     @Before public void setUp() {

@@ -21,7 +21,7 @@ import org.apache.ivy.plugins.resolver.DualResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.apache.ivy.plugins.resolver.URLResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
@@ -97,7 +97,7 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
 
         resolver.setUsepoms(true);
         resolver.setName(name);
-        resolver.setPattern(ResolverContainer.MAVEN_REPO_PATTERN);
+        resolver.setPattern(ArtifactRepositoryContainer.MAVEN_REPO_PATTERN);
         resolver.setM2compatible(true);
         resolver.setUseMavenMetadata(true);
         resolver.setChecksums("");
@@ -115,9 +115,9 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
         artifactResolver.setName(name + "_jars");
         artifactResolver.setM2compatible(true);
         artifactResolver.setChecksums("");
-        artifactResolver.addArtifactPattern(rootUri.toString() + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
+        artifactResolver.addArtifactPattern(rootUri.toString() + '/' + ArtifactRepositoryContainer.MAVEN_REPO_PATTERN);
         for (URI repoUrl : artifactUrls) {
-            artifactResolver.addArtifactPattern(repoUrl.toString() + '/' + ResolverContainer.MAVEN_REPO_PATTERN);
+            artifactResolver.addArtifactPattern(repoUrl.toString() + '/' + ArtifactRepositoryContainer.MAVEN_REPO_PATTERN);
         }
 
         DualResolver dualResolver = new DualResolver();

@@ -52,7 +52,7 @@ import java.util.List;
  *
  * @author Hans Dockter
  */
-public interface ResolverContainer extends NamedDomainObjectSet<ArtifactRepository>, Configurable<ResolverContainer> {
+public interface ArtifactRepositoryContainer extends NamedDomainObjectSet<ArtifactRepository>, Configurable<ArtifactRepositoryContainer> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
