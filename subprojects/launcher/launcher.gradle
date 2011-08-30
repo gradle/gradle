@@ -18,7 +18,7 @@ dependencies {
 
 useTestFixtures()
 
-jar.manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
+jar.manifest.mainAttributes('Main-Class': "org.gradle.launcher.bootstrap.GradleMain")
 jar.doFirst {
     jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name}")
 }
@@ -36,7 +36,7 @@ task startScripts {
         generator.applicationName = 'Gradle'
         generator.optsEnvironmentVar = 'GRADLE_OPTS'
         generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
-        generator.mainClassName = 'org.gradle.launcher.GradleMain'
+        generator.mainClassName = 'org.gradle.launcher.bootstrap.GradleMain'
         generator.scriptRelPath = 'bin/gradle'
         generator.classpath = ["lib/${jar.archiveName}" as String]
         generator.appNameSystemProperty = 'org.gradle.appname'

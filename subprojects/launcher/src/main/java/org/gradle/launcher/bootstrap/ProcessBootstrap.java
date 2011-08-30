@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.bootstrap;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -25,6 +25,13 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Set;
 
+/**
+ * Launches a “real” main method (reflectively) with an isolated classloader containing the full Gradle runtime.
+ * <p>
+ * This is necessary as the system classloader when starting gradle (incl daemons) contains only the launcher
+ * jar (which has a classpath entry in its manifest that also pulls in just the core jar) so we need to establish
+ * the full runtime, and then actually start things.
+ */
 public class ProcessBootstrap {
     void run(String mainClassName, String[] args) {
         try {

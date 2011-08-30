@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher;
+package org.gradle.launcher.bootstrap;
 
 /**
  * @author Steven Devijver, Hans Dockter
