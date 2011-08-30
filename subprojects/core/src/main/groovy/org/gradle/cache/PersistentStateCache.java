@@ -25,4 +25,11 @@ public interface PersistentStateCache<T> {
     T get();
 
     void set(T newValue);
+
+    void update(UpdateAction<T> updateAction);
+
+    static interface UpdateAction<T> {
+        //you should return the new value
+        T update(T oldValue);
+    }
 }

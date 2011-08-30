@@ -45,9 +45,7 @@ public class DaemonServer {
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
         TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
 
-        final DaemonRegistry.Entry registryEntry = daemonRegistry.newEntry();
-
-        final CompletionHandler finished = new CompletionHandler(idleTimeout, registryEntry);
+        final CompletionHandler finished = new CompletionHandler(idleTimeout);
 
         LOGGER.lifecycle("Awaiting requests.");
 
@@ -56,15 +54,25 @@ public class DaemonServer {
                 handler.handle(connectionConnectEvent.getConnection(), finished);
             }
         };
-        Address address = incomingConnector.accept(connectEvent, false);
+        final Address address = incomingConnector.accept(connectEvent, false);
 
-        registryEntry.store(address);
+        finished.setActivityListener(new CompletionHandler.ActivityListener() {
+            public void onStart() {
+                daemonRegistry.markBusy(address);
+            }
+
+            public void onComplete() {
+                daemonRegistry.markIdle(address);
+            }
+        });
+
+        daemonRegistry.store(address);
 
         boolean stopped = finished.awaitStop();
         if (!stopped) {
             LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
         }
-        registryEntry.remove();
+        daemonRegistry.remove(address);
         new CompositeStoppable(incomingConnector, executorFactory).stop();
     }
 

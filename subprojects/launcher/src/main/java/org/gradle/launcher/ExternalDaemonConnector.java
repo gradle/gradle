@@ -81,5 +81,4 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector {
     public PersistentDaemonRegistry getDaemonRegistry() {
         return (PersistentDaemonRegistry)super.getDaemonRegistry();
     }
-
 }

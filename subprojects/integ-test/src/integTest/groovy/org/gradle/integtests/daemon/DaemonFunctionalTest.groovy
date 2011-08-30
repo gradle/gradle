@@ -142,25 +142,6 @@ class DaemonFunctionalTest extends Specification {
     }
 
     @Timeout(10)
-    def "registry deletes the bin files"() {
-        prepare()
-
-        def daemonRegistry = new PersistentDaemonRegistry(temp.dir)
-        def reg = daemonRegistry.newEntry();
-
-
-        reg.store(new AddressStub());
-
-        when:
-        reg.remove();
-
-        then:
-        daemonRegistry.all.size() == 0
-        //TODO SF - not yet implemented
-        //daemonRegistry.registryFolder.list().length == 0
-    }
-
-    @Timeout(10)
     def "cleans up registry"() {
         prepare()
 

@@ -169,7 +169,9 @@ public class DaemonMain implements Runnable {
         try {
             //TODO SF - receiving can be first and the logic gets simpler
             serverControl.onStartActivity();
-            return (Command) connection.receive();
+            return (Command) connection.receive(); //client only sends
+            //receiving is blocking
+            //can return null (when the other side disconnects)
         } catch (BusyException busy) {
             Command command = (Command) connection.receive();
             if (command instanceof Stop) {
