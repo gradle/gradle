@@ -226,6 +226,6 @@ class CommandLineActionFactoryTest extends Specification {
         action instanceof WithLoggingAction
         action.action instanceof ExceptionReportingAction
         action.action.action instanceof ActionAdapter
-        action.action.action.action instanceof DaemonMain
+        action.action.action.action instanceof Daemon
     }
 }

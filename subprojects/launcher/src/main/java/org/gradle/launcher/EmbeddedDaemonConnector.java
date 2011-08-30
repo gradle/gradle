@@ -41,7 +41,7 @@ public class EmbeddedDaemonConnector extends AbstractDaemonConnector<EmbeddedDae
         StartParameter startParameter = new StartParameter();
         startParameter.setGradleUserHomeDir(userHomeDir);
         
-        DaemonMain daemon = new DaemonMain(loggingServices, server, startParameter);
+        Daemon daemon = new Daemon(loggingServices, server, startParameter);
         
         // TODO - might be worth putting all daemon threads for the registry under one thread group
         Thread daemonThread = new Thread(daemon, "Gradle Daemon");
