@@ -25,19 +25,18 @@ import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.dsl.ArtifactRepository
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
-import org.gradle.api.artifacts.maven.GroovyMavenDeployer
-import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
+import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
+import org.hamcrest.Matchers
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.hamcrest.Matchers
 
 /**
  * @author Hans Dockter
@@ -63,6 +62,9 @@ class DefaultResolverContainerTest {
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     FileResolver fileResolver = context.mock(FileResolver.class)
+    File testPomDir = new File("pomdir");
+    ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
+    Conf2ScopeMappingContainer conf2ScopeMappingContainer = context.mock(Conf2ScopeMappingContainer.class)
 
     ResolverContainer createResolverContainer() {
         return new DefaultResolverContainer(resolverFactoryMock, fileResolver, context.mock(Instantiator.class))
@@ -82,9 +84,9 @@ class DefaultResolverContainerTest {
         expectedResolver2.name = expectedName2
         expectedResolver3.name = expectedName3
         resolverFactoryMock = context.mock(ResolverFactory)
-        TestArtifactRepository repo1 = context.mock(TestArtifactRepository)
-        TestArtifactRepository repo2 = context.mock(TestArtifactRepository)
-        TestArtifactRepository repo3 = context.mock(TestArtifactRepository)
+        ArtifactRepository repo1 = context.mock(TestArtifactRepository)
+        ArtifactRepository repo2 = context.mock(TestArtifactRepository)
+        ArtifactRepository repo3 = context.mock(TestArtifactRepository)
         context.checking {
             allowing(resolverFactoryMock).createRepository(expectedUserDescription); will(returnValue(repo1))
             allowing(resolverFactoryMock).createRepository(expectedUserDescription2); will(returnValue(repo2))
@@ -94,11 +96,14 @@ class DefaultResolverContainerTest {
             allowing(repo3).createResolvers(withParam(Matchers.notNullValue())); will { arg -> arg << expectedResolver3 }
         }
         resolverContainer = createResolverContainer()
+        resolverContainer.setMavenPomDir(testPomDir)
+        resolverContainer.setConfigurationContainer(configurationContainer)
+        resolverContainer.setMavenScopeMappings(conf2ScopeMappingContainer)
     }
 
     @Test public void testAddResolver() {
         assert resolverContainer.addLast(expectedUserDescription).is(expectedResolver)
-        assert resolverContainer.findByName(expectedName).is(expectedResolver)
+        assert resolverContainer.findByName(expectedName) != null
         resolverContainer.addLast(expectedUserDescription2)
         assertEquals([expectedResolver, expectedResolver2], resolverContainer.resolvers)
     }
@@ -111,7 +116,7 @@ class DefaultResolverContainerTest {
             resolverContainer.addLast(expectedUserDescription2)
             fail()
         } catch (InvalidUserDataException e) {
-            assertThat(e.message, equalTo("Cannot add a resolver with name 'resolver' as a resolver with that name already exists."))
+            assertThat(e.message, equalTo("Cannot add a repository with name 'resolver' as a repository with that name already exists."))
         }
     }
 
@@ -119,7 +124,7 @@ class DefaultResolverContainerTest {
         def expectedConfigureValue = 'testvalue'
         Closure configureClosure = {transactional = expectedConfigureValue}
         assertThat(resolverContainer.addLast(expectedUserDescription, configureClosure), sameInstance(expectedResolver))
-        assertThat(resolverContainer.findByName(expectedName), sameInstance(expectedResolver))
+        assertThat(resolverContainer.findByName(expectedName), notNullValue())
         assert expectedResolver.transactional == expectedConfigureValue
     }
 
@@ -136,27 +141,11 @@ class DefaultResolverContainerTest {
         assertEquals([expectedResolver, expectedResolver3, expectedResolver2], resolverContainer.resolvers)
     }
 
-    @Test(expected = InvalidUserDataException) public void testAddWithNullUserDescription() {
-        resolverContainer.addLast(null)
-    }
-
-    @Test(expected = InvalidUserDataException) public void testAddFirstWithNullUserDescription() {
-        resolverContainer.addFirst(null)
-    }
-
-    @Test(expected = InvalidUserDataException) public void testAddBeforeWithNullUserDescription() {
-        resolverContainer.addBefore(null, expectedName)
-    }
-
-    @Test(expected = InvalidUserDataException) public void testAddBeforeWithUnknownResolver() {
+    @Test(expected = UnknownRepositoryException) public void testAddBeforeWithUnknownResolver() {
         resolverContainer.addBefore(expectedUserDescription2, 'unknownName')
     }
 
-    @Test(expected = InvalidUserDataException) public void testAddAfterWithNullUserDescription() {
-        resolverContainer.addAfter(null, expectedName)
-    }
-
-    @Test(expected = InvalidUserDataException) public void testAddAfterWithUnknownResolver() {
+    @Test(expected = UnknownRepositoryException) public void testAddAfterWithUnknownResolver() {
         resolverContainer.addBefore(expectedUserDescription2, 'unknownName')
     }
 
@@ -166,10 +155,11 @@ class DefaultResolverContainerTest {
         assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolvers)
     }
 
-    @Test(expected = InvalidUserDataException)
+    @Test
     public void testAddWithUnnamedResolver() {
         expectedResolver.name = null
-        resolverContainer.addLast(expectedUserDescription).is(expectedResolver)
+        assert resolverContainer.addLast(expectedUserDescription).is(expectedResolver)
+        assert expectedResolver.name == 'repository'
     }
 
     @Test
@@ -183,78 +173,42 @@ class DefaultResolverContainerTest {
     }
 
     @Test
-    public void createMavenUploader() {
-        assertSame(prepareMavenDeployerTests(), resolverContainer.createMavenDeployer(DefaultResolverContainerTest.TEST_REPO_NAME));
-    }
-
-    @Test
-    public void createMavenInstaller() {
-        assertSame(prepareMavenInstallerTests(), resolverContainer.createMavenInstaller(DefaultResolverContainerTest.TEST_REPO_NAME));
-    }
-
-    @Test
     public void notificationsAreFiredWhenRepositoryIsAdded() {
         Action<DependencyResolver> action = context.mock(Action.class)
+        ArtifactRepository repository = new FixedResolverArtifactRepository(expectedResolver)
 
         context.checking {
-            one(action).execute(expectedResolver)
+            one(action).execute(repository)
         }
 
         resolverContainer.all(action)
-        resolverContainer.add(expectedResolver)
+        resolverContainer.add(repository)
     }
 
     @Test
     public void notificationsAreFiredWhenRepositoryIsAddedToTheHead() {
         Action<DependencyResolver> action = context.mock(Action.class)
+        ArtifactRepository repository = new FixedResolverArtifactRepository(expectedResolver)
 
         context.checking {
-            one(action).execute(expectedResolver)
+            one(action).execute(withParam(notNullValue()))
         }
 
         resolverContainer.all(action)
-        resolverContainer.addFirst(expectedResolver)
+        resolverContainer.addFirst(repository)
     }
 
     @Test
     public void notificationsAreFiredWhenRepositoryIsAddedToTheTail() {
         Action<DependencyResolver> action = context.mock(Action.class)
+        ArtifactRepository repository = new FixedResolverArtifactRepository(expectedResolver)
 
         context.checking {
-            one(action).execute(expectedResolver)
+            one(action).execute(withParam(notNullValue()))
         }
 
         resolverContainer.all(action)
-        resolverContainer.addLast(expectedResolver)
-    }
-
-    protected GroovyMavenDeployer prepareMavenDeployerTests() {
-        prepareMavenResolverTests(GroovyMavenDeployer, "createMavenDeployer")
-    }
-
-    protected DependencyResolver prepareMavenInstallerTests() {
-        prepareMavenResolverTests(MavenResolver, "createMavenInstaller")
-    }
-
-    protected DependencyResolver prepareMavenResolverTests(Class resolverType, String createMethod) {
-        File testPomDir = new File("pomdir");
-        ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
-        Conf2ScopeMappingContainer conf2ScopeMappingContainer = context.mock(Conf2ScopeMappingContainer.class)
-        resolverContainer.setMavenPomDir(testPomDir)
-        resolverContainer.setConfigurationContainer(configurationContainer)
-        resolverContainer.setMavenScopeMappings(conf2ScopeMappingContainer)
-        DependencyResolver expectedResolver = context.mock(resolverType)
-        context.checking {
-            allowing(expectedResolver).getName(); will(returnValue(DefaultResolverContainerTest.TEST_REPO_NAME))
-            allowing(resolverFactoryMock)."$createMethod"(
-                    withParam(any(String)),
-                    withParam(same(resolverContainer)),
-                    withParam(same(configurationContainer)),
-                    withParam(same(conf2ScopeMappingContainer)),
-                    withParam(same(fileResolver)));
-            will(returnValue(expectedResolver))
-        }
-        expectedResolver
+        resolverContainer.addLast(repository)
     }
 }
 

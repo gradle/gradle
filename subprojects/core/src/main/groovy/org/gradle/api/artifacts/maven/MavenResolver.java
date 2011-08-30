@@ -16,15 +16,15 @@
 package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.dsl.ArtifactRepository;
 
 /**
- * A {@link org.apache.ivy.plugins.resolver.DependencyResolver} which resolves dependencies from Maven repositories.
+ * An {@link ArtifactRepository} which can be used to publish artifacts to Maven repositories.
  *
  * @author Hans Dockter
  */
-public interface MavenResolver extends DependencyResolver, PomFilterContainer {
+public interface MavenResolver extends ArtifactRepository, PomFilterContainer {
     /**
      * Returns a maven settings object. This can be used for example to figure out where the local repository is
      * located. This property is filled after publishing. Before this property is null.

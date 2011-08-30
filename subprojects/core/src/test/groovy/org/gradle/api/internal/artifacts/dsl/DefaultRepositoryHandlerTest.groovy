@@ -17,19 +17,16 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.apache.ivy.plugins.resolver.DependencyResolver
-import org.apache.ivy.plugins.resolver.ResolverSettings
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository
 import org.gradle.api.artifacts.dsl.MavenArtifactRepository
-import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
-import org.hamcrest.Matchers
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -58,11 +55,9 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
             one(repository).setName('libs')
             allowing(repository).getName(); will(returnValue('libs'))
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
         assert repositoryHandler.flatDir { name = 'libs' }.is(repository)
-        assertEquals([expectedResolver], repositoryHandler.getResolvers())
     }
     
     @Test public void testFlatDirWithNameAndDirs() {
@@ -159,7 +154,7 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             one(resolverFactoryMock).createMavenCentralRepository()
             will(returnValue(repository))
             one(repository).setName('customName')
-            one(repository).getName()
+            allowing(repository).getName()
             will(returnValue('customName'))
             one(repository).setArtifactUrls([testUrl1, testUrl2])
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
@@ -243,7 +238,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             will(returnValue(repository))
             allowing(repository).getName()
             will(returnValue(null))
-            one(repository).setName('maven')
             one(repository).setUrl(repoRoot)
             one(repository).setArtifactUrls([testUrl2])
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
@@ -255,106 +249,179 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
 
     @Test
     public void mavenDeployerWithoutName() {
-        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
-        String expectedName = RepositoryHandler.DEFAULT_MAVEN_DEPLOYER_NAME + "-" +
-                System.identityHashCode(expectedResolver)
-        prepareName(expectedResolver, expectedName)
-        assertSame(expectedResolver, repositoryHandler.mavenDeployer());
+        GroovyMavenDeployer repository = context.mock(GroovyMavenDeployer)
+
+        context.checking {
+            allowing(resolverFactoryMock).createMavenDeployer(
+                    resolverContainer,
+                    configurationContainer,
+                    conf2ScopeMappingContainer,
+                    fileResolver)
+            will(returnValue(repository))
+            allowing(repository).getName(); will(returnValue(null))
+            one(repository).setName("mavenDeployer")
+        }
+
+        assertSame(repository, repositoryHandler.mavenDeployer());
     }
 
     @Test
     public void mavenDeployerWithName() {
-        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
+        GroovyMavenDeployer repository = context.mock(GroovyMavenDeployer)
         String expectedName = "someName"
-        prepareName(expectedResolver, expectedName)
-        assertSame(expectedResolver, repositoryHandler.mavenDeployer(name: expectedName));
+
+        context.checking {
+            allowing(resolverFactoryMock).createMavenDeployer(
+                    resolverContainer,
+                    configurationContainer,
+                    conf2ScopeMappingContainer,
+                    fileResolver)
+            will(returnValue(repository))
+            one(repository).setName(expectedName)
+            allowing(repository).getName()
+            will(returnValue(expectedName))
+        }
+        
+        assertSame(repository, repositoryHandler.mavenDeployer(name: expectedName));
     }
 
-//    @Test
-//    public void mavenDeployerWithNameAndClosure() {
-//        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
-//        String expectedName = RepositoryHandler.DEFAULT_MAVEN_DEPLOYER_NAME + "-" +
-//                System.identityHashCode(expectedResolver)
-//        prepareName(expectedResolver, expectedName)
-//        RemoteRepository repositoryDummy = new RemoteRepository()
-//        context.checking {
-//            one(expectedResolver).setRepository(repositoryDummy)
-//        }
-//        assertSame(expectedResolver, repositoryHandler.mavenDeployer() {
-//            setRepository(repositoryDummy)
-//        });
-//    }
-//
-//    @Test
-//    public void mavenDeployerWithoutArgsAndWithClosure() {
-//        GroovyMavenDeployer expectedResolver = prepareMavenDeployerTests()
-//        String expectedName = "someName"
-//        prepareName(expectedResolver, expectedName)
-//        RemoteRepository repositoryDummy = new RemoteRepository()
-//        context.checking {
-//            one(expectedResolver).setRepository(repositoryDummy)
-//        }
-//        assertSame(expectedResolver, repositoryHandler.mavenDeployer(name: expectedName) {
-//            setRepository(repositoryDummy)
-//        });
-//    }
+    @Test
+    public void mavenDeployerWithNameAndClosure() {
+        GroovyMavenDeployer repository = context.mock(GroovyMavenDeployer)
+        String expectedName = "someName"
+
+        context.checking {
+            allowing(resolverFactoryMock).createMavenDeployer(
+                    resolverContainer,
+                    configurationContainer,
+                    conf2ScopeMappingContainer,
+                    fileResolver)
+            will(returnValue(repository))
+            one(repository).setName(expectedName)
+            one(repository).setName('other')
+            allowing(repository).getName()
+            will(returnValue('other'))
+        }
+
+        assertSame(repository, repositoryHandler.mavenDeployer(name: expectedName) {
+            name = 'other'
+        })
+    }
+
+    @Test
+    public void mavenDeployerWithoutArgsAndWithClosure() {
+        GroovyMavenDeployer repository = context.mock(GroovyMavenDeployer)
+
+        context.checking {
+            allowing(resolverFactoryMock).createMavenDeployer(
+                    resolverContainer,
+                    configurationContainer,
+                    conf2ScopeMappingContainer,
+                    fileResolver)
+            will(returnValue(repository))
+            one(repository).setName('other')
+            allowing(repository).getName()
+            will(returnValue('other'))
+        }
+        
+        assertSame(repository, repositoryHandler.mavenDeployer {
+            name = 'other'
+        });
+    }
 
     @Test
     public void mavenInstallerWithoutName() {
-        MavenResolver expectedResolver = prepareMavenInstallerTests()
-        String expectedName = RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME + "-" +
-                System.identityHashCode(expectedResolver)
-        prepareName(expectedResolver, expectedName)
-        assertSame(expectedResolver, repositoryHandler.mavenInstaller());
+        MavenResolver repository = context.mock(MavenResolver)
+
+        context.checking {
+            allowing(resolverFactoryMock).createMavenInstaller(
+                    resolverContainer,
+                    configurationContainer,
+                    conf2ScopeMappingContainer,
+                    fileResolver)
+            will(returnValue(repository))
+            one(repository).getName()
+            will(returnValue(null))
+            one(repository).setName('mavenInstaller')
+            allowing(repository).getName()
+            will(returnValue('mavenInstaller'))
+        }
+
+        assertSame(repository, repositoryHandler.mavenInstaller());
     }
 
     @Test
     public void mavenInstallerWithName() {
-        MavenResolver expectedResolver = prepareMavenInstallerTests()
+        MavenResolver repository = context.mock(MavenResolver)
         String expectedName = "someName"
-        prepareName(expectedResolver, expectedName)
-        assertSame(expectedResolver, repositoryHandler.mavenInstaller(name: expectedName));
+
+        context.checking {
+            allowing(resolverFactoryMock).createMavenInstaller(
+                    resolverContainer,
+                    configurationContainer,
+                    conf2ScopeMappingContainer,
+                    fileResolver)
+            will(returnValue(repository))
+            one(repository).setName(expectedName)
+            allowing(repository).getName()
+            will(returnValue(expectedName))
+        }
+
+        assertSame(repository, repositoryHandler.mavenInstaller(name: expectedName));
     }
 
     @Test
     public void mavenInstallerWithNameAndClosure() {
-        MavenResolver expectedResolver = prepareMavenInstallerTests()
-        String expectedName = RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME + "-" +
-                System.identityHashCode(expectedResolver)
-        prepareName(expectedResolver, expectedName)
-        ResolverSettings resolverSettings = [:] as ResolverSettings
+        MavenResolver repository = context.mock(MavenResolver)
+        String expectedName = "someName"
+
         context.checking {
-            one(expectedResolver).setSettings(resolverSettings)
+            allowing(resolverFactoryMock).createMavenInstaller(
+                    resolverContainer,
+                    configurationContainer,
+                    conf2ScopeMappingContainer,
+                    fileResolver)
+            will(returnValue(repository))
+            one(repository).setName(expectedName)
+            one(repository).setName('other')
+            allowing(repository).getName()
+            will(returnValue('other'))
         }
-        assertSame(expectedResolver, repositoryHandler.mavenInstaller() {
-            setSettings(resolverSettings)
+
+        assertSame(repository, repositoryHandler.mavenInstaller(name: expectedName) {
+            name = 'other'
         });
     }
 
     @Test
     public void mavenInstallerWithoutArgsAndWithClosure() {
-        MavenResolver expectedResolver = prepareMavenInstallerTests()
+        MavenResolver repository = context.mock(MavenResolver)
         String expectedName = "someName"
-        prepareName(expectedResolver, expectedName)
-        ResolverSettings resolverSettings = [:] as ResolverSettings
+
         context.checking {
-            one(expectedResolver).setSettings(resolverSettings)
+            allowing(resolverFactoryMock).createMavenInstaller(
+                    resolverContainer,
+                    configurationContainer,
+                    conf2ScopeMappingContainer,
+                    fileResolver)
+            will(returnValue(repository))
+            one(repository).setName(expectedName)
+            allowing(repository).getName()
+            will(returnValue(expectedName))
         }
-        assertSame(expectedResolver, repositoryHandler.mavenInstaller(name: expectedName) {
-            setSettings(resolverSettings)
+
+        assertSame(repository, repositoryHandler.mavenInstaller() {
+            name = expectedName
         });
     }
 
     @Test
     public void createIvyRepositoryUsingClosure() {
-        IvyArtifactRepository repository = context.mock(TestIvyArtifactRepository.class)
-        DependencyResolver resolver = resolver()
+        IvyArtifactRepository repository = context.mock(IvyArtifactRepository.class)
 
         context.checking {
             one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository))
-            one(repository).createResolvers(withParam(Matchers.notNullValue()))
-            will { arg -> arg << resolver }
             allowing(repository).getName()
             will(returnValue("name"))
         }
@@ -366,33 +433,28 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
 
         assert arg == repository
         assert result == repository
-        assert repositoryHandler.resolvers.contains(resolver)
     }
 
     @Test
     public void createIvyRepositoryUsingAction() {
-        IvyArtifactRepository repository = context.mock(TestIvyArtifactRepository.class)
+        IvyArtifactRepository repository = context.mock(IvyArtifactRepository.class)
         Action<IvyArtifactRepository> action = context.mock(Action.class)
-        DependencyResolver resolver = resolver()
 
         context.checking {
             one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository))
             one(action).execute(repository)
-            one(repository).createResolvers(withParam(Matchers.notNullValue()))
-            will { arg -> arg << resolver }
             allowing(repository).getName()
             will(returnValue("name"))
         }
 
         def result = repositoryHandler.ivy(action)
         assert result == repository
-        assert repositoryHandler.resolvers.contains(resolver)
     }
 
     @Test
     public void providesADefaultNameForIvyRepository() {
-        IvyArtifactRepository repository1 = context.mock(TestIvyArtifactRepository.class)
+        IvyArtifactRepository repository1 = context.mock(IvyArtifactRepository.class)
 
         context.checking {
             one(resolverFactoryMock).createIvyRepository()
@@ -400,26 +462,24 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             one(repository1).getName()
             will(returnValue(null))
             one(repository1).setName("ivy")
-            ignoring(repository1)
             allowing(repository1).getName()
             will(returnValue("ivy"))
         }
 
         repositoryHandler.ivy { }
 
-        IvyArtifactRepository repository2 = context.mock(TestIvyArtifactRepository.class)
+        IvyArtifactRepository repository2 = context.mock(IvyArtifactRepository.class)
 
         context.checking {
             one(resolverFactoryMock).createIvyRepository()
             will(returnValue(repository2))
             allowing(repository2).getName()
             will(returnValue("ivy2"))
-            ignoring(repository2)
         }
 
         repositoryHandler.ivy { }
 
-        IvyArtifactRepository repository3 = context.mock(TestIvyArtifactRepository.class)
+        IvyArtifactRepository repository3 = context.mock(IvyArtifactRepository.class)
 
         context.checking {
             one(resolverFactoryMock).createIvyRepository()
@@ -427,7 +487,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             one(repository3).getName()
             will(returnValue(null))
             one(repository3).setName("ivy3")
-            ignoring(repository3)
             allowing(repository3).getName()
             will(returnValue("ivy3"))
         }
@@ -438,13 +497,10 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     @Test
     public void createMavenRepositoryUsingClosure() {
         MavenArtifactRepository repository = context.mock(TestMavenArtifactRepository.class)
-        DependencyResolver resolver = resolver()
 
         context.checking {
             one(resolverFactoryMock).createMavenRepository()
             will(returnValue(repository))
-            one(repository).createResolvers(withParam(Matchers.notNullValue()))
-            will { arg -> arg << resolver }
             allowing(repository).getName()
             will(returnValue("name"))
         }
@@ -456,28 +512,23 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
 
         assert arg == repository
         assert result == repository
-        assert repositoryHandler.resolvers.contains(resolver)
     }
 
     @Test
     public void createMavenRepositoryUsingAction() {
         MavenArtifactRepository repository = context.mock(TestMavenArtifactRepository.class)
         Action<MavenArtifactRepository> action = context.mock(Action.class)
-        DependencyResolver resolver = resolver()
 
         context.checking {
             one(resolverFactoryMock).createMavenRepository()
             will(returnValue(repository))
             one(action).execute(repository)
-            one(repository).createResolvers(withParam(Matchers.notNullValue()))
-            will { arg -> arg << resolver }
             allowing(repository).getName()
             will(returnValue("name"))
         }
 
         def result = repositoryHandler.maven(action)
         assert result == repository
-        assert repositoryHandler.resolvers.contains(resolver)
     }
 
     private DependencyResolver resolver(String name = 'name') {
@@ -493,9 +544,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
             one(mavenResolver).setName(expectedName)
         }
     }
-}
-
-interface TestIvyArtifactRepository extends IvyArtifactRepository, ArtifactRepositoryInternal {
 }
 
 interface TestMavenArtifactRepository extends MavenArtifactRepository, ArtifactRepositoryInternal {

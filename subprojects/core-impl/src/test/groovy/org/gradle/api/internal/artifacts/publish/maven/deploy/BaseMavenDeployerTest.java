@@ -53,7 +53,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     private Configuration configurationStub = context.mock(Configuration.class);
 
     protected BaseMavenDeployer createMavenDeployer() {
-        return new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
+        return new BaseMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
     }
 
     protected AbstractMavenResolver getMavenResolver() {
@@ -99,7 +99,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
     @Test
     public void init() {
-        mavenDeployer = new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
+        mavenDeployer = new BaseMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
         assertTrue(mavenDeployer.isUniqueVersion());
     }
 

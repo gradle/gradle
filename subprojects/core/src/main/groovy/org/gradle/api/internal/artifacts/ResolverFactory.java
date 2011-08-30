@@ -38,10 +38,10 @@ public interface ResolverFactory {
 
     MavenArtifactRepository createMavenCentralRepository();
 
-    GroovyMavenDeployer createMavenDeployer(String name, MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
-                                           Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);
+    GroovyMavenDeployer createMavenDeployer(MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
+                                            Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);
 
-    MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
+    MavenResolver createMavenInstaller(MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
                                        Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);
 
     IvyArtifactRepository createIvyRepository();

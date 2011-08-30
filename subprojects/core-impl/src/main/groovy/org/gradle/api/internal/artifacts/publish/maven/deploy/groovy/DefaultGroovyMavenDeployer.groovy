@@ -31,8 +31,8 @@ class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMave
     
     private RepositoryBuilder repositoryBuilder = new RepositoryBuilder()
 
-    DefaultGroovyMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
-        super(name, pomFilterContainer, artifactPomContainer, loggingManager)
+    DefaultGroovyMavenDeployer(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
+        super(pomFilterContainer, artifactPomContainer, loggingManager)
     }
     
     def methodMissing(String name, args) {

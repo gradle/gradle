@@ -49,7 +49,7 @@ class MavenRemoteDependencyResolutionIntegrationTest {
 repositories {
     mavenRepo(urls: "http://localhost:${server.port}/repo") {
         if (project.hasProperty('noTimeout')) {
-            setSnapshotTimeout(0)
+            setSnapshotTimeout(0L)
         }
     }
 }

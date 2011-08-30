@@ -74,10 +74,10 @@ task lookup << {
 //START SNIPPET configure-resolver
 repositories {
     localRepository {
-        addArtifactPattern(file('lib').absolutePath + '/[name]/[revision]/[name]-[revision].[ext]')
+        dirs 'lib'
     }
 }
 repositories.localRepository {
-    addArtifactPattern(file('lib').absolutePath + '/[name]/[revision]/[name]-[revision].[ext]')
+    dirs 'lib'
 }
 //END SNIPPET configure-resolver

@@ -4,5 +4,5 @@ repositories {
 
 task showRepos << {
     println "All repos:"
-    println repositories
+    println repositories.collect { it.name }
 }

@@ -45,10 +45,9 @@ artifacts {
 
 // Configure the release and snapshot repositories
 
-def deployer = null
 uploadArchives {
     repositories {
-        deployer = mavenDeployer {
+        mavenDeployer {
             repository(url: uri("pomRepo"))
             snapshotRepository(url: uri("snapshotRepo"))
         }
@@ -58,6 +57,7 @@ uploadArchives {
 // Customize the contents of the pom
 
 installer = install.repositories.mavenInstaller
+deployer = uploadArchives.repositories.mavenDeployer
 
 if (hasProperty('customVersion')) {
     [installer, deployer]*.pom*.version = customVersion

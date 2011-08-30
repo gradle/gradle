@@ -50,8 +50,8 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     private boolean uniqueVersion = true;
 
-    public BaseMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
-        super(name, pomFilterContainer, artifactPomContainer, loggingManager);
+    public BaseMavenDeployer(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
+        super(pomFilterContainer, artifactPomContainer, loggingManager);
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {

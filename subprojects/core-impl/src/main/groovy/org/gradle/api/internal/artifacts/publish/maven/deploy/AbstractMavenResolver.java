@@ -30,6 +30,7 @@ import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
 import org.apache.ivy.plugins.namespace.Namespace;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.maven.artifact.ant.AttachedArtifact;
@@ -44,6 +45,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.EmptyMavenSettingsSupplier;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.mvnsettings.MavenSettingsSupplier;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
@@ -52,13 +54,14 @@ import org.gradle.util.AntUtil;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractMavenResolver implements MavenResolver {
+public abstract class AbstractMavenResolver implements MavenResolver, DependencyResolver, ArtifactRepositoryInternal {
 
     private String name;
     
@@ -74,8 +77,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     protected MavenSettingsSupplier mavenSettingsSupplier = new EmptyMavenSettingsSupplier();
 
-    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
-        this.name = name;
+    public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;
@@ -90,7 +92,11 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     public void setName(String name) {
         this.name = name;
     }
-    
+
+    public void createResolvers(Collection<DependencyResolver> resolvers) {
+        resolvers.add(this);
+    }
+
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
         throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
     }

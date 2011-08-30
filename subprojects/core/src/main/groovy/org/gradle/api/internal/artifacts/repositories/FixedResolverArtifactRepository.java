@@ -22,18 +22,17 @@ import java.util.Collection;
 
 public class FixedResolverArtifactRepository implements ArtifactRepository, ArtifactRepositoryInternal {
     private final DependencyResolver resolver;
-    private String name;
 
     public FixedResolverArtifactRepository(DependencyResolver resolver) {
         this.resolver = resolver;
     }
 
     public String getName() {
-        return name;
+        return resolver.getName();
     }
 
     public void setName(String name) {
-        this.name = name;
+        resolver.setName(name);
     }
 
     public void createResolvers(Collection<DependencyResolver> resolvers) {

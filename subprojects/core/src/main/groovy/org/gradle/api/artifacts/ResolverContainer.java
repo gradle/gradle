@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.artifacts.dsl.ArtifactRepository;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.util.Configurable;
 
@@ -26,33 +27,32 @@ import java.io.File;
 import java.util.List;
 
 /**
- * <p>A {@code ResolverContainer} is responsible for managing a set of {@link org.apache.ivy.plugins.resolver.DependencyResolver}
- * instances. Resolvers are arranged in a sequence.</p>
+ * <p>A {@code ResolverContainer} is responsible for managing a set of {@link ArtifactRepository} instances. Repositories are arranged in a sequence.</p>
  *
  * <p>You can obtain a {@code ResolverContainer} instance by calling {@link org.gradle.api.Project#getRepositories()} or
  * using the {@code repositories} property in your build script.</p>
  *
- * <p>The resolvers in a container are accessable as read-only properties of the container, using the name of the
+ * <p>The resolvers in a container are accessible as read-only properties of the container, using the name of the
  * resolver as the property name. For example:</p>
  *
  * <pre>
- * resolvers.addLastt('myResolver')
- * resolvers.myResolver.addArtifactPattern(somePattern)
+ * resolvers.addLast(name: 'myResolver')
+ * resolvers.myResolver.url = 'some-url'
  * </pre>
  *
  * <p>A dynamic method is added for each resolver which takes a configuration closure. This is equivalent to calling
  * {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
  *
  * <pre>
- * resolvers.addLast('myResolver')
+ * resolvers.addLast(name: 'myResolver')
  * resolvers.myResolver {
- *     addArtifactPattern(somePattern)
+ *     url 'some-url'
  * }
  * </pre>
  *
  * @author Hans Dockter
  */
-public interface ResolverContainer extends NamedDomainObjectSet<DependencyResolver>, Configurable<ResolverContainer> {
+public interface ResolverContainer extends NamedDomainObjectSet<ArtifactRepository>, Configurable<ResolverContainer> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
@@ -63,6 +63,13 @@ public interface ResolverContainer extends NamedDomainObjectSet<DependencyResolv
     String INTERNAL_REPOSITORY_NAME = "internal-repository";
     String RESOLVER_NAME = "name";
     String RESOLVER_URL = "url";
+
+    /**
+     * Adds a repository to this container.
+     *
+     * @param repository The repository to add.
+     */
+    boolean add(ArtifactRepository repository);
 
     /**
      * Delegates to {@link #addLast(Object)}.
@@ -113,7 +120,7 @@ public interface ResolverContainer extends NamedDomainObjectSet<DependencyResolv
      * @param nextResolver The existing resolver to add the new resolver before.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @throws InvalidUserDataException when the given next resolver does not exist in this container.
+     * @throws UnknownRepositoryException when the given next resolver does not exist in this container.
      */
     DependencyResolver addBefore(Object userDescription, String nextResolver) throws InvalidUserDataException;
 
@@ -126,7 +133,7 @@ public interface ResolverContainer extends NamedDomainObjectSet<DependencyResolv
      * @param configureClosure The closure to use to configure the resolver.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @throws InvalidUserDataException when the given next resolver does not exist in this container.
+     * @throws UnknownRepositoryException when the given next resolver does not exist in this container.
      */
     DependencyResolver addBefore(Object userDescription, String nextResolver, Closure configureClosure)
             throws InvalidUserDataException;
@@ -138,7 +145,7 @@ public interface ResolverContainer extends NamedDomainObjectSet<DependencyResolv
      * @param previousResolver The existing resolver to add the new resolver after.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @throws InvalidUserDataException when the given previous resolver does not exist in this container.
+     * @throws UnknownRepositoryException when the given previous resolver does not exist in this container.
      */
     DependencyResolver addAfter(Object userDescription, String previousResolver) throws InvalidUserDataException;
 
@@ -151,7 +158,7 @@ public interface ResolverContainer extends NamedDomainObjectSet<DependencyResolv
      * @param configureClosure The closure to use to configure the resolver.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @throws InvalidUserDataException when the given previous resolver does not exist in this container.
+     * @throws UnknownRepositoryException when the given previous resolver does not exist in this container.
      */
     DependencyResolver addAfter(Object userDescription, String previousResolver, Closure configureClosure)
             throws InvalidUserDataException;
@@ -179,17 +186,17 @@ public interface ResolverContainer extends NamedDomainObjectSet<DependencyResolv
     /**
      * {@inheritDoc}
      */
-    DependencyResolver getByName(String name) throws UnknownRepositoryException;
+    ArtifactRepository getByName(String name) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
-    DependencyResolver getByName(String name, Closure configureClosure) throws UnknownRepositoryException;
+    ArtifactRepository getByName(String name, Closure configureClosure) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
-    DependencyResolver getAt(String name) throws UnknownRepositoryException;
+    ArtifactRepository getAt(String name) throws UnknownRepositoryException;
 
     /**
      * Returns the resolvers in this container, in sequence.

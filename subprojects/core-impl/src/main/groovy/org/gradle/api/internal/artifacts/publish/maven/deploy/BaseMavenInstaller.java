@@ -30,8 +30,8 @@ import org.gradle.logging.LoggingManagerInternal;
 public class BaseMavenInstaller extends AbstractMavenResolver {
     private Factory<CustomInstallTask> installTaskFactory = new DefaultInstallTaskFactory();
 
-    public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
-        super(name, pomFilterContainer, artifactPomContainer, loggingManager);
+    public BaseMavenInstaller(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
+        super(pomFilterContainer, artifactPomContainer, loggingManager);
         mavenSettingsSupplier = new MaybeUserMavenSettingsSupplier();
     }
 

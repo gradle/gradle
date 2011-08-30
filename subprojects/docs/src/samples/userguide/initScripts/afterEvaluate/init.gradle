@@ -1,4 +1,4 @@
-gradle.afterProject { project ->
+afterProject { project ->
 	project.repositories {
 		mavenLocal()
 	}

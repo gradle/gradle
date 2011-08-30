@@ -96,23 +96,23 @@ public class DefaultResolverFactory implements ResolverFactory {
 
     // todo use MavenPluginConvention pom factory after modularization is done
 
-    public GroovyMavenDeployer createMavenDeployer(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
+    public GroovyMavenDeployer createMavenDeployer(MavenPomMetaInfoProvider pomMetaInfoProvider,
                                                    ConfigurationContainer configurationContainer,
                                                    Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver) {
         PomFilterContainer pomFilterContainer = createPomFilterContainer(
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
-        return new DefaultGroovyMavenDeployer(name, pomFilterContainer, createArtifactPomContainer(
+        return new DefaultGroovyMavenDeployer(pomFilterContainer, createArtifactPomContainer(
                 pomMetaInfoProvider, pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create());
     }
 
     // todo use MavenPluginConvention pom factory after modularization is done
 
-    public MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
+    public MavenResolver createMavenInstaller(MavenPomMetaInfoProvider pomMetaInfoProvider,
                                               ConfigurationContainer configurationContainer,
                                               Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver) {
         PomFilterContainer pomFilterContainer = createPomFilterContainer(
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
-        return new BaseMavenInstaller(name, pomFilterContainer, createArtifactPomContainer(pomMetaInfoProvider,
+        return new BaseMavenInstaller(pomFilterContainer, createArtifactPomContainer(pomMetaInfoProvider,
                 pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create());
     }
 
