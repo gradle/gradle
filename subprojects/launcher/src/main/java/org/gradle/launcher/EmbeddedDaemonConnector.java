@@ -17,28 +17,13 @@ package org.gradle.launcher;
 
 import org.gradle.StartParameter;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.util.GUtil;
-import org.gradle.util.Jvm;
-import org.gradle.util.DefaultClassLoaderFactory;
 
 import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * A daemon connector that starts daemons by launching new daemons in the same jvm.
  */
 public class EmbeddedDaemonConnector extends AbstractDaemonConnector {
-
-    private static final Logger LOGGER = Logging.getLogger(EmbeddedDaemonConnector.class);
-    
     private final File userHomeDir;
     
     public EmbeddedDaemonConnector(File userHomeDir) {
