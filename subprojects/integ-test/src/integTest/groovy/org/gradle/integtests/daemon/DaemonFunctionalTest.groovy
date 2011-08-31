@@ -51,8 +51,6 @@ class DaemonFunctionalTest extends Specification {
     def cleanup() {
         cleanMe.each { it.stop() }
         printDaemonLog()
-//        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
-//      TODO SF not sure if needed, comented out for now
     }
 
     @Timeout(30) //healthy timeout just in case
