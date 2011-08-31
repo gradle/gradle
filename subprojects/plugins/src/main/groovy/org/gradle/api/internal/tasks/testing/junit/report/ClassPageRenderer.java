@@ -16,9 +16,11 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.Action;
+import org.gradle.reporting.CodePanelRenderer;
 import org.w3c.dom.Element;
 
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
+    private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
 
     @Override protected void renderBreadcrumbs(Element parent) {
         Element div = append(parent, "div");
@@ -53,17 +55,17 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             append(div, "a").setAttribute("name", test.getId().toString());
             appendWithText(div, "h3", test.getName()).setAttribute("class", test.getStatusClass());
             for (TestFailure failure : test.getFailures()) {
-                appendWithText(div, "pre", failure.getStackTrace()).setAttribute("class", "stackTrace");
+                codePanelRenderer.render(failure.getStackTrace(), div);
             }
         }
     }
 
     private void renderStdOut(Element parent) {
-        appendWithText(parent, "pre", getResults().getStandardOutput());
+        codePanelRenderer.render(getResults().getStandardOutput().toString(), parent);
     }
 
     private void renderStdErr(Element parent) {
-        appendWithText(parent, "pre", getResults().getStandardError());
+        codePanelRenderer.render(getResults().getStandardError().toString(), parent);
     }
 
     @Override protected void registerTabs() {

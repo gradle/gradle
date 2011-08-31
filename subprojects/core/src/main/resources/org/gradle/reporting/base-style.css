@@ -25,6 +25,7 @@ body, a, a:visited {
 #footer {
     margin-top: 100px;
     font-size: 80%;
+    white-space: nowrap;
 }
 
 #footer, #footer a {
@@ -35,6 +36,10 @@ ul {
     margin-left: 0;
 }
 
+h1, h2, h3 {
+    white-space: nowrap;
+}
+
 h2 {
     font-size: 120%;
 }
@@ -43,7 +48,10 @@ ul.tabLinks {
     padding-left: 0;
     padding-top: 10px;
     padding-bottom: 10px;
-    overflow: hidden;
+    overflow: auto;
+    min-width: 800px;
+    width: auto !important;
+    width: 800px;
 }
 
 ul.tabLinks li {
@@ -81,10 +89,6 @@ ul.tabLinks a {
     padding: 0;
 }
 
-ul.tabLinks li:hover a {
-    text-decoration: underline;
-}
-
 ul.tabLinks li h2 {
     margin: 0;
     padding: 0;
@@ -102,7 +106,9 @@ div.deselected {
 }
 
 div.tab table {
-    width: auto;
+    min-width: 350px;
+    width: auto !important;
+    width: 350px;
     border-collapse: collapse;
 }
 
@@ -112,6 +118,7 @@ div.tab th, div.tab table {
 
 div.tab th {
     text-align: left;
+    white-space: nowrap;
     padding-left: 6em;
 }
 
@@ -120,6 +127,7 @@ div.tab th:first-child {
 }
 
 div.tab td {
+    white-space: nowrap;
     padding-left: 6em;
     padding-top: 5px;
     padding-bottom: 5px;
@@ -133,13 +141,22 @@ div.tab td.numeric, div.tab th.numeric {
     text-align: right;
 }
 
-div.tab pre {
+span.code {
+    display: inline-block;
+    margin-top: 0em;
+    margin-bottom: 1em;
+}
+
+span.code pre {
     font-size: 11pt;
     padding-top: 10px;
     padding-bottom: 10px;
     padding-left: 10px;
     padding-right: 10px;
+    margin: 0;
     background-color: #f7f7f7;
     border: solid 1px #d0d0d0;
-    overflow-x: auto;
+    min-width: 700px;
+    width: auto !important;
+    width: 700px;
 }

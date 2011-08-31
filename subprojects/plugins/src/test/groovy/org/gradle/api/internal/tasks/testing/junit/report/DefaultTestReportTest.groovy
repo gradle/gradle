@@ -360,13 +360,13 @@ class TestResultsFixture {
     void assertHasStandardOutput(String stdout) {
         def tab = findTab('Standard output')
         assert tab != null
-        assert tab.PRE[0].text() == stdout.trim()
+        assert tab.SPAN[0].PRE[0].text() == stdout.trim()
     }
 
     void assertHasStandardError(String stderr) {
         def tab = findTab('Standard error')
         assert tab != null
-        assert tab.PRE[0].text() == stderr.trim()
+        assert tab.SPAN[0].PRE[0].text() == stderr.trim()
     }
 
     private def findTab(String title) {
