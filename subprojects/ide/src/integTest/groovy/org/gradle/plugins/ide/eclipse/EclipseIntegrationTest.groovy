@@ -337,7 +337,7 @@ apply plugin: "java"
 apply plugin: "eclipse"
 
 repositories {
-	flatDir(dirs: "${TextUtil.escapeString(repoDir)}")
+	flatDir { dirs "${TextUtil.escapeString(repoDir)}" }
 }
 
 dependencies {
