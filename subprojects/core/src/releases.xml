@@ -1,5 +1,5 @@
 <releases>
-    <next version="1.0-rc-1"/>
+    <next version="1.0-milestone-5"/>
     <current version="${version}" build-time="${buildTime}"/>
     <release version="1.0-milestone-4" build-time="20110728103822+0200" status="broken"/>
     <release version="1.0-milestone-3" build-time="20110425174011+1000"/>
