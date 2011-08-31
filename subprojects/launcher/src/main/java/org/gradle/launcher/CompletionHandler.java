@@ -34,13 +34,12 @@ class CompletionHandler implements Stoppable {
     private final Condition condition = lock.newCondition();
     private boolean running;
     private boolean stopped;
-    private long expiry;
-    private final int idleTimeout;
+
+    private long lastActivityAt;
     private ActivityListener activityListener = new EmptyActivityListener();
 
-    CompletionHandler(int idleTimeout) {
-        this.idleTimeout = idleTimeout;
-        resetTimer();
+    CompletionHandler() {
+        updateActivityTimestamp();
     }
 
     public CompletionHandler setActivityListener(ActivityListener activityListener) {
@@ -50,19 +49,37 @@ class CompletionHandler implements Stoppable {
     }
 
     /**
+     * Waits until stopped.
+     */
+    public void awaitStop() {
+        lock.lock();
+        try {
+            while (!stopped) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.asUncheckedException(e);
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
      * Waits until stopped, or timeout.
      *
      * @return true if stopped, false if timeout
      */
-    public boolean awaitStop() {
+    public boolean awaitStopOrIdleTimeout(int timeout) {
         lock.lock();
         try {
-            while (running || (!stopped && System.currentTimeMillis() < expiry)) {
+            while (running || (!stopped && lastActivityAt < (System.currentTimeMillis() - timeout))) {
                 try {
                     if (running) {
                         condition.await();
                     } else {
-                        condition.awaitUntil(new Date(expiry));
+                        condition.awaitUntil(new Date(lastActivityAt + timeout));
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.asUncheckedException(e);
@@ -103,7 +120,7 @@ class CompletionHandler implements Stoppable {
         lock.lock();
         try {
             running = false;
-            resetTimer();
+            updateActivityTimestamp();
             condition.signalAll();
             activityListener.onComplete();
         } finally {
@@ -111,8 +128,8 @@ class CompletionHandler implements Stoppable {
         }
     }
 
-    private void resetTimer() {
-        expiry = System.currentTimeMillis() + idleTimeout;
+    private void updateActivityTimestamp() {
+        lastActivityAt = System.currentTimeMillis();
     }
 
     static interface ActivityListener {

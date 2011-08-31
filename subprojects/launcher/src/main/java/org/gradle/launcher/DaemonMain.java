@@ -19,6 +19,8 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.protocol.*;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.io.*;
 import java.util.Arrays;
@@ -28,12 +30,29 @@ import java.util.Arrays;
  */
 abstract public class DaemonMain  {
 
+    private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
+    
     public static void main(String[] args) throws IOException {
         StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
-        DaemonServerConnector connector = new DaemonServerConnector(new PersistentDaemonRegistry(startParameter.getGradleUserHomeDir()));
         redirectOutputsAndInput(startParameter);
+        
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
-        new Daemon(loggingServices, connector, startParameter).run();
+        DaemonServerConnector connector = new DaemonServerConnector();
+        DaemonRegistry daemonRegistry = new PersistentDaemonRegistry(startParameter.getGradleUserHomeDir());
+        
+        int idleTimeout = getIdleTimeout(startParameter);
+        LOGGER.info("Daemon idle timeout is configured to: " + idleTimeout / 1000 + " secs");
+        
+        Daemon daemon = new Daemon(loggingServices, connector, daemonRegistry);
+        
+        daemon.start();
+        boolean wasStopped = daemon.awaitStopOrIdleTimeout(idleTimeout);
+        if (wasStopped) {
+            LOGGER.info("Daemon stopping due to stop request");
+        } else {
+            LOGGER.info("Daemon hit idle timeout (" + idleTimeout / 1000 + " secs), stopping");
+            daemon.stop();
+        }
     }
 
     private static void redirectOutputsAndInput(StartParameter startParameter) throws IOException {
@@ -51,6 +70,13 @@ abstract public class DaemonMain  {
         originalErr.close();
         // TODO - make this work on windows
 //        originalIn.close();
+    }
+    
+    private static int getIdleTimeout(StartParameter startParameter) {
+        //TODO SF - very simple/no validation
+        String timeoutProperty = startParameter.getSystemPropertiesArgs().get(DaemonTimeout.TIMEOUT_PROPERTY);
+        int idleTimeout = (timeoutProperty != null)? Integer.parseInt(timeoutProperty) : 3 * 60 * 60 * 1000;
+        return idleTimeout;
     }
 
 }

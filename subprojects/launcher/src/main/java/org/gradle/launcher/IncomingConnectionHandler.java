@@ -18,5 +18,5 @@ package org.gradle.launcher;
 import org.gradle.messaging.remote.internal.Connection;
 
 public interface IncomingConnectionHandler {
-    void handle(Connection<Object> connection, CompletionHandler serverControl);
+    void handle(Connection<Object> connection);
 }

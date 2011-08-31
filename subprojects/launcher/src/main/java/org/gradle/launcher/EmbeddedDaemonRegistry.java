@@ -18,11 +18,14 @@ package org.gradle.launcher;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.concurrent.CompositeStoppable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A daemon registry for daemons running in the same JVM.
@@ -37,6 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class EmbeddedDaemonRegistry implements DaemonRegistry {
 
     private final Map<Address, DaemonStatus> statuses = new ConcurrentHashMap<Address, DaemonStatus>();
+    private final List<Daemon> daemons = new ArrayList<Daemon>();
+    private final Lock daemonsLock = new ReentrantLock();
 
     private final Spec<DaemonStatus> allSpec = new Spec<DaemonStatus>() {
         public boolean isSatisfiedBy(DaemonStatus entry) {
@@ -97,5 +102,44 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         }
 
         return matches;
+    }
+
+    /**
+     * Returns all daemons started in this registry since construction or most recent stopDaemons().
+     * <p>
+     * The returned daemons are not guaranteed to be running as they may have been stopped individually.
+     */
+    public List<Daemon> getDaemons() {
+        daemonsLock.lock();
+        try {
+            return new ArrayList(daemons);
+        } finally {
+            daemonsLock.unlock();
+        }
+    }
+    
+    public void startDaemon(Daemon daemon) {
+        daemonsLock.lock();
+        try {
+            daemons.add(daemon);
+        } finally {
+            daemonsLock.unlock();
+        }
+
+        daemon.start();
+    }
+
+    public void stopDaemons() {
+        List<Daemon> daemonsToStop;
+        
+        daemonsLock.lock();
+        try {
+            daemonsToStop = new ArrayList(daemons);
+            daemons.clear();
+        } finally {
+            daemonsLock.unlock();
+        }
+        
+        new CompositeStoppable(daemonsToStop).stop();
     }
 }

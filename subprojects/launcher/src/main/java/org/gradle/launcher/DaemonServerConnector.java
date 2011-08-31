@@ -18,7 +18,7 @@ package org.gradle.launcher;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
@@ -28,52 +28,84 @@ import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.util.UUIDGenerator;
 
-public class DaemonServerConnector {
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * Opens a TCP connection for clients to connect to to communicate with a daemon.
+ * <p>
+ * A server connector should only be used by one daemon, and has a single use lifecycle.
+ * <p>
+ * This implementation is threadsafe in that start/stop can be called from different threads.
+ */
+public class DaemonServerConnector implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonServerConnector.class);
-    
-    final private DaemonRegistry daemonRegistry;
 
-    public DaemonServerConnector(DaemonRegistry daemonRegistry) {
-        this.daemonRegistry = daemonRegistry;
+    final private TcpIncomingConnector<Object> incomingConnector;
+
+    private boolean started;
+    private boolean stopped;
+    private final Lock lifecycleLock = new ReentrantLock();
+
+    public DaemonServerConnector() {
+        this.incomingConnector = new TcpIncomingConnector<Object>(
+                new DefaultExecutorFactory(),
+                new DefaultMessageSerializer<Object>(getClass().getClassLoader()),
+                new InetAddressFactory(),
+                new UUIDGenerator()
+        );
     }
 
     /**
-     * Starts accepting connections.
+     * Starts accepting connections, passing any established connections to the given handler.
+     * <p>
+     * When this method returns, the daemon will be ready to accept connections.
+     * 
+     * @return the address that clients can use to connect
+     * @throws IllegalStateException if this method has previously been called on this object, or if the stop method has previously been called on this object.
      */
-    void accept(int idleTimeout, final IncomingConnectionHandler handler) {
-        DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
-        TcpIncomingConnector<Object> incomingConnector = new TcpIncomingConnector<Object>(executorFactory, new DefaultMessageSerializer<Object>(getClass().getClassLoader()), new InetAddressFactory(), new UUIDGenerator());
-
-        final CompletionHandler finished = new CompletionHandler(idleTimeout);
-
-        LOGGER.lifecycle("Awaiting requests.");
-
-        Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
-            public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
-                handler.handle(connectionConnectEvent.getConnection(), finished);
+    Address start(final IncomingConnectionHandler handler) {
+        lifecycleLock.lock();
+        try {
+            if (stopped) {
+                throw new IllegalStateException("server connector cannot be started as it is either stopping or has been stopped");
             }
-        };
-        final Address address = incomingConnector.accept(connectEvent, false);
-
-        finished.setActivityListener(new CompletionHandler.ActivityListener() {
-            public void onStart() {
-                daemonRegistry.markBusy(address);
+            if (started) {
+                throw new IllegalStateException("server connector cannot be started as it has already been started");
             }
 
-            public void onComplete() {
-                daemonRegistry.markIdle(address);
-            }
-        });
+            // Hold the lock until we actually start accepting connections for the case when stop is called from another
+            // thread while we are in the middle here.
 
-        daemonRegistry.store(address);
+            LOGGER.lifecycle("Starting daemon server connector.");
 
-        boolean stopped = finished.awaitStop();
-        if (!stopped) {
-            LOGGER.lifecycle("Time-out waiting for requests. Stopping.");
+            Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
+                public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
+                    handler.handle(connectionConnectEvent.getConnection());
+                }
+            };
+
+            Address address = incomingConnector.accept(connectEvent, false);
+            started = true;
+            return address;
+        } finally {
+            lifecycleLock.unlock();
         }
-        daemonRegistry.remove(address);
-        new CompositeStoppable(incomingConnector, executorFactory).stop();
+    }
+
+    /**
+     * Stops accepting new connections, and blocks until all active connections close.
+     */
+    public void stop() {
+        lifecycleLock.lock();
+        try { // can't imagine what would go wrong here, but try/finally just in case
+            stopped = true;
+        } finally {
+            lifecycleLock.unlock();
+        }
+
+        incomingConnector.stop();
     }
 
 }

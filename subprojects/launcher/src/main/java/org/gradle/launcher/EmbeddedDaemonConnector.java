@@ -15,38 +15,28 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.StartParameter;
 import org.gradle.logging.LoggingServiceRegistry;
-
-import java.io.File;
 
 /**
  * A daemon connector that starts daemons by launching new daemons in the same jvm.
  */
 public class EmbeddedDaemonConnector extends AbstractDaemonConnector<EmbeddedDaemonRegistry> {
-    private final File userHomeDir;
-    
-    public EmbeddedDaemonConnector(File userHomeDir) {
-        this(userHomeDir, new EmbeddedDaemonRegistry());
+
+    public EmbeddedDaemonConnector() {
+        this(new EmbeddedDaemonRegistry());
     }
     
-    public EmbeddedDaemonConnector(File userHomeDir, EmbeddedDaemonRegistry daemonRegistry) {
+    public EmbeddedDaemonConnector(EmbeddedDaemonRegistry daemonRegistry) {
         super(daemonRegistry);
-        this.userHomeDir = userHomeDir;
     }
 
     protected void startDaemon() {
+        EmbeddedDaemonRegistry daemonRegistry = getDaemonRegistry();
+
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newCommandLineProcessLogging();
-        DaemonServerConnector server = new DaemonServerConnector(getDaemonRegistry());
-        StartParameter startParameter = new StartParameter();
-        startParameter.setGradleUserHomeDir(userHomeDir);
-        
-        Daemon daemon = new Daemon(loggingServices, server, startParameter);
-        
-        // TODO - might be worth putting all daemon threads for the registry under one thread group
-        Thread daemonThread = new Thread(daemon, "Gradle Daemon");
-        daemonThread.setDaemon(true); // we don't want this thread to hold our process open
-        daemonThread.start();
+        DaemonServerConnector server = new DaemonServerConnector();
+
+        daemonRegistry.startDaemon(new Daemon(loggingServices, server, daemonRegistry));
     }
-    
+
 }

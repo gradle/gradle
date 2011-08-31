@@ -37,14 +37,10 @@ class EmbeddedDaemonSmokeTest extends Specification {
 
     @Rule public final GradleDistribution distribution = new GradleDistribution()
 
-    def client() {
-        def connector = new EmbeddedDaemonConnector(distribution.gradleHomeDir)
-        def metadata = new GradleLauncherMetaData()
-        def outputEventListener = LoggingServiceRegistry.newEmbeddableLogging().get(OutputEventListener)
-        
-        new DaemonClient(connector, metadata, outputEventListener)
-    }
-
+    def connector = new EmbeddedDaemonConnector()
+    def metadata = new GradleLauncherMetaData()
+    def outputEventListener = LoggingServiceRegistry.newEmbeddableLogging().get(OutputEventListener)
+    def client = new DaemonClient(connector, metadata, outputEventListener)
     
     def "run build"() {
         given:
@@ -65,10 +61,14 @@ class EmbeddedDaemonSmokeTest extends Specification {
         """
         
         when:
-        client().execute(action, parameters)
+        client.execute(action, parameters)
         
         then:
         outputFile.exists() && outputFile.text == "Hello!"
+    }
+    
+    def cleanup() {
+        connector.daemonRegistry.stopDaemons()
     }
 
 }
