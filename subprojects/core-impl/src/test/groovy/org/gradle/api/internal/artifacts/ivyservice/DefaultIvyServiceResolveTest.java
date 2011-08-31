@@ -23,39 +23,35 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
 public class DefaultIvyServiceResolveTest {
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private Module moduleDummy = context.mock(Module.class);
-    private File cacheParentDirDummy = new File("cacheParentDirDummy");
     private Map<String, ModuleDescriptor> clientModuleRegistryDummy = WrapUtil.toMap("a", context.mock(ModuleDescriptor.class));
-    private List<DependencyResolver> dependencyResolversDummy = WrapUtil.toList(context.mock(DependencyResolver.class, "dependencies"));
+    private DependencyResolver resolverMock = context.mock(DependencyResolver.class);
 
     private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
@@ -75,16 +71,13 @@ public class DefaultIvyServiceResolveTest {
         context.checking(new Expectations() {{
             allowing(dependencyMetaDataProviderMock).getModule();
             will(returnValue(moduleDummy));
-
-            allowing(resolverProvider).getResolvers();
-            will(returnValue(dependencyResolversDummy));
         }});
 
         ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
                 settingsConverterMock, resolveModuleDescriptorConverterStub, publishModuleDescriptorConverterDummy,
                 publishModuleDescriptorConverterDummy,
                 ivyFactoryStub, ivyDependencyResolverMock,
-                context.mock(IvyDependencyPublisher.class));
+                context.mock(IvyDependencyPublisher.class), internalRepositoryDummy, clientModuleRegistryDummy);
     }
 
     @Test
@@ -113,8 +106,11 @@ public class DefaultIvyServiceResolveTest {
                     ivySettingsDummy);
             will(returnValue(moduleDescriptorDummy));
 
-            allowing(ivyService.getSettingsConverter()).convertForResolve(dependencyResolversDummy
-            );
+            allowing(resolverProvider).getResolvers();
+            will(returnValue(WrapUtil.toList(resolverMock)));
+
+            allowing(ivyService.getSettingsConverter()).convertForResolve(WrapUtil.toList(internalRepositoryDummy, resolverMock),
+                    clientModuleRegistryDummy);
             will(returnValue(ivySettingsDummy));
         }});
 

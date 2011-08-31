@@ -32,7 +32,9 @@ import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -48,6 +50,8 @@ public class DefaultIvyService implements IvyService {
     private final IvyDependencyPublisher dependencyPublisher;
     private final DependencyMetaDataProvider metaDataProvider;
     private final ResolverProvider resolverProvider;
+    private final DependencyResolver internalRepository;
+    private final Map<String, ModuleDescriptor> clientModuleRegistry;
 
     public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider,
                              SettingsConverter settingsConverter,
@@ -56,7 +60,8 @@ public class DefaultIvyService implements IvyService {
                              ModuleDescriptorConverter fileModuleDescriptorConverter,
                              IvyFactory ivyFactory,
                              IvyDependencyResolver dependencyResolver,
-                             IvyDependencyPublisher dependencyPublisher) {
+                             IvyDependencyPublisher dependencyPublisher,
+                             DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
         this.metaDataProvider = metaDataProvider;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
@@ -66,14 +71,15 @@ public class DefaultIvyService implements IvyService {
         this.ivyFactory = ivyFactory;
         this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
+        this.internalRepository = internalRepository;
+        this.clientModuleRegistry = clientModuleRegistry;
     }
 
     private Ivy ivyForResolve(List<DependencyResolver> dependencyResolvers) {
-        return ivyFactory.createIvy(
-                settingsConverter.convertForResolve(
-                        dependencyResolvers
-                )
-        );
+        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
+        resolvers.add(internalRepository);
+        resolvers.addAll(dependencyResolvers);
+        return ivyFactory.createIvy(settingsConverter.convertForResolve(resolvers, clientModuleRegistry));
     }
 
     private Ivy ivyForPublish(List<DependencyResolver> publishResolvers) {

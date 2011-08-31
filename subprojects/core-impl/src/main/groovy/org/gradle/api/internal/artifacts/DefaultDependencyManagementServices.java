@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.publish.maven.DefaultLocalMavenCacheLoc
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
@@ -127,6 +128,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 projectDependencyFactory);
     }
 
+    private SettingsConverter createSettingsConverter() {
+        return new DefaultSettingsConverter(
+                get(ProgressLoggerFactory.class),
+                new IvySettingsFactory(get(CacheRepository.class)));
+    }
+
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
         private final ServiceRegistry parent;
         private final FileResolver fileResolver;
@@ -198,6 +205,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
                     createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
                     new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
+            InternalRepository internalRepository = new DefaultInternalRepository(projectFinder, parent.get(ModuleDescriptorConverter.class));
 
             return new ErrorHandlingIvyService(
                     new EventBroadcastingIvyService(
@@ -205,12 +213,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                     new DefaultIvyService(
                                             dependencyMetaDataProvider,
                                             resolverProvider,
-                                            new DefaultSettingsConverter(
-                                                    parent.get(ProgressLoggerFactory.class),
-                                                    new IvySettingsFactory(parent.get(CacheRepository.class)),
-                                                    new DefaultInternalRepository(projectFinder, parent.get(ModuleDescriptorConverter.class)),
-                                                    clientModuleRegistry
-                                            ),
+                                            parent.get(SettingsConverter.class),
                                             parent.get(PublishModuleDescriptorConverter.class),
                                             parent.get(PublishModuleDescriptorConverter.class),
                                             fileModuleDescriptorConverter,
@@ -218,8 +221,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                             new SelfResolvingDependencyResolver(
                                                     new DefaultIvyDependencyResolver(
                                                             new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))),
-                                            new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory())
-                                    ))));
+                                            new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()),
+                                            internalRepository, clientModuleRegistry))));
         }
 
         RepositoryHandler createRepositoryHandlerWithSharedConventionMapping() {

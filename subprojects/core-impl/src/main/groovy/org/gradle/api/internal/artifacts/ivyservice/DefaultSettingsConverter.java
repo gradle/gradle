@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
@@ -41,19 +40,15 @@ import java.util.Map;
 public class DefaultSettingsConverter implements SettingsConverter {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final Factory<IvySettings> settingsFactory;
-    private final DependencyResolver internalRepository;
-    private final Map<String, ModuleDescriptor> clientModuleRegistry;
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private ChainResolver userResolverChain;
     private DependencyResolver outerChain;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
-        this.internalRepository = internalRepository;
-        this.clientModuleRegistry = clientModuleRegistry;
     }
 
     private static String getLengthText(TransferEvent evt) {
@@ -83,13 +78,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return publishSettings;
     }
 
-    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers) {
+    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, Map<String, ModuleDescriptor> clientModuleRegistry) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
-            DependencyResolver clientModuleResolver = createClientModuleResolver(userResolverChain);
+            DependencyResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
             outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
-            initializeResolvers(resolveSettings, WrapUtil.toList(internalRepository, userResolverChain, clientModuleResolver, outerChain));
+            initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain));
         }
         replaceResolvers(dependencyResolvers, userResolverChain);
         initializeResolvers(resolveSettings, dependencyResolvers);
@@ -108,17 +103,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return clientModuleChain;
     }
 
-    private DependencyResolver createClientModuleResolver(DependencyResolver userResolverChain) {
+    private DependencyResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, DependencyResolver userResolverChain) {
         return new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
     }
 
     private ChainResolver createUserResolverChain() {
         ChainResolver chainResolver = new ChainResolver();
         chainResolver.setName(CHAIN_RESOLVER_NAME);
-        chainResolver.add(internalRepository);
-        // todo Figure out why Ivy thinks this is necessary. The IBiblio resolver has already this pattern which should be good enough. By doing this we let Maven semantics seep into our whole system.
-        chainResolver.setChangingPattern(".*-SNAPSHOT");
-        chainResolver.setChangingMatcher(PatternMatcher.REGEXP);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));
         return chainResolver;
@@ -126,7 +117,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
 
     private void replaceResolvers(List<DependencyResolver> classpathResolvers, ChainResolver chainResolver) {
         Collection<DependencyResolver> oldResolvers = new ArrayList<DependencyResolver>(chainResolver.getResolvers());
-        oldResolvers.remove(internalRepository);
         for (DependencyResolver resolver : oldResolvers) {
             resolveSettings.getResolvers().remove(resolver);
             chainResolver.getResolvers().remove(resolver);

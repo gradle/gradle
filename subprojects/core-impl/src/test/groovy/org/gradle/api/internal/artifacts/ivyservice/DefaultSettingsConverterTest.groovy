@@ -20,16 +20,13 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
-
 import org.gradle.api.internal.Factory
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.lib.legacy.ClassImposteriser
+import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*
 import org.junit.runner.RunWith
-import org.jmock.integration.junit4.JMock
 
 /**
  * @author Hans Dockter
@@ -38,7 +35,6 @@ import org.jmock.integration.junit4.JMock
 class DefaultSettingsConverterTest {
     final IBiblioResolver testResolver = new IBiblioResolver()
     final IBiblioResolver testResolver2 = new IBiblioResolver()
-    final IBiblioResolver internalResolver = new IBiblioResolver()
 
     DefaultSettingsConverter converter
 
@@ -53,10 +49,8 @@ class DefaultSettingsConverterTest {
 
     @Before public void setUp() {
         testResolver.name = 'resolver'
-        internalResolver.name = 'buildResolver'
-        context.setImposteriser(ClassImposteriser.INSTANCE)
         clientModuleRegistry = [a: [:] as ModuleDescriptor]
-        converter = new DefaultSettingsConverter(context.mock(ProgressLoggerFactory), ivySettingsFactory, internalResolver, clientModuleRegistry)
+        converter = new DefaultSettingsConverter(context.mock(ProgressLoggerFactory), ivySettingsFactory)
         testGradleUserHome = new File('gradleUserHome')
     }
 
@@ -66,11 +60,11 @@ class DefaultSettingsConverterTest {
             will(returnValue(ivySettings))
         }
 
-        IvySettings settings = converter.convertForResolve([testResolver, testResolver2])
+        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], clientModuleRegistry)
         assert settings.is(ivySettings)
 
         ChainResolver chainResolver = settings.getResolver(DefaultSettingsConverter.CHAIN_RESOLVER_NAME)
-        assert chainResolver.resolvers == [internalResolver, testResolver, testResolver2]
+        assert chainResolver.resolvers == [testResolver, testResolver2]
         assert chainResolver.returnFirst
 
         ClientModuleResolver clientModuleResolver = settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_NAME)
@@ -79,7 +73,7 @@ class DefaultSettingsConverterTest {
         assert clientModuleChain.returnFirst
         assert settings.defaultResolver.is(clientModuleChain)
 
-        [internalResolver.name, testResolver.name, testResolver2.name].each {
+        [testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).repositoryCacheManager.settings == settings
         }
@@ -113,17 +107,17 @@ class DefaultSettingsConverterTest {
             will(returnValue(ivySettings))
         }
 
-        IvySettings settings = converter.convertForResolve([testResolver, testResolver2])
+        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], clientModuleRegistry)
         assert settings.is(ivySettings)
 
         ChainResolver chainResolver = settings.getResolver(DefaultSettingsConverter.CHAIN_RESOLVER_NAME)
-        assert chainResolver.resolvers == [internalResolver, testResolver, testResolver2]
+        assert chainResolver.resolvers == [testResolver, testResolver2]
 
-        settings = converter.convertForResolve([testResolver])
+        settings = converter.convertForResolve([testResolver], clientModuleRegistry)
         assert settings.is(ivySettings)
 
         chainResolver = settings.getResolver(DefaultSettingsConverter.CHAIN_RESOLVER_NAME)
-        assert chainResolver.resolvers == [internalResolver, testResolver]
+        assert chainResolver.resolvers == [testResolver]
         assert !ivySettings.resolvers.contains(testResolver2)
     }
 
