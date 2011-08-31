@@ -26,10 +26,6 @@ import org.gradle.plugins.ide.eclipse.model.*
  */
 class ClasspathFactory {
 
-    interface ClasspathEntryBuilder {
-        void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath)
-    }
-
     private final ClasspathEntryBuilder outputCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
             entries.add(new Output(eclipseClasspath.project.relativePath(eclipseClasspath.defaultOutputDir)))
@@ -105,4 +101,8 @@ class ClasspathFactory {
         out.declaredConfigurationName = declaredConfigurationName
         out
     }
+}
+
+interface ClasspathEntryBuilder {
+	void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath)
 }

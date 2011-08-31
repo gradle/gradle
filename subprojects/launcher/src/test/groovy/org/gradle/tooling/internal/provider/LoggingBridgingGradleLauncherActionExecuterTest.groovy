@@ -15,12 +15,12 @@
  */
 package org.gradle.tooling.internal.provider
 
-import spock.lang.Specification
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
+import org.gradle.api.internal.Factory
+import org.gradle.initialization.GradleLauncherAction
 import org.gradle.launcher.GradleLauncherActionExecuter
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.initialization.GradleLauncherAction
-import org.gradle.api.internal.Factory
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
+import spock.lang.Specification
 
 class LoggingBridgingGradleLauncherActionExecuterTest extends Specification {
     final GradleLauncherActionExecuter<BuildOperationParametersVersion1> target = Mock()
@@ -28,7 +28,9 @@ class LoggingBridgingGradleLauncherActionExecuterTest extends Specification {
     final LoggingManagerInternal loggingManager = Mock()
     final GradleLauncherAction<String> action = Mock()
     final BuildOperationParametersVersion1 parameters = Mock()
-    final LoggingBridgingGradleLauncherActionExecuter executer = new LoggingBridgingGradleLauncherActionExecuter(target, loggingManagerFactory)
+
+    //declared type-lessly to work around groovy eclipse plugin bug
+    final executer = new LoggingBridgingGradleLauncherActionExecuter(target, loggingManagerFactory)
 
     def configuresLoggingWhileActionIsExecuting() {
         when:
