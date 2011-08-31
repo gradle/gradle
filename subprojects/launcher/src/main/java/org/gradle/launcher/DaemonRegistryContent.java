@@ -18,19 +18,24 @@ package org.gradle.launcher;
 
 import org.gradle.messaging.remote.Address;
 
-import java.util.List;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Provides access to existing daemons.
+ * @author: Szczepan Faber, created at: 8/29/11
  */
-public interface DaemonRegistry {
+public class DaemonRegistryContent implements Serializable {
 
-    List<DaemonStatus> getAll();
-    List<DaemonStatus> getIdle();
-    List<DaemonStatus> getBusy();
-    
-    void store(Address address);
-    void remove(Address address);
-    void markBusy(Address address);
-    void markIdle(Address address);
+    private Map<Address, DaemonStatus> statusesMap = new HashMap<Address, DaemonStatus>();
+
+    public Collection<DaemonStatus> getDaemonStatuses() {
+        return statusesMap.values();
+    }
+
+    //TODO SF model
+    public Map<Address, DaemonStatus> getStatusesMap() {
+        return statusesMap;
+    }
 }

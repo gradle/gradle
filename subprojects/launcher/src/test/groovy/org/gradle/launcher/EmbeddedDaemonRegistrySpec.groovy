@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher
 
-import spock.lang.*
 import org.gradle.messaging.remote.Address
+import spock.lang.Specification
 
 class EmbeddedDaemonRegistrySpec extends Specification {
 
@@ -31,7 +31,7 @@ class EmbeddedDaemonRegistrySpec extends Specification {
         entry.store(address())
         entry
     }
-    
+
     def "initially empty"() {
         expect:
         all.empty
@@ -39,64 +39,5 @@ class EmbeddedDaemonRegistrySpec extends Specification {
         busy.empty
     }
 
-    def "new entry does not make entry appear until store called"() {
-        when:
-        def entry = newEntry()
-        
-        then:
-        all.empty
-        
-        when:
-        entry.store(address())
-        
-        then:
-        all.size() == 1
-        idle.size() == 1
-        busy.empty
-    }
-
-    def "lifecycle"() {
-        given:
-        def (e1, e2) = [storeEntry(), storeEntry()]
-        
-        expect:
-        all.size() == 2
-        idle.size() == 2
-        busy.empty
-        
-        when:
-        e1.markBusy()
-        
-        then:
-        all.size() == 2
-        idle.size() == 1
-        busy.size() == 1
-        
-        when:
-        e2.markBusy()
-        
-        then:
-        all.size() == 2
-        idle.empty
-        busy.size() == 2
-        
-        when:
-        e1.markIdle()
-        e2.markIdle()
-        
-        then:
-        all.size() == 2
-        idle.size() == 2
-        busy.empty
-        
-        when:
-        e1.remove()
-        e2.remove()
-        
-        then:
-        all.empty
-        idle.empty
-        busy.empty
-    }
-
+    //TODO SF add tests
 }

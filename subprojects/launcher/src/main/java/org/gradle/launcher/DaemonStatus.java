@@ -25,6 +25,7 @@ import java.io.Serializable;
  */
 public class DaemonStatus implements Serializable {
 
+    //TODO SF does not need an address any more
     private final Address address;
     private boolean idle = true;
 

@@ -37,19 +37,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     public T get() {
         return lock.readFromFile(new Callable<T>() {
             public T call() throws Exception {
-                if (!cacheFile.isFile()) {
-                    return null;
-                }
-                try {
-                    InputStream inStr = new BufferedInputStream(new FileInputStream(cacheFile));
-                    try {
-                        return serializer.read(inStr);
-                    } finally {
-                        inStr.close();
-                    }
-                } catch (Exception e) {
-                    throw new GradleException(String.format("Could not read cache value from '%s'.", cacheFile), e);
-                }
+                return deserialize();
             }
         });
     }
@@ -57,17 +45,47 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     public void set(final T newValue) {
         lock.writeToFile(new Runnable() {
             public void run() {
-                try {
-                    OutputStream outStr = new BufferedOutputStream(new FileOutputStream(cacheFile));
-                    try {
-                        serializer.write(outStr, newValue);
-                    } finally {
-                        outStr.close();
-                    }
-                } catch (Exception e) {
-                    throw new GradleException(String.format("Could not write cache value to '%s'.", cacheFile), e);
-                }
+                serialize(newValue);
             }
         });
+    }
+
+    public void update(final UpdateAction<T> updateAction) {
+        lock.writeToFile(new Runnable() {
+            public void run() {
+                T oldValue = deserialize();
+                T newValue = updateAction.update(oldValue);
+                serialize(newValue);
+            }
+        });
+    }
+
+    private void serialize(T newValue) {
+        try {
+            OutputStream outStr = new BufferedOutputStream(new FileOutputStream(cacheFile));
+            try {
+                serializer.write(outStr, newValue);
+            } finally {
+                outStr.close();
+            }
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not write cache value to '%s'.", cacheFile), e);
+        }
+    }
+
+    private T deserialize() {
+        if (!cacheFile.isFile()) {
+            return null;
+        }
+        try {
+            InputStream inStr = new BufferedInputStream(new FileInputStream(cacheFile));
+            try {
+                return serializer.read(inStr);
+            } finally {
+                inStr.close();
+            }
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not read cache value from '%s'.", cacheFile), e);
+        }
     }
 }

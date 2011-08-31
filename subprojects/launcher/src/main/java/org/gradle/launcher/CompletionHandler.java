@@ -36,16 +36,17 @@ class CompletionHandler implements Stoppable {
     private boolean stopped;
     private long expiry;
     private final int idleTimeout;
-    private final DaemonRegistry.Entry registryEntry;
+    private ActivityListener activityListener = new EmptyActivityListener();
 
-    CompletionHandler(int idleTimeout, DaemonRegistry.Entry registryEntry) {
+    CompletionHandler(int idleTimeout) {
         this.idleTimeout = idleTimeout;
-        this.registryEntry = registryEntry;
         resetTimer();
     }
 
-    public boolean isRunning() {
-        return running;
+    public CompletionHandler setActivityListener(ActivityListener activityListener) {
+        assert activityListener != null;
+        this.activityListener = activityListener;
+        return this;
     }
 
     /**
@@ -92,7 +93,7 @@ class CompletionHandler implements Stoppable {
             }
             running = true;
             condition.signalAll();
-            registryEntry.markBusy();
+            activityListener.onStart();
         } finally {
             lock.unlock();
         }
@@ -104,7 +105,7 @@ class CompletionHandler implements Stoppable {
             running = false;
             resetTimer();
             condition.signalAll();
-            registryEntry.markIdle();
+            activityListener.onComplete();
         } finally {
             lock.unlock();
         }
@@ -114,4 +115,13 @@ class CompletionHandler implements Stoppable {
         expiry = System.currentTimeMillis() + idleTimeout;
     }
 
+    static interface ActivityListener {
+        void onStart();
+        void onComplete();
+    }
+
+    static class EmptyActivityListener implements ActivityListener {
+        public void onStart() {}
+        public void onComplete() {}
+    }
 }

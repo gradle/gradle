@@ -20,6 +20,7 @@ import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.launcher.DaemonClient
 import org.gradle.launcher.DaemonConnector
 import org.gradle.launcher.DaemonRegistry
+import org.gradle.launcher.ExternalDaemonConnector
 import org.gradle.launcher.protocol.Stop
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.Address
@@ -28,14 +29,10 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
-import org.gradle.launcher.ExternalDaemonConnector
-import org.gradle.launcher.PersistentDaemonRegistry
-import spock.lang.Ignore
 
 /**
  * @author: Szczepan Faber, created at: 8/18/11
  */
-@Ignore
 class DaemonFunctionalTest extends Specification {
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
@@ -141,25 +138,6 @@ class DaemonFunctionalTest extends Specification {
         String getDisplayName() {
             return "foo";
         }
-    }
-
-    @Timeout(30)
-    def "registry deletes the bin files"() {
-        prepare()
-
-        def daemonRegistry = new PersistentDaemonRegistry(temp.dir)
-        def reg = daemonRegistry.newEntry();
-
-
-        reg.store(new AddressStub());
-
-        when:
-        reg.remove();
-
-        then:
-        daemonRegistry.all.size() == 0
-        //TODO SF - not yet implemented
-        //daemonRegistry.registryFolder.list().length == 0
     }
 
     @Timeout(30)
@@ -281,15 +259,15 @@ class DaemonFunctionalTest extends Specification {
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    void poll(int timeout = 15000, Closure assertion) {
+    void poll(int timeout = 2000, Closure assertion) {
         int x = 0;
         while(true) {
             try {
                 assertion()
                 return
             } catch (Throwable t) {
-                Thread.sleep(200);
-                x += 200;
+                Thread.sleep(100);
+                x += 100;
                 if (x > timeout) {
                     throw t;
                 }

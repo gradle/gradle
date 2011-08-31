@@ -25,4 +25,16 @@ public interface PersistentStateCache<T> {
     T get();
 
     void set(T newValue);
+
+    void update(UpdateAction<T> updateAction);
+
+    static interface UpdateAction<T> {
+        /**
+         * should return the new value
+         *
+         * @param oldValue
+         * @return new value
+         */
+        T update(T oldValue);
+    }
 }

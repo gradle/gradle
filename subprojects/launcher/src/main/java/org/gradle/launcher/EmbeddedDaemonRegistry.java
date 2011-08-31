@@ -21,7 +21,8 @@ import org.gradle.messaging.remote.Address;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A daemon registry for daemons running in the same JVM.
@@ -35,23 +36,23 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class EmbeddedDaemonRegistry implements DaemonRegistry {
 
-    private List<EmbeddedDaemonEntry> entries = new CopyOnWriteArrayList<EmbeddedDaemonEntry>();
+    private final Map<Address, DaemonStatus> statuses = new ConcurrentHashMap<Address, DaemonStatus>();
 
-    private final Spec<EmbeddedDaemonEntry> allSpec = new Spec<EmbeddedDaemonEntry>() {
-        public boolean isSatisfiedBy(EmbeddedDaemonEntry entry) {
-            return entry.status != null;
+    private final Spec<DaemonStatus> allSpec = new Spec<DaemonStatus>() {
+        public boolean isSatisfiedBy(DaemonStatus entry) {
+            return true;
         }
     };
 
-    private final Spec<EmbeddedDaemonEntry> idleSpec = Specs.<EmbeddedDaemonEntry>and(allSpec, new Spec<EmbeddedDaemonEntry>() {
-        public boolean isSatisfiedBy(EmbeddedDaemonEntry entry) {
-            return entry.status.isIdle();
+    private final Spec<DaemonStatus> idleSpec = Specs.and(allSpec, new Spec<DaemonStatus>() {
+        public boolean isSatisfiedBy(DaemonStatus status) {
+            return status.isIdle();
         }
     });
 
-    private final Spec<EmbeddedDaemonEntry> busySpec = Specs.<EmbeddedDaemonEntry>and(allSpec, new Spec<EmbeddedDaemonEntry>() {
-        public boolean isSatisfiedBy(EmbeddedDaemonEntry entry) {
-            return !entry.status.isIdle();
+    private final Spec<DaemonStatus> busySpec = Specs.and(allSpec, new Spec<DaemonStatus>() {
+        public boolean isSatisfiedBy(DaemonStatus status) {
+            return !status.isIdle();
         }
     });
 
@@ -67,55 +68,34 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         return statusesOfEntriesMatching(busySpec);
     }
 
-    private List<DaemonStatus> statusesOfEntriesMatching(Spec<EmbeddedDaemonEntry> spec) {
+    public void store(Address address) {
+        statuses.put(address, new DaemonStatus(address));
+    }
+
+    public void remove(Address address) {
+        statuses.remove(address);
+    }
+
+    public void markBusy(Address address) {
+        synchronized (statuses) {
+            statuses.get(address).setIdle(false);
+        }
+    }
+
+    public void markIdle(Address address) {
+        synchronized (statuses) {
+            statuses.get(address).setIdle(true);
+        }
+    }
+
+    private List<DaemonStatus> statusesOfEntriesMatching(Spec<DaemonStatus> spec) {
         List<DaemonStatus> matches = new ArrayList<DaemonStatus>();
-        for (EmbeddedDaemonEntry entry : entries) {
-            if (spec.isSatisfiedBy(entry)) {
-                matches.add(entry.status);
+        for (DaemonStatus status : statuses.values()) {
+            if (spec.isSatisfiedBy(status)) {
+                matches.add(status);
             }
         }
 
         return matches;
     }
-
-    public Entry newEntry() {
-        EmbeddedDaemonEntry entry = new EmbeddedDaemonEntry();
-        entries.add(entry);
-        return entry;
-    }
-
-    private class EmbeddedDaemonEntry implements Entry {
-
-        private DaemonStatus status;
-
-        private void assertHasStatus() {
-            if (status == null) {
-                throw new IllegalStateException("store() must be called before markBusy() or markIdle()");
-            }
-        }
-
-        public void markBusy() {
-            assertHasStatus();
-            status.setIdle(false);
-        }
-
-        public void markIdle() {
-            assertHasStatus();
-            status.setIdle(true);
-        }
-
-        public void store(Address address) {
-            if (status != null) {
-                throw new IllegalStateException("store() has already been called for this entry");
-            }
-
-            status = new DaemonStatus(address);
-        }
-
-        public void remove() {
-            this.status = null;
-            entries.remove(this);
-        }
-    }
-
 }
