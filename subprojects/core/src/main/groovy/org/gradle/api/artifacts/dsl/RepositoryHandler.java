@@ -51,7 +51,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer, Resolver
      * The default is a Hash value of the rootdir paths. The name is used in the console output,
      * to point to information related to a particular repository. A name must be unique amongst a repository group.</td></tr>
      * <tr><td><code>dirs</code></td>
-     *     <td>Specifies a list of rootDirs where to look for dependencies.</td></tr>
+     *     <td>Specifies a list of rootDirs where to look for dependencies. These are evaluated as for {@link org.gradle.api.Project#files(Object...)}</td></tr>
      * </table>
      *
      * <p>Examples:

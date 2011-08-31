@@ -47,7 +47,7 @@ public interface FlatDirectoryArtifactRepository extends ArtifactRepository {
     /**
      * Adds some directories where this repository will look for artifacts.
      *
-     * <p>The provided values are evaluated as for {@link org.gradle.api.Project#files(Object)}.
+     * <p>The provided values are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param dirs the directories.
      */
@@ -56,7 +56,7 @@ public interface FlatDirectoryArtifactRepository extends ArtifactRepository {
     /**
      * Sets the directories where this repository will look for artifacts.
      *
-     * <p>The provided values are evaluated as for {@link org.gradle.api.Project#files(Object)}.
+     * <p>The provided values are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param dirs the directories.
      */
