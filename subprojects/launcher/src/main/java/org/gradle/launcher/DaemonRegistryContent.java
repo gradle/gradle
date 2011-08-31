@@ -19,8 +19,9 @@ package org.gradle.launcher;
 import org.gradle.messaging.remote.Address;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,8 +31,8 @@ public class DaemonRegistryContent implements Serializable {
 
     private Map<Address, DaemonStatus> statusesMap = new HashMap<Address, DaemonStatus>();
 
-    public Collection<DaemonStatus> getDaemonStatuses() {
-        return statusesMap.values();
+    public List<DaemonStatus> getDaemonStatuses() {
+        return new LinkedList(statusesMap.values());
     }
 
     //TODO SF model

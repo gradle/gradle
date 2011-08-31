@@ -50,7 +50,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
             return new LinkedList<DaemonStatus>();
         }
         DaemonRegistryContent content = registry();
-        return new LinkedList(content.getDaemonStatuses()); //TODO SF ugly
+        return content.getDaemonStatuses();
     }
 
     private DaemonRegistryContent registry() {
