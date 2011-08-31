@@ -22,14 +22,8 @@ class EmbeddedDaemonRegistrySpec extends Specification {
 
     @Delegate EmbeddedDaemonRegistry registry = new EmbeddedDaemonRegistry()
 
-    def address() {
-        [:] as Address
-    }
-
-    def storeEntry() {
-        def entry = newEntry()
-        entry.store(address())
-        entry
+    def address(value) {
+        [key: value] as Address
     }
 
     def "initially empty"() {
@@ -39,5 +33,48 @@ class EmbeddedDaemonRegistrySpec extends Specification {
         busy.empty
     }
 
-    //TODO SF add tests
+    def "lifecycle"() {
+        given:
+        store(address(10))
+        store(address(20))
+
+        expect:
+        all.size() == 2
+        idle.size() == 2
+        busy.empty
+
+        when:
+        markBusy(address(10))
+
+        then:
+        all.size() == 2
+        idle.size() == 1
+        busy.size() == 1
+
+        when:
+        markBusy(address(20))
+
+        then:
+        all.size() == 2
+        idle.empty
+        busy.size() == 2
+
+        when:
+        markIdle(address(10))
+        markIdle(address(20))
+
+        then:
+        all.size() == 2
+        idle.size() == 2
+        busy.empty
+
+        when:
+        remove(address(10))
+        remove(address(20))
+
+        then:
+        all.empty
+        idle.empty
+        busy.empty
+    }
 }
