@@ -105,7 +105,7 @@ class DaemonFunctionalTest extends Specification {
         then:
         poll {
             assert reg.daemonDir.logs.size() == 1
-            assert reg.daemonDir.logs[0].text.contains(DaemonServerConnector.HELLO_MESSAGE)
+            assert reg.daemonDir.logs[0].text.contains(DaemonTcpServerConnector.HELLO_MESSAGE)
         }
     }
 
