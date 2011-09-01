@@ -94,10 +94,13 @@ daemonIntegTest {
   }
 }
 
-
 task integTest(type: Test) {
     doFirst {
         systemProperties['org.gradle.integtest.executer'] = integTestMode
+    }
+    if (OperatingSystem.current().isWindows()) {
+        //Temporary hack to investigate windows build issues
+        exclude "**/org/gradle/integtests/tooling/**"
     }
 }
 
