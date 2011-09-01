@@ -18,15 +18,15 @@ package org.gradle.launcher.daemon;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.UncheckedException;
-
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.ConnectException;
+import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
+import org.gradle.util.UncheckedException;
 
-import java.util.List;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Provides the general connection mechanics of connecting to a daemon, leaving implementations
@@ -51,10 +51,13 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
 
     private Connection<Object> findConnection(List<DaemonStatus> statuses) {
         for (DaemonStatus status : statuses) {
+            Address address = status.getAddress();
             try {
-                return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(status.getAddress());
+                return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(address);
             } catch (ConnectException e) {
-                // Ignore
+                //this means the daemon died without removing its address from the registry
+                //we can safely remove this address now
+                daemonRegistry.remove(address);
             }
         }
         return null;
