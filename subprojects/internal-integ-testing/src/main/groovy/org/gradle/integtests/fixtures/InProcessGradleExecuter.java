@@ -29,7 +29,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.initialization.CommandLineParser;
+import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.hamcrest.Matcher;
