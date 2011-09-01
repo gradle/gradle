@@ -20,7 +20,7 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.initialization.ParsedCommandLine;
+import org.gradle.cli.ParsedCommandLine;
 
 import java.io.File;
 import java.io.Serializable;

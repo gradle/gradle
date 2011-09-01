@@ -16,7 +16,7 @@
 package org.gradle.launcher
 
 import org.gradle.initialization.BuildClientMetaData
-import org.gradle.initialization.ParsedCommandLine
+import org.gradle.cli.ParsedCommandLine
 import spock.lang.Specification
 import org.gradle.launcher.daemon.DaemonClient
 

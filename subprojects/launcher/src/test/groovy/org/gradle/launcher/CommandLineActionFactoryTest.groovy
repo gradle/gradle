@@ -17,7 +17,7 @@ package org.gradle.launcher
 
 import org.gradle.api.internal.Factory
 import org.gradle.api.internal.project.ServiceRegistry
-import org.gradle.initialization.CommandLineConverter
+import org.gradle.cli.CommandLineConverter
 import org.gradle.launcher.CommandLineActionFactory.ActionAdapter
 import org.gradle.launcher.CommandLineActionFactory.ShowGuiAction
 import org.gradle.launcher.CommandLineActionFactory.WithLoggingAction
@@ -29,6 +29,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.*
+import org.gradle.cli.CommandLineArgumentException
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory

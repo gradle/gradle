@@ -16,7 +16,6 @@
 package org.gradle.launcher;
 
 import org.gradle.BuildExceptionReporter;
-import org.gradle.CommandLineArgumentException;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ServiceRegistry;
@@ -28,6 +27,10 @@ import org.gradle.launcher.daemon.Daemon;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.*;
+import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineConverter;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
