@@ -19,9 +19,9 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.plugins.ear.EarPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
+import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.eclipse.model.*
@@ -97,7 +97,7 @@ class EclipseWtpPlugin extends IdePlugin {
                     component.libConfigurations = [project.configurations.runtime]
                     component.minusConfigurations = [project.configurations.providedRuntime]
                     component.conventionMapping.contextPath = { project.war.baseName }
-                    component.resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName // TODO: not lazy
+                    component.conventionMapping.resources = { [new WbResource('/', project.convention.plugins.war.webAppDirName)] }
                     component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
                 } else if (EarPlugin.class.isAssignableFrom(type)) {
                     component.rootConfigurations = [project.configurations.deploy]

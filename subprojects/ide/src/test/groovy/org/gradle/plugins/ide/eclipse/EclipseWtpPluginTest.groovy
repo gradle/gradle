@@ -22,6 +22,7 @@ import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.util.HelperUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 /**
@@ -81,6 +82,17 @@ class EclipseWtpPluginTest extends Specification {
                 new Facet(FacetType.fixed, "jst.web", null),
                 new Facet(FacetType.installed, "jst.web", "2.4"),
                 new Facet(FacetType.installed, "jst.java", "5.0")])
+    }
+
+    @Issue("GRADLE-1770")
+    def "wb resource honors web app dir even if configured after plugin appliance"() {
+        when:
+        project.apply(plugin: 'war')
+        wtpPlugin.apply(project)
+        project.webAppDirName = 'foo'
+
+        then:
+        project.eclipseWtpComponent.resources == [new WbResource('/', 'foo')]
     }
 
     def applyToEarProject_shouldHaveWebProjectAndClasspathTask() {
