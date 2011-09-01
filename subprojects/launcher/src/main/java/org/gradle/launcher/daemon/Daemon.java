@@ -116,10 +116,13 @@ public class Daemon implements Runnable, Stoppable {
                         public void run() {
                             Command command = null;
                             try {
+                                //There's a reason why we lock first and then read the incoming command
+                                //This way we're marking the daemon as 'busy' as soon as it is connected to the client
+                                //It does not have impact for daemon usage in real world but it makes certain things easier and it helps a lot with testing daemon
                                 command = lockAndReceive(connection, control);
                                 if (command == null) {
                                     LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
-                                    unlock(control);  //TODO SF - if receiving is first we don't need this really
+                                    unlock(control);
                                     connection.stop();
                                     return;
                                 }
@@ -231,7 +234,8 @@ public class Daemon implements Runnable, Stoppable {
                     try {
                         connection.dispatch(event);
                     } catch (Exception e) {
-                        //TODO SF we need handling for this. It means the client disconnected
+                        //Ignore. It means the client has disconnected so no point sending him any log output.
+                        //we should be checking if client still listens elsewhere anyway.
                     }
                 }
             };
@@ -258,7 +262,6 @@ public class Daemon implements Runnable, Stoppable {
 
     private Command lockAndReceive(Connection<Object> connection, CompletionHandler serverControl) {
         try {
-            //TODO SF - receiving can be first and the logic gets simpler
             serverControl.onStartActivity();
             return (Command) connection.receive();
         } catch (BusyException busy) {
