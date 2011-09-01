@@ -26,7 +26,11 @@ import java.util.List;
 public interface DaemonRegistry {
 
     List<DaemonStatus> getAll();
+
+    //daemons without active connection
     List<DaemonStatus> getIdle();
+
+    //daemons with active connection.
     List<DaemonStatus> getBusy();
     
     void store(Address address);

@@ -53,7 +53,6 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         return content.getDaemonStatuses();
     }
 
-    //daemons without active connection
     public synchronized List<DaemonStatus> getIdle() {
         List<DaemonStatus> out = new LinkedList<DaemonStatus>();
         List<DaemonStatus> all = getAll();
@@ -65,7 +64,6 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         return out;
     }
 
-    //daemons with active connection.
     public synchronized List<DaemonStatus> getBusy() {
         List<DaemonStatus> out = new LinkedList<DaemonStatus>();
         List<DaemonStatus> all = getAll();
@@ -78,7 +76,6 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     }
 
     public synchronized void remove(final Address address) {
-        //TODO SF duplicated
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                 oldValue.getStatusesMap().remove(address);
@@ -112,6 +109,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                 if (oldValue == null) {
+                    //it means the registry didn't exist yet
                     oldValue = new DaemonRegistryContent();
                 }
                 DaemonStatus status = new DaemonStatus(address).setIdle(true);
