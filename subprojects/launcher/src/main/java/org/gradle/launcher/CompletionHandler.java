@@ -35,12 +35,8 @@ class CompletionHandler implements Stoppable {
     private boolean running;
     private boolean stopped;
 
-    private long lastActivityAt;
+    private long lastActivityAt = -1;
     private ActivityListener activityListener = new EmptyActivityListener();
-
-    CompletionHandler() {
-        updateActivityTimestamp();
-    }
 
     public CompletionHandler setActivityListener(ActivityListener activityListener) {
         assert activityListener != null;
@@ -67,6 +63,30 @@ class CompletionHandler implements Stoppable {
     }
 
     /**
+     * Called once when the daemon is up and ready for connections.
+     */
+    public void start() {
+        lock.lock();
+        try {
+            updateActivityTimestamp();
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Has the daemon started accepting connections.
+     */
+    public boolean isStarted() {
+        return lastActivityAt != -1;
+    }
+
+    public boolean hasBeenIdleFor(int milliseconds) {
+        return lastActivityAt < (System.currentTimeMillis() - milliseconds);
+    }
+
+    /**
      * Waits until stopped, or timeout.
      *
      * @return true if stopped, false if timeout
@@ -74,9 +94,9 @@ class CompletionHandler implements Stoppable {
     public boolean awaitStopOrIdleTimeout(int timeout) {
         lock.lock();
         try {
-            while (running || (!stopped && lastActivityAt < (System.currentTimeMillis() - timeout))) {
+            while ((running || !isStarted()) || (!stopped && !hasBeenIdleFor(timeout))) {
                 try {
-                    if (running) {
+                    if (running || !isStarted()) {
                         condition.await();
                     } else {
                         condition.awaitUntil(new Date(lastActivityAt + timeout));

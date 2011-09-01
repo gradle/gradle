@@ -24,6 +24,7 @@ import org.gradle.api.logging.Logging;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * The server portion of the build daemon. See {@link DaemonClient} for a description of the protocol.
@@ -38,11 +39,14 @@ abstract public class DaemonMain  {
         
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
         DaemonServerConnector connector = new DaemonServerConnector();
-        DaemonRegistry daemonRegistry = new PersistentDaemonRegistry(startParameter.getGradleUserHomeDir());
+        
+        File registryDir = startParameter.getGradleUserHomeDir();
+        DaemonRegistry daemonRegistry = new PersistentDaemonRegistry(registryDir);
         
         int idleTimeout = getIdleTimeout(startParameter);
-        LOGGER.info("Daemon idle timeout is configured to: " + idleTimeout / 1000 + " secs");
+        float idleTimeoutSecs = idleTimeout / 1000;
         
+        LOGGER.lifecycle("Starting daemon (at {}) with settings: idleTimeout = {} secs, registryDir = {}", new Date(), idleTimeoutSecs, registryDir);
         Daemon daemon = new Daemon(loggingServices, connector, daemonRegistry);
         
         daemon.start();
@@ -50,7 +54,7 @@ abstract public class DaemonMain  {
         if (wasStopped) {
             LOGGER.info("Daemon stopping due to stop request");
         } else {
-            LOGGER.info("Daemon hit idle timeout (" + idleTimeout / 1000 + " secs), stopping");
+            LOGGER.info("Daemon hit idle timeout (" + idleTimeoutSecs + " secs), stopping");
             daemon.stop();
         }
     }

@@ -37,6 +37,7 @@ import org.gradle.util.UncheckedException;
 
 import java.io.*;
 import java.util.Properties;
+import java.util.Date;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.CountDownLatch;
@@ -114,13 +115,10 @@ public class Daemon implements Runnable, Stoppable {
                             Command command = null;
                             try {
                                 command = lockAndReceive(connection, control);
-                                if (command == null || command instanceof Stop) {
-                                    if (command == null) {
-                                        LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
-                                    }
+                                if (command == null) {
+                                    LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
                                     unlock(control);  //TODO SF - if receiving is first we don't need this really
                                     connection.stop();
-                                    stopLatch.countDown();
                                     return;
                                 }
                             } catch (BusyException e) {
@@ -167,7 +165,12 @@ public class Daemon implements Runnable, Stoppable {
             
             // Advertise that the daemon is now ready to accept connections
             daemonRegistry.store(connectorAddress);
+            control.start();
             started = true;
+            LOGGER.lifecycle("Daemon started at: " + new Date() + ", with address: " + connectorAddress);
+        } catch (Exception e) {
+            LOGGER.warn("exception starting daemon", e);
+            stopLatch.countDown();
         } finally {
             lifecycleLock.unlock();
         }
@@ -287,7 +290,7 @@ public class Daemon implements Runnable, Stoppable {
         LOGGER.info("Executing {}", command);
         if (command instanceof Stop) {
             LOGGER.lifecycle("Stopping");
-            serverControl.stop();
+            stopLatch.countDown();
             return new CommandComplete(null);
         }
 
