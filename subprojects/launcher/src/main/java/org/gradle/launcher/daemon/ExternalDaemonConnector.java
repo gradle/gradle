@@ -70,7 +70,7 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentD
         //TODO SF daemon server should use all gradle opts (that requires more digging & windows validation) but it is a part of a different story
         //for now I only pass the idle timeout
         DaemonTimeout timeout = new DaemonTimeout(System.getenv("GRADLE_OPTS"), idleTimeout);
-        daemonArgs.add(timeout.toArg());
+        daemonArgs.add(timeout.toSysArg());
 
         DaemonStartAction daemon = new DaemonStartAction();
         daemon.args(daemonArgs);

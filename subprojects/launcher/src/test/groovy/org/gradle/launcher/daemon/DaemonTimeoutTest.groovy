@@ -16,17 +16,38 @@
 package org.gradle.launcher.daemon
 
 import spock.lang.Specification
+import org.gradle.api.GradleException
 
 /**
  * @author: Szczepan Faber, created at: 8/29/11
  */
 class DaemonTimeoutTest extends Specification {
 
-    def "knows timeout"() {
+    def "turns timeout into system property string"() {
         expect:
-        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonTimeout(null, 1000).toArg()
-        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonTimeout("-Dfoo=bar", 1000).toArg()
-        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonTimeout("-Dorg.gradle.daemon.idletimeout=foo", 1000).toArg()
-        "-Dorg.gradle.daemon.idletimeout=2000" == new DaemonTimeout("-Dorg.gradle.daemon.idletimeout=2000", 1000).toArg()
+        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonTimeout(null, 1000).toSysArg()
+        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonTimeout("-Dfoo=bar", 1000).toSysArg()
+        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonTimeout("-Dorg.gradle.daemon.idletimeout=foo", 1000).toSysArg()
+        "-Dorg.gradle.daemon.idletimeout=2000" == new DaemonTimeout("-Dorg.gradle.daemon.idletimeout=2000", 1000).toSysArg()
+    }
+
+    def "reads and validates timeout"() {
+        expect:
+        4000 == new DaemonTimeout(['org.gradle.daemon.idletimeout': '4000']).idleTimeout
+
+        when:
+        new DaemonTimeout(['org.gradle.daemon.idletimeout': 'asdf']).idleTimeout
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains 'org.gradle.daemon.idletimeout'
+        ex.message.contains 'asdf'
+
+        when:
+        new DaemonTimeout([:]).idleTimeout
+
+        then:
+        ex = thrown(GradleException)
+        ex.message.contains 'org.gradle.daemon.idletimeout'
     }
 }

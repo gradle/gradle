@@ -77,10 +77,6 @@ abstract public class DaemonMain  {
     }
     
     private static int getIdleTimeout(StartParameter startParameter) {
-        //TODO SF - very simple/no validation
-        String timeoutProperty = startParameter.getSystemPropertiesArgs().get(DaemonTimeout.TIMEOUT_PROPERTY);
-        int idleTimeout = (timeoutProperty != null)? Integer.parseInt(timeoutProperty) : 3 * 60 * 60 * 1000;
-        return idleTimeout;
+        return new DaemonTimeout(startParameter.getSystemPropertiesArgs()).getIdleTimeout();
     }
-
 }

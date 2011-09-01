@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon;
 
+import org.gradle.api.GradleException;
+
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,15 +25,33 @@ import java.util.regex.Pattern;
  * @author: Szczepan Faber, created at: 8/29/11
  */
 public class DaemonTimeout {
-    public static final String TIMEOUT_PROPERTY = "org.gradle.daemon.idletimeout";
-    private int idleTimeout;
+    private static final String TIMEOUT_PROPERTY = "org.gradle.daemon.idletimeout";
+    private final int idleTimeout;
 
+    /**
+     * parses input vm params and looks for the timeout property. If not found the default is used.
+     */
     public DaemonTimeout(String vmParams, int defaultIdleTimeout) {
         String p = readProperty(vmParams);
         if (p != null) {
             idleTimeout = Integer.parseInt(p);
         } else {
             idleTimeout = defaultIdleTimeout;
+        }
+    }
+
+    /**
+     * throws exception if timeout property is not in the properties or when it is not a valid int
+     */
+    public DaemonTimeout(Map<String, String> sysProperties) {
+        String timeoutProperty = sysProperties.get(TIMEOUT_PROPERTY);
+        if (timeoutProperty == null) {
+            throw new GradleException("System property: " + TIMEOUT_PROPERTY + " not found. It needs to be provided.");
+        }
+        try {
+            idleTimeout = Integer.parseInt(timeoutProperty);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Unable to parse %s sys property. The value should be an int but is: %s", TIMEOUT_PROPERTY, timeoutProperty));
         }
     }
 
@@ -45,7 +66,14 @@ public class DaemonTimeout {
         return idleDaemonTimeoutArg;
     }
 
-    public String toArg() {
+    public int getIdleTimeout() {
+        return idleTimeout;
+    }
+
+    /**
+     * returns sys arg in proper console format
+     */
+    public String toSysArg() {
         return "-D" + TIMEOUT_PROPERTY + "=" + idleTimeout;
     }
 }
