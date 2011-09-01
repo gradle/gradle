@@ -17,10 +17,6 @@
 package org.gradle.integtests.daemon
 
 import org.gradle.configuration.GradleLauncherMetaData
-import org.gradle.launcher.DaemonClient
-import org.gradle.launcher.DaemonConnector
-import org.gradle.launcher.ExternalDaemonConnector
-import org.gradle.launcher.PersistentDaemonRegistry
 import org.gradle.launcher.protocol.Stop
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.Address
@@ -29,6 +25,7 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
+import org.gradle.launcher.*
 
 /**
  * @author: Szczepan Faber, created at: 8/18/11
@@ -55,7 +52,7 @@ class DaemonFunctionalTest extends Specification {
         printDaemonLog()
     }
 
-    @Timeout(30) //healthy timeout just in case
+    @Timeout(10) //healthy timeout just in case
     def "daemons expire"() {
         when:
         prepare()
@@ -78,20 +75,41 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(30)
-    def "daemons log"() {
+    @Timeout(10)
+    def "daemons log separately"() {
         when:
         prepare()
-        connect()
         connect()
 
         then:
         poll {
+            assert reg.busy.size() == 1
+        }
+
+        when:
+        connect()
+
+        then:
+        poll {
+            assert reg.busy.size() == 2
             assert reg.daemonDir.logs.size() == 2
         }
     }
 
-    @Timeout(30)
+    @Timeout(10)
+    def "daemon logs output"() {
+        when:
+        prepare()
+        connect()
+
+        then:
+        poll {
+            assert reg.daemonDir.logs.size() == 1
+            assert reg.daemonDir.logs[0].text.contains(DaemonServerConnector.HELLO_MESSAGE)
+        }
+    }
+
+    @Timeout(10)
     def "knows status of the daemon"() {
         when:
         prepare()
@@ -119,7 +137,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(30)
+    @Timeout(10)
     def "spins new daemon if all are busy"() {
         when:
         prepare()
@@ -153,7 +171,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(30)
+    @Timeout(10)
     def "cleans up registry"() {
         prepare()
 
@@ -171,7 +189,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(30)
+    @Timeout(10)
     def "stops idle daemon"() {
         prepare()
 
@@ -189,7 +207,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(30)
+    @Timeout(10)
     def "stops busy daemon"() {
         prepare()
         OutputEventListener listener = Mock()
@@ -207,7 +225,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(30)
+    @Timeout(10)
     def "stops all daemons"() {
         prepare()
         OutputEventListener listener = Mock()
