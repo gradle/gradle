@@ -21,7 +21,7 @@ import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.initialization.CommandLineConverter;
+import org.gradle.cli.CommandLineConverter;
 import org.gradle.logging.internal.*;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.TrueTimeProvider;

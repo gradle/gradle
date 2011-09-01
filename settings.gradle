@@ -16,6 +16,7 @@
 include 'core'
 include 'coreImpl'
 include 'wrapper'
+include 'internalCli'
 include 'launcher'
 include 'plugins'
 include 'scala'

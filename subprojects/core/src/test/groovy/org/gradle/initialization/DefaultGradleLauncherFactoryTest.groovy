@@ -17,6 +17,7 @@ package org.gradle.initialization
 
 import org.gradle.GradleLauncher
 import org.gradle.StartParameter
+import org.gradle.cli.CommandLineConverter
 import spock.lang.Specification
 
 class DefaultGradleLauncherFactoryTest extends Specification {

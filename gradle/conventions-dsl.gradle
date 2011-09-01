@@ -14,3 +14,8 @@ useTestFixtures = { params = [:] ->
         delegate."${sourceSet}Runtime" project(path: projectPath, configuration: "testFixturesUsageRuntime")
     }
 }
+
+// Includes the main source from the internal-cli project into the given source set for this project
+includeCli = { targetSourceSet = "main" ->
+    sourceSets[targetSourceSet].java.source(project(":internalCli").sourceSets.main.java)
+}

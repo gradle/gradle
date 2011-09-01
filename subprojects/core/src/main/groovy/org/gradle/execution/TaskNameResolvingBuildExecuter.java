@@ -21,8 +21,8 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.CommandLineOption;
-import org.gradle.initialization.CommandLineParser;
-import org.gradle.initialization.ParsedCommandLine;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.util.GUtil;
 import org.gradle.util.JavaMethod;
 

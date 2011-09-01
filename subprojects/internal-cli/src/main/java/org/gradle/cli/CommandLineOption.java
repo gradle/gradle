@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
-
-import org.gradle.util.GUtil;
+package org.gradle.cli;
 
 import java.util.List;
 import java.util.Set;
+import java.util.HashSet;
 
 public class CommandLineOption {
-    private final Set<String> options;
+    private final Set<String> options = new HashSet();
     private Class<?> argumentType = Void.TYPE;
     private String description;
     private String subcommand;
     private String deprecationWarning;
 
     public CommandLineOption(Iterable<String> options) {
-        this.options = GUtil.addSets(options);
+        for (String option : options) {
+            this.options.add(option);
+        }
     }
 
     public Set<String> getOptions() {

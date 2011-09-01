@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
-
-import org.gradle.util.GUtil;
+package org.gradle.cli;
 
 import java.io.Serializable;
 import java.util.*;
@@ -36,9 +34,24 @@ public class ParsedCommandLine implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("options: %s, extraArguments: %s", GUtil.toString(presentOptions), GUtil.toString(extraArguments));
+        return String.format("options: %s, extraArguments: %s", quoteAndJoin(presentOptions), quoteAndJoin(extraArguments));
     }
 
+    private String quoteAndJoin(Iterable<String> strings) {
+        StringBuilder output = new StringBuilder();
+        boolean isFirst = true;
+        for (String string : strings) {
+            if (!isFirst) {
+                output.append(", ");
+            }
+            output.append("'");
+            output.append(string);
+            output.append("'");
+            isFirst = false;
+        }
+        return output.toString();
+    }
+    
     /**
      * Returns true if the given option is present in this command-line.
      *

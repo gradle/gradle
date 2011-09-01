@@ -20,7 +20,7 @@ import org.gradle.logging.internal.DefaultLoggingManagerFactory
 import org.gradle.logging.internal.DefaultProgressLoggerFactory
 import org.gradle.logging.internal.DefaultStyledTextOutputFactory
 import spock.lang.Specification
-import org.gradle.initialization.CommandLineConverter
+import org.gradle.cli.CommandLineConverter
 import org.gradle.logging.internal.LoggingCommandLineConverter
 import org.junit.Rule
 import org.gradle.util.RedirectStdOutAndErr

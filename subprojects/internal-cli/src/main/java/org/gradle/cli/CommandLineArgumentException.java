@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
-
-import org.gradle.CommandLineArgumentException;
+package org.gradle.cli;
 
 /**
+ * A {@code CommandLineArgumentException} is thrown when command-line arguments cannot be parsed.
+ * 
  * @author Hans Dockter
  */
-public interface CommandLineConverter<T> {
-    T convert(Iterable<String> args) throws CommandLineArgumentException;
+public class CommandLineArgumentException extends RuntimeException {
+    public CommandLineArgumentException(String message) {
+        super(message);
+    }
 
-    T convert(Iterable<String> args, T target) throws CommandLineArgumentException;
-
-    T convert(ParsedCommandLine args) throws CommandLineArgumentException;
-
-    T convert(ParsedCommandLine args, T target) throws CommandLineArgumentException;
-
-    void configure(CommandLineParser parser);
+    public CommandLineArgumentException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

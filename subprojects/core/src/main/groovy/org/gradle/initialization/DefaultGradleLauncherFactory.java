@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.cli.CommandLineConverter;
 import org.gradle.cache.CacheRepository;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.invocation.DefaultGradle;

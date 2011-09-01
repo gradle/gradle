@@ -15,7 +15,8 @@
  */
 package org.gradle.initialization
 
-import org.gradle.CommandLineArgumentException
+import org.gradle.cli.CommandLineParser
+import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
 
 class CommandLineParserTest extends Specification {

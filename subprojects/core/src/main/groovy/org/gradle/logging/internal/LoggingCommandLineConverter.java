@@ -17,11 +17,11 @@ package org.gradle.logging.internal;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import org.gradle.CommandLineArgumentException;
+import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.AbstractCommandLineConverter;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.AbstractCommandLineConverter;
-import org.gradle.initialization.CommandLineParser;
-import org.gradle.initialization.ParsedCommandLine;
 import org.gradle.logging.LoggingConfiguration;
 
 import java.util.Collection;

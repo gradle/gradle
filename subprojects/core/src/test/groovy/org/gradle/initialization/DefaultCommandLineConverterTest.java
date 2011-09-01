@@ -17,7 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
-import org.gradle.CommandLineArgumentException;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;

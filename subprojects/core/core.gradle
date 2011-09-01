@@ -57,6 +57,9 @@ dependencies {
     reports 'css3-pie:css3-pie:1.0beta3'
 }
 
+// Include the cli support classes in this jar
+includeCli()
+
 task releasesResource(type: GenerateReleasesXml) {
     destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
 }

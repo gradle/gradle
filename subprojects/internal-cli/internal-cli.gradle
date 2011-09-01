@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
 
-import org.gradle.api.GradleException;
+/*
+    This module contains some utilities for parsing command line arguments.
 
-/**
- * A {@code CommandLineArgumentException} is thrown when command-line arguments cannot be parsed.
- * 
- * @author Hans Dockter
- */
-public class CommandLineArgumentException extends GradleException {
-    public CommandLineArgumentException(String message) {
-        super(message);
-    }
+    It's packaged separately because it's used by multiple “applications” (i.e. gradle core and the wrapper).
+    It has no dependencies, and should never have any.
 
-    public CommandLineArgumentException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+    This module is internal so cannot be depended on with a project dependency. This is intentional as the idea is to include
+    this source into the project that needs it (using the “includeCli()” dsl convention) to avoid creating a jar dependency.
+*/

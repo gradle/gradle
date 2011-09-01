@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
-
-import org.gradle.CommandLineArgumentException;
+package org.gradle.cli;
 
 public abstract class AbstractCommandLineConverter<T> implements CommandLineConverter<T> {
     public T convert(Iterable<String> args) throws CommandLineArgumentException {

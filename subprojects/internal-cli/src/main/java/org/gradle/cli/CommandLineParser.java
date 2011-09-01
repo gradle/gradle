@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
-
-import org.gradle.CommandLineArgumentException;
-import org.gradle.util.GUtil;
+package org.gradle.cli;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -152,7 +149,14 @@ public class CommandLineParser {
                     prefixedStrings.add("--" + optionString);
                 }
             }
-            lines.put(GUtil.join(prefixedStrings, ", "), GUtil.elvis(option.getDescription(), ""));
+
+            String key = join(prefixedStrings, ", ");
+            String value = option.getDescription();
+            if (value == null || value.length() == 0) {
+                value = "";
+            }
+
+            lines.put(key, value);
         }
         int max = 0;
         for (String optionStr : lines.keySet()) {
@@ -166,6 +170,24 @@ public class CommandLineParser {
             }
         }
         formatter.flush();
+    }
+
+    private static String join(Collection<?> things, String separator) {
+        StringBuffer buffer = new StringBuffer();
+        boolean first = true;
+
+        if (separator == null) {
+            separator = "";
+        }
+
+        for (Object thing : things) {
+            if (!first) {
+                buffer.append(separator);
+            }
+            buffer.append(thing.toString());
+            first = false;
+        }
+        return buffer.toString();
     }
 
     /**
