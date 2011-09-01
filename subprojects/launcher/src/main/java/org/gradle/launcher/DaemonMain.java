@@ -38,7 +38,7 @@ abstract public class DaemonMain  {
         redirectOutputsAndInput(startParameter);
         
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
-        DaemonServerConnector connector = new DaemonServerConnector();
+        DaemonServerConnector connector = new DaemonTcpServerConnector();
         
         File registryDir = startParameter.getGradleUserHomeDir();
         DaemonRegistry daemonRegistry = new PersistentDaemonRegistry(registryDir);

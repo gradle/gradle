@@ -15,97 +15,30 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.api.Action;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.messaging.concurrent.Stoppable;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectEvent;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
-import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
-import org.gradle.util.UUIDGenerator;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import org.gradle.messaging.concurrent.Stoppable;
 
 /**
- * Opens a TCP connection for clients to connect to to communicate with a daemon.
+ * Opens a server connection for clients to connect to to communicate with a daemon.
  * <p>
  * A server connector should only be used by one daemon, and has a single use lifecycle.
- * <p>
- * This implementation is threadsafe in that start/stop can be called from different threads.
+ * Implementations must be threadsafe so that start/stop can be called from different threads.
  */
-public class DaemonServerConnector implements Stoppable {
-
-    private static final Logger LOGGER = Logging.getLogger(DaemonServerConnector.class);
-
-    final private TcpIncomingConnector<Object> incomingConnector;
-
-    private boolean started;
-    private boolean stopped;
-    private final Lock lifecycleLock = new ReentrantLock();
-
-    public DaemonServerConnector() {
-        this.incomingConnector = new TcpIncomingConnector<Object>(
-                new DefaultExecutorFactory(),
-                new DefaultMessageSerializer<Object>(getClass().getClassLoader()),
-                new InetAddressFactory(),
-                new UUIDGenerator()
-        );
-    }
+public interface DaemonServerConnector extends Stoppable {
 
     /**
      * Starts accepting connections, passing any established connections to the given handler.
      * <p>
      * When this method returns, the daemon will be ready to accept connections.
-     * 
+     *
      * @return the address that clients can use to connect
      * @throws IllegalStateException if this method has previously been called on this object, or if the stop method has previously been called on this object.
      */
-    Address start(final IncomingConnectionHandler handler) {
-        lifecycleLock.lock();
-        try {
-            if (stopped) {
-                throw new IllegalStateException("server connector cannot be started as it is either stopping or has been stopped");
-            }
-            if (started) {
-                throw new IllegalStateException("server connector cannot be started as it has already been started");
-            }
-
-            // Hold the lock until we actually start accepting connections for the case when stop is called from another
-            // thread while we are in the middle here.
-
-            LOGGER.lifecycle("Starting daemon server connector.");
-
-            Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
-                public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
-                    handler.handle(connectionConnectEvent.getConnection());
-                }
-            };
-
-            Address address = incomingConnector.accept(connectEvent, false);
-            started = true;
-            return address;
-        } finally {
-            lifecycleLock.unlock();
-        }
-    }
+    Address start(final IncomingConnectionHandler handler);
 
     /**
      * Stops accepting new connections, and blocks until all active connections close.
      */
-    public void stop() {
-        lifecycleLock.lock();
-        try { // can't imagine what would go wrong here, but try/finally just in case
-            stopped = true;
-        } finally {
-            lifecycleLock.unlock();
-        }
-
-        incomingConnector.stop();
-    }
+    public void stop();
 
 }

@@ -34,7 +34,7 @@ public class EmbeddedDaemonConnector extends AbstractDaemonConnector<EmbeddedDae
         EmbeddedDaemonRegistry daemonRegistry = getDaemonRegistry();
 
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newCommandLineProcessLogging();
-        DaemonServerConnector server = new DaemonServerConnector();
+        DaemonServerConnector server = new DaemonTcpServerConnector();
 
         daemonRegistry.startDaemon(new Daemon(loggingServices, server, daemonRegistry));
     }
