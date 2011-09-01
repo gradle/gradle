@@ -50,7 +50,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
             //when no daemon process has started yet
             return new LinkedList<DaemonStatus>();
         }
-        return content.getDaemonStatuses();
+        return content.getStatuses();
     }
 
     public synchronized List<DaemonStatus> getIdle() {
@@ -78,7 +78,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public synchronized void remove(final Address address) {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                oldValue.getStatusesMap().remove(address);
+                oldValue.removeStatus(address);
                 return oldValue;
             }
         });
@@ -87,7 +87,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public synchronized void markBusy(final Address address) {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                DaemonStatus status = oldValue.getStatusesMap().get(address);
+                DaemonStatus status = oldValue.getStatus(address);
                 if (status != null) {
                     status.setIdle(false);
                 }
@@ -99,7 +99,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public synchronized void markIdle(final Address address) {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                oldValue.getStatusesMap().get(address).setIdle(true);
+                oldValue.getStatus(address).setIdle(true);
                 return oldValue;
             }
         });
@@ -113,7 +113,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     oldValue = new DaemonRegistryContent();
                 }
                 DaemonStatus status = new DaemonStatus(address).setIdle(true);
-                oldValue.getStatusesMap().put(address, status);
+                oldValue.setStatus(address, status);
                 return oldValue;
             }
         });

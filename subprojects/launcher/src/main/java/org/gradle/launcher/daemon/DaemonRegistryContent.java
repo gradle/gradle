@@ -31,12 +31,31 @@ public class DaemonRegistryContent implements Serializable {
 
     private Map<Address, DaemonStatus> statusesMap = new HashMap<Address, DaemonStatus>();
 
-    public List<DaemonStatus> getDaemonStatuses() {
+    /**
+     * returns all statuses. May be empty.
+     */
+    public List<DaemonStatus> getStatuses() {
         return new LinkedList(statusesMap.values());
     }
 
-    //TODO SF model
-    public Map<Address, DaemonStatus> getStatusesMap() {
-        return statusesMap;
+    /**
+     * Gets the status for given address. May return null.
+     */
+    public DaemonStatus getStatus(Address address) {
+        return statusesMap.get(address);
+    }
+
+    /**
+     * Removes the status
+     */
+    public void removeStatus(Address address) {
+        statusesMap.remove(address);
+    }
+
+    /**
+     * sets the status for given address
+     */
+    public void setStatus(Address address, DaemonStatus status) {
+        statusesMap.put(address, status);
     }
 }
