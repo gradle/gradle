@@ -42,6 +42,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
     private boolean started;
     private boolean stopped;
     private final Lock lifecycleLock = new ReentrantLock();
+    public static final String HELLO_MESSAGE = "Starting daemon server connector.";
 
     public DaemonTcpServerConnector() {
         this.incomingConnector = new TcpIncomingConnector<Object>(
@@ -65,7 +66,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
             // Hold the lock until we actually start accepting connections for the case when stop is called from another
             // thread while we are in the middle here.
 
-            LOGGER.lifecycle("Starting daemon server connector.");
+            LOGGER.lifecycle(HELLO_MESSAGE);
 
             Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
                 public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
