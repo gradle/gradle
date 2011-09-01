@@ -45,16 +45,12 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     }
 
     public synchronized List<DaemonStatus> getAll() {
-        //TODO SF ugly
-        if (!daemonDir.getRegistry().exists()) {
+        DaemonRegistryContent content = cache.get();
+        if (content == null) {
+            //when no daemon process has started yet
             return new LinkedList<DaemonStatus>();
         }
-        DaemonRegistryContent content = registry();
-        return new LinkedList(content.getDaemonStatuses()); //TODO SF ugly
-    }
-
-    private DaemonRegistryContent registry() {
-        return cache.get();
+        return content.getDaemonStatuses();
     }
 
     //daemons without active connection
