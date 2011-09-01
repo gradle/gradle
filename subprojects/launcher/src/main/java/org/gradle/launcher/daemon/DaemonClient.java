@@ -77,26 +77,25 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
      * Executes the given action in the daemon. The action and parameters must be serializable.
      *
      * @param action The action
-     * @throws ReportedException On failure, when the failure has already been logged/reported.
+     * @throws org.gradle.launcher.ReportedException On failure, when the failure has already been logged/reported.
      */
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
         LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
         LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
-        //TODO SF - this needs some sanity check and we should find a better place for this code anyway
         while(true) {
             Connection<Object> connection = connector.connect();
             try {
                 Result result = (Result) run(new Build(action, parameters), connection);
                 return (T) result.getResult();
             } catch (BusyException e) {
-                continue;
+                //ignore. We'll continue looping until we get a connection that is able handle a build request.
             }
         }
     }
 
     private CommandComplete run(Command command, Connection<Object> connection) {
         try {
-            //TODO SF - this may fail
+            //TODO SF - this may fail. We should handle it and have tests for that. It means the server is gone.
             connection.dispatch(command);
             while (true) {
                 Object object = connection.receive();

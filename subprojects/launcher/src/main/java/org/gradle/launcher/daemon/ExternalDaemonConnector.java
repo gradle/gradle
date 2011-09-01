@@ -67,7 +67,7 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentD
         daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.GRADLE_USER_HOME));
         daemonArgs.add(userHomeDir.getAbsolutePath());
 
-        //TODO SF daemon server should use all gradle opts (that requires more digging & windows validation)
+        //TODO SF daemon server should use all gradle opts (that requires more digging & windows validation) but it is a part of a different story
         //for now I only pass the idle timeout
         DaemonTimeout timeout = new DaemonTimeout(System.getenv("GRADLE_OPTS"), idleTimeout);
         daemonArgs.add(timeout.toArg());
