@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher
+package org.gradle.launcher.daemon
 
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.GradleLauncherAction
@@ -21,6 +21,7 @@ import org.gradle.launcher.protocol.Build
 import org.gradle.launcher.protocol.CommandComplete
 import org.gradle.launcher.protocol.Result
 import org.gradle.launcher.protocol.Stop
+import org.gradle.launcher.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification

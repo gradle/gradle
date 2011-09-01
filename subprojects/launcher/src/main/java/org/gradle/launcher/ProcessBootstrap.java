@@ -26,7 +26,7 @@ import java.net.URLClassLoader;
 import java.util.Set;
 
 public class ProcessBootstrap {
-    void run(String mainClassName, String[] args) {
+    public void run(String mainClassName, String[] args) {
         try {
             runNoExit(mainClassName, args);
             System.exit(0);

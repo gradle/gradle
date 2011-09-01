@@ -13,20 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher
 
-import spock.lang.Specification
+package org.gradle.launcher.daemon;
+
+import org.gradle.messaging.remote.Address;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author: Szczepan Faber, created at: 8/29/11
  */
-class DaemonTimeoutTest extends Specification {
+public class DaemonRegistryContent implements Serializable {
 
-    def "knows timeout"() {
-        expect:
-        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonTimeout(null, 1000).toArg()
-        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonTimeout("-Dfoo=bar", 1000).toArg()
-        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonTimeout("-Dorg.gradle.daemon.idletimeout=foo", 1000).toArg()
-        "-Dorg.gradle.daemon.idletimeout=2000" == new DaemonTimeout("-Dorg.gradle.daemon.idletimeout=2000", 1000).toArg()
+    private Map<Address, DaemonStatus> statusesMap = new HashMap<Address, DaemonStatus>();
+
+    public Collection<DaemonStatus> getDaemonStatuses() {
+        return statusesMap.values();
+    }
+
+    //TODO SF model
+    public Map<Address, DaemonStatus> getStatusesMap() {
+        return statusesMap;
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher;
 
+import org.gradle.launcher.daemon.DaemonClient;
+
 public class StopDaemonAction implements Runnable {
     private final DaemonClient client;
 

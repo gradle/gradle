@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.daemon;
 
 import com.sun.jna.*;
 import org.gradle.api.GradleException;
@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.launcher.DaemonStartAction.Kernel32.*;
+import static org.gradle.launcher.daemon.DaemonStartAction.Kernel32.*;
 
 public class DaemonStartAction {
     private final List<String> args = new ArrayList<String>();

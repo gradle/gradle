@@ -17,6 +17,7 @@ package org.gradle.launcher;
 
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.ParsedCommandLine;
+import org.gradle.launcher.daemon.DaemonClient;
 import org.gradle.util.GUtil;
 
 import java.io.File;

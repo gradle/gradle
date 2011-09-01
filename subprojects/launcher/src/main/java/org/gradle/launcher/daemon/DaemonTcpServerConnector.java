@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.daemon;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
@@ -42,7 +42,6 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
     private boolean started;
     private boolean stopped;
     private final Lock lifecycleLock = new ReentrantLock();
-    public static final String HELLO_MESSAGE = "Starting daemon server connector.";
 
     public DaemonTcpServerConnector() {
         this.incomingConnector = new TcpIncomingConnector<Object>(
@@ -66,7 +65,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
             // Hold the lock until we actually start accepting connections for the case when stop is called from another
             // thread while we are in the middle here.
 
-            LOGGER.lifecycle(HELLO_MESSAGE);
+            LOGGER.lifecycle("Starting daemon server connector.");
 
             Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
                 public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {

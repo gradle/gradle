@@ -26,6 +26,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
 import org.gradle.launcher.*
+import org.gradle.launcher.daemon.*
 
 /**
  * @author: Szczepan Faber, created at: 8/18/11

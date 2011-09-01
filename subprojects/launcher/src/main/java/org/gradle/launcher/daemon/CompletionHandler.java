@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher;
+package org.gradle.launcher.daemon;
 
 import org.gradle.launcher.protocol.BusyException;
 import org.gradle.messaging.concurrent.Stoppable;

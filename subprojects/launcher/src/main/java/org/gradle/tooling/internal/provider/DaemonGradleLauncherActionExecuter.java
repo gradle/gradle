@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.*;
+import org.gradle.launcher.daemon.DaemonClient;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 

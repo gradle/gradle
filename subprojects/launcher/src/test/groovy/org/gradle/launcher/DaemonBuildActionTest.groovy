@@ -18,6 +18,7 @@ package org.gradle.launcher
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.ParsedCommandLine
 import spock.lang.Specification
+import org.gradle.launcher.daemon.DaemonClient
 
 class DaemonBuildActionTest extends Specification {
     final DaemonClient client = Mock()

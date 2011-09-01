@@ -16,6 +16,7 @@
 package org.gradle.launcher
 
 import spock.lang.Specification
+import org.gradle.launcher.daemon.DaemonClient
 
 class StopDaemonActionTest extends Specification {
     final DaemonClient client = Mock()

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher;
+package org.gradle.launcher.daemon;
 
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
@@ -34,8 +34,8 @@ import java.util.List;
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
 
+    final DaemonDir daemonDir;
     final SimpleStateCache<DaemonRegistryContent> cache;
-    public final DaemonDir daemonDir;
 
     public PersistentDaemonRegistry(File baseFolder) {
         this.daemonDir = new DaemonDir(baseFolder);
@@ -45,12 +45,16 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     }
 
     public synchronized List<DaemonStatus> getAll() {
-        DaemonRegistryContent content = cache.get();
-        if (content == null) {
-            //when no daemon process has started yet
+        //TODO SF ugly
+        if (!daemonDir.getRegistry().exists()) {
             return new LinkedList<DaemonStatus>();
         }
-        return content.getDaemonStatuses();
+        DaemonRegistryContent content = registry();
+        return new LinkedList(content.getDaemonStatuses()); //TODO SF ugly
+    }
+
+    private DaemonRegistryContent registry() {
+        return cache.get();
     }
 
     //daemons without active connection

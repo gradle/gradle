@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.daemon;
+
+import org.gradle.launcher.ProcessBootstrap;
 
 public class GradleDaemon {
     public static void main(String[] args) {
-        new ProcessBootstrap().run("org.gradle.launcher.DaemonMain", args);
+        new ProcessBootstrap().run("org.gradle.launcher.daemon.DaemonMain", args);
     }
 }
