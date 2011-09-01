@@ -34,8 +34,8 @@ import java.util.List;
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
 
-    final DaemonDir daemonDir;
     final SimpleStateCache<DaemonRegistryContent> cache;
+    public final DaemonDir daemonDir;
 
     public PersistentDaemonRegistry(File baseFolder) {
         this.daemonDir = new DaemonDir(baseFolder);

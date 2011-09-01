@@ -19,8 +19,8 @@ package org.gradle.integtests.daemon
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.launcher.DaemonClient
 import org.gradle.launcher.DaemonConnector
-import org.gradle.launcher.DaemonRegistry
 import org.gradle.launcher.ExternalDaemonConnector
+import org.gradle.launcher.PersistentDaemonRegistry
 import org.gradle.launcher.protocol.Stop
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.Address
@@ -37,19 +37,21 @@ class DaemonFunctionalTest extends Specification {
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
     DaemonConnector connector
-    DaemonRegistry reg
+    PersistentDaemonRegistry reg
     List<Connection> cleanMe = []
     OutputEventListener listener = Mock()
 
     //cannot use setup() because temp folder will get the proper name
     def prepare() {
         //connector with short-lived daemons
-        connector = new ExternalDaemonConnector(temp.testDir, 10000)
+        connector = new ExternalDaemonConnector<PersistentDaemonRegistry>(temp.testDir, 10000)
         reg = connector.daemonRegistry
     }
 
     def cleanup() {
         cleanMe.each { it.stop() }
+        //daemon log will be printed only when the test fails
+        //because for some reason passing test's cleanup is called after the temp folder rule cleans up
         printDaemonLog()
     }
 
@@ -73,6 +75,19 @@ class DaemonFunctionalTest extends Specification {
 
         poll(2000) {
             assert reg.all.size() == 0
+        }
+    }
+
+    @Timeout(30)
+    def "daemons log"() {
+        when:
+        prepare()
+        connect()
+        connect()
+
+        then:
+        poll {
+            assert reg.daemonDir.logs.size() == 2
         }
     }
 
