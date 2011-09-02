@@ -21,14 +21,14 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
+import org.gradle.util.SystemProperties
 import org.gradle.util.TestFile
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -40,46 +40,36 @@ class SamplesMavenQuickstartIntegrationTest {
     @Rule public final Sample sample = new Sample('maven/quickstart')
 
     private TestFile pomProjectDir
-    private TestFile repoDir
 
     @Before
     void setUp() {
         pomProjectDir = sample.dir
-        repoDir = pomProjectDir.file('pomRepo');
     }
 
     @Test
-    void checkDeployAndInstall() {
-        String version = '1.0'
-        String groupId = "gradle"
-        long start = System.currentTimeMillis();
-        executer.inDirectory(pomProjectDir).withTasks('clean', 'uploadArchives', 'install').run()
-        String repoPath = repoPath(groupId, version)
-        compareXmlWithIgnoringOrder(expectedPom(version, groupId),
-                pomFile(repoDir, repoPath, version).text)
-        repoDir.file("$repoPath/quickstart-1.0.jar").assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
-        checkInstall(start, pomProjectDir, version, groupId)
+    void "can publish to a local repository"() {
+        executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
+
+        def repo = new MavenRepository(pomProjectDir.file('pomRepo'))
+        def module = repo.module('gradle', 'quickstart', '1.0')
+        module.assertArtifactsDeployed('quickstart-1.0.jar', 'quickstart-1.0.pom')
+        compareXmlWithIgnoringOrder(expectedPom('1.0', "gradle"), module.pomFile.text)
+        module.moduleDir.file("quickstart-1.0.jar").assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
     }
 
-    static String repoPath(String group, String version) {
-        "$group/quickstart/$version"
-    }
+    @Test
+    void "can install to local repository"() {
+        def repo = new MavenRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def module = repo.module('gradle', 'quickstart', '1.0')
+        module.moduleDir.deleteDir()
 
-    static File pomFile(TestFile repoDir, String repoPath, String version) {
-        TestFile versionDir = repoDir.file(repoPath)
-        List matches = versionDir.listFiles().findAll { it.name.endsWith('.pom') }
-        assertEquals(1, matches.size())
-        matches[0]
-    }
+        executer.inDirectory(pomProjectDir).withTasks('install').run()
 
-    void checkInstall(long start, TestFile pomProjectDir, String version, String groupId) {
-        TestFile localMavenRepo = new TestFile(pomProjectDir.file("build/localRepoPath.txt").text as File)
-        TestFile installedFile = localMavenRepo.file("$groupId/quickstart/$version/quickstart-${version}.jar")
-        TestFile installedPom = localMavenRepo.file("$groupId/quickstart/$version/quickstart-${version}.pom")
-        installedFile.assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
-        installedPom.assertIsFile()
-        assert start.intdiv(2000) <= installedFile.lastModified().intdiv(2000)
-        compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
+        module.moduleDir.file("quickstart-1.0.jar").assertIsFile()
+        module.moduleDir.file("quickstart-1.0.pom").assertIsFile()
+        module.moduleDir.file("quickstart-1.0.jar").assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
+
+        compareXmlWithIgnoringOrder(expectedPom('1.0', 'gradle'), module.pomFile.text)
     }
 
     private String expectedPom(String version, String groupId) {

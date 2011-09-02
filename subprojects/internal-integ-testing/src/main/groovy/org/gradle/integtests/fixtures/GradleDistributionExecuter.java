@@ -42,7 +42,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private boolean workingDirSet;
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
-    private final Executer executerType;
+    private Executer executerType;
 
     /**
      * Useful at development time when someone wants to explicitly run some test against the daemon from the IDE.
@@ -91,6 +91,10 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
     public Executer getType() {
         return executerType;
+    }
+
+    public void setType(Executer executerType) {
+        this.executerType = executerType;
     }
 
     public Statement apply(Statement base, final FrameworkMethod method, Object target) {

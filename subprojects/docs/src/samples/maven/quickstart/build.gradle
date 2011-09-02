@@ -16,14 +16,3 @@ uploadArchives {
         }
     }
 }
-
-// For our integration tests
-
-install.doLast {
-    def settings = repositories.mavenInstaller.settings
-    new File(buildDir, "localRepoPath.txt").write(settings.localRepository)
-}
-
-clean {
-    delete 'pomRepo'
-}

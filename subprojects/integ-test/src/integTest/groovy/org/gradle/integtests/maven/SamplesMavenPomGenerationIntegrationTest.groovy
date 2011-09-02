@@ -21,15 +21,16 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
+import org.gradle.util.SystemProperties
 import org.gradle.util.TestFile
 import org.hamcrest.Matchers
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -39,8 +40,6 @@ class SamplesMavenPomGenerationIntegrationTest {
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     private TestFile pomProjectDir
-    private TestFile repoDir
-    private TestFile snapshotRepoDir
 
     @Rule public Resources resources = new Resources();
     @Rule public final Sample sample = new Sample('maven/pomGeneration')
@@ -48,93 +47,56 @@ class SamplesMavenPomGenerationIntegrationTest {
     @Before
     void setUp() {
         pomProjectDir = sample.dir
-        repoDir = pomProjectDir.file('pomRepo');
-        snapshotRepoDir = pomProjectDir.file('snapshotRepo');
     }
     
     @Test
-    void checkWithNoCustomVersion() {
-        String version = '1.0'
-        String groupId = "gradle"
-        long start = System.currentTimeMillis();
-        executer.inDirectory(pomProjectDir).withTasks('clean', 'uploadArchives', 'install').run()
-        String repoPath = repoPath(groupId, version)
-        compareXmlWithIgnoringOrder(expectedPom(version, groupId),
-                pomFile(repoDir, repoPath, version).text)
-        repoDir.file("$repoPath/mywar-${version}.war").assertIsCopyOf(pomProjectDir.file("target/libs/mywar-${version}.war"))
+    void "can deploy to local repository"() {
+        def repo = new MavenRepository(pomProjectDir.file('pomRepo'))
+        def module = repo.module('deployGroup', 'mywar', '1.0MVN')
+
+        executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
+
+        compareXmlWithIgnoringOrder(expectedPom('1.0MVN', "deployGroup"), module.pomFile.text)
+        module.moduleDir.file("mywar-1.0MVN.war").assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
+
         pomProjectDir.file('build').assertDoesNotExist()
         pomProjectDir.file('target').assertIsDir()
-        checkInstall(start, pomProjectDir, version, groupId)
     }
 
     @Test
-    void checkWithCustomVersion() {
-        long start = System.currentTimeMillis();
-        String version = "1.0MVN"
-        String groupId = "deployGroup"
-        executer.inDirectory(pomProjectDir).withArguments("-PcustomVersion=${version}").withTasks('clean', 'uploadArchives', 'install').run()
-        String repoPath = repoPath(groupId, version)
-        compareXmlWithIgnoringOrder(expectedPom(version, groupId),
-                pomFile(repoDir, repoPath, version).text)
-        repoDir.file("$repoPath/mywar-${version}.war").assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
-        repoDir.file("$repoPath/mywar-${version}-javadoc.zip").assertIsCopyOf(pomProjectDir.file("target/distributions/mywar-1.0-javadoc.zip"))
-        pomProjectDir.file('build').assertDoesNotExist()
-        pomProjectDir.file('target').assertIsDir()
-        checkInstall(start, pomProjectDir, version, 'installGroup')
-    }
+    void "can install to local repository"() {
+        def repo = new MavenRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def module = repo.module('installGroup', 'mywar', '1.0MVN')
+        module.moduleDir.deleteDir()
 
-    @Test
-    void checkWithSnapshotVersion() {
-        String version = '1.0-SNAPSHOT'
-        String groupId = "deployGroup"
-        long start = System.currentTimeMillis();
-        executer.inDirectory(pomProjectDir).withArguments("-PcustomVersion=${version}").withTasks('clean', 'uploadArchives', 'install').run()
-        String repoPath = repoPath(groupId, version)
-        File pomFile = pomFile(snapshotRepoDir, repoPath, version)
-        compareXmlWithIgnoringOrder(expectedPom(version, groupId), pomFile.text)
-        new TestFile(new File(pomFile.absolutePath.replace(".pom", ".war"))).assertIsFile()
+        executer.inDirectory(pomProjectDir).withTasks('install').run()
+
         pomProjectDir.file('build').assertDoesNotExist()
         pomProjectDir.file('target').assertIsDir()
-        checkInstall(start, pomProjectDir, version, 'installGroup')
+
+        TestFile installedFile = module.moduleDir.file("mywar-1.0MVN.war")
+        TestFile installedJavadocFile = module.moduleDir.file("mywar-1.0MVN-javadoc.zip")
+        TestFile installedPom = module.moduleDir.file("mywar-1.0MVN.pom")
+
+        installedFile.assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
+        installedJavadocFile.assertIsCopyOf(pomProjectDir.file("target/distributions/mywar-1.0-javadoc.zip"))
+        installedPom.assertIsFile()
+
+        compareXmlWithIgnoringOrder(expectedPom("1.0MVN", "installGroup"), installedPom.text)
     }
 
     @Test
     void writeNewPom() {
-        executer.inDirectory(pomProjectDir).withTasks('clean', 'writeNewPom').run()
-        compareXmlWithIgnoringOrder(expectedPom(null, null, 'pomGeneration/expectedNewPom.txt'),
-                pomProjectDir.file("target/newpom.xml").text)
+        executer.inDirectory(pomProjectDir).withTasks('writeNewPom').run()
+        compareXmlWithIgnoringOrder(expectedPom(null, null, 'pomGeneration/expectedNewPom.txt'), pomProjectDir.file("target/newpom.xml").text)
     }
 
     @Test
     void writeDeployerPom() {
-        String version = '1.0'
-        String groupId = "gradle"
-        executer.inDirectory(pomProjectDir).withTasks('clean', 'writeDeployerPom').run()
+        String version = '1.0MVN'
+        String groupId = "deployGroup"
+        executer.inDirectory(pomProjectDir).withTasks('writeDeployerPom').run()
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), pomProjectDir.file("target/deployerpom.xml").text)
-    }
-    
-    static String repoPath(String group, String version) {
-        "$group/mywar/$version"
-    }
-
-    static File pomFile(TestFile repoDir, String repoPath, String version) {
-        TestFile versionDir = repoDir.file(repoPath)
-        List matches = versionDir.listFiles().findAll { it.name.endsWith('.pom') }
-        assert matches.size() == 1
-        matches[0]
-    }
-
-    void checkInstall(long start, TestFile pomProjectDir, String version, String groupId) {
-        TestFile localMavenRepo = new TestFile(pomProjectDir.file("target/localRepoPath.txt").text as File)
-        TestFile installedFile = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}.war")
-        TestFile installedJavadocFile = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}-javadoc.zip")
-        TestFile installedPom = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}.pom")
-        installedFile.assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
-        installedJavadocFile.assertIsCopyOf(pomProjectDir.file("target/distributions/mywar-1.0-javadoc.zip"))
-        installedPom.assertIsFile()
-        assert start.intdiv(2000) <= installedFile.lastModified().intdiv(2000)
-        assert start.intdiv(2000) <= installedJavadocFile.lastModified().intdiv(2000)
-        compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
     
     private String expectedPom(String version, String groupId, String path = 'pomGeneration/expectedPom.txt') {

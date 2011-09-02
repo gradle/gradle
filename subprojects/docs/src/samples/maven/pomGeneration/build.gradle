@@ -59,13 +59,11 @@ uploadArchives {
 installer = install.repositories.mavenInstaller
 deployer = uploadArchives.repositories.mavenDeployer
 
-if (hasProperty('customVersion')) {
-    [installer, deployer]*.pom*.version = customVersion
-    installer.pom.project {
-        groupId 'installGroup'
-    }
-    deployer.pom.groupId = 'deployGroup'
+[installer, deployer]*.pom*.version = '1.0MVN'
+installer.pom.project {
+    groupId 'installGroup'
 }
+deployer.pom.groupId = 'deployGroup'
 
 // START SNIPPET new-pom
 task writeNewPom << {
@@ -92,16 +90,4 @@ task writeNewPom << {
 
 task writeDeployerPom(dependsOn: uploadArchives) << {
     deployer.pom.writeTo("$buildDir/deployerpom.xml")
-}
-
-// For our integration tests
-
-install.doLast {
-    def settings = installer.settings
-    new File(buildDir, "localRepoPath.txt").write(settings.localRepository)
-}
-
-clean {
-    delete 'pomRepo'
-    delete 'snapshotRepo'
 }

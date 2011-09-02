@@ -31,7 +31,7 @@ class MavenPublicationIntegrationTest {
     public void canPublishAProjectWithDependencyInMappedAndUnMappedConfiguration() {
         executer.withTasks('uploadArchives').run()
         def module = repo().module('group', 'root', 1.0)
-        module.assertArtifactsDeployed('root-1.0.jar')
+        module.assertArtifactsDeployed('root-1.0.jar', 'root-1.0.pom')
     }
 
     @Test
@@ -46,6 +46,31 @@ class MavenPublicationIntegrationTest {
         executer.withTasks('uploadArchives').run()
         def module = repo().module('group', 'root', 1.0)
         module.assertArtifactsDeployed('root-1.0.jar', 'root-1.0.jar.sig', 'root-1.0.pom', 'root-1.0.pom.sig')
+    }
+
+    @Test
+    public void canPublishASnapshotVersion() {
+        dist.testFile('build.gradle') << """
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'org.gradle'
+version = '1.0-SNAPSHOT'
+archivesBaseName = 'test'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            snapshotRepository(url: uri("mavenRepo"))
+        }
+    }
+}
+"""
+
+        executer.withTasks('uploadArchives').run()
+
+        def module = repo().module('org.gradle', 'test', '1.0-SNAPSHOT')
+        module.assertArtifactsDeployed('test-1.0-SNAPSHOT.jar', 'test-1.0-SNAPSHOT.pom')
     }
 
     def MavenRepository repo() {

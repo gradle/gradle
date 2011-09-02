@@ -19,6 +19,9 @@ import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import org.gradle.util.TestFile
 
+/**
+ * A fixture for dealing with Maven repositories.
+ */
 class MavenRepository {
     final TestFile rootDir
 
@@ -64,7 +67,14 @@ class MavenModule {
     }
 
     void assertArtifactsDeployed(String... names) {
-        for (name in names) {
+        def artifactNames = names
+        if (version.endsWith('-SNAPSHOT')) {
+            def metaData = new XmlParser().parse(moduleDir.file('maven-metadata.xml'))
+            def timestamp = metaData.versioning.snapshot.timestamp[0].text().trim()
+            def build = metaData.versioning.snapshot.buildNumber[0].text().trim()
+            artifactNames = names.collect { it.replace('-SNAPSHOT', "-${timestamp}-${build}")}
+        }
+        for (name in artifactNames) {
             moduleDir.file(name).assertIsFile()
             moduleDir.file("${name}.md5").assertIsFile()
             moduleDir.file("${name}.sha1").assertIsFile()

@@ -16,5 +16,7 @@
 
 dependencies {
     groovy libraries.groovy_depends
-    compile project(":internalTesting"), libraries.jetty_depends
+    compile project(":internalTesting")
+    compile project(':cli')
+    compile libraries.jetty_depends
 }

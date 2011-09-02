@@ -16,24 +16,32 @@
 
 package org.gradle.integtests.maven
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer
+import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.SystemProperties
 import org.gradle.util.TestFile
-import org.junit.Ignore
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-
-import static org.gradle.util.TextUtil.escapeString
+import spock.lang.Ignore
 
 /**
  * @author: Szczepan Faber, created at: 6/16/11
  */
-class MavenNewPublicationIntegrationTest extends AbstractIntegrationTest {
+class MavenNewPublicationIntegrationTest extends AbstractIntegrationSpec {
+    @Rule public final HttpServer server = new HttpServer()
+
+    @Before
+    public void setup() {
+        // TODO - need to fix this. Currently, you must run the 'intTestImage' task before running this test.
+        executer.type = Executer.forking
+    }
 
     @Test
-    void "publishes snapshot to a flat dir maven repo"() {
-        //given
-        def repo = file("repo").createDir()
-
+    void "publishes snapshot to a local maven repository"() {
+        given:
         file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'maven'
@@ -47,21 +55,20 @@ repositories {
     mavenCentral()
 }
 
-publications.maven.repository.url = '${escapeString(repo.toURL())}'
+publications.maven.repository.url = '${repo().rootDir.toURI()}'
 """
-        //when
+
+        when:
         executer.withTasks('publishArchives').run()
 
-        //then
-        def result = repo.file('org', 'test', 'someCoolProject', '5.0-SNAPSHOT')
-        def files = result.list() as List
-        assert files.contains('maven-metadata.xml')
-        assert files.any { it =~ /someCoolProject-5.0-.*\.jar/ }
+        then:
+        def module = repo().module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
+        module.assertArtifactsDeployed("someCoolProject-5.0-SNAPSHOT.jar")
     }
 
     @Test
     void "installs archives to local maven repo"() {
-        //given
+        given:
         file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'maven'
@@ -75,23 +82,24 @@ repositories {
     mavenCentral()
 }
 """
-        //when
+
+        when:
         executer.withTasks('installArchives').run()
 
-        //then
-        def localRepo = new TestFile("$SystemProperties.userHome/.m2/repository")
-        def result = localRepo.file('org', 'test', 'someCoolProject', '5.0-SNAPSHOT')
-        def files = result.list() as List
+        then:
+        def localRepo = new MavenRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def module = localRepo.module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
+
+        def files = module.moduleDir.list() as List
         assert files.contains('maven-metadata-local.xml')
         assert files.any { it =~ /someCoolProject-5.0-.*\.jar/ }
     }
 
-    //at this moment this is a half manual test.
-    //we may delete it or configure artifactory to enable integration testing them
     @Ignore
     @Test
     void "publishes to remote maven repo"() {
-        //given
+        given:
+        server.start()
         file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'maven'
@@ -104,7 +112,7 @@ repositories {
 publications {
     maven {
         repository {
-            url = 'http://repo.gradle.org/gradle/integ-tests'
+            url = 'http://localhost:${server.port}/repo'
             authentication {
                 userName = 'szczepiq'
                 password = 'secret'
@@ -114,10 +122,13 @@ publications {
 }
 
 """
-        //when
-        executer.withTasks('publishMaven').run()
 
-        //then
+        when:
+        executer.withTasks('publishArchives').run()
+
+        then:
+        def module = repo().module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
+        module.assertArtifactsDeployed("someCoolProject-5.0-SNAPSHOT.jar")
     }
 
         //maven {
@@ -149,4 +160,8 @@ publications {
 //      pom.whenConfigured { Model model -> }
 //      pom.withXml { }
 //    }
+
+    def MavenRepository repo() {
+        new MavenRepository(distribution.testFile('mavenRepo'))
+    }
 }
