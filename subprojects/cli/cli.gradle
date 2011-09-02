@@ -19,7 +19,4 @@
 
     It's packaged separately because it's used by multiple “applications” (i.e. gradle core and the wrapper).
     It has no dependencies, and should never have any.
-
-    This module is internal so cannot be depended on with a project dependency. This is intentional as the idea is to include
-    this source into the project that needs it (using the “includeCli()” dsl convention) to avoid creating a jar dependency.
 */

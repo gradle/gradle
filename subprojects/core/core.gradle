@@ -30,6 +30,8 @@ dependencies {
 
     publishCompile libraries.slf4j_api
 
+    compile project(":cli")
+
     compile libraries.ant,
             libraries.logback_classic,
             libraries.logback_core,
@@ -56,9 +58,6 @@ dependencies {
 
     reports 'css3-pie:css3-pie:1.0beta3'
 }
-
-// Include the cli support classes in this jar
-includeCli()
 
 task releasesResource(type: GenerateReleasesXml) {
     destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
