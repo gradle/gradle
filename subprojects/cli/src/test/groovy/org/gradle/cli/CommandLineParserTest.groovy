@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization
+package org.gradle.cli
 
-import org.gradle.cli.CommandLineParser
-import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
 
 class CommandLineParserTest extends Specification {

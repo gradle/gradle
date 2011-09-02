@@ -3,8 +3,15 @@ import java.util.jar.Attributes
 apply plugin: 'groovy'
 
 archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
+
+if (!sourceSets.main.groovy.srcDirs.any{ it.exists() }) {
+    // Remove configurations.groovy from compile and runtime classpaths.
+    configurations {
+        compile.extendsFrom = []
+    }
+}
+
 dependencies {
-    compile libraries.jcip
     testCompile libraries.junit, libraries.jmock, libraries.spock
 }
 

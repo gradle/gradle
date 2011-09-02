@@ -40,6 +40,7 @@ dependencies {
             libraries.commons_lang,
             "commons-codec:commons-codec:1.2@jar",
             libraries.guava,
+            libraries.jcip,
             "commons-collections:commons-collections:3.2.1@jar",
             "slide:webdavlib:2.0@jar",
             libraries.asm_all,
