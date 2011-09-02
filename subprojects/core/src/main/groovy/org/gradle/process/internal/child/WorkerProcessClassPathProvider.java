@@ -36,7 +36,7 @@ public class WorkerProcessClassPathProvider extends AbstractClassPathProvider {
 
     public WorkerProcessClassPathProvider(CacheRepository cacheRepository) {
         this.cacheRepository = cacheRepository;
-        add("WORKER_PROCESS", toPatterns("gradle-core", "slf4j-api", "logback-classic", "logback-core", "jul-to-slf4j"));
+        add("WORKER_PROCESS", toPatterns("gradle-core", "gradle-cli", "slf4j-api", "logback-classic", "logback-core", "jul-to-slf4j"));
     }
 
     public Set<File> findClassPath(String name) {
