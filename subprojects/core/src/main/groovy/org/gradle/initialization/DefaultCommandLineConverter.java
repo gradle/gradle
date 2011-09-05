@@ -24,6 +24,7 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
@@ -36,6 +37,7 @@ import org.gradle.logging.internal.LoggingCommandLineConverter;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -66,6 +68,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     private static BiMap<String, StartParameter.ShowStacktrace> showStacktraceMap = HashBiMap.create();
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
+    private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
 
     //Initialize bi-directional maps so you can convert these back and forth from their command line options to their
     //object representation.
@@ -78,6 +81,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     public void configure(CommandLineParser parser) {
         loggingConfigurationCommandLineConverter.configure(parser);
+        systemPropertiesCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
         parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
@@ -93,7 +97,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
-        parser.option(SYSTEM_PROP, "system-prop").hasArguments().hasDescription("Set system property of the JVM (e.g. -Dmyprop=myvalue).");
         parser.option(PROJECT_PROP, "project-prop").hasArguments().hasDescription("Set project property for the build script (e.g. -Pmyprop=myvalue).");
         parser.option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.");
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
@@ -121,10 +124,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         startParameter.setColorOutput(loggingConfiguration.isColorOutput());
         FileResolver resolver = new BaseDirConverter(startParameter.getCurrentDir());
 
-        for (String keyValueExpression : options.option(SYSTEM_PROP).getValues()) {
-            String[] elements = keyValueExpression.split("=");
-            startParameter.getSystemPropertiesArgs().put(elements[0], elements.length == 1 ? "" : elements[1]);
-        }
+        Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options);
+        startParameter.getSystemPropertiesArgs().putAll(systemProperties);
 
         for (String keyValueExpression : options.option(PROJECT_PROP).getValues()) {
             String[] elements = keyValueExpression.split("=");

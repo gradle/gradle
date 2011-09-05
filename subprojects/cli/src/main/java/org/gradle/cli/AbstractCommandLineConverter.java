@@ -16,8 +16,19 @@
 package org.gradle.cli;
 
 public abstract class AbstractCommandLineConverter<T> implements CommandLineConverter<T> {
+
+    private CommandLineParserFactory parserFactory = new CommandLineParserFactory() {
+        public CommandLineParser create() {
+            return new CommandLineParser();
+        }
+    };
+
+    public void setCommandLineParserFactory(CommandLineParserFactory parserFactory) {
+        this.parserFactory = parserFactory;
+    }
+
     public T convert(Iterable<String> args) throws CommandLineArgumentException {
-        CommandLineParser parser = new CommandLineParser();
+        CommandLineParser parser = parserFactory.create();
         configure(parser);
         return convert(parser.parse(args));
     }
@@ -27,7 +38,7 @@ public abstract class AbstractCommandLineConverter<T> implements CommandLineConv
     }
 
     public T convert(Iterable<String> args, T target) throws CommandLineArgumentException {
-        CommandLineParser parser = new CommandLineParser();
+        CommandLineParser parser = parserFactory.create();
         configure(parser);
         return convert(parser.parse(args), target);
     }

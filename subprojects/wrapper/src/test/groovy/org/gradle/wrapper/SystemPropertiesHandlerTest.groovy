@@ -26,11 +26,6 @@ class SystemPropertiesHandlerTest extends Specification {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
 
-    def parsesCommandLineProperties() {
-        expect:
-        ['a.b': 'c', d: '', e: '', f: 'g'] == SystemPropertiesHandler.getSystemProperties(['-Da.b=c', 'arg', '-Pa=v', '-D', '-Dd', '-De=', '-Df=g'] as String[])
-    }
-
     def parsesPropertiesFile() {
         File propFile = tmpDir.file('props')
         Properties props = new Properties()

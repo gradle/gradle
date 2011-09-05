@@ -19,8 +19,16 @@ configurations {
 
 dependencies {
     groovy libraries.groovy_depends
-
+    compile project(":cli")
     testCompile libraries.ant
+}
+
+// Alter the jars (classes and source) to be “fat” (including all dependencies)
+configurations.runtime.allDependencies.withType(org.gradle.api.artifacts.ProjectDependency).all {
+    jar.from it.dependencyProject.sourceSets.main.output
+    
+    def mainSourceSet = it.dependencyProject.sourceSets.main
+    sourceJar.from mainSourceSet.java, mainSourceSet.groovy
 }
 
 useTestFixtures()

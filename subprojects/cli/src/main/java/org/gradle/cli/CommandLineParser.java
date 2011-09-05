@@ -54,8 +54,10 @@ import java.util.*;
 public class CommandLineParser {
     private Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();
     private boolean allowMixedOptions;
+    private boolean allowUnknownOptions;
     OutputStream deprecationPrinter = System.out;
 
+    
     /**
      * Parses the given command-line.
      *
@@ -125,6 +127,11 @@ public class CommandLineParser {
 
     public CommandLineParser allowMixedSubcommandsAndOptions() {
         allowMixedOptions = true;
+        return this;
+    }
+
+    public CommandLineParser allowUnknownOptions() {
+        allowUnknownOptions = true;
         return this;
     }
 
@@ -275,7 +282,11 @@ public class CommandLineParser {
             OptionString optionString = new OptionString(arg, option);
             CommandLineOption commandLineOption = optionsByString.get(option);
             if (commandLineOption == null) {
-                throw new CommandLineArgumentException(String.format("Unknown command-line option '%s'.", optionString));
+                if (allowUnknownOptions) {
+                    return new UnknownOptionParserState(arg, commandLine, this);
+                } else {
+                    throw new CommandLineArgumentException(String.format("Unknown command-line option '%s'.", optionString));
+                }
             }
             return new KnownOptionParserState(optionString, commandLineOption, commandLine, this);
         }

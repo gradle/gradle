@@ -28,21 +28,6 @@ import java.util.regex.Pattern;
  * @author Hans Dockter
  */
 public class SystemPropertiesHandler {
-    public static Map<String, String> getSystemProperties(String[] arguments) {
-        Map<String, String> propertyMap = new HashMap<String, String>();
-        Pattern pattern = Pattern.compile("-D([^=]*)=?(.*)");
-        for (String argument : arguments) {
-            Matcher matcher = pattern.matcher(argument);
-            if (matcher.find()) {
-                String key = matcher.group(1);
-                String value = matcher.group(2);
-                if (key.length() > 0) {
-                    propertyMap.put(key, value);
-                }
-            }
-        }
-        return propertyMap;
-    }
 
     public static Map<String, String> getSystemProperties(File propertiesFile) {
         Map<String, String> propertyMap = new HashMap<String, String>();
