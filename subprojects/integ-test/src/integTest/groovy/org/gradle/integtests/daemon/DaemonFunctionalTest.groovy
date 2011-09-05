@@ -95,22 +95,8 @@ class DaemonFunctionalTest extends Specification {
         then:
         poll {
             assert reg.busy.size() == 2
-            assert reg.daemonDir.logs.size() == 2
         }
-    }
-
-    @Timeout(10)
-    def "daemon logs output"() {
-        when:
-        prepare()
-        connect()
-
-        then:
-        poll {
-            assert reg.daemonDir.logs.size() == 1
-        }
-//        def log = reg.daemonDir.logs[0]
-//        assert log.text.contains(DaemonTcpServerConnector.HELLO_MESSAGE)
+        assert reg.daemonDir.logs.size() == 2
     }
 
     @Timeout(10)
