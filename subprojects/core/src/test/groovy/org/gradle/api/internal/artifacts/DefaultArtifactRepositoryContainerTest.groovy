@@ -20,14 +20,13 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.dsl.ArtifactRepository
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
-import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.hamcrest.Matchers
@@ -150,9 +149,48 @@ class DefaultArtifactRepositoryContainerTest {
     }
 
     @Test public void testAddFirst() {
+        ArtifactRepository repository1 = context.mock(ArtifactRepository)
+        ArtifactRepository repository2 = context.mock(ArtifactRepository)
+
+        context.checking {
+            allowing(repository1).getName(); will(returnValue("1"))
+            allowing(repository2).getName(); will(returnValue("2"))
+        }
+
+        resolverContainer.addFirst(repository1)
+        resolverContainer.addFirst(repository2)
+
+        assert resolverContainer.all as List == [repository2, repository1]
+        assert resolverContainer.collect { it } == [repository2, repository1]
+        assert resolverContainer.matching { true }.all as List == [repository2, repository1]
+        assert resolverContainer.matching { true }.collect { it } == [repository2, repository1]
+    }
+
+    @Test public void testAddLast() {
+        ArtifactRepository repository1 = context.mock(ArtifactRepository)
+        ArtifactRepository repository2 = context.mock(ArtifactRepository)
+
+        context.checking {
+            allowing(repository1).getName(); will(returnValue('repo1'))
+            allowing(repository2).getName(); will(returnValue('repo2'))
+        }
+        
+        resolverContainer.addLast(repository1)
+        resolverContainer.addLast(repository2)
+
+        assert resolverContainer.all as List == [repository1, repository2]
+    }
+    
+    @Test public void testAddFirstUsingUserDescription() {
         assert resolverContainer.addFirst(expectedUserDescription).is(expectedResolver)
         resolverContainer.addFirst(expectedUserDescription2)
         assertEquals([expectedResolver2, expectedResolver], resolverContainer.resolvers)
+    }
+
+    @Test public void testAddLastUsingUserDescription() {
+        assert resolverContainer.addLast(expectedUserDescription).is(expectedResolver)
+        resolverContainer.addLast(expectedUserDescription2)
+        assertEquals([expectedResolver, expectedResolver2], resolverContainer.resolvers)
     }
 
     @Test
@@ -175,9 +213,10 @@ class DefaultArtifactRepositoryContainerTest {
     @Test
     public void notificationsAreFiredWhenRepositoryIsAdded() {
         Action<DependencyResolver> action = context.mock(Action.class)
-        ArtifactRepository repository = new FixedResolverArtifactRepository(expectedResolver)
+        ArtifactRepository repository = context.mock(ArtifactRepository)
 
         context.checking {
+            ignoring(repository)
             one(action).execute(repository)
         }
 
@@ -188,10 +227,11 @@ class DefaultArtifactRepositoryContainerTest {
     @Test
     public void notificationsAreFiredWhenRepositoryIsAddedToTheHead() {
         Action<DependencyResolver> action = context.mock(Action.class)
-        ArtifactRepository repository = new FixedResolverArtifactRepository(expectedResolver)
+        ArtifactRepository repository = context.mock(ArtifactRepository)
 
         context.checking {
-            one(action).execute(withParam(notNullValue()))
+            ignoring(repository)
+            one(action).execute(repository)
         }
 
         resolverContainer.all(action)
@@ -201,10 +241,11 @@ class DefaultArtifactRepositoryContainerTest {
     @Test
     public void notificationsAreFiredWhenRepositoryIsAddedToTheTail() {
         Action<DependencyResolver> action = context.mock(Action.class)
-        ArtifactRepository repository = new FixedResolverArtifactRepository(expectedResolver)
+        ArtifactRepository repository = context.mock(ArtifactRepository)
 
         context.checking {
-            one(action).execute(withParam(notNullValue()))
+            ignoring(repository)
+            one(action).execute(repository)
         }
 
         resolverContainer.all(action)

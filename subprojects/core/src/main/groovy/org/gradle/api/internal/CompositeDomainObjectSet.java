@@ -93,11 +93,11 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
     }
 
     public Iterator<T> iterator() {
-        return new LinkedHashSet(getStore()).iterator();
+        return new LinkedHashSet<T>(getStore()).iterator();
     }
 
     public int size() {
-        return new LinkedHashSet(getStore()).size();
+        return new LinkedHashSet<T>(getStore()).size();
     }
     
     public void all(Action<? super T> action) {

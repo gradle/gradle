@@ -21,8 +21,8 @@ import java.util.NoSuchElementException;
 
 public class FilteredCollection<T, S extends T> implements Collection<S> {
 
-    private final Collection<T> collection;
-    private final CollectionFilter<S> filter;
+    protected final Collection<T> collection;
+    protected final CollectionFilter<S> filter;
 
     public FilteredCollection(Collection<T> collection, CollectionFilter<S> filter) {
         this.collection = collection;
@@ -127,7 +127,7 @@ public class FilteredCollection<T, S extends T> implements Collection<S> {
     } 
     
     public Iterator<S> iterator() {
-        return new FilteringIterator(collection.iterator(), filter);
+        return new FilteringIterator<T, S>(collection.iterator(), filter);
     }
 
     public boolean remove(Object o) {

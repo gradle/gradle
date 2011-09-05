@@ -464,23 +464,47 @@ public class DefaultNamedDomainObjectSetTest {
         container.add(bean);
     }
 
-    /*
-        Commented out because there is no longer an implicit replace due to domain object collections
-        now implementing the semantics of collection, which is incompatible with this. - LD.
-    */
-    // @Test
-    // public void callsRemoveActionWhenObjectReplaced() {
-    //     final Action<Bean> action = context.mock(Action.class);
-    //     final Bean bean = new Bean();
-    // 
-    //     context.checking(new Expectations() {{
-    //         one(action).execute(bean);
-    //     }});
-    // 
-    //     container.whenObjectRemoved(action);
-    //     container.add(bean);
-    //     container.add(new Bean());
-    // }
+    @Test
+    public void doesNotCallActionWhenDuplicateObjectAdded() {
+        final Action<Bean> action = context.mock(Action.class);
+        final Bean bean = new Bean();
+
+        container.add(bean);
+
+        container.whenObjectAdded(action);
+        container.add(bean);
+    }
+
+    @Test
+    public void callsActionWhenObjectsAdded() {
+        final Action<Bean> action = context.mock(Action.class);
+        final Bean bean = new Bean();
+        final Bean bean2 = new Bean("other");
+
+        context.checking(new Expectations() {{
+            one(action).execute(bean);
+            one(action).execute(bean2);
+        }});
+
+        container.whenObjectAdded(action);
+        container.addAll(toList(bean, bean2));
+    }
+
+    @Test
+    public void doesNotCallActionWhenDuplicateObjectsAdded() {
+        final Action<Bean> action = context.mock(Action.class);
+        final Bean bean = new Bean();
+        final Bean bean2 = new Bean("other");
+
+        container.add(bean);
+
+        context.checking(new Expectations() {{
+            one(action).execute(bean2);
+        }});
+
+        container.whenObjectAdded(action);
+        container.addAll(toList(bean, bean2));
+    }
 
     @Test
     public void callsActionWhenObjectRemoved() {
@@ -494,6 +518,14 @@ public class DefaultNamedDomainObjectSetTest {
         container.whenObjectRemoved(action);
         container.add(bean);
         container.removeByName("bean");
+    }
+
+    @Test
+    public void doesNotCallActionWhenUnknownObjectRemoved() {
+        final Action<Bean> action = context.mock(Action.class);
+
+        container.whenObjectRemoved(action);
+        container.remove(new Bean());
     }
 
     @Test

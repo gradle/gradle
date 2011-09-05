@@ -172,6 +172,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      */
     void all(Closure action);
 
+    // note: this is here to override the default Groovy Collection.findAll { } method.
     /**
      * Returns a collection which contains the objects in this collection which meet the given closure specification.
      *

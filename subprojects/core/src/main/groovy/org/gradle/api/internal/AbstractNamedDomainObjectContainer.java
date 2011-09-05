@@ -16,7 +16,6 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
@@ -42,10 +41,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     public T create(String name, Closure configureClosure) {
-        if (findByName(name) != null) {
-            throw new InvalidUserDataException(String.format("Cannot add %s '%s' as a %s with that name already exists.",
-                    getTypeDisplayName(), name, getTypeDisplayName()));
-        }
+        assertCanAdd(name);
         T object = doCreate(name);
         add(object);
         ConfigureUtil.configure(configureClosure, object);

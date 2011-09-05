@@ -97,11 +97,13 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return filtered(createFilter(type));
     }
 
+    @Deprecated
     public Set<T> getAll() {
         DeprecationLogger.nagUserWith("The DomainObjectCollection.getAll() method is deprecated as DomainObjectCollection is now a Collection itself. Simply use the collection.");
         return findAll(Specs.<T>satisfyAll());
     }
 
+    @Deprecated
     public Set<T> findAll(Spec<? super T> spec) {
         DeprecationLogger.nagUserWith("The DomainObjectCollection.findAll() method is deprecated as DomainObjectCollection is now a Collection itself. Use the matching(Spec) method.");
 
@@ -116,14 +118,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public Iterator<T> iterator() {
-        return getStore().iterator();
+        return new IteratorImpl(getStore().iterator());
     }
 
+    @Deprecated
     public void allObjects(Action<? super T> action) {
         DeprecationLogger.nagUser("DomainObjectCollection.allObjects()", "all()");
         all(action);
     }
 
+    @Deprecated
     public void allObjects(Closure action) {
         DeprecationLogger.nagUser("DomainObjectCollection.allObjects()", "all()");
         all(action);
@@ -281,7 +285,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends Collection<? super T>> S findAll(Closure cl, S matches) {
-        for (T t : matching(cl)) {
+        for (T t : filteredStore(createFilter(Specs.<Object>convertClosureToSpec(cl)))) {
             matches.add(t);
         }
         return matches;
@@ -290,6 +294,31 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     protected void assertMutable() {
         for (Runnable action : mutateActions) {
             action.run();
+        }
+    }
+
+    private class IteratorImpl implements Iterator<T> {
+        private final Iterator<T> iterator;
+        private T currentElement;
+
+        public IteratorImpl(Iterator<T> iterator) {
+            this.iterator = iterator;
+        }
+
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        public T next() {
+            currentElement = iterator.next();
+            return currentElement;
+        }
+
+        public void remove() {
+            assertMutable();
+            iterator.remove();
+            getEventRegister().getRemoveAction().execute(currentElement);
+            currentElement = null;
         }
     }
 }

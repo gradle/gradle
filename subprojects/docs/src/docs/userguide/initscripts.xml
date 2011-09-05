@@ -67,10 +67,9 @@
                 and method call in the init script will delegate to this <classname>Gradle</classname> instance.
             </para>
             <para>Each init script also implements the <apilink class="org.gradle.api.Script"/> interface.</para>
-            <para>Below sample shows how to perform extra configuration after the project was evaluated.
-                It's using the gradle build listeners facility to get hold of a project after it was evaluated.
-                One of the teams was using this feature to configure certain repository only for their local environments.
-                They didn't want to check-in this repository configuration into the VCS so they kept it configured in the <filename>init.script</filename>.
+            <para>Below sample shows how to perform extra configuration from an init script after the project is evaluated.
+                One of the teams was using this feature to configure a certain repository only for their local environments.
+                They didn't want to check-in this repository configuration into the VCS so they kept it configured in an init script.
             </para>
             <sample id="afterEvaluateInInitScript" dir="userguide/initScripts/afterEvaluate" title="Using init script to perform extra configuration after project is evaluated">
                 <sourcefile file="build.gradle"/>

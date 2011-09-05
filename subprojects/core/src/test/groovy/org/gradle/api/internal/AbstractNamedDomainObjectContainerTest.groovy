@@ -47,7 +47,7 @@ class AbstractNamedDomainObjectContainerTest {
             container.create('obj')
             fail()
         } catch (org.gradle.api.InvalidUserDataException e) {
-            assertThat(e.message, equalTo('Cannot add TestObject \'obj\' as a TestObject with that name already exists.'))
+            assertThat(e.message, equalTo('Cannot add a TestObject with name \'obj\' as a TestObject with that name already exists.'))
         }
     }
 

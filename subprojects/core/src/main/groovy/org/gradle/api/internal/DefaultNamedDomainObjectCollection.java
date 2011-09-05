@@ -17,10 +17,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.NamedDomainObjectCollection;
-import org.gradle.api.Namer;
-import org.gradle.api.Rule;
-import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.*;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.specs.Spec;
@@ -71,7 +68,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     /**
      * <p>Subclass hook for implementations wanting to throw an exception when an attempt is made to add
-     * an item with the same name as an existing time.</p>
+     * an item with the same name as an existing item.</p>
      * 
      * <p>This implementation does not thrown an exception, meaning that {@code add(T)} will simply return {@code false}.
      * 
@@ -80,7 +77,23 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     protected void handleAttemptToAddItemWithNonUniqueName(T o) {
         // do nothing
     }
-    
+
+    /**
+     * Asserts that an item with the given name can be added to this collection.
+     */
+    protected void assertCanAdd(String name) {
+        if (hasWithName(name)) {
+            throw new InvalidUserDataException(String.format("Cannot add a %s with name '%s' as a %s with that name already exists.", getTypeDisplayName(), name, getTypeDisplayName()));
+        }
+    }
+
+    /**
+     * Asserts that the given item can be added to this collection.
+     */
+    protected void assertCanAdd(T t) {
+        assertCanAdd(getNamer().determineName(t));
+    }
+
     public Namer<T> getNamer() {
         return (Namer)this.namer;
     }

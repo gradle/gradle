@@ -18,28 +18,12 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.specs.Spec;
 
-import java.util.Collections;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public interface ArtifactContainer {
-    static final ArtifactContainer EMPTY_CONTAINER = new ArtifactContainer() {
-        public void addArtifacts(PublishArtifact... publishArtifacts) {
-            throw new UnsupportedOperationException("You can add elements to EMPTY container");
-        }
-
-        public Set<PublishArtifact> getArtifacts() {
-            return Collections.emptySet();
-        }
-
-        public Set<PublishArtifact> getArtifacts(Spec<PublishArtifact> spec) {
-            return Collections.emptySet();
-        }
-    };
-
-
     void addArtifacts(PublishArtifact... publishArtifacts);
 
     Set<PublishArtifact> getArtifacts();

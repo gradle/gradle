@@ -96,8 +96,9 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         context.checking {
             one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
             one(repository).setDirs(['a', 12])
-            allowing(repository).getName(); will(returnValue(null))
+            one(repository).getName(); will(returnValue(null))
             one(repository).setName('flatDir')
+            allowing(repository).getName(); will(returnValue('flatDir'))
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
@@ -112,9 +113,11 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         context.checking {
             one(resolverFactoryMock).createMavenCentralRepository()
             will(returnValue(repository))
-            allowing(repository).getName()
+            one(repository).getName()
             will(returnValue(null))
             one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
+            allowing(repository).getName()
+            will(returnValue(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME))
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
@@ -131,9 +134,11 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         context.checking {
             one(resolverFactoryMock).createMavenCentralRepository()
             will(returnValue(repository))
-            allowing(repository).getName()
+            one(repository).getName()
             will(returnValue(null))
             one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
+            allowing(repository).getName()
+            will(returnValue(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME))
             one(repository).setArtifactUrls([testUrl2])
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
@@ -171,9 +176,11 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         context.checking {
             one(resolverFactoryMock).createMavenLocalRepository()
             will(returnValue(repository))
-            allowing(repository).getName()
+            one(repository).getName()
             will(returnValue(null))
             one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME)
+            allowing(repository).getName()
+            will(returnValue(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME))
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
@@ -258,8 +265,9 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
                     conf2ScopeMappingContainer,
                     fileResolver)
             will(returnValue(repository))
-            allowing(repository).getName(); will(returnValue(null))
+            one(repository).getName(); will(returnValue(null))
             one(repository).setName("mavenDeployer")
+            allowing(repository).getName(); will(returnValue('mavenDeployer'))
         }
 
         assertSame(repository, repositoryHandler.mavenDeployer());

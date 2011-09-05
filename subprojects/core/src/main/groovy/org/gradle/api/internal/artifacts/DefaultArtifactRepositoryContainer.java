@@ -27,29 +27,27 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.dsl.ArtifactRepository;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectSet<ArtifactRepository>
+public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectList<ArtifactRepository>
         implements ArtifactRepositoryContainer, MavenPomMetaInfoProvider {
     private final ResolverFactory resolverFactory;
-
-    private final LinkedList<ArtifactRepository> repositories = new LinkedList<ArtifactRepository>();
 
     private File mavenPomDir;
 
@@ -61,7 +59,12 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
     private final Action<ArtifactRepository> addLastAction = new Action<ArtifactRepository>() {
         public void execute(ArtifactRepository repository) {
-            repositories.add(repository);
+            DefaultArtifactRepositoryContainer.super.add(repository);
+        }
+    };
+    private final Action<ArtifactRepository> addFirstAction = new Action<ArtifactRepository>() {
+        public void execute(ArtifactRepository repository) {
+            DefaultArtifactRepositoryContainer.super.add(0, repository);
         }
     };
 
@@ -87,26 +90,32 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
     
     public boolean add(DependencyResolver resolver, Closure configureClosure) {
-        addLast(resolver, configureClosure);
+        addInternal(resolver, configureClosure, addLastAction);
         return true;
     }
 
     public boolean add(DependencyResolver resolver) {
-        addLast(resolver);
+        addInternal(resolver, null, addLastAction);
         return true;
     }
 
-    @Override
-    public boolean add(ArtifactRepository repository) {
-        addRepository(repository, null, addLastAction);
-        return true;
+    public void addFirst(ArtifactRepository repository) {
+        add(0, repository);
     }
 
+    public void addLast(ArtifactRepository repository) {
+        add(repository);
+    }
+
+    @Deprecated
     public DependencyResolver addLast(Object userDescription) {
-        return addLast(userDescription, null);
+        DeprecationLogger.nagUser("ArtifactRepositoryContainer.addLast()", "maven() or add()");
+        return addInternal(userDescription, null, addLastAction);
     }
 
+    @Deprecated
     public DependencyResolver addLast(Object userDescription, Closure configureClosure) {
+        DeprecationLogger.nagUser("ArtifactRepositoryContainer.addLast()", "maven() or add()");
         return addInternal(userDescription, configureClosure, addLastAction);
     }
 
@@ -121,7 +130,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         final ArtifactRepository after = getByName(afterResolverName);
         return addInternal(userDescription, configureClosure, new Action<ArtifactRepository>() {
             public void execute(ArtifactRepository repository) {
-                repositories.add(repositories.indexOf(after), repository);
+                DefaultArtifactRepositoryContainer.super.add(indexOf(after), repository);
             }
         });
     }
@@ -138,11 +147,11 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
         return addInternal(userDescription, configureClosure, new Action<ArtifactRepository>() {
             public void execute(ArtifactRepository repository) {
-                int insertPos = repositories.indexOf(before) + 1;
-                if (insertPos == repositories.size()) {
-                    repositories.add(repository);
+                int insertPos = indexOf(before) + 1;
+                if (insertPos == size()) {
+                    DefaultArtifactRepositoryContainer.super.add(repository);
                 } else {
-                    repositories.add(insertPos, repository);
+                    DefaultArtifactRepositoryContainer.this.add(insertPos, repository);
                 }
             }
         });
@@ -153,11 +162,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     public DependencyResolver addFirst(Object userDescription, Closure configureClosure) {
-        return addInternal(userDescription, configureClosure, new Action<ArtifactRepository>() {
-            public void execute(ArtifactRepository repository) {
-                repositories.addFirst(repository);
-            }
-        });
+        return addInternal(userDescription, configureClosure, addFirstAction);
     }
 
     private DependencyResolver addInternal(Object userDescription, Closure configureClosure, Action<ArtifactRepository> orderAction) {
@@ -180,7 +185,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
     public List<DependencyResolver> getResolvers() {
         List<DependencyResolver> returnedResolvers = new ArrayList<DependencyResolver>();
-        for (ArtifactRepository repository : repositories) {
+        for (ArtifactRepository repository : this) {
             ((ArtifactRepositoryInternal) repository).createResolvers(returnedResolvers);
         }
         return returnedResolvers;
@@ -248,11 +253,8 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
             repositoryName = findName(defaultName);
             repository.setName(repositoryName);
         }
-        if (findByName(repositoryName) != null) {
-            throw new InvalidUserDataException(String.format("Cannot add a repository with name '%s' as a repository with that name already exists.", repository.getName()));
-        }
+        assertCanAdd(repositoryName);
         action.execute(repository);
-        super.add(repository);
 
         return repository;
     }

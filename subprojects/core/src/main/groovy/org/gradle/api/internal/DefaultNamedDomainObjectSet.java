@@ -84,11 +84,4 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     public Set<T> findAll(Closure cl) {
         return findAll(cl, new LinkedHashSet<T>());
     }
-
-    // Overridden to allow the backing store to enforce uniqueness.
-    @Override
-    public boolean add(T o) {
-        return super.add(o);
-    }
-
 }

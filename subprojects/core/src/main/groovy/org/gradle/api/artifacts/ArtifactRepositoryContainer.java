@@ -18,7 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.artifacts.dsl.ArtifactRepository;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.util.Configurable;
@@ -52,7 +52,7 @@ import java.util.List;
  *
  * @author Hans Dockter
  */
-public interface ArtifactRepositoryContainer extends NamedDomainObjectSet<ArtifactRepository>, Configurable<ArtifactRepositoryContainer> {
+public interface ArtifactRepositoryContainer extends NamedDomainObjectList<ArtifactRepository>, Configurable<ArtifactRepositoryContainer> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
@@ -65,41 +65,64 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectSet<Artifa
     String RESOLVER_URL = "url";
 
     /**
-     * Adds a repository to this container.
+     * Adds a repository to this container, at the end of the repository sequence.
      *
      * @param repository The repository to add.
      */
     boolean add(ArtifactRepository repository);
 
     /**
-     * Delegates to {@link #addLast(Object)}.
+     * Adds a repository to this container, at the start of the repository sequence.
+     *
+     * @param repository The repository to add.
+     */
+    void addFirst(ArtifactRepository repository);
+
+    /**
+     * Adds a repository to this container, at the end of the repository sequence.
+     *
+     * @param repository The repository to add.
+     */
+    void addLast(ArtifactRepository repository);
+
+    /**
+     * Adds a repository to this container, at the end of the repository sequence.
+     *
+     * @param resolver The repository to add, represented as an Ivy {@link DependencyResolver}.
      */
     boolean add(DependencyResolver resolver);
 
     /**
-     * Delegates to {@link #addLast(Object,Closure)}.
+     * Adds a repository to this container, at the end of the repository sequence.
+     *
+     * @param resolver The repository to add, represented as an Ivy {@link DependencyResolver}.
+     * @param configureClosure The closure to use to configure the repository.
      */
     boolean add(DependencyResolver resolver, Closure configureClosure);
 
     /**
-     * Adds a resolver to this container, at the end of the resolver sequence. The given {@code userDescription} can be
+     * Adds a repository to this container, at the end of the repository sequence. The given {@code userDescription} can be
      * one of:
      *
      * <ul>
      *
-     * <li>A String. This is treated as a URL, and used to create a maven resolver.</li>
+     * <li>A String. This is treated as a URL, and used to create a maven repository.</li>
      *
-     * <li>A map. This is used to create a maven resolver. The map must contain an {@value #RESOLVER_NAME} entry and a
+     * <li>A map. This is used to create a maven maven repository. The map must contain an {@value #RESOLVER_NAME} entry and a
      * {@value #RESOLVER_URL} entry.</li>
      *
      * <li>A {@link org.apache.ivy.plugins.resolver.DependencyResolver}.</li>
+     *
+     * <li>A {@link ArtifactRepository}.</li>
      *
      * </ul>
      *
      * @param userDescription The resolver definition.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
+     * @deprecated Use {@link org.gradle.api.artifacts.dsl.RepositoryHandler#maven(groovy.lang.Closure)} or {@link #add(org.gradle.api.artifacts.dsl.ArtifactRepository)} instead.
      */
+    @Deprecated
     DependencyResolver addLast(Object userDescription) throws InvalidUserDataException;
 
     /**
@@ -110,7 +133,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectSet<Artifa
      * @param configureClosure The closure to use to configure the resolver.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
+     * @deprecated Use {@link org.gradle.api.artifacts.dsl.RepositoryHandler#maven(groovy.lang.Closure)} or {@link #add(org.gradle.api.artifacts.dsl.ArtifactRepository)} instead.
      */
+    @Deprecated
     DependencyResolver addLast(Object userDescription, Closure configureClosure) throws InvalidUserDataException;
 
     /**
