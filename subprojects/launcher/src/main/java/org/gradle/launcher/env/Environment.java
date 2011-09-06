@@ -33,8 +33,10 @@ class Environment {
     public interface WinLibC extends Library {
         public int _putenv(String name);
     }
+
     public interface UnixLibC extends Library {
         public int setenv(String name, String value, int overwrite);
+
         public int unsetenv(String name);
     }
 
@@ -53,19 +55,17 @@ class Environment {
 
         public int setenv(String name, String value, int overwrite) {
             if (libc instanceof UnixLibC) {
-                return ((UnixLibC)libc).setenv(name, value, overwrite);
-            }
-            else {
-                return ((WinLibC)libc)._putenv(name + "=" + value);
+                return ((UnixLibC) libc).setenv(name, value, overwrite);
+            } else {
+                return ((WinLibC) libc)._putenv(name + "=" + value);
             }
         }
 
         public int unsetenv(String name) {
             if (libc instanceof UnixLibC) {
-                return ((UnixLibC)libc).unsetenv(name);
-            }
-            else {
-                return ((WinLibC)libc)._putenv(name + "=");
+                return ((UnixLibC) libc).unsetenv(name);
+            } else {
+                return ((WinLibC) libc)._putenv(name + "=");
             }
         }
     }
@@ -83,9 +83,10 @@ class Environment {
     }
 
     public int setenv(String name, String value, boolean overwrite) {
-        if (name.lastIndexOf("=") != -1) {
-            throw new IllegalArgumentException("Environment variable cannot contain '='");
-        }
+        //TODO SF - think on it a bit more
+//        if (name.lastIndexOf("=") != -1) {
+//            throw new IllegalArgumentException("Environment variable cannot contain '='");
+//        }
         Map<String, String> map = getEnv();
         boolean contains = map.containsKey(name);
         if (!contains || overwrite) {
@@ -96,7 +97,7 @@ class Environment {
                 env2.put(name, value);
             }
         }
-        return libc.setenv(name, value, overwrite?1:0);
+        return libc.setenv(name, value, overwrite ? 1 : 0);
     }
 
     /**
@@ -107,9 +108,8 @@ class Environment {
             Class<?> sc = Class.forName("java.lang.ProcessEnvironment");
             Field caseinsensitive = sc.getDeclaredField("theCaseInsensitiveEnvironment");
             caseinsensitive.setAccessible(true);
-            return (Map<String, String>)caseinsensitive.get(null);
-        }
-        catch (Exception e) {
+            return (Map<String, String>) caseinsensitive.get(null);
+        } catch (Exception e) {
             throw new EnvironmentException("Unable to get mutable windows case insensitive environment map", e);
         }
     }
@@ -120,9 +120,8 @@ class Environment {
             Class<?> cu = theUnmodifiableEnvironment.getClass();
             Field m = cu.getDeclaredField("m");
             m.setAccessible(true);
-            return (Map<String, String>)m.get(theUnmodifiableEnvironment);
-        }
-        catch (Exception e) {
+            return (Map<String, String>) m.get(theUnmodifiableEnvironment);
+        } catch (Exception e) {
             throw new EnvironmentException("Unable to get mutable environment map", e);
         }
     }
