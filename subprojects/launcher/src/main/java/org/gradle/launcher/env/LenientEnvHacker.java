@@ -20,6 +20,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.OperatingSystem;
 
+import java.util.Map;
+
 /**
  * Enables hacking the environment
  *
@@ -38,11 +40,23 @@ public class LenientEnvHacker {
         this.env = env;
     }
 
-    void setenv(String key, String value) {
+    public void setenv(String key, String value) {
         try {
             env.setenv(key, value, true);
         } catch (Throwable t) {
-            LOGGER.warn(String.format("Unable to set env variable %s=%s on OS: %s. Problem: %s", key, value, OperatingSystem.current(), t));
+            String warning = String.format("Unable to set env variable %s=%s on OS: %s.", key, value, OperatingSystem.current());
+            LOGGER.warn(warning, t);
+        }
+    }
+
+    public void setenv(Map<String, String> source) {
+        try {
+            for (String key : source.keySet()) {
+                this.env.setenv(key, source.get(key), true);
+            }
+        } catch (Throwable t) {
+            String warning = String.format("Unable to set env variables on OS: %s.", OperatingSystem.current());
+            LOGGER.warn(warning, t);
         }
     }
 }

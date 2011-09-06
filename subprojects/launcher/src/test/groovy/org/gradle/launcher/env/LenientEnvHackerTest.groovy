@@ -17,6 +17,7 @@
 package org.gradle.launcher.env;
 
 
+import org.gradle.util.GUtil
 import org.junit.Rule
 import org.junit.rules.TestName
 import spock.lang.Specification
@@ -63,6 +64,16 @@ class LenientEnvHackerTest extends Specification {
         "two" == System.getenv()[test.methodName]
     }
 
+    def "updates multiple env variables"() {
+        when:
+        hacker.setenv(GUtil.map(test.methodName + 1, "one", test.methodName + 2, "two"));
+
+        then:
+        "one" == System.getenv()[test.methodName + 1]
+        "two" == System.getenv(test.methodName + 2)
+    }
+
+    //TODO SF cover the constructor also
     def "does not explode when local environment is unfriendly"() {
         given:
         def env = Mock(Environment)
