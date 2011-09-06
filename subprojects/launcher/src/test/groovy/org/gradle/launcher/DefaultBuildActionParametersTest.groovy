@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher;
 
-import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.BuildRequestMetaData;
 
-import java.io.Serializable;
-import java.util.Map;
+import org.gradle.configuration.GradleLauncherMetaData
+import spock.lang.Specification
 
-public interface BuildActionParameters extends Serializable {
-    BuildRequestMetaData getBuildRequestMetaData();
+/**
+ * @author: Szczepan Faber, created at: 9/6/11
+ */
+public class DefaultBuildActionParametersTest extends Specification {
 
-    BuildClientMetaData getClientMetaData();
+    def "is serializable"() {
+        given:
+        def params = new DefaultBuildActionParameters(new GradleLauncherMetaData(), System.currentTimeMillis(), System.properties, System.getenv())
+        ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream());
 
-    Map<String, String> getSystemProperties();
+        when:
+        out.writeObject(params);
 
-    Map<String, String> getEnvVariables();
+        then:
+        noExceptionThrown()
+    }
 }

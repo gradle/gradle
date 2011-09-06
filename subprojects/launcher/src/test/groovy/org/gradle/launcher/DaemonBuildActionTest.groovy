@@ -15,10 +15,10 @@
  */
 package org.gradle.launcher
 
-import org.gradle.initialization.BuildClientMetaData
 import org.gradle.cli.ParsedCommandLine
-import spock.lang.Specification
+import org.gradle.initialization.BuildClientMetaData
 import org.gradle.launcher.daemon.DaemonClient
+import spock.lang.Specification
 
 class DaemonBuildActionTest extends Specification {
     final DaemonClient client = Mock()
@@ -27,7 +27,8 @@ class DaemonBuildActionTest extends Specification {
     final File currentDir = new File('current-dir')
     final long startTime = 90
     final Map<String, String> systemProperties = [key: 'value']
-    final DaemonBuildAction action = new DaemonBuildAction(client, commandLine, currentDir, clientMetaData, startTime, systemProperties)
+    final Map<String, String> envVariables = [key2: 'value2']
+    final DaemonBuildAction action = new DaemonBuildAction(client, commandLine, currentDir, clientMetaData, startTime, systemProperties, envVariables)
 
     def runsBuildUsingDaemon() {
         when:

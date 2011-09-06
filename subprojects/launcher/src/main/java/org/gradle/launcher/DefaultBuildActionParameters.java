@@ -28,12 +28,14 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
     private final Map<String, String> systemProperties;
+    private final Map<String, String> envVariables;
 
-    public DefaultBuildActionParameters(BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties) {
+    public DefaultBuildActionParameters(BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
+        this.envVariables = new HashMap<String, String>(envVariables);
     }
 
     public BuildRequestMetaData getBuildRequestMetaData() {
@@ -46,5 +48,9 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     public Map<String, String> getSystemProperties() {
         return systemProperties;
+    }
+
+    public Map<String, String> getEnvVariables() {
+        return envVariables;
     }
 }

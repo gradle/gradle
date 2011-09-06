@@ -19,18 +19,15 @@ import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.launcher.daemon.DaemonConnector;
-import org.gradle.launcher.daemon.ExternalDaemonConnector;
-import org.gradle.launcher.daemon.DaemonClient;
-import org.gradle.launcher.daemon.DaemonTcpServerConnector;
-import org.gradle.launcher.daemon.Daemon;
-import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
-import org.gradle.initialization.*;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.launcher.daemon.*;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -139,7 +136,7 @@ public class CommandLineActionFactory {
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         if (useDaemon) {
             return new ActionAdapter(
-                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime, System.getProperties()));
+                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime, System.getProperties(), System.getenv()));
         }
 
         return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData, startTime));

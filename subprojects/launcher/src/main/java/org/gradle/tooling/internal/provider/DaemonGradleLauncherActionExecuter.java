@@ -17,7 +17,10 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.launcher.*;
+import org.gradle.launcher.BuildActionParameters;
+import org.gradle.launcher.DefaultBuildActionParameters;
+import org.gradle.launcher.GradleLauncherActionExecuter;
+import org.gradle.launcher.ReportedException;
 import org.gradle.launcher.daemon.DaemonClient;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
@@ -30,7 +33,8 @@ public class DaemonGradleLauncherActionExecuter implements GradleLauncherActionE
     }
 
     public <T> T execute(GradleLauncherAction<T> action, BuildOperationParametersVersion1 actionParameters) {
-        BuildActionParameters parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), actionParameters.getStartTime(), System.getProperties());
+        BuildActionParameters parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), actionParameters.getStartTime(),
+                System.getProperties(), System.getenv());
         try {
             return client.execute(action, parameters);
         } catch (ReportedException e) {

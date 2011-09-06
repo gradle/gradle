@@ -17,9 +17,7 @@
 package org.gradle.integtests.daemon
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
-import org.gradle.util.GUtil
 import org.gradle.util.SetSystemProperties
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -62,24 +60,6 @@ task assertSysProp << {
 """
         //when
         executer.withArguments("-Dfoo=bar").withTasks('assertSysProp').run()
-
-        //then no exceptions thrown
-    }
-
-    @Issue("GRADLE-1296")
-    @Test
-    @Ignore
-    //I don't think it is easily testable with the daemon
-    //the problem is that if the daemon process is already alive we cannot alter its env. variables.
-    void "gradle should know the env variables"() {
-        file('build.gradle') << """
-task assertEnv << {
-    assert System.getenv('foo') == 'bar'
-}
-"""
-        //when
-        executer.reset()
-        executer.withEnvironmentVars(GUtil.map("foo", "bar")).withTasks('assertEnv').run()
 
         //then no exceptions thrown
     }

@@ -20,11 +20,11 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.ReportedException;
-import org.gradle.launcher.DefaultGradleLauncherActionExecuter;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.launcher.DefaultGradleLauncherActionExecuter;
+import org.gradle.launcher.ReportedException;
 import org.gradle.launcher.protocol.*;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.LoggingOutputInternal;
@@ -33,16 +33,14 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
-import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.util.UncheckedException;
 
-import java.io.*;
-import java.util.Properties;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * A long-lived build server that accepts commands via a communication channel.
@@ -299,21 +297,8 @@ public class Daemon implements Runnable, Stoppable {
             return new CommandComplete(null);
         }
 
-        return build((Build) command);
-    }
-
-    private Result build(Build build) {
-        Properties originalSystemProperties = new Properties();
-        originalSystemProperties.putAll(System.getProperties());
-        Properties clientSystemProperties = new Properties();
-        clientSystemProperties.putAll(build.getParameters().getSystemProperties());
-        System.setProperties(clientSystemProperties);
-        try {
-            DefaultGradleLauncherActionExecuter executer = new DefaultGradleLauncherActionExecuter(launcherFactory, loggingServices);
-            Object result = executer.execute(build.getAction(), build.getParameters());
-            return new Result(result);
-        } finally {
-            System.setProperties(originalSystemProperties);
-        }
+        DefaultGradleLauncherActionExecuter executer = new DefaultGradleLauncherActionExecuter(launcherFactory, loggingServices);
+        Object result = new EnvironmentAwareExecuter(executer).executeBuild((Build) command);
+        return new Result(result);
     }
 }

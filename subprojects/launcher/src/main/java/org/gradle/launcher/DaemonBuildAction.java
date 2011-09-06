@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.launcher.daemon.DaemonClient;
 import org.gradle.util.GUtil;
 
@@ -31,8 +31,9 @@ public class DaemonBuildAction implements Runnable {
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
     private final Map<String, String> systemProperties;
+    private final Map<String, String> envVariables;
 
-    public DaemonBuildAction(DaemonClient client, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties) {
+    public DaemonBuildAction(DaemonClient client, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
         this.client = client;
         this.args = args;
         this.currentDir = currentDir;
@@ -40,9 +41,10 @@ public class DaemonBuildAction implements Runnable {
         this.startTime = startTime;
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
+        this.envVariables = envVariables;
     }
 
     public void run() {
-        client.execute(new ExecuteBuildAction(currentDir, args), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties));
+        client.execute(new ExecuteBuildAction(currentDir, args), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties, envVariables));
     }
 }
