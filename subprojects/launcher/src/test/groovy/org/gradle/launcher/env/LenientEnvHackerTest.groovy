@@ -19,6 +19,7 @@ package org.gradle.launcher.env;
 
 import org.gradle.launcher.env.LenientEnvHacker.EnvironmentProvider
 import org.gradle.util.GUtil
+import org.gradle.util.OperatingSystem
 import org.junit.Rule
 import org.junit.rules.TestName
 import spock.lang.Specification
@@ -96,6 +97,18 @@ class LenientEnvHackerTest extends Specification {
         then:
         "two" == System.getenv(test.methodName + 2)
         null == System.getenv(test.methodName + 1)
+    }
+
+     def "is case sensitive on windows"() {
+        when:
+        hacker.setenv(test.methodName, "one");
+
+        then:
+        "one" == System.getenv(test.methodName)
+         if (OperatingSystem.current().isWindows()) {
+            assert "one" == System.getenv(test.methodName.toUpperCase())
+            assert "one" == System.getenv(test.methodName.toLowerCase())
+         }
     }
 
     def "does not explode when local environment cannot be initialized"() {

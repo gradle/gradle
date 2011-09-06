@@ -91,7 +91,6 @@ class Environment {
             map.put(name, value);
             if (OperatingSystem.current().isWindows()) {
                 Map<String, String> env2 = getWindowsEnv();
-                //TODO SF check if you shouldn't put a lower case key here
                 env2.put(name, value);
             }
         }
