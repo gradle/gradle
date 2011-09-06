@@ -72,10 +72,12 @@ class Environment {
     static POSIX libc = new POSIX();
 
     public static int unsetenv(String name) {
-        Map<String, String> map = getenv();
+        Map<String, String> map = getEnv();
         map.remove(name);
-        Map<String, String> env2 = getwinenv();
-        env2.remove(name);
+        if (OperatingSystem.current().isWindows()) {
+            Map<String, String> env2 = getWindowsEnv();
+            env2.remove(name);
+        }
         return libc.unsetenv(name);
     }
 
@@ -83,18 +85,22 @@ class Environment {
         if (name.lastIndexOf("=") != -1) {
             throw new IllegalArgumentException("Environment variable cannot contain '='");
         }
-        Map<String, String> map = getenv();
+        Map<String, String> map = getEnv();
         boolean contains = map.containsKey(name);
         if (!contains || overwrite) {
             map.put(name, value);
-            Map<String, String> env2 = getwinenv();
-            env2.put(name, value);
+            if (OperatingSystem.current().isWindows()) {
+                Map<String, String> env2 = getWindowsEnv();
+                env2.put(name, value);
+            }
         }
         return libc.setenv(name, value, overwrite?1:0);
     }
 
-    @SuppressWarnings("unchecked")
-    public static Map<String, String> getwinenv() {
+    /**
+     * Windows keeps an extra map with case insensitive keys. The map is used when the user calls {@link System#getenv(String)}
+     */
+    public static Map<String, String> getWindowsEnv() {
         try {
             Class<?> sc = Class.forName("java.lang.ProcessEnvironment");
             Field caseinsensitive = sc.getDeclaredField("theCaseInsensitiveEnvironment");
@@ -107,7 +113,7 @@ class Environment {
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, String> getenv() {
+    public static Map<String, String> getEnv() {
         try {
             Map<String, String> theUnmodifiableEnvironment = System.getenv();
             Class<?> cu = theUnmodifiableEnvironment.getClass();
