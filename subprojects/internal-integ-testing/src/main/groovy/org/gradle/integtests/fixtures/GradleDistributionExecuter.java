@@ -18,8 +18,6 @@ package org.gradle.integtests.fixtures;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.GUtil;
-import org.gradle.util.SetSystemProperties;
 import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -43,17 +41,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
     private Executer executerType;
-
-    /**
-     * Useful at development time when someone wants to explicitly run some test against the daemon from the IDE.
-     * Rather not check-in any test that uses this rule because...
-     * our harness has nice ways of running all integ tests against particular gradle executer using task rules (e.g. daemonIntegTest, forkingIntegTest, etc.)
-     */
-    public static class UseDaemon extends SetSystemProperties implements MethodRule {
-        public UseDaemon() {
-            super(GUtil.map(EXECUTER_SYS_PROP, Executer.daemon.name()));
-        }
-    }
 
     public enum Executer {
         embedded(false), 
