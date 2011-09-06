@@ -69,13 +69,17 @@ public class ClasspathUtil {
     }
 
     public static File getClasspathForResource(ClassLoader classLoader, String name) {
+        if (classLoader == null) {
+            return getClasspathForResource(ClassLoader.getSystemResource(name), name);
+        } else {
+            return getClasspathForResource(classLoader.getResource(name), name);
+        }
+    }
+
+    public static File getClasspathForResource(URL resource, String name) {
         URI location;
         try {
-            if (classLoader == null) {
-                location = ClassLoader.getSystemResource(name).toURI();
-            } else {
-                location = classLoader.getResource(name).toURI();
-            }
+            location = resource.toURI();
             String path = location.getPath();
             if (location.getScheme().equals("file")) {
                 assert path.endsWith("/" + name);

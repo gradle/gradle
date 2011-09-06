@@ -30,18 +30,7 @@ tasks.withType(Jar).each { jar ->
 
 generatedResourcesDir = file("$buildDir/generated-resources/main")
 
-task classpathManifest {
-    def manifestFile = new File(generatedResourcesDir, "${archivesBaseName}-classpath.properties")
-    def externalClasspath = configurations.runtime.fileCollection { it instanceof ExternalModuleDependency }
-    outputs.file manifestFile
-    inputs.files externalClasspath
-    doLast {
-        manifestFile.parentFile.mkdirs()
-        def properties = new Properties()
-        properties.runtime = externalClasspath.collect {it.name}.join(',')
-        manifestFile.withOutputStream { properties.save(it, 'classpath definitions') }
-    }
-}
+task classpathManifest(type: ClasspathManifest)
 sourceSets.main.output.dir generatedResourcesDir, buildBy: classpathManifest
 
 if (file("src/testFixtures").exists()) {
@@ -50,4 +39,25 @@ if (file("src/testFixtures").exists()) {
 
 if (file("src/integTest").exists()) {
     apply from: "$rootDir/gradle/integTest.gradle"
+}
+
+class ClasspathManifest extends DefaultTask {
+    @OutputFile
+    File getManifestFile() {
+        return new File(project.generatedResourcesDir, "${project.archivesBaseName}-classpath.properties")
+    }
+
+    @Input
+    Properties getProperties() {
+        def properties = new Properties()
+        properties.name = project.archivesBaseName
+        properties.runtime = project.configurations.runtime.fileCollection { it instanceof ExternalModuleDependency }.collect {it.name}.join(',')
+        properties.projects = project.configurations.runtime.allDependencies.withType(ProjectDependency).collect {it.dependencyProject.archivesBaseName}.join(',')
+        return properties
+    }
+
+    @TaskAction
+    def generate() {
+        manifestFile.withOutputStream { properties.save(it, 'classpath definitions') }
+    }
 }

@@ -17,7 +17,6 @@
 import org.gradle.build.GenerateReleasesXml
 
 configurations {
-    excludedInEclipse
     reports
 }
 
@@ -53,9 +52,10 @@ dependencies {
 
     compile libraries.ant_launcher
 
-    excludedInEclipse project(":coreImpl")
+    testRuntime "xerces:xercesImpl:2.9.1"
 
     testFixturesCompile project(":internalTesting")
+    testFixturesRuntime project(':coreImpl')
 
     reports 'css3-pie:css3-pie:1.0beta3'
 }
@@ -76,8 +76,3 @@ sourceSets.main.output.dir generatedResourcesDir, buildBy: reportResources
 test {
     jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
 }
-
-// (SF) See issue GRADLE-1581
-// needs to be excluded because Eclipse does not recognize the difference between test & prod dependency
-// this is not a best solution. I guess we should move the tests that depend on coreIml from the core subproject or fix eclipse :)
-eclipse.classpath.minusConfigurations += configurations.excludedInEclipse

@@ -25,6 +25,7 @@ public class DefaultClassPathProvider extends AbstractClassPathProvider {
     private final ModuleRegistry moduleRegistry;
 
     public DefaultClassPathProvider(ModuleRegistry moduleRegistry) {
+        super(moduleRegistry);
         this.moduleRegistry = moduleRegistry;
     }
 

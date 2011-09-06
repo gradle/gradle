@@ -19,15 +19,26 @@ import java.io.File;
 import java.util.Set;
 
 /**
- * Meta-data about some dynamically loadable module.
+ * Meta-data about a dynamically loadable module.
  */
 public interface Module {
+    /**
+     * Returns the classpath for the module implementation. This the classpath of the module itself.
+     */
     Set<File> getImplementationClasspath();
 
+    /**
+     * Returns the classpath containing the runtime dependencies of the module.
+     */
     Set<File> getRuntimeClasspath();
 
     /**
      * Returns implementation + runtime
      */
     Set<File> getClasspath();
+
+    /**
+     * Returns the modules required by this module.
+     */
+    Set<Module> getRequiredModules();
 }

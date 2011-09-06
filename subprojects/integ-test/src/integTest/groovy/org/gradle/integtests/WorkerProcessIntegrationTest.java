@@ -20,8 +20,10 @@ import org.apache.tools.ant.Project;
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.BaseDirConverter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cache.CacheRepository;
@@ -61,7 +63,8 @@ public class WorkerProcessIntegrationTest {
     private final MessagingServer server = messagingServices.get(MessagingServer.class);
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getDir(), ".gradle", CacheUsage.ON, new DefaultCacheFactory().create());
-    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new WorkerProcessClassPathProvider(cacheRepository, new DefaultModuleRegistry()));
+    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
+    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new BaseDirConverter(tmpDir.getTestDir()), new LongIdGenerator());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);

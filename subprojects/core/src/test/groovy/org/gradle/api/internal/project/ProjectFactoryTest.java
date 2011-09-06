@@ -27,13 +27,14 @@ import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.testfixtures.internal.GlobalTestServices;
 import org.gradle.testfixtures.internal.TestTopLevelBuildServiceRegistry;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,9 +51,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(JMock.class)
 public class ProjectFactoryTest {
-    private final JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final MultiParentClassLoader buildScriptClassLoader = new MultiParentClassLoader(getClass().getClassLoader());
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
@@ -61,7 +60,7 @@ public class ProjectFactoryTest {
     private Factory<RepositoryHandler> repositoryHandlerFactory = context.mock(Factory.class);
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
     private StartParameter startParameterStub = new StartParameter();
-    private ServiceRegistryFactory serviceRegistryFactory = new TestTopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameterStub, rootDir);
+    private ServiceRegistryFactory serviceRegistryFactory = new TestTopLevelBuildServiceRegistry(new GlobalTestServices(), startParameterStub, rootDir);
     private Instantiator instantiatorMock = serviceRegistryFactory.get(Instantiator.class);
     private GradleInternal gradle = context.mock(GradleInternal.class);
 

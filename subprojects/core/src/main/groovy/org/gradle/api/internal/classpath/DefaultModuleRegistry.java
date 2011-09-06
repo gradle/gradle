@@ -31,6 +31,9 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+/**
+ * Determines the classpath for a module by looking for a 'project-classpath.properties' resource with 'name' set to the name of the module.
+ */
 public class DefaultModuleRegistry implements ModuleRegistry, GradleDistributionLocator {
     private final ClassLoader classLoader;
     private final File distDir;
@@ -83,7 +86,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
 
     public Module getExternalModule(String name) {
         File externalJar = findExternalJar(name);
-        return new DefaultModule(Collections.singleton(externalJar), Collections.<File>emptySet());
+        return new DefaultModule(name, Collections.singleton(externalJar), Collections.<File>emptySet(), Collections.<Module>emptySet());
     }
 
     public Module getModule(String name) {
@@ -96,32 +99,53 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
     }
 
     private Module loadModule(String moduleName) {
-        Set<File> implementationClasspath = new LinkedHashSet<File>();
-
-        String resource = String.format("%s-classpath.properties", moduleName);
-        Properties properties;
-        URL url = classLoader.getResource(resource);
-        if (url != null) {
-            properties = GUtil.loadProperties(url);
+        String resourceName = String.format("%s-classpath.properties", moduleName);
+        URL propertiesUrl = classLoader.getResource(resourceName);
+        if (propertiesUrl != null) {
+            Set<File> implementationClasspath = new LinkedHashSet<File>();
             findImplementationClasspath(moduleName, implementationClasspath);
-            implementationClasspath.add(ClasspathUtil.getClasspathForResource(classLoader, resource));
-        } else if (distDir != null) {
-            File jarFile = findModuleJar(moduleName);
-            implementationClasspath.add(jarFile);
-            properties = loadModuleProperties(jarFile, resource);
-        } else {
-            throw new IllegalArgumentException(String.format("Cannot locate classpath manifest '%s' in classpath.", resource));
+            implementationClasspath.add(ClasspathUtil.getClasspathForResource(propertiesUrl, resourceName));
+            Properties properties = GUtil.loadProperties(propertiesUrl);
+            return module(moduleName, properties, implementationClasspath);
         }
 
+        if (distDir == null) {
+            throw new IllegalArgumentException(String.format("Cannot locate classpath manifest for module '%s' in classpath.", moduleName));
+        }
+
+        Set<File> implementationClasspath = new LinkedHashSet<File>();
+        File jarFile = findModuleJar(moduleName);
+        implementationClasspath.add(jarFile);
+        Properties properties = loadModuleProperties(moduleName, jarFile);
+
+        return module(moduleName, properties, implementationClasspath);
+    }
+
+    private Module module(String moduleName, Properties properties, Set<File> implementationClasspath) {
         Set<File> runtimeClasspath = new LinkedHashSet<File>();
-        String runtime = properties.getProperty("runtime").trim();
-        if (runtime.length() > 0) {
-            for (String jarName : runtime.split(",")) {
-                runtimeClasspath.add(findDependencyJar(moduleName, jarName));
-            }
+        String runtime = properties.getProperty("runtime");
+        for (String jarName : split(runtime)) {
+            runtimeClasspath.add(findDependencyJar(moduleName, jarName));
         }
 
-        return new DefaultModule(implementationClasspath, runtimeClasspath);
+        Set<Module> modules = new LinkedHashSet<Module>();
+        String projects = properties.getProperty("projects");
+        for (String project : split(projects)) {
+            modules.add(getModule(project));
+        }
+
+        return new DefaultModule(moduleName, implementationClasspath, runtimeClasspath, modules);
+    }
+
+    private String[] split(String value) {
+        if (value == null) {
+            return new String[0];
+        }
+        value = value.trim();
+        if (value.length() == 0) {
+            return new String[0];
+        }
+        return value.split(",");
     }
 
     private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
@@ -146,11 +170,11 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
         }
     }
 
-    private Properties loadModuleProperties(File jarFile, String resource) {
+    private Properties loadModuleProperties(String name, File jarFile) {
         try {
             ZipFile zipFile = new ZipFile(jarFile);
             try {
-                ZipEntry entry = zipFile.getEntry(resource);
+                ZipEntry entry = zipFile.getEntry(String.format("%s-classpath.properties", name));
                 return GUtil.loadProperties(zipFile.getInputStream(entry));
             } finally {
                 zipFile.close();
@@ -207,14 +231,27 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
     }
 
     private static class DefaultModule implements Module {
+        private final String name;
         private final Set<File> implementationClasspath;
         private final Set<File> runtimeClasspath;
+        private final Set<Module> modules;
         private final Set<File> classpath;
 
-        public DefaultModule(Set<File> implementationClasspath, Set<File> runtimeClasspath) {
+        public DefaultModule(String name, Set<File> implementationClasspath, Set<File> runtimeClasspath, Set<Module> modules) {
+            this.name = name;
             this.implementationClasspath = implementationClasspath;
             this.runtimeClasspath = runtimeClasspath;
+            this.modules = modules;
             this.classpath = GUtil.addSets(implementationClasspath, runtimeClasspath);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("module '%s'", name);
+        }
+
+        public Set<Module> getRequiredModules() {
+            return modules;
         }
 
         public Set<File> getImplementationClasspath() {

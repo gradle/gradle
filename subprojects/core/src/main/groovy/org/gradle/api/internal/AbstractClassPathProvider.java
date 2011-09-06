@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.util.ClasspathUtil;
 
 import java.io.File;
@@ -30,34 +31,25 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider {
     private final Map<String, List<Pattern>> classPaths = new HashMap<String, List<Pattern>>();
     private final Scanner runtimeLibs;
     private final Scanner pluginLibs;
-    private final Scanner coreImplLibs;
+    private final ModuleRegistry moduleRegistry;
 
-    protected AbstractClassPathProvider() {
+    protected AbstractClassPathProvider(ModuleRegistry moduleRegistry) {
+        this.moduleRegistry = moduleRegistry;
         File codeSource = ClasspathUtil.getClasspathForClass(AbstractClassPathProvider.class);
         if (codeSource.isFile()) {
             // Loaded from a JAR - assume we're running from the distribution
             File gradleHome = codeSource.getParentFile().getParentFile();
             runtimeLibs = new DirScanner(new File(gradleHome + "/lib"));
             pluginLibs = new DirScanner(new File(gradleHome + "/lib/plugins"));
-            coreImplLibs = new DirScanner(new File(gradleHome + "/lib/core-impl"));
         } else {
             // Loaded from a classes dir - assume we're running from the ide or tests
             runtimeLibs = new ClassPathScanner(codeSource);
             pluginLibs = runtimeLibs;
-            coreImplLibs = runtimeLibs;
         }
     }
 
     protected void add(String name, List<Pattern> patterns) {
         classPaths.put(name, patterns);
-    }
-
-    protected static List<Pattern> toPatterns(String... patternStrings) {
-        List<Pattern> patterns = new ArrayList<Pattern>();
-        for (String patternString : patternStrings) {
-            patterns.add(Pattern.compile(patternString + "-.+"));
-        }
-        return patterns;
     }
 
     public Set<File> findClassPath(String name) {
@@ -75,14 +67,12 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider {
             return matches;
         }
         if (name.equals("GRADLE_CORE_IMPL")) {
-            coreImplLibs.find(all, matches);
-            return matches;
+            return moduleRegistry.getModule("gradle-core-impl").getClasspath();
         }
         List<Pattern> classPathPatterns = classPaths.get(name);
         if (classPathPatterns != null) {
             runtimeLibs.find(classPathPatterns, matches);
             pluginLibs.find(classPathPatterns, matches);
-            coreImplLibs.find(classPathPatterns, matches);
             return matches;
         }
         return null;

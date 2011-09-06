@@ -85,7 +85,6 @@ class MavenModule {
         return new File(moduleDir, "$artifactId-${publishArtifactVersion}.pom")
     }
 
-
     TestFile getArtifactFile() {
         def fileName = "$artifactId-${publishArtifactVersion}.${type}"
         if (classifier) {

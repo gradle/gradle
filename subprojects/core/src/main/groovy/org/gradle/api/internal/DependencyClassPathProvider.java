@@ -35,6 +35,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     public Set<File> findClassPath(String name) {
         if (name.equals(GRADLE_API.name())) {
             Set<File> classpath = new LinkedHashSet<File>();
+            classpath.addAll(moduleRegistry.getModule("gradle-cli").getClasspath());
             classpath.addAll(moduleRegistry.getModule("gradle-core").getClasspath());
             classpath.addAll(moduleRegistry.getModule("gradle-core-impl").getClasspath());
             classpath.addAll(moduleRegistry.getModule("gradle-plugins").getClasspath());

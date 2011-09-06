@@ -135,11 +135,12 @@ configurations {
     testRuntime {
         extendsFrom runtime
         extendsFrom plugins
+        extendsFrom coreImpl
     }
 }
 
 dependencies {
-    runtime runtimeProjects()
+    runtime project(':launcher')
     plugins pluginProjects()
     coreImpl project(':coreImpl')
 }
@@ -407,14 +408,6 @@ def groovyProjects() {
 
 def publishedProjects() {
     [project(':core'), project(':toolingApi'), project(':wrapper')]
-}
-
-def internalProjects() {
-    subprojects.findAll { it.name.startsWith("internal") } + [project(":integTest")]
-}
-
-def runtimeProjects() {
-    groovyProjects() - pluginProjects() - internalProjects() - [project(':coreImpl')]
 }
 
 def pluginProjects() {
