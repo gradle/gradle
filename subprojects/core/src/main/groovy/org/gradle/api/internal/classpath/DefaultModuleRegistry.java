@@ -81,6 +81,11 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
         return distDir;
     }
 
+    public Module getExternalModule(String name) {
+        File externalJar = findExternalJar(name);
+        return new DefaultModule(Collections.singleton(externalJar), Collections.<File>emptySet());
+    }
+
     public Module getModule(String name) {
         Module module = modules.get(name);
         if (module == null) {
@@ -90,33 +95,36 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
         return module;
     }
 
-    private Module loadModule(String name) {
-        List<File> implementationClasspath = new ArrayList<File>();
+    private Module loadModule(String moduleName) {
+        Set<File> implementationClasspath = new LinkedHashSet<File>();
 
-        String resource = String.format("%s-classpath.properties", name);
+        String resource = String.format("%s-classpath.properties", moduleName);
         Properties properties;
         URL url = classLoader.getResource(resource);
         if (url != null) {
             properties = GUtil.loadProperties(url);
-            findImplementationClasspath(name, implementationClasspath);
+            findImplementationClasspath(moduleName, implementationClasspath);
             implementationClasspath.add(ClasspathUtil.getClasspathForResource(classLoader, resource));
         } else if (distDir != null) {
-            File jarFile = findModuleJar(name);
+            File jarFile = findModuleJar(moduleName);
             implementationClasspath.add(jarFile);
             properties = loadModuleProperties(jarFile, resource);
         } else {
             throw new IllegalArgumentException(String.format("Cannot locate classpath manifest '%s' in classpath.", resource));
         }
 
-        List<File> runtimeClasspath = new ArrayList<File>();
-        for (String jarName : properties.getProperty("runtime").split(",")) {
-            runtimeClasspath.add(findDependencyJar(jarName));
+        Set<File> runtimeClasspath = new LinkedHashSet<File>();
+        String runtime = properties.getProperty("runtime").trim();
+        if (runtime.length() > 0) {
+            for (String jarName : runtime.split(",")) {
+                runtimeClasspath.add(findDependencyJar(moduleName, jarName));
+            }
         }
 
         return new DefaultModule(implementationClasspath, runtimeClasspath);
     }
 
-    private void findImplementationClasspath(String name, List<File> implementationClasspath) {
+    private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
         List<String> suffixes = new ArrayList<String>();
         Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
         matcher.matches();
@@ -164,13 +172,30 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
         throw new IllegalArgumentException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, distDir));
     }
 
-    private File findDependencyJar(String name) {
+    private File findExternalJar(String name) {
+        Pattern pattern = Pattern.compile(Pattern.quote(name) + "-.+\\.jar");
+        for (File file : classpath) {
+            if (pattern.matcher(file.getName()).matches()) {
+                return file;
+            }
+        }
+        for (File libDir : libDirs) {
+            for (File file : libDir.listFiles()) {
+                if (pattern.matcher(file.getName()).matches()) {
+                    return file;
+                }
+            }
+        }
+        throw new IllegalArgumentException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, distDir));
+    }
+
+    private File findDependencyJar(String module, String name) {
         File jarFile = classpathJars.get(name);
         if (jarFile != null) {
             return jarFile;
         }
         if (distDir == null) {
-            throw new IllegalArgumentException(String.format("Cannot find JAR '%s' using classpath.", name));
+            throw new IllegalArgumentException(String.format("Cannot find JAR '%s' required by module '%s' using classpath.", name, module));
         }
         for (File libDir : libDirs) {
             jarFile = new File(libDir, name);
@@ -178,24 +203,30 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
                 return jarFile;
             }
         }
-        throw new IllegalArgumentException(String.format("Cannot find JAR '%s' using classpath or distribution directory '%s'", name, distDir));
+        throw new IllegalArgumentException(String.format("Cannot find JAR '%s' required by module '%s' using classpath or distribution directory '%s'", name, module, distDir));
     }
 
     private static class DefaultModule implements Module {
-        private final List<File> implementationClasspath;
-        private final List<File> runtimeClasspath;
+        private final Set<File> implementationClasspath;
+        private final Set<File> runtimeClasspath;
+        private final Set<File> classpath;
 
-        public DefaultModule(List<File> implementationClasspath, List<File> runtimeClasspath) {
+        public DefaultModule(Set<File> implementationClasspath, Set<File> runtimeClasspath) {
             this.implementationClasspath = implementationClasspath;
             this.runtimeClasspath = runtimeClasspath;
+            this.classpath = GUtil.addSets(implementationClasspath, runtimeClasspath);
         }
 
-        public List<File> getImplementationClasspath() {
+        public Set<File> getImplementationClasspath() {
             return implementationClasspath;
         }
 
-        public List<File> getRuntimeClasspath() {
+        public Set<File> getRuntimeClasspath() {
             return runtimeClasspath;
+        }
+
+        public Set<File> getClasspath() {
+            return classpath;
         }
     }
 }

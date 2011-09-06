@@ -15,9 +15,9 @@
  */
 package org.gradle.launcher.daemon;
 
+import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
@@ -31,8 +31,6 @@ import java.util.Set;
  * A daemon connector that starts daemons by launching new processes.
  */
 public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentDaemonRegistry> {
-
-    private static final Logger LOGGER = Logging.getLogger(ExternalDaemonConnector.class);
     public static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     
     private final File userHomeDir;
@@ -49,7 +47,7 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentD
     }
 
     protected void startDaemon() {
-        Set<File> bootstrapClasspath = new DefaultClassPathRegistry().getClassPathFiles("GRADLE_BOOTSTRAP");
+        Set<File> bootstrapClasspath = new DefaultClassPathRegistry(new DefaultClassPathProvider(new DefaultModuleRegistry())).getClassPathFiles("GRADLE_BOOTSTRAP");
         if (bootstrapClasspath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }

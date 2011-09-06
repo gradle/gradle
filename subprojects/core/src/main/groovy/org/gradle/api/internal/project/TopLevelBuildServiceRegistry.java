@@ -98,8 +98,9 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected ClassPathRegistry createClassPathRegistry() {
         return new DefaultClassPathRegistry(
+                new DefaultClassPathProvider(get(ModuleRegistry.class)),
                 new DependencyClassPathProvider(get(ModuleRegistry.class)),
-                new WorkerProcessClassPathProvider(get(CacheRepository.class)));
+                new WorkerProcessClassPathProvider(get(CacheRepository.class), get(ModuleRegistry.class)));
     }
 
     protected IsolatedAntBuilder createIsolatedAntBuilder() {

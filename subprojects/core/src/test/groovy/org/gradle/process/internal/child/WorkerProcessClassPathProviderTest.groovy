@@ -23,11 +23,13 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.DirectoryCacheBuilder
+import org.gradle.api.internal.classpath.ModuleRegistry
 
 class WorkerProcessClassPathProviderTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
-    private final CacheRepository cacheRepository = Mock()
-    private final WorkerProcessClassPathProvider provider = new WorkerProcessClassPathProvider(cacheRepository)
+    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    final CacheRepository cacheRepository = Mock()
+    final ModuleRegistry moduleRegistry = Mock()
+    final WorkerProcessClassPathProvider provider = new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry)
 
     def returnsNullForUnknownClasspath() {
         expect:

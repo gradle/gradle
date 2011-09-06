@@ -34,9 +34,12 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
+import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.DefaultClassPathProvider
 
 class DefaultIsolatedAntBuilderTest {
-    private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DependencyClassPathProvider(new DefaultModuleRegistry()))
+    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry()
+    private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new DependencyClassPathProvider(moduleRegistry))
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
     private final TestAppender appender = new TestAppender()
     private final LoggingTestHelper helper = new LoggingTestHelper(appender)

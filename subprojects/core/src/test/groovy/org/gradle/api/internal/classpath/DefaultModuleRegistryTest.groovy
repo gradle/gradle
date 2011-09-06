@@ -57,8 +57,8 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath == [classesDir, staticResourcesDir, resourcesDir]
-        module.runtimeClasspath == [runtimeDep]
+        module.implementationClasspath as List == [classesDir, staticResourcesDir, resourcesDir]
+        module.runtimeClasspath as List == [runtimeDep]
     }
 
     def "uses manifest from classpath when run from Eclipse"() {
@@ -70,8 +70,8 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath == [classesDir, staticResourcesDir, resourcesDir]
-        module.runtimeClasspath == [runtimeDep]
+        module.implementationClasspath as List == [classesDir, staticResourcesDir, resourcesDir]
+        module.runtimeClasspath as List == [runtimeDep]
     }
 
     def "uses manifest from classpath when run from build"() {
@@ -83,8 +83,8 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath == [classesDir, staticResourcesDir, resourcesDir]
-        module.runtimeClasspath == [runtimeDep]
+        module.implementationClasspath as List == [classesDir, staticResourcesDir, resourcesDir]
+        module.runtimeClasspath as List == [runtimeDep]
     }
 
     def "uses manifest from a jar on the classpath"() {
@@ -94,8 +94,8 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath == [jarFile]
-        module.runtimeClasspath == [runtimeDep]
+        module.implementationClasspath as List == [jarFile]
+        module.runtimeClasspath as List == [runtimeDep]
     }
 
     def "uses manifest from jar in distribution image when not available on classpath"() {
@@ -105,8 +105,22 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath == [jarFile]
-        module.runtimeClasspath == [runtimeDep]
+        module.implementationClasspath as List == [jarFile]
+        module.runtimeClasspath as List == [runtimeDep]
+    }
+
+    def "handles empty runtime classpath in manifest"() {
+        given:
+        def properties = new Properties()
+        properties.runtime = ''
+        resourcesDir.file("gradle-some-module-classpath.properties").withOutputStream { outstr -> properties.save(outstr, "header") }
+
+        def cl = new URLClassLoader([resourcesDir, runtimeDep].collect { it.toURI().toURL() } as URL[])
+        def registry = new DefaultModuleRegistry(cl, distDir)
+
+        expect:
+        def module = registry.getModule("gradle-some-module")
+        module.runtimeClasspath.empty
     }
 
     def "fails when classpath does not contain manifest"() {
@@ -133,5 +147,27 @@ class DefaultModuleRegistryTest extends Specification {
         then:
         IllegalArgumentException e = thrown()
         e.message == "Cannot locate JAR for module 'gradle-other-module' in distribution directory '$distDir'."
+    }
+
+    def "locates an external module as a JAR on the classpath"() {
+        given:
+        def cl = new URLClassLoader([runtimeDep].collect { it.toURI().toURL() } as URL[])
+        def registry = new DefaultModuleRegistry(cl, distDir)
+
+        expect:
+        def module = registry.getExternalModule("dep")
+        module.implementationClasspath as List == [runtimeDep]
+        module.runtimeClasspath.empty
+    }
+    
+    def "locates an external module as a JAR in the distribution image when not available on the classpath"() {
+        given:
+        def cl = new URLClassLoader([] as URL[])
+        def registry = new DefaultModuleRegistry(cl, distDir)
+
+        expect:
+        def module = registry.getExternalModule("dep")
+        module.implementationClasspath as List == [runtimeDep]
+        module.runtimeClasspath.empty
     }
 }

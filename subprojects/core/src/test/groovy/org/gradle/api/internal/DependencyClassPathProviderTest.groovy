@@ -38,8 +38,7 @@ class DependencyClassPathProviderTest extends Specification {
 
     def module(String name) {
         Module module = Mock()
-        _ * module.implementationClasspath >> [new File(name)]
-        _ * module.runtimeClasspath >> [new File("runtime.jar")]
+        _ * module.classpath >> [new File(name), new File("runtime.jar")]
         return module
     }
 }

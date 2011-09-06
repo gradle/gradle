@@ -25,45 +25,31 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public abstract class AbstractClassPathProvider implements ClassPathProvider, GradleDistributionLocator {
+public abstract class AbstractClassPathProvider implements ClassPathProvider {
     private final List<Pattern> all = Arrays.asList(Pattern.compile(".+"));
     private final Map<String, List<Pattern>> classPaths = new HashMap<String, List<Pattern>>();
     private final Scanner runtimeLibs;
     private final Scanner pluginLibs;
     private final Scanner coreImplLibs;
-    private final File gradleHome;
 
     protected AbstractClassPathProvider() {
         File codeSource = ClasspathUtil.getClasspathForClass(AbstractClassPathProvider.class);
         if (codeSource.isFile()) {
             // Loaded from a JAR - assume we're running from the distribution
-            gradleHome = codeSource.getParentFile().getParentFile();
+            File gradleHome = codeSource.getParentFile().getParentFile();
             runtimeLibs = new DirScanner(new File(gradleHome + "/lib"));
             pluginLibs = new DirScanner(new File(gradleHome + "/lib/plugins"));
             coreImplLibs = new DirScanner(new File(gradleHome + "/lib/core-impl"));
         } else {
             // Loaded from a classes dir - assume we're running from the ide or tests
-            gradleHome = null;
             runtimeLibs = new ClassPathScanner(codeSource);
             pluginLibs = runtimeLibs;
             coreImplLibs = runtimeLibs;
         }
     }
 
-    public File getGradleHome() {
-        return gradleHome;
-    }
-
     protected void add(String name, List<Pattern> patterns) {
         classPaths.put(name, patterns);
-    }
-
-    protected static List<Pattern> jarNames(List<String> jarNames) {
-        List<Pattern> patterns = new ArrayList<Pattern>();
-        for (String jarName : jarNames) {
-            patterns.add(Pattern.compile(Pattern.quote(jarName)));
-        }
-        return patterns;
     }
 
     protected static List<Pattern> toPatterns(String... patternStrings) {

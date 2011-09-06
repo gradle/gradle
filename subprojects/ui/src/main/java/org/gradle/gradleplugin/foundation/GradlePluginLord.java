@@ -18,7 +18,7 @@ package org.gradle.gradleplugin.foundation;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.LocationAwareException;
-import org.gradle.api.internal.DefaultClassPathProvider;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -149,7 +149,7 @@ public class GradlePluginLord {
         if (gradleHomeProperty != null) {
             gradleHomeDirectory = new File(gradleHomeProperty);
         } else {
-            gradleHomeDirectory = new DefaultClassPathProvider().getGradleHome();
+            gradleHomeDirectory = new DefaultModuleRegistry().getGradleHome();
         }
     }
 

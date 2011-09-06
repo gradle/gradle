@@ -16,13 +16,18 @@
 package org.gradle.api.internal.classpath;
 
 import java.io.File;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Meta-data about some dynamically loadable module.
  */
 public interface Module {
-    List<File> getImplementationClasspath();
+    Set<File> getImplementationClasspath();
 
-    List<File> getRuntimeClasspath();
+    Set<File> getRuntimeClasspath();
+
+    /**
+     * Returns implementation + runtime
+     */
+    Set<File> getClasspath();
 }

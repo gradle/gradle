@@ -17,7 +17,8 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.AbstractClassPathProvider;
+import org.gradle.api.internal.ClassPathProvider;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
@@ -27,30 +28,43 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class WorkerProcessClassPathProvider extends AbstractClassPathProvider {
+public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private final CacheRepository cacheRepository;
+    private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
     private Set<File> workerClassPath;
 
-    public WorkerProcessClassPathProvider(CacheRepository cacheRepository) {
+    public WorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         this.cacheRepository = cacheRepository;
-        add("WORKER_PROCESS", toPatterns("gradle-core", "gradle-cli", "slf4j-api", "logback-classic", "logback-core", "jul-to-slf4j"));
+        this.moduleRegistry = moduleRegistry;
     }
 
     public Set<File> findClassPath(String name) {
-        if (!name.equals("WORKER_MAIN")) {
-            return super.findClassPath(name);
+        if (name.equals("WORKER_PROCESS")) {
+            // TODO - split out a logging project and use its classpath, instead of hardcoding logging dependencies here
+            Set<File> classpath = new LinkedHashSet<File>();
+            classpath.addAll(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
+            classpath.addAll(moduleRegistry.getModule("gradle-cli").getImplementationClasspath());
+            classpath.addAll(moduleRegistry.getExternalModule("slf4j-api").getClasspath());
+            classpath.addAll(moduleRegistry.getExternalModule("logback-classic").getClasspath());
+            classpath.addAll(moduleRegistry.getExternalModule("logback-core").getClasspath());
+            classpath.addAll(moduleRegistry.getExternalModule("jul-to-slf4j").getClasspath());
+            return classpath;
+        }
+        if (name.equals("WORKER_MAIN")) {
+            synchronized (lock) {
+                if (workerClassPath == null) {
+                    PersistentCache cache = cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
+                    workerClassPath = Collections.singleton(classesDir(cache));
+                }
+                return workerClassPath;
+            }
         }
 
-        synchronized (lock) {
-            if (workerClassPath == null) {
-                PersistentCache cache = cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
-                workerClassPath = Collections.singleton(classesDir(cache));
-            }
-            return workerClassPath;
-        }
+        return null;
     }
 
     private static File classesDir(PersistentCache cache) {

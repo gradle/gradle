@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.internal.DefaultClassPathProvider;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
@@ -179,7 +180,7 @@ public class DistributionFactory {
         }
 
         public Set<File> getToolingImplementationClasspath() {
-            DefaultClassPathProvider provider = new DefaultClassPathProvider();
+            DefaultClassPathProvider provider = new DefaultClassPathProvider(new DefaultModuleRegistry());
             return provider.findClassPath("GRADLE_RUNTIME");
         }
     }

@@ -28,7 +28,6 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
 
     public DefaultClassPathRegistry(ClassPathProvider... providers) {
         this.providers.addAll(Arrays.asList(providers));
-        this.providers.add(new DefaultClassPathProvider());
     }
 
     public URL[] getClassPathUrls(String name) {
