@@ -73,7 +73,6 @@ class LenientEnvHackerTest extends Specification {
         "two" == System.getenv(test.methodName + 2)
     }
 
-    //TODO SF cover the constructor also
     def "does not explode when local environment is unfriendly"() {
         given:
         def env = Mock(Environment)

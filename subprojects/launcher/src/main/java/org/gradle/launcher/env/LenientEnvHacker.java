@@ -23,7 +23,7 @@ import org.gradle.util.OperatingSystem;
 import java.util.Map;
 
 /**
- * Enables hacking the environment
+ * Enables hacking the environment. *Not* thread safe.
  *
  * @author: Szczepan Faber, created at: 9/1/11
  */
