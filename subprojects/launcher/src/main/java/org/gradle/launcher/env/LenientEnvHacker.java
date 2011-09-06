@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.OperatingSystem;
 
+import java.util.LinkedList;
 import java.util.Map;
 
 /**
@@ -49,8 +50,14 @@ public class LenientEnvHacker {
         }
     }
 
+    //Existing system env is removed and passed env map becomes the system env.
     public void setenv(Map<String, String> source) {
         try {
+            Map<String, String> currentEnv = System.getenv();
+            Iterable<String> names = new LinkedList(currentEnv.keySet());
+            for (String name : names) {
+                this.env.unsetenv(name);
+            }
             for (String key : source.keySet()) {
                 this.env.setenv(key, source.get(key), true);
             }

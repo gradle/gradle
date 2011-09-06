@@ -29,6 +29,15 @@ class LenientEnvHackerTest extends Specification {
 
     public final @Rule TestName test = new TestName()
     def hacker = new LenientEnvHacker()
+    def preservedEnvironment
+
+    def setup() {
+        preservedEnvironment = System.getenv()
+    }
+
+    def cleanup() {
+        hacker.setenv(preservedEnvironment)
+    }
 
     def "added env is available explicitly"() {
         when:
@@ -71,6 +80,21 @@ class LenientEnvHackerTest extends Specification {
         then:
         "one" == System.getenv()[test.methodName + 1]
         "two" == System.getenv(test.methodName + 2)
+    }
+
+    def "replaces existing env variables"() {
+        when:
+        hacker.setenv(test.methodName + 1, "one");
+
+        then:
+        "one" == System.getenv(test.methodName + 1)
+
+        when:
+        hacker.setenv(GUtil.map(test.methodName + 2, "two"));
+
+        then:
+        "two" == System.getenv(test.methodName + 2)
+        null == System.getenv(test.methodName + 1)
     }
 
     def "does not explode when local environment is unfriendly"() {
