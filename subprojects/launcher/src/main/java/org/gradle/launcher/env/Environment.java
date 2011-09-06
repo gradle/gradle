@@ -93,10 +93,6 @@ class Environment {
     }
 
     public int setenv(String name, String value, boolean overwrite) {
-        //TODO SF - think on it a bit more
-//        if (name.lastIndexOf("=") != -1) {
-//            throw new IllegalArgumentException("Environment variable cannot contain '='");
-//        }
         Map<String, String> map = getEnv();
         boolean contains = map.containsKey(name);
         if (!contains || overwrite) {
