@@ -52,7 +52,7 @@ public class LenientEnvHacker {
             return;
         }
         try {
-            env.setenv(key, value, true);
+            env.setenv(key, value);
         } catch (Throwable t) {
             String warning = String.format("Unable to set env variable %s=%s on OS: %s.", key, value, OperatingSystem.current());
             LOGGER.warn(warning, t);
@@ -71,7 +71,7 @@ public class LenientEnvHacker {
                 env.unsetenv(name);
             }
             for (String key : source.keySet()) {
-                env.setenv(key, source.get(key), true);
+                env.setenv(key, source.get(key));
             }
         } catch (Throwable t) {
             String warning = String.format("Unable to set env variables on OS: %s.", OperatingSystem.current());

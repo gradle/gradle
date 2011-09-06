@@ -119,7 +119,7 @@ class LenientEnvHackerTest extends Specification {
         hacker = new LenientEnvHacker(provider)
 
         when:
-        hacker.setenv("foo", "bar")
+        hacker.setenv(test.methodName, "bar")
         hacker.setenv(GUtil.map())
 
         then:
@@ -136,7 +136,7 @@ class LenientEnvHackerTest extends Specification {
         hacker = new LenientEnvHacker(provider)
 
         when:
-        hacker.setenv("foo", "bar")
+        hacker.setenv(test.methodName, "bar")
         hacker.setenv(GUtil.map())
 
         then:
