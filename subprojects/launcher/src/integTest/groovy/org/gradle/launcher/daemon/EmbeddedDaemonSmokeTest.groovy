@@ -15,18 +15,15 @@
  */
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.*
-
-import org.gradle.launcher.DefaultBuildActionParameters
 import org.gradle.configuration.GradleLauncherMetaData
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.launcher.DefaultBuildActionParameters
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.logging.internal.OutputEventListener
-
-import org.gradle.tooling.internal.provider.ExecuteBuildAction
 import org.gradle.tooling.internal.provider.ConfiguringBuildAction
-
-import spock.lang.*
+import org.gradle.tooling.internal.provider.ExecuteBuildAction
 import org.junit.Rule
+import spock.lang.Specification
 
 /**
  * Exercises the basic mechanics using an embedded daemon.
@@ -46,7 +43,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
     def "run build"() {
         given:
         def action = new ConfiguringBuildAction(distribution.gradleHomeDir, distribution.testDir, false, new ExecuteBuildAction(["echo"]))
-        def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties)
+        def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv())
         
         and:
         def outputFile = distribution.testDir.file("output.txt")
