@@ -16,28 +16,19 @@
 
 package org.gradle.integtests.maven
 
-import org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.SystemProperties
 import org.gradle.util.TestFile
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import spock.lang.Ignore
 
 /**
  * @author: Szczepan Faber, created at: 6/16/11
  */
 class MavenNewPublicationIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
-
-    @Before
-    public void setup() {
-        // TODO - need to fix this. Currently, you must run the 'intTestImage' task before running this test.
-        executer.type = Executer.forking
-    }
 
     @Test
     void "publishes snapshot to a local maven repository"() {
@@ -51,10 +42,6 @@ group = 'org.test'
 archivesBaseName = 'someCoolProject'
 version = '5.0-SNAPSHOT'
 
-repositories {
-    mavenCentral()
-}
-
 publications.maven.repository.url = '${repo().rootDir.toURI()}'
 """
 
@@ -63,7 +50,7 @@ publications.maven.repository.url = '${repo().rootDir.toURI()}'
 
         then:
         def module = repo().module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
-        module.assertArtifactsDeployed("someCoolProject-5.0-SNAPSHOT.jar")
+        module.assertArtifactsDeployed("someCoolProject-5.0-SNAPSHOT.jar", "someCoolProject-5.0-SNAPSHOT.pom")
     }
 
     @Test
@@ -78,9 +65,6 @@ group = 'org.test'
 archivesBaseName = 'someCoolProject'
 version = '5.0-SNAPSHOT'
 
-repositories {
-    mavenCentral()
-}
 """
 
         when:
@@ -93,9 +77,9 @@ repositories {
         def files = module.moduleDir.list() as List
         assert files.contains('maven-metadata-local.xml')
         assert files.any { it =~ /someCoolProject-5.0-.*\.jar/ }
+        assert files.any { it =~ /someCoolProject-5.0-.*\.pom/ }
     }
 
-    @Ignore
     @Test
     void "publishes to remote maven repo"() {
         given:
@@ -105,9 +89,9 @@ apply plugin: 'java'
 apply plugin: 'maven'
 new org.gradle.api.publication.PublicationPlugin().apply(project)
 
-repositories {
-    mavenCentral()
-}
+group = 'org.test'
+archivesBaseName = 'someCoolProject'
+version = '5.0'
 
 publications {
     maven {
@@ -122,13 +106,22 @@ publications {
 }
 
 """
+        server.expectPut("/repo/org/test/someCoolProject/5.0/someCoolProject-5.0.jar", file("jar"))
+        server.expectPut("/repo/org/test/someCoolProject/5.0/someCoolProject-5.0.jar.md5", file("jar.md5"))
+        server.expectPut("/repo/org/test/someCoolProject/5.0/someCoolProject-5.0.jar.sha1", file("jar.sha1"))
+        server.expectPut("/repo/org/test/someCoolProject/5.0/someCoolProject-5.0.pom", file("pom"))
+        server.expectPut("/repo/org/test/someCoolProject/5.0/someCoolProject-5.0.pom.md5", file("pom.md5"))
+        server.expectPut("/repo/org/test/someCoolProject/5.0/someCoolProject-5.0.pom.sha1", file("pom.sha1"))
+        server.expectGetMissing("/repo/org/test/someCoolProject/maven-metadata.xml")
+        server.expectPut("/repo/org/test/someCoolProject/maven-metadata.xml", file("metadata"))
+        server.expectPut("/repo/org/test/someCoolProject/maven-metadata.xml.md5", file("metadata.md5"))
+        server.expectPut("/repo/org/test/someCoolProject/maven-metadata.xml.sha1", file("metadata.sha1"))
 
         when:
         executer.withTasks('publishArchives').run()
 
         then:
-        def module = repo().module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
-        module.assertArtifactsDeployed("someCoolProject-5.0-SNAPSHOT.jar")
+        notThrown(Throwable)
     }
 
         //maven {

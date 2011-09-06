@@ -29,6 +29,7 @@ dependencies {
     compile project(':plugins')
     compile libraries.slf4j_api
 
+    /*
     compile "org.sonatype.aether:aether-api:$aetherVersion"
     compile "org.sonatype.aether:aether-util:$aetherVersion"
     compile "org.sonatype.aether:aether-impl:$aetherVersion"
@@ -42,32 +43,11 @@ dependencies {
     compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
     compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
     compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
+    */
+    compile "org.apache.maven:maven-ant-tasks:2.1.1@jar"
+    compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
+    compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
+    compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
 }
 
 useTestFixtures()
-
-test {
-    dependsOn ":intTestImage"
-    systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir
-    systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir')
-
-    doFirst {
-        //Below uber hack is to avoid the (java.lang.VerifyError) which is caused by duplicate classes with different version
-        //One of the duplicate classes in multiple jars: org.apache.maven.model.Model in maven-ant-tasks.jar and in maven-model.jar
-        //maven-ant-tasks is pulled as a transitive dependency of :core
-        //To resolve the problem I'm placing the maven-ant-tasks at the end of the classpath
-        //The solution is hacky but we'll getting rid of maven-ant-tasks dependency soon so I figured the impact is low.
-        //Also, the problem occurs only for integration tests, not for production code
-        //We cannot simply remove maven-ant-tasks from the classpath because it is needed by some internal classes unrelated (?) to maven plugin.
-
-        def mvnAntTasksJar = classpath.find { it.name.startsWith('maven-ant-tasks-') }
-        //after changing cache format, this does not work any more:
-        //classpath -= files(mvnAntTasksJar)
-
-        //move mvnAntTasks jar to the end of the classpath
-        def newClasspath = (classpath.files - mvnAntTasksJar) + mvnAntTasksJar
-
-        classpath = files(newClasspath)
-    }
-
-}

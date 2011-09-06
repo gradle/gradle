@@ -24,7 +24,6 @@ import org.gradle.util.Resources
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
-import org.sonatype.aether.repository.LocalRepository
 import spock.lang.Specification
 
 /**
@@ -35,7 +34,7 @@ class DefaultMavenPublisherTest extends Specification {
     @Rule def dir = new TemporaryFolder()
     @Rule def resources = new Resources()
 
-    def publisher = new DefaultMavenPublisher(new LocalRepository("$dir.testDir/local-repository"))
+    def publisher = new DefaultMavenPublisher(dir.file("local-repository"))
 
     def "installs artifact"() {
         def publication = new DefaultMavenPublication(groupId: "gradleware.test", artifactId: "fooArtifact", version: "1.1")

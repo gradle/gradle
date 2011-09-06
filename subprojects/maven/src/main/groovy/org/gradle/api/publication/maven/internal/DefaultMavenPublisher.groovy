@@ -15,87 +15,76 @@
  */
 package org.gradle.api.publication.maven.internal
 
-import org.apache.maven.repository.internal.DefaultServiceLocator
-import org.apache.maven.repository.internal.MavenRepositorySystemSession
+import org.apache.tools.ant.Project
 import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.MavenPublisher
 import org.gradle.api.publication.maven.MavenRepository
-import org.gradle.util.SystemProperties
-import org.sonatype.aether.RepositorySystem
-import org.sonatype.aether.RepositorySystemSession
-import org.sonatype.aether.artifact.Artifact
-import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory
-import org.sonatype.aether.connector.wagon.WagonProvider
-import org.sonatype.aether.connector.wagon.WagonRepositoryConnectorFactory
-import org.sonatype.aether.deployment.DeployRequest
-import org.sonatype.aether.installation.InstallRequest
-import org.sonatype.aether.repository.Authentication
-import org.sonatype.aether.repository.LocalRepository
-import org.sonatype.aether.repository.RemoteRepository
-import org.sonatype.aether.spi.connector.RepositoryConnectorFactory
-import org.sonatype.aether.util.artifact.DefaultArtifact
-import org.sonatype.aether.util.artifact.SubArtifact
+import org.apache.maven.artifact.ant.*
 
 class DefaultMavenPublisher implements MavenPublisher {
-    private final RepositorySystem repositorySystem
-    private final RepositorySystemSession session
+    private final File localRepoDir
 
     DefaultMavenPublisher() {
-        this(new LocalRepository("$SystemProperties.userHome/.m2/repository"))
+        this(null)
     }
 
-    DefaultMavenPublisher(LocalRepository localRepository) {
-        repositorySystem = createRepositorySystem()
-        session = createRepositorySystemSession(repositorySystem, localRepository)
+    DefaultMavenPublisher(File localRepoDir) {
+        this.localRepoDir = localRepoDir
     }
 
     void install(MavenPublication publication) {
-        def request = new InstallRequest()
-        request.artifacts = convertArtifacts(publication)
-        repositorySystem.install(session, request)
+        def task = new InstallTask()
+        if (localRepoDir) {
+            def repository = new LocalRepository()
+            repository.path = localRepoDir
+            task.addLocalRepository(repository)
+        }
+        execute(publication, task)
     }
 
     void deploy(MavenPublication publication, MavenRepository repository) {
-        def request = new DeployRequest()
-        request.artifacts = convertArtifacts(publication)
-        request.repository = convertRepository(repository)
-        repositorySystem.deploy(session, request)
+        def task = new DeployTask()
+        task.addRemoteRepository(new RemoteRepository())
+        task.remoteRepository.url = repository.url
+        execute(publication, task)
     }
 
-    private RepositorySystem createRepositorySystem() {
-        def locator = new DefaultServiceLocator()
-        locator.addService(RepositoryConnectorFactory, FileRepositoryConnectorFactory)
-        locator.addService(RepositoryConnectorFactory, WagonRepositoryConnectorFactory)
-        locator.setServices(WagonProvider.class, new ManualWagonProvider());
-        locator.getService(RepositorySystem)
-    }
+    private def execute(MavenPublication publication, InstallDeployTaskSupport task) {
+        Project project = new Project()
+        task.setProject(project)
 
-    private RepositorySystemSession createRepositorySystemSession(RepositorySystem repositorySystem, LocalRepository localRepository) {
-        def session = new MavenRepositorySystemSession()
-        session.localRepositoryManager = repositorySystem.newLocalRepositoryManager(localRepository)
-        session
-    }
+        File pomFile = File.createTempFile("gradle", "pom")
+        pomFile << """
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>$publication.groupId</groupId>
+  <artifactId>$publication.artifactId</artifactId>
+  <packaging>jar</packaging>
+  <version>$publication.version</version>
+</project>
+"""
 
-    private List<Artifact> convertArtifacts(MavenPublication publication) {
-        def result = []
-        def mainArtifact = new DefaultArtifact(publication.groupId, publication.artifactId,
-                publication.mainArtifact.classifier, publication.mainArtifact.extension,
-                publication.version, [:], publication.mainArtifact.file)
-        result << mainArtifact
-        result.addAll(publication.subArtifacts.collect { subArtifact ->
-            new SubArtifact(mainArtifact, subArtifact.classifier, subArtifact.extension, subArtifact.file)
-        })
-        result
-    }
+        Pom pom = new Pom();
+        pom.project = task.project;
+        pom.file = pomFile
+        task.addPom(pom);
 
-    private RemoteRepository convertRepository(MavenRepository repository) {
-        def result = new RemoteRepository()
-        result.url = repository.url
-        result.contentType = "default" // FileRepositoryConnectorFactory doesn’t accept any other content type
-        def auth = repository.authentication
-        if (auth) {
-            result.authentication = new Authentication(auth.userName, auth.password)
+        if (publication.mainArtifact.classifier) {
+            AttachedArtifact mainArtifact = task.createAttach()
+            mainArtifact.classifier = publication.mainArtifact.classifier
+            mainArtifact.file = publication.mainArtifact.file
+            mainArtifact.type = publication.mainArtifact.extension
+        } else {
+            task.file = publication.mainArtifact.file
         }
-        result
+
+        publication.subArtifacts.each { artifact ->
+            AttachedArtifact attachedArtifact = task.createAttach()
+            attachedArtifact.classifier = artifact.classifier
+            attachedArtifact.file = artifact.file
+            attachedArtifact.type = artifact.extension
+        }
+
+        task.execute()
     }
 }
