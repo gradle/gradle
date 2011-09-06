@@ -24,13 +24,14 @@ import spock.lang.Specification
 /**
  * @author: Szczepan Faber, created at: 9/1/11
  */
-class EnvHackerTest extends Specification {
+class LenientEnvHackerTest extends Specification {
 
     public final @Rule TestName test = new TestName()
+    def hacker = new LenientEnvHacker()
 
     def "added env is available explicitly"() {
         when:
-        new EnvHacker().setenv(test.methodName, "bar")
+        hacker.setenv(test.methodName, "bar")
 
         then:
         "bar" == System.getenv(test.methodName)
@@ -38,7 +39,7 @@ class EnvHackerTest extends Specification {
 
     def "added env is available in envs map"() {
         when:
-        new EnvHacker().setenv(test.methodName, "bar")
+        hacker.setenv(test.methodName, "bar")
 
         then:
         "bar" == System.getenv()[test.methodName]
@@ -46,8 +47,8 @@ class EnvHackerTest extends Specification {
 
     def "updated env is available explicitly"() {
         when:
-        new EnvHacker().setenv(test.methodName, "one")
-        new EnvHacker().setenv(test.methodName, "two")
+        hacker.setenv(test.methodName, "one")
+        hacker.setenv(test.methodName, "two")
 
         then:
         "two" == System.getenv(test.methodName)
@@ -55,11 +56,24 @@ class EnvHackerTest extends Specification {
 
     def "updated env is available in envs map"() {
         when:
-        new EnvHacker().setenv(test.methodName, "one")
-        new EnvHacker().setenv(test.methodName, "two")
+        hacker.setenv(test.methodName, "one")
+        hacker.setenv(test.methodName, "two")
 
         then:
         "two" == System.getenv()[test.methodName]
     }
 
+    def "does not explode when local environment is unfriendly"() {
+        given:
+        def env = Mock(Environment)
+        env._ >> { throw new RuntimeException("You are using some awkward OS we don't know how to handle!") }
+
+        hacker = new LenientEnvHacker(env)
+
+        when:
+        hacker.setenv("foo", "bar")
+
+        then:
+        noExceptionThrown()
+    }
 }

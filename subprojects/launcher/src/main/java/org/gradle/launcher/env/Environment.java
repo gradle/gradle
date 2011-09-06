@@ -38,15 +38,16 @@ class Environment {
         public int unsetenv(String name);
     }
 
-    static public class POSIX {
-        static Object libc;
-        static {
+    static public class Posix {
+        final Object libc;
+
+        Posix() {
             if (OperatingSystem.current().isUnix()) {
                 libc = Native.loadLibrary("c", UnixLibC.class);
             } else if (OperatingSystem.current().isWindows()) {
                 libc = Native.loadLibrary("msvcrt", WinLibC.class);
             } else {
-                throw new RuntimeException("We don't support this operating system: " + System.getProperty("os.name"));
+                throw new RuntimeException("We don't support this operating system: " + OperatingSystem.current());
             }
         }
 
@@ -69,9 +70,9 @@ class Environment {
         }
     }
 
-    static POSIX libc = new POSIX();
+    Posix libc = new Posix();
 
-    public static int unsetenv(String name) {
+    public int unsetenv(String name) {
         Map<String, String> map = getEnv();
         map.remove(name);
         if (OperatingSystem.current().isWindows()) {
@@ -81,7 +82,7 @@ class Environment {
         return libc.unsetenv(name);
     }
 
-    public static int setenv(String name, String value, boolean overwrite) {
+    public int setenv(String name, String value, boolean overwrite) {
         if (name.lastIndexOf("=") != -1) {
             throw new IllegalArgumentException("Environment variable cannot contain '='");
         }
@@ -100,7 +101,7 @@ class Environment {
     /**
      * Windows keeps an extra map with case insensitive keys. The map is used when the user calls {@link System#getenv(String)}
      */
-    public static Map<String, String> getWindowsEnv() {
+    public Map<String, String> getWindowsEnv() {
         try {
             Class<?> sc = Class.forName("java.lang.ProcessEnvironment");
             Field caseinsensitive = sc.getDeclaredField("theCaseInsensitiveEnvironment");
@@ -108,12 +109,11 @@ class Environment {
             return (Map<String, String>)caseinsensitive.get(null);
         }
         catch (Exception e) {
-            throw new RuntimeException("Unable to get mutable windows case insensitive environment map");
+            throw new EnvironmentException("Unable to get mutable windows case insensitive environment map", e);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static Map<String, String> getEnv() {
+    public Map<String, String> getEnv() {
         try {
             Map<String, String> theUnmodifiableEnvironment = System.getenv();
             Class<?> cu = theUnmodifiableEnvironment.getClass();
@@ -121,8 +121,8 @@ class Environment {
             m.setAccessible(true);
             return (Map<String, String>)m.get(theUnmodifiableEnvironment);
         }
-        catch (Exception ex2) {
-            throw new RuntimeException("Unable to get mutable environment map");
+        catch (Exception e) {
+            throw new EnvironmentException("Unable to get mutable environment map", e);
         }
     }
 

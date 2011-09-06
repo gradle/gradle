@@ -16,14 +16,33 @@
 
 package org.gradle.launcher.env;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.util.OperatingSystem;
+
 /**
  * Enables hacking the environment
  *
  * @author: Szczepan Faber, created at: 9/1/11
  */
-public class EnvHacker {
+public class LenientEnvHacker {
+
+    private static final Logger LOGGER = Logging.getLogger(LenientEnvHacker.class);
+    private final Environment env;
+
+    public LenientEnvHacker() {
+        this(new Environment());
+    }
+
+    public LenientEnvHacker(Environment env) {
+        this.env = env;
+    }
 
     void setenv(String key, String value) {
-        Environment.setenv(key, value, true);
+        try {
+            env.setenv(key, value, true);
+        } catch (Throwable t) {
+            LOGGER.warn(String.format("Unable to set env variable %s=%s on OS: %s. Problem: %s", key, value, OperatingSystem.current(), t));
+        }
     }
 }
