@@ -72,7 +72,7 @@ class Environment {
         }
     }
 
-    private Posix libc;
+    private final Posix libc = new Posix();
 
     public int unsetenv(String name) {
         Map<String, String> map = getEnv();
@@ -81,15 +81,7 @@ class Environment {
             Map<String, String> env2 = getWindowsEnv();
             env2.remove(name);
         }
-        return libc().unsetenv(name);
-    }
-
-    //lazy to avoid exceptions on construction for awkward environments
-    private Posix libc() {
-        if (libc == null) {
-            libc = new Posix();
-        }
-        return libc;
+        return libc.unsetenv(name);
     }
 
     public int setenv(String name, String value, boolean overwrite) {
@@ -103,7 +95,7 @@ class Environment {
                 env2.put(name, value);
             }
         }
-        return libc().setenv(name, value, overwrite ? 1 : 0);
+        return libc.setenv(name, value, overwrite ? 1 : 0);
     }
 
     /**

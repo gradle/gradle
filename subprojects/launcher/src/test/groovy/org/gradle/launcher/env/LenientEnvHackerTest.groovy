@@ -17,6 +17,7 @@
 package org.gradle.launcher.env;
 
 
+import org.gradle.launcher.env.LenientEnvHacker.EnvironmentProvider
 import org.gradle.util.GUtil
 import org.junit.Rule
 import org.junit.rules.TestName
@@ -97,15 +98,33 @@ class LenientEnvHackerTest extends Specification {
         null == System.getenv(test.methodName + 1)
     }
 
-    def "does not explode when local environment is unfriendly"() {
+    def "does not explode when local environment cannot be initialized"() {
         given:
-        def env = Mock(Environment)
-        env._ >> { throw new RuntimeException("You are using some awkward OS we don't know how to handle!") }
+        def provider = Mock(EnvironmentProvider)
+        provider.environment >> { throw new RuntimeException("You are using some awkward OS we don't know how to handle!") }
 
-        hacker = new LenientEnvHacker(env)
+        hacker = new LenientEnvHacker(provider)
 
         when:
         hacker.setenv("foo", "bar")
+        hacker.setenv(GUtil.map())
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "does not explode when local environment is unstable"() {
+        given:
+        def provider = Mock(EnvironmentProvider)
+        def env = Mock(Environment)
+        provider.environment >> { env }
+        env._ >> { throw new RuntimeException("You are using some awkward OS we don't know how to handle!") }
+
+        hacker = new LenientEnvHacker(provider)
+
+        when:
+        hacker.setenv("foo", "bar")
+        hacker.setenv(GUtil.map())
 
         then:
         noExceptionThrown()

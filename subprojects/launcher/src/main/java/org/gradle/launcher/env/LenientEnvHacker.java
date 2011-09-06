@@ -31,17 +31,26 @@ import java.util.Map;
 public class LenientEnvHacker {
 
     private static final Logger LOGGER = Logging.getLogger(LenientEnvHacker.class);
-    private final Environment env;
+    private Environment env;
 
     public LenientEnvHacker() {
-        this(new Environment());
+        this(new EnvironmentProvider());
     }
 
-    public LenientEnvHacker(Environment env) {
-        this.env = env;
+    public LenientEnvHacker(EnvironmentProvider provider) {
+        try {
+            this.env = provider.getEnvironment();
+        } catch (Throwable t) {
+            String warning = String.format("Unable to initialize native environment. Updating env variables will not be possible. Operation system: %s.", OperatingSystem.current());
+            LOGGER.warn(warning, t);
+            this.env = null;
+        }
     }
 
     public void setenv(String key, String value) {
+        if (env == null) {
+            return;
+        }
         try {
             env.setenv(key, value, true);
         } catch (Throwable t) {
@@ -52,18 +61,27 @@ public class LenientEnvHacker {
 
     //Existing system env is removed and passed env map becomes the system env.
     public void setenv(Map<String, String> source) {
+        if (env == null) {
+            return;
+        }
         try {
             Map<String, String> currentEnv = System.getenv();
             Iterable<String> names = new LinkedList(currentEnv.keySet());
             for (String name : names) {
-                this.env.unsetenv(name);
+                env.unsetenv(name);
             }
             for (String key : source.keySet()) {
-                this.env.setenv(key, source.get(key), true);
+                env.setenv(key, source.get(key), true);
             }
         } catch (Throwable t) {
             String warning = String.format("Unable to set env variables on OS: %s.", OperatingSystem.current());
             LOGGER.warn(warning, t);
+        }
+    }
+
+    static class EnvironmentProvider {
+        public Environment getEnvironment() {
+            return new Environment();
         }
     }
 }
