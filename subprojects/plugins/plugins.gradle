@@ -16,7 +16,6 @@
 
 configurations {
     testFixtures
-    wrapper
 }
 
 dependencies {
@@ -29,16 +28,16 @@ dependencies {
             libraries.asm_all,
             libraries.junit,
             libraries.ant,
+            libraries.commons_io,
             'org.testng:testng:5.14.10'
 
-    wrapper project(':wrapper')
     testCompile libraries.xmlunit, 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 }
 
+evaluationDependsOn(":wrapper")
 task wrapperJar(type: Copy) {
-    from configurations.wrapper
-    into "$generatedResourcesDir"
-    rename 'gradle-wrapper-(.+)\\.jar', 'gradle-wrapper.jar'
+    from project(":wrapper").executableJar.outputs.files
+    into generatedResourcesDir
 }
 sourceSets.main.output.dir generatedResourcesDir, buildBy: wrapperJar
 
