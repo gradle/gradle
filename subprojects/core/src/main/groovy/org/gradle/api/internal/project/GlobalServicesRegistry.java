@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cli.CommandLineConverter;
@@ -52,6 +53,10 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         return new DefaultClassPathRegistry();
     }
 
+    protected DefaultModuleRegistry createModuleRegistry() {
+        return new DefaultModuleRegistry();
+    }
+
     protected Factory<CacheFactory> createCacheFactory() {
         return new DefaultCacheFactory();
     }
@@ -64,10 +69,6 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         return new DefaultListenerManager();
     }
    
-    protected GradleDistributionLocator createGradleDistributionLocator() {
-        return new DefaultClassPathProvider();
-    }
-    
     protected ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
     }

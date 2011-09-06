@@ -16,32 +16,34 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.ArtifactBuilder
-import org.junit.Test
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 
-public class ExternalPluginIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void canReferencePluginInBuildSrcProjectById() {
-        testFile('buildSrc/src/main/java/CustomPlugin.java') << '''
+public class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
+    public void "can reference plugin in buildSrc by id"() {
+        given:
+        file('buildSrc/src/main/java/CustomPlugin.java') << '''
 import org.gradle.api.*;
 public class CustomPlugin implements Plugin<Project> {
     public void apply(Project p) { p.setProperty("prop", "value"); }
 }
 '''
-        testFile('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << '''
+
+        file('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << '''
 implementation-class=CustomPlugin
 '''
 
-        testFile('build.gradle') << '''
+        file('build.gradle') << '''
 apply plugin: 'custom'
 assert 'value' == prop
 task test
 '''
-        inTestDirectory().withTasks('test').run()
+
+        expect:
+        succeeds('test')
     }
 
-    @Test
-    public void canReferencePluginInExternalJarById() {
+    public void "can reference plugin in external jar by id"() {
+        given:
         ArtifactBuilder builder = artifactBuilder()
         builder.sourceFile('CustomPlugin.java') << '''
 import org.gradle.api.*;
@@ -52,9 +54,10 @@ public class CustomPlugin implements Plugin<Project> {
         builder.resourceFile('META-INF/gradle-plugins/custom.properties') << '''
 implementation-class=CustomPlugin
 '''
-        builder.buildJar(testFile('external.jar'))
+        builder.buildJar(file('external.jar'))
 
-        testFile('build.gradle') << '''
+        and:
+        file('build.gradle') << '''
 buildscript {
     dependencies {
         classpath files('external.jar')
@@ -64,11 +67,13 @@ apply plugin: 'custom'
 assert 'value' == prop
 task test
 '''
-        inTestDirectory().withTasks('test').run()
+
+        expect:
+        succeeds('test')
     }
 
-    @Test
-    public void loadsPluginInCorrectEnvironment() {
+    public void "loads plugin in correct environment"() {
+        given:
         def implClassName = 'com.google.common.collect.Multimap'
         ArtifactBuilder builder = artifactBuilder()
         builder.sourceFile('CustomPlugin.groovy') << """
@@ -89,9 +94,10 @@ public class CustomPlugin implements Plugin<Project> {
         builder.resourceFile('META-INF/gradle-plugins/custom.properties') << '''
 implementation-class=CustomPlugin
 '''
-        builder.buildJar(testFile('external.jar'))
+        builder.buildJar(file('external.jar'))
 
-        testFile('build.gradle') << '''
+        and:
+        file('build.gradle') << '''
 buildscript {
     dependencies {
         classpath files('external.jar')
@@ -99,7 +105,49 @@ buildscript {
 }
 task test
 '''
-        inTestDirectory().withTasks('test').run()
 
+        expect:
+        succeeds('test')
+    }
+
+    def "can use java plugin from custom plugin and its integration tests"() {
+        given:
+        file('src/main/groovy/CustomPlugin.groovy') << """
+import org.gradle.api.Project
+import org.gradle.api.Plugin
+class CustomPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.apply plugin: 'java'
+    }
+}
+        """
+
+        file('src/test/groovy/CustomPluginTest.groovy') << """
+import org.junit.Test
+import org.gradle.testfixtures.ProjectBuilder
+class CustomPluginTest {
+    @Test
+    public void test() {
+        def project = ProjectBuilder.builder().build()
+
+        project.apply plugin: 'java'
+
+        assert project.sourceSets
+    }
+}
+"""
+
+        buildFile << """
+apply plugin: 'groovy'
+repositories { mavenCentral() }
+dependencies {
+    compile gradleApi()
+    groovy localGroovy()
+    testCompile 'junit:junit:4.8.2'
+}
+"""
+
+        expect:
+        succeeds('test')
     }
 }

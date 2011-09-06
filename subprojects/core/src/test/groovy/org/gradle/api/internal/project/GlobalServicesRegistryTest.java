@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -78,7 +79,7 @@ public class GlobalServicesRegistryTest {
     
     @Test
     public void providesAGradleDistributionLocator() {
-        assertThat(registry.get(GradleDistributionLocator.class), instanceOf(DefaultClassPathProvider.class));
+        assertThat(registry.get(GradleDistributionLocator.class), instanceOf(DefaultModuleRegistry.class));
     }
     
     @Test

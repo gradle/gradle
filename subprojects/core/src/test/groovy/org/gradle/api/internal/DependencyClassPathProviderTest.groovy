@@ -15,19 +15,31 @@
  */
 package org.gradle.api.internal
 
+import org.gradle.api.internal.classpath.Module
+import org.gradle.api.internal.classpath.ModuleRegistry
 import spock.lang.Specification
-import org.gradle.initialization.ClassLoaderRegistry
 
 class DependencyClassPathProviderTest extends Specification {
-    final ClassLoaderRegistry classLoaderRegistry = Mock()
+    final ModuleRegistry moduleRegistry = Mock()
+    final DependencyClassPathProvider provider = new DependencyClassPathProvider(moduleRegistry)
 
-    def "uses classpath resource to determine gradle api classpath"() {
-        given:
-        _ * classLoaderRegistry.coreImplClassLoader >> getClass().classLoader
-
-        expect:
-        def provider = new DependencyClassPathProvider(classLoaderRegistry)
+    def "uses modules to determine gradle API classpath"() {
+        when:
         def classpath = provider.findClassPath("GRADLE_API")
-        classpath.find { it.name.matches('slf4j-.+\\.jar') }
+
+        then:
+        classpath.collect{it.name} == ["gradle-core", "runtime.jar", "gradle-core-impl", "gradle-plugins"]
+
+        and:
+        1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core")
+        1 * moduleRegistry.getModule("gradle-core-impl") >> module("gradle-core-impl")
+        1 * moduleRegistry.getModule("gradle-plugins") >> module("gradle-plugins")
+    }
+
+    def module(String name) {
+        Module module = Mock()
+        _ * module.implementationClasspath >> [new File(name)]
+        _ * module.runtimeClasspath >> [new File("runtime.jar")]
+        return module
     }
 }

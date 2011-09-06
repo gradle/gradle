@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -97,7 +98,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected ClassPathRegistry createClassPathRegistry() {
         return new DefaultClassPathRegistry(
-                new DependencyClassPathProvider(get(ClassLoaderRegistry.class)),
+                new DependencyClassPathProvider(get(ModuleRegistry.class)),
                 new WorkerProcessClassPathProvider(get(CacheRepository.class)));
     }
 

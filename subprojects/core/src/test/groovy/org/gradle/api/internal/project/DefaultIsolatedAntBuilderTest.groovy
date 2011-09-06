@@ -24,8 +24,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.DependencyClassPathProvider
+import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.project.ant.BasicAntBuilder
-import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.logging.LoggingTestHelper
 import org.gradle.util.DefaultClassLoaderFactory
 import org.junit.After
@@ -36,7 +36,7 @@ import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
 
 class DefaultIsolatedAntBuilderTest {
-    private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DependencyClassPathProvider({getClass().classLoader} as ClassLoaderRegistry))
+    private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DependencyClassPathProvider(new DefaultModuleRegistry()))
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
     private final TestAppender appender = new TestAppender()
     private final LoggingTestHelper helper = new LoggingTestHelper(appender)

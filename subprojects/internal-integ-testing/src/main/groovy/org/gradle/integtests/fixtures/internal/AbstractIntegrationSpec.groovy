@@ -20,6 +20,8 @@ import org.gradle.util.TestFile
 
 import org.junit.Rule
 import spock.lang.*
+import org.gradle.CacheUsage
+import org.gradle.StartParameter
 
 /**
  * Spockified version of AbstractIntegrationTest.
@@ -104,5 +106,15 @@ class AbstractIntegrationSpec extends Specification {
 
     String getOutput() {
         result.output
+    }
+
+    ArtifactBuilder artifactBuilder() {
+        StartParameter parameter = new StartParameter();
+        parameter.setGradleUserHomeDir(distribution.getUserHomeDir());
+
+        parameter.setSearchUpwards(false);
+        parameter.setCacheUsage(CacheUsage.ON);
+        parameter.setCurrentDir(getTestDir());
+        return new GradleBackedArtifactBuilder(new InProcessGradleExecuter(parameter), getTestDir().file("artifacts"))
     }
 }

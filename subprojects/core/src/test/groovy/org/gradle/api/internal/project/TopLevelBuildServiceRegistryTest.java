@@ -20,8 +20,9 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.cache.internal.CacheFactory;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
@@ -63,9 +64,8 @@ public class TopLevelBuildServiceRegistryTest {
     private final StartParameter startParameter = new StartParameter();
     private final Factory<CacheFactory> cacheFactoryFactory = context.mock(Factory.class);
     private final ClosableCacheFactory cacheFactory = context.mock(ClosableCacheFactory.class);
-    private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
     private final ClassLoaderRegistry classLoaderRegistry = context.mock(ClassLoaderRegistry.class);
-    private final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
+    private final TopLevelBuildServiceRegistry registry = new TopLevelBuildServiceRegistry(parent, startParameter);
 
     @Before
     public void setUp() {
@@ -78,7 +78,9 @@ public class TopLevelBuildServiceRegistryTest {
             allowing(parent).get(ClassLoaderRegistry.class);
             will(returnValue(classLoaderRegistry));
             allowing(parent).getFactory(LoggingManagerInternal.class);
-            will(returnValue(loggingManagerFactory));
+            will(returnValue(context.mock(Factory.class)));
+            allowing(parent).get(ModuleRegistry.class);
+            will(returnValue(context.mock(ModuleRegistry.class)));
         }});
     }
     
@@ -89,13 +91,13 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue("value"));
         }});
 
-        assertThat(factory.get(String.class), equalTo("value"));
+        assertThat(registry.get(String.class), equalTo("value"));
     }
 
     @Test
     public void throwsExceptionForUnknownDomainObject() {
         try {
-            factory.createFor("string");
+            registry.createFor("string");
             fail();
         } catch (IllegalArgumentException e) {
             assertThat(e.getMessage(), equalTo("Cannot create services for unknown domain object of type String."));
@@ -105,39 +107,39 @@ public class TopLevelBuildServiceRegistryTest {
     @Test
     public void canCreateServicesForAGradleInstance() {
         GradleInternal gradle = context.mock(GradleInternal.class);
-        ServiceRegistryFactory registry = factory.createFor(gradle);
+        ServiceRegistryFactory registry = this.registry.createFor(gradle);
         assertThat(registry, instanceOf(GradleInternalServiceRegistry.class));
     }
 
     @Test
     public void providesAListenerManager() {
         ListenerManager listenerManager = expectListenerManagerCreated();
-        assertThat(factory.get(ListenerManager.class), sameInstance(listenerManager));
+        assertThat(registry.get(ListenerManager.class), sameInstance(listenerManager));
     }
 
     @Test
     public void providesAPublishArtifactFactory() {
-        assertThat(factory.get(PublishArtifactFactory.class), instanceOf(DefaultPublishArtifactFactory.class));
-        assertThat(factory.get(PublishArtifactFactory.class), sameInstance(factory.get(PublishArtifactFactory.class)));
+        assertThat(registry.get(PublishArtifactFactory.class), instanceOf(DefaultPublishArtifactFactory.class));
+        assertThat(registry.get(PublishArtifactFactory.class), sameInstance(registry.get(PublishArtifactFactory.class)));
     }
 
     @Test
     public void providesAScriptCompilerFactory() {
         expectListenerManagerCreated();
-        assertThat(factory.get(ScriptCompilerFactory.class), instanceOf(DefaultScriptCompilerFactory.class));
-        assertThat(factory.get(ScriptCompilerFactory.class), sameInstance(factory.get(ScriptCompilerFactory.class)));
+        assertThat(registry.get(ScriptCompilerFactory.class), instanceOf(DefaultScriptCompilerFactory.class));
+        assertThat(registry.get(ScriptCompilerFactory.class), sameInstance(registry.get(ScriptCompilerFactory.class)));
     }
 
     @Test
     public void providesACacheRepositoryAndCleansUpOnClose() {
-        assertThat(factory.get(CacheRepository.class), instanceOf(DefaultCacheRepository.class));
-        assertThat(factory.get(CacheRepository.class), sameInstance(factory.get(CacheRepository.class)));
+        assertThat(registry.get(CacheRepository.class), instanceOf(DefaultCacheRepository.class));
+        assertThat(registry.get(CacheRepository.class), sameInstance(registry.get(CacheRepository.class)));
 
         context.checking(new Expectations() {{
             one(cacheFactory).close();
         }});
 
-        factory.close();
+        registry.close();
     }
 
     @Test
@@ -146,8 +148,8 @@ public class TopLevelBuildServiceRegistryTest {
         expectScriptClassLoaderCreated();
         expectListenerManagerCreated();
 
-        assertThat(factory.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
-        assertThat(factory.get(InitScriptHandler.class), sameInstance(factory.get(InitScriptHandler.class)));
+        assertThat(registry.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
+        assertThat(registry.get(InitScriptHandler.class), sameInstance(registry.get(InitScriptHandler.class)));
     }
 
     @Test
@@ -156,8 +158,8 @@ public class TopLevelBuildServiceRegistryTest {
         expectListenerManagerCreated();
         expectScriptClassLoaderCreated();
 
-        assertThat(factory.get(ScriptPluginFactory.class), instanceOf(DefaultScriptPluginFactory.class));
-        assertThat(factory.get(ScriptPluginFactory.class), sameInstance(factory.get(ScriptPluginFactory.class)));
+        assertThat(registry.get(ScriptPluginFactory.class), instanceOf(DefaultScriptPluginFactory.class));
+        assertThat(registry.get(ScriptPluginFactory.class), sameInstance(registry.get(ScriptPluginFactory.class)));
     }
 
     @Test
@@ -166,16 +168,16 @@ public class TopLevelBuildServiceRegistryTest {
         expectListenerManagerCreated();
         expectScriptClassLoaderCreated();
 
-        assertThat(factory.get(SettingsProcessor.class), instanceOf(PropertiesLoadingSettingsProcessor.class));
-        assertThat(factory.get(SettingsProcessor.class), sameInstance(factory.get(SettingsProcessor.class)));
+        assertThat(registry.get(SettingsProcessor.class), instanceOf(PropertiesLoadingSettingsProcessor.class));
+        assertThat(registry.get(SettingsProcessor.class), sameInstance(registry.get(SettingsProcessor.class)));
     }
 
     @Test
     public void providesAnExceptionAnalyser() {
         expectListenerManagerCreated();
 
-        assertThat(factory.get(ExceptionAnalyser.class), instanceOf(DefaultExceptionAnalyser.class));
-        assertThat(factory.get(ExceptionAnalyser.class), sameInstance(factory.get(ExceptionAnalyser.class)));
+        assertThat(registry.get(ExceptionAnalyser.class), instanceOf(DefaultExceptionAnalyser.class));
+        assertThat(registry.get(ExceptionAnalyser.class), sameInstance(registry.get(ExceptionAnalyser.class)));
     }
 
     @Test
@@ -183,7 +185,7 @@ public class TopLevelBuildServiceRegistryTest {
         expectParentServiceLocated(MessagingServer.class);
         allowGetCoreImplClassLoader();
 
-        assertThat(factory.getFactory(WorkerProcessBuilder.class), instanceOf(DefaultWorkerProcessFactory.class));
+        assertThat(registry.getFactory(WorkerProcessBuilder.class), instanceOf(DefaultWorkerProcessFactory.class));
     }
 
     @Test
@@ -191,8 +193,8 @@ public class TopLevelBuildServiceRegistryTest {
         expectParentServiceLocated(ClassLoaderFactory.class);
         allowGetCoreImplClassLoader();
 
-        assertThat(factory.get(IsolatedAntBuilder.class), instanceOf(DefaultIsolatedAntBuilder.class));
-        assertThat(factory.get(IsolatedAntBuilder.class), sameInstance(factory.get(IsolatedAntBuilder.class)));
+        assertThat(registry.get(IsolatedAntBuilder.class), instanceOf(DefaultIsolatedAntBuilder.class));
+        assertThat(registry.get(IsolatedAntBuilder.class), sameInstance(registry.get(IsolatedAntBuilder.class)));
     }
 
     @Test
@@ -200,34 +202,34 @@ public class TopLevelBuildServiceRegistryTest {
         expectParentServiceLocated(Instantiator.class);
         expectParentServiceLocated(ClassGenerator.class);
 
-        assertThat(factory.get(IProjectFactory.class), instanceOf(ProjectFactory.class));
-        assertThat(factory.get(IProjectFactory.class), sameInstance(factory.get(IProjectFactory.class)));
+        assertThat(registry.get(IProjectFactory.class), instanceOf(ProjectFactory.class));
+        assertThat(registry.get(IProjectFactory.class), sameInstance(registry.get(IProjectFactory.class)));
     }
 
     @Test
     public void providesAnExecutorFactory() {
-        assertThat(factory.get(ExecutorFactory.class), instanceOf(DefaultExecutorFactory.class));
-        assertThat(factory.get(ExecutorFactory.class), sameInstance(factory.get(ExecutorFactory.class)));
+        assertThat(registry.get(ExecutorFactory.class), instanceOf(DefaultExecutorFactory.class));
+        assertThat(registry.get(ExecutorFactory.class), sameInstance(registry.get(ExecutorFactory.class)));
     }
 
     @Test
     public void providesABuildConfigurer() {
-        assertThat(factory.get(BuildConfigurer.class), instanceOf(DefaultBuildConfigurer.class));
-        assertThat(factory.get(BuildConfigurer.class), sameInstance(factory.get(BuildConfigurer.class)));
+        assertThat(registry.get(BuildConfigurer.class), instanceOf(DefaultBuildConfigurer.class));
+        assertThat(registry.get(BuildConfigurer.class), sameInstance(registry.get(BuildConfigurer.class)));
     }
 
     @Test
     public void providesAPropertiesLoader() {
-        assertThat(factory.get(IGradlePropertiesLoader.class), instanceOf(DefaultGradlePropertiesLoader.class));
-        assertThat(factory.get(IGradlePropertiesLoader.class), sameInstance(factory.get(IGradlePropertiesLoader.class)));
+        assertThat(registry.get(IGradlePropertiesLoader.class), instanceOf(DefaultGradlePropertiesLoader.class));
+        assertThat(registry.get(IGradlePropertiesLoader.class), sameInstance(registry.get(IGradlePropertiesLoader.class)));
     }
 
     @Test
     public void providesABuildLoader() {
         expectParentServiceLocated(Instantiator.class);
 
-        assertThat(factory.get(BuildLoader.class), instanceOf(ProjectPropertySettingBuildLoader.class));
-        assertThat(factory.get(BuildLoader.class), sameInstance(factory.get(BuildLoader.class)));
+        assertThat(registry.get(BuildLoader.class), instanceOf(ProjectPropertySettingBuildLoader.class));
+        assertThat(registry.get(BuildLoader.class), sameInstance(registry.get(BuildLoader.class)));
     }
 
     private <T> T expectParentServiceLocated(final Class<T> type) {

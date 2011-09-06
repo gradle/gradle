@@ -16,36 +16,41 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.GradleException;
-import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.util.GUtil;
+import org.gradle.api.internal.classpath.Module;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 
-import java.net.URL;
-import java.util.*;
-import java.util.regex.Pattern;
+import java.io.File;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
 
 public class DependencyClassPathProvider extends AbstractClassPathProvider {
-    public DependencyClassPathProvider(ClassLoaderRegistry classLoaderRegistry) {
-        add(LOCAL_GROOVY.name(), toPatterns("groovy-all"));
+    private final ModuleRegistry moduleRegistry;
 
-        List<Pattern> patterns = new ArrayList<Pattern>();
-        ClassLoader classLoader = classLoaderRegistry.getCoreImplClassLoader();
-        getRuntimeClasspath("gradle-core", classLoader, patterns);
-        getRuntimeClasspath("gradle-core-impl", classLoader, patterns);
-        add(GRADLE_API.name(), patterns);
+    public DependencyClassPathProvider(ModuleRegistry moduleRegistry) {
+        this.moduleRegistry = moduleRegistry;
+        add(LOCAL_GROOVY.name(), toPatterns("groovy-all"));
     }
 
-    private void getRuntimeClasspath(String projectName, ClassLoader classLoader, Collection<Pattern> patterns) {
-        String resource = String.format("%s-classpath.properties", projectName);
-        URL url = classLoader.getResource(resource);
-        if (url == null) {
-            throw new GradleException(String.format("Cannot find classpath resource '%s'.", resource));
+    @Override
+    public Set<File> findClassPath(String name) {
+        if (name.equals(GRADLE_API.name())) {
+            Set<File> classpath = new LinkedHashSet<File>();
+            getRuntimeClasspath("gradle-core", classpath);
+            getRuntimeClasspath("gradle-core-impl", classpath);
+            getRuntimeClasspath("gradle-plugins", classpath);
+            return classpath;
         }
-        Properties properties = GUtil.loadProperties(url);
-        patterns.addAll(jarNames(Arrays.asList(properties.getProperty("runtime").split(","))));
-        patterns.addAll(toPatterns(projectName));
+
+        return super.findClassPath(name);
+    }
+
+    private void getRuntimeClasspath(String projectName, Collection<File> classpath) {
+        Module module = moduleRegistry.getModule(projectName);
+        classpath.addAll(module.getImplementationClasspath());
+        classpath.addAll(module.getRuntimeClasspath());
     }
 }
