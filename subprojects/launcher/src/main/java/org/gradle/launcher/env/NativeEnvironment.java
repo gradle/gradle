@@ -26,15 +26,16 @@ import com.sun.jna.Native;
  */
 public class NativeEnvironment {
 
+    //CHECKSTYLE:OFF
     public interface WinLibC extends Library {
         public int _putenv(String name);
     }
 
     public interface UnixLibC extends Library {
         public int setenv(String name, String value, int overwrite);
-
         public int unsetenv(String name);
     }
+    //CHECKSTYLE:ON
 
     static interface Posix {
         int setenv(String name, String value, int overwrite);

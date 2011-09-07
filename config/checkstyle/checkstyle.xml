@@ -96,9 +96,14 @@
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
 
+        <!-- to enable SuppressionCommentFilter -->
+        <module name="FileContentsHolder"/>
     </module>
     <module name="RegexpHeader">
         <property name="headerFile" value="${checkstyleConfigDir}/required-header.txt"/>
     </module>
     <module name="FileTabCharacter"/>
+
+    <!-- allows suppressing using the //CHECKSTYLE:ON //CHECKSTYLE:OFF -->
+    <module name="SuppressionCommentFilter"/>
 </module>
