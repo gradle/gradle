@@ -28,6 +28,7 @@ import java.util.Properties;
  * are updated and restored after the build.
  *
  * TODO SF decouple from gradle build so that we can have more explicit coverage in the functional test
+ * and add some coverage for bringing the old environment back after build execution
  *
  * @author: Szczepan Faber, created at: 9/6/11
  */
