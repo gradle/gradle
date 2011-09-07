@@ -71,7 +71,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     protected Map doRun(boolean expectFailure) {
-        gradleHomeDir.assertIsDir();
+        if (!gradleHomeDir.isDirectory()) {
+            fail(gradleHomeDir + " is not a directory.\n"
+                    + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
+        }
 
         CommandBuilder commandBuilder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder()
                 : new UnixCommandBuilder();
