@@ -88,6 +88,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                 DaemonStatus status = oldValue.getStatus(address);
+                //TODO SF below check should not be needed. Investigate.
                 if (status != null) {
                     status.setIdle(false);
                 }
