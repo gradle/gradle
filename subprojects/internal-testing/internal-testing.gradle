@@ -18,6 +18,10 @@
     Provides generally useful test utilities, used for unit and integration testing.
 */
 
+configurations {
+    forIDE
+}
+
 dependencies {
     groovy libraries.groovy_depends
 
@@ -25,5 +29,10 @@ dependencies {
     // determines how to construct the classpath to start Gradle (i.e. to support testing from IDE)
     compile project(":core").sourceSets.main.output, project(":core").configurations.compile
 
+    // Without below, the project does not build in idea. This needs to be cleaned up when we improve the IDE plugins.
+    forIDE project(":core")
+
     compile libraries.xmlunit, libraries.junit, libraries.jmock, libraries.spock
 }
+
+idea.module.scopes.COMPILE.plus += configurations.forIDE
