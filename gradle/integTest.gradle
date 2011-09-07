@@ -74,6 +74,10 @@ integTestTasks.all {
 }
 
 daemonIntegTest {
+    exclude "**/org/gradle/integtests/tooling/**", //tooling integ tests use daemon anyway, don't rerun
+            "**/CrossVersionCompatibilityIntegrationTest.class", //ignored just in case to avoid old daemon implementation
+            "**/DistributionIntegrationTest.class" //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
+
   doLast {
       if (project.hasProperty("waitForDaemonsToDieMillis")) {
          println "Property 'waitForDaemonsToDieMillis' passed so I'm waiting $project.waitForDaemonsToDieMillis millis so that deamons can die with honor..."
