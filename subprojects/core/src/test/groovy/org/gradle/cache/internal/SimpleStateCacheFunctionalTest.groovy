@@ -52,4 +52,16 @@ class SimpleStateCacheFunctionalTest extends Specification {
         then:
         cache.get() == "foo bar"
     }
+
+    def "update does not explode when no existing value"() {
+        prepare()
+
+        when:
+        cache.update({
+            "bar"
+        } as UpdateAction)
+
+        then:
+        cache.get() == "bar"
+    }
 }
