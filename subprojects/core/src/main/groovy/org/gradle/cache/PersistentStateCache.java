@@ -32,7 +32,7 @@ public interface PersistentStateCache<T> {
         /**
          * should return the new value
          *
-         * @param oldValue
+         * @param oldValue, null means there wasn't any value before
          * @return new value
          */
         T update(T oldValue);
