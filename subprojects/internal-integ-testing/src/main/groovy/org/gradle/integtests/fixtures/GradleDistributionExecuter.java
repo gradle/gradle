@@ -18,12 +18,16 @@ package org.gradle.integtests.fixtures;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.Matchers;
 import org.gradle.util.TestFile;
+import org.junit.Assert;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Junit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
@@ -40,7 +44,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private boolean workingDirSet;
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
-    private boolean tempFileChecksOn = true;
     private Executer executerType;
 
     public enum Executer {
@@ -108,7 +111,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         workingDirSet = false;
         userHomeSet = false;
         deprecationChecksOn = true;
-        tempFileChecksOn = true;
         DeprecationLogger.reset();
         return this;
     }
@@ -142,11 +144,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return this;
     }
 
-    public GradleDistributionExecuter withTempFileChecksDisabled() {
-        tempFileChecksOn = false;
-        return this;
-    }
-
     private <T extends ExecutionResult> T checkResult(T result) {
         // Assert that nothing unexpected was logged
         result.assertOutputHasNoStackTraces();
@@ -155,10 +152,16 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             result.assertOutputHasNoDeprecationWarnings();
         }
 
-        if (tempFileChecksOn && getExecutable() == null) {
+        if (getExecutable() == null) {
             // Assert that no temp files are left lying around
             // Note: don't do this if a custom executable is used, as we don't know (and probably don't care) whether the executable cleans up or not
-            getTmpDir().assertIsEmptyDir();
+            List<String> unexpectedFiles = new ArrayList<String>();
+            for (File file : getTmpDir().listFiles()) {
+                if (!file.getName().matches("maven-artifact\\d+.tmp")) {
+                    unexpectedFiles.add(file.getName());
+                }
+            }
+            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
         }
         return result;
     }

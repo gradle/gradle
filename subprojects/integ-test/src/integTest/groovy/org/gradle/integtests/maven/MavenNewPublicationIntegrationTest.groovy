@@ -45,7 +45,7 @@ publications.maven.repository.url = '${repo().rootDir.toURI()}'
 """
 
         when:
-        executer.withTempFileChecksDisabled().withTasks('publishArchives').run()
+        executer.withTasks('publishArchives').run()
 
         then:
         def module = repo().module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
@@ -116,7 +116,7 @@ publications {
         server.expectPut("/repo/org/test/someCoolProject/maven-metadata.xml.sha1", file("metadata.sha1"))
 
         when:
-        executer.withTempFileChecksDisabled().withTasks('publishArchives').run()
+        executer.withTasks('publishArchives').run()
 
         then:
         notThrown(Throwable)
