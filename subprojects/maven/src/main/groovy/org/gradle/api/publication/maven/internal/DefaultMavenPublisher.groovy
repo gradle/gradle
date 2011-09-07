@@ -20,16 +20,19 @@ import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.MavenPublisher
 import org.gradle.api.publication.maven.MavenRepository
 import org.apache.maven.artifact.ant.*
+import org.gradle.api.internal.file.TemporaryFileProvider
 
 class DefaultMavenPublisher implements MavenPublisher {
     private final File localRepoDir
+    private final TemporaryFileProvider temporaryFileProvider
 
-    DefaultMavenPublisher() {
-        this(null)
+    DefaultMavenPublisher(TemporaryFileProvider temporaryFileProvider) {
+        this(null, temporaryFileProvider)
     }
 
-    DefaultMavenPublisher(File localRepoDir) {
+    DefaultMavenPublisher(File localRepoDir, TemporaryFileProvider temporaryFileProvider) {
         this.localRepoDir = localRepoDir
+        this.temporaryFileProvider = temporaryFileProvider
     }
 
     void install(MavenPublication publication) {
@@ -53,8 +56,8 @@ class DefaultMavenPublisher implements MavenPublisher {
         Project project = new Project()
         task.setProject(project)
 
-        File pomFile = File.createTempFile("gradle", "pom")
-        pomFile << """
+        File pomFile = temporaryFileProvider.newTemporaryFile("${publication.artifactId}.pom")
+        pomFile.text = """
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
   <groupId>$publication.groupId</groupId>

@@ -30,7 +30,6 @@ import org.junit.Test
 class MavenNewPublicationIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
-    @Test
     void "publishes snapshot to a local maven repository"() {
         given:
         file('build.gradle') << """
@@ -46,7 +45,7 @@ publications.maven.repository.url = '${repo().rootDir.toURI()}'
 """
 
         when:
-        executer.withTasks('publishArchives').run()
+        executer.withTempFileChecksDisabled().withTasks('publishArchives').run()
 
         then:
         def module = repo().module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
@@ -80,7 +79,6 @@ version = '5.0-SNAPSHOT'
         assert files.any { it =~ /someCoolProject-5.0-.*\.pom/ }
     }
 
-    @Test
     void "publishes to remote maven repo"() {
         given:
         server.start()
@@ -118,13 +116,13 @@ publications {
         server.expectPut("/repo/org/test/someCoolProject/maven-metadata.xml.sha1", file("metadata.sha1"))
 
         when:
-        executer.withTasks('publishArchives').run()
+        executer.withTempFileChecksDisabled().withTasks('publishArchives').run()
 
         then:
         notThrown(Throwable)
     }
 
-        //maven {
+    //maven {
 //      groupId
 //      artifactId
 //      classifier "jdk15"

@@ -40,6 +40,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private boolean workingDirSet;
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
+    private boolean tempFileChecksOn = true;
     private Executer executerType;
 
     public enum Executer {
@@ -107,6 +108,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         workingDirSet = false;
         userHomeSet = false;
         deprecationChecksOn = true;
+        tempFileChecksOn = true;
         DeprecationLogger.reset();
         return this;
     }
@@ -140,6 +142,11 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return this;
     }
 
+    public GradleDistributionExecuter withTempFileChecksDisabled() {
+        tempFileChecksOn = false;
+        return this;
+    }
+
     private <T extends ExecutionResult> T checkResult(T result) {
         // Assert that nothing unexpected was logged
         result.assertOutputHasNoStackTraces();
@@ -148,7 +155,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             result.assertOutputHasNoDeprecationWarnings();
         }
 
-        if (getExecutable() == null) {
+        if (tempFileChecksOn && getExecutable() == null) {
             // Assert that no temp files are left lying around
             // Note: don't do this if a custom executable is used, as we don't know (and probably don't care) whether the executable cleans up or not
             getTmpDir().assertIsEmptyDir();
@@ -177,17 +184,18 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
         GradleExecuter returnedExecuter = inProcessGradleExecuter;
 
+        TestFile tmpDir = getTmpDir();
+        tmpDir.deleteDir().createDir();
+
         if (executerType != Executer.embedded || !inProcessGradleExecuter.canExecute()) {
             boolean useDaemon = executerType == Executer.daemon && getExecutable() == null;
             ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist.getGradleHomeDir()) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
-            TestFile tmpDir = getTmpDir();
-            if (tmpDir != null) {
-                tmpDir.deleteDir().createDir();
-                forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
-                forkingGradleExecuter.addGradleOpts(String.format("-Dorg.gradle.daemon.idletimeout=%s", 5 * 60 * 1000));
-            }
+            forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
+            forkingGradleExecuter.addGradleOpts(String.format("-Dorg.gradle.daemon.idletimeout=%s", 5 * 60 * 1000));
             returnedExecuter = forkingGradleExecuter;
+        } else {
+            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());
         }
 
         boolean settingsFound = false;
