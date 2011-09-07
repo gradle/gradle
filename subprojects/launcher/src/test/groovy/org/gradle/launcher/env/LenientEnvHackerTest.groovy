@@ -17,7 +17,9 @@
 package org.gradle.launcher.env;
 
 
+import org.gradle.launcher.env.LenientEnvHacker.EnvironmentProvider
 import org.gradle.util.GUtil
+import org.gradle.util.OperatingSystem
 import org.junit.Rule
 import org.junit.rules.TestName
 import spock.lang.Specification
@@ -29,6 +31,15 @@ class LenientEnvHackerTest extends Specification {
 
     public final @Rule TestName test = new TestName()
     def hacker = new LenientEnvHacker()
+    def preservedEnvironment
+
+    def setup() {
+        preservedEnvironment = System.getenv()
+    }
+
+    def cleanup() {
+        hacker.setenv(preservedEnvironment)
+    }
 
     def "added env is available explicitly"() {
         when:
@@ -73,16 +84,60 @@ class LenientEnvHackerTest extends Specification {
         "two" == System.getenv(test.methodName + 2)
     }
 
-    //TODO SF cover the constructor also
-    def "does not explode when local environment is unfriendly"() {
-        given:
-        def env = Mock(Environment)
-        env._ >> { throw new RuntimeException("You are using some awkward OS we don't know how to handle!") }
+    def "replaces existing env variables"() {
+        when:
+        hacker.setenv(test.methodName + 1, "one");
 
-        hacker = new LenientEnvHacker(env)
+        then:
+        "one" == System.getenv(test.methodName + 1)
 
         when:
-        hacker.setenv("foo", "bar")
+        hacker.setenv(GUtil.map(test.methodName + 2, "two"));
+
+        then:
+        "two" == System.getenv(test.methodName + 2)
+        null == System.getenv(test.methodName + 1)
+    }
+
+     def "is case sensitive on windows"() {
+        when:
+        hacker.setenv(test.methodName, "one");
+
+        then:
+        "one" == System.getenv(test.methodName)
+         if (OperatingSystem.current().isWindows()) {
+            assert "one" == System.getenv(test.methodName.toUpperCase())
+            assert "one" == System.getenv(test.methodName.toLowerCase())
+         }
+    }
+
+    def "does not explode when local environment cannot be initialized"() {
+        given:
+        def provider = Mock(EnvironmentProvider)
+        provider.environment >> { throw new RuntimeException("You are using some awkward OS we don't know how to handle!") }
+
+        hacker = new LenientEnvHacker(provider)
+
+        when:
+        hacker.setenv(test.methodName, "bar")
+        hacker.setenv(GUtil.map())
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "does not explode when local environment is unstable"() {
+        given:
+        def provider = Mock(EnvironmentProvider)
+        def env = Mock(Environment)
+        provider.environment >> { env }
+        env._ >> { throw new RuntimeException("You are using some awkward OS we don't know how to handle!") }
+
+        hacker = new LenientEnvHacker(provider)
+
+        when:
+        hacker.setenv(test.methodName, "bar")
+        hacker.setenv(GUtil.map())
 
         then:
         noExceptionThrown()

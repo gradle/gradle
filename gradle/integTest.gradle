@@ -76,6 +76,7 @@ integTestTasks.all {
 daemonIntegTest {
     exclude "**/org/gradle/integtests/tooling/**", //tooling integ tests use daemon anyway, don't rerun
             "**/CrossVersionCompatibilityIntegrationTest.class", //ignored just in case to avoid old daemon implementation
+            "**/DistributionIntegrationTest.class", //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
           //exclude some of the daemon tests for now
           "**/SigningSamplesSpec.class", "**/CppHelloWorldExecutableIntegrationSpec.class", "**/CppSamplesSpec.class", "**/CodeQualityIntegrationTest.class",
           "**/CommandLineIntegrationTest.class", "**/IncrementalBuildIntegrationTest.class", "**/EarPluginIntegrationTest.class",
