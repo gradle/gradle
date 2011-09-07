@@ -22,11 +22,13 @@ dependencies {
 
 useTestFixtures()
 
-integTest.onlyIf {
-    try {
-        new org.gradle.process.internal.DefaultExecAction().setIgnoreExitValue(true).workingDir(buildDir).executable("g++").execute()
-        true
-    } catch (org.gradle.process.internal.ExecException e) {
-        false
+integTestTasks.all {
+    onlyIf {
+        try {
+            new org.gradle.process.internal.DefaultExecAction().setIgnoreExitValue(true).workingDir(buildDir).executable("g++").execute()
+            true
+        } catch (org.gradle.process.internal.ExecException e) {
+            false
+        }
     }
 }
