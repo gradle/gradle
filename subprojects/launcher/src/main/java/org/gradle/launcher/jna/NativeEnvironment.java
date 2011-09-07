@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.env;
+package org.gradle.launcher.jna;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 
 /**
- * Uses jna to update the environment state
+ * Uses jna to update the environment variables
  *
  * @author: Szczepan Faber, created at: 9/7/11
  */
@@ -37,12 +37,12 @@ public class NativeEnvironment {
     }
     //CHECKSTYLE:ON
 
-    static interface Posix {
+    public static interface Posix {
         int setenv(String name, String value, int overwrite);
         int unsetenv(String name);
     }
 
-    static class Windows implements Posix {
+    public static class Windows implements Posix {
         private final WinLibC libc = (WinLibC) Native.loadLibrary("msvcrt", WinLibC.class);
 
         public int setenv(String name, String value, int overwrite) {
@@ -54,7 +54,7 @@ public class NativeEnvironment {
         }
     }
 
-    static class Unix implements Posix {
+    public static class Unix implements Posix {
         final UnixLibC libc = (UnixLibC) Native.loadLibrary("c", UnixLibC.class);
 
         public int setenv(String name, String value, int overwrite) {

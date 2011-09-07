@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.env;
 
+import org.gradle.launcher.jna.NativeEnvironment;
 import org.gradle.util.OperatingSystem;
 
 /**

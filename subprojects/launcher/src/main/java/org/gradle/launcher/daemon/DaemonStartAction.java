@@ -15,18 +15,15 @@
  */
 package org.gradle.launcher.daemon;
 
-import com.sun.jna.*;
 import org.gradle.api.GradleException;
+import org.gradle.launcher.jna.WindowsProcessStarter;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.OperatingSystem;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.gradle.launcher.daemon.DaemonStartAction.Kernel32.*;
 
 public class DaemonStartAction {
     private final List<String> args = new ArrayList<String>();
@@ -44,14 +41,6 @@ public class DaemonStartAction {
         try {
             dir.mkdirs();
             if (OperatingSystem.current().isWindows()) {
-                // Use the native Windows CreateProcessW() function, instead of Java's Process.
-                // This is so we can create a fully detached process. This prevents, for example, the child process inheriting our stdout
-                // and stderr handles, so that our (java) parent process does not block waiting for our stdout/stderr to complete after
-                // this process exits.
-                //
-                // Of course, this also means that we can't use the child process's stdout/stderr/stdin streams for anything useful.
-                //
-                // TODO - figure out how to close the handles inherited from our parent process
                 StringBuilder commandLine = new StringBuilder();
                 for (String arg : args) {
                     commandLine.append('"');
@@ -59,15 +48,7 @@ public class DaemonStartAction {
                     commandLine.append("\" ");
                 }
 
-                Kernel32 kernel32 = INSTANCE;
-                StartupInfo startupInfo = new StartupInfo();
-                ProcessInfo processInformation = new ProcessInfo();
-                if (!kernel32.CreateProcessW(null, new WString(commandLine.toString()), null, null, false, DETACHED_PROCESS, null,
-                        new WString(dir.getAbsolutePath()), startupInfo, processInformation)) {
-                    throw new IOException("Could not start process. Errno: " + kernel32.GetLastError());
-                }
-                kernel32.CloseHandle(processInformation.hProcess);
-                kernel32.CloseHandle(processInformation.hThread);
+                new WindowsProcessStarter().start(dir, commandLine.toString());
             } else {
                 ProcessBuilder builder = new ProcessBuilder(args);
                 builder.directory(dir);
@@ -78,73 +59,6 @@ public class DaemonStartAction {
             }
         } catch (Exception e) {
             throw new GradleException("Could not start Gradle daemon.", e);
-        }
-    }
-
-    public interface Kernel32 extends Library {
-        Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class);
-
-        // Process creation flags
-        int DETACHED_PROCESS = 0x00000008;
-
-        int GetLastError();
-
-        boolean CloseHandle(HANDLE hObject);
-
-        boolean CreateProcessW(WString lpApplicationName, WString lpCommandLine, SecurityAttributes lpProcessAttributes,
-                               SecurityAttributes lpThreadAttributes, boolean bInheritHandles, int dwCreationFlags,
-                               Pointer lpEnvironment, WString lpCurrentDirectory, StartupInfo lpStartupInfo,
-                               ProcessInfo lpProcessInformation);
-
-        class HANDLE extends PointerType {
-            public HANDLE() {
-            }
-
-            public HANDLE(Pointer p) {
-                super(p);
-            }
-        }
-
-        class SecurityAttributes extends Structure {
-            public int nLength;
-            public Pointer lpSecurityDescriptor;
-            public boolean bInheritHandle;
-
-            public SecurityAttributes() {
-                nLength = size();
-            }
-        }
-
-        class StartupInfo extends Structure {
-            public int cb;
-            public WString lpReserved;
-            public WString lpDesktop;
-            public WString lpTitle;
-            public int dwX;
-            public int dwY;
-            public int dwXSize;
-            public int dwYSize;
-            public int dwXCountChars;
-            public int dwYCountChars;
-            public int dwFillAttribute;
-            public int dwFlags;
-            public short wShowWindow;
-            public short cbReserved2;
-            public Pointer lpReserved2;
-            public HANDLE hStdInput;
-            public HANDLE hStdOutput;
-            public HANDLE hStdError;
-
-            public StartupInfo() {
-                cb = size();
-            }
-        }
-
-        class ProcessInfo extends Structure {
-            public HANDLE hProcess;
-            public HANDLE hThread;
-            public int dwProcessId;
-            public int dwThreadId;
         }
     }
 }
