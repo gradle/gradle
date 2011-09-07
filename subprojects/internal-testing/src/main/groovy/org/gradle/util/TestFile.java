@@ -20,13 +20,14 @@ import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.taskdefs.Tar;
 import org.apache.tools.ant.taskdefs.Zip;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DeleteAction;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
-import org.gradle.process.ExecResult;
 import org.hamcrest.Matcher;
 
 import java.io.*;
@@ -36,8 +37,6 @@ import java.net.URL;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import static org.junit.Assert.*;
 
@@ -346,7 +345,7 @@ public class TestFile extends File implements TestFileContext {
         Set<String> missing = new TreeSet<String>(expected);
         missing.removeAll(actual);
 
-        assertEquals(String.format("Extra files: %s, missing files: %s, expected: %s", extras, missing, expected), expected, actual);
+        assertEquals(String.format("For dir: %s, extra files: %s, missing files: %s, expected: %s", this, extras, missing, expected), expected, actual);
 
         return this;
     }
