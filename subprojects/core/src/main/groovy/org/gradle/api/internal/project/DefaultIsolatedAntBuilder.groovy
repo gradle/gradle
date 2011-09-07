@@ -19,11 +19,8 @@ import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.util.*
 import org.gradle.api.internal.ClassPathRegistry
-import org.slf4j.LoggerFactory
-import org.slf4j.Logger
 
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIsolatedAntBuilder)
     private final Map<List<File>, Map<String, Object>> classloaders
     private final ClassPathRegistry classPathRegistry
     private final ClassLoaderFactory classLoaderFactory
@@ -57,7 +54,6 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     void execute(Closure antClosure) {
         List<File> normalisedClasspath = []
         normalisedClasspath.addAll(classPathRegistry.getClassPathFiles("ANT"))
-        LOGGER.info("Using ant classpath ${normalisedClasspath}.")
         normalisedClasspath.addAll(groovyClasspath as List)
         normalisedClasspath.addAll(libClasspath as List)
 

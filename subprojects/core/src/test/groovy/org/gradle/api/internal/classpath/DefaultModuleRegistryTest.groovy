@@ -191,4 +191,17 @@ class DefaultModuleRegistryTest extends Specification {
         module.implementationClasspath as List == [runtimeDep]
         module.runtimeClasspath.empty
     }
+
+    def "ignores jars which have the same prefix as an external module"() {
+        given:
+        distDir.createFile("dep-launcher-1.2.jar")
+        distDir.createFile("dep-launcher-1.2-beta-3.jar")
+        def cl = new URLClassLoader([] as URL[])
+        def registry = new DefaultModuleRegistry(cl, distDir)
+
+        expect:
+        def module = registry.getExternalModule("dep")
+        module.implementationClasspath as List == [runtimeDep]
+        module.runtimeClasspath.empty
+    }
 }
