@@ -20,7 +20,6 @@ integTestTasks.all {
         systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
         systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
         forkEvery = 15
-        maxParallelForks = guessMaxForks()
 
         if (isDevBuild()) {
             exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
