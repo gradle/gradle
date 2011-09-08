@@ -21,9 +21,9 @@ import org.gradle.launcher.daemon.DaemonClient
 import org.gradle.launcher.daemon.DaemonConnector
 import org.gradle.launcher.daemon.ExternalDaemonConnector
 import org.gradle.launcher.daemon.PersistentDaemonRegistry
+import org.gradle.launcher.protocol.Sleep
 import org.gradle.launcher.protocol.Stop
 import org.gradle.logging.internal.OutputEventListener
-import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -61,42 +61,21 @@ class DaemonFunctionalTest extends Specification {
         prepare()
         connector = new ExternalDaemonConnector(temp.testDir, 500) //0.5 sec expiry time
         def c = connect()
+        c.dispatch(new Sleep(1000))
 
         then:
-        poll { assert reg.all.size() == 1 }
+        poll { assert reg.busy.size() == 1 }
 
         when:
-        c.stop()
+        connect()
 
         then:
-        poll {
-            assert reg.idle.size() == 1
-        }
+        poll { assert reg.all.size() == 2 }
 
+        //after some time...
         poll(2000) {
             assert reg.all.size() == 0
         }
-    }
-
-    @Timeout(10)
-    def "daemons log separately"() {
-        when:
-        prepare()
-        connect()
-
-        then:
-        poll {
-            assert reg.busy.size() == 1
-        }
-
-        when:
-        connect()
-
-        then:
-        poll {
-            assert reg.busy.size() == 2
-        }
-        assert reg.daemonDir.logs.size() == 2
     }
 
     @Timeout(10)
@@ -113,14 +92,21 @@ class DaemonFunctionalTest extends Specification {
 
         then:
         poll {
+            assert reg.busy.size() == 0
+            assert reg.idle.size() == 1
+        }
+
+        when:
+        def sleep = new Sleep(500)
+        connection.dispatch(sleep)
+
+        then:
+        poll {
             assert reg.busy.size() == 1
             assert reg.idle.size() == 0
         }
 
-        when:
-        connection.stop();
-
-        then:
+        //after some some time...
         poll {
             assert reg.busy.size() == 0
             assert reg.idle.size() == 1
@@ -131,34 +117,27 @@ class DaemonFunctionalTest extends Specification {
     def "spins new daemon if all are busy"() {
         when:
         prepare()
+        def c = connect()
 
         then:
-        assert reg.busy.size() == 0
-        assert reg.idle.size() == 0
+        poll { assert reg.idle.size() == 1 }
 
         when:
-        def connection = connect()
+        c.dispatch(new Sleep(500))
+
+        then:
+        poll { assert reg.busy.size() == 1 }
+
+        when:
+        connect()
 
         then:
         poll {
-            assert reg.busy.size() == 1
-            assert reg.idle.size() == 0
+            assert reg.all.size() == 2
         }
 
-        when:
-        def connectionTwo = connect()
-
-        then:
-        poll {
-            assert reg.busy.size() == 2
-            assert reg.idle.size() == 0
-        }
-    }
-
-    static class AddressStub implements Address {
-        String getDisplayName() {
-            return "foo";
-        }
+        //daemons log separately:
+        assert reg.daemonDir.logs.size() == 2
     }
 
     @Timeout(10)
@@ -174,9 +153,7 @@ class DaemonFunctionalTest extends Specification {
         connection.dispatch(new Stop(new GradleLauncherMetaData()))
 
         then:
-        poll {
-            assert reg.all.size() == 0
-        }
+        poll { assert reg.all.size() == 0 }
     }
 
     @Timeout(10)
@@ -185,7 +162,6 @@ class DaemonFunctionalTest extends Specification {
 
         when:
         def connection = connect()
-        connection.stop()
 
         then:
         poll { assert reg.idle.size() == 1 }
@@ -203,7 +179,13 @@ class DaemonFunctionalTest extends Specification {
         OutputEventListener listener = Mock()
 
         when:
-        def connection = connect()
+        def c = connect()
+
+        then:
+        poll { assert reg.all.size() == 1 }
+
+        when:
+        c.dispatch(new Sleep(2000))
 
         then:
         poll { assert reg.busy.size() == 1 }
@@ -222,12 +204,14 @@ class DaemonFunctionalTest extends Specification {
 
         when:
         def connection = connect()
+        connection.dispatch(new Sleep(2000))
 
         then:
         poll { assert reg.busy.size() == 1 }
 
         when:
         def connectionTwo = connect()
+        connectionTwo.dispatch(new Sleep(2000))
 
         then:
         poll { assert reg.busy.size() == 2 }
@@ -236,25 +220,17 @@ class DaemonFunctionalTest extends Specification {
         def connectionThree = connect()
 
         then:
-        poll { assert reg.busy.size() == 3 }
-
-        when:
-        connectionTwo.stop()
-        connectionThree.stop()
-
-        then:
         poll {
-            assert reg.idle.size() == 2
-            assert reg.busy.size() == 1
+            assert reg.all.size() == 3
+            assert reg.busy.size() == 2
+            assert reg.idle.size() == 1
         }
 
         when:
         new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
 
         then:
-        poll {
-            assert reg.all.size() == 0
-        }
+        poll { assert reg.all.size() == 0 }
     }
 
     private Connection<Object> connect() {

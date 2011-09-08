@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon;
-
-import org.gradle.messaging.remote.Address;
-
-import java.util.List;
+package org.gradle.launcher.protocol;
 
 /**
- * Provides access to existing daemons.
+ * Command that sleeps, pretending a build that does something useful for some time. Used in tests.
+ *
+ * @author: Szczepan Faber, created at: 9/7/11
  */
-public interface DaemonRegistry {
+public class Sleep extends Command {
 
-    List<DaemonStatus> getAll();
-    List<DaemonStatus> getIdle();
-    List<DaemonStatus> getBusy();
-    
-    void store(Address address);
-    void remove(Address address);
-    void markBusy(Address address);
-    void markIdle(Address address);
+    private final int millis;
+
+    public Sleep(int millis) {
+        super(null);
+        this.millis = millis;
+    }
+
+    public void run() {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ignored) {}
+    }
 }

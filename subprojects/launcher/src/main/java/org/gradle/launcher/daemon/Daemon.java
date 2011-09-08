@@ -92,8 +92,10 @@ public class Daemon implements Runnable, Stoppable {
      * @throws IllegalStateException if this daemon is already running, or has already been stopped.
      */
     public void start() {
+        //TODO SF why we use reentrant lock instead of synchronized (same for stop() method)
         lifecycleLock.lock();
         try {
+            //TODO SF why do we need those?
             if (stopped) {
                 throw new IllegalStateException("cannot start daemon as it has already been used");
             }
@@ -108,30 +110,33 @@ public class Daemon implements Runnable, Stoppable {
                 public void handle(final Connection<Object> connection) {
 
                     //we're spinning a thread to do work to avoid blocking the connection
-                    //This means that the Daemon potentially can have multiple jobs running.
-                    //We only allow 2 threads max - one for the build, second for potential Stop request
+                    //This means that the Daemon potentially can do multiple things but we only allows a single build at a time
                     handlersExecutor.execute(new Runnable() {
                         public void run() {
-                            Command command = null;
+                            Command command = (Command) connection.receive();
+                            if (command == null) {
+                                LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
+                                connection.stop(); //TODO SF why do we need to stop the connection here and there?
+                                return;
+                            }
+                            if (command instanceof Stop) {
+                                LOGGER.lifecycle("Stopping");
+                                connection.dispatch(new CommandComplete(null));
+                                stopLatch.countDown();
+                                return;
+                            }
+
                             try {
-                                //There's a reason why we lock first and then read the incoming command
-                                //This way we're marking the daemon as 'busy' as soon as it is connected to the client
-                                //It does not have impact for daemon usage in real world but it makes certain things easier and it helps a lot with testing daemon
-                                command = lockAndReceive(connection, control);
-                                if (command == null) {
-                                    LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
-                                    unlock(control);
-                                    connection.stop();
-                                    return;
-                                }
+                                control.onStartActivity();
                             } catch (BusyException e) {
+                                LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
                                 connection.dispatch(new CommandComplete(e));
                                 return;
                             }
                             try {
                                 doRun(connection, control, command);
                             } finally {
-                                unlock(control);
+                                control.onActivityComplete();
                                 connection.stop();
                             }
                         }
@@ -158,16 +163,16 @@ public class Daemon implements Runnable, Stoppable {
                         // unsure what we can really do here, it shouldn't happen anyway.
                         return;
                     }
-                    
-                    daemonRegistry.remove(connectorAddress); // remove our presence to clients
+
                     connector.stop(); // stop accepting new connections
                     handlersExecutor.stop(); // wait for any connection handlers to stop (though connector.stop() will have already waited for this)
                     control.stop(); // wake up anyone waiting on our completion (i.e. )
+                    daemonRegistry.remove(connectorAddress); // remove our presence to clients
                 }
             });
             
             // Advertise that the daemon is now ready to accept connections
-            daemonRegistry.store(connectorAddress);
+            daemonRegistry.store(connectorAddress); //TODO SF move totally to the control
             control.start();
             started = true;
             LOGGER.lifecycle("Daemon started at: " + new Date() + ", with address: " + connectorAddress);
@@ -218,10 +223,6 @@ public class Daemon implements Runnable, Stoppable {
         awaitStop();
     }
 
-    private void unlock(CompletionHandler serverControl) {
-        serverControl.onActivityComplete();
-    }
-
     private void doRun(final Connection<Object> connection, CompletionHandler serverControl, Command command) {
         CommandComplete result = null;
         Throwable failure = null;
@@ -241,7 +242,7 @@ public class Daemon implements Runnable, Stoppable {
             // Perform as much as possible of the interaction while the logging is routed to the client
             loggingOutput.addOutputEventListener(listener);
             try {
-                result = doRunWithLogging(serverControl, command);
+                result = doRunWithLogging(command);
             } finally {
                 loggingOutput.removeOutputEventListener(listener);
             }
@@ -258,26 +259,9 @@ public class Daemon implements Runnable, Stoppable {
         connection.dispatch(result);
     }
 
-    private Command lockAndReceive(Connection<Object> connection, CompletionHandler serverControl) {
+    private CommandComplete doRunWithLogging(Command command) {
         try {
-            serverControl.onStartActivity();
-            return (Command) connection.receive();
-        } catch (BusyException busy) {
-            Command command = (Command) connection.receive();
-            if (command instanceof Stop) {
-                //that's ok, if the daemon is busy we still want to be able to stop it
-                LOGGER.info("The daemon is busy and Stop command was received. Stopping...");
-                return command;
-            }
-            //otherwise it is a build request and we are already busy
-            LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
-            throw busy;
-        }
-    }
-
-    private CommandComplete doRunWithLogging(Stoppable serverControl, Command command) {
-        try {
-            return doRunWithExceptionHandling(command, serverControl);
+            return doRunWithExceptionHandling(command);
         } catch (ReportedException e) {
             throw e;
         } catch (Throwable throwable) {
@@ -289,12 +273,11 @@ public class Daemon implements Runnable, Stoppable {
         }
     }
 
-    private CommandComplete doRunWithExceptionHandling(Command command, Stoppable serverControl) {
+    private CommandComplete doRunWithExceptionHandling(Command command) {
         LOGGER.info("Executing {}", command);
-        if (command instanceof Stop) {
-            LOGGER.lifecycle("Stopping");
-            stopLatch.countDown();
-            return new CommandComplete(null);
+        if (command instanceof Sleep) {
+            ((Sleep) command).run();
+            return new Result("Command executed successfully: " + command);
         }
 
         DefaultGradleLauncherActionExecuter executer = new DefaultGradleLauncherActionExecuter(launcherFactory, loggingServices);
