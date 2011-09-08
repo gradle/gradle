@@ -41,7 +41,6 @@ class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSp
         buildFile << """
 repositories {
     ivy {
-        name = 'gradleReleases'
         artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
@@ -86,11 +85,9 @@ task listJars << {
         buildFile << """
 repositories {
     ivy {
-        name = 'gradleReleases'
         artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
     ivy {
-        name = 'otherReleases'
         artifactPattern "http://localhost:${server.port}/repo2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
@@ -133,9 +130,8 @@ task listJars << {
         buildFile << """
 repositories {
     ivy {
-        name = 'gradleReleases'
-        userName = 'username'
-        password = 'password'
+        userName 'username'
+        password 'password'
         artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
@@ -159,7 +155,6 @@ task listJars << {
         buildFile << """
 repositories {
     ivy {
-        name = 'gradleReleases'
         artifactPattern "http://localhost:${server.port}/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
     }
 }

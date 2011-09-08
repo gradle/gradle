@@ -31,7 +31,7 @@ class SamplesGroovyQuickstartIntegrationTest {
     @Test
     public void groovyProjectQuickstartSample() {
         TestFile groovyProjectDir = sample.dir
-        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').withArguments("-i", "--stacktrace").run()
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(groovyProjectDir)

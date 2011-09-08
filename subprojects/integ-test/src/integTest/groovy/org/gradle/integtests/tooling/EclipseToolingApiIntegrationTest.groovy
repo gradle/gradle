@@ -35,7 +35,7 @@ class EclipseToolingApiIntegrationTest extends ToolingApiSpecification {
 apply plugin: "java"
 
 repositories {
-	flatDir(dirs: "${TextUtil.escapeString(repoDir)}")
+	flatDir { dirs "${TextUtil.escapeString(repoDir)}" }
 }
 
 dependencies {

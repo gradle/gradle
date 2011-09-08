@@ -10,7 +10,10 @@ artifacts {
 
 //START SNIPPET uploading
 repositories {
-    flatDir(name: 'fileRepo', dirs: "$projectDir/repo")
+    flatDir {
+        name "fileRepo"
+        dirs "repo"
+    }
 }
 
 uploadArchives {
@@ -18,9 +21,9 @@ uploadArchives {
     repositories {
         add project.repositories.fileRepo
         add(new org.apache.ivy.plugins.resolver.SshResolver()) {
-            name = 'sshRepo'
-            user = 'username'
-            userPassword = 'pw'
+            name = "sshRepo"
+            user = "username"
+            userPassword = "pw"
             host = "http://repo.mycompany.com"
         }
     }

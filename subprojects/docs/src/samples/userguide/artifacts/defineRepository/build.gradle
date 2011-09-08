@@ -36,9 +36,13 @@ repositories {
 //START SNIPPET flat-dir
 //START SNIPPET flat-dir-multi
 repositories {
-    flatDir name: 'localRepository', dirs: 'lib'
+    flatDir {
+        dirs 'lib'
+    }
 //END SNIPPET flat-dir
-    flatDir dirs: ['lib1', 'lib2']
+    flatDir {
+        dirs 'lib1', 'lib2'
+    }
 //START SNIPPET flat-dir
 }
 //END SNIPPET flat-dir
@@ -47,7 +51,6 @@ repositories {
 //START SNIPPET ivy-repo
 repositories {
     ivy {
-        name = 'ivyRepo'
         artifactPattern "http://repo.mycompany.com/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
@@ -56,9 +59,8 @@ repositories {
 //START SNIPPET authenticated-ivy-repo
 repositories {
     ivy {
-        name = 'privateIvyRepo'
-        userName = 'user'
-        password = 'password'
+        userName 'user'
+        password 'password'
         artifactPattern "http://repo.mycompany.com/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
@@ -72,6 +74,11 @@ task lookup << {
 }
 
 //START SNIPPET configure-resolver
+repositories {
+    flatDir {
+        name 'localRepository'
+    }
+}
 repositories {
     localRepository {
         dirs 'lib'

@@ -8,7 +8,7 @@ configurations {
 }
 
 repositories {
-   flatDir(dirs: "$projectDir/lib")
+   flatDir { dirs "lib" }
    mavenCentral()
 }
 

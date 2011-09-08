@@ -1,7 +1,7 @@
 defaultTasks 'list'
 
 repositories {
-    flatDir dirs: file('repo')
+    flatDir { dirs 'repo' }
 }
 
 configurations {

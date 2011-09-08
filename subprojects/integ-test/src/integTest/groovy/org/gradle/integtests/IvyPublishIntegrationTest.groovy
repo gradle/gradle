@@ -94,9 +94,8 @@ group = 'org.gradle'
 uploadArchives {
     repositories {
         ivy {
-            userName = 'user'
-            password = 'password'
-            realm = 'test'
+            userName 'user'
+            password 'password'
             artifactPattern "http://localhost:${server.port}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
         }
     }

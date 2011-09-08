@@ -37,7 +37,9 @@ test {
 // START SNIPPET upload
 uploadArchives {
     repositories {
-       flatDir(dirs: file('repos'))
+       flatDir {
+           dirs 'repos'
+       }
     }
 }
 // END SNIPPET upload
