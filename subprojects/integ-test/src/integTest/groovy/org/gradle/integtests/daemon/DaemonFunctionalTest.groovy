@@ -185,7 +185,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 1 }
 
         when:
-        c.dispatch(new Sleep(2000))
+        c.dispatch(new Sleep(3000))
 
         then:
         poll { assert reg.busy.size() == 1 }
@@ -194,7 +194,7 @@ class DaemonFunctionalTest extends Specification {
         new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
 
         then:
-        poll { assert reg.all.size() == 0 }
+        poll(1000) { assert reg.all.size() == 0 }
     }
 
     @Timeout(10)

@@ -160,9 +160,9 @@ public class Daemon implements Runnable, Stoppable {
                     }
 
                     connector.stop(); // stop accepting new connections
-                    handlersExecutor.stop(); // wait for any connection handlers to stop (though connector.stop() will have already waited for this)
-                    control.stop(); // wake up anyone waiting on our completion (i.e. )
                     daemonRegistry.remove(connectorAddress); // remove our presence to clients
+                    control.stop(); // wake up anyone waiting on our completion (i.e. )
+                    handlersExecutor.stop(); // wait for any connection handlers to stop (though connector.stop() will have already waited for this)
                 }
             });
             
