@@ -77,7 +77,8 @@ integTestTasks.all {
 daemonIntegTest {
     exclude "**/org/gradle/integtests/tooling/**", //tooling integ tests use daemon anyway, don't rerun
             "**/CrossVersionCompatibilityIntegrationTest.class", //ignored just in case to avoid old daemon implementation
-            "**/DistributionIntegrationTest.class" //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
+            "**/DistributionIntegrationTest.class", //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
+            "**/UserGuideSamplesIntegrationTest.class" // needs a fix for GRADLE-1747 (set process working directory)
 
   doLast {
       if (project.hasProperty("waitForDaemonsToDieMillis")) {
