@@ -27,8 +27,10 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
+import org.gradle.util.UncheckedException;
 import org.gradle.util.WrapUtil;
 
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -83,21 +85,47 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
         return null;
     }
 
-    private void mergeDescriptors(String masterConfiguration, DefaultDependencyDescriptor matchingDependencyDescriptor, DependencyDescriptor newDescriptor, ModuleDependency newDependency) {
-        // TODO Merge transitive, excludeRules and force flags
+    private void mergeDescriptors(String masterConfiguration, DefaultDependencyDescriptor originalDescriptor, DependencyDescriptor newDescriptor, ModuleDependency newDependency) {
+        // Force ivy to act as though both dependencies are fetched independently
+
         // Merge dependency configurations
         if (newDependency.getConfiguration() != null) {
-            matchingDependencyDescriptor.addDependencyConfiguration(masterConfiguration, newDependency.getConfiguration());
+            originalDescriptor.addDependencyConfiguration(masterConfiguration, newDependency.getConfiguration());
         }
 
         // Copy across all defined artifacts
         for (DependencyArtifactDescriptor artifactDescriptor : newDescriptor.getAllDependencyArtifacts()) {
-            matchingDependencyDescriptor.addDependencyArtifact(masterConfiguration, artifactDescriptor);
+            originalDescriptor.addDependencyArtifact(masterConfiguration, artifactDescriptor);
         }
 
         // Copy across inclusion of default artifacts
         if (newDescriptor.getIncludeRules(masterConfiguration).length != 0) {
-            includeDefaultArtifacts(masterConfiguration, matchingDependencyDescriptor);
+            includeDefaultArtifacts(masterConfiguration, originalDescriptor);
+        }
+
+        // OR Force, Transitive and Changing flags
+        mergeFlagIntoOriginal(originalDescriptor, newDescriptor, "isForce");
+        mergeFlagIntoOriginal(originalDescriptor, newDescriptor, "isTransitive");
+        mergeFlagIntoOriginal(originalDescriptor, newDescriptor, "isChanging");
+
+        // TODO Use intersection of exclude rules (only exclude if excluded in all dependencies)
+    }
+
+    private void mergeFlagIntoOriginal(DefaultDependencyDescriptor originalDescriptor, DependencyDescriptor newDescriptor, String fieldName) {
+        try {
+            Field field = DefaultDependencyDescriptor.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+
+            Boolean originalValue = (Boolean) field.get(originalDescriptor);
+            Boolean mergeValue = (Boolean) field.get(newDescriptor);
+            boolean newValue = originalValue || mergeValue;
+            if (originalValue != newValue) {
+                field.set(originalDescriptor, newValue);
+            }
+        } catch (NoSuchFieldException e) {
+            throw UncheckedException.asUncheckedException(e);
+        } catch (IllegalAccessException e) {
+            throw UncheckedException.asUncheckedException(e);
         }
     }
 

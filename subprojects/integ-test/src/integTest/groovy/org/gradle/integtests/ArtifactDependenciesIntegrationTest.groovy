@@ -357,6 +357,46 @@ task test << {
         inTestDirectory().withTasks('test').run()
     }
 
+    @Test
+    public void nonTransitiveDependenciesAreNotRetrieved() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'one', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'two', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0').dependsOn('org.gradle.test', 'one', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier').publishArtifactOnly()
+
+        testFile('build.gradle') << """
+repositories {
+    mavenRepo urls: '${repo.rootDir.toURI()}'
+}
+configurations {
+    transitive
+    nonTransitive
+    extendedNonTransitive.extendsFrom nonTransitive
+    mergedNonTransitive
+}
+dependencies {
+    transitive 'org.gradle.test:external1:1.0'
+    nonTransitive 'org.gradle.test:external1:1.0', { transitive = false }
+    extendedNonTransitive 'org.gradle.test:two:1.0'
+    mergedNonTransitive 'org.gradle.test:external1:1.0', {transitive = false }
+    mergedNonTransitive 'org.gradle.test:external1:1.0:classifier', { transitive = false }
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config.collect({ it.name }) as Set == expectedDependencies as Set
+}
+
+task test << {
+    checkDeps configurations.transitive, ['external1-1.0.jar', 'one-1.0.jar']
+    checkDeps configurations.nonTransitive, ['external1-1.0.jar']
+    checkDeps configurations.extendedNonTransitive, ['external1-1.0.jar', 'two-1.0.jar']
+    checkDeps configurations.mergedNonTransitive, ['external1-1.0.jar', 'external1-1.0-classifier.jar']
+}
+"""
+        inTestDirectory().withTasks('test').run()
+    }
+
     /*
      * Originally, we were aliasing dependency descriptors that were identical. This caused alias errors when we subsequently modified one of these descriptors.
      */

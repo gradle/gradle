@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.util.Clock;
+import org.gradle.util.UncheckedException;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -250,9 +251,9 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
             confsField.setAccessible(true);
             return (Map<String, String[]>) confsField.get(caller);
         } catch (NoSuchFieldException e) {
-            throw new GradleException("Could not find field in ivy class when converting report", e);
+            throw UncheckedException.asUncheckedException(e);
         } catch (IllegalAccessException e) {
-            throw new GradleException("Could not access field in ivy class when converting report", e);
+            throw UncheckedException.asUncheckedException(e);
         }
     }
 
