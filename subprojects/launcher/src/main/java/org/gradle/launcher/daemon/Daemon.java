@@ -64,7 +64,6 @@ public class Daemon implements Runnable, Stoppable {
     private final StoppableExecutor handlersExecutor = new DefaultExecutorFactory().create("Daemon Connection Handler");
 
     private boolean started;
-    private boolean stopped;
     private final Lock lifecycleLock = new ReentrantLock();
 
     private final CountDownLatch stopLatch = new CountDownLatch(1);
@@ -95,10 +94,6 @@ public class Daemon implements Runnable, Stoppable {
         //TODO SF why we use reentrant lock instead of synchronized (same for stop() method)
         lifecycleLock.lock();
         try {
-            //TODO SF why do we need those?
-            if (stopped) {
-                throw new IllegalStateException("cannot start daemon as it has already been used");
-            }
             if (started) {
                 throw new IllegalStateException("cannot start daemon as it is already running");
             }
