@@ -69,6 +69,7 @@ class CompletionHandler implements Stoppable {
         lock.lock();
         try {
             updateActivityTimestamp();
+            activityListener.onStart();
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -116,6 +117,7 @@ class CompletionHandler implements Stoppable {
         lock.lock();
         try {
             stopped = true;
+            activityListener.onStop();
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -129,8 +131,8 @@ class CompletionHandler implements Stoppable {
                 throw new BusyException();
             }
             running = true;
+            activityListener.onStartActivity();
             condition.signalAll();
-            activityListener.onStart();
         } finally {
             lock.unlock();
         }
@@ -141,8 +143,8 @@ class CompletionHandler implements Stoppable {
         try {
             running = false;
             updateActivityTimestamp();
+            activityListener.onCompleteActivity();
             condition.signalAll();
-            activityListener.onComplete();
         } finally {
             lock.unlock();
         }
@@ -154,11 +156,15 @@ class CompletionHandler implements Stoppable {
 
     static interface ActivityListener {
         void onStart();
-        void onComplete();
+        void onStop();
+        void onStartActivity();
+        void onCompleteActivity();
     }
 
     static class EmptyActivityListener implements ActivityListener {
         public void onStart() {}
-        public void onComplete() {}
+        public void onStop() {}
+        public void onStartActivity() {}
+        public void onCompleteActivity() {}
     }
 }

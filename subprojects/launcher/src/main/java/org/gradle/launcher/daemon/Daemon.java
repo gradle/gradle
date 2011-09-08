@@ -140,13 +140,23 @@ public class Daemon implements Runnable, Stoppable {
             });
 
             control.setActivityListener(new CompletionHandler.ActivityListener() {
-                public void onStart() {
+                public void onStartActivity() {
                     daemonRegistry.markBusy(connectorAddress);
                 }
 
-                public void onComplete() {
+                public void onCompleteActivity() {
                     daemonRegistry.markIdle(connectorAddress);
                 }
+
+                public void onStart() {
+                    // Advertise that the daemon is now ready to accept connections
+                    daemonRegistry.store(connectorAddress);
+                }
+
+                public void onStop() {
+                    daemonRegistry.remove(connectorAddress); // remove our presence to clients
+                }
+
             });
 
             // Start a new thread to watch the stop latch
@@ -160,14 +170,11 @@ public class Daemon implements Runnable, Stoppable {
                     }
 
                     connector.stop(); // stop accepting new connections
-                    daemonRegistry.remove(connectorAddress); // remove our presence to clients
                     control.stop(); // wake up anyone waiting on our completion (i.e. )
                     handlersExecutor.stop(); // wait for any connection handlers to stop (though connector.stop() will have already waited for this)
                 }
             });
             
-            // Advertise that the daemon is now ready to accept connections
-            daemonRegistry.store(connectorAddress); //TODO SF move totally to the control
             control.start();
             started = true;
             LOGGER.lifecycle("Daemon started at: " + new Date() + ", with address: " + connectorAddress);
