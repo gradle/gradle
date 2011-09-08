@@ -33,6 +33,8 @@ public class Sleep extends Command {
     public void run() {
         try {
             Thread.sleep(millis);
-        } catch (InterruptedException ignored) {}
+        } catch (InterruptedException ignored) {
+            //ignore
+        }
     }
 }
