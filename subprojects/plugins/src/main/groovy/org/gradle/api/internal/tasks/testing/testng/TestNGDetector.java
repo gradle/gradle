@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector;
+import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,8 @@ import java.io.File;
 class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetecter> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestNGDetector.class);
 
-    TestNGDetector(File testClassesDirectory, FileCollection testClasspath) {
-        super(testClassesDirectory, testClasspath);
+    TestNGDetector(File testClassesDirectory, FileCollection testClasspath, ClassFileExtractionManager classFileExtractionManager) {
+        super(testClassesDirectory, testClasspath, classFileExtractionManager);
     }
 
     protected TestNGTestClassDetecter createClassVisitor() {
