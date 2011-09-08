@@ -32,11 +32,13 @@ import java.util.*;
  */
 public class ClassFileExtractionManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClassFileExtractionManager.class);
-    protected final Map<String, Set<File>> packageJarFilesMappings;
-    protected final Map<String, File> extractedJarClasses;
-    protected final Set<String> unextractableClasses;
+    private final Map<String, Set<File>> packageJarFilesMappings;
+    private final Map<String, File> extractedJarClasses;
+    private final Set<String> unextractableClasses;
+    private final File tempDir;
 
-    public ClassFileExtractionManager() {
+    public ClassFileExtractionManager(File tempDir) {
+        this.tempDir = tempDir;
         packageJarFilesMappings = new HashMap<String, Set<File>>();
         extractedJarClasses = new HashMap<String, File>();
         unextractableClasses = new TreeSet<String>();
@@ -132,10 +134,8 @@ public class ClassFileExtractionManager {
 
     File tempFile() {
         try {
-            final File tempFile = File.createTempFile("jar_extract_", "_tmp");
-
+            final File tempFile = File.createTempFile("jar_extract_", "_tmp", tempDir);
             tempFile.deleteOnExit();
-
             return tempFile;
         } catch (IOException e) {
             throw new GradleException("failed to create temp file to extract class from jar into", e);

@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.tasks.testing.Test;
@@ -44,7 +45,7 @@ public class JUnitTestFramework implements TestFramework {
         this.testTask = testTask;
         reporter = new DefaultTestReport();
         options = new JUnitOptions();
-        detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
+        detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath(), new ClassFileExtractionManager(testTask.getTemporaryDir()));
     }
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {

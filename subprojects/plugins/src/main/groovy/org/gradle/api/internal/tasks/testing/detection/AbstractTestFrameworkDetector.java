@@ -41,16 +41,15 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private final File testClassesDirectory;
     private final FileCollection testClasspath;
     private List<File> testClassDirectories;
-    private ClassFileExtractionManager classFileExtractionManager;
+    private final ClassFileExtractionManager classFileExtractionManager;
     private final Map<File, Boolean> superClasses;
+    private TestClassProcessor testClassProcessor;
+    private final List<String> knownTestCaseClassNames;
 
-    protected TestClassProcessor testClassProcessor;
-
-    protected List<String> knownTestCaseClassNames;
-
-    protected AbstractTestFrameworkDetector(File testClassesDirectory, FileCollection testClasspath) {
+    protected AbstractTestFrameworkDetector(File testClassesDirectory, FileCollection testClasspath, ClassFileExtractionManager classFileExtractionManager) {
         this.testClassesDirectory = testClassesDirectory;
         this.testClasspath = testClasspath;
+        this.classFileExtractionManager = classFileExtractionManager;
         this.superClasses = new HashMap<File, Boolean>();
         this.knownTestCaseClassNames = new ArrayList<String>();
         addKnownTestCaseClassNames(TEST_CASE, GROOVY_TEST_CASE);
@@ -83,13 +82,11 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     }
 
     private void prepareClasspath() {
-        if (classFileExtractionManager != null) {
+        if (testClassDirectories != null) {
             return;
         }
 
-        classFileExtractionManager = new ClassFileExtractionManager();
         testClassDirectories = new ArrayList<File>();
-
         testClassDirectories.add(testClassesDirectory);
         if (testClasspath != null) {
             for (File file : testClasspath) {

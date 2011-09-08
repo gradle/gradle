@@ -53,6 +53,7 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
             allowing(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
             allowing(testMock).getClasspath(); will(returnValue(classpathMock));
             allowing(testMock).getAnt(); will(returnValue(context.mock(AntBuilder.class)));
+            allowing(testMock).getTemporaryDir(); will(returnValue(temporaryDir));
         }});
     }
 
