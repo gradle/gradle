@@ -19,21 +19,21 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.report.ConfigurationResolveReport;
 import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveOptions;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
-import static org.gradle.api.artifacts.ArtifactsTestUtils.createResolvedArtifact;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.artifacts.ArtifactsTestUtils.createResolvedArtifact;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -55,9 +56,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(JMock.class)
 public class DefaultIvyDependencyResolverTest {
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private Configuration configurationStub = context.mock(Configuration.class, "<configuration>");
     private Ivy ivyStub = context.mock(Ivy.class);
@@ -180,10 +179,11 @@ public class DefaultIvyDependencyResolverTest {
     }
 
     @Test
-    public void testResolveAndGetFilesWithMissingDependenciesShouldThrowGradleEx() throws IOException, ParseException {
+    public void testResolveAndGetFilesWithMissingDependenciesShouldThrowResolveException() throws IOException, ParseException {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        prepareResolveReportWithError();
+        Exception failure = new Exception("broken");
+        prepareResolveReportWithError(failure);
         ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
         context.checking(new Expectations() {{
             allowing(configurationStub).getAllDependencies();
@@ -191,25 +191,27 @@ public class DefaultIvyDependencyResolverTest {
         try {
             configuration.getFiles(Specs.SATISFIES_ALL);
             fail();
-        } catch (GradleException e) {
+        } catch (ResolveException e) {
             assertThat(e.getMessage(), startsWith("Could not resolve all dependencies for <configuration>"));
+            assertThat(e.getCause(), sameInstance((Throwable) failure));
         }
     }
 
     @Test
-    public void testResolveAndRethrowFailureWithMissingDependenciesShouldThrowGradleEx() throws IOException, ParseException {
+    public void testResolveAndRethrowFailureWithMissingDependenciesShouldThrowResolveException() throws IOException, ParseException {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        prepareResolveReportWithError();
-        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub,
-                moduleDescriptor);
+        Exception failure = new Exception("broken");
+        prepareResolveReportWithError(failure);
+        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
 
         assertTrue(configuration.hasError());
         try {
             configuration.rethrowFailure();
             fail();
-        } catch (GradleException e) {
+        } catch (ResolveException e) {
             assertThat(e.getMessage(), startsWith("Could not resolve all dependencies for <configuration>"));
+            assertThat(e.getCause(), sameInstance((Throwable) failure));
         }
     }
 
@@ -241,7 +243,7 @@ public class DefaultIvyDependencyResolverTest {
 
     @Test
     public void testResolveAndGetReportWithMissingDependenciesAndFailFalse() throws IOException, ParseException {
-        prepareResolveReportWithError();
+        prepareResolveReportWithError(new Exception("broken"));
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
         assertEquals(true, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).hasError());
@@ -261,25 +263,30 @@ public class DefaultIvyDependencyResolverTest {
         });
     }
 
-    private void prepareResolveReportWithError() throws IOException, ParseException {
-        context.checking(new Expectations() {
-            {
-                allowing(resolveReportMock).hasError();
-                will(returnValue(true));
-                allowing(resolveReportMock).getAllProblemMessages();
-                will(returnValue(toList("a problem")));
-            }
-        });
+    private void prepareResolveReportWithError(final Exception failure) throws IOException, ParseException {
+        context.checking(new Expectations() {{
+            ConfigurationResolveReport configurationResolveReport = context.mock(ConfigurationResolveReport.class);
+
+            allowing(resolveReportMock).hasError();
+            will(returnValue(true));
+            allowing(resolveReportMock).getAllProblemMessages();
+            will(returnValue(toList("a problem")));
+            allowing(resolveReportMock).getConfigurationReport("someConfName");
+            will(returnValue(configurationResolveReport));
+            allowing(configurationResolveReport).getUnresolvedDependencies();
+            IvyNode unresolvedNode = context.mock(IvyNode.class);
+            will(returnValue(new IvyNode[]{unresolvedNode}));
+            allowing(unresolvedNode).getProblem();
+            will(returnValue(failure));
+        }});
     }
 
     private void prepareTestsThatRetrieveDependencies(final ModuleDescriptor moduleDescriptor) throws IOException, ParseException {
         final String confName = configurationStub.getName();
-        context.checking(new Expectations() {
-            {
+        context.checking(new Expectations() {{
                 allowing(ivyStub).resolve(with(equal(moduleDescriptor)), with(equaltResolveOptions(confName)));
                 will(returnValue(resolveReportMock));
-            }
-        });
+        }});
     }
 
     Matcher<ResolveOptions> equaltResolveOptions(final String... confs) {

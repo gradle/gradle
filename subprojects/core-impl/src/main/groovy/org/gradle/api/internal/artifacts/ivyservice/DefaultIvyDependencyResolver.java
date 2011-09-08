@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.util.Message;
 import org.gradle.api.artifacts.*;
@@ -102,11 +103,14 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
 
         public void rethrowFailure() throws ResolveException {
             if (hasError) {
-                Formatter formatter = new Formatter();
-                for (String msg : problemMessages) {
-                    formatter.format("    - %s%n", msg);
+                // Note: this list does not include all the failures, but it's better than nothing
+                List<Throwable> unresolvedFailures = new ArrayList<Throwable>();
+                IvyNode[] unresolved = resolveReport.getConfigurationReport(configuration.getName()).getUnresolvedDependencies();
+                for (IvyNode node : unresolved) {
+                    unresolvedFailures.add(node.getProblem());
                 }
-                throw new ResolveException(configuration, formatter.toString());
+
+                throw new ResolveException(configuration, problemMessages, unresolvedFailures);
             }
         }
 

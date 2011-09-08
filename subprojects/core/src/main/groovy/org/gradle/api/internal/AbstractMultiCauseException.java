@@ -20,6 +20,8 @@ import org.gradle.util.GUtil;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class AbstractMultiCauseException extends GradleException implements MultiCauseException {
@@ -30,6 +32,16 @@ public class AbstractMultiCauseException extends GradleException implements Mult
             return false;
         }
     };
+
+    public AbstractMultiCauseException(String message) {
+        super(message);
+        this.causes = Collections.emptyList();
+    }
+
+    public AbstractMultiCauseException(String message, Throwable... causes) {
+        super(message);
+        this.causes = Arrays.asList(causes);
+    }
 
     public AbstractMultiCauseException(String message, Iterable<? extends Throwable> causes) {
         super(message);

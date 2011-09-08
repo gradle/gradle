@@ -16,12 +16,12 @@
 package org.gradle.api;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.Contextual;
 import org.gradle.api.internal.MultiCauseException;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -118,22 +118,26 @@ public class LocationAwareException extends GradleException {
      */
     public List<Throwable> getReportableCauses() {
         List<Throwable> causes = new ArrayList<Throwable>();
-        LinkedList<Throwable> queue = new LinkedList<Throwable>();
-        addCauses(target, queue);
-        while (!queue.isEmpty()) {
-            Throwable t = queue.removeFirst();
-            causes.add(t);
-            addCauses(t, queue);
-        }
+        addCauses(target, causes);
         return causes;
     }
 
-    private void addCauses(Throwable t, Collection<Throwable> causes) {
+    private void addCauses(Throwable t, Collection<Throwable> dest) {
         if (t instanceof MultiCauseException) {
             MultiCauseException multiCauseException = (MultiCauseException) t;
-            causes.addAll(multiCauseException.getCauses());
+            List<? extends Throwable> causes = multiCauseException.getCauses();
+            for (Throwable cause : causes) {
+                dest.add(cause);
+                if (cause.getClass().getAnnotation(Contextual.class) !=null) {
+                    addCauses(cause, dest);
+                }
+            }
         } else if (t.getCause() != null) {
-            causes.add(t.getCause());
+            Throwable cause = t.getCause();
+            dest.add(cause);
+            if (cause.getClass().getAnnotation(Contextual.class) != null) {
+                addCauses(cause, dest);
+            }
         }
     }
 }
