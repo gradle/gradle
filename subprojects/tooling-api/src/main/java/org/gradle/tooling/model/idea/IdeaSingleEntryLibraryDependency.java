@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.tooling.model.ExternalDependency;
+
 import java.io.File;
 
 /**
@@ -23,7 +25,7 @@ import java.io.File;
  *
  * @since 1.0-rc-1
  */
-public interface IdeaSingleEntryLibraryDependency extends IdeaDependency {
+public interface IdeaSingleEntryLibraryDependency extends IdeaDependency, ExternalDependency {
     /**
      * Returns the file for this dependency.
      *
