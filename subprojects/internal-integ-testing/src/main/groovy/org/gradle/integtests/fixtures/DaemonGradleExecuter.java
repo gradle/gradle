@@ -39,20 +39,20 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     public static void registerDaemon(final File userHomeDir) {
-        assert userHomeDir != null;
-        if (!DAEMONS.add(userHomeDir)) {
-            return;
-        }
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            public void run() {
+//        assert userHomeDir != null;
+//        if (!DAEMONS.add(userHomeDir)) {
+//            return;
+//        }
+//        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+//            public void run() {
 //                ExecHandleBuilder builder = new ExecHandleBuilder();
 //                builder.workingDir(new File(".").getAbsolutePath());
 //                builder.executable(Jvm.current().getJpsExecutable());
 //                builder.args("-lm");
 //                builder.setStandardOutput(new ByteArrayOutputStream());
 //                builder.build().start().waitForFinish();
-            }
-        }));
+//            }
+//        }));
     }
 
     @Override
