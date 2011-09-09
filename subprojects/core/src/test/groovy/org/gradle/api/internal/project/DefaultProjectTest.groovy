@@ -56,6 +56,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.internal.Factory
 import org.gradle.api.*
 import org.gradle.api.internal.*
 import static org.hamcrest.Matchers.*
