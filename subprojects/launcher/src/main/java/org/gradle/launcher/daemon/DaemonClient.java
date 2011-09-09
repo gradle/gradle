@@ -67,7 +67,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
         //iterate and stop all daemons
         while (connection != null) {
-            run(new Stop(clientMetaData), connection);
+            runStop(new Stop(clientMetaData), connection);
             LOGGER.lifecycle("Gradle daemon stopped.");
             connection = connector.maybeConnect();
         }
@@ -85,7 +85,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         while(true) {
             Connection<Object> connection = connector.connect();
             try {
-                Result result = (Result) run(new Build(action, parameters), connection);
+                Result result = (Result) runBuild(new Build(action, parameters), connection);
                 return (T) result.getResult();
             } catch (BusyException e) {
                 //ignore. We'll continue looping until we get a connection that is able handle a build request.
@@ -93,17 +93,25 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         }
     }
 
-    private CommandComplete run(Command command, Connection<Object> connection) {
+    private void runStop(Stop stop, Connection<Object> connection) {
+        try {
+            connection.dispatch(stop);
+            try {
+                connection.receive();
+            } catch (Exception e) {
+                LOGGER.info("After sending stop command to the daemon we couldn't receive a message. The daemon is already stopped.");
+            }
+        } finally {
+            connection.stop();
+        }
+    }
+
+    private CommandComplete runBuild(Build build, Connection<Object> connection) {
         try {
             //TODO SF - this may fail. We should handle it and have tests for that. It means the server is gone.
-            connection.dispatch(command);
+            connection.dispatch(build);
             while (true) {
-                Object object = null;
-                try {
-                    object = connection.receive();
-                } catch (Exception e) {
-                    LOGGER.warn("Client was unable to receive the message from daemon. Will retry...", e);
-                }
+                Object object = connection.receive();
                 if (object instanceof CommandComplete) {
                     CommandComplete commandComplete = (CommandComplete) object;
                     if (commandComplete.getFailure() != null) {
