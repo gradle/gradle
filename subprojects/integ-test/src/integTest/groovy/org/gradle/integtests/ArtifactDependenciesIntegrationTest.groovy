@@ -330,17 +330,16 @@ repositories {
 }
 configurations {
     reference
-    base
-    extended.extendsFrom base
-    extendedWithClassifier.extendsFrom base
+    excluded
+    extendedExcluded.extendsFrom excluded
+    excludedWithClassifier
 }
 dependencies {
     reference 'org.gradle.test:external1:1.0'
-    base 'org.gradle.test:external1:1.0', {
-        exclude module: 'one'
-    }
-    extended 'org.gradle.test:two:1.0'
-    extendedWithClassifier 'org.gradle.test:external1:1.0:classifier'
+    excluded 'org.gradle.test:external1:1.0', { exclude module: 'one' }
+    extendedExcluded 'org.gradle.test:two:1.0'
+    excludedWithClassifier 'org.gradle.test:external1:1.0', { exclude module: 'one' }
+    excludedWithClassifier 'org.gradle.test:external1:1.0:classifier', { exclude module: 'one' }
 }
 
 def checkDeps(config, expectedDependencies) {
@@ -349,9 +348,9 @@ def checkDeps(config, expectedDependencies) {
 
 task test << {
     checkDeps configurations.reference, ['external1-1.0.jar', 'one-1.0.jar']
-    checkDeps configurations.base, ['external1-1.0.jar']
-    checkDeps configurations.extended, ['external1-1.0.jar', 'two-1.0.jar']
-    checkDeps configurations.extendedWithClassifier, ['external1-1.0.jar', 'external1-1.0-classifier.jar']
+    checkDeps configurations.excluded, ['external1-1.0.jar']
+    checkDeps configurations.extendedExcluded, ['external1-1.0.jar', 'two-1.0.jar']
+    checkDeps configurations.excludedWithClassifier, ['external1-1.0.jar', 'external1-1.0-classifier.jar']
 }
 """
         inTestDirectory().withTasks('test').run()

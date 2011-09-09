@@ -97,9 +97,9 @@ class HelperUtil {
         }
     }
 
-    static DefaultExcludeRule getTestExcludeRule() {
+    static DefaultExcludeRule getTestExcludeRule(def module = 'module') {
         new DefaultExcludeRule(new ArtifactId(
-                new ModuleId('org', 'module'), PatternMatcher.ANY_EXPRESSION,
+                new ModuleId('org', module), PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION),
                 ExactPatternMatcher.INSTANCE, null)

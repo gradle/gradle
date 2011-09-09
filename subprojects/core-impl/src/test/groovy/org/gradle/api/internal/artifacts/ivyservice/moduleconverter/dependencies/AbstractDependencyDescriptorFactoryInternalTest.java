@@ -53,8 +53,8 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     protected static final String TEST_DEP_CONF = "depconf1";
     protected static final String TEST_OTHER_DEP_CONF = "depconf2";
 
-    private static final ExcludeRule TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule(WrapUtil.toMap("org", "testOrg"));
-    private static final org.apache.ivy.core.module.descriptor.ExcludeRule TEST_IVY_EXCLUDE_RULE = HelperUtil.getTestExcludeRule();
+    protected static final ExcludeRule TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule(WrapUtil.toMap("org", "testOrg"));
+    protected static final org.apache.ivy.core.module.descriptor.ExcludeRule TEST_IVY_EXCLUDE_RULE = HelperUtil.getTestExcludeRule("testOrg");
     protected ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
     protected final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
     private DefaultDependencyArtifact artifact = new DefaultDependencyArtifact("name", "type", null, null, null);
@@ -64,9 +64,13 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
 
     @Before
     public void setUp() {
+        expectExcludeRuleConversion(TEST_EXCLUDE_RULE, TEST_IVY_EXCLUDE_RULE);
+    }
+
+    protected void expectExcludeRuleConversion(final ExcludeRule excludeRule, final org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule) {
         context.checking(new Expectations() {{
-            allowing(excludeRuleConverterStub).createExcludeRule(TEST_CONF, TEST_EXCLUDE_RULE);
-            will(returnValue(TEST_IVY_EXCLUDE_RULE));
+            allowing(excludeRuleConverterStub).createExcludeRule(TEST_CONF, excludeRule);
+            will(returnValue(ivyExcludeRule));
         }});
     }
 
