@@ -17,11 +17,11 @@ package org.gradle.launcher.daemon
 
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.GradleLauncherAction
+import org.gradle.launcher.BuildActionParameters
 import org.gradle.launcher.protocol.Build
 import org.gradle.launcher.protocol.CommandComplete
 import org.gradle.launcher.protocol.Result
 import org.gradle.launcher.protocol.Stop
-import org.gradle.launcher.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification
@@ -61,22 +61,6 @@ class DaemonClientTest extends Specification {
 
         then:
         1 * connector.maybeConnect() >> null
-        0 * _._
-    }
-
-    def rethrowsFailureToStopDaemon() {
-        RuntimeException failure = new RuntimeException()
-
-        when:
-        client.stop()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
-        1 * connector.maybeConnect() >> connection
-        1 * connection.dispatch({it instanceof Stop})
-        1 * connection.receive() >> new CommandComplete(failure)
-        1 * connection.stop()
         0 * _._
     }
 
