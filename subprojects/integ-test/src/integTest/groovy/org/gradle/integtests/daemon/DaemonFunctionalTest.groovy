@@ -49,10 +49,16 @@ class DaemonFunctionalTest extends Specification {
     }
 
     def cleanup() {
-        cleanMe.each { it.stop() }
-        //daemon log will be printed only when the test fails
-        //because for some reason passing test's cleanup is called after the temp folder rule cleans up
-        printDaemonLog()
+        try {
+            cleanMe*.stop()
+            //although daemons have very short idle timeout we will still stop them
+            //this way the test has quicker rerunability but unfortunately will make every test break when there's a bug in stopping logic
+            new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+        } finally {
+            //daemon log will be printed only when the test fails
+            //because for some reason passing test's cleanup is called after the temp folder rule cleans up
+            printDaemonLog()
+        }
     }
 
     @Timeout(10) //healthy timeout just in case
@@ -176,7 +182,6 @@ class DaemonFunctionalTest extends Specification {
     @Timeout(10)
     def "stops busy daemon"() {
         prepare()
-        OutputEventListener listener = Mock()
 
         when:
         def c = connect()
@@ -200,7 +205,6 @@ class DaemonFunctionalTest extends Specification {
     @Timeout(10)
     def "stops all daemons"() {
         prepare()
-        OutputEventListener listener = Mock()
 
         when:
         def connection = connect()
