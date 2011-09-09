@@ -24,6 +24,7 @@ dependencies {
     compile libraries.commons_io
     compile libraries.slf4j_api, libraries.jaxen
     compile 'dom4j:dom4j:1.6.1@jar'
+    testCompile libraries.xmlunit
 }
 
 useTestFixtures()
