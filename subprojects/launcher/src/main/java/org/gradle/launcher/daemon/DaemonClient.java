@@ -19,8 +19,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.launcher.GradleLauncherActionExecuter;
 import org.gradle.launcher.BuildActionParameters;
+import org.gradle.launcher.GradleLauncherActionExecuter;
 import org.gradle.launcher.protocol.*;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
@@ -98,7 +98,12 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             //TODO SF - this may fail. We should handle it and have tests for that. It means the server is gone.
             connection.dispatch(command);
             while (true) {
-                Object object = connection.receive();
+                Object object = null;
+                try {
+                    object = connection.receive();
+                } catch (Exception e) {
+                    LOGGER.warn("Client was unable to receive the message from daemon. Will retry...", e);
+                }
                 if (object instanceof CommandComplete) {
                     CommandComplete commandComplete = (CommandComplete) object;
                     if (commandComplete.getFailure() != null) {
