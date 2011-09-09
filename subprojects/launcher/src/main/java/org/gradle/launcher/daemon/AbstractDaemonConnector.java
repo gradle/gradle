@@ -40,9 +40,16 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
     private static final Logger LOGGER = Logging.getLogger(AbstractDaemonConnector.class);
 
     private final T daemonRegistry;
+    private final long connectTimout;
+    public final static int DEFAULT_CONNECT_TIMEOUT = 30000;
 
     protected AbstractDaemonConnector(T daemonRegistry) {
+        this(daemonRegistry, DEFAULT_CONNECT_TIMEOUT);
+    }
+
+    protected AbstractDaemonConnector(T daemonRegistry, int connectTimout) {
         this.daemonRegistry = daemonRegistry;
+        this.connectTimout = connectTimout;
     }
 
     public Connection<Object> maybeConnect() {
@@ -75,7 +82,7 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
 
         LOGGER.info("Starting Gradle daemon");
         startDaemon();
-        Date expiry = new Date(System.currentTimeMillis() + 30000L);
+        Date expiry = new Date(System.currentTimeMillis() + connectTimout);
         do {
             connection = findConnection(daemonRegistry.getIdle());
             if (connection != null) {
