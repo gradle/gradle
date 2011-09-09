@@ -44,7 +44,7 @@ class DaemonFunctionalTest extends Specification {
     //cannot use setup() because temp folder will get the proper name
     def prepare() {
         //connector with short-lived daemons
-        connector = new ExternalDaemonConnector<PersistentDaemonRegistry>(temp.testDir, 10000, 3000)
+        connector = new ExternalDaemonConnector<PersistentDaemonRegistry>(temp.testDir, 10000, 5000)
         reg = connector.daemonRegistry
     }
 
@@ -59,7 +59,7 @@ class DaemonFunctionalTest extends Specification {
     def "daemons expire"() {
         when:
         prepare()
-        connector = new ExternalDaemonConnector(temp.testDir, 500, 3000) //0.5 sec expiry time
+        connector = new ExternalDaemonConnector(temp.testDir, 500, 5000) //0.5 sec expiry time
         def c = connect()
         c.dispatch(new Sleep(1000))
 
