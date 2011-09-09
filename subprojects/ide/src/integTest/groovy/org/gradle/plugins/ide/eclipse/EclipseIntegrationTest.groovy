@@ -92,7 +92,7 @@ apply plugin: "java"
 apply plugin: "eclipse"
 
 repositories {
-    mavenRepo urls: "${repoDir.toURI()}"
+    maven { url "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -200,7 +200,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    mavenRepo urls: "${repoDir.toURI()}"
+    maven { url "${repoDir.toURI()}" }
 }
 
 configurations {
@@ -226,7 +226,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    mavenRepo urls: "${repoDir.toURI()}"
+    maven { url "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -357,7 +357,7 @@ apply plugin: "java"
 apply plugin: "eclipse"
 
 repositories {
-	mavenRepo urls: "${repoDir.toURI()}"
+    maven { url "${repoDir.toURI()}" }
 }
 
 dependencies {

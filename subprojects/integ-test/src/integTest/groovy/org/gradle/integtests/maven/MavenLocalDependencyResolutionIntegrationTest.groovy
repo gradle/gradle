@@ -17,7 +17,6 @@ package org.gradle.integtests.maven
 
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 class MavenLocalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     public void "can resolve snapshots from local Maven repository"() {
@@ -32,7 +31,7 @@ class MavenLocalDependencyResolutionIntegrationTest extends AbstractIntegrationS
         and:
         buildFile << """
 configurations { compile }
-repositories { mavenRepo urls: "${TextUtil.escapeString(repo().rootDir.toURI())}" }
+repositories { maven { url "${repo().rootDir.toURI()}" } }
 dependencies { compile 'group:projectA:1.2-SNAPSHOT' }
 task retrieve(type: Sync) {
     from configurations.compile
@@ -71,7 +70,7 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 configurations { compile }
-repositories { mavenRepo urls: "${TextUtil.escapeString(repo().rootDir.toURI())}" }
+repositories { maven { url "${repo().rootDir.toURI()}" } }
 dependencies { compile 'group:projectA:1.2' }
 task retrieve(type: Sync) {
     from configurations.compile

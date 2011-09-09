@@ -23,13 +23,21 @@ repositories {
 
 //START SNIPPET maven-like-repo
 repositories {
-    mavenRepo urls: "http://repo.mycompany.com/maven2"
+    maven {
+        url "http://repo.mycompany.com/maven2"
+    }
 }
 //END SNIPPET maven-like-repo
 
 //START SNIPPET maven-like-repo-with-jar-repo
 repositories {
-    mavenRepo urls: ["http://repo2.mycompany.com/maven2", "http://repo.mycompany.com/jars"]
+    maven {
+        // Look for POMs and artifacts, such as JARs, here
+        url "http://repo2.mycompany.com/maven2"
+        // Look for artifacts here if not found at the above location
+        artifactUrls "http://repo.mycompany.com/jars"
+        artifactUrls "http://repo.mycompany.com/jars2"
+    }
 }
 //END SNIPPET maven-like-repo-with-jar-repo
 

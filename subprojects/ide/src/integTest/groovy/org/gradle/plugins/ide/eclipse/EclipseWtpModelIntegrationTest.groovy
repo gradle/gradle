@@ -53,7 +53,7 @@ configurations {
 }
 
 repositories {
-  mavenRepo urls: "${repoDir.toURI()}"
+  maven { url "${repoDir.toURI()}" }
 }
 
 dependencies {

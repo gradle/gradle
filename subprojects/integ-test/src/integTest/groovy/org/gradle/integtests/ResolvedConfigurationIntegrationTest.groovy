@@ -36,7 +36,7 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
         project.allprojects { apply plugin: 'java' }
 
         project.repositories {
-            mavenRepo urls: repo.toURI()
+            maven { url repo }
         }
     }
 
@@ -76,7 +76,7 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
         project.allprojects { apply plugin: 'java' }
 
         project.repositories {
-            mavenRepo urls: repo.toURI()
+            maven { url repo }
         }
 
         project.configurations {

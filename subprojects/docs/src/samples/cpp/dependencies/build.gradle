@@ -34,7 +34,9 @@ project(":exe") {
     version = 1.0
     
     repositories {
-        mavenRepo urls: new File(project(":lib").buildDir, "repo").toURI()
+        maven {
+            url new File(project(":lib").buildDir, "repo")
+        }
     }
 
 // START SNIPPET declaring-dependencies

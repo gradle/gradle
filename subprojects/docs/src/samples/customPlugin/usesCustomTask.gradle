@@ -1,7 +1,9 @@
 // START SNIPPET use-task
 buildscript {
     repositories {
-        mavenRepo urls: uri('repo')
+        maven {
+            url 'repo'
+        }
     }
     dependencies {
         classpath group: 'org.gradle', name: 'customPlugin', version: '1.0-SNAPSHOT'

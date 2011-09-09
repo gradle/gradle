@@ -86,7 +86,7 @@ subprojects {
 }
 project(':a') {
     repositories {
-        mavenRepo urls: '${repo().rootDir.toURI()}'
+        maven { url '${repo().rootDir.toURI()}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -122,7 +122,7 @@ subprojects {
 }
 project(':a') {
     repositories {
-        mavenRepo urls: '${repo1.rootDir.toURI()}'
+        maven { url '${repo1.rootDir.toURI()}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -130,7 +130,7 @@ project(':a') {
 }
 project(':b') {
     repositories {
-        mavenRepo urls: '${repo2.rootDir.toURI()}'
+        maven { url '${repo2.rootDir.toURI()}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -154,7 +154,7 @@ project(':b') {
         testFile('build.gradle') << """
 subprojects {
     repositories {
-        mavenRepo urls: '${repo.rootDir.toURI()}'
+        maven { url '${repo.rootDir.toURI()}' }
     }
     configurations {
         compile
@@ -193,7 +193,7 @@ project(':b') {
 
         testFile('build.gradle') << """
 repositories {
-    mavenRepo urls: '${repo.rootDir.toURI()}'
+    maven { url '${repo.rootDir.toURI()}' }
 }
 configurations {
     base
@@ -247,7 +247,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    mavenRepo urls: '${repo.rootDir.toURI()}'
+    maven { url '${repo.rootDir.toURI()}' }
 }
 configurations {
     base
@@ -288,7 +288,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    mavenRepo urls: '${repo.rootDir.toURI()}'
+    maven { url '${repo.rootDir.toURI()}' }
 }
 configurations {
     base
@@ -326,7 +326,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    mavenRepo urls: '${repo.rootDir.toURI()}'
+    maven { url '${repo.rootDir.toURI()}' }
 }
 configurations {
     reference
@@ -368,7 +368,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    mavenRepo urls: '${repo.rootDir.toURI()}'
+    maven { url '${repo.rootDir.toURI()}' }
 }
 configurations {
     a
@@ -500,7 +500,7 @@ task test << {
         testFile('build.gradle') << '''
 allprojects {
     apply plugin: 'java'
-    repositories { mavenRepo urls: rootProject.uri('repo') }
+    repositories { maven { url rootProject.uri('repo') } }
 }
 project(':a') {
     dependencies {

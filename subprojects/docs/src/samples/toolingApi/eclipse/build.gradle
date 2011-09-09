@@ -9,7 +9,9 @@ if (!hasProperty('toolingApiRepo')) {
 }
 
 repositories {
-    mavenRepo urls: toolingApiRepo
+    maven {
+        url toolingApiRepo
+    }
     mavenCentral()
 }
 
