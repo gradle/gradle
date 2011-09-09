@@ -15,21 +15,8 @@
  */
 package org.gradle.api.internal.classpath;
 
-/**
- * A registry of dynamically loadable modules.
- */
-public interface ModuleRegistry {
-    /**
-     * Locates an external module by name. An external module is one for which there is no meta-data available. Assumed to be packaged as a single jar file, and to have no runtime dependencies.
-     *
-     * @return the module. Does not return null.
-     */
-    Module getExternalModule(String name) throws UnknownModuleException;
-
-    /**
-     * Locates a module by name.
-     *
-     * @return the module. Does not return null.
-     */
-    Module getModule(String name) throws UnknownModuleException;
+public class UnknownModuleException extends RuntimeException {
+    public UnknownModuleException(String message) {
+        super(message);
+    }
 }

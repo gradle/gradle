@@ -129,7 +129,6 @@ class DefaultModuleRegistryTest extends Specification {
     def "extracts required modules from manifest"() {
         given:
         def properties = new Properties()
-        properties.runtime = ''
         properties.projects = 'gradle-module-2'
         resourcesDir.file("gradle-some-module-classpath.properties").withOutputStream { outstr -> properties.save(outstr, "header") }
 
@@ -144,7 +143,29 @@ class DefaultModuleRegistryTest extends Specification {
         module.requiredModules as List == [registry.getModule("gradle-module-2")]
     }
 
-    def "fails when classpath does not contain manifest"() {
+    def "builds transitive closure of required modules"() {
+        given:
+        def properties = new Properties()
+        properties.projects = 'gradle-module-2'
+        resourcesDir.file("gradle-some-module-classpath.properties").withOutputStream { outstr -> properties.save(outstr, "header") }
+
+        properties = new Properties()
+        properties.projects = 'gradle-module-3'
+        resourcesDir.file("gradle-module-2-classpath.properties").withOutputStream { outstr -> properties.save(outstr, "header") }
+
+        properties = new Properties()
+        properties.projects = ''
+        resourcesDir.file("gradle-module-3-classpath.properties").withOutputStream { outstr -> properties.save(outstr, "header") }
+
+        def cl = new URLClassLoader([resourcesDir].collect { it.toURI().toURL() } as URL[])
+        def registry = new DefaultModuleRegistry(cl, distDir)
+
+        expect:
+        def module = registry.getModule("gradle-some-module")
+        module.allRequiredModules as List == [module, registry.getModule("gradle-module-2"), registry.getModule("gradle-module-3")]
+    }
+
+    def "fails when classpath does not contain manifest resource"() {
         given:
         def cl = new URLClassLoader([] as URL[])
         def registry = new DefaultModuleRegistry(cl, null)
@@ -153,7 +174,7 @@ class DefaultModuleRegistryTest extends Specification {
         registry.getModule("gradle-some-module")
 
         then:
-        IllegalArgumentException e = thrown()
+        UnknownModuleException e = thrown()
         e.message == "Cannot locate classpath manifest for module 'gradle-some-module' in classpath."
     }
 
@@ -166,7 +187,7 @@ class DefaultModuleRegistryTest extends Specification {
         registry.getModule("gradle-other-module")
 
         then:
-        IllegalArgumentException e = thrown()
+        UnknownModuleException e = thrown()
         e.message == "Cannot locate JAR for module 'gradle-other-module' in distribution directory '$distDir'."
     }
 
@@ -190,6 +211,19 @@ class DefaultModuleRegistryTest extends Specification {
         def module = registry.getExternalModule("dep")
         module.implementationClasspath as List == [runtimeDep]
         module.runtimeClasspath.empty
+    }
+
+    def "fails when external module cannot be found"() {
+        given:
+        def cl = new URLClassLoader([] as URL[])
+        def registry = new DefaultModuleRegistry(cl, distDir)
+
+        when:
+        registry.getExternalModule("unknown")
+
+        then:
+        UnknownModuleException e = thrown()
+        e.message == "Cannot locate JAR for module 'unknown' in distribution directory '$distDir'."
     }
 
     def "ignores jars which have the same prefix as an external module"() {

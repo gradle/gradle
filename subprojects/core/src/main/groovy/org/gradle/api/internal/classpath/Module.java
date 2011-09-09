@@ -41,4 +41,9 @@ public interface Module {
      * Returns the modules required by this module.
      */
     Set<Module> getRequiredModules();
+
+    /**
+     * Returns the transitive closure of all modules required by this module, including the module itself.
+     */
+    Set<Module> getAllRequiredModules();
 }
