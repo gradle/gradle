@@ -50,7 +50,6 @@ class ClasspathManifest extends DefaultTask {
     @Input
     Properties getProperties() {
         def properties = new Properties()
-        properties.name = project.archivesBaseName
         properties.runtime = project.configurations.runtime.fileCollection { it instanceof ExternalModuleDependency }.collect {it.name}.join(',')
         properties.projects = project.configurations.runtime.allDependencies.withType(ProjectDependency).collect {it.dependencyProject.archivesBaseName}.join(',')
         return properties
@@ -58,6 +57,6 @@ class ClasspathManifest extends DefaultTask {
 
     @TaskAction
     def generate() {
-        manifestFile.withOutputStream { properties.save(it, 'classpath definitions') }
+        manifestFile.withOutputStream { properties.save(it, 'module definition') }
     }
 }

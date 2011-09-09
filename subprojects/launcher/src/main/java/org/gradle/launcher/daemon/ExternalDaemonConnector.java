@@ -15,8 +15,6 @@
  */
 package org.gradle.launcher.daemon;
 
-import org.gradle.api.internal.DefaultClassPathProvider;
-import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.util.GUtil;
@@ -24,6 +22,7 @@ import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +46,13 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentD
     }
 
     protected void startDaemon() {
-        Set<File> bootstrapClasspath = new DefaultClassPathRegistry(new DefaultClassPathProvider(new DefaultModuleRegistry())).getClassPathFiles("GRADLE_BOOTSTRAP");
+        DefaultModuleRegistry registry = new DefaultModuleRegistry();
+        Set<File> bootstrapClasspath = new LinkedHashSet<File>();
+        bootstrapClasspath.addAll(registry.getModule("gradle-launcher").getImplementationClasspath());
+        if (registry.getGradleHome() == null) {
+            // Running from the classpath - chuck in everything we can find
+            bootstrapClasspath.addAll(registry.getFullClasspath());
+        }
         if (bootstrapClasspath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }

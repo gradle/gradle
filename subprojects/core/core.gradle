@@ -60,6 +60,12 @@ dependencies {
     reports 'css3-pie:css3-pie:1.0beta3'
 }
 
+test {
+    jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
+}
+
+[compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
+
 task releasesResource(type: GenerateReleasesXml) {
     destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
 }
@@ -71,8 +77,24 @@ task reportResources(type: Copy) {
 }
 sourceSets.main.output.dir generatedResourcesDir, buildBy: reportResources
 
-[compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
+task pluginsManifest(type: PluginsManifest)
+sourceSets.main.output.dir generatedResourcesDir, buildBy: pluginsManifest
 
-test {
-    jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
+class PluginsManifest extends DefaultTask {
+    @OutputFile
+    File getPropertiesFile() {
+        return new File(project.generatedResourcesDir, "gradle-plugins.properties")
+    }
+
+    @Input
+    Properties getPluginProperties() {
+        def properties = new Properties()
+        properties.plugins = project.pluginProjects().collect { it.archivesBaseName }.join(',')
+        return properties
+    }
+
+    @TaskAction
+    def generate() {
+        propertiesFile.withOutputStream { pluginProperties.save(it, 'plugin definitions') }
+    }
 }

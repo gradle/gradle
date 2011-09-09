@@ -1,3 +1,6 @@
+/*
+ * Adds an 'integTest' source set, which contains the integration tests for the project.
+ */
 apply plugin: 'java'
 rootProject.apply plugin: IntegTestPlugin
 
