@@ -220,11 +220,7 @@ class DaemonFunctionalTest extends Specification {
         def connectionThree = connect()
 
         then:
-        poll {
-            assert reg.all.size() == 3
-            assert reg.busy.size() == 2
-            assert reg.idle.size() == 1
-        }
+        poll { assert reg.all.size() == 3 }
 
         when:
         new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
