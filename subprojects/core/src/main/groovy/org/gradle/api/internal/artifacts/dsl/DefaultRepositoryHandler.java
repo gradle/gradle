@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
@@ -54,32 +53,29 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(getResolverFactory().createFlatDirRepository(), configureClosure, "flatDir");
     }
 
-    public FileSystemResolver flatDir(Map<String, ?> args) {
+    public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         if (modifiedArgs.containsKey("dirs")) {
             modifiedArgs.put("dirs", toList(modifiedArgs.get("dirs")));
         }
-        FlatDirectoryArtifactRepository repository = addRepository(getResolverFactory().createFlatDirRepository(), modifiedArgs, "flatDir");
-        return toResolver(FileSystemResolver.class, repository);
+        return addRepository(getResolverFactory().createFlatDirRepository(), modifiedArgs, "flatDir");
     }
 
-    public DependencyResolver mavenCentral() {
+    public MavenArtifactRepository mavenCentral() {
         return mavenCentral(Collections.<String, Object>emptyMap());
     }
 
-    public DependencyResolver mavenCentral(Map<String, ?> args) {
+    public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         if (modifiedArgs.containsKey("urls")) {
             List<Object> urls = toList(modifiedArgs.remove("urls"));
             modifiedArgs.put("artifactUrls", urls);
         }
-        MavenArtifactRepository repository = addRepository(getResolverFactory().createMavenCentralRepository(), modifiedArgs, DEFAULT_MAVEN_CENTRAL_REPO_NAME);
-        return toResolver(DependencyResolver.class, repository);
+        return addRepository(getResolverFactory().createMavenCentralRepository(), modifiedArgs, DEFAULT_MAVEN_CENTRAL_REPO_NAME);
     }
 
-    public DependencyResolver mavenLocal() {
-        MavenArtifactRepository repository = addRepository(getResolverFactory().createMavenLocalRepository(), DEFAULT_MAVEN_LOCAL_REPO_NAME);
-        return toResolver(DependencyResolver.class, repository);
+    public MavenArtifactRepository mavenLocal() {
+        return addRepository(getResolverFactory().createMavenLocalRepository(), DEFAULT_MAVEN_LOCAL_REPO_NAME);
     }
 
     public DependencyResolver mavenRepo(Map<String, ?> args) {

@@ -49,7 +49,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
     }
 
     @Test public void testFlatDirWithClosure() {
-        def repository = context.mock(TestFlatDirectoryArtifactRepository)
+        def repository = context.mock(FlatDirectoryArtifactRepository)
 
         context.checking {
             one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
@@ -61,37 +61,33 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
     }
     
     @Test public void testFlatDirWithNameAndDirs() {
-        def repository = context.mock(TestFlatDirectoryArtifactRepository)
+        def repository = context.mock(FlatDirectoryArtifactRepository)
 
         context.checking {
             one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
             one(repository).setDirs(['a', 'b'])
             one(repository).setName('libs')
             allowing(repository).getName(); will(returnValue('libs'))
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.flatDir([name: 'libs'] + [dirs: ['a', 'b']]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.getResolvers())
+        assert repositoryHandler.flatDir([name: 'libs'] + [dirs: ['a', 'b']]).is(repository)
     }
 
     @Test public void testFlatDirWithNameAndSingleDir() {
-        def repository = context.mock(TestFlatDirectoryArtifactRepository)
+        def repository = context.mock(FlatDirectoryArtifactRepository)
 
         context.checking {
             one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
             one(repository).setDirs(['a'])
             one(repository).setName('libs')
             allowing(repository).getName(); will(returnValue('libs'))
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.flatDir([name: 'libs'] + [dirs: 'a']).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.getResolvers())
+        assert repositoryHandler.flatDir([name: 'libs'] + [dirs: 'a']).is(repository)
     }
 
     @Test public void testFlatDirWithoutNameAndWithDirs() {
-        def repository = context.mock(TestFlatDirectoryArtifactRepository)
+        def repository = context.mock(FlatDirectoryArtifactRepository)
 
         context.checking {
             one(resolverFactoryMock).createFlatDirRepository(); will(returnValue(repository))
@@ -99,16 +95,14 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             one(repository).getName(); will(returnValue(null))
             one(repository).setName('flatDir')
             allowing(repository).getName(); will(returnValue('flatDir'))
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.flatDir([dirs: ['a', 12]]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.getResolvers())
+        assert repositoryHandler.flatDir([dirs: ['a', 12]]).is(repository)
     }
 
     @Test
     public void testMavenCentralWithNoArgs() {
-        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+        MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
 
         context.checking {
             one(resolverFactoryMock).createMavenCentralRepository()
@@ -118,18 +112,16 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
             allowing(repository).getName()
             will(returnValue(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME))
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.mavenCentral().is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        assert repositoryHandler.mavenCentral().is(repository)
     }
 
     @Test
     public void testMavenCentralWithSingleUrl() {
         String testUrl2 = 'http://www.gradle2.org'
 
-        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+        MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
 
         context.checking {
             one(resolverFactoryMock).createMavenCentralRepository()
@@ -140,11 +132,9 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             allowing(repository).getName()
             will(returnValue(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME))
             one(repository).setArtifactUrls([testUrl2])
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.mavenCentral(urls: testUrl2).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        assert repositoryHandler.mavenCentral(urls: testUrl2).is(repository)
     }
 
     @Test
@@ -153,7 +143,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         String testUrl2 = 'http://www.gradle2.org'
         String name = 'customName'
 
-        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+        MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
 
         context.checking {
             one(resolverFactoryMock).createMavenCentralRepository()
@@ -162,16 +152,14 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             allowing(repository).getName()
             will(returnValue('customName'))
             one(repository).setArtifactUrls([testUrl1, testUrl2])
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.mavenCentral(name: name, urls: [testUrl1, testUrl2]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        assert repositoryHandler.mavenCentral(name: name, urls: [testUrl1, testUrl2]).is(repository)
     }
 
     @Test
     public void testMavenLocalWithNoArgs() {
-        TestMavenArtifactRepository repository = context.mock(TestMavenArtifactRepository)
+        MavenArtifactRepository repository = context.mock(MavenArtifactRepository)
 
         context.checking {
             one(resolverFactoryMock).createMavenLocalRepository()
@@ -181,11 +169,9 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             one(repository).setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME)
             allowing(repository).getName()
             will(returnValue(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME))
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.mavenLocal() == expectedResolver
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        assert repositoryHandler.mavenLocal() == repository
     }
 
     @Test
