@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy;
+package org.gradle.api.publication.maven.internal;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.ObjectUtils;
@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPom;
 
 import java.io.File;
 import java.util.*;

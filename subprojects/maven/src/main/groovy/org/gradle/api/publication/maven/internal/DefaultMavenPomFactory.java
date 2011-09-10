@@ -19,8 +19,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
-import org.gradle.api.internal.artifacts.publish.maven.PomDependenciesConverter;
 import org.gradle.api.internal.file.FileResolver;
 
 /**

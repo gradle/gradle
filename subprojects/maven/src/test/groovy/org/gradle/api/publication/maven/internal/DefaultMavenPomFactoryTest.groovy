@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 
-import org.gradle.api.internal.artifacts.publish.maven.PomDependenciesConverter
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom
-
 /**
  * @author Hans Dockter
  */

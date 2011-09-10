@@ -17,7 +17,7 @@ package org.gradle.api.publication.maven.internal.ant;
 
 import org.apache.maven.model.Exclusion;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.internal.artifacts.publish.maven.ExcludeRuleConverter;
+import org.gradle.api.publication.maven.internal.ExcludeRuleConverter;
 
 
 /**

@@ -16,9 +16,6 @@
 package org.gradle.api.publication.maven.internal;
 
 import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPom;
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomFactory;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPom;
 
 /**
  * @author Hans Dockter

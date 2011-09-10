@@ -18,10 +18,9 @@ package org.gradle.api.publication.maven.internal.ant
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.PomFilterContainer
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomContainer
+import org.gradle.api.publication.maven.internal.ArtifactPomContainer
 
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.RepositoryBuilder
 
 /**
  * @author Hans Dockter

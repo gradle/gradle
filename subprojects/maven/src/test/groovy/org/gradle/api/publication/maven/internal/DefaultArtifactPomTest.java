@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy;
+package org.gradle.api.publication.maven.internal;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
@@ -24,8 +24,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
-import org.gradle.api.internal.artifacts.publish.maven.PomDependenciesConverter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;

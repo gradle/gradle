@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven;
+package org.gradle.api.publication.maven.internal;
 
 import groovy.lang.Closure;
 import org.apache.commons.io.IOUtils;
@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.XmlTransformer;
-import org.gradle.api.internal.artifacts.publish.maven.pombuilder.CustomModelBuilder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.listener.ActionBroadcast;
 

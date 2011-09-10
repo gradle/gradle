@@ -19,8 +19,7 @@ dependencies {
     compile project(':core')
     compile "org.bouncycastle:bcpg-jdk15:1.45"
     compile project(":plugins")
-    
-    testRuntime project(":maven")
+    compile project(":maven")
 }
 
 useTestFixtures()

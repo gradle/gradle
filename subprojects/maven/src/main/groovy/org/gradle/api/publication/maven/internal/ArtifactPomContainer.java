@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven;
+package org.gradle.api.publication.maven.internal;
 
-import org.gradle.api.artifacts.maven.MavenPom;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.maven.MavenDeployment;
+
+import java.io.File;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public interface ArtifactPomFactory {
-    ArtifactPom createArtifactPom(MavenPom pom);
+public interface ArtifactPomContainer {
+    void addArtifact(Artifact artifact, File src);
+
+    Set<MavenDeployment> createDeployableFilesInfos();
 }

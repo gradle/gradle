@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
+package org.gradle.api.publication.maven.internal.ant
 
 import java.lang.reflect.Proxy
 import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.artifacts.maven.PublishFilter
-import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer
-import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainerTest
+import org.gradle.api.publication.maven.internal.BasePomFilterContainer
+import org.gradle.api.publication.maven.internal.BasePomFilterContainerTest
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.hamcrest.Factory

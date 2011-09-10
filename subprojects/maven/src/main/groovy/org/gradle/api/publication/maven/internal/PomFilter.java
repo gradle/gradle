@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy;
+package org.gradle.api.publication.maven.internal;
 
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PublishFilter;
@@ -21,36 +21,14 @@ import org.gradle.api.artifacts.maven.PublishFilter;
 /**
  * @author Hans Dockter
  */
-public class DefaultPomFilter implements PomFilter {
-    private String name;
+public interface PomFilter {
+    String getName();
 
-    private MavenPom pom;
+    PublishFilter getFilter();
 
-    private PublishFilter filter;
+    void setFilter(PublishFilter filter);
 
-    public DefaultPomFilter(String name, MavenPom pom, PublishFilter filter) {
-        this.name = name;
-        this.pom = pom;
-        this.filter = filter;
-    }
+    MavenPom getPomTemplate();
 
-    public String getName() {
-        return name;
-    }
-
-    public MavenPom getPomTemplate() {
-        return pom;
-    }
-
-    public void setPomTemplate(MavenPom pom) {
-        this.pom = pom;
-    }
-
-    public PublishFilter getFilter() {
-        return filter;
-    }
-
-    public void setFilter(PublishFilter filter) {
-        this.filter = filter;
-    }
+    void setPomTemplate(MavenPom pom);
 }

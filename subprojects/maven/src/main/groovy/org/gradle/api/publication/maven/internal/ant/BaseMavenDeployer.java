@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomContainer;
+import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;

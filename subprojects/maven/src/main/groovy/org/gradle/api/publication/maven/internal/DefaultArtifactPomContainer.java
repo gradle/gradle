@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy;
+package org.gradle.api.publication.maven.internal;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPom;
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomContainer;
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomFactory;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 
 import java.io.File;

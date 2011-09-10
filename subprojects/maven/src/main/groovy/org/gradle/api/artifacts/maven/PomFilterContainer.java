@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.PomFilter;
+import org.gradle.api.publication.maven.internal.PomFilter;
 
 /**
  * Manages a set of {@link MavenPom} instances and their associated {@link PublishFilter} instances.

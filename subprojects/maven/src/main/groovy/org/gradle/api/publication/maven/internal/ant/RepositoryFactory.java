@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy.groovy;
+package org.gradle.api.publication.maven.internal.ant;
 
 import groovy.swing.factory.BeanFactory;
 import groovy.util.FactoryBuilderSupport;

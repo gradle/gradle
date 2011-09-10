@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy
+package org.gradle.api.publication.maven.internal
 
 import spock.lang.Specification
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider
@@ -22,8 +22,6 @@ import org.apache.ivy.core.module.descriptor.Artifact
 import org.gradle.api.artifacts.maven.PublishFilter
 import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomFactory
-import org.gradle.api.internal.artifacts.publish.maven.ArtifactPom
 
 class DefaultArtifactPomContainerTest extends Specification {
     final MavenPomMetaInfoProvider pomMetaInfoProvider = Mock()
