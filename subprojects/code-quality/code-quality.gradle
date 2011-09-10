@@ -14,23 +14,32 @@
  * limitations under the License.
  */
 dependencies {
-    groovy libraries.groovy_depends
+    groovy libraries.groovy
 
     compile project(':core')
     compile project(':plugins')
 
-    compile "org.codenarc:CodeNarc:0.13@jar"
     compile libraries.slf4j_api
+    compile module("org.codenarc:CodeNarc:0.15") {
+        dependency libraries.log4j_to_slf4j
+        dependency libraries.groovy
+        dependency libraries.ant
+        module("org.gmetrics:GMetrics:0.3") {
+            dependency libraries.log4j_to_slf4j
+            dependency libraries.groovy
+            dependency libraries.ant
+        }
+    }
 
-    // CodeNarc dependencies
-    runtime libraries.log4j_to_slf4j,
-            "org.gmetrics:GMetrics:0.3@jar"
-
-    // Checkstyle dependencies
-    runtime "com.puppycrawl.tools:checkstyle:5.3@jar",
-            libraries.guava,
-            libraries.antlr,
-            "commons-beanutils:commons-beanutils-core:1.8.3@jar"
+    runtime module("com.puppycrawl.tools:checkstyle:5.4") {
+        dependency libraries.antlr
+        dependency libraries.commons_cli
+        dependency libraries.guava
+        dependency libraries.ant
+        module("commons-beanutils:commons-beanutils-core:1.8.3") {
+            dependency libraries.jcl_to_slf4j
+        }
+    }
 }
 
 useTestFixtures()

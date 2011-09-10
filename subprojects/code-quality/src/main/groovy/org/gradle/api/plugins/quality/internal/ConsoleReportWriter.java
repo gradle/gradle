@@ -39,14 +39,12 @@ public class ConsoleReportWriter implements ReportWriter {
             return;
         }
 
-        for (int priority = 1; priority <= 3; priority++) {
-            for (Object o : results.getViolationsWithPriority(priority)) {
-                Violation v = (Violation) o;
-                Formatter formatter = new Formatter();
-                formatter.format("%s:%s%n", results.getPath(), v.getLineNumber());
-                formatter.format("%s: %s", v.getRule().getName(), v.getMessage());
-                LOGGER.error(formatter.toString());
-            }
+        for (Object o : results.getViolations()) {
+            Violation v = (Violation) o;
+            Formatter formatter = new Formatter();
+            formatter.format("%s:%s%n", results.getPath(), v.getLineNumber());
+            formatter.format("%s: %s", v.getRule().getName(), v.getMessage());
+            LOGGER.error(formatter.toString());
         }
     }
 

@@ -50,7 +50,7 @@ class ClasspathManifest extends DefaultTask {
     @Input
     Properties getProperties() {
         def properties = new Properties()
-        properties.runtime = project.configurations.runtime.fileCollection { it instanceof ExternalModuleDependency }.collect {it.name}.join(',')
+        properties.runtime = project.configurations.runtime.fileCollection { it instanceof ExternalDependency }.collect {it.name}.join(',')
         properties.projects = project.configurations.runtime.allDependencies.withType(ProjectDependency).collect {it.dependencyProject.archivesBaseName}.join(',')
         return properties
     }
