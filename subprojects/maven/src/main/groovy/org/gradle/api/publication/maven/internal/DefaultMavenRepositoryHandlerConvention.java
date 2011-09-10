@@ -16,58 +16,66 @@
 package org.gradle.api.publication.maven.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention;
 
 import java.util.Map;
 
 public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryHandlerConvention {
     private final DefaultRepositoryHandler container;
+    private final MavenPomMetaInfoProvider mavenPomMetaInfoProvider;
+    private final Conf2ScopeMappingContainer scopeMappingContainer;
+    private final ConfigurationContainer configurationContainer;
 
-    public DefaultMavenRepositoryHandlerConvention(DefaultRepositoryHandler container) {
+    public DefaultMavenRepositoryHandlerConvention(DefaultRepositoryHandler container, MavenPomMetaInfoProvider mavenPomMetaInfoProvider, Conf2ScopeMappingContainer scopeMappingContainer, ConfigurationContainer configurationContainer) {
         this.container = container;
+        this.mavenPomMetaInfoProvider = mavenPomMetaInfoProvider;
+        this.scopeMappingContainer = scopeMappingContainer;
+        this.configurationContainer = configurationContainer;
     }
 
     public GroovyMavenDeployer mavenDeployer() {
-        return container.addRepository(createMavenDeployer(), RepositoryHandler.DEFAULT_MAVEN_DEPLOYER_NAME);
+        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME);
     }
 
     public GroovyMavenDeployer mavenDeployer(Closure configureClosure) {
-        return container.addRepository(createMavenDeployer(), configureClosure, RepositoryHandler.DEFAULT_MAVEN_DEPLOYER_NAME);
+        return container.addRepository(createMavenDeployer(), configureClosure, DEFAULT_MAVEN_DEPLOYER_NAME);
     }
 
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args) {
-        return container.addRepository(createMavenDeployer(), args, RepositoryHandler.DEFAULT_MAVEN_DEPLOYER_NAME);
+        return container.addRepository(createMavenDeployer(), args, DEFAULT_MAVEN_DEPLOYER_NAME);
     }
 
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Closure configureClosure) {
-        return container.addRepository(createMavenDeployer(), args, configureClosure, RepositoryHandler.DEFAULT_MAVEN_DEPLOYER_NAME);
+        return container.addRepository(createMavenDeployer(), args, configureClosure, DEFAULT_MAVEN_DEPLOYER_NAME);
     }
 
     private GroovyMavenDeployer createMavenDeployer() {
-        return container.getResolverFactory().createMavenDeployer(container, container.getConfigurationContainer(), container.getMavenScopeMappings(), container.getFileResolver());
+        return container.getResolverFactory().createMavenDeployer(mavenPomMetaInfoProvider, configurationContainer, scopeMappingContainer);
     }
 
     public MavenResolver mavenInstaller() {
-        return container.addRepository(createMavenInstaller(), RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME);
+        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME);
     }
 
     public MavenResolver mavenInstaller(Closure configureClosure) {
-        return container.addRepository(createMavenInstaller(), configureClosure, RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME);
+        return container.addRepository(createMavenInstaller(), configureClosure, DEFAULT_MAVEN_INSTALLER_NAME);
     }
 
     public MavenResolver mavenInstaller(Map<String, ?> args) {
-        return container.addRepository(createMavenInstaller(), args, RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME);
+        return container.addRepository(createMavenInstaller(), args, DEFAULT_MAVEN_INSTALLER_NAME);
     }
 
     public MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure) {
-        return container.addRepository(createMavenInstaller(), args, configureClosure, RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME);
+        return container.addRepository(createMavenInstaller(), args, configureClosure, DEFAULT_MAVEN_INSTALLER_NAME);
     }
 
     private MavenResolver createMavenInstaller() {
-        return container.getResolverFactory().createMavenInstaller(container, container.getConfigurationContainer(), container.getMavenScopeMappings(), container.getFileResolver());
+        return container.getResolverFactory().createMavenInstaller(mavenPomMetaInfoProvider, configurationContainer, scopeMappingContainer);
     }
 }

@@ -41,7 +41,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
     private DefaultRepositoryHandler repositoryHandler
 
     public ArtifactRepositoryContainer createResolverContainer() {
-        repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock, fileResolver, new DirectInstantiator());
+        repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock, new DirectInstantiator());
         return repositoryHandler;
     }
 

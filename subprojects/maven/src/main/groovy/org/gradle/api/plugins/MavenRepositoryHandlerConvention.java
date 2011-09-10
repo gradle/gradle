@@ -26,6 +26,9 @@ import java.util.Map;
  * task of type {@link org.gradle.api.tasks.Upload}.
  */
 public interface MavenRepositoryHandlerConvention {
+    String DEFAULT_MAVEN_DEPLOYER_NAME = "mavenDeployer";
+    String DEFAULT_MAVEN_INSTALLER_NAME = "mavenInstaller";
+
     GroovyMavenDeployer mavenDeployer();
 
     GroovyMavenDeployer mavenDeployer(Closure configureClosure);

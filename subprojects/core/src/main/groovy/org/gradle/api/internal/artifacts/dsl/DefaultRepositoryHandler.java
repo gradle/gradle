@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.api.internal.artifacts.ResolverFactory;
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -38,9 +38,9 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler {
-    public DefaultRepositoryHandler(ResolverFactory resolverFactory, FileResolver fileResolver, Instantiator instantiator) {
-        super(resolverFactory, fileResolver, instantiator);
+public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler, ResolverProvider {
+    public DefaultRepositoryHandler(ResolverFactory resolverFactory, Instantiator instantiator) {
+        super(resolverFactory, instantiator);
     }
 
     public FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action) {

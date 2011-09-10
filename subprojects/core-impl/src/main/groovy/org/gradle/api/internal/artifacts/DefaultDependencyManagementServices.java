@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.MavenFactory;
-import org.gradle.api.internal.*;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -152,16 +154,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             this.domainObjectContext = domainObjectContext;
         }
 
-        public RepositoryHandler getResolveRepositoryHandler() {
+        public DefaultRepositoryHandler getResolveRepositoryHandler() {
             if (repositoryHandler == null) {
                 repositoryHandler = createRepositoryHandler();
-                initialiseRepositoryHandler(repositoryHandler);
             }
-            return repositoryHandler;
-        }
-
-        private DefaultRepositoryHandler initialiseRepositoryHandler(DefaultRepositoryHandler repositoryHandler) {
-            repositoryHandler.setConfigurationContainer(getConfigurationContainer());
             return repositoryHandler;
         }
 
@@ -173,7 +169,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     new DefaultLocalMavenCacheLocator(),
                     fileResolver,
                     instantiator);
-            return instantiator.newInstance(DefaultRepositoryHandler.class, resolverFactory, fileResolver, instantiator);
+            return instantiator.newInstance(DefaultRepositoryHandler.class, resolverFactory, instantiator);
         }
 
         public ConfigurationContainerInternal getConfigurationContainer() {
@@ -200,7 +196,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             };
         }
 
-        IvyService createIvyService(RepositoryHandler resolverProvider) {
+        IvyService createIvyService(DefaultRepositoryHandler resolverProvider) {
             DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
             PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
                     createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
@@ -224,18 +220,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                             new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()),
                                             internalRepository, clientModuleRegistry))));
         }
-
-        RepositoryHandler createRepositoryHandlerWithSharedConventionMapping() {
-            IConventionAware prototype = (IConventionAware) getResolveRepositoryHandler();
-            RepositoryHandler handler = initialiseRepositoryHandler(createRepositoryHandler());
-            ((IConventionAware)handler).setConventionMapping(prototype.getConventionMapping());
-            return handler;
-        }
     }
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
         private final DefaultDependencyResolutionServices dependencyResolutionServices;
-        private RepositoryHandler repositoryHandler;
+        private DefaultRepositoryHandler repositoryHandler;
         private IvyService ivyService;
 
         public DefaultArtifactPublicationServices(DefaultDependencyResolutionServices dependencyResolutionServices) {
@@ -249,9 +238,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return ivyService;
         }
 
-        public RepositoryHandler getRepositoryHandler() {
+        public DefaultRepositoryHandler getRepositoryHandler() {
             if (repositoryHandler == null) {
-                repositoryHandler = dependencyResolutionServices.createRepositoryHandlerWithSharedConventionMapping();
+                repositoryHandler = dependencyResolutionServices.createRepositoryHandler();
             }
             return repositoryHandler;
         }

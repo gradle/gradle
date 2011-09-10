@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
-import org.gradle.api.internal.file.FileResolver;
 
 /**
  * @author Hans Dockter
@@ -39,10 +38,10 @@ public interface ResolverFactory {
     MavenArtifactRepository createMavenCentralRepository();
 
     GroovyMavenDeployer createMavenDeployer(MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
-                                            Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);
+                                            Conf2ScopeMappingContainer scopeMapping);
 
     MavenResolver createMavenInstaller(MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer,
-                                       Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver);
+                                       Conf2ScopeMappingContainer scopeMapping);
 
     IvyArtifactRepository createIvyRepository();
 

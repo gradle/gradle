@@ -23,21 +23,16 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Namer;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.dsl.ArtifactRepository;
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,16 +41,8 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectList<ArtifactRepository>
-        implements ArtifactRepositoryContainer, MavenPomMetaInfoProvider {
+        implements ArtifactRepositoryContainer {
     private final ResolverFactory resolverFactory;
-
-    private File mavenPomDir;
-
-    private final FileResolver fileResolver;
-
-    private Conf2ScopeMappingContainer mavenScopeMappings;
-
-    private ConfigurationContainer configurationContainer;
 
     private final Action<ArtifactRepository> addLastAction = new Action<ArtifactRepository>() {
         public void execute(ArtifactRepository repository) {
@@ -68,10 +55,9 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         }
     };
 
-    public DefaultArtifactRepositoryContainer(ResolverFactory resolverFactory, FileResolver fileResolver, Instantiator instantiator) {
+    public DefaultArtifactRepositoryContainer(ResolverFactory resolverFactory, Instantiator instantiator) {
         super(ArtifactRepository.class, instantiator, new RepositoryNamer());
         this.resolverFactory = resolverFactory;
-        this.fileResolver = fileResolver;
     }
 
     private static class RepositoryNamer implements Namer<ArtifactRepository> {
@@ -88,7 +74,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     public DefaultArtifactRepositoryContainer configure(Closure closure) {
         return ConfigureUtil.configure(closure, this, false);
     }
-    
+
     public boolean add(DependencyResolver resolver, Closure configureClosure) {
         addInternal(resolver, configureClosure, addLastAction);
         return true;
@@ -193,34 +179,6 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
     public ResolverFactory getResolverFactory() {
         return resolverFactory;
-    }
-
-    public FileResolver getFileResolver() {
-        return fileResolver;
-    }
-
-    public ConfigurationContainer getConfigurationContainer() {
-        return configurationContainer;
-    }
-
-    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
-        this.configurationContainer = configurationContainer;
-    }
-
-    public Conf2ScopeMappingContainer getMavenScopeMappings() {
-        return mavenScopeMappings;
-    }
-
-    public void setMavenScopeMappings(Conf2ScopeMappingContainer mavenScopeMappings) {
-        this.mavenScopeMappings = mavenScopeMappings;
-    }
-
-    public File getMavenPomDir() {
-        return mavenPomDir;
-    }
-
-    public void setMavenPomDir(File mavenPomDir) {
-        this.mavenPomDir = mavenPomDir;
     }
 
     protected <T extends ArtifactRepository> T addRepository(T repository, Action<? super T> action, String defaultName) {

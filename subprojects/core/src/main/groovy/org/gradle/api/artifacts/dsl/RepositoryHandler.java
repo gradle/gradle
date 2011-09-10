@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 
 import java.util.Map;
 
@@ -28,9 +27,7 @@ import java.util.Map;
  *
  * @author Hans Dockter
  */
-public interface RepositoryHandler extends ArtifactRepositoryContainer, ResolverProvider {
-    final String DEFAULT_MAVEN_DEPLOYER_NAME = "mavenDeployer";
-    final String DEFAULT_MAVEN_INSTALLER_NAME = "mavenInstaller";
+public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a resolver that looks into a number of directories for artifacts. The artifacts are expected to be located in the

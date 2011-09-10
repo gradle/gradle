@@ -98,7 +98,7 @@ public class DefaultResolverFactory implements ResolverFactory {
 
     public GroovyMavenDeployer createMavenDeployer(MavenPomMetaInfoProvider pomMetaInfoProvider,
                                                    ConfigurationContainer configurationContainer,
-                                                   Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver) {
+                                                   Conf2ScopeMappingContainer scopeMapping) {
         PomFilterContainer pomFilterContainer = createPomFilterContainer(
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new DefaultGroovyMavenDeployer(pomFilterContainer, createArtifactPomContainer(
@@ -109,7 +109,7 @@ public class DefaultResolverFactory implements ResolverFactory {
 
     public MavenResolver createMavenInstaller(MavenPomMetaInfoProvider pomMetaInfoProvider,
                                               ConfigurationContainer configurationContainer,
-                                              Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver) {
+                                              Conf2ScopeMappingContainer scopeMapping) {
         PomFilterContainer pomFilterContainer = createPomFilterContainer(
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new BaseMavenInstaller(pomFilterContainer, createArtifactPomContainer(pomMetaInfoProvider,

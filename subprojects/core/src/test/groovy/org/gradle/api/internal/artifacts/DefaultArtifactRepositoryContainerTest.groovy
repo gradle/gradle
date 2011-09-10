@@ -21,13 +21,10 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.dsl.ArtifactRepository
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.hamcrest.Matchers
 import org.jmock.integration.junit4.JMock
@@ -60,13 +57,9 @@ class DefaultArtifactRepositoryContainerTest {
     ResolverFactory resolverFactoryMock;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    FileResolver fileResolver = context.mock(FileResolver.class)
-    File testPomDir = new File("pomdir");
-    ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
-    Conf2ScopeMappingContainer conf2ScopeMappingContainer = context.mock(Conf2ScopeMappingContainer.class)
 
     ArtifactRepositoryContainer createResolverContainer() {
-        return new DefaultArtifactRepositoryContainer(resolverFactoryMock, fileResolver, context.mock(Instantiator.class))
+        return new DefaultArtifactRepositoryContainer(resolverFactoryMock, context.mock(Instantiator.class))
     }
 
     @Before public void setUp() {
@@ -95,9 +88,6 @@ class DefaultArtifactRepositoryContainerTest {
             allowing(repo3).createResolvers(withParam(Matchers.notNullValue())); will { arg -> arg << expectedResolver3 }
         }
         resolverContainer = createResolverContainer()
-        resolverContainer.setMavenPomDir(testPomDir)
-        resolverContainer.setConfigurationContainer(configurationContainer)
-        resolverContainer.setMavenScopeMappings(conf2ScopeMappingContainer)
     }
 
     @Test public void testAddResolver() {

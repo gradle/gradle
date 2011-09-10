@@ -15,14 +15,15 @@
  */
 package org.gradle.api.publication.maven.internal
 
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.artifacts.ResolverFactory
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import spock.lang.Specification
+import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
+import spock.lang.Specification
 
 class DefaultMavenRepositoryHandlerConventionTest extends Specification {
     final DefaultRepositoryHandler container = Mock()
@@ -30,13 +31,11 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
     final ConfigurationContainer configurationContainer = Mock()
     final Conf2ScopeMappingContainer conf2ScopeMappingContainer = Mock()
     final ResolverFactory factory = Mock()
-    final DefaultMavenRepositoryHandlerConvention convention = new DefaultMavenRepositoryHandlerConvention(container)
+    final MavenPomMetaInfoProvider metaInfoProvider = Mock()
+    final DefaultMavenRepositoryHandlerConvention convention = new DefaultMavenRepositoryHandlerConvention(container, metaInfoProvider, conf2ScopeMappingContainer, configurationContainer)
 
     def setup() {
         _ * container.resolverFactory >> factory
-        _ * container.fileResolver >> fileResolver
-        _ * container.configurationContainer >> configurationContainer
-        _ * container.mavenScopeMappings >> conf2ScopeMappingContainer
     }
 
     public void mavenDeployerWithoutName() {
@@ -47,7 +46,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
 
         then:
         result == deployer
-        1 * factory.createMavenDeployer(container, configurationContainer, conf2ScopeMappingContainer, fileResolver) >> deployer
+        1 * factory.createMavenDeployer(metaInfoProvider, configurationContainer, conf2ScopeMappingContainer) >> deployer
         1 * container.addRepository(deployer, "mavenDeployer") >> deployer
     }
 
@@ -59,7 +58,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
 
         then:
         result == deployer
-        1 * factory.createMavenDeployer(container, configurationContainer, conf2ScopeMappingContainer, fileResolver) >> deployer
+        1 * factory.createMavenDeployer(metaInfoProvider, configurationContainer, conf2ScopeMappingContainer) >> deployer
         1 * container.addRepository(deployer, [name: 'someName'], "mavenDeployer") >> deployer
     }
 
@@ -74,7 +73,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
 
         then:
         result == deployer
-        1 * factory.createMavenDeployer(container, configurationContainer, conf2ScopeMappingContainer, fileResolver) >> deployer
+        1 * factory.createMavenDeployer(metaInfoProvider, configurationContainer, conf2ScopeMappingContainer) >> deployer
         1 * container.addRepository(deployer, [name: 'someName'], cl, "mavenDeployer") >> deployer
     }
 
@@ -89,7 +88,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
 
         then:
         result == deployer
-        1 * factory.createMavenDeployer(container, configurationContainer, conf2ScopeMappingContainer, fileResolver) >> deployer
+        1 * factory.createMavenDeployer(metaInfoProvider, configurationContainer, conf2ScopeMappingContainer) >> deployer
         1 * container.addRepository(deployer, cl, "mavenDeployer") >> deployer
     }
 
@@ -101,7 +100,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
 
         then:
         result == installer
-        1 * factory.createMavenInstaller(container, configurationContainer, conf2ScopeMappingContainer, fileResolver) >> installer
+        1 * factory.createMavenInstaller(metaInfoProvider, configurationContainer, conf2ScopeMappingContainer) >> installer
         1 * container.addRepository(installer, "mavenInstaller") >> installer
     }
 
@@ -113,7 +112,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
 
         then:
         result == installer
-        1 * factory.createMavenInstaller(container, configurationContainer, conf2ScopeMappingContainer, fileResolver) >> installer
+        1 * factory.createMavenInstaller(metaInfoProvider, configurationContainer, conf2ScopeMappingContainer) >> installer
         1 * container.addRepository(installer, [name: 'name'], "mavenInstaller") >> installer
     }
 
@@ -126,7 +125,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
 
         then:
         result == installer
-        1 * factory.createMavenInstaller(container, configurationContainer, conf2ScopeMappingContainer, fileResolver) >> installer
+        1 * factory.createMavenInstaller(metaInfoProvider, configurationContainer, conf2ScopeMappingContainer) >> installer
         1 * container.addRepository(installer, [name: 'name'], cl, "mavenInstaller") >> installer
     }
 
@@ -139,7 +138,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
 
         then:
         result == installer
-        1 * factory.createMavenInstaller(container, configurationContainer, conf2ScopeMappingContainer, fileResolver) >> installer
+        1 * factory.createMavenInstaller(metaInfoProvider, configurationContainer, conf2ScopeMappingContainer) >> installer
         1 * container.addRepository(installer, cl, "mavenInstaller") >> installer
     }
 
