@@ -32,7 +32,6 @@ class DefaultModuleRegistryTest extends Specification {
 
         distDir.createDir("lib")
         distDir.createDir("lib/plugins")
-        distDir.createDir("lib/core-impl")
         runtimeDep = distDir.createZip("lib/dep-1.2.jar")
 
         resourcesDir = tmpDir.createDir("classes")

@@ -97,6 +97,7 @@ class DistributionIntegrationTest {
         contentsDir.file('LICENSE').assertIsFile()
 
         // Libs
+        assertIsGradleJar(contentsDir.file("lib/gradle-cli-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-core-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-ui-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-launcher-${version}.jar"))
@@ -104,6 +105,7 @@ class DistributionIntegrationTest {
         assertIsGradleJar(contentsDir.file("lib/gradle-wrapper-${version}.jar"))
 
         // Plugins
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-core-impl-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-plugins-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ide-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-scala-${version}.jar"))
@@ -116,6 +118,7 @@ class DistributionIntegrationTest {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-signing-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-cpp-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ear-${version}.jar"))
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()
