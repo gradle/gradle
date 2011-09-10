@@ -15,7 +15,7 @@
  */
 
 dependencies {
-    groovy libraries.groovy_depends
+    groovy libraries.groovy
     compile project(':core')
     compile "org.bouncycastle:bcpg-jdk15:1.45"
     compile project(":plugins")

@@ -19,7 +19,7 @@ configurations {
 }
 
 dependencies {
-    groovy libraries.groovy_depends
+    groovy libraries.groovy
 
     compile project(':core'), project(':wrapper')
 

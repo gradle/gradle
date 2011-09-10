@@ -15,7 +15,7 @@
  */
 
 dependencies {
-    groovy libraries.groovy_depends
+    groovy libraries.groovy
 
     compile project(':core')
     compile project(':plugins')

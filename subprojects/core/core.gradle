@@ -21,7 +21,7 @@ configurations {
 }
 
 dependencies {
-    groovy libraries.groovy_depends
+    groovy libraries.groovy
 
     compile "commons-httpclient:commons-httpclient:3.0@jar", "commons-codec:commons-codec:1.2@jar", libraries.jcl_to_slf4j
 

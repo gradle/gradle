@@ -1,7 +1,7 @@
 apply plugin: "groovy"
 
 dependencies {
-    groovy libraries.groovy_depends
+    groovy libraries.groovy
 
     compile project(":core")
     compile libraries.guava
