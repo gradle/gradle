@@ -19,6 +19,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.Upload;
 import org.gradle.util.HelperUtil;
@@ -94,6 +95,20 @@ public class MavenPluginTest {
         Upload task = project.getTasks().withType(Upload.class).getByName(MavenPlugin.INSTALL_TASK_NAME);
         assertThat(task.getRepositories().getMavenPomDir(), equalTo(project.getRepositories().getMavenPomDir()));
         assertThat(task.getRepositories().getMavenScopeMappings(), sameInstance(project.getRepositories().getMavenScopeMappings()));
+    }
+
+    @org.junit.Test
+    public void addsConventionMappingToTheRepositoriesOfEachUploadTask() {
+        project.getPlugins().apply(JavaPlugin.class);
+        mavenPlugin.apply(project);
+
+        Upload task = project.getTasks().withType(Upload.class).getByName(MavenPlugin.INSTALL_TASK_NAME);
+        MavenRepositoryHandlerConvention convention = ((DynamicObjectAware) task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
+        assertThat(convention, notNullValue());
+
+        task = project.getTasks().add("customUpload", Upload.class);
+        convention = ((DynamicObjectAware) task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
+        assertThat(convention, notNullValue());
     }
 
     @org.junit.Test

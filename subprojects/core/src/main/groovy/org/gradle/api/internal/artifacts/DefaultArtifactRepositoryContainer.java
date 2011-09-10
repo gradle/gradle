@@ -228,8 +228,13 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         return addRepository(repository, defaultName);
     }
 
-    protected <T extends ArtifactRepository> T addRepository(T repository, Closure closure, String defaultName) {
+    public <T extends ArtifactRepository> T addRepository(T repository, Closure closure, String defaultName) {
         return addRepository(repository, closure, defaultName, addLastAction);
+    }
+
+    public <T extends ArtifactRepository> T addRepository(T repository, Map<String, ?> args, Closure closure, String defaultName) {
+        ConfigureUtil.configureByMap(args, repository);
+        return addRepository(repository, closure, defaultName);
     }
 
     protected <T extends ArtifactRepository> T addRepository(T repository, Closure closure, String defaultName, Action<ArtifactRepository> action) {
@@ -237,13 +242,13 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         return addRepository(repository, defaultName, action);
     }
 
-    protected <T extends ArtifactRepository> T addRepository(T repository, Map<String, ?> args, String defaultName) {
+    public <T extends ArtifactRepository> T addRepository(T repository, Map<String, ?> args, String defaultName) {
         ConfigureUtil.configureByMap(args, repository);
         addRepository(repository, defaultName);
         return repository;
     }
 
-    protected <T extends ArtifactRepository> T addRepository(T repository, String defaultName) {
+    public <T extends ArtifactRepository> T addRepository(T repository, String defaultName) {
         return addRepository(repository, defaultName, addLastAction);
     }
 

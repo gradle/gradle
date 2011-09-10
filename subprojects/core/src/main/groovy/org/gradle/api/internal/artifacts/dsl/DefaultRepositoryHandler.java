@@ -22,8 +22,6 @@ import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
 import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
-import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.api.internal.artifacts.ResolverFactory;
@@ -109,50 +107,6 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             return GUtil.addLists((Iterable) object);
         }
         return Collections.singletonList(object);
-    }
-
-    public GroovyMavenDeployer mavenDeployer(Map<String, ?> args) {
-        return addRepository(createMavenDeployer(), args, DEFAULT_MAVEN_DEPLOYER_NAME);
-    }
-
-    private GroovyMavenDeployer createMavenDeployer() {
-        return getResolverFactory().createMavenDeployer(this, getConfigurationContainer(), getMavenScopeMappings(), getFileResolver());
-    }
-
-    public GroovyMavenDeployer mavenDeployer() {
-        return addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME);
-    }
-
-    public GroovyMavenDeployer mavenDeployer(Closure configureClosure) {
-        return addRepository(createMavenDeployer(), configureClosure, DEFAULT_MAVEN_DEPLOYER_NAME);
-    }
-
-    public GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Closure configureClosure) {
-        GroovyMavenDeployer deployer = createMavenDeployer();
-        ConfigureUtil.configureByMap(args, deployer);
-        return addRepository(deployer, configureClosure, DEFAULT_MAVEN_DEPLOYER_NAME);
-    }
-
-    public MavenResolver mavenInstaller() {
-        return addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME);
-    }
-
-    public MavenResolver mavenInstaller(Closure configureClosure) {
-        return addRepository(createMavenInstaller(), configureClosure, DEFAULT_MAVEN_INSTALLER_NAME);
-    }
-
-    public MavenResolver mavenInstaller(Map<String, ?> args) {
-        return addRepository(createMavenInstaller(), args, DEFAULT_MAVEN_INSTALLER_NAME);
-    }
-
-    public MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure) {
-        MavenResolver installer = createMavenInstaller();
-        ConfigureUtil.configureByMap(args, installer);
-        return addRepository(installer, configureClosure, DEFAULT_MAVEN_INSTALLER_NAME);
-    }
-
-    private MavenResolver createMavenInstaller() {
-        return getResolverFactory().createMavenInstaller(this, getConfigurationContainer(), getMavenScopeMappings(), getFileResolver());
     }
 
     public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {
