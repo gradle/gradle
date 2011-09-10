@@ -75,6 +75,51 @@
         </table>
     </section>
     <section>
+        <title>Experimental language plugins</title>
+        <para>These experiemental plugins add support for various languages which can be compiled and executed in the JVM.</para>
+        <table>
+            <title>Language plugins</title>
+            <thead>
+                <tr>
+                    <td>Plugin Id</td>
+                    <td>Automatically applies</td>
+                    <td>Works with</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend='cpp'><literal>cpp</literal></link>
+                </td>
+                <td><literal>cpp</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Adds C++ source compilation capabilities to a project.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='cpp'><literal>cpp-exe</literal></link>
+                </td>
+                <td><literal>cpp</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Adds C++ executable compilation and linking capabilities to a project.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='cpp'><literal>cpp-lib</literal></link>
+                </td>
+                <td><literal>cpp</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Adds C++ library compilation and linking capabilities to a project.</para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
         <title>Integration plugins</title>
         <para>These plugins provide some integration with various build and runtime technologies.</para>
         <table>
