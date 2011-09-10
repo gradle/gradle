@@ -417,6 +417,17 @@ public class TestFile extends File implements TestFileContext {
         return file(path).createFile();
     }
 
+    public TestFile createZip(Object path) {
+        Zip zip = new Zip();
+        zip.setWhenempty((Zip.WhenEmpty) Zip.WhenEmpty.getInstance(Zip.WhenEmpty.class, "create"));
+        TestFile zipFile = file(path);
+        zip.setDestFile(zipFile);
+        zip.setBasedir(this);
+        zip.setExcludes("**");
+        AntUtil.execute(zip);
+        return zipFile;
+    }
+
     public TestFile zipTo(TestFile zipFile) {
         Zip zip = new Zip();
         zip.setBasedir(this);

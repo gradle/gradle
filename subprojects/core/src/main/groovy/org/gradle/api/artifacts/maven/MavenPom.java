@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.ConfigurationContainer;
 
 import java.io.Writer;
@@ -188,7 +189,7 @@ public interface MavenPom {
 
     /**
      * <p>Adds a closure to be called when the POM XML has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.</p>
+     * parameter in form of a {@link org.gradle.api.XmlProvider}. The action can modify the XML.</p>
      *
      * @param closure The closure to execute when the POM XML has been created.
      * @return this
@@ -197,7 +198,7 @@ public interface MavenPom {
 
     /**
      * <p>Adds an action to be called when the POM XML has been created. The XML is passed to the action as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.</p>
+     * parameter in form of a {@link org.gradle.api.XmlProvider}. The action can modify the XML.</p>
      *
      * @param action The action to execute when the POM XML has been created.
      * @return this

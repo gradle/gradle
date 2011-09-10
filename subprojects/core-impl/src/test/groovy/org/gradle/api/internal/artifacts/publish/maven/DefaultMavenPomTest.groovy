@@ -19,11 +19,8 @@ import org.apache.commons.lang.builder.EqualsBuilder
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.gradle.api.Action
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer
-
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
@@ -40,7 +37,7 @@ class DefaultMavenPomTest extends Specification {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
 
-    Conf2ScopeMappingContainer conf2ScopeMappingContainer = new DefaultConf2ScopeMappingContainer()
+    Conf2ScopeMappingContainer conf2ScopeMappingContainer = Mock()
     PomDependenciesConverter pomDependenciesConverterStub = Mock()
     ConfigurationContainer configurationContainerStub = Mock()
     FileResolver fileResolver = Mock()

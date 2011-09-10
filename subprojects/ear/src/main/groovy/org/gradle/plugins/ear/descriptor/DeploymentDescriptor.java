@@ -17,7 +17,7 @@ package org.gradle.plugins.ear.descriptor;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.maven.XmlProvider;
+import org.gradle.api.XmlProvider;
 
 import java.io.Reader;
 import java.io.Writer;

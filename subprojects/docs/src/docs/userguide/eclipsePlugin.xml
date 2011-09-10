@@ -318,13 +318,13 @@
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseProject"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Project"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Project"/></td>
-                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                    <td><apilink class="org.gradle.api.XmlProvider"/></td>
                 </tr>
                 <tr>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseClasspath"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Classpath"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Classpath"/></td>
-                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                    <td><apilink class="org.gradle.api.XmlProvider"/></td>
                 </tr>
                 <tr>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseJdt"/></td>
@@ -336,13 +336,13 @@
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpComponent"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpComponent"/></td>
-                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                    <td><apilink class="org.gradle.api.XmlProvider"/></td>
                 </tr>
                 <tr>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpFacet"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpFacet"/></td>
-                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                    <td><apilink class="org.gradle.api.XmlProvider"/></td>
                 </tr>
             </table>
             <section id="sec:partial-overwrite">

@@ -21,7 +21,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.ArtifactRepository
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.DirectInstantiator
-import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.hamcrest.Matchers

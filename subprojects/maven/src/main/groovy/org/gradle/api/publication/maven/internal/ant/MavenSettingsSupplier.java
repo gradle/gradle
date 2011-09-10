@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication
+package org.gradle.api.publication.maven.internal.ant;
 
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.publication.maven.internal.ant.DefaultMavenPublisher
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 
 /**
- * @author: Szczepan Faber, created at: 6/16/11
+ * @author Szczepan Faber, created at: 3/29/11
  */
-class PublishPublications extends ConventionTask {
-
-    Publications publications
-
-    @TaskAction
-    void publish() {
-        DefaultMavenPublisher publisher = new DefaultMavenPublisher(services.get(TemporaryFileProvider))
-        publisher.deploy(publications.maven, publications.maven.repository)
-    }
+public interface MavenSettingsSupplier {
+    void done();
+    void supply(InstallDeployTaskSupport installDeployTaskSupport);
 }

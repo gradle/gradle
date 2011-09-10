@@ -17,14 +17,12 @@ package org.gradle.api.publication.maven.internal;
 
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPomFactory;
 import org.gradle.api.internal.artifacts.publish.maven.PomDependenciesConverter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
+import org.gradle.api.publication.maven.internal.ant.DefaultExcludeRuleConverter;
+import org.gradle.api.publication.maven.internal.ant.DefaultPomDependenciesConverter;
 
 import java.util.Map;
 

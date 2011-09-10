@@ -22,9 +22,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
 import org.gradle.api.internal.artifacts.publish.maven.PomDependenciesConverter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GUtil;
@@ -43,7 +43,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * @author Hans Dockter
@@ -59,7 +60,7 @@ public class DefaultArtifactPomTest {
 
     @Before
     public void setUp() {
-        testPom = new DefaultMavenPom(context.mock(ConfigurationContainer.class), new DefaultConf2ScopeMappingContainer(),
+        testPom = new DefaultMavenPom(context.mock(ConfigurationContainer.class), context.mock(Conf2ScopeMappingContainer.class),
                 context.mock(PomDependenciesConverter.class), context.mock(FileResolver.class));
         artifactPom = new DefaultArtifactPom(testPom);
     }

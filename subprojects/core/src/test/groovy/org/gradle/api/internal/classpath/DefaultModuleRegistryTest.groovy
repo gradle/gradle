@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.classpath
 
-import spock.lang.Specification
-import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
+import org.junit.Rule
+import spock.lang.Specification
 
 class DefaultModuleRegistryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -28,15 +28,12 @@ class DefaultModuleRegistryTest extends Specification {
     TestFile distDir
 
     def setup() {
-        def emptyDir = tmpDir.createDir("empty")
-        emptyDir.file('readme.txt').createFile()
         distDir = tmpDir.createDir("dist")
 
         distDir.createDir("lib")
         distDir.createDir("lib/plugins")
         distDir.createDir("lib/core-impl")
-        runtimeDep = distDir.file("lib/dep-1.2.jar")
-        emptyDir.zipTo(runtimeDep)
+        runtimeDep = distDir.createZip("lib/dep-1.2.jar")
 
         resourcesDir = tmpDir.createDir("classes")
         def properties = new Properties()

@@ -248,19 +248,19 @@
                     <td><apilink class="org.gradle.plugins.ide.idea.model.IdeaProject"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Project"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Project"/></td>
-                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                    <td><apilink class="org.gradle.api.XmlProvider"/></td>
                 </tr>
                 <tr>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.IdeaModule"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Module"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Module"/></td>
-                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                    <td><apilink class="org.gradle.api.XmlProvider"/></td>
                 </tr>
                 <tr>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.IdeaWorkspace"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Workspace"/></td>
                     <td><apilink class="org.gradle.plugins.ide.idea.model.Workspace"/></td>
-                    <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                    <td><apilink class="org.gradle.api.XmlProvider"/></td>
                 </tr>
             </table>
             <section id="sec:partial-overwrite">

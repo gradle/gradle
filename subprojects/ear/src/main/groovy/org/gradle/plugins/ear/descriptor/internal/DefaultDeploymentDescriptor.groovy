@@ -18,7 +18,7 @@ package org.gradle.plugins.ear.descriptor.internal
 import groovy.xml.QName
 import org.gradle.api.Action
 import org.gradle.api.UncheckedIOException
-import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.XmlProvider
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.EarSecurityRole

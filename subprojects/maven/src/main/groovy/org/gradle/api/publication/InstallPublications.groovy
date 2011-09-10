@@ -17,7 +17,7 @@
 package org.gradle.api.publication
 
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.publication.maven.internal.DefaultMavenPublisher
+import org.gradle.api.publication.maven.internal.ant.DefaultMavenPublisher
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.internal.file.TemporaryFileProvider
 

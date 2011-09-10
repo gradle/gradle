@@ -24,7 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.maven.XmlProvider;
+import org.gradle.api.XmlProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.SystemProperties;
 import org.gradle.util.TextUtil;

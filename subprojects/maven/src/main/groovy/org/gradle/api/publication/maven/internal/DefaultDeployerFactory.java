@@ -20,12 +20,11 @@ import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.ArtifactPomFactory;
-import org.gradle.api.internal.artifacts.publish.maven.DefaultArtifactPomFactory;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller;
+import org.gradle.api.publication.maven.internal.ant.BaseMavenInstaller;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
+import org.gradle.api.publication.maven.internal.ant.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerInternal;
 

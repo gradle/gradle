@@ -20,8 +20,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.internal.Instantiator;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
 import org.gradle.api.internal.artifacts.ResolverFactory;
-import org.gradle.api.internal.artifacts.publish.maven.LocalMavenCacheLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 

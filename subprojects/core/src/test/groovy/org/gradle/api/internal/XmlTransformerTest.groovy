@@ -16,7 +16,7 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Action
-import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.XmlProvider
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 

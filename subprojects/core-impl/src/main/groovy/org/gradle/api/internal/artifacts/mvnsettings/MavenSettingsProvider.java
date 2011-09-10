@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication
+package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.publication.maven.internal.ant.DefaultMavenPublisher
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.util.SystemProperties;
+
+import java.io.File;
 
 /**
- * @author: Szczepan Faber, created at: 6/16/11
- */
-class PublishPublications extends ConventionTask {
+* @author Szczepan Faber, created at: 3/30/11
+*/
+public class MavenSettingsProvider {
+    public File getUserSettingsFile() {
+        File m2Dir = getUserMavenDir();
+        return new File(m2Dir, "settings.xml");
+    }
 
-    Publications publications
+    public File getUserMavenDir() {
+        File userHome = new File(SystemProperties.getUserHome());
+        return new File(userHome, ".m2");
+    }
 
-    @TaskAction
-    void publish() {
-        DefaultMavenPublisher publisher = new DefaultMavenPublisher(services.get(TemporaryFileProvider))
-        publisher.deploy(publications.maven, publications.maven.repository)
+    public File getLocalMavenRepository() {
+        File m2Dir = getUserMavenDir();
+        return new File(m2Dir, "repository");
     }
 }
