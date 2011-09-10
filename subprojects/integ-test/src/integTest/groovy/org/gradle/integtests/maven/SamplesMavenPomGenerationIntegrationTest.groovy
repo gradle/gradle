@@ -54,7 +54,7 @@ class SamplesMavenPomGenerationIntegrationTest {
         def repo = new MavenRepository(pomProjectDir.file('pomRepo'))
         def module = repo.module('deployGroup', 'mywar', '1.0MVN')
 
-        executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
+        executer.inDirectory(pomProjectDir).withTasks('uploadArchives').withArguments("--stacktrace").run()
 
         compareXmlWithIgnoringOrder(expectedPom('1.0MVN', "deployGroup"), module.pomFile.text)
         module.moduleDir.file("mywar-1.0MVN.war").assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
