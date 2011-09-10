@@ -19,7 +19,6 @@ package org.gradle.api.internal.project;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.maven.MavenFactory;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -216,10 +215,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new ProjectEvaluationConfigurer(),
                 new ProjectDependencies2TaskResolver(),
                 new ImplicitTasksConfigurer());
-    }
-
-    protected MavenFactory createMavenFactory() {
-        return get(DependencyManagementServices.class).get(MavenFactory.class);
     }
 
     protected DependencyManagementServices createDependencyManagementServices() {

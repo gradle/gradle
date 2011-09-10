@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -37,9 +38,9 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
     private Conf2ScopeMappingContainer conf2ScopeMappings;
     private String pomDirName = "poms";
 
-    public MavenPluginConvention(ProjectInternal project) {
+    public MavenPluginConvention(ProjectInternal project, MavenFactory mavenFactory) {
         this.project = project;
-        mavenFactory = project.getServices().get(MavenFactory.class);
+        this.mavenFactory = mavenFactory;
         conf2ScopeMappings = mavenFactory.createConf2ScopeMappingContainer(Collections.<Configuration, Conf2ScopeMapping>emptyMap());
     }
 

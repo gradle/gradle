@@ -20,13 +20,16 @@ import org.gradle.util.HelperUtil
 import org.gradle.api.artifacts.maven.MavenPom
 
 import spock.lang.Specification
+import org.gradle.api.publication.maven.internal.MavenFactory
+import org.gradle.api.publication.maven.internal.DefaultMavenFactory
 
 /**
  * @author Hans Dockter
  */
 class MavenPluginConventionTest extends Specification {
     DefaultProject project = HelperUtil.createRootProject()
-    MavenPluginConvention mavenPluginConvention = new MavenPluginConvention(project)
+    MavenFactory mavenFactory = new DefaultMavenFactory()
+    MavenPluginConvention mavenPluginConvention = new MavenPluginConvention(project, mavenFactory)
 
     def pomShouldCreateMavenPom() {
         project.group = 'someGroup'

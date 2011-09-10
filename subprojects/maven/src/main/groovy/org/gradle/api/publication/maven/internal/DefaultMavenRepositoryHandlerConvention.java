@@ -16,27 +16,20 @@
 package org.gradle.api.publication.maven.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention;
 
 import java.util.Map;
 
 public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryHandlerConvention {
     private final DefaultRepositoryHandler container;
-    private final MavenPomMetaInfoProvider mavenPomMetaInfoProvider;
-    private final Conf2ScopeMappingContainer scopeMappingContainer;
-    private final ConfigurationContainer configurationContainer;
+    private final DeployerFactory deployerFactory;
 
-    public DefaultMavenRepositoryHandlerConvention(DefaultRepositoryHandler container, MavenPomMetaInfoProvider mavenPomMetaInfoProvider, Conf2ScopeMappingContainer scopeMappingContainer, ConfigurationContainer configurationContainer) {
+    public DefaultMavenRepositoryHandlerConvention(DefaultRepositoryHandler container, DeployerFactory deployerFactory) {
         this.container = container;
-        this.mavenPomMetaInfoProvider = mavenPomMetaInfoProvider;
-        this.scopeMappingContainer = scopeMappingContainer;
-        this.configurationContainer = configurationContainer;
+        this.deployerFactory = deployerFactory;
     }
 
     public GroovyMavenDeployer mavenDeployer() {
@@ -56,7 +49,7 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     }
 
     private GroovyMavenDeployer createMavenDeployer() {
-        return container.getResolverFactory().createMavenDeployer(mavenPomMetaInfoProvider, configurationContainer, scopeMappingContainer);
+        return deployerFactory.createMavenDeployer();
     }
 
     public MavenResolver mavenInstaller() {
@@ -76,6 +69,6 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     }
 
     private MavenResolver createMavenInstaller() {
-        return container.getResolverFactory().createMavenInstaller(mavenPomMetaInfoProvider, configurationContainer, scopeMappingContainer);
+        return deployerFactory.createMavenInstaller();
     }
 }

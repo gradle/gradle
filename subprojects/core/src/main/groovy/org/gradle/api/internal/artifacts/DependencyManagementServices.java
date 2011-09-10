@@ -26,7 +26,7 @@ import org.gradle.api.internal.project.ServiceRegistry;
  *
  * <p>The motivation for having this factory is to allow implementation
  * types, and more importantly their dependencies, to be loaded from a
- * different (coreImpl) class loader. This helps to prevent version conflicts,
+ * different class loader. This helps to prevent version conflicts,
  * for example between Maven 2 and Maven 3 libraries.
  */
 public interface DependencyManagementServices extends ServiceRegistry {

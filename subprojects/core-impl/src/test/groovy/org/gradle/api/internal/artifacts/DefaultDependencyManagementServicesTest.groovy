@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.StartParameter
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.maven.MavenFactory
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.Factory
@@ -58,11 +56,6 @@ class DefaultDependencyManagementServicesTest extends Specification {
         ClassPathRegistry classPathRegistry = Mock()
         _ * parent.get(ClassPathRegistry) >> classPathRegistry
         _ * parent.get(ListenerManager) >> listenerManager
-    }
-
-    def "provides a MavenFactory"() {
-        expect:
-        services.get(MavenFactory.class) != null
     }
 
     def "can create dependency resolution services"() {

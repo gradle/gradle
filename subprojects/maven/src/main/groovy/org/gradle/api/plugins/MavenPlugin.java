@@ -23,11 +23,15 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
+import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.publication.maven.internal.DefaultDeployerFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.tasks.Upload;
+import org.gradle.logging.LoggingManagerInternal;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows project artifacts to be deployed to a Maven repository, or installed
@@ -48,12 +52,22 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
-        final MavenPluginConvention pluginConvention = addConventionObject(project);
+
+        DefaultMavenFactory mavenFactory = new DefaultMavenFactory();
+        final MavenPluginConvention pluginConvention = addConventionObject(project, mavenFactory);
+        final DefaultDeployerFactory deployerFactory = new DefaultDeployerFactory(
+                mavenFactory,
+                project.getServices().getFactory(LoggingManagerInternal.class),
+                project.getFileResolver(),
+                pluginConvention,
+                project.getConfigurations(),
+                pluginConvention.getConf2ScopeMappings());
+
         project.getTasks().withType(Upload.class, new Action<Upload>() {
             public void execute(Upload upload) {
                 RepositoryHandler repositories = upload.getRepositories();
                 DefaultRepositoryHandler handler = (DefaultRepositoryHandler) repositories;
-                DefaultMavenRepositoryHandlerConvention repositoryConvention = new DefaultMavenRepositoryHandlerConvention(handler, pluginConvention, pluginConvention.getConf2ScopeMappings(), project.getConfigurations());
+                DefaultMavenRepositoryHandlerConvention repositoryConvention = new DefaultMavenRepositoryHandlerConvention(handler, deployerFactory);
                 ((DynamicObjectAware) repositories).getConvention().getPlugins().put("maven", repositoryConvention);
             }
         });
@@ -71,8 +85,8 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private MavenPluginConvention addConventionObject(ProjectInternal project) {
-        MavenPluginConvention mavenConvention = new MavenPluginConvention(project);
+    private MavenPluginConvention addConventionObject(ProjectInternal project, MavenFactory mavenFactory) {
+        MavenPluginConvention mavenConvention = new MavenPluginConvention(project, mavenFactory);
         Convention convention = project.getConvention();
         convention.getPlugins().put("maven", mavenConvention);
         return mavenConvention;

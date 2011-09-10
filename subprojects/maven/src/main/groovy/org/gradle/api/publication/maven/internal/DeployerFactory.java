@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.publication.maven.internal;
 
-dependencies {
-    groovy libraries.groovy_depends
+import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
+import org.gradle.api.artifacts.maven.MavenResolver;
 
-    compile project(':core')
-    compile project(':coreImpl')
-    compile project(':plugins')
-    compile libraries.slf4j_api
+public interface DeployerFactory {
+    GroovyMavenDeployer createMavenDeployer();
 
-    compile "org.apache.maven:maven-ant-tasks:2.1.1@jar"
-    compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
-    compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
-    compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
+    MavenResolver createMavenInstaller();
 }
-
-useTestFixtures()

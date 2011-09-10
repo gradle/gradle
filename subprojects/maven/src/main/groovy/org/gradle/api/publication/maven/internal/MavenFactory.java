@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.maven;
+package org.gradle.api.publication.maven.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 

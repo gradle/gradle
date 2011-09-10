@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.maven.MavenFactory;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.Factory;
@@ -32,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultLocalMavenCacheLocator;
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.InternalRepository;
@@ -42,7 +40,6 @@ import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
 
@@ -58,10 +55,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     public DependencyResolutionServices create(FileResolver resolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
         return new DefaultDependencyResolutionServices(this, resolver, dependencyMetaDataProvider, projectFinder, domainObjectContext);
-    }
-
-    protected MavenFactory createMavenFactory() {
-        return new DefaultMavenFactory();
     }
 
     protected PublishModuleDescriptorConverter createPublishModuleDescriptorConverter() {
@@ -164,8 +157,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         private DefaultRepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = parent.get(Instantiator.class);
             ResolverFactory resolverFactory = new DefaultResolverFactory(
-                    parent.getFactory(LoggingManagerInternal.class),
-                    parent.get(MavenFactory.class),
                     new DefaultLocalMavenCacheLocator(),
                     fileResolver,
                     instantiator);
