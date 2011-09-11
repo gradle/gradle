@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.CachingDirectedGraphWalker;
 import org.gradle.api.internal.DirectedGraphWithEdgeValues;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.IvyDependencyResolver;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -41,7 +41,7 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
+public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyResolver.class);
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final Factory<Ivy> ivyFactory;

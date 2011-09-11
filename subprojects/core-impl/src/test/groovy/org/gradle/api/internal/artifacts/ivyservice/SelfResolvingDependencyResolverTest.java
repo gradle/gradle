@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
-import org.gradle.api.internal.artifacts.IvyDependencyResolver;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
 import org.gradle.api.specs.Specs;
@@ -49,7 +49,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(JMock.class)
 public class SelfResolvingDependencyResolverTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
-    private final IvyDependencyResolver delegate = context.mock(IvyDependencyResolver.class);
+    private final ArtifactDependencyResolver delegate = context.mock(ArtifactDependencyResolver.class);
     private final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
     private final ConfigurationInternal configuration = context.mock(ConfigurationInternal.class);
     private final Ivy ivy = Ivy.newInstance();

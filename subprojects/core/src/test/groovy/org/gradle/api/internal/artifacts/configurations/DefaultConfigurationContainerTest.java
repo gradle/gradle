@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.artifacts.IvyDependencyResolver;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.HelperUtil;
@@ -48,7 +48,7 @@ public class DefaultConfigurationContainerTest {
 
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
-    private IvyDependencyResolver dependencyResolver = context.mock(IvyDependencyResolver.class);
+    private ArtifactDependencyResolver dependencyResolver = context.mock(ArtifactDependencyResolver.class);
     private Instantiator instantiator = context.mock(Instantiator.class);
     private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class);
     private ListenerManager listenerManager = context.mock(ListenerManager.class);

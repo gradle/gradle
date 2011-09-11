@@ -22,6 +22,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 /**
  * @author Hans Dockter
  */
-public interface IvyDependencyResolver {
+public interface ArtifactDependencyResolver {
     ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException;
 }

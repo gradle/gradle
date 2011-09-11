@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.IvyDependencyResolver;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -43,7 +43,7 @@ public class DefaultIvyServiceResolveTest {
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
     private ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
     private IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
-    private IvyDependencyResolver ivyDependencyResolverMock = context.mock(IvyDependencyResolver.class);
+    private ArtifactDependencyResolver artifactDependencyResolverMock = context.mock(ArtifactDependencyResolver.class);
     private SettingsConverter settingsConverterMock = context.mock(SettingsConverter.class);
 
     // SUT
@@ -61,7 +61,7 @@ public class DefaultIvyServiceResolveTest {
         ivyService = new DefaultIvyService(resolverProvider,
                 settingsConverterMock, publishModuleDescriptorConverterDummy,
                 publishModuleDescriptorConverterDummy,
-                ivyFactoryStub, ivyDependencyResolverMock,
+                ivyFactoryStub, artifactDependencyResolverMock,
                 context.mock(IvyDependencyPublisher.class));
     }
 
@@ -71,7 +71,7 @@ public class DefaultIvyServiceResolveTest {
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
 
         context.checking(new Expectations() {{
-            one(ivyDependencyResolverMock).resolve(configurationDummy);
+            one(artifactDependencyResolverMock).resolve(configurationDummy);
             will(returnValue(resolvedConfiguration));
         }});
 

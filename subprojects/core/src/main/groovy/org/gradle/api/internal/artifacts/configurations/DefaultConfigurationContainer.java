@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.artifacts.IvyDependencyResolver;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.listener.ListenerManager;
 
 import java.util.Collection;
@@ -37,7 +37,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     
-    private final IvyDependencyResolver dependencyResolver;
+    private final ArtifactDependencyResolver dependencyResolver;
     private final Instantiator instantiator;
     private final DomainObjectContext context;
     private final ListenerManager listenerManager;
@@ -45,7 +45,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyDependencyResolver dependencyResolver, Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public DefaultConfigurationContainer(ArtifactDependencyResolver dependencyResolver, Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager, DependencyMetaDataProvider dependencyMetaDataProvider) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.dependencyResolver = dependencyResolver;
         this.instantiator = instantiator;

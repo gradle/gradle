@@ -48,7 +48,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
     private String description;
     private ConfigurationsProvider configurationsProvider;
-    private final IvyDependencyResolver dependencyResolver;
+    private final ArtifactDependencyResolver dependencyResolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
     private final DefaultDependencySet dependencies;
@@ -67,7 +67,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolvedConfiguration cachedResolvedConfiguration;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
-                                IvyDependencyResolver dependencyResolver, ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider) {
+                                ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;

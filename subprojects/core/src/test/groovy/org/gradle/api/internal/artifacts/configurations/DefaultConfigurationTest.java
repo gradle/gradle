@@ -25,7 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
-import org.gradle.api.internal.artifacts.IvyDependencyResolver;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -54,7 +54,7 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
-    private IvyDependencyResolver dependencyResolver = context.mock(IvyDependencyResolver.class);
+    private ArtifactDependencyResolver dependencyResolver = context.mock(ArtifactDependencyResolver.class);
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);

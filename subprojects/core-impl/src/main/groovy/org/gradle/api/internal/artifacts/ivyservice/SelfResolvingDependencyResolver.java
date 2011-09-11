@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
-import org.gradle.api.internal.artifacts.IvyDependencyResolver;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -27,14 +27,14 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
-    private final IvyDependencyResolver resolver;
+public class SelfResolvingDependencyResolver implements ArtifactDependencyResolver {
+    private final ArtifactDependencyResolver resolver;
 
-    public SelfResolvingDependencyResolver(IvyDependencyResolver resolver) {
+    public SelfResolvingDependencyResolver(ArtifactDependencyResolver resolver) {
         this.resolver = resolver;
     }
 
-    public IvyDependencyResolver getResolver() {
+    public ArtifactDependencyResolver getResolver() {
         return resolver;
     }
 

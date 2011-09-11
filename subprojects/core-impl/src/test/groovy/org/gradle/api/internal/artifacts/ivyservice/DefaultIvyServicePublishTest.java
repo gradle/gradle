@@ -22,7 +22,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.IvyDependencyResolver;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -92,7 +92,7 @@ public class DefaultIvyServicePublishTest {
         return new DefaultIvyService(resolverProvider,
                 settingsConverterStub, publishModuleDescriptorConverter,
                 fileModuleDescriptorConverter,
-                ivyFactoryStub, context.mock(IvyDependencyResolver.class),
+                ivyFactoryStub, context.mock(ArtifactDependencyResolver.class),
                 ivyDependencyPublisherMock);
     }
 

@@ -28,12 +28,12 @@ import org.gradle.api.Action
 import org.gradle.listener.ListenerManager
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.listener.ListenerBroadcast
-import org.gradle.api.internal.artifacts.IvyDependencyResolver
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 
 class DefaultConfigurationSpec extends Specification {
 
     ConfigurationsProvider configurationsProvider = Mock()
-    IvyDependencyResolver dependencyResolver = Mock()
+    ArtifactDependencyResolver dependencyResolver = Mock()
     ListenerManager listenerManager = Mock()
     DependencyMetaDataProvider metaDataProvider = Mock()
 

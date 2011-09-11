@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
-import org.gradle.api.internal.artifacts.IvyDependencyResolver
+
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.listener.ListenerManager
@@ -30,6 +30,7 @@ import org.junit.runner.RunWith
 import org.gradle.api.internal.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 
 /**
  * @author Hans Dockter
@@ -39,7 +40,7 @@ import static org.junit.Assert.assertThat
 class DefaultConfigurationHandlerTest {
     private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    private IvyDependencyResolver dependencyResolver = context.mock(IvyDependencyResolver)
+    private ArtifactDependencyResolver dependencyResolver = context.mock(ArtifactDependencyResolver)
     private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class)
     private ListenerManager listenerManager = context.mock(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
