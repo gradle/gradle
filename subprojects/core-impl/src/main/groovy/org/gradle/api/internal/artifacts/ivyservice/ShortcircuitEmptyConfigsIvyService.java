@@ -75,7 +75,7 @@ public class ShortcircuitEmptyConfigsIvyService implements IvyService {
         return ivyService;
     }
 
-    public void publish(Configuration configuration, File descriptorDestination) throws PublishException {
+    public void publish(ConfigurationInternal configuration, File descriptorDestination) throws PublishException {
         ivyService.publish(configuration, descriptorDestination);
     }
 

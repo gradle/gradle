@@ -34,7 +34,7 @@ public class ErrorHandlingIvyService implements IvyService {
         return ivyService;
     }
 
-    public void publish(Configuration configuration, File descriptorDestination) {
+    public void publish(ConfigurationInternal configuration, File descriptorDestination) {
         try {
             ivyService.publish(configuration, descriptorDestination);
         } catch (Throwable e) {

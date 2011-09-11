@@ -17,12 +17,12 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
@@ -49,7 +49,7 @@ public class UploadTest extends AbstractTaskTest {
     private JUnit4Mockery context = new JUnit4Mockery();
     private RepositoryHandler repositoriesMock;
     private IvyService ivyServiceMock;
-    private Configuration configurationMock;
+    private ConfigurationInternal configurationMock;
 
     @Before public void setUp() {
         super.setUp();
@@ -57,7 +57,7 @@ public class UploadTest extends AbstractTaskTest {
         repositoriesMock = context.mock(RepositoryHandler.class);
         ivyServiceMock = context.mock(IvyService.class);
 
-        configurationMock = context.mock(Configuration.class);
+        configurationMock = context.mock(ConfigurationInternal.class);
     }
 
     public AbstractTask getTask() {

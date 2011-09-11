@@ -52,7 +52,8 @@ public class DefaultConfigurationContainerTest {
     private Instantiator instantiator = context.mock(Instantiator.class);
     private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class);
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy, instantiator, domainObjectContext, listenerManager);
+    private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy, instantiator, domainObjectContext, listenerManager, metaDataProvider);
 
     @Test
     public void init() {
@@ -160,7 +161,7 @@ public class DefaultConfigurationContainerTest {
         context.checking(new Expectations() {{
             one(domainObjectContext).absoluteProjectPath(name);
             will(returnValue(name));
-            one(instantiator).newInstance(DefaultConfiguration.class, name, name, configurationContainer, ivyServiceDummy, listenerManager);
+            one(instantiator).newInstance(DefaultConfiguration.class, name, name, configurationContainer, ivyServiceDummy, listenerManager, metaDataProvider);
             will(returnValue(configuration));
             allowing(configuration).getName();
             will(returnValue(name));

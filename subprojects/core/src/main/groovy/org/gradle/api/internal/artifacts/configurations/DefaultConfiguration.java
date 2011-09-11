@@ -53,6 +53,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ConfigurationsProvider configurationsProvider;
     private final IvyService ivyService;
     private final ListenerManager listenerManager;
+    private final DependencyMetaDataProvider metaDataProvider;
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
@@ -69,12 +70,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolvedConfiguration cachedResolvedConfiguration;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
-                                IvyService ivyService, ListenerManager listenerManager) {
+                                IvyService ivyService, ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.ivyService = ivyService;
         this.listenerManager = listenerManager;
+        this.metaDataProvider = metaDataProvider;
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
@@ -99,6 +101,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         synchronized (lock) {
             return state;
         }
+    }
+
+    public Module getModule() {
+        return metaDataProvider.getModule();
     }
 
     public boolean isVisible() {
@@ -383,7 +389,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, ivyService, listenerManager);
+                configurationsProvider, ivyService, listenerManager, metaDataProvider);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved

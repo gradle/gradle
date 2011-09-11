@@ -57,6 +57,7 @@ public class DefaultConfigurationTest {
     private IvyService ivyServiceStub = context.mock(IvyService.class);
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
+    private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
     private DefaultConfiguration configuration;
 
     @Before
@@ -345,11 +346,11 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, confName, configurationContainer, ivyServiceStub, listenerManager);
+        return new DefaultConfiguration(confName, confName, configurationContainer, ivyServiceStub, listenerManager, metaDataProvider);
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
-        return new DefaultConfiguration(path, confName, configurationContainer, ivyServiceStub, listenerManager);
+        return new DefaultConfiguration(path, confName, configurationContainer, ivyServiceStub, listenerManager, metaDataProvider);
     }
 
     @SuppressWarnings("unchecked")

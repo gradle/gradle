@@ -16,13 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
 /**
  * @author Hans Dockter
  */
 public interface IvyDependencyResolver {
-    ResolvedConfiguration resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor);
+    ResolvedConfiguration resolve(ConfigurationInternal configuration, Ivy ivy);
 }

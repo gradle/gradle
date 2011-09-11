@@ -35,9 +35,10 @@ class DefaultConfigurationSpec extends Specification {
     ConfigurationsProvider configurationsProvider = Mock()
     IvyService ivyService = Mock()
     ListenerManager listenerManager = Mock()
+    DependencyMetaDataProvider metaDataProvider = Mock()
 
     DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, ivyService, listenerManager)
+        new DefaultConfiguration(path, confName, configurationsProvider, ivyService, listenerManager, metaDataProvider)
     }
 
     DefaultPublishArtifact artifact(String name) {

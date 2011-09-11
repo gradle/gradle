@@ -23,7 +23,9 @@ import org.apache.ivy.core.report.ConfigurationResolveReport;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveOptions;
+import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
@@ -58,18 +60,24 @@ import static org.junit.Assert.*;
 public class DefaultIvyDependencyResolverTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
-    private Configuration configurationStub = context.mock(Configuration.class, "<configuration>");
+    private ConfigurationInternal configurationStub = context.mock(ConfigurationInternal.class, "<configuration>");
     private Ivy ivyStub = context.mock(Ivy.class);
+    private IvySettings ivySettings = context.mock(IvySettings.class);
     private DefaultIvyReportConverter ivyReportConverterStub = context.mock(DefaultIvyReportConverter.class);
     private ResolveReport resolveReportMock = context.mock(ResolveReport.class);
+    private ModuleDescriptorConverter moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
+    private Configuration otherConfiguration = context.mock(Configuration.class);
+    private Module module = context.mock(Module.class);
 
-    private DefaultIvyDependencyResolver ivyDependencyResolver = new DefaultIvyDependencyResolver(ivyReportConverterStub);
+    private DefaultIvyDependencyResolver ivyDependencyResolver = new DefaultIvyDependencyResolver(ivyReportConverterStub, moduleDescriptorConverter);
 
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
             allowing(configurationStub).getName();
             will(returnValue("someConfName"));
+            allowing(ivyStub).getSettings();
+            will(returnValue(ivySettings));
         }});
     }
 
@@ -118,7 +126,7 @@ public class DefaultIvyDependencyResolverTest {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
 
-        ResolvedConfiguration resolvedConfig = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
+        ResolvedConfiguration resolvedConfig = ivyDependencyResolver.resolve(configurationStub, ivyStub);
         Set<File> actualFiles = resolvedConfig.getFiles(
                 new Spec<Dependency>() {
                     public boolean isSatisfiedBy(Dependency element) {
@@ -156,7 +164,7 @@ public class DefaultIvyDependencyResolverTest {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
 
-        Set<ResolvedDependency> actualFirstLevelModuleDependencies = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getFirstLevelModuleDependencies();
+        Set<ResolvedDependency> actualFirstLevelModuleDependencies = ivyDependencyResolver.resolve(configurationStub, ivyStub).getFirstLevelModuleDependencies();
         assertThat(actualFirstLevelModuleDependencies, equalTo(resolvedDependenciesSet));
     }
 
@@ -174,7 +182,7 @@ public class DefaultIvyDependencyResolverTest {
         }});
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        assertThat(ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor)
+        assertThat(ivyDependencyResolver.resolve(configurationStub, ivyStub)
                 .getResolvedArtifacts(), equalTo(resolvedArtifacts));
     }
 
@@ -184,7 +192,7 @@ public class DefaultIvyDependencyResolverTest {
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
         Exception failure = new Exception("broken");
         prepareResolveReportWithError(failure);
-        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
+        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub);
         context.checking(new Expectations() {{
             allowing(configurationStub).getAllDependencies();
         }});
@@ -203,7 +211,7 @@ public class DefaultIvyDependencyResolverTest {
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
         Exception failure = new Exception("broken");
         prepareResolveReportWithError(failure);
-        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
+        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub);
 
         assertTrue(configuration.hasError());
         try {
@@ -223,8 +231,7 @@ public class DefaultIvyDependencyResolverTest {
         context.checking(new Expectations() {{
             allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
         }});
-        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub,
-                moduleDescriptor);
+        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub);
 
         assertFalse(configuration.hasError());
         configuration.rethrowFailure();
@@ -238,7 +245,7 @@ public class DefaultIvyDependencyResolverTest {
         }});
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        assertEquals(false, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).hasError());
+        assertEquals(false, ivyDependencyResolver.resolve(configurationStub, ivyStub).hasError());
     }
 
     @Test
@@ -246,7 +253,7 @@ public class DefaultIvyDependencyResolverTest {
         prepareResolveReportWithError(new Exception("broken"));
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        assertEquals(true, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).hasError());
+        assertEquals(true, ivyDependencyResolver.resolve(configurationStub, ivyStub).hasError());
     }
 
     private ModuleDescriptor createAnonymousModuleDescriptor() {
@@ -284,8 +291,14 @@ public class DefaultIvyDependencyResolverTest {
     private void prepareTestsThatRetrieveDependencies(final ModuleDescriptor moduleDescriptor) throws IOException, ParseException {
         final String confName = configurationStub.getName();
         context.checking(new Expectations() {{
-                allowing(ivyStub).resolve(with(equal(moduleDescriptor)), with(equaltResolveOptions(confName)));
-                will(returnValue(resolveReportMock));
+            allowing(configurationStub).getAll();
+            will(returnValue(toSet(configurationStub, otherConfiguration)));
+            allowing(configurationStub).getModule();
+            will(returnValue(module));
+            allowing(moduleDescriptorConverter).convert(toSet(configurationStub, otherConfiguration), module, ivySettings);
+            will(returnValue(moduleDescriptor));
+            allowing(ivyStub).resolve(with(equal(moduleDescriptor)), with(equaltResolveOptions(confName)));
+            will(returnValue(resolveReportMock));
         }});
     }
 

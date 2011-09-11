@@ -167,7 +167,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             if (configurationContainer == null) {
                 Instantiator instantiator = parent.get(Instantiator.class);
                 IvyService ivyService = createIvyService(getResolveRepositoryHandler());
-                configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class, ivyService, instantiator, domainObjectContext, parent.get(ListenerManager.class));
+                configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class, ivyService, instantiator, domainObjectContext, parent.get(ListenerManager.class), dependencyMetaDataProvider);
             }
             return configurationContainer;
         }
@@ -198,17 +198,17 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     new EventBroadcastingIvyService(
                             new ShortcircuitEmptyConfigsIvyService(
                                     new DefaultIvyService(
-                                            dependencyMetaDataProvider,
                                             resolverProvider,
                                             parent.get(SettingsConverter.class),
-                                            parent.get(PublishModuleDescriptorConverter.class),
                                             parent.get(PublishModuleDescriptorConverter.class),
                                             fileModuleDescriptorConverter,
                                             new DefaultIvyFactory(),
                                             new SelfResolvingDependencyResolver(
                                                     new DefaultIvyDependencyResolver(
-                                                            new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))),
-                                            new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()),
+                                                            new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate),
+                                                            parent.get(PublishModuleDescriptorConverter.class))),
+                                            new DefaultIvyDependencyPublisher(
+                                                    new DefaultPublishOptionsFactory()),
                                             internalRepository, clientModuleRegistry))));
         }
     }

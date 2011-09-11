@@ -39,7 +39,7 @@ public class EventBroadcastingIvyService implements IvyService {
         }
     }
 
-    public void publish(Configuration configuration, File descriptorDestination) throws PublishException {
+    public void publish(ConfigurationInternal configuration, File descriptorDestination) throws PublishException {
         ivyService.publish(configuration, descriptorDestination);
     }
 }

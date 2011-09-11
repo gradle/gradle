@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.repositories.InternalRepository;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -57,24 +56,23 @@ public class DefaultIvyServiceResolveTest {
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
     private ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
     private IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
+    private IvyDependencyResolver ivyDependencyResolverMock = context.mock(IvyDependencyResolver.class);
+    private SettingsConverter settingsConverterMock = context.mock(SettingsConverter.class);
 
     // SUT
     private DefaultIvyService ivyService;
 
     @Before
     public void setUp() {
-        SettingsConverter settingsConverterMock = context.mock(SettingsConverter.class);
-        ModuleDescriptorConverter resolveModuleDescriptorConverterStub = context.mock(ModuleDescriptorConverter.class, "resolve");
         ModuleDescriptorConverter publishModuleDescriptorConverterDummy = context.mock(ModuleDescriptorConverter.class, "publish");
-        IvyDependencyResolver ivyDependencyResolverMock = context.mock(IvyDependencyResolver.class);
 
         context.checking(new Expectations() {{
             allowing(dependencyMetaDataProviderMock).getModule();
             will(returnValue(moduleDummy));
         }});
 
-        ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
-                settingsConverterMock, resolveModuleDescriptorConverterStub, publishModuleDescriptorConverterDummy,
+        ivyService = new DefaultIvyService(resolverProvider,
+                settingsConverterMock, publishModuleDescriptorConverterDummy,
                 publishModuleDescriptorConverterDummy,
                 ivyFactoryStub, ivyDependencyResolverMock,
                 context.mock(IvyDependencyPublisher.class), internalRepositoryDummy, clientModuleRegistryDummy);
@@ -85,7 +83,6 @@ public class DefaultIvyServiceResolveTest {
         final ConfigurationInternal configurationDummy = context.mock(ConfigurationInternal.class);
         final Set<? extends Configuration> configurations = WrapUtil.toSet(configurationDummy);
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
-        final ModuleDescriptor moduleDescriptorDummy = HelperUtil.createModuleDescriptor(WrapUtil.toSet("someConf"));
         final Ivy ivyStub = context.mock(Ivy.class);
         final IvySettings ivySettingsDummy = new IvySettings();
 
@@ -99,18 +96,13 @@ public class DefaultIvyServiceResolveTest {
             allowing(ivyStub).getSettings();
             will(returnValue(ivySettingsDummy));
 
-            allowing(ivyService.getDependencyResolver()).resolve(configurationDummy, ivyStub, moduleDescriptorDummy);
+            allowing(ivyDependencyResolverMock).resolve(configurationDummy, ivyStub);
             will(returnValue(resolvedConfiguration));
-
-            allowing(ivyService.getResolveModuleDescriptorConverter()).convert(WrapUtil.toSet(configurationDummy), moduleDummy,
-                    ivySettingsDummy);
-            will(returnValue(moduleDescriptorDummy));
 
             allowing(resolverProvider).getResolvers();
             will(returnValue(WrapUtil.toList(resolverMock)));
 
-            allowing(ivyService.getSettingsConverter()).convertForResolve(WrapUtil.toList(internalRepositoryDummy, resolverMock),
-                    clientModuleRegistryDummy);
+            allowing(settingsConverterMock).convertForResolve(WrapUtil.toList(internalRepositoryDummy, resolverMock), clientModuleRegistryDummy);
             will(returnValue(ivySettingsDummy));
         }});
 

@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ public class Upload extends ConventionTask {
     @TaskAction
     protected void upload() {
         logger.info("Publishing configuration: " + configuration);
-        ivyService.publish(configuration, isUploadDescriptor() ? getDescriptorDestination() : null);
+        ivyService.publish((ConfigurationInternal) configuration, isUploadDescriptor() ? getDescriptorDestination() : null);
     }
 
     /**

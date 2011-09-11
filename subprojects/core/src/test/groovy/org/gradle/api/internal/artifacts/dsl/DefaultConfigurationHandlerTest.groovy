@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import org.gradle.api.internal.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 
 /**
  * @author Hans Dockter
@@ -41,8 +42,9 @@ class DefaultConfigurationHandlerTest {
     private IvyService ivyService = context.mock(IvyService)
     private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class)
     private ListenerManager listenerManager = context.mock(ListenerManager.class)
+    private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class, ivyService, instantiator, { name -> name } as DomainObjectContext, listenerManager)
+    private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class, ivyService, instantiator, { name -> name } as DomainObjectContext, listenerManager, metaDataProvider)
 
     @Before
     public void setup() {

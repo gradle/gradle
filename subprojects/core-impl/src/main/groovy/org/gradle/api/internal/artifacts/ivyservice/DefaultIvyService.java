@@ -21,12 +21,12 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 
 import java.io.File;
@@ -42,30 +42,25 @@ import java.util.Set;
  */
 public class DefaultIvyService implements IvyService {
     private final SettingsConverter settingsConverter;
-    private final ModuleDescriptorConverter resolveModuleDescriptorConverter;
     private final ModuleDescriptorConverter publishModuleDescriptorConverter;
     private final ModuleDescriptorConverter fileModuleDescriptorConverter;
     private final IvyFactory ivyFactory;
     private final IvyDependencyResolver dependencyResolver;
     private final IvyDependencyPublisher dependencyPublisher;
-    private final DependencyMetaDataProvider metaDataProvider;
     private final ResolverProvider resolverProvider;
     private final DependencyResolver internalRepository;
     private final Map<String, ModuleDescriptor> clientModuleRegistry;
 
-    public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider,
+    public DefaultIvyService(ResolverProvider resolverProvider,
                              SettingsConverter settingsConverter,
-                             ModuleDescriptorConverter resolveModuleDescriptorConverter,
                              ModuleDescriptorConverter publishModuleDescriptorConverter,
                              ModuleDescriptorConverter fileModuleDescriptorConverter,
                              IvyFactory ivyFactory,
                              IvyDependencyResolver dependencyResolver,
                              IvyDependencyPublisher dependencyPublisher,
                              DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
-        this.metaDataProvider = metaDataProvider;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
-        this.resolveModuleDescriptorConverter = resolveModuleDescriptorConverter;
         this.publishModuleDescriptorConverter = publishModuleDescriptorConverter;
         this.fileModuleDescriptorConverter = fileModuleDescriptorConverter;
         this.ivyFactory = ivyFactory;
@@ -86,73 +81,32 @@ public class DefaultIvyService implements IvyService {
         return ivyFactory.createIvy(settingsConverter.convertForPublish(publishResolvers));
     }
 
-    public SettingsConverter getSettingsConverter() {
-        return settingsConverter;
-    }
-
-    public ModuleDescriptorConverter getResolveModuleDescriptorConverter() {
-        return resolveModuleDescriptorConverter;
-    }
-
-    public ModuleDescriptorConverter getPublishModuleDescriptorConverter() {
-        return publishModuleDescriptorConverter;
-    }
-
-    public ModuleDescriptorConverter getFileModuleDescriptorConverter() {
-        return fileModuleDescriptorConverter;
-    }
-
-    public IvyFactory getIvyFactory() {
-        return ivyFactory;
-    }
-
-    public DependencyMetaDataProvider getMetaDataProvider() {
-        return metaDataProvider;
-    }
-
-    public ResolverProvider getResolverProvider() {
-        return resolverProvider;
-    }
-
-    public IvyDependencyResolver getDependencyResolver() {
-        return dependencyResolver;
-    }
-
-    public IvyDependencyPublisher getDependencyPublisher() {
-        return dependencyPublisher;
-    }
-
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
         Ivy ivy = ivyForResolve(resolverProvider.getResolvers());
-        ModuleDescriptor moduleDescriptor = resolveModuleDescriptorConverter.convert(configuration.getAll(),
-                metaDataProvider.getModule(), ivy.getSettings());
-        return dependencyResolver.resolve(configuration, ivy, moduleDescriptor);
+        return dependencyResolver.resolve(configuration, ivy);
     }
 
-    public void publish(Configuration configuration, File descriptorDestination) throws PublishException {
-        publish(configuration.getHierarchy(), descriptorDestination, resolverProvider.getResolvers());
-    }
-
-    private void publish(Set<Configuration> configurationsToPublish, File descriptorDestination,
-                        List<DependencyResolver> publishResolvers) {
+    public void publish(ConfigurationInternal configuration, File descriptorDestination) throws PublishException {
+        List<DependencyResolver> publishResolvers = resolverProvider.getResolvers();
         Ivy ivy = ivyForPublish(publishResolvers);
+        Set<Configuration> configurationsToPublish = configuration.getHierarchy();
         Set<String> confs = Configurations.getNames(configurationsToPublish, false);
-        writeDescriptorFile(descriptorDestination, configurationsToPublish, ivy.getSettings());
+        writeDescriptorFile(descriptorDestination, configurationsToPublish, ivy.getSettings(), configuration.getModule());
         dependencyPublisher.publish(
                 confs,
                 publishResolvers,
-                publishModuleDescriptorConverter.convert(configurationsToPublish, metaDataProvider.getModule(), ivy.getSettings()),
+                publishModuleDescriptorConverter.convert(configurationsToPublish, configuration.getModule(), ivy.getSettings()),
                 descriptorDestination,
                 ivy.getPublishEngine());
     }
 
-    private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, IvySettings ivySettings) {
+    private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, IvySettings ivySettings, Module module) {
         if (descriptorDestination == null) {
             return;
         }
         assert configurationsToPublish.size() > 0;
         Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
-        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(allConfigurations, metaDataProvider.getModule(), ivySettings);
+        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(allConfigurations, module, ivySettings);
         try {
             moduleDescriptor.toIvyFile(descriptorDestination);
         } catch (ParseException e) {

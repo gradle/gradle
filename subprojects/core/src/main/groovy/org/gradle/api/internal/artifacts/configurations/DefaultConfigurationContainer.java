@@ -41,20 +41,22 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final Instantiator instantiator;
     private final DomainObjectContext context;
     private final ListenerManager listenerManager;
+    private final DependencyMetaDataProvider dependencyMetaDataProvider;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyService ivyService, Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager) {
+    public DefaultConfigurationContainer(IvyService ivyService, Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager, DependencyMetaDataProvider dependencyMetaDataProvider) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.ivyService = ivyService;
         this.instantiator = instantiator;
         this.context = context;
         this.listenerManager = listenerManager;
+        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
 
     @Override
     protected Configuration doCreate(String name) {
-        return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService, listenerManager);
+        return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService, listenerManager, dependencyMetaDataProvider);
     }
 
     // Override deprecated version from DomainObjectCollection (through AbstractNamedDomainObjectContainer)
@@ -92,8 +94,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     public Configuration detachedConfiguration(Dependency... dependencies) {
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
-        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(name, name,
-                detachedConfigurationsProvider, ivyService, listenerManager);
+        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(name, name, detachedConfigurationsProvider, ivyService, listenerManager, dependencyMetaDataProvider);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

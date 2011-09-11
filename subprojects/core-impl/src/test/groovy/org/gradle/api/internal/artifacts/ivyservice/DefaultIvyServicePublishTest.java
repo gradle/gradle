@@ -22,6 +22,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -56,11 +57,15 @@ public class DefaultIvyServicePublishTest {
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
     private ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
     private IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
+    private SettingsConverter settingsConverterStub = context.mock(SettingsConverter.class);
+    private IvyDependencyPublisher ivyDependencyPublisherMock = context.mock(IvyDependencyPublisher.class);
+    private ModuleDescriptorConverter publishModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "publishConverter");
+    private ModuleDescriptorConverter fileModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "fileConverter");
 
     @Test
     public void testPublish() throws IOException, ParseException {
         final IvySettings ivySettingsDummy = new IvySettings();
-        final Configuration configuration = context.mock(Configuration.class);
+        final ConfigurationInternal configuration = context.mock(ConfigurationInternal.class);
         final Set<Configuration> configurations = createConfiguration();
         final File someDescriptorDestination = new File("somePath");
         final List<DependencyResolver> publishResolversDummy = createPublishResolversDummy();
@@ -68,16 +73,18 @@ public class DefaultIvyServicePublishTest {
         final DefaultIvyService ivyService = createIvyService();
 
         setUpForPublish(configurations, publishResolversDummy, moduleDummy,
-                ivyService, ivySettingsDummy);
+                ivySettingsDummy);
 
         final Set<String> expectedConfigurations = Configurations.getNames(configurations, true);
         context.checking(new Expectations() {{
             allowing(configuration).getHierarchy();
             will(returnValue(configurations));
+            allowing(configuration).getModule();
+            will(returnValue(moduleDummy));
             allowing(resolverProvider).getResolvers();
             will(returnValue(publishResolversDummy));
             one(fileModuleDescriptorMock).toIvyFile(someDescriptorDestination);
-            one(ivyService.getDependencyPublisher()).publish(expectedConfigurations,
+            one(ivyDependencyPublisherMock).publish(expectedConfigurations,
                     publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, publishEngineDummy);
         }});
 
@@ -85,15 +92,10 @@ public class DefaultIvyServicePublishTest {
     }
 
     private DefaultIvyService createIvyService() {
-        SettingsConverter settingsConverterStub = context.mock(SettingsConverter.class);
-        ModuleDescriptorConverter resolveModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "resolve");
-        ModuleDescriptorConverter publishModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "publishConverter");
-        ModuleDescriptorConverter fileModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "fileConverter");
-        IvyDependencyPublisher ivyDependencyPublisherMock = context.mock(IvyDependencyPublisher.class);
         Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
 
-        return new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
-                settingsConverterStub, resolveModuleDescriptorConverter, publishModuleDescriptorConverter,
+        return new DefaultIvyService(resolverProvider,
+                settingsConverterStub, publishModuleDescriptorConverter,
                 fileModuleDescriptorConverter,
                 ivyFactoryStub, context.mock(IvyDependencyResolver.class),
                 ivyDependencyPublisherMock, internalRepositoryDummy, clientModuleRegistry);
@@ -130,29 +132,29 @@ public class DefaultIvyServicePublishTest {
 
     private void setUpForPublish(final Set<Configuration> configurations,
                                  final List<DependencyResolver> publishResolversDummy, final Module moduleDummy,
-                                 final DefaultIvyService ivyService, final IvySettings ivySettingsDummy) {
+                                 final IvySettings ivySettingsDummy) {
         context.checking(new Expectations() {{
             allowing(dependencyMetaDataProviderMock).getModule();
             will(returnValue(moduleDummy));
 
-            allowing(ivyService.getSettingsConverter()).convertForPublish(publishResolversDummy
+            allowing(settingsConverterStub).convertForPublish(publishResolversDummy
             );
             will(returnValue(ivySettingsDummy));
 
-            allowing(setUpIvyFactory(ivySettingsDummy, ivyService)).getPublishEngine();
+            allowing(setUpIvyFactory(ivySettingsDummy)).getPublishEngine();
             will(returnValue(publishEngineDummy));
 
-            allowing(ivyService.getPublishModuleDescriptorConverter()).convert(configurations,
+            allowing(publishModuleDescriptorConverter).convert(configurations,
                     moduleDummy, ivySettingsDummy);
             will(returnValue(publishModuleDescriptorDummy));
 
-            allowing(ivyService.getFileModuleDescriptorConverter()).convert(configurations,
+            allowing(fileModuleDescriptorConverter).convert(configurations,
                     moduleDummy, ivySettingsDummy);
             will(returnValue(fileModuleDescriptorMock));
         }});
     }
 
-    private Ivy setUpIvyFactory(final IvySettings ivySettingsDummy, DefaultIvyService ivyService) {
+    private Ivy setUpIvyFactory(final IvySettings ivySettingsDummy) {
         final Ivy ivyStub = context.mock(Ivy.class);
         context.checking(new Expectations() {{
             allowing(ivyFactoryStub).createIvy(ivySettingsDummy);

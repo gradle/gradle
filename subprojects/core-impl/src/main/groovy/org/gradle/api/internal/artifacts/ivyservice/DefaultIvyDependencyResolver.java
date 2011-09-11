@@ -25,6 +25,7 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.CachingDirectedGraphWalker;
 import org.gradle.api.internal.DirectedGraphWithEdgeValues;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.Clock;
@@ -40,16 +41,18 @@ import java.util.*;
  */
 public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyResolver.class);
+    private final ModuleDescriptorConverter moduleDescriptorConverter;
+    private final IvyReportConverter ivyReportTranslator;
 
-    private IvyReportConverter ivyReportTranslator;
-
-    public DefaultIvyDependencyResolver(IvyReportConverter ivyReportTranslator) {
+    public DefaultIvyDependencyResolver(IvyReportConverter ivyReportTranslator, ModuleDescriptorConverter moduleDescriptorConverter) {
         this.ivyReportTranslator = ivyReportTranslator;
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
         Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
-    public ResolvedConfiguration resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor) {
+    public ResolvedConfiguration resolve(ConfigurationInternal configuration, Ivy ivy) {
         Clock clock = new Clock();
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), ivy.getSettings());
         ResolveOptions resolveOptions = createResolveOptions(configuration);
         ResolveReport resolveReport;
         try {
