@@ -17,7 +17,6 @@ package org.gradle.integtests.openapi;
 
 import org.gradle.integtests.fixtures.GradleDistribution;
 import org.gradle.integtests.fixtures.RuleHelper;
-import org.gradle.openapi.external.ui.CommandLineArgumentAlteringListenerVersion1;
 import org.gradle.openapi.external.ui.DualPaneUIVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
 import org.gradle.openapi.external.ui.UIFactory;
@@ -29,7 +28,6 @@ import org.junit.runners.model.Statement;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -149,15 +147,4 @@ public class OpenApiFixture implements MethodRule {
         return frame;
     }
 
-    private static class ExtraTestCommandLineOptionsListener implements CommandLineArgumentAlteringListenerVersion1 {
-        private final File gradleUserHomeDir;
-
-        public ExtraTestCommandLineOptionsListener(File gradleUserHomeDir) {
-            this.gradleUserHomeDir = gradleUserHomeDir;
-        }
-
-        public String getAdditionalCommandLineArguments(String commandLineArguments) {
-            return String.format("--no-search-upward --gradle-user-home \'%s\'", gradleUserHomeDir);
-        }
-    }
 }
