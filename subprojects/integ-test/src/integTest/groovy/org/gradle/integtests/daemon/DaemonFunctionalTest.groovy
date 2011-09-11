@@ -65,7 +65,7 @@ class DaemonFunctionalTest extends Specification {
     def "daemons expire"() {
         when:
         prepare()
-        connector = new ExternalDaemonConnector(temp.testDir, 500, 5000) //0.5 sec expiry time
+        connector = new ExternalDaemonConnector(temp.testDir, 2000, 5000) //2000 sec expiry time
         def c = connect()
         c.dispatch(new Sleep(1000))
 
@@ -79,7 +79,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 2 }
 
         //after some time...
-        poll(2000) {
+        poll(5000) {
             assert reg.all.size() == 0
         }
     }
