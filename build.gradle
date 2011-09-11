@@ -72,6 +72,9 @@ libraries += [
     commons_httpclient: dependencies.module('commons-httpclient:commons-httpclient:3.0') {
         dependency libraries.jcl_to_slf4j
         dependency "commons-codec:commons-codec:1.2@jar"
+    },
+    maven_ant_tasks: dependencies.module("org.apache.maven:maven-ant-tasks:2.1.1") {
+        libraries.ant
     }
 ]
 

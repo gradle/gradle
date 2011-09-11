@@ -4,15 +4,21 @@ dependencies {
     groovy libraries.groovy
 
     compile project(":core")
-    compile libraries.guava
+
+    compile libraries.commons_httpclient
     compile libraries.commons_lang
+    compile libraries.commons_io
     compile libraries.ivy
-    compile "org.apache.maven:maven-ant-tasks:2.1.1@jar"
-    compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
-    compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
-    compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
-    compile 'org.jfrog.wharf:wharf-core:1.0-20110727083102@jar'
-    runtime 'com.esotericsoftware:kryo:1.03', 'com.esotericsoftware:minlog:1.2', 'com.googlecode:reflectasm:1.01', libraries.asm, libraries.ivy
+    compile libraries.slf4j_api
+    compile libraries.maven_ant_tasks
+    compile module('org.jfrog.wharf:wharf-core:1.0-20110727083102') {
+        dependency libraries.ivy
+        module('com.esotericsoftware:kryo:1.03') {
+            dependency 'com.esotericsoftware:minlog:1.2@jar'
+            dependency 'com.googlecode:reflectasm:1.01'
+            dependency libraries.asm
+        }
+    }
 
     testCompile libraries.junit
 }
