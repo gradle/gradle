@@ -184,6 +184,37 @@ task show << { println configurations.compile.files }
         failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\':')
     }
 
+    public void "uses all configured patterns to resolve artifacts and caches result"() {
+        server.start()
+
+        given:
+        def repo = ivyRepo()
+        def module = repo.module('group', 'projectA', '1.2')
+        module.publishArtifact()
+
+        buildFile << """
+repositories {
+    ivy {
+        artifactPattern "http://localhost:${server.port}/primary/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        artifactPattern "http://localhost:${server.port}/secondary/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task show << { println configurations.compile.files }
+"""
+
+        server.expectGet('/primary/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGetMissing('/primary/projectA/1.2/projectA-1.2.jar')
+        server.expectGet('/secondary/projectA/1.2/projectA-1.2.jar', module.jarFile)
+
+        expect:
+        succeeds('show')
+        succeeds('show')
+    }
+
     IvyRepository ivyRepo() {
         return new IvyRepository(file('ivy-repo'))
     }

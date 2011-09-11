@@ -141,4 +141,34 @@ uploadArchives {
         result.assertHasCause('Could not publish configuration \':archives\'.')
         result.assertHasCause('java.net.ConnectException: Connection refused')
     }
+
+        @Test
+        public void usesFirstConfiguredArtifactPatternForPublication() {
+            server.start()
+
+            dist.testFile("settings.gradle").text = 'rootProject.name = "publish"'
+            dist.testFile("build.gradle") << """
+    apply plugin: 'java'
+    version = '2'
+    group = 'org.gradle'
+    uploadArchives {
+        repositories {
+            ivy {
+                artifactPattern "http://localhost:${server.port}/primary/[module]/[artifact]-[revision].[ext]"
+                artifactPattern "http://localhost:${server.port}/alternative/[module]/[artifact]-[revision].[ext]"
+            }
+        }
+    }
+    """
+            def uploadedJar = dist.testFile('uploaded.jar')
+            def uploadedIvy = dist.testFile('uploaded.xml')
+            server.expectPut('/primary/publish/publish-2.jar', uploadedJar, HttpStatus.ORDINAL_200_OK)
+            server.expectPut('/primary/publish/ivy-2.xml', uploadedIvy, HttpStatus.ORDINAL_201_Created)
+
+            executer.withTasks("uploadArchives").run()
+
+            uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
+            uploadedIvy.assertIsFile()
+        }
+
 }

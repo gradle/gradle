@@ -22,12 +22,11 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultIvyArtifactRepository implements IvyArtifactRepository, ArtifactRepositoryInternal {
     private String name;
@@ -44,28 +43,39 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
         if (artifactPatterns.isEmpty()) {
             throw new InvalidUserDataException("You must specify at least one artifact pattern for an Ivy repository.");
         }
-        for (String artifactPattern : artifactPatterns) {
-            // get rid of the ivy [] token, as [ ] are not valid URI characters
-            int pos = artifactPattern.indexOf('[');
-            String basePath = pos < 0 ? artifactPattern : artifactPattern.substring(0, pos);
-            URI baseUri = resolver.resolveUri(basePath);
-            String pattern = pos < 0 ? "" : artifactPattern.substring(pos);
-            String absolutePattern = baseUri.toString() + pattern;
-            RepositoryResolver resolver;
-            if ("http".equalsIgnoreCase(baseUri.getScheme()) || "https".equalsIgnoreCase(baseUri.getScheme())) {
-                resolver = http();
-            } else if ("file".equalsIgnoreCase(baseUri.getScheme())) {
-                absolutePattern = baseUri.getPath() + '/' + pattern;
-                resolver = file();
-            } else {
-                resolver = url();
-            }
-            resolver.setName(name);
-            resolver.addArtifactPattern(absolutePattern);
-            resolver.addIvyPattern(absolutePattern);
+        List<ResolvedPattern> resolvedPatterns = resolvePatterns(artifactPatterns);
+        RepositoryResolver resolver = createResolver(resolvedPatterns);
+        resolver.setName(name);
 
-            resolvers.add(resolver);
+        for (ResolvedPattern resolvedPattern : resolvedPatterns) {
+            resolver.addArtifactPattern(resolvedPattern.absolutePattern);
+            resolver.addIvyPattern(resolvedPattern.absolutePattern);
         }
+        resolvers.add(resolver);
+    }
+
+    private List<ResolvedPattern> resolvePatterns(Set<String> artifactPatterns) {
+        List<ResolvedPattern> resolvedPatterns = new ArrayList<ResolvedPattern>();
+        for (String artifactPattern : artifactPatterns) {
+            ResolvedPattern pattern = new ResolvedPattern(artifactPattern);
+            resolvedPatterns.add(pattern);
+        }
+        return resolvedPatterns;
+    }
+
+    private RepositoryResolver createResolver(List<ResolvedPattern> patterns) {
+        Set<String> schemes = new HashSet<String>();
+        for (ResolvedPattern pattern : patterns) {
+            schemes.add(pattern.scheme);
+        }
+
+        if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
+            return http();
+        }
+        if (WrapUtil.toSet("file").containsAll(schemes)) {
+            return file();
+        }
+        return url();
     }
 
     private RepositoryResolver url() {
@@ -110,5 +120,25 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
 
     public void setUserName(String username) {
         this.username = username;
+    }
+
+    private class ResolvedPattern {
+        public final String scheme;
+        public final String absolutePattern;
+
+        public ResolvedPattern(String rawPattern) {
+            // get rid of the ivy [] token, as [ ] are not valid URI characters
+            int pos = rawPattern.indexOf('[');
+            String basePath = pos < 0 ? rawPattern : rawPattern.substring(0, pos);
+            URI baseUri = resolver.resolveUri(basePath);
+            scheme = baseUri.getScheme().toLowerCase();
+            String pattern = pos < 0 ? "" : rawPattern.substring(pos);
+            if ("file".equalsIgnoreCase(scheme)) {
+                absolutePattern = baseUri.getPath() + '/' + pattern;
+            }
+            else {
+                absolutePattern = baseUri.toString() + pattern;
+            }
+        }
     }
 }
