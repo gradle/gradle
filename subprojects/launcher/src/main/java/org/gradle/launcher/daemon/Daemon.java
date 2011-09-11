@@ -154,7 +154,9 @@ public class Daemon implements Runnable, Stoppable {
                 }
 
                 public void onStop() {
-                    daemonRegistry.remove(connectorAddress); // remove our presence to clients
+                    LOGGER.info("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
+                    daemonRegistry.remove(connectorAddress);
+                    LOGGER.info("Address removed from registry.");
                 }
 
             });
@@ -169,9 +171,13 @@ public class Daemon implements Runnable, Stoppable {
                         return;
                     }
 
-                    connector.stop(); // stop accepting new connections
-                    control.stop(); // wake up anyone waiting on our completion (i.e. )
+                    LOGGER.info("Received Stop request. Daemon is stopping accepting new connections...");
+                    connector.stop();
+                    LOGGER.info("Waking and signalling stop to the main daemon thread...");
+                    control.stop();
+                    LOGGER.info("Gracefully stopping the connection handling thread...");
                     handlersExecutor.stop(); // wait for any connection handlers to stop (though connector.stop() will have already waited for this)
+                    LOGGER.info("Daemon is stopped!");
                 }
             });
             
