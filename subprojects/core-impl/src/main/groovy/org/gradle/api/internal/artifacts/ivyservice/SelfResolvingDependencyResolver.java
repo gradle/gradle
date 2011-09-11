@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.Ivy;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
+import org.gradle.api.internal.artifacts.IvyDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -38,8 +38,8 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
         return resolver;
     }
 
-    public ResolvedConfiguration resolve(final ConfigurationInternal configuration, Ivy ivy) {
-        final ResolvedConfiguration resolvedConfiguration = resolver.resolve(configuration, ivy);
+    public ResolvedConfiguration resolve(final ConfigurationInternal configuration) {
+        final ResolvedConfiguration resolvedConfiguration = resolver.resolve(configuration);
         final Set<Dependency> dependencies = configuration.getAllDependencies();
 
         return new ResolvedConfiguration() {

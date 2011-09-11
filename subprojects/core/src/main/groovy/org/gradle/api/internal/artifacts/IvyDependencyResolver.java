@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.Ivy;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
@@ -23,5 +23,5 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
  * @author Hans Dockter
  */
 public interface IvyDependencyResolver {
-    ResolvedConfiguration resolve(ConfigurationInternal configuration, Ivy ivy);
+    ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException;
 }

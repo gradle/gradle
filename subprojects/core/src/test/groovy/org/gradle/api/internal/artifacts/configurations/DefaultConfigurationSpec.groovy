@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.configurations
 
-import org.gradle.api.internal.artifacts.IvyService
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
 import spock.lang.*
@@ -29,16 +28,17 @@ import org.gradle.api.Action
 import org.gradle.listener.ListenerManager
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.internal.artifacts.IvyDependencyResolver
 
 class DefaultConfigurationSpec extends Specification {
 
     ConfigurationsProvider configurationsProvider = Mock()
-    IvyService ivyService = Mock()
+    IvyDependencyResolver dependencyResolver = Mock()
     ListenerManager listenerManager = Mock()
     DependencyMetaDataProvider metaDataProvider = Mock()
 
     DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, ivyService, listenerManager, metaDataProvider)
+        new DefaultConfiguration(path, confName, configurationsProvider, dependencyResolver, listenerManager, metaDataProvider)
     }
 
     DefaultPublishArtifact artifact(String name) {
@@ -174,8 +174,8 @@ class DefaultConfigurationSpec extends Specification {
         files.files
 
         then:
-        1 * ivyService.resolve(config) >> resolvedConfig
-        0 * ivyService._
+        1 * dependencyResolver.resolve(config) >> resolvedConfig
+        0 * dependencyResolver._
     }
 
     def "incoming dependencies set depends on all self resolving dependencies"() {

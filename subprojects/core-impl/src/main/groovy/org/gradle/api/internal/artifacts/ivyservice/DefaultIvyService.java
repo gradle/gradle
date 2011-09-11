@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.IvyDependencyResolver;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
@@ -32,9 +33,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -48,8 +47,6 @@ public class DefaultIvyService implements IvyService {
     private final IvyDependencyResolver dependencyResolver;
     private final IvyDependencyPublisher dependencyPublisher;
     private final ResolverProvider resolverProvider;
-    private final DependencyResolver internalRepository;
-    private final Map<String, ModuleDescriptor> clientModuleRegistry;
 
     public DefaultIvyService(ResolverProvider resolverProvider,
                              SettingsConverter settingsConverter,
@@ -57,8 +54,7 @@ public class DefaultIvyService implements IvyService {
                              ModuleDescriptorConverter fileModuleDescriptorConverter,
                              IvyFactory ivyFactory,
                              IvyDependencyResolver dependencyResolver,
-                             IvyDependencyPublisher dependencyPublisher,
-                             DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
+                             IvyDependencyPublisher dependencyPublisher) {
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
         this.publishModuleDescriptorConverter = publishModuleDescriptorConverter;
@@ -66,15 +62,6 @@ public class DefaultIvyService implements IvyService {
         this.ivyFactory = ivyFactory;
         this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
-        this.internalRepository = internalRepository;
-        this.clientModuleRegistry = clientModuleRegistry;
-    }
-
-    private Ivy ivyForResolve(List<DependencyResolver> dependencyResolvers) {
-        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
-        resolvers.add(internalRepository);
-        resolvers.addAll(dependencyResolvers);
-        return ivyFactory.createIvy(settingsConverter.convertForResolve(resolvers, clientModuleRegistry));
     }
 
     private Ivy ivyForPublish(List<DependencyResolver> publishResolvers) {
@@ -82,8 +69,7 @@ public class DefaultIvyService implements IvyService {
     }
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
-        Ivy ivy = ivyForResolve(resolverProvider.getResolvers());
-        return dependencyResolver.resolve(configuration, ivy);
+        return dependencyResolver.resolve(configuration);
     }
 
     public void publish(ConfigurationInternal configuration, File descriptorDestination) throws PublishException {

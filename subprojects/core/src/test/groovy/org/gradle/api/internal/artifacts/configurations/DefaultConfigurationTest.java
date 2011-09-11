@@ -22,10 +22,10 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
-import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
+import org.gradle.api.internal.artifacts.IvyDependencyResolver;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -54,7 +54,7 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
-    private IvyService ivyServiceStub = context.mock(IvyService.class);
+    private IvyDependencyResolver dependencyResolver = context.mock(IvyDependencyResolver.class);
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
@@ -327,7 +327,7 @@ public class DefaultConfigurationTest {
 
     private void prepareResolve(final ResolvedConfiguration resolvedConfiguration, final boolean withErrors) {
         context.checking(new Expectations() {{
-            allowing(ivyServiceStub).resolve(configuration);
+            allowing(dependencyResolver).resolve(configuration);
             will(returnValue(resolvedConfiguration));
             allowing(resolvedConfiguration).hasError();
             will(returnValue(withErrors));
@@ -346,11 +346,11 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, confName, configurationContainer, ivyServiceStub, listenerManager, metaDataProvider);
+        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider);
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
-        return new DefaultConfiguration(path, confName, configurationContainer, ivyServiceStub, listenerManager, metaDataProvider);
+        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider);
     }
 
     @SuppressWarnings("unchecked")

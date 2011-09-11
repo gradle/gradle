@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
+import org.gradle.api.internal.artifacts.IvyDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
 import org.gradle.api.specs.Specs;
@@ -67,7 +68,7 @@ public class SelfResolvingDependencyResolverTest {
     @Test
     public void wrapsResolvedConfigurationProvidedByDelegate() {
         context.checking(new Expectations() {{
-            one(delegate).resolve(configuration, ivy);
+            one(delegate).resolve(configuration);
             will(returnValue(resolvedConfiguration));
             allowing(dependencies).iterator();
             will(returnIterator());
@@ -75,7 +76,7 @@ public class SelfResolvingDependencyResolverTest {
             will(returnValue(true));
         }});
 
-        ResolvedConfiguration configuration = resolver.resolve(this.configuration, ivy);
+        ResolvedConfiguration configuration = resolver.resolve(this.configuration);
         assertThat(configuration, not(sameInstance(resolvedConfiguration)));
 
         final File file = new File("file");
@@ -93,7 +94,7 @@ public class SelfResolvingDependencyResolverTest {
         final AbstractDependency dependency = context.mock(AbstractDependency.class);
 
         context.checking(new Expectations() {{
-            one(delegate).resolve(configuration, ivy);
+            one(delegate).resolve(configuration);
             will(returnValue(resolvedConfiguration));
             allowing(dependencies).iterator();
             will(returnIterator(dependency));
@@ -101,7 +102,7 @@ public class SelfResolvingDependencyResolverTest {
             will(returnValue(true));
         }});
 
-        ResolvedConfiguration actualResolvedConfiguration = resolver.resolve(this.configuration, ivy);
+        ResolvedConfiguration actualResolvedConfiguration = resolver.resolve(this.configuration);
         assertThat(actualResolvedConfiguration, not(sameInstance(resolvedConfiguration)));
 
         final File configFile = new File("from config");
@@ -135,7 +136,7 @@ public class SelfResolvingDependencyResolverTest {
     @Test
     public void testGetModuleDependencies() throws IOException, ParseException {
         context.checking(new Expectations() {{
-            one(delegate).resolve(configuration, ivy);
+            one(delegate).resolve(configuration);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).isTransitive();
             will(returnValue(true));
@@ -148,14 +149,14 @@ public class SelfResolvingDependencyResolverTest {
             will(returnValue(toSet(resolvedDependency)));
         }});
 
-        assertThat(resolver.resolve(this.configuration, ivy).getFirstLevelModuleDependencies(),
+        assertThat(resolver.resolve(this.configuration).getFirstLevelModuleDependencies(),
                 equalTo(toSet(resolvedDependency)));
     }
 
     @Test
     public void testGetResolvedArtifacts() {
         context.checking(new Expectations() {{
-            one(delegate).resolve(configuration, ivy);
+            one(delegate).resolve(configuration);
             will(returnValue(resolvedConfiguration));
             allowing(configuration).isTransitive();
             will(returnValue(true));
@@ -168,7 +169,7 @@ public class SelfResolvingDependencyResolverTest {
             will(returnValue(toSet(resolvedArtifact)));
         }});
 
-        assertThat(resolver.resolve(this.configuration, ivy).getResolvedArtifacts(),
+        assertThat(resolver.resolve(this.configuration).getResolvedArtifacts(),
                 equalTo(toSet(resolvedArtifact)));
     }
 

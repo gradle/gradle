@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.IvyDependencyResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.HelperUtil;
@@ -48,17 +48,12 @@ public class DefaultConfigurationContainerTest {
 
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
-    private IvyService ivyServiceDummy = context.mock(IvyService.class);
+    private IvyDependencyResolver dependencyResolver = context.mock(IvyDependencyResolver.class);
     private Instantiator instantiator = context.mock(Instantiator.class);
     private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class);
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy, instantiator, domainObjectContext, listenerManager, metaDataProvider);
-
-    @Test
-    public void init() {
-        assertThat(configurationContainer.getIvyService(), sameInstance(ivyServiceDummy));
-    }
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(dependencyResolver, instantiator, domainObjectContext, listenerManager, metaDataProvider);
 
     @Test
     public void testAdd() {
@@ -161,7 +156,7 @@ public class DefaultConfigurationContainerTest {
         context.checking(new Expectations() {{
             one(domainObjectContext).absoluteProjectPath(name);
             will(returnValue(name));
-            one(instantiator).newInstance(DefaultConfiguration.class, name, name, configurationContainer, ivyServiceDummy, listenerManager, metaDataProvider);
+            one(instantiator).newInstance(DefaultConfiguration.class, name, name, configurationContainer, dependencyResolver, listenerManager, metaDataProvider);
             will(returnValue(configuration));
             allowing(configuration).getName();
             will(returnValue(name));

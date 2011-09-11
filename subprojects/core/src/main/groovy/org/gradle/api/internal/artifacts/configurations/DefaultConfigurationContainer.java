@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.IvyDependencyResolver;
 import org.gradle.listener.ListenerManager;
 
 import java.util.Collection;
@@ -37,7 +37,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     
-    private final IvyService ivyService;
+    private final IvyDependencyResolver dependencyResolver;
     private final Instantiator instantiator;
     private final DomainObjectContext context;
     private final ListenerManager listenerManager;
@@ -45,9 +45,9 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyService ivyService, Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public DefaultConfigurationContainer(IvyDependencyResolver dependencyResolver, Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager, DependencyMetaDataProvider dependencyMetaDataProvider) {
         super(Configuration.class, instantiator, new Configuration.Namer());
-        this.ivyService = ivyService;
+        this.dependencyResolver = dependencyResolver;
         this.instantiator = instantiator;
         this.context = context;
         this.listenerManager = listenerManager;
@@ -56,7 +56,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
 
     @Override
     protected Configuration doCreate(String name) {
-        return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService, listenerManager, dependencyMetaDataProvider);
+        return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, dependencyResolver, listenerManager, dependencyMetaDataProvider);
     }
 
     // Override deprecated version from DomainObjectCollection (through AbstractNamedDomainObjectContainer)
@@ -87,14 +87,10 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
     }
 
-    public IvyService getIvyService() {
-        return ivyService;
-    }
-
     public Configuration detachedConfiguration(Dependency... dependencies) {
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
-        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(name, name, detachedConfigurationsProvider, ivyService, listenerManager, dependencyMetaDataProvider);
+        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(name, name, detachedConfigurationsProvider, dependencyResolver, listenerManager, dependencyMetaDataProvider);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

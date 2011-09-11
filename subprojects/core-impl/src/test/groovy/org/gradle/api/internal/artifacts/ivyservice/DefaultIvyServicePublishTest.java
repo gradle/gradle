@@ -22,11 +22,11 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.IvyDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -38,9 +38,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -53,7 +51,6 @@ public class DefaultIvyServicePublishTest {
     private ModuleDescriptor publishModuleDescriptorDummy = context.mock(ModuleDescriptor.class);
     private ModuleDescriptor fileModuleDescriptorMock = context.mock(ModuleDescriptor.class);
     private PublishEngine publishEngineDummy = context.mock(PublishEngine.class);
-    private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
     private ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
     private IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
@@ -92,13 +89,11 @@ public class DefaultIvyServicePublishTest {
     }
 
     private DefaultIvyService createIvyService() {
-        Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
-
         return new DefaultIvyService(resolverProvider,
                 settingsConverterStub, publishModuleDescriptorConverter,
                 fileModuleDescriptorConverter,
                 ivyFactoryStub, context.mock(IvyDependencyResolver.class),
-                ivyDependencyPublisherMock, internalRepositoryDummy, clientModuleRegistry);
+                ivyDependencyPublisherMock);
     }
 
     private List<DependencyResolver> createPublishResolversDummy() {
