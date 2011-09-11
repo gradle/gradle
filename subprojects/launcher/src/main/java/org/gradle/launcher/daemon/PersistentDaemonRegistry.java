@@ -78,6 +78,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public synchronized void remove(final Address address) {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
+                assertCacheNotEmpty(oldValue);
                 oldValue.removeStatus(address);
                 return oldValue;
             }
@@ -87,6 +88,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public synchronized void markBusy(final Address address) {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
+                assertCacheNotEmpty(oldValue);
                 DaemonStatus status = oldValue.getStatus(address);
                 status.setIdle(false);
                 return oldValue;
@@ -97,10 +99,17 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public synchronized void markIdle(final Address address) {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
+                assertCacheNotEmpty(oldValue);
                 oldValue.getStatus(address).setIdle(true);
                 return oldValue;
             }
         });
+    }
+
+    private void assertCacheNotEmpty(Object value) {
+        if (value == null) {
+            throw new EmptyRegistryException("Registry is empty!");
+        }
     }
 
     public synchronized void store(final Address address) {

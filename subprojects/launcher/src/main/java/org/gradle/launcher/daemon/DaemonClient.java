@@ -95,6 +95,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
     private void runStop(Stop stop, Connection<Object> connection) {
         try {
+            //TODO SF - this may fail.
             connection.dispatch(stop);
             try {
                 connection.receive();

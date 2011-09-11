@@ -33,4 +33,10 @@ public interface DaemonRegistry {
     void remove(Address address);
     void markBusy(Address address);
     void markIdle(Address address);
+
+    static class EmptyRegistryException extends RuntimeException {
+        public EmptyRegistryException(String message) {
+            super(message);
+        }
+    }
 }

@@ -118,6 +118,7 @@ public class Daemon implements Runnable, Stoppable {
                                 LOGGER.lifecycle("Stopping");
                                 connection.dispatch(new CommandComplete(null));
                                 stopLatch.countDown();
+                                stopperExecutor.stop();
                                 return;
                             }
 
@@ -141,24 +142,35 @@ public class Daemon implements Runnable, Stoppable {
 
             control.setActivityListener(new CompletionHandler.ActivityListener() {
                 public void onStartActivity() {
-                    daemonRegistry.markBusy(connectorAddress);
+                    try {
+                        daemonRegistry.markBusy(connectorAddress);
+                    } catch (DaemonRegistry.EmptyRegistryException e) {
+                        LOGGER.warn("Cannot mark daemon as busy because the registry is empty.");
+                    }
                 }
 
                 public void onCompleteActivity() {
-                    daemonRegistry.markIdle(connectorAddress);
+                    try {
+                        daemonRegistry.markIdle(connectorAddress);
+                    } catch (DaemonRegistry.EmptyRegistryException e) {
+                        LOGGER.warn("Cannot mark daemon as idle because the registry is empty.");
+                    }
                 }
 
                 public void onStart() {
-                    // Advertise that the daemon is now ready to accept connections
+                    LOGGER.info("Advertising the daemon address to the clients: " + connectorAddress);
                     daemonRegistry.store(connectorAddress);
                 }
 
                 public void onStop() {
                     LOGGER.info("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
-                    daemonRegistry.remove(connectorAddress);
+                    try {
+                        daemonRegistry.remove(connectorAddress);
+                    } catch (DaemonRegistry.EmptyRegistryException e) {
+                        LOGGER.warn("Cannot remove daemon from the registry because the registry is empty.");
+                    }
                     LOGGER.info("Address removed from registry.");
                 }
-
             });
 
             // Start a new thread to watch the stop latch
@@ -171,13 +183,10 @@ public class Daemon implements Runnable, Stoppable {
                         return;
                     }
 
-                    LOGGER.info("Received Stop request. Daemon is stopping accepting new connections...");
+                    LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
                     connector.stop();
                     LOGGER.info("Waking and signalling stop to the main daemon thread...");
                     control.stop();
-                    LOGGER.info("Gracefully stopping the connection handling thread...");
-                    handlersExecutor.stop(); // wait for any connection handlers to stop (though connector.stop() will have already waited for this)
-                    LOGGER.info("Daemon is stopped!");
                 }
             });
             

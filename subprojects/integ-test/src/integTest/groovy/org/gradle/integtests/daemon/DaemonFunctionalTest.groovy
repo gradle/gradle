@@ -51,9 +51,10 @@ class DaemonFunctionalTest extends Specification {
     def cleanup() {
         try {
             cleanMe*.stop()
-            //although daemons have very short idle timeout we will still stop them
+            //although daemons have very short idle timeout we could still stop them at the end of the test
             //this way the test has quicker rerunability but unfortunately will make every test break when there's a bug in stopping logic
-            new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+            //For now, let's just rely on the 10 secs. idle timeout.
+            //new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
         } finally {
             //daemon log will be printed only when the test fails
             //because for some reason passing test's cleanup is called after the temp folder rule cleans up
@@ -62,9 +63,12 @@ class DaemonFunctionalTest extends Specification {
     }
 
     @Timeout(20) //healthy timeout just in case
-    def "daemons expire"() {
-        when:
+    def "expired daemons are removed from registry"() {
+        //we could write a proper test for expiration and look if processes are finished.
+        //At the moment only windows build detects this potential problem because Windows is less forgiving :)
         prepare()
+
+        when:
         connector = new ExternalDaemonConnector(temp.testDir, 2000, 10000) //2000 sec expiry time
         def c = connect()
         c.dispatch(new Sleep(1000))
