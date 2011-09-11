@@ -16,7 +16,6 @@
 package org.gradle.integtests;
 
 import org.gradle.gradleplugin.foundation.CommandLineArgumentAlteringListener;
-import org.gradle.openapi.external.ui.CommandLineArgumentAlteringListenerVersion1;
 
 import java.io.File;
 
