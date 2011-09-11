@@ -21,17 +21,19 @@ configurations {
 dependencies {
     groovy libraries.groovy
 
-    compile project(':core'), project(':wrapper')
+    compile project(':core')
+    compile project(':wrapper')
 
-    compile libraries.slf4j_api,
-            libraries.commons_lang,
-            libraries.asm,
-            libraries.junit,
-            libraries.ant,
-            libraries.commons_io,
-            'org.testng:testng:5.14.10'
+    compile libraries.ant
+    compile libraries.asm
+    compile libraries.commons_io
+    compile libraries.commons_lang
+    compile libraries.junit
+    compile libraries.slf4j_api
+    compile 'org.testng:testng:5.14.10'
 
-    testCompile libraries.xmlunit, 'net.sourceforge.nekohtml:nekohtml:1.9.14'
+    testCompile libraries.xmlunit
+    testCompile 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 }
 
 evaluationDependsOn(":wrapper")

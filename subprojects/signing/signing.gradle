@@ -16,10 +16,14 @@
 
 dependencies {
     groovy libraries.groovy
+
     compile project(':core')
-    compile "org.bouncycastle:bcpg-jdk15:1.45"
     compile project(":plugins")
     compile project(":maven")
+
+    compile module("org.bouncycastle:bcpg-jdk15:1.45") {
+        dependency "org.bouncycastle:bcprov-jdk15:1.45"
+    }
 }
 
 useTestFixtures()

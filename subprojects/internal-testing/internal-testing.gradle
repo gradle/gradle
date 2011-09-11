@@ -22,5 +22,7 @@ dependencies {
 
     compile project(":core")
 
-    compile libraries.junit, libraries.jmock, libraries.spock
+    compile libraries.junit
+    compile libraries.jmock
+    compile libraries.spock
 }

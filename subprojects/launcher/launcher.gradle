@@ -10,7 +10,6 @@ dependencies {
     compile project(':toolingApi')
 
     compile libraries.jna
-
     compile libraries.slf4j_api
 
     startScriptGenerator project(':plugins')

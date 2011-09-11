@@ -41,43 +41,53 @@ startScriptsDir = new File("$buildDir/startScripts")
 archivesBaseName = 'gradle'
 
 libraries = [
-        ant: dependencies.module('org.apache.ant:ant:1.8.2') {
-            dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
-        },
-        asm: 'asm:asm-all:3.3.1@jar',
-        commons_io: 'commons-io:commons-io:1.4@jar',
-        commons_lang: 'commons-lang:commons-lang:2.6@jar',
-        commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
-        ivy: 'org.apache.ivy:ivy:2.2.0@jar',
-        jcip: "net.jcip:jcip-annotations:1.0@jar",
-        logback_core: 'ch.qos.logback:logback-core:0.9.29@jar',
-        slf4j_api: 'org.slf4j:slf4j-api:1.6.2@jar',
-]
-libraries += [
-    jcl_to_slf4j: dependencies.module('org.slf4j:jcl-over-slf4j:1.6.2') {
-        dependency libraries.slf4j_api
+    ant: dependencies.module('org.apache.ant:ant:1.8.2') {
+        dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
     },
-    jul_to_slf4j: dependencies.module('org.slf4j:jul-to-slf4j:1.6.2') {
-        dependency libraries.slf4j_api
-    },
-    log4j_to_slf4j: dependencies.module('org.slf4j:log4j-over-slf4j:1.6.2') {
-        dependency libraries.slf4j_api
-    },
-    logback_classic: dependencies.module('ch.qos.logback:logback-classic:0.9.29') {
-        dependency libraries.logback_core
-        dependency libraries.slf4j_api
-    }
-]
-libraries += [
-    commons_httpclient: dependencies.module('commons-httpclient:commons-httpclient:3.0') {
-        dependency libraries.jcl_to_slf4j
-        dependency "commons-codec:commons-codec:1.2@jar"
-    },
-    maven_ant_tasks: dependencies.module("org.apache.maven:maven-ant-tasks:2.1.1") {
-        libraries.ant
-    }
+    asm: 'asm:asm-all:3.3.1@jar',
+    commons_io: 'commons-io:commons-io:1.4@jar',
+    commons_lang: 'commons-lang:commons-lang:2.6@jar',
+    commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
+    ivy: 'org.apache.ivy:ivy:2.2.0@jar',
+    jcip: "net.jcip:jcip-annotations:1.0@jar",
 ]
 
+// Logging
+libraries.slf4j_api = 'org.slf4j:slf4j-api:1.6.2@jar'
+libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.6.2') {
+    dependency libraries.slf4j_api
+}
+libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.6.2') {
+    dependency libraries.slf4j_api
+}
+libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.6.2') {
+    dependency libraries.slf4j_api
+}
+libraries.logback_core = 'ch.qos.logback:logback-core:0.9.29@jar'
+libraries.logback_classic = dependencies.module('ch.qos.logback:logback-classic:0.9.29') {
+    dependency libraries.logback_core
+    dependency libraries.slf4j_api
+}
+
+// Jetty
+libraries.servlet_api = "org.mortbay.jetty:servlet-api:2.5-20081211@jar"
+libraries.jetty_util = dependencies.module("org.mortbay.jetty:jetty-util:6.1.25") {
+    dependency libraries.slf4j_api
+    dependency libraries.servlet_api
+}
+libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.25") {
+    dependency libraries.jetty_util
+    dependency libraries.servlet_api
+}
+
+libraries.commons_httpclient = dependencies.module('commons-httpclient:commons-httpclient:3.0') {
+    dependency libraries.jcl_to_slf4j
+    dependency "commons-codec:commons-codec:1.2@jar"
+}
+
+libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.1") {
+    libraries.ant
+}
 
 libraries += [
         ant_junit: 'org.apache.ant:ant-junit:1.8.2@jar',
@@ -104,9 +114,6 @@ libraries.jmock = ['org.jmock:jmock:2.5.1',
         'org.jmock:jmock-legacy:2.5.1',
         'org.objenesis:objenesis:1.2',
         'cglib:cglib-nodep:2.2']
-libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.25@jar",
-        "org.mortbay.jetty:jetty-util:6.1.25@jar",
-        "org.mortbay.jetty:servlet-api:2.5-20081211@jar"]
 
 allprojects {
     group = 'org.gradle'
