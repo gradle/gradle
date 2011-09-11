@@ -44,7 +44,7 @@ class DaemonFunctionalTest extends Specification {
     //cannot use setup() because temp folder will get the proper name
     def prepare() {
         //connector with short-lived daemons
-        connector = new ExternalDaemonConnector<PersistentDaemonRegistry>(temp.testDir, 10000, 5000)
+        connector = new ExternalDaemonConnector<PersistentDaemonRegistry>(temp.testDir, 10000, 10000)
         reg = connector.daemonRegistry
     }
 
@@ -61,11 +61,11 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(10) //healthy timeout just in case
+    @Timeout(20) //healthy timeout just in case
     def "daemons expire"() {
         when:
         prepare()
-        connector = new ExternalDaemonConnector(temp.testDir, 2000, 5000) //2000 sec expiry time
+        connector = new ExternalDaemonConnector(temp.testDir, 2000, 10000) //2000 sec expiry time
         def c = connect()
         c.dispatch(new Sleep(1000))
 
@@ -84,7 +84,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(10)
+    @Timeout(20)
     def "knows status of the daemon"() {
         when:
         prepare()
@@ -119,7 +119,7 @@ class DaemonFunctionalTest extends Specification {
         }
     }
 
-    @Timeout(10)
+    @Timeout(20)
     def "spins new daemon if all are busy"() {
         when:
         prepare()
@@ -146,7 +146,7 @@ class DaemonFunctionalTest extends Specification {
         assert reg.daemonDir.logs.size() == 2
     }
 
-    @Timeout(10)
+    @Timeout(20)
     def "cleans up registry"() {
         prepare()
 
@@ -162,7 +162,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(10)
+    @Timeout(20)
     def "stops idle daemon"() {
         prepare()
 
@@ -179,7 +179,7 @@ class DaemonFunctionalTest extends Specification {
         poll { assert reg.all.size() == 0 }
     }
 
-    @Timeout(10)
+    @Timeout(20)
     def "stops busy daemon"() {
         prepare()
 
@@ -202,7 +202,7 @@ class DaemonFunctionalTest extends Specification {
         poll(1000) { assert reg.all.size() == 0 }
     }
 
-    @Timeout(10)
+    @Timeout(20)
     def "stops all daemons"() {
         prepare()
 
