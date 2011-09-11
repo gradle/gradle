@@ -80,12 +80,12 @@ libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.25") {
     dependency libraries.servlet_api
 }
 
-libraries.commons_httpclient = dependencies.module('commons-httpclient:commons-httpclient:3.0') {
+libraries.commons_httpclient = dependencies.module('commons-httpclient:commons-httpclient:3.1') {
     dependency libraries.jcl_to_slf4j
     dependency "commons-codec:commons-codec:1.2@jar"
 }
 
-libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.1") {
+libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.3") {
     libraries.ant
 }
 
@@ -95,7 +95,7 @@ libraries += [
         antlr: 'antlr:antlr:2.7.7@jar',
         commons_cli: 'commons-cli:commons-cli:1.2@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
-        guava: 'com.google.guava:guava:r08@jar',
+        guava: 'com.google.guava:guava:r09@jar',
         groovy: 'org.codehaus.groovy:groovy-all:1.7.10@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0",
