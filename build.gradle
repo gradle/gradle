@@ -41,27 +41,51 @@ startScriptsDir = new File("$buildDir/startScripts")
 archivesBaseName = 'gradle'
 
 libraries = [
-        ant: 'org.apache.ant:ant:1.8.2@jar',
-        ant_junit: 'org.apache.ant:ant-junit:1.8.2@jar',
-        ant_launcher: 'org.apache.ant:ant-launcher:1.8.2@jar',
-        ant_antlr: 'org.apache.ant:ant-antlr:1.8.2@jar',
-        antlr: 'antlr:antlr:2.7.7@jar',
-        asm_all: 'asm:asm-all:3.3.1@jar',
-        commons_cli: 'commons-cli:commons-cli:1.2@jar',
+        ant: dependencies.module('org.apache.ant:ant:1.8.2') {
+            dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
+        },
+        asm: 'asm:asm-all:3.3.1@jar',
         commons_io: 'commons-io:commons-io:1.4@jar',
         commons_lang: 'commons-lang:commons-lang:2.6@jar',
+        commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
+        ivy: 'org.apache.ivy:ivy:2.2.0@jar',
+        jcip: "net.jcip:jcip-annotations:1.0@jar",
+        logback_core: 'ch.qos.logback:logback-core:0.9.29@jar',
+        slf4j_api: 'org.slf4j:slf4j-api:1.6.2@jar',
+]
+libraries += [
+    jcl_to_slf4j: dependencies.module('org.slf4j:jcl-over-slf4j:1.6.2') {
+        dependency libraries.slf4j_api
+    },
+    jul_to_slf4j: dependencies.module('org.slf4j:jul-to-slf4j:1.6.2') {
+        dependency libraries.slf4j_api
+    },
+    log4j_to_slf4j: dependencies.module('org.slf4j:log4j-over-slf4j:1.6.2') {
+        dependency libraries.slf4j_api
+    },
+    logback_classic: dependencies.module('ch.qos.logback:logback-classic:0.9.29') {
+        dependency libraries.logback_core
+        dependency libraries.slf4j_api
+    }
+]
+libraries += [
+    commons_httpclient: dependencies.module('commons-httpclient:commons-httpclient:3.0') {
+        dependency libraries.jcl_to_slf4j
+        dependency "commons-codec:commons-codec:1.2@jar"
+    }
+]
+
+
+libraries += [
+        ant_junit: 'org.apache.ant:ant-junit:1.8.2@jar',
+        ant_antlr: 'org.apache.ant:ant-antlr:1.8.2@jar',
+        antlr: 'antlr:antlr:2.7.7@jar',
+        commons_cli: 'commons-cli:commons-cli:1.2@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         guava: 'com.google.guava:guava:r08@jar',
         groovy: 'org.codehaus.groovy:groovy-all:1.7.10@jar',
-        ivy: 'org.apache.ivy:ivy:2.2.0@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
-        slf4j_api: 'org.slf4j:slf4j-api:1.6.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0",
-        jcl_to_slf4j: 'org.slf4j:jcl-over-slf4j:1.6.1@jar',
-        jul_to_slf4j: 'org.slf4j:jul-to-slf4j:1.6.1@jar',
-        log4j_to_slf4j: 'org.slf4j:log4j-over-slf4j:1.6.1@jar',
-        logback_classic: 'ch.qos.logback:logback-classic:0.9.28@jar',
-        logback_core: 'ch.qos.logback:logback-core:0.9.28@jar',
         jna: 'net.java.dev.jna:jna:3.2.2@jar',
         junit: 'junit:junit:4.8.2',
         xmlunit: 'xmlunit:xmlunit:1.3',

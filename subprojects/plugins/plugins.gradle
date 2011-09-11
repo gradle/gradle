@@ -25,7 +25,7 @@ dependencies {
 
     compile libraries.slf4j_api,
             libraries.commons_lang,
-            libraries.asm_all,
+            libraries.asm,
             libraries.junit,
             libraries.ant,
             libraries.commons_io,
