@@ -143,17 +143,23 @@ public class Daemon implements Runnable, Stoppable {
             control.setActivityListener(new CompletionHandler.ActivityListener() {
                 public void onStartActivity() {
                     try {
+                        LOGGER.info("Marking the daemon as busy, address: " + connectorAddress);
                         daemonRegistry.markBusy(connectorAddress);
                     } catch (DaemonRegistry.EmptyRegistryException e) {
                         LOGGER.warn("Cannot mark daemon as busy because the registry is empty.");
+                    } catch (Exception e) {
+                        LOGGER.error("Unable to mark busy", e);
                     }
                 }
 
                 public void onCompleteActivity() {
                     try {
+                        LOGGER.info("Marking the daemon as idle, address: " + connectorAddress);
                         daemonRegistry.markIdle(connectorAddress);
                     } catch (DaemonRegistry.EmptyRegistryException e) {
                         LOGGER.warn("Cannot mark daemon as idle because the registry is empty.");
+                    } catch (Exception e) {
+                        LOGGER.error("Unable to mark idle", e);
                     }
                 }
 

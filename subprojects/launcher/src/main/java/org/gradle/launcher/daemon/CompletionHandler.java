@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon;
 
+import org.gradle.api.logging.Logging;
 import org.gradle.launcher.protocol.BusyException;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.util.UncheckedException;
@@ -34,7 +35,7 @@ class CompletionHandler implements Stoppable {
     private final Condition condition = lock.newCondition();
     private boolean running;
     private boolean stopped;
-
+    private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(CompletionHandler.class);
     private long lastActivityAt = -1;
     private ActivityListener activityListener = new EmptyActivityListener();
 
@@ -116,6 +117,7 @@ class CompletionHandler implements Stoppable {
     public void stop() {
         lock.lock();
         try {
+            LOGGER.info("Stop requested. The daemon is running a build: " + running);
             stopped = true;
             activityListener.onStop();
             condition.signalAll();
