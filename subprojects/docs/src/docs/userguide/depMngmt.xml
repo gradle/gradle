@@ -486,7 +486,7 @@
             <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
                 <sourcefile file="build.gradle" snippet="ivy-repo"/>
             </sample>
-            <para>See <apilink class="org.gradle.api.artifacts.dsl.IvyArtifactRepository"/> for details.</para>
+            <para>See <apilink class="org.gradle.api.artifacts.repositories.IvyArtifactRepository"/> for details.</para>
             <section>
                 <title>Accessing password protected Ivy repositories</title>
                 <para>To access an Ivy repository which uses basic authentication, you specify the username and password to use when you define the repository:
