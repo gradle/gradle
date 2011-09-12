@@ -18,7 +18,6 @@ package org.gradle.api.publication.maven.internal;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.publication.maven.internal.ant.BaseMavenInstaller;
 import org.gradle.api.publication.maven.internal.ant.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.file.FileResolver;

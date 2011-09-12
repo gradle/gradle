@@ -17,7 +17,7 @@ package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.dsl.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
 /**
  * An {@link ArtifactRepository} which can be used to publish artifacts to Maven repositories.

@@ -19,7 +19,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;

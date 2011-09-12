@@ -19,9 +19,9 @@ package org.gradle.api.internal.artifacts.dsl
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
-import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository
-import org.gradle.api.artifacts.dsl.IvyArtifactRepository
-import org.gradle.api.artifacts.dsl.MavenArtifactRepository
+import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal

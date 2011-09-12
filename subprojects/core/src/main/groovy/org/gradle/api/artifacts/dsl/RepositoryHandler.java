@@ -19,6 +19,9 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
+import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 
 import java.util.Map;
 

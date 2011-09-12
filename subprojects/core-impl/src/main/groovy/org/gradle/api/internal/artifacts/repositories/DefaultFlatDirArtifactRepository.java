@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository;
+import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.dsl;
+package org.gradle.api.artifacts.repositories;
 
 /**
  * An artifact repository which uses an Ivy format to store artifacts and meta-data.

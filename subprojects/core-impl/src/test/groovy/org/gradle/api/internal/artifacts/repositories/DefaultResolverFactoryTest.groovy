@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.dsl.ArtifactRepository
+import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator

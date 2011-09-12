@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.dsl.ArtifactRepository;
-import org.gradle.api.artifacts.dsl.FlatDirectoryArtifactRepository;
-import org.gradle.api.artifacts.dsl.IvyArtifactRepository;
-import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 
 /**
  * @author Hans Dockter

@@ -16,7 +16,7 @@
 package org.gradle.api.publication.maven.internal
 
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider
+
 import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.gradle.api.artifacts.maven.PublishFilter

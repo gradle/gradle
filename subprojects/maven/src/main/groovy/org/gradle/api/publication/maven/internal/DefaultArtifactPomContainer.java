@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 
 import java.io.File;
 import java.util.HashMap;

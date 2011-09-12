@@ -22,7 +22,7 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.UnknownRepositoryException
-import org.gradle.api.artifacts.dsl.ArtifactRepository
+import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.util.JUnit4GroovyMockery

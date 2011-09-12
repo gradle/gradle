@@ -22,7 +22,7 @@ import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.apache.ivy.plugins.resolver.URLResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
-import org.gradle.api.artifacts.dsl.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GUtil;

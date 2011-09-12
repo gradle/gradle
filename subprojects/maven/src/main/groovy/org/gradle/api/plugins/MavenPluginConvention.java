@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
+import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.util.ConfigureUtil;
