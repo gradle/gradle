@@ -15,15 +15,14 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import groovy.lang.Closure;
+
 import java.net.URI;
 
 /**
  * An artifact repository which uses an Ivy format to store artifacts and meta-data.
  */
 public interface IvyArtifactRepository extends ArtifactRepository {
-    String DEFAULT_ARTIFACT_PATTERN
-            = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
-    String DEFAULT_IVY_PATTERN = DEFAULT_ARTIFACT_PATTERN;
 
     /**
      * Returns the user name to use when authenticating to this repository.
@@ -64,25 +63,40 @@ public interface IvyArtifactRepository extends ArtifactRepository {
      * Sets the base URL of this repository. The provided value is evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means,
      * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
      *
-     * Adding a base URL or path is shorthand for the following configuration:
-     *    artifactPattern "$base/{@link #DEFAULT_ARTIFACT_PATTERN}"
-     *    ivyPattern "$base/{@link #DEFAULT_IVY_PATTERN}"
+     * File are resolved based on the supplied URL and the configured {@link #layout(String)} for this repository.
      *
      * @param url The base URL.
      */
     void setUrl(Object url);
 
     /**
-     * Adds an Ivy artifact pattern to use to locate artifacts in this repository. This pattern will be in addition to any default patterns added via {@link #setUrl}.
+     * Adds an Ivy artifact pattern to use to locate artifacts in this repository. This pattern will be in addition to any layout-based patterns added via {@link #setUrl}.
      *
      * @param pattern The artifact pattern.
      */
     void artifactPattern(String pattern);
 
     /**
-     * Adds an Ivy pattern to use to locate ivy files in this repository. This pattern will be in addition to any default patterns added via {@link #setUrl}.
+     * Adds an Ivy pattern to use to locate ivy files in this repository. This pattern will be in addition to any layout-based patterns added via {@link #setUrl}.
      *
      * @param pattern The ivy pattern.
      */
     void ivyPattern(String pattern);
+
+    /**
+     * Specifies the layout to use with this repository, based on the root url.
+     * Valid values for layoutName are: 'gradle', 'maven', 'pattern'
+     *
+     * @param layoutName The name of the layout to use.
+     */
+    void layout(String layoutName);
+
+    /**
+     * Specifies the layout to use with this repository, based on the root url. The returned layout is configured with the supplied closure.
+     * Valid values for layoutName are 'gradle', 'maven', 'pattern'
+     *
+     * @param layoutName The name of the layout to use.
+     * @param config The closure used to configure the layout.
+     */
+    void layout(String layoutName, Closure config);
 }

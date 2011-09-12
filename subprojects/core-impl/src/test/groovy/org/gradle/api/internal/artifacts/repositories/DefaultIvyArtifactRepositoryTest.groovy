@@ -119,13 +119,12 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.artifactPatterns == ['http://host/[module]/[artifact]-[revision].[ext]', "file:${file.path}/[organisation]/[artifact]-[revision].[ext]"] as List
     }
 
-
-    def "uses default patterns with specified url"() {
+    def "uses gradle patterns with specified url and default layout"() {
         repository.name = 'name'
         repository.url = 'http://host'
 
         given:
-        fileResolver.resolveUri('http://host') >> new URI('http://host')
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
 
         when:
         def resolvers = []
@@ -141,12 +140,13 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"] as List
     }
 
-    def "uses artifact pattern for ivy files when no ivy pattern provided"() {
+    def "uses maven patterns with specified url and maven layout"() {
         repository.name = 'name'
-        repository.artifactPattern 'pattern1'
+        repository.url = 'http://host'
+        repository.layout 'maven'
 
         given:
-        fileResolver.resolveUri('pattern1') >> new URI('scheme:resource1')
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
 
         when:
         def resolvers = []
@@ -155,9 +155,82 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof URLResolver
+        resolver instanceof RepositoryResolver
+        resolver.repository instanceof CommonsHttpClientBackedRepository
         resolver.name == 'name'
-        resolver.artifactPatterns == ['scheme:resource1'] as List
+        resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
+        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
+        resolver.m2compatible
+    }
+
+    def "uses specified base url with configured pattern layout"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        repository.layout 'pattern', {
+            artifact '[module]/[revision]/[artifact](.[ext])'
+            ivy '[module]/[revision]/ivy.xml'
+        }
+
+        given:
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+
+        when:
+        def resolvers = []
+        repository.createResolvers(resolvers)
+
+        then:
+        resolvers.size() == 1
+        def resolver = resolvers[0]
+        resolver instanceof RepositoryResolver
+        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver.name == 'name'
+        resolver.artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])'] as List
+        resolver.ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"] as List
+    }
+
+    def "combines layout patterns with additionally specified patterns"() {
+        repository.name = 'name'
+        repository.url = 'http://host/'
+        repository.artifactPattern 'http://host/[other]/artifact'
+        repository.ivyPattern 'http://host/[other]/ivy'
+
+        given:
+        fileResolver.resolveUri('http://host/') >> new URI('http://host/')
+
+        when:
+        def resolvers = []
+        repository.createResolvers(resolvers)
+
+        then:
+        resolvers.size() == 1
+        def resolver = resolvers[0]
+        resolver instanceof RepositoryResolver
+        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver.name == 'name'
+        resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'http://host/[other]/artifact'] as List
+        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])", 'http://host/[other]/ivy'] as List
+    }
+
+    def "uses artifact pattern for ivy files when no ivy pattern provided"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        repository.layout 'pattern', {
+            artifact '[layoutPattern]'
+        }
+        repository.artifactPattern 'http://other/[additionalPattern]'
+
+        given:
+        fileResolver.resolveUri('http://host') >> new URI('http://host')
+        fileResolver.resolveUri('http://other/') >> new URI('http://other/')
+
+        when:
+        def resolvers = []
+        repository.createResolvers(resolvers)
+
+        then:
+        resolvers.size() == 1
+        def resolver = resolvers[0]
+        resolver.artifactPatterns == ['http://host/[layoutPattern]', 'http://other/[additionalPattern]'] as List
         resolver.ivyPatterns == resolver.artifactPatterns
     }
 
