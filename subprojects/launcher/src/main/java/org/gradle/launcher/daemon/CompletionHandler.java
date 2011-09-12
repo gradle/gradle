@@ -41,6 +41,7 @@ class CompletionHandler implements Stoppable, CompletionAware {
 
     public CompletionHandler setActivityListener(ActivityListener activityListener) {
         assert activityListener != null;
+        //TODO SF wrap the listener into something 100% safe
         this.activityListener = activityListener;
         return this;
     }

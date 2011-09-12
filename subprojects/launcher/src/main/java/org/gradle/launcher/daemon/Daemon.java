@@ -108,32 +108,12 @@ public class Daemon implements Runnable, Stoppable {
                     //This means that the Daemon potentially can do multiple things but we only allows a single build at a time
                     handlersExecutor.execute(new Runnable() {
                         public void run() {
-                            Command command = (Command) connection.receive();
-                            if (command == null) {
-                                LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
-                                connection.stop(); //TODO SF why do we need to stop the connection here and there?
-                                return;
-                            }
-                            if (command instanceof Stop) {
-                                LOGGER.lifecycle("Stopping");
-                                connection.dispatch(new CommandComplete(null));
-                                stopLatch.countDown();
-                                stopperExecutor.stop();
-                                return;
-                            }
-
                             try {
-                                control.onStartActivity();
-                            } catch (BusyException e) {
-                                LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
-                                connection.dispatch(new CommandComplete(e));
-                                return;
-                            }
-                            try {
-                                doRun(connection, control, command);
-                            } finally {
-                                control.onActivityComplete();
-                                connection.stop();
+                                handleIncoming(connection);
+                            } catch (RuntimeException e) {
+                                LOGGER.error("Error processing the incoming command.", e);
+                                //TODO SF figure out if we can use our executor's exception handler.
+                                throw e; //in case the default exception handler needs it.
                             }
                         }
                     });
@@ -167,6 +147,36 @@ public class Daemon implements Runnable, Stoppable {
             stopLatch.countDown();
         } finally {
             lifecycleLock.unlock();
+        }
+    }
+
+    private void handleIncoming(Connection<Object> connection) {
+        Command command = (Command) connection.receive();
+        if (command == null) {
+            LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
+            connection.stop(); //TODO SF why do we need to stop the connection here and there?
+            return;
+        }
+        if (command instanceof Stop) {
+            LOGGER.lifecycle("Stopping");
+            connection.dispatch(new CommandComplete(null));
+            stopLatch.countDown();
+            stopperExecutor.stop();
+            return;
+        }
+
+        try {
+            control.onStartActivity();
+        } catch (BusyException e) {
+            LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
+            connection.dispatch(new CommandComplete(e));
+            return;
+        }
+        try {
+            doRun(connection, command);
+        } finally {
+            control.onActivityComplete();
+            connection.stop();
         }
     }
 
@@ -209,7 +219,7 @@ public class Daemon implements Runnable, Stoppable {
         awaitStop();
     }
 
-    private void doRun(final Connection<Object> connection, CompletionHandler serverControl, Command command) {
+    private void doRun(final Connection<Object> connection, Command command) {
         CommandComplete result = null;
         Throwable failure = null;
         try {
