@@ -46,6 +46,9 @@ class CacheProjectIntegrationTest {
 
     @Before
     public void setUp() {
+        // Use own home dir so we don't blast the shared one when we run with -C rebuild
+        dist.requireOwnUserHomeDir()
+
         String version = GradleVersion.current().version
         projectDir = dist.getTestDir().file("project")
         projectDir.mkdirs()

@@ -42,6 +42,9 @@ class IncrementalJavaProjectBuildIntegrationTest {
 
     @Test
     public void doesNotRebuildJarIfSourceHasNotChanged() {
+        // Use own home dir so we don't blast the shared one when we run with -C rebuild
+        distribution.requireOwnUserHomeDir()
+
         distribution.testFile("src/main/java/BuildClass.java") << 'public class BuildClass { }'
         distribution.testFile("build.gradle") << "apply plugin: 'java'"
         distribution.testFile("settings.gradle") << "rootProject.name = 'project'"
