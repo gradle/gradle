@@ -140,44 +140,7 @@ public class Daemon implements Runnable, Stoppable {
                 }
             });
 
-            control.setActivityListener(new CompletionHandler.ActivityListener() {
-                public void onStartActivity() {
-                    try {
-                        LOGGER.info("Marking the daemon as busy, address: " + connectorAddress);
-                        daemonRegistry.markBusy(connectorAddress);
-                    } catch (DaemonRegistry.EmptyRegistryException e) {
-                        LOGGER.warn("Cannot mark daemon as busy because the registry is empty.");
-                    } catch (Exception e) {
-                        LOGGER.error("Unable to mark busy", e);
-                    }
-                }
-
-                public void onCompleteActivity() {
-                    try {
-                        LOGGER.info("Marking the daemon as idle, address: " + connectorAddress);
-                        daemonRegistry.markIdle(connectorAddress);
-                    } catch (DaemonRegistry.EmptyRegistryException e) {
-                        LOGGER.warn("Cannot mark daemon as idle because the registry is empty.");
-                    } catch (Exception e) {
-                        LOGGER.error("Unable to mark idle", e);
-                    }
-                }
-
-                public void onStart() {
-                    LOGGER.info("Advertising the daemon address to the clients: " + connectorAddress);
-                    daemonRegistry.store(connectorAddress);
-                }
-
-                public void onStop() {
-                    LOGGER.info("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
-                    try {
-                        daemonRegistry.remove(connectorAddress);
-                    } catch (DaemonRegistry.EmptyRegistryException e) {
-                        LOGGER.warn("Cannot remove daemon from the registry because the registry is empty.");
-                    }
-                    LOGGER.info("Address removed from registry.");
-                }
-            });
+            control.setActivityListener(new DomainRegistryUpdater(daemonRegistry, connectorAddress));
 
             // Start a new thread to watch the stop latch
             stopperExecutor.execute(new Runnable() {
@@ -307,4 +270,5 @@ public class Daemon implements Runnable, Stoppable {
         Object result = new EnvironmentAwareExecuter(executer).executeBuild((Build) command);
         return new Result(result);
     }
+
 }
