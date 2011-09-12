@@ -108,7 +108,8 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
         Spec<FileDescriptor> terminalDetector;
         if (detectConsole) {
             StartParameter startParameter = new StartParameter();
-            terminalDetector = new TerminalDetector(startParameter.getGradleUserHomeDir());
+            JnaBootPathConfigurer jnaConfigurer = new JnaBootPathConfigurer(startParameter.getGradleUserHomeDir());
+            terminalDetector = new TerminalDetectorFactory().create(jnaConfigurer);
         } else {
             terminalDetector = Specs.satisfyNone();
         }
