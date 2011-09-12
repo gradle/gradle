@@ -16,22 +16,16 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultIvyArtifactRepository implements IvyArtifactRepository, ArtifactRepositoryInternal {
     private String name;
@@ -73,7 +67,7 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
             resolvedPatterns.add(new ResolvedPattern(getUrl(), defaultPattern));
         }
         for (String artifactPattern : rawPatterns) {
-            ResolvedPattern pattern = new ResolvedPattern(artifactPattern);
+            ResolvedPattern pattern = new ResolvedPattern(artifactPattern, fileResolver);
             resolvedPatterns.add(pattern);
         }
         return resolvedPatterns;
@@ -105,15 +99,11 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
     }
 
     private RepositoryResolver file() {
-        FileSystemResolver resolver = new FileSystemResolver();
-        resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
-        return resolver;
+        return new LocalFileSystemResolver(name);
     }
 
     private RepositoryResolver http() {
-        RepositoryResolver resolver = new RepositoryResolver();
-        resolver.setRepository(new CommonsHttpClientBackedRepository(username, password));
-        return resolver;
+        return new CommonsHttpClientResolver(username, password);
     }
 
     public String getName() {
@@ -156,11 +146,11 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
         ivyPatterns.add(pattern);
     }
 
-    private class ResolvedPattern {
+    private static class ResolvedPattern {
         public final String scheme;
         public final String absolutePattern;
 
-        public ResolvedPattern(String rawPattern) {
+        public ResolvedPattern(String rawPattern, FileResolver fileResolver) {
             // get rid of the ivy [] token, as [ ] are not valid URI characters
             int pos = rawPattern.indexOf('[');
             String basePath = pos < 0 ? rawPattern : rawPattern.substring(0, pos);
@@ -175,15 +165,8 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
             absolutePattern = constructAbsolutePattern(baseUri, pattern);
         }
 
-        private String constructAbsolutePattern(URI baseUri, String pattern) {
-            if ("file".equalsIgnoreCase(scheme)) {
-                return constructAbsolutePattern(baseUri.getPath(), pattern);
-            } else {
-                return constructAbsolutePattern(baseUri.toString(), pattern);
-            }
-        }
-
-        private String constructAbsolutePattern(String uriPart, String patternPart) {
+        private String constructAbsolutePattern(URI baseUri, String patternPart) {
+            String uriPart = baseUri.toString();
             String join = uriPart.endsWith("/") || patternPart.length() == 0 ? "" : "/";
             return uriPart + join + patternPart;
         }

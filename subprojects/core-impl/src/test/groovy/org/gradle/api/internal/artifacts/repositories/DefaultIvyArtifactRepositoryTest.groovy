@@ -116,7 +116,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = resolvers[0]
         resolver instanceof URLResolver
         resolver.name == 'name'
-        resolver.artifactPatterns == ['http://host/[module]/[artifact]-[revision].[ext]', "${file.path}/[organisation]/[artifact]-[revision].[ext]"] as List
+        resolver.artifactPatterns == ['http://host/[module]/[artifact]-[revision].[ext]', "file:${file.path}/[organisation]/[artifact]-[revision].[ext]"] as List
     }
 
 
