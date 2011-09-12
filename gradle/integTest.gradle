@@ -61,8 +61,6 @@ integTestTasks.all {
         systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
         systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
         systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
-        // TODO - remove this once wharf is behaving itself
-        delete "$integTestUserDir/worker-1"
     }
 }
 
