@@ -35,25 +35,29 @@ class DomainRegistryUpdater implements CompletionHandler.ActivityListener {
         this.connectorAddress = connectorAddress;
     }
 
-    public void onStartActivity() {
+    public void onStartActivity(CompletionAware completionAware) {
+        LOGGER.info("Marking the daemon as busy, address: " + connectorAddress);
+        if (completionAware.isStopped()) {
+            LOGGER.info("The daemon was stopped so it's no longer in the registry. We will not update the registry.");
+            return;
+        }
         try {
-            LOGGER.info("Marking the daemon as busy, address: " + connectorAddress);
             daemonRegistry.markBusy(connectorAddress);
         } catch (DaemonRegistry.EmptyRegistryException e) {
             LOGGER.warn("Cannot mark daemon as busy because the registry is empty.");
-        } catch (Exception e) {
-            LOGGER.error("Unable to mark busy", e);
         }
     }
 
-    public void onCompleteActivity() {
+    public void onCompleteActivity(CompletionAware completionAware) {
+        LOGGER.info("Marking the daemon as idle, address: " + connectorAddress);
+        if (completionAware.isStopped()) {
+            LOGGER.info("The daemon was stopped so it's no longer in the registry. We will not update the registry.");
+            return;
+        }
         try {
-            LOGGER.info("Marking the daemon as idle, address: " + connectorAddress);
             daemonRegistry.markIdle(connectorAddress);
         } catch (DaemonRegistry.EmptyRegistryException e) {
             LOGGER.warn("Cannot mark daemon as idle because the registry is empty.");
-        } catch (Exception e) {
-            LOGGER.error("Unable to mark idle", e);
         }
     }
 

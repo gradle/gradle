@@ -29,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * synchronizes the daemon server work
 */
-class CompletionHandler implements Stoppable {
+class CompletionHandler implements Stoppable, CompletionAware {
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
@@ -133,7 +133,7 @@ class CompletionHandler implements Stoppable {
                 throw new BusyException();
             }
             running = true;
-            activityListener.onStartActivity();
+            activityListener.onStartActivity(this);
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -145,7 +145,7 @@ class CompletionHandler implements Stoppable {
         try {
             running = false;
             updateActivityTimestamp();
-            activityListener.onCompleteActivity();
+            activityListener.onCompleteActivity(this);
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -156,17 +156,25 @@ class CompletionHandler implements Stoppable {
         lastActivityAt = System.currentTimeMillis();
     }
 
+    public boolean isStopped() {
+        return stopped;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
     static interface ActivityListener {
         void onStart();
         void onStop();
-        void onStartActivity();
-        void onCompleteActivity();
+        void onStartActivity(CompletionAware completionAware);
+        void onCompleteActivity(CompletionAware completionAware);
     }
 
     static class EmptyActivityListener implements ActivityListener {
         public void onStart() {}
         public void onStop() {}
-        public void onStartActivity() {}
-        public void onCompleteActivity() {}
+        public void onStartActivity(CompletionAware completionAware) {}
+        public void onCompleteActivity(CompletionAware completionAware) {}
     }
 }
