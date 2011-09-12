@@ -53,4 +53,11 @@ public interface IvyArtifactRepository extends ArtifactRepository {
      * @param pattern The artifact pattern.
      */
     void artifactPattern(String pattern);
+
+    /**
+     * Adds an Ivy pattern to use to locate ivy files in this repository.
+     *
+     * @param pattern The artifact pattern.
+     */
+    void ivyPattern(String pattern);
 }

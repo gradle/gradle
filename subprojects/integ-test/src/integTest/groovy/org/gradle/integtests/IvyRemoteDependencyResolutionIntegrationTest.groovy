@@ -33,7 +33,7 @@ class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSp
         module.publishArtifact()
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/ivy.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
         server.start()
 
@@ -42,6 +42,7 @@ class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSp
 repositories {
     ivy {
         artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        ivyPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/ivy.xml"
     }
 }
 configurations { compile }
@@ -69,10 +70,10 @@ task listJars << {
         module2.publishArtifact()
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module1.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/ivy.xml', module1.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module1.jarFile)
-        server.expectGetMissing('/repo/group/projectB/1.3/ivy-1.3.xml')
-        server.expectGet('/repo2/group/projectB/1.3/ivy-1.3.xml', module2.ivyFile)
+        server.expectGetMissing('/repo/group/projectB/1.3/ivy.xml')
+        server.expectGet('/repo2/group/projectB/1.3/ivy.xml', module2.ivyFile)
         server.expectGet('/repo2/group/projectB/1.3/projectB-1.3.jar', module2.jarFile)
 
         // TODO - this shouldn't happen - it's already found B's ivy.xml on repo2
@@ -86,9 +87,11 @@ task listJars << {
 repositories {
     ivy {
         artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        ivyPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/ivy.xml"
     }
     ivy {
         artifactPattern "http://localhost:${server.port}/repo2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        ivyPattern "http://localhost:${server.port}/repo2/[organisation]/[module]/[revision]/ivy.xml"
     }
 }
 configurations { compile }
@@ -105,7 +108,7 @@ task listJars << {
 
 //        given:
         // TODO - it should not be doing these
-        server.expectGetMissing('/repo/group/projectB/1.3/ivy-1.3.xml')
+        server.expectGetMissing('/repo/group/projectB/1.3/ivy.xml')
         server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
         server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
 
@@ -122,7 +125,7 @@ task listJars << {
         module.publishArtifact()
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/ivy.xml', 'username', 'password', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
         server.start()
 
@@ -133,6 +136,7 @@ repositories {
         userName 'username'
         password 'password'
         artifactPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        ivyPattern "http://localhost:${server.port}/repo/[organisation]/[module]/[revision]/ivy.xml"
     }
 }
 configurations { compile }
@@ -156,6 +160,7 @@ task listJars << {
 repositories {
     ivy {
         artifactPattern "http://localhost:${server.port}/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        ivyPattern "http://localhost:${server.port}/[module]/[revision]/ivy.xml"
     }
 }
 configurations { compile }
@@ -166,7 +171,7 @@ task show << { println configurations.compile.files }
 """
 
         when:
-        server.expectGetMissing('/org/1.2/ivy-1.2.xml')
+        server.expectGetMissing('/org/1.2/ivy.xml')
         server.expectGetMissing('/org/1.2/org-1.2.jar')
         fails("show")
 
@@ -197,6 +202,8 @@ repositories {
     ivy {
         artifactPattern "http://localhost:${server.port}/primary/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
         artifactPattern "http://localhost:${server.port}/secondary/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        ivyPattern "http://localhost:${server.port}/primary/[module]/[revision]/ivy.xml"
+        ivyPattern "http://localhost:${server.port}/secondary/[module]/[revision]/ivy.xml"
     }
 }
 configurations { compile }
@@ -206,8 +213,9 @@ dependencies {
 task show << { println configurations.compile.files }
 """
 
-        server.expectGet('/primary/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGetMissing('/primary/projectA/1.2/ivy.xml')
         server.expectGetMissing('/primary/projectA/1.2/projectA-1.2.jar')
+        server.expectGet('/secondary/projectA/1.2/ivy.xml', module.ivyFile)
         server.expectGet('/secondary/projectA/1.2/projectA-1.2.jar', module.jarFile)
 
         expect:

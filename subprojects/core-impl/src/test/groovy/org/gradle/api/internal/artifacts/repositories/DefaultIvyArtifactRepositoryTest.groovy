@@ -30,10 +30,12 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.artifactPattern 'pattern1'
         repository.artifactPattern 'pattern2'
+        repository.ivyPattern 'ivyPattern'
 
         given:
         fileResolver.resolveUri('pattern1') >> new URI('scheme:resource1')
         fileResolver.resolveUri('pattern2') >> new URI('scheme:resource2')
+        fileResolver.resolveUri('ivyPattern') >> new URI('scheme:ivyFile')
 
         when:
         def resolvers = []
@@ -45,15 +47,18 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver instanceof URLResolver
         resolver.name == 'name'
         resolver.artifactPatterns == ['scheme:resource1', 'scheme:resource2'] as List
+        resolver.ivyPatterns == ['scheme:ivyFile'] as List
     }
 
     def "creates a resolver for HTTP patterns"() {
         repository.name = 'name'
         repository.artifactPattern 'http://host/[organisation]/[artifact]-[revision].[ext]'
-        repository.artifactPattern 'http://host/[module]/[artifact]-[revision].[ext]'
+        repository.artifactPattern 'http://other/[module]/[artifact]-[revision].[ext]'
+        repository.ivyPattern 'http://host/[module]/ivy-[revision].xml'
 
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
+        fileResolver.resolveUri('http://other/') >> new URI('http://other/')
 
         when:
         def resolvers = []
@@ -65,13 +70,15 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver instanceof RepositoryResolver
         resolver.repository instanceof CommonsHttpClientBackedRepository
         resolver.name == 'name'
-        resolver.artifactPatterns == ['http://host/[organisation]/[artifact]-[revision].[ext]', 'http://host/[module]/[artifact]-[revision].[ext]'] as List
+        resolver.artifactPatterns == ['http://host/[organisation]/[artifact]-[revision].[ext]', 'http://other/[module]/[artifact]-[revision].[ext]'] as List
+        resolver.ivyPatterns == ['http://host/[module]/ivy-[revision].xml'] as List
     }
 
     def "creates a resolver for file patterns"() {
         repository.name = 'name'
         repository.artifactPattern 'repo/[organisation]/[artifact]-[revision].[ext]'
         repository.artifactPattern 'repo/[organisation]/[module]/[artifact]-[revision].[ext]'
+        repository.ivyPattern 'repo/[organisation]/[module]/ivy-[revision].xml'
         def file = new File("test").toURI()
 
         given:
@@ -87,6 +94,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver instanceof FileSystemResolver
         resolver.name == 'name'
         resolver.artifactPatterns == ["${file.path}/[organisation]/[artifact]-[revision].[ext]", "${file.path}/[organisation]/[module]/[artifact]-[revision].[ext]"] as List
+        resolver.ivyPatterns == ["${file.path}/[organisation]/[module]/ivy-[revision].xml"] as List
     }
 
     def "creates a URL resolver for mixed patterns"() {
@@ -109,6 +117,26 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver instanceof URLResolver
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[module]/[artifact]-[revision].[ext]', "${file.path}/[organisation]/[artifact]-[revision].[ext]"] as List
+    }
+
+    def "uses artifact pattern for ivy files when no ivy pattern provided"() {
+        repository.name = 'name'
+        repository.artifactPattern 'pattern1'
+
+        given:
+        fileResolver.resolveUri('pattern1') >> new URI('scheme:resource1')
+
+        when:
+        def resolvers = []
+        repository.createResolvers(resolvers)
+
+        then:
+        resolvers.size() == 1
+        def resolver = resolvers[0]
+        resolver instanceof URLResolver
+        resolver.name == 'name'
+        resolver.artifactPatterns == ['scheme:resource1'] as List
+        resolver.ivyPatterns == resolver.artifactPatterns
     }
 
     def "fails when no artifact patterns specified"() {

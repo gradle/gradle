@@ -26,13 +26,18 @@ import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultIvyArtifactRepository implements IvyArtifactRepository, ArtifactRepositoryInternal {
     private String name;
     private String username;
     private String password;
     private final Set<String> artifactPatterns = new LinkedHashSet<String>();
+    private final Set<String> ivyPatterns = new LinkedHashSet<String>();
     private final FileResolver resolver;
 
     public DefaultIvyArtifactRepository(FileResolver resolver) {
@@ -43,13 +48,18 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
         if (artifactPatterns.isEmpty()) {
             throw new InvalidUserDataException("You must specify at least one artifact pattern for an Ivy repository.");
         }
-        List<ResolvedPattern> resolvedPatterns = resolvePatterns(artifactPatterns);
-        RepositoryResolver resolver = createResolver(resolvedPatterns);
+        List<ResolvedPattern> resolvedArtifactPatterns = resolvePatterns(artifactPatterns);
+        List<ResolvedPattern> resolvedIvyPatterns = ivyPatterns.isEmpty() ? resolvedArtifactPatterns : resolvePatterns(ivyPatterns);
+        Set<String> schemes = getUniqueSchemes(resolvedArtifactPatterns, resolvedIvyPatterns);
+
+        RepositoryResolver resolver = createResolver(schemes);
         resolver.setName(name);
 
-        for (ResolvedPattern resolvedPattern : resolvedPatterns) {
+        for (ResolvedPattern resolvedPattern : resolvedArtifactPatterns) {
             resolver.addArtifactPattern(resolvedPattern.absolutePattern);
-            resolver.addIvyPattern(resolvedPattern.absolutePattern);
+        }
+        for (ResolvedPattern resolvedIvyPattern : resolvedIvyPatterns) {
+            resolver.addIvyPattern(resolvedIvyPattern.absolutePattern);
         }
         resolvers.add(resolver);
     }
@@ -63,12 +73,7 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
         return resolvedPatterns;
     }
 
-    private RepositoryResolver createResolver(List<ResolvedPattern> patterns) {
-        Set<String> schemes = new HashSet<String>();
-        for (ResolvedPattern pattern : patterns) {
-            schemes.add(pattern.scheme);
-        }
-
+    private RepositoryResolver createResolver(Set<String> schemes) {
         if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
             return http();
         }
@@ -76,6 +81,17 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
             return file();
         }
         return url();
+    }
+
+    private Set<String> getUniqueSchemes(List<ResolvedPattern> patterns, List<ResolvedPattern> ivyPatterns) {
+        Set<String> schemes = new LinkedHashSet<String>();
+        for (ResolvedPattern pattern : patterns) {
+            schemes.add(pattern.scheme);
+        }
+        for (ResolvedPattern pattern : ivyPatterns) {
+            schemes.add(pattern.scheme);
+        }
+        return schemes;
     }
 
     private RepositoryResolver url() {
@@ -96,6 +112,10 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
 
     public void artifactPattern(String pattern) {
         artifactPatterns.add(pattern);
+    }
+
+    public void ivyPattern(String pattern) {
+        ivyPatterns.add(pattern);
     }
 
     public String getName() {
@@ -135,8 +155,7 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
             String pattern = pos < 0 ? "" : rawPattern.substring(pos);
             if ("file".equalsIgnoreCase(scheme)) {
                 absolutePattern = baseUri.getPath() + '/' + pattern;
-            }
-            else {
+            } else {
                 absolutePattern = baseUri.toString() + pattern;
             }
         }
