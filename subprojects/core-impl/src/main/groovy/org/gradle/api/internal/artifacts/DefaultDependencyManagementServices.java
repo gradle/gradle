@@ -124,10 +124,14 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 projectDependencyFactory);
     }
 
-    private SettingsConverter createSettingsConverter() {
+    protected SettingsConverter createSettingsConverter() {
         return new DefaultSettingsConverter(
                 get(ProgressLoggerFactory.class),
                 new IvySettingsFactory(get(CacheRepository.class)));
+    }
+
+    protected IvyFactory createIvyFactory() {
+        return  new DefaultIvyFactory();
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
@@ -194,8 +198,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
                     new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
             InternalRepository internalRepository = new DefaultInternalRepository(projectFinder, parent.get(ModuleDescriptorConverter.class));
-            IvyFactory ivyFactory = new DefaultIvyFactory();
-            Factory<Ivy> resolveIvyFactory = new ResolveIvyFactory(ivyFactory, resolverProvider, parent.get(SettingsConverter.class), internalRepository, clientModuleRegistry);
+            Factory<Ivy> resolveIvyFactory = new ResolveIvyFactory(parent.get(IvyFactory.class), resolverProvider, parent.get(SettingsConverter.class), internalRepository, clientModuleRegistry);
 
             return new ErrorHandlingIvyService(
                     new EventBroadcastingIvyService(
@@ -205,7 +208,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                             parent.get(SettingsConverter.class),
                                             parent.get(PublishModuleDescriptorConverter.class),
                                             fileModuleDescriptorConverter,
-                                            ivyFactory,
+                                            parent.get(IvyFactory.class),
                                             new SelfResolvingDependencyResolver(
                                                     new DefaultIvyDependencyResolver(
                                                             new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate),
