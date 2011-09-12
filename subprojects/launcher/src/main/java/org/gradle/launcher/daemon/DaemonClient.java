@@ -21,7 +21,10 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.BuildActionParameters;
 import org.gradle.launcher.GradleLauncherActionExecuter;
-import org.gradle.launcher.protocol.*;
+import org.gradle.launcher.protocol.Build;
+import org.gradle.launcher.protocol.BusyException;
+import org.gradle.launcher.protocol.CommandComplete;
+import org.gradle.launcher.protocol.Result;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
@@ -65,9 +68,10 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             return;
         }
 
+        LOGGER.lifecycle("At least one daemon is running. Sending stop command...");
         //iterate and stop all daemons
         while (connection != null) {
-            runStop(new Stop(clientMetaData), connection);
+            new StopDispatcher().dispatch(clientMetaData, connection);
             LOGGER.lifecycle("Gradle daemon stopped.");
             connection = connector.maybeConnect();
         }
@@ -90,20 +94,6 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             } catch (BusyException e) {
                 //ignore. We'll continue looping until we get a connection that is able handle a build request.
             }
-        }
-    }
-
-    private void runStop(Stop stop, Connection<Object> connection) {
-        try {
-            //TODO SF - this may fail.
-            connection.dispatch(stop);
-            try {
-                connection.receive();
-            } catch (Exception e) {
-                LOGGER.info("After sending stop command to the daemon we couldn't receive a message. The daemon is already stopped.");
-            }
-        } finally {
-            connection.stop();
         }
     }
 

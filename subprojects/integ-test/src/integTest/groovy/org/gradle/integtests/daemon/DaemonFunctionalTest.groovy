@@ -58,7 +58,7 @@ class DaemonFunctionalTest extends Specification {
         } finally {
             //daemon log will be printed only when the test fails
             //because for some reason passing test's cleanup is called after the temp folder rule cleans up
-//            printDaemonLog()
+            printDaemonLog()
         }
     }
 
@@ -235,7 +235,6 @@ class DaemonFunctionalTest extends Specification {
 
         then:
         poll { assert reg.all.size() == 0 }
-        printDaemonLog()
     }
 
     private Connection<Object> connect() {
