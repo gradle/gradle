@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
@@ -36,20 +37,22 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
     private String name;
     private String username;
     private String password;
+    private Object baseUrl;
     private final Set<String> artifactPatterns = new LinkedHashSet<String>();
     private final Set<String> ivyPatterns = new LinkedHashSet<String>();
-    private final FileResolver resolver;
+    private final FileResolver fileResolver;
 
-    public DefaultIvyArtifactRepository(FileResolver resolver) {
-        this.resolver = resolver;
+    public DefaultIvyArtifactRepository(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
     }
 
     public void createResolvers(Collection<DependencyResolver> resolvers) {
-        if (artifactPatterns.isEmpty()) {
-            throw new InvalidUserDataException("You must specify at least one artifact pattern for an Ivy repository.");
+        List<ResolvedPattern> resolvedArtifactPatterns = resolvePatterns(artifactPatterns, DEFAULT_ARTIFACT_PATTERN);
+        List<ResolvedPattern> resolvedIvyPatterns = GUtil.elvis(resolvePatterns(ivyPatterns, DEFAULT_IVY_PATTERN), resolvedArtifactPatterns);
+        if (resolvedArtifactPatterns.isEmpty()) {
+            throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
         }
-        List<ResolvedPattern> resolvedArtifactPatterns = resolvePatterns(artifactPatterns);
-        List<ResolvedPattern> resolvedIvyPatterns = ivyPatterns.isEmpty() ? resolvedArtifactPatterns : resolvePatterns(ivyPatterns);
+
         Set<String> schemes = getUniqueSchemes(resolvedArtifactPatterns, resolvedIvyPatterns);
 
         RepositoryResolver resolver = createResolver(schemes);
@@ -64,9 +67,12 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
         resolvers.add(resolver);
     }
 
-    private List<ResolvedPattern> resolvePatterns(Set<String> artifactPatterns) {
+    private List<ResolvedPattern> resolvePatterns(Set<String> rawPatterns, String defaultPattern) {
         List<ResolvedPattern> resolvedPatterns = new ArrayList<ResolvedPattern>();
-        for (String artifactPattern : artifactPatterns) {
+        if (baseUrl != null) {
+            resolvedPatterns.add(new ResolvedPattern(getUrl(), defaultPattern));
+        }
+        for (String artifactPattern : rawPatterns) {
             ResolvedPattern pattern = new ResolvedPattern(artifactPattern);
             resolvedPatterns.add(pattern);
         }
@@ -110,14 +116,6 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
         return resolver;
     }
 
-    public void artifactPattern(String pattern) {
-        artifactPatterns.add(pattern);
-    }
-
-    public void ivyPattern(String pattern) {
-        ivyPatterns.add(pattern);
-    }
-
     public String getName() {
         return name;
     }
@@ -142,6 +140,22 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
         this.username = username;
     }
 
+    public URI getUrl() {
+        return fileResolver.resolveUri(baseUrl);
+    }
+
+    public void setUrl(Object url) {
+        baseUrl = url;
+    }
+
+    public void artifactPattern(String pattern) {
+        artifactPatterns.add(pattern);
+    }
+
+    public void ivyPattern(String pattern) {
+        ivyPatterns.add(pattern);
+    }
+
     private class ResolvedPattern {
         public final String scheme;
         public final String absolutePattern;
@@ -150,14 +164,28 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
             // get rid of the ivy [] token, as [ ] are not valid URI characters
             int pos = rawPattern.indexOf('[');
             String basePath = pos < 0 ? rawPattern : rawPattern.substring(0, pos);
-            URI baseUri = resolver.resolveUri(basePath);
-            scheme = baseUri.getScheme().toLowerCase();
+            URI baseUri = fileResolver.resolveUri(basePath);
             String pattern = pos < 0 ? "" : rawPattern.substring(pos);
+            scheme = baseUri.getScheme().toLowerCase();
+            absolutePattern = constructAbsolutePattern(baseUri, pattern);
+        }
+
+        public ResolvedPattern(URI baseUri, String pattern) {
+            scheme = baseUri.getScheme().toLowerCase();
+            absolutePattern = constructAbsolutePattern(baseUri, pattern);
+        }
+
+        private String constructAbsolutePattern(URI baseUri, String pattern) {
             if ("file".equalsIgnoreCase(scheme)) {
-                absolutePattern = baseUri.getPath() + '/' + pattern;
+                return constructAbsolutePattern(baseUri.getPath(), pattern);
             } else {
-                absolutePattern = baseUri.toString() + pattern;
+                return constructAbsolutePattern(baseUri.toString(), pattern);
             }
+        }
+
+        private String constructAbsolutePattern(String uriPart, String patternPart) {
+            String join = uriPart.endsWith("/") || patternPart.length() == 0 ? "" : "/";
+            return uriPart + join + patternPart;
         }
     }
 }

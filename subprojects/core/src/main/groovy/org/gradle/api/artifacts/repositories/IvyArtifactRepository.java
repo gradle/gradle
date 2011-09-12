@@ -15,10 +15,16 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import java.net.URI;
+
 /**
  * An artifact repository which uses an Ivy format to store artifacts and meta-data.
  */
 public interface IvyArtifactRepository extends ArtifactRepository {
+    String DEFAULT_ARTIFACT_PATTERN
+            = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
+    String DEFAULT_IVY_PATTERN = DEFAULT_ARTIFACT_PATTERN;
+
     /**
      * Returns the user name to use when authenticating to this repository.
      *
@@ -48,16 +54,35 @@ public interface IvyArtifactRepository extends ArtifactRepository {
     void setPassword(String password);
 
     /**
-     * Adds an Ivy artifact pattern to use to locate artifacts in this repository.
+     * The base URL of this repository.
+     *
+     * @return The URL.
+     */
+    URI getUrl();
+
+    /**
+     * Sets the base URL of this repository. The provided value is evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means,
+     * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
+     *
+     * Adding a base URL or path is shorthand for the following configuration:
+     *    artifactPattern "$base/{@link #DEFAULT_ARTIFACT_PATTERN}"
+     *    ivyPattern "$base/{@link #DEFAULT_IVY_PATTERN}"
+     *
+     * @param url The base URL.
+     */
+    void setUrl(Object url);
+
+    /**
+     * Adds an Ivy artifact pattern to use to locate artifacts in this repository. This pattern will be in addition to any default patterns added via {@link #setUrl}.
      *
      * @param pattern The artifact pattern.
      */
     void artifactPattern(String pattern);
 
     /**
-     * Adds an Ivy pattern to use to locate ivy files in this repository.
+     * Adds an Ivy pattern to use to locate ivy files in this repository. This pattern will be in addition to any default patterns added via {@link #setUrl}.
      *
-     * @param pattern The artifact pattern.
+     * @param pattern The ivy pattern.
      */
     void ivyPattern(String pattern);
 }

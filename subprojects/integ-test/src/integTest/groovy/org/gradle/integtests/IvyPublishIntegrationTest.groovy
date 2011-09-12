@@ -41,8 +41,7 @@ group = 'org.gradle'
 uploadArchives {
     repositories {
         ivy {
-            artifactPattern "build/repo/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
-            ivyPattern "build/repo/[organisation]/[module]/[revision]/ivy.xml"
+            url "build/repo/"
         }
     }
 }
@@ -50,7 +49,7 @@ uploadArchives {
         executer.withTasks("uploadArchives").run()
 
         def uploadedJar = dist.testFile('build/repo/org.gradle/publish/2/publish-2.jar')
-        def uploadedIvy = dist.testFile('build/repo/org.gradle/publish/2/ivy.xml')
+        def uploadedIvy = dist.testFile('build/repo/org.gradle/publish/2/ivy-2.xml')
         uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
         uploadedIvy.assertIsFile()
     }
@@ -67,8 +66,7 @@ group = 'org.gradle'
 uploadArchives {
     repositories {
         ivy {
-            artifactPattern "http://localhost:${server.port}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
-            ivyPattern "http://localhost:${server.port}/[organisation]/[module]/[revision]/ivy.xml"
+            url "http://localhost:${server.port}"
         }
     }
 }
@@ -76,7 +74,7 @@ uploadArchives {
         def uploadedJar = dist.testFile('uploaded.jar')
         def uploadedIvy = dist.testFile('uploaded.xml')
         server.expectPut('/org.gradle/publish/2/publish-2.jar', uploadedJar, HttpStatus.ORDINAL_200_OK)
-        server.expectPut('/org.gradle/publish/2/ivy.xml', uploadedIvy, HttpStatus.ORDINAL_201_Created)
+        server.expectPut('/org.gradle/publish/2/ivy-2.xml', uploadedIvy, HttpStatus.ORDINAL_201_Created)
 
         executer.withTasks("uploadArchives").run()
 
@@ -98,8 +96,7 @@ uploadArchives {
         ivy {
             userName 'user'
             password 'password'
-            artifactPattern "http://localhost:${server.port}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
-            ivyPattern "http://localhost:${server.port}/[organisation]/[module]/[revision]/ivy.xml"
+            url "http://localhost:${server.port}"
         }
     }
 }
@@ -108,7 +105,7 @@ uploadArchives {
         def uploadedJar = dist.testFile('uploaded.jar')
         def uploadedIvy = dist.testFile('uploaded.xml')
         server.expectPut('/org.gradle/publish/2/publish-2.jar', 'user', 'password', uploadedJar)
-        server.expectPut('/org.gradle/publish/2/ivy.xml', 'user', 'password', uploadedIvy)
+        server.expectPut('/org.gradle/publish/2/ivy-2.xml', 'user', 'password', uploadedIvy)
 
         executer.withTasks("uploadArchives").run()
 
@@ -126,7 +123,7 @@ apply plugin: 'java'
 uploadArchives {
     repositories {
         ivy {
-            artifactPattern "http://localhost:${server.port}/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+            url "http://localhost:${server.port}"
         }
     }
 }

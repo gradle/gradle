@@ -119,6 +119,28 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.artifactPatterns == ['http://host/[module]/[artifact]-[revision].[ext]', "${file.path}/[organisation]/[artifact]-[revision].[ext]"] as List
     }
 
+
+    def "uses default patterns with specified url"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+
+        given:
+        fileResolver.resolveUri('http://host') >> new URI('http://host')
+
+        when:
+        def resolvers = []
+        repository.createResolvers(resolvers)
+
+        then:
+        resolvers.size() == 1
+        def resolver = resolvers[0]
+        resolver instanceof RepositoryResolver
+        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver.name == 'name'
+        resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
+        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"] as List
+    }
+
     def "uses artifact pattern for ivy files when no ivy pattern provided"() {
         repository.name = 'name'
         repository.artifactPattern 'pattern1'
@@ -145,6 +167,6 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == 'You must specify at least one artifact pattern for an Ivy repository.'
+        e.message == 'You must specify a base url or at least one artifact pattern for an Ivy repository.'
     }
 }
