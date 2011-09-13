@@ -25,14 +25,13 @@ import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
+import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -40,6 +39,7 @@ import java.util.Map;
 public class DefaultSettingsConverter implements SettingsConverter {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final Factory<IvySettings> settingsFactory;
+    private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
@@ -87,7 +87,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
             initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain));
         }
         replaceResolvers(dependencyResolvers, userResolverChain);
-        initializeResolvers(resolveSettings, dependencyResolvers);
         resolveSettings.setDefaultResolver(outerChain.getName());
         return resolveSettings;
     }
@@ -115,14 +114,29 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return chainResolver;
     }
 
-    private void replaceResolvers(List<DependencyResolver> classpathResolvers, ChainResolver chainResolver) {
+    private void replaceResolvers(List<DependencyResolver> resolvers, ChainResolver chainResolver) {
         Collection<DependencyResolver> oldResolvers = new ArrayList<DependencyResolver>(chainResolver.getResolvers());
         for (DependencyResolver resolver : oldResolvers) {
             resolveSettings.getResolvers().remove(resolver);
             chainResolver.getResolvers().remove(resolver);
         }
-        for (DependencyResolver classpathResolver : classpathResolvers) {
-            chainResolver.add(classpathResolver);
+        for (DependencyResolver resolver : resolvers) {
+            resolver.setSettings(resolveSettings);
+            DependencyResolver sharedResolver;
+            if (resolver instanceof InternalRepository) {
+                sharedResolver = resolver;
+            } else {
+                String id = new WharfResolverMetadata(resolver).getId();
+                sharedResolver = resolversById.get(id);
+                if (sharedResolver == null) {
+                    initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
+                    assert resolveSettings.getResolver(resolver.getName()) == resolver;
+                    resolversById.put(id, resolver);
+                    sharedResolver = resolver;
+                }
+            }
+            resolveSettings.addResolver(sharedResolver);
+            chainResolver.add(sharedResolver);
         }
     }
 
