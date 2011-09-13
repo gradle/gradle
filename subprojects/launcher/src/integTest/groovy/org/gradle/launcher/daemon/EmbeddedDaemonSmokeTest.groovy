@@ -24,6 +24,8 @@ import org.gradle.tooling.internal.provider.ConfiguringBuildAction
 import org.gradle.tooling.internal.provider.ExecuteBuildAction
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.launcher.daemon.client.EmbeddedDaemonConnector
+import org.gradle.launcher.daemon.client.DaemonClient
 
 /**
  * Exercises the basic mechanics using an embedded daemon.

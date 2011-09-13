@@ -21,7 +21,7 @@ import org.gradle.launcher.BuildActionParameters;
 import org.gradle.launcher.DefaultBuildActionParameters;
 import org.gradle.launcher.GradleLauncherActionExecuter;
 import org.gradle.launcher.ReportedException;
-import org.gradle.launcher.daemon.DaemonClient;
+import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 

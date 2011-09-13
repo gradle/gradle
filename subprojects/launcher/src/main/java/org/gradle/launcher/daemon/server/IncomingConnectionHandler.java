@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.daemon.server;
 
-import org.gradle.launcher.daemon.client.DaemonClient;
+import org.gradle.messaging.remote.internal.Connection;
 
-public class StopDaemonAction implements Runnable {
-    private final DaemonClient client;
-
-    public StopDaemonAction(DaemonClient client) {
-        this.client = client;
-    }
-
-    public void run() {
-        client.stop();
-    }
+public interface IncomingConnectionHandler {
+    void handle(Connection<Object> connection);
 }

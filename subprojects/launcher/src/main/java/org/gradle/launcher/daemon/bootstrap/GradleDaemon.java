@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.launcher.daemon.client.DaemonClient;
+import org.gradle.launcher.ProcessBootstrap;
 
-public class StopDaemonAction implements Runnable {
-    private final DaemonClient client;
-
-    public StopDaemonAction(DaemonClient client) {
-        this.client = client;
-    }
-
-    public void run() {
-        client.stop();
+public class GradleDaemon {
+    public static void main(String[] args) {
+        new ProcessBootstrap().run("org.gradle.launcher.daemon.bootstrap.DaemonMain", args);
     }
 }

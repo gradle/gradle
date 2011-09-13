@@ -31,9 +31,9 @@ import spock.lang.Specification
 import org.gradle.*
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.logging.ProgressLogger
+
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.launcher.daemon.Daemon
+import org.gradle.launcher.daemon.server.Daemon
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule

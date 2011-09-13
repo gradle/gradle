@@ -17,10 +17,10 @@
 package org.gradle.integtests.daemon
 
 import org.gradle.configuration.GradleLauncherMetaData
-import org.gradle.launcher.daemon.DaemonClient
-import org.gradle.launcher.daemon.DaemonConnector
-import org.gradle.launcher.daemon.ExternalDaemonConnector
-import org.gradle.launcher.daemon.PersistentDaemonRegistry
+import org.gradle.launcher.daemon.client.DaemonClient
+import org.gradle.launcher.daemon.client.DaemonConnector
+import org.gradle.launcher.daemon.client.ExternalDaemonConnector
+import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
 import org.gradle.launcher.protocol.Sleep
 import org.gradle.launcher.protocol.Stop
 import org.gradle.logging.internal.OutputEventListener
