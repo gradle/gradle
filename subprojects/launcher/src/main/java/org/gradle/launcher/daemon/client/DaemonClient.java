@@ -21,10 +21,10 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.BuildActionParameters;
 import org.gradle.launcher.GradleLauncherActionExecuter;
-import org.gradle.launcher.protocol.Build;
-import org.gradle.launcher.protocol.BusyException;
-import org.gradle.launcher.protocol.CommandComplete;
-import org.gradle.launcher.protocol.Result;
+import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.daemon.protocol.BusyException;
+import org.gradle.launcher.daemon.protocol.CommandComplete;
+import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
@@ -36,11 +36,11 @@ import org.gradle.messaging.remote.internal.Connection;
  *
  * <ol> <li>Client connects to the server.</li>
  *
- * <li>Client sends a {@link org.gradle.launcher.protocol.Command} message.</li>
+ * <li>Client sends a {@link org.gradle.launcher.daemon.protocol.Command} message.</li>
  *
  * <li>Server sends zero or more {@link org.gradle.logging.internal.OutputEvent} messages. Note that the server may send output messages before it receives the command message. </li>
  *
- * <li>Server sends a {@link org.gradle.launcher.protocol.CommandComplete} message.</li>
+ * <li>Server sends a {@link org.gradle.launcher.daemon.protocol.CommandComplete} message.</li>
  *
  * <li>Connection is closed.</li>
  *

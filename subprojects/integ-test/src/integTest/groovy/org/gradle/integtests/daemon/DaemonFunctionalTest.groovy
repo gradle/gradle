@@ -21,8 +21,8 @@ import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.DaemonConnector
 import org.gradle.launcher.daemon.client.ExternalDaemonConnector
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
-import org.gradle.launcher.protocol.Sleep
-import org.gradle.launcher.protocol.Stop
+import org.gradle.launcher.daemon.protocol.Sleep
+import org.gradle.launcher.daemon.protocol.Stop
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.TemporaryFolder

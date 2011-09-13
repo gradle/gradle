@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.launcher.protocol.Stop;
+import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.messaging.remote.internal.Connection;
 
 /**

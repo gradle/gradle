@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.protocol.BusyException;
+import org.gradle.launcher.daemon.protocol.BusyException;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.util.UncheckedException;
 
