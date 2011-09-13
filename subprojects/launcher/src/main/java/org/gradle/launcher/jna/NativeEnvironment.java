@@ -18,6 +18,7 @@ package org.gradle.launcher.jna;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.WString;
 
 /**
  * Uses jna to update the environment variables
@@ -34,12 +35,17 @@ public class NativeEnvironment {
     public interface UnixLibC extends Library {
         public int setenv(String name, String value, int overwrite);
         public int unsetenv(String name);
+        public String getcwd(byte[] out, int size);
+        public int chdir(String dirAbsolutePath);
+
     }
     //CHECKSTYLE:ON
 
     public static interface Posix {
         int setenv(String name, String value, int overwrite);
         int unsetenv(String name);
+        void setProcessDir(String dir);
+        String getProcessDir();
     }
 
     public static class Windows implements Posix {
@@ -52,6 +58,17 @@ public class NativeEnvironment {
         public int unsetenv(String name) {
             return libc._putenv(name + "=");
         }
+
+        public void setProcessDir(String dir) {
+            Kernel32.INSTANCE.SetCurrentDirectoryW(new WString(dir));
+        }
+
+        public String getProcessDir() {
+            int buf = 300;
+            char[] out = new char[buf];
+            Kernel32.INSTANCE.GetCurrentDirectory(buf, out);
+            return "";
+        }
     }
 
     public static class Unix implements Posix {
@@ -63,6 +80,16 @@ public class NativeEnvironment {
 
         public int unsetenv(String name) {
             return libc.unsetenv(name);
+        }
+
+        public void setProcessDir(String dir) {
+            libc.chdir(dir);
+        }
+
+        public String getProcessDir() {
+            byte[] out = new byte[1000];
+            libc.getcwd(out, 1000);
+            return Native.toString(out);
         }
     }
 }

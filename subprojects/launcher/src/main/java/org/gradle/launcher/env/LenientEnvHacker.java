@@ -79,6 +79,31 @@ public class LenientEnvHacker {
         }
     }
 
+    public String getProcessDir() {
+        if (env == null) {
+            return null;
+        }
+        try {
+            return env.getProcessDir();
+        } catch (Throwable t) {
+            String warning = String.format("Unable to get process dir on OS: %s.", OperatingSystem.current());
+            LOGGER.warn(warning, t);
+            return null;
+        }
+    }
+
+    public void setProcessDir(String dirAbsolutePath) {
+        if (env == null) {
+            return;
+        }
+        try {
+            env.setProcessDir(dirAbsolutePath);
+        } catch (Throwable t) {
+            String warning = String.format("Unable to set process dir to: %s on OS: %s.", dirAbsolutePath, OperatingSystem.current());
+            LOGGER.warn(warning, t);
+        }
+    }
+
     static class EnvironmentProvider {
         public Environment getEnvironment() {
             return new Environment();

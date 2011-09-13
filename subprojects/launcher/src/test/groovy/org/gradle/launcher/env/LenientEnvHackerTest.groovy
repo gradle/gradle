@@ -20,6 +20,7 @@ package org.gradle.launcher.env;
 import org.gradle.launcher.env.LenientEnvHacker.EnvironmentProvider
 import org.gradle.util.GUtil
 import org.gradle.util.OperatingSystem
+import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.rules.TestName
 import spock.lang.Specification
@@ -30,15 +31,22 @@ import spock.lang.Specification
 class LenientEnvHackerTest extends Specification {
 
     public final @Rule TestName test = new TestName()
+    public final @Rule TemporaryFolder temp = new TemporaryFolder()
     def hacker = new LenientEnvHacker()
     def preservedEnvironment
+    def preservedWorkDir
 
     def setup() {
         preservedEnvironment = System.getenv()
+        preservedWorkDir = hacker.getProcessDir()
     }
 
     def cleanup() {
-        hacker.setenv(preservedEnvironment)
+        try {
+            hacker.setenv(preservedEnvironment)
+        } finally {
+            hacker.setProcessDir(preservedWorkDir)
+        }
     }
 
     def "added env is available explicitly"() {
@@ -141,5 +149,16 @@ class LenientEnvHackerTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def "updates current work dir of the process"() {
+        given:
+        assert hacker.processDir != temp.dir.absolutePath
+
+        when:
+        hacker.processDir = temp.dir.absolutePath
+
+        then:
+        hacker.processDir == temp.dir.absolutePath
     }
 }

@@ -50,4 +50,12 @@ class Environment {
         reflectiveEnvironment.setenv(name, value);
         return posix.setenv(name, value, 1);
     }
+
+    public String getProcessDir() {
+        return posix.getProcessDir();
+    }
+
+    public void setProcessDir(String processDir) {
+        posix.setProcessDir(processDir);
+    }
 }
