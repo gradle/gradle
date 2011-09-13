@@ -49,6 +49,9 @@ public class NativeEnvironment {
         String getProcessDir();
     }
 
+    //2 bytes per unicode character, this should be enough to handle sane path lengths
+    private static final int LOTS_OF_BYTES = 2048;
+
     public static class Windows implements Posix {
         private final WinLibC libc = (WinLibC) Native.loadLibrary("msvcrt", WinLibC.class);
 
@@ -65,8 +68,8 @@ public class NativeEnvironment {
         }
 
         public String getProcessDir() {
-            byte[] out = new byte[1000];
-            libc._getcwd(out, 1000);
+            byte[] out = new byte[LOTS_OF_BYTES];
+            libc._getcwd(out, LOTS_OF_BYTES);
             return Native.toString(out);
         }
     }
@@ -87,8 +90,8 @@ public class NativeEnvironment {
         }
 
         public String getProcessDir() {
-            byte[] out = new byte[1000];
-            libc.getcwd(out, 1000);
+            byte[] out = new byte[LOTS_OF_BYTES];
+            libc.getcwd(out, LOTS_OF_BYTES);
             return Native.toString(out);
         }
     }

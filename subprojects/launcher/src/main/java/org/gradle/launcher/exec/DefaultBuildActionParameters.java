@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,12 +28,14 @@ import java.util.Map;
 public class DefaultBuildActionParameters implements BuildActionParameters, Serializable {
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
+    private final File currentDir;
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
 
-    public DefaultBuildActionParameters(BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
+    public DefaultBuildActionParameters(BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir) {
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
+        this.currentDir = currentDir;
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
         this.envVariables = new HashMap<String, String>(envVariables);
@@ -52,5 +55,9 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     public Map<String, String> getEnvVariables() {
         return envVariables;
+    }
+
+    public File getCurrentDir() {
+        return currentDir;
     }
 }

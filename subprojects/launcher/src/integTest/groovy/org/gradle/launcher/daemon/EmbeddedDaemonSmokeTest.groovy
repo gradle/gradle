@@ -45,7 +45,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
     def "run build"() {
         given:
         def action = new ConfiguringBuildAction(distribution.gradleHomeDir, distribution.testDir, false, new ExecuteBuildAction(["echo"]))
-        def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv())
+        def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), new File("."))
         
         and:
         def outputFile = distribution.testDir.file("output.txt")

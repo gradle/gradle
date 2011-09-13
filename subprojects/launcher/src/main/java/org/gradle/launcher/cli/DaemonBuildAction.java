@@ -46,6 +46,6 @@ public class DaemonBuildAction implements Runnable {
     }
 
     public void run() {
-        client.execute(new ExecuteBuildAction(currentDir, args), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties, envVariables));
+        client.execute(new ExecuteBuildAction(currentDir, args), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties, envVariables, currentDir));
     }
 }

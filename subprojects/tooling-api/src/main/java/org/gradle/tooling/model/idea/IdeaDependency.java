@@ -25,12 +25,10 @@ import org.gradle.tooling.model.Dependency;
  */
 public interface IdeaDependency extends Dependency {
 
-    /**
-     * scope of the current dependency. Not-<code>null</code> all the time
-     *
-     * @return scope
-     */
-    IdeaDependencyScope getScope();
+    def "is serializable"() {
+        given:
+        def params = new DefaultBuildActionParameters(new GradleLauncherMetaData(), System.currentTimeMillis(), System.properties, System.getenv(), new File("."))
+        ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream());
 
     /**
      * Allows to check if current dependency is transitive, i.e. is visible to the module which depends on module that has current dependency.

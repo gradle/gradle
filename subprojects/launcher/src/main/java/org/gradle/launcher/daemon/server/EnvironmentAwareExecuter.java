@@ -50,11 +50,20 @@ public class EnvironmentAwareExecuter {
         LenientEnvHacker envHacker = new LenientEnvHacker();
         Map<String, String> originalEnv = System.getenv();
         envHacker.setenv(build.getParameters().getEnvVariables());
+
+        //TODO SF I want explicit coverage for this feature
+        String originalWorkDir = envHacker.getProcessDir();
+        envHacker.setProcessDir(build.getParameters().getCurrentDir().getAbsolutePath());
+
         try {
             return executer.execute(build.getAction(), build.getParameters());
         } finally {
             System.setProperties(originalSystemProperties);
+            //TODO SF I'm not sure we should set the original env / work dir
+            // in theory if character encoding the native code emits doesn't match Java's modified UTF-16
+            // we're going to set some rubbish because we used native way to read the env
             envHacker.setenv(originalEnv);
+            envHacker.setProcessDir(originalWorkDir);
         }
     }
 }
