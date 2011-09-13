@@ -21,7 +21,6 @@ import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.OnDemandFileLock;
 import org.gradle.cache.internal.SimpleStateCache;
-import org.gradle.launcher.daemon.server.DaemonDir;
 import org.gradle.messaging.remote.Address;
 
 import java.io.File;

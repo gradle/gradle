@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.bootstrap;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
 import org.gradle.launcher.daemon.server.*;
