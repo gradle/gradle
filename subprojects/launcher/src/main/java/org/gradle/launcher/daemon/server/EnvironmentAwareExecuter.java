@@ -52,7 +52,6 @@ public class EnvironmentAwareExecuter {
         envHacker.setenv(build.getParameters().getEnvVariables());
 
         //TODO SF I want explicit coverage for this feature
-        String originalWorkDir = envHacker.getProcessDir();
         envHacker.setProcessDir(build.getParameters().getCurrentDir().getAbsolutePath());
 
         try {
@@ -63,7 +62,6 @@ public class EnvironmentAwareExecuter {
             // in theory if character encoding the native code emits doesn't match Java's modified UTF-16
             // we're going to set some rubbish because we used native way to read the env
             envHacker.setenv(originalEnv);
-            envHacker.setProcessDir(originalWorkDir);
         }
     }
 }
