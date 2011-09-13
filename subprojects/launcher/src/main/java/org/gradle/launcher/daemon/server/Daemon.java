@@ -92,7 +92,6 @@ public class Daemon implements Runnable, Stoppable {
      * @throws IllegalStateException if this daemon is already running, or has already been stopped.
      */
     public void start() {
-        //TODO SF why we use reentrant lock instead of synchronized (same for stop() method)
         lifecycleLock.lock();
         try {
             if (started) {
