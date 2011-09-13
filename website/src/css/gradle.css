@@ -46,15 +46,18 @@ p {
 }
 
 #header, #footer {
-    width: 990px;
     margin-bottom: 10px;
-    margin-left: 70px;
-    margin-right: 70px;
 }
 
 #header {
     position: relative;
-    height: 100px;
+    height: 122px;
+}
+
+#footer {
+    margin-left: 70px;
+    margin-right: 70px;
+    width: 990px;
 }
 
 #header #logo {
@@ -62,6 +65,7 @@ p {
     left: 0;
     bottom: 0;
     font-family: Helvetica, sans-serif;
+    float: left;
 }
 
 #header #logo a:hover {
@@ -97,6 +101,7 @@ p {
     position: absolute;
     right: 0;
     bottom: 0;
+    float: right;
 }
 
 #navbar ul {
@@ -114,7 +119,7 @@ p {
     font-weight: bold;
     color: #444444;
     text-decoration: none;
-    margin-left: 37px;
+    margin-left: 22px;
 }
 
 #navbar a:hover {
