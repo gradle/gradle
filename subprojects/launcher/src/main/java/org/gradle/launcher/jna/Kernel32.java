@@ -22,6 +22,9 @@ import com.sun.jna.*;
 * Windows' Kernel32
 */
 public interface Kernel32 extends Library {
+
+    //CHECKSTYLE:OFF
+
     Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class);
 
     // Process creation flags
@@ -86,4 +89,6 @@ public interface Kernel32 extends Library {
         public int dwProcessId;
         public int dwThreadId;
     }
+
+    //CHECKSTYLE:ON
 }
