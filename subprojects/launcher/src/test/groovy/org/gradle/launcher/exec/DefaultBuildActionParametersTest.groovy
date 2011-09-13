@@ -27,7 +27,7 @@ public class DefaultBuildActionParametersTest extends Specification {
 
     def "is serializable"() {
         given:
-        def params = new DefaultBuildActionParameters(new GradleLauncherMetaData(), System.currentTimeMillis(), System.properties, System.getenv())
+        def params = new DefaultBuildActionParameters(new GradleLauncherMetaData(), System.currentTimeMillis(), System.properties, System.getenv(), new File("."))
         ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream());
 
         when:

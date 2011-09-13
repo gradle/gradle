@@ -18,6 +18,7 @@ package org.gradle.launcher.exec;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildRequestMetaData;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -29,4 +30,6 @@ public interface BuildActionParameters extends Serializable {
     Map<String, String> getSystemProperties();
 
     Map<String, String> getEnvVariables();
+
+    File getCurrentDir();
 }
