@@ -18,7 +18,6 @@ package org.gradle.launcher.jna;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
-import com.sun.jna.WString;
 
 /**
  * Uses jna to update the environment variables
@@ -30,6 +29,8 @@ public class NativeEnvironment {
     //CHECKSTYLE:OFF
     public interface WinLibC extends Library {
         public int _putenv(String name);
+        public int _chdir(String name);
+        public int _getcwd(byte[] out, int size);
     }
 
     public interface UnixLibC extends Library {
@@ -60,14 +61,13 @@ public class NativeEnvironment {
         }
 
         public void setProcessDir(String dir) {
-            Kernel32.INSTANCE.SetCurrentDirectoryW(new WString(dir));
+            libc._chdir(dir);
         }
 
         public String getProcessDir() {
-            int buf = 300;
-            char[] out = new char[buf];
-            Kernel32.INSTANCE.GetCurrentDirectory(buf, out);
-            return "";
+            byte[] out = new byte[1000];
+            libc._getcwd(out, 1000);
+            return Native.toString(out);
         }
     }
 

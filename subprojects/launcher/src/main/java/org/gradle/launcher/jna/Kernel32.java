@@ -31,10 +31,6 @@ public interface Kernel32 extends Library {
 
     boolean CloseHandle(HANDLE hObject);
 
-    boolean SetCurrentDirectoryW(WString lpPathName);
-
-    int GetCurrentDirectory(int nBufferLength, char[] lpBuffer);
-
     boolean CreateProcessW(WString lpApplicationName, WString lpCommandLine, SecurityAttributes lpProcessAttributes,
                            SecurityAttributes lpThreadAttributes, boolean bInheritHandles, int dwCreationFlags,
                            Pointer lpEnvironment, WString lpCurrentDirectory, StartupInfo lpStartupInfo,
