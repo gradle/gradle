@@ -129,6 +129,8 @@ class LenientEnvHackerTest extends Specification {
         when:
         hacker.setenv(test.methodName, "bar")
         hacker.setenv(GUtil.map())
+        hacker.processDir
+        hacker.processDir = "foo"
 
         then:
         noExceptionThrown()
@@ -146,6 +148,8 @@ class LenientEnvHackerTest extends Specification {
         when:
         hacker.setenv(test.methodName, "bar")
         hacker.setenv(GUtil.map())
+        hacker.processDir
+        hacker.processDir = "foo"
 
         then:
         noExceptionThrown()
