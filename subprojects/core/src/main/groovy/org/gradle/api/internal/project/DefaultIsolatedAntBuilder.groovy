@@ -31,7 +31,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         this.classPathRegistry = classPathRegistry
         this.classLoaderFactory = classLoaderFactory
         classloaders = [:]
-        groovyClasspath = classPathRegistry.getClassPathFiles("LOCAL_GROOVY")
+        groovyClasspath = classPathRegistry.getClassPathFiles("GROOVY")
         libClasspath = []
     }
 

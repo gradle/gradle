@@ -18,28 +18,32 @@ package org.gradle.api.internal
 import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
 import spock.lang.Specification
+import org.gradle.api.internal.classpath.PluginModuleRegistry
 
 class DependencyClassPathProviderTest extends Specification {
     final ModuleRegistry moduleRegistry = Mock()
-    final DependencyClassPathProvider provider = new DependencyClassPathProvider(moduleRegistry)
+    final PluginModuleRegistry pluginModuleRegistry = Mock()
+    final DependencyClassPathProvider provider = new DependencyClassPathProvider(moduleRegistry, pluginModuleRegistry)
 
     def "uses modules to determine gradle API classpath"() {
         when:
         def classpath = provider.findClassPath("GRADLE_API")
 
         then:
-        classpath.collect{it.name} == ["gradle-cli", "runtime.jar", "gradle-core", "gradle-core-impl", "gradle-plugins"]
+        classpath.collect{it.name} == ["gradle-cli-runtime", "gradle-core-runtime", "gradle-core-impl-runtime", "gradle-tooling-api-impl", "plugin1-runtime", "plugin2-runtime"]
 
         and:
         1 * moduleRegistry.getModule("gradle-cli") >> module("gradle-cli")
         1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core")
         1 * moduleRegistry.getModule("gradle-core-impl") >> module("gradle-core-impl")
-        1 * moduleRegistry.getModule("gradle-plugins") >> module("gradle-plugins")
+        1 * moduleRegistry.getModule("gradle-tooling-api") >> module("gradle-tooling-api")
+        1 * pluginModuleRegistry.getPluginModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
     }
 
     def module(String name) {
         Module module = Mock()
-        _ * module.classpath >> ([new File(name), new File("runtime.jar")] as LinkedHashSet)
+        _ * module.classpath >> ([new File("$name-runtime")] as Set)
+        _ * module.implementationClasspath >> ([new File("$name-impl")] as Set)
         return module
     }
 }

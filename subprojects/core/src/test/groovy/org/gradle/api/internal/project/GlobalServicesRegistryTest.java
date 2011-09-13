@@ -18,6 +18,9 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -50,6 +53,16 @@ public class GlobalServicesRegistryTest {
     @Test
     public void providesACacheFactoryFactory() {
         assertThat(registry.getFactory(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
+    }
+
+    @Test
+    public void providesAModuleRegistry() {
+        assertThat(registry.get(ModuleRegistry.class), instanceOf(DefaultModuleRegistry.class));
+    }
+
+    @Test
+    public void providesAPluginModuleRegistry() {
+        assertThat(registry.get(PluginModuleRegistry.class), instanceOf(DefaultPluginModuleRegistry.class));
     }
 
     @Test

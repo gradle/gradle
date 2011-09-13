@@ -17,12 +17,9 @@ package org.gradle.api.internal;
 
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.classpath.UnknownModuleException;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.LinkedHashSet;
-import java.util.Properties;
 import java.util.Set;
 
 public class DefaultClassPathProvider implements ClassPathProvider {
@@ -40,21 +37,6 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             }
             return classpath;
         }
-        if (name.equals("GRADLE_PLUGINS")) {
-            Set<File> classpath = new LinkedHashSet<File>();
-            Properties properties = loadPluginProperties();
-            for (String pluginModule : properties.getProperty("plugins").split(",")) {
-                try {
-                    classpath.addAll(moduleRegistry.getModule(pluginModule).getClasspath());
-                } catch (UnknownModuleException e) {
-                    // Ignore
-                }
-            }
-            return classpath;
-        }
-        if (name.equals("GRADLE_CORE_IMPL")) {
-            return moduleRegistry.getModule("gradle-core-impl").getClasspath();
-        }
         if (name.equals("GRADLE_CORE")) {
             return moduleRegistry.getModule("gradle-core").getImplementationClasspath();
         }
@@ -67,11 +49,10 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             classpath.addAll(moduleRegistry.getExternalModule("ant-launcher").getClasspath());
             return classpath;
         }
+        if (name.equals("GROOVY")) {
+            return moduleRegistry.getExternalModule("groovy-all").getClasspath();
+        }
 
         return null;
-    }
-
-    private Properties loadPluginProperties() {
-        return GUtil.loadProperties(getClass().getResource("/gradle-plugins.properties"));
     }
 }

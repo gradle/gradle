@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,48 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal;
 
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
-import org.gradle.api.internal.classpath.UnknownModuleException;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
-
-public class DependencyClassPathProvider implements ClassPathProvider {
+public class DynamicModulesClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
 
-    public DependencyClassPathProvider(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
+    public DynamicModulesClassPathProvider(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
         this.moduleRegistry = moduleRegistry;
         this.pluginModuleRegistry = pluginModuleRegistry;
     }
 
     public Set<File> findClassPath(String name) {
-        if (name.equals(GRADLE_API.name())) {
+        if (name.equals("GRADLE_PLUGINS")) {
             Set<File> classpath = new LinkedHashSet<File>();
-            classpath.addAll(moduleRegistry.getModule("gradle-cli").getClasspath());
-            classpath.addAll(moduleRegistry.getModule("gradle-core").getClasspath());
-            classpath.addAll(moduleRegistry.getModule("gradle-core-impl").getClasspath());
-            try {
-                classpath.addAll(moduleRegistry.getModule("gradle-tooling-api").getImplementationClasspath());
-            } catch (UnknownModuleException e) {
-                // Ignore
-            }
             for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
                 classpath.addAll(pluginModule.getClasspath());
             }
             return classpath;
         }
-        if (name.equals(LOCAL_GROOVY.name())) {
-            return moduleRegistry.getExternalModule("groovy-all").getClasspath();
+        if (name.equals("GRADLE_CORE_IMPL")) {
+            return moduleRegistry.getModule("gradle-core-impl").getClasspath();
         }
 
         return null;

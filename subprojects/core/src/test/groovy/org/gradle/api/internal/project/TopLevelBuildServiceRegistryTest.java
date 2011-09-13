@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
@@ -82,6 +83,8 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(context.mock(Factory.class)));
             allowing(parent).get(ModuleRegistry.class);
             will(returnValue(new DefaultModuleRegistry()));
+            allowing(parent).get(PluginModuleRegistry.class);
+            will(returnValue(context.mock(PluginModuleRegistry.class)));
         }});
     }
     

@@ -15,13 +15,9 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.*;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.initialization.DefaultClassLoaderRegistry;
+import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
@@ -31,64 +27,30 @@ import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.ProgressListener;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectEvent;
-import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.util.ClassLoaderFactory;
-import org.gradle.util.DefaultClassLoaderFactory;
 import org.gradle.util.TrueTimeProvider;
 
-public class GlobalTestServices extends DefaultServiceRegistry {
-    protected ListenerManager createListenerManager() {
-        return new DefaultListenerManager();
+public class GlobalTestServices extends GlobalServicesRegistry {
+    public GlobalTestServices() {
+        super(new TestLoggingServices());
     }
 
-    protected ClassPathRegistry createClassPathRegistry() {
-        return new DefaultClassPathRegistry(new DefaultClassPathProvider(get(ModuleRegistry.class)));
-    }
+    private static class TestLoggingServices extends DefaultServiceRegistry {
+        final ListenerManager listenerManager = new DefaultListenerManager();
 
-    protected DefaultModuleRegistry createModuleRegistry() {
-        return new DefaultModuleRegistry();
-    }
+        protected ProgressLoggerFactory createProgressLoggerFactory() {
+            return new DefaultProgressLoggerFactory(listenerManager.getBroadcaster(ProgressListener.class), new TrueTimeProvider());
+        }
 
-    protected ClassLoaderRegistry createClassLoaderRegistry() {
-        return new DefaultClassLoaderRegistry(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
-    }
+        protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
+            return new Factory<LoggingManagerInternal>() {
+                public LoggingManagerInternal create() {
+                    return new NoOpLoggingManager();
+                }
+            };
+        }
 
-    protected ProgressLoggerFactory createProgressLoggerFactory() {
-        return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class), new TrueTimeProvider());
-    }
-
-    protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
-        return new Factory<LoggingManagerInternal>() {
-            public LoggingManagerInternal create() {
-                return new NoOpLoggingManager();
-            }
-        };
-    }
-
-    protected StyledTextOutputFactory createStyledTextOutputFactory() {
-        return new DefaultStyledTextOutputFactory(get(ListenerManager.class).getBroadcaster(OutputEventListener.class), new TrueTimeProvider());
-    }
-
-    protected ClassLoaderFactory createClassLoaderFactory() {
-        return new DefaultClassLoaderFactory();
-    }
-    
-    protected MessagingServer createMessagingServer() {
-        return new MessagingServer() {
-            public Address accept(Action<ConnectEvent<ObjectConnection>> action) {
-                throw new UnsupportedOperationException();
-            }
-        };
-    }
-
-    protected ClassGenerator createClassGenerator() {
-        return new AsmBackedClassGenerator();
-    }
-
-    protected Instantiator createInstantiator() {
-        return new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DirectInstantiator());
+        protected StyledTextOutputFactory createStyledTextOutputFactory() {
+            return new DefaultStyledTextOutputFactory(listenerManager.getBroadcaster(OutputEventListener.class), new TrueTimeProvider());
+        }
     }
 }
