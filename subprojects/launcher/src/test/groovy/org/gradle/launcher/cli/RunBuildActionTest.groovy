@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher
+package org.gradle.launcher.cli
 
 import spock.lang.Specification
 import org.gradle.StartParameter
@@ -22,6 +22,7 @@ import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.GradleLauncher
 import org.gradle.BuildResult
 import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.launcher.exec.ExecutionListener
 
 class RunBuildActionTest extends Specification {
     final StartParameter startParameter = new StartParameter()

@@ -24,7 +24,7 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.ExternalDaemonConnector;
-import org.gradle.launcher.GradleLauncherActionExecuter;
+import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventListener;

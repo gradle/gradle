@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.cli;
 
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.launcher.exec.InitializationAware;
 
 import java.io.File;
 import java.io.Serializable;

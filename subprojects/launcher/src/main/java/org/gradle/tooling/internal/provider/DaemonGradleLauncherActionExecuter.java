@@ -17,10 +17,10 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.launcher.BuildActionParameters;
-import org.gradle.launcher.DefaultBuildActionParameters;
-import org.gradle.launcher.GradleLauncherActionExecuter;
-import org.gradle.launcher.ReportedException;
+import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.GradleLauncherActionExecuter;
+import org.gradle.launcher.exec.ReportedException;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.cli;
 
 import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
@@ -32,6 +32,8 @@ import org.gradle.launcher.daemon.client.DaemonConnector;
 import org.gradle.launcher.daemon.client.ExternalDaemonConnector;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
+import org.gradle.launcher.exec.ExceptionReportingAction;
+import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -59,14 +61,14 @@ public class CommandLineActionFactory {
     /**
      * <p>Converts the given command-line arguments to a {@code Runnable} action which performs the action requested by the
      * command-line args. Does not have any side-effects. Each action will call the supplied {@link
-     * ExecutionListener} once it has completed.</p>
+     * org.gradle.launcher.exec.ExecutionListener} once it has completed.</p>
      *
      * <p>Implementation note: attempt to defer as much as possible until action execution time.</p>
      *
      * @param args The command-line arguments.
      * @return The action to execute.
      */
-    Action<ExecutionListener> convert(List<String> args) {
+    public Action<ExecutionListener> convert(List<String> args) {
         CommandLineParser parser = new CommandLineParser();
 
         CommandLineConverter<StartParameter> startParameterConverter = createStartParameterConverter();
@@ -102,11 +104,11 @@ public class CommandLineActionFactory {
         return new GradleLauncherMetaData();
     }
 
-    CommandLineConverter<StartParameter> createStartParameterConverter() {
+    public CommandLineConverter<StartParameter> createStartParameterConverter() {
         return new DefaultCommandLineConverter();
     }
 
-    ServiceRegistry createLoggingServices() {
+    public ServiceRegistry createLoggingServices() {
         return LoggingServiceRegistry.newCommandLineProcessLogging();
     }
 

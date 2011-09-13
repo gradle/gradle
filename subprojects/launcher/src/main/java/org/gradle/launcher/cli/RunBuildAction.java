@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.cli;
 
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
@@ -23,6 +23,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.launcher.exec.ExecutionListener;
 
 public class RunBuildAction implements Action<ExecutionListener> {
     private final StartParameter startParameter;

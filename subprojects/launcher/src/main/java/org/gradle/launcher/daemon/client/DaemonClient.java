@@ -19,8 +19,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.launcher.BuildActionParameters;
-import org.gradle.launcher.GradleLauncherActionExecuter;
+import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BusyException;
 import org.gradle.launcher.daemon.protocol.CommandComplete;
@@ -81,7 +81,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
      * Executes the given action in the daemon. The action and parameters must be serializable.
      *
      * @param action The action
-     * @throws org.gradle.launcher.ReportedException On failure, when the failure has already been logged/reported.
+     * @throws org.gradle.launcher.exec.ReportedException On failure, when the failure has already been logged/reported.
      */
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
         LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");

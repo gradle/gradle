@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.protocol;
+package org.gradle.launcher.exec;
+
+
+import org.gradle.configuration.GradleLauncherMetaData
+import spock.lang.Specification
 
 /**
- * Command that sleeps, pretending a build that does something useful for some time. Used in tests.
- *
- * @author: Szczepan Faber, created at: 9/7/11
+ * @author: Szczepan Faber, created at: 9/6/11
  */
-public class Sleep extends Command {
+public class DefaultBuildActionParametersTest extends Specification {
 
-    private final int millis;
+    def "is serializable"() {
+        given:
+        def params = new DefaultBuildActionParameters(new GradleLauncherMetaData(), System.currentTimeMillis(), System.properties, System.getenv())
+        ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream());
 
-    public Sleep(int millis) {
-        super(null);
-        this.millis = millis;
-    }
+        when:
+        out.writeObject(params);
 
-    public void run() {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException ignored) {
-            //ignore
-        }
+        then:
+        noExceptionThrown()
     }
 }

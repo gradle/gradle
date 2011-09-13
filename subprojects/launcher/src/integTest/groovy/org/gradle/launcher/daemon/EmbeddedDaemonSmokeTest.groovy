@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.launcher.DefaultBuildActionParameters
+import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.tooling.internal.provider.ConfiguringBuildAction

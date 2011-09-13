@@ -19,6 +19,8 @@ import spock.lang.Specification
 import org.junit.Rule
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.api.Action
+import org.gradle.launcher.cli.CommandLineActionFactory
+import org.gradle.launcher.exec.ExecutionListener
 
 class MainTest extends Specification {
     @Rule final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()

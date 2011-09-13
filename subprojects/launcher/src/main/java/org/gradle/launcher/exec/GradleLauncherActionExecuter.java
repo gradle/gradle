@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.exec;
 
-import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.GradleLauncherAction;
 
-import java.io.Serializable;
-import java.util.Map;
-
-public interface BuildActionParameters extends Serializable {
-    BuildRequestMetaData getBuildRequestMetaData();
-
-    BuildClientMetaData getClientMetaData();
-
-    Map<String, String> getSystemProperties();
-
-    Map<String, String> getEnvVariables();
+public interface GradleLauncherActionExecuter<P> {
+    /**
+     * Executes the given action, and returns the result. The given action may also implement {@link InitializationAware <T>}.
+     *
+     * @param action The action
+     * @param <T> The result type
+     * @return The result.
+     */
+    <T> T execute(GradleLauncherAction<T> action, P actionParameters);
 }

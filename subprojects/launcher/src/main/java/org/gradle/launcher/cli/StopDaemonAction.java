@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.protocol;
+package org.gradle.launcher.cli;
 
-import java.io.Serializable;
+import org.gradle.launcher.daemon.client.DaemonClient;
 
-public class CommandComplete implements Serializable {
-    private final RuntimeException failure;
+public class StopDaemonAction implements Runnable {
+    private final DaemonClient client;
 
-    public CommandComplete(RuntimeException failure) {
-        this.failure = failure;
+    public StopDaemonAction(DaemonClient client) {
+        this.client = client;
     }
 
-    public RuntimeException getFailure() {
-        return failure;
+    public void run() {
+        client.stop();
     }
 }

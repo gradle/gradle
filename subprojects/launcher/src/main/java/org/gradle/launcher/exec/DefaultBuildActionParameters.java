@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.exec;
 
-import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.launcher.daemon.client.DaemonClient;
+import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.util.GUtil;
 
-import java.io.File;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DaemonBuildAction implements Runnable {
-    private final DaemonClient client;
-    private final ParsedCommandLine args;
-    private final File currentDir;
+public class DefaultBuildActionParameters implements BuildActionParameters, Serializable {
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
 
-    public DaemonBuildAction(DaemonClient client, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
-        this.client = client;
-        this.args = args;
-        this.currentDir = currentDir;
+    public DefaultBuildActionParameters(BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
-        this.envVariables = envVariables;
+        this.envVariables = new HashMap<String, String>(envVariables);
     }
 
-    public void run() {
-        client.execute(new ExecuteBuildAction(currentDir, args), new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties, envVariables));
+    public BuildRequestMetaData getBuildRequestMetaData() {
+        return new DefaultBuildRequestMetaData(clientMetaData, startTime);
+    }
+
+    public BuildClientMetaData getClientMetaData() {
+        return clientMetaData;
+    }
+
+    public Map<String, String> getSystemProperties() {
+        return systemProperties;
+    }
+
+    public Map<String, String> getEnvVariables() {
+        return envVariables;
     }
 }

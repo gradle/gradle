@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.cli
 
-import org.gradle.launcher.daemon.client.DaemonClient;
+import spock.lang.Specification
+import org.gradle.launcher.daemon.client.DaemonClient
 
-public class StopDaemonAction implements Runnable {
-    private final DaemonClient client;
+class StopDaemonActionTest extends Specification {
+    final DaemonClient client = Mock()
+    final StopDaemonAction action = new StopDaemonAction(client)
 
-    public StopDaemonAction(DaemonClient client) {
-        this.client = client;
-    }
+    def executesStopCommand() {
+        when:
+        action.run()
 
-    public void run() {
-        client.stop();
+        then:
+        1 * client.stop()
+        0 * _._
     }
 }

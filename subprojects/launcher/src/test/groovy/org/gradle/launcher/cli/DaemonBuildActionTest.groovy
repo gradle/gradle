@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher
+package org.gradle.launcher.cli
 
 import org.gradle.cli.ParsedCommandLine
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.launcher.daemon.client.DaemonClient
+import org.gradle.launcher.exec.BuildActionParameters
+
 import spock.lang.Specification
 
 class DaemonBuildActionTest extends Specification {

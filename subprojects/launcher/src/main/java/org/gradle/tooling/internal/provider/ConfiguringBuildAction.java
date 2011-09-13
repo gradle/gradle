@@ -19,7 +19,7 @@ import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.launcher.InitializationAware;
+import org.gradle.launcher.exec.InitializationAware;
 
 import java.io.File;
 import java.io.Serializable;

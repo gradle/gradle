@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.launcher.DefaultGradleLauncherActionExecuter;
+import org.gradle.launcher.exec.DefaultGradleLauncherActionExecuter;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.env.LenientEnvHacker;
 

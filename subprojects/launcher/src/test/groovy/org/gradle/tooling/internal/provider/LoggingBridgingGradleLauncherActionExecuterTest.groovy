@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.internal.Factory
 import org.gradle.initialization.GradleLauncherAction
-import org.gradle.launcher.GradleLauncherActionExecuter
+import org.gradle.launcher.exec.GradleLauncherActionExecuter
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import spock.lang.Specification

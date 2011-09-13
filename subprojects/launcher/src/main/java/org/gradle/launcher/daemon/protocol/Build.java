@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.protocol;
 
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.launcher.BuildActionParameters;
+import org.gradle.launcher.exec.BuildActionParameters;
 
 public class Build extends Command {
     private final GradleLauncherAction<?> action;

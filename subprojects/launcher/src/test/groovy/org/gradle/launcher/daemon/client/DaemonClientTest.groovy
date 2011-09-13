@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.client
 
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.GradleLauncherAction
-import org.gradle.launcher.BuildActionParameters
+import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.launcher.daemon.protocol.Build
 import org.gradle.launcher.daemon.protocol.CommandComplete
 import org.gradle.launcher.daemon.protocol.Result

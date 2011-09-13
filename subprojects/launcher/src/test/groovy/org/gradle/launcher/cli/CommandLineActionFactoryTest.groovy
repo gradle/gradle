@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher
+package org.gradle.launcher.cli
 
 import org.gradle.api.internal.Factory
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.cli.CommandLineConverter
-import org.gradle.launcher.CommandLineActionFactory.ActionAdapter
-import org.gradle.launcher.CommandLineActionFactory.ShowGuiAction
-import org.gradle.launcher.CommandLineActionFactory.WithLoggingAction
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.util.GradleVersion
@@ -34,6 +31,10 @@ import org.gradle.initialization.GradleLauncherFactory
 
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.launcher.daemon.server.Daemon
+import org.gradle.launcher.exec.ExceptionReportingAction
+import org.gradle.launcher.exec.ExecutionListener
+
+import static org.gradle.launcher.cli.CommandLineActionFactory.*
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule

@@ -19,6 +19,8 @@ import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.launcher.cli.CommandLineActionFactory;
+import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
 
 import java.util.Arrays;
