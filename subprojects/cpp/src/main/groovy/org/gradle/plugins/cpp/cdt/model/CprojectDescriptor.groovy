@@ -23,23 +23,21 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
  */
 class CprojectDescriptor extends XmlPersistableConfigurationObject {
 
+    private static boolean LINUX_NOT_MACOS = true
+    
     static public final String GNU_COMPILER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.gnu.cpp.compiler"
     static public final String GNU_COMPILER_TOOL_INCLUDE_PATHS_OPTION_PREFIX = "gnu.cpp.compiler.option.include.paths"
 
     // linux
-    static public final String GNU_LINKER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.gnu.cpp.linker"
-    static public final String GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX = "gnu.cpp.link.option.userobjs"
-
-    // mac
-    // static public final String GNU_LINKER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.macosx.cpp.linker.macosx"
-    // static public final String GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX = "macosx.cpp.link.option.userobjs"
+    static public final String GNU_LINKER_TOOL_ID_PREFIX = LINUX_NOT_MACOS ? "cdt.managedbuild.tool.gnu.cpp.linker" : "cdt.managedbuild.tool.macosx.cpp.linker.macosx"
+    static public final String GNU_LINKER_TOOL_LIBS_PATHS_OPTION_PREFIX = LINUX_NOT_MACOS ? "gnu.cpp.link.option.userobjs" : "macosx.cpp.link.option.userobjs"
 
     CprojectDescriptor() {
         super(new XmlTransformer())
     }
 
     protected String getDefaultResourceName() {
-        'defaultCproject.xml'
+        LINUX_NOT_MACOS ? 'defaultCproject-linux.xml' : 'defaultCproject-macos.xml'
     }
 
     NodeList getConfigurations() {
