@@ -29,6 +29,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.hamcrest.Matcher;
+import org.jruby.ext.posix.POSIX;
 
 import java.io.*;
 import java.net.URI;
@@ -227,10 +228,15 @@ public class TestFile extends File implements TestFileContext {
     }
 
     public TestFile linkTo(File target) {
+        return linkTo(target.getAbsolutePath());
+    }
+
+    public TestFile linkTo(String target) {
         getParentFile().createDir();
-        int retval = PosixUtil.current().symlink(target.getAbsolutePath(), getAbsolutePath());
+        POSIX posix = PosixUtil.current();
+        int retval = posix.symlink(target, getAbsolutePath());
         if (retval != 0) {
-            throw new UncheckedIOException(String.format("Could not create link from '%s' to '%s'", target, this));
+            throw new UncheckedIOException(String.format("Could not create link from '%s' to '%s'. Errno: %s", this, target, posix.errno()));
         }
         return this;
     }
