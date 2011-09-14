@@ -21,6 +21,7 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
 import org.gradle.launcher.daemon.server.*;
+import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -50,7 +51,7 @@ abstract public class DaemonMain  {
         float idleTimeoutSecs = idleTimeout / 1000;
         
         LOGGER.lifecycle("Starting daemon (at {}) with settings: idleTimeout = {} secs, registryDir = {}", new Date(), idleTimeoutSecs, registryDir);
-        Daemon daemon = new Daemon(loggingServices, connector, daemonRegistry);
+        Daemon daemon = new Daemon(connector, daemonRegistry, new DefaultDaemonCommandExecuter(loggingServices));
         
         daemon.start();
         boolean wasStopped = daemon.awaitStopOrIdleTimeout(idleTimeout);

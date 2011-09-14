@@ -19,6 +19,7 @@ import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServerConnector;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
+import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.logging.LoggingServiceRegistry;
 
 /**
@@ -40,7 +41,7 @@ public class EmbeddedDaemonConnector extends AbstractDaemonConnector<EmbeddedDae
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newCommandLineProcessLogging();
         DaemonServerConnector server = new DaemonTcpServerConnector();
 
-        daemonRegistry.startDaemon(new Daemon(loggingServices, server, daemonRegistry));
+        daemonRegistry.startDaemon(new Daemon(server, daemonRegistry, new DefaultDaemonCommandExecuter(loggingServices)));
     }
 
 }

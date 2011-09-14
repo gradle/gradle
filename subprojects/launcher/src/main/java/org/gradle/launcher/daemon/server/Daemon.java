@@ -15,28 +15,19 @@
  */
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.BuildExceptionReporter;
-import org.gradle.StartParameter;
-import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.launcher.exec.DefaultGradleLauncherActionExecuter;
-import org.gradle.launcher.exec.ReportedException;
-import org.gradle.launcher.daemon.protocol.*;
+import org.gradle.launcher.daemon.protocol.Stop;
+import org.gradle.launcher.daemon.protocol.Command;
+import org.gradle.launcher.daemon.protocol.BusyException;
+import org.gradle.launcher.daemon.protocol.CommandComplete;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.LoggingOutputInternal;
-import org.gradle.logging.internal.OutputEvent;
-import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.util.UncheckedException;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -54,10 +45,9 @@ public class Daemon implements Runnable, Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(Daemon.class);
 
-    private final ServiceRegistry loggingServices;
     private final DaemonServerConnector connector;
     private final DaemonRegistry daemonRegistry;
-    private final GradleLauncherFactory launcherFactory;
+    private final DaemonCommandExecuter commandExecuter;
 
     private final DaemonStateCoordinator stateCoordinator = new DaemonStateCoordinator();
 
@@ -78,12 +68,10 @@ public class Daemon implements Runnable, Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(ServiceRegistry loggingServices, DaemonServerConnector connector, DaemonRegistry daemonRegistry) {
-        this.loggingServices = loggingServices;
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonCommandExecuter commandExecuter) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
-        
-        this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
+        this.commandExecuter = commandExecuter;
     }
 
     /**
@@ -208,7 +196,7 @@ public class Daemon implements Runnable, Stoppable {
             return;
         }
         try {
-            doRun(connection, command);
+            commandExecuter.executeCommand(connection, command);
         } finally {
             onCompleteActivity();
             connection.stop();
@@ -252,68 +240,6 @@ public class Daemon implements Runnable, Stoppable {
     public void run() {
         start();
         awaitStop();
-    }
-
-    private void doRun(final Connection<Object> connection, Command command) {
-        CommandComplete result = null;
-        Throwable failure = null;
-        try {
-            LoggingOutputInternal loggingOutput = loggingServices.get(LoggingOutputInternal.class);
-            OutputEventListener listener = new OutputEventListener() {
-                public void onOutput(OutputEvent event) {
-                    try {
-                        connection.dispatch(event);
-                    } catch (Exception e) {
-                        //Ignore. It means the client has disconnected so no point sending him any log output.
-                        //we should be checking if client still listens elsewhere anyway.
-                    }
-                }
-            };
-
-            // Perform as much as possible of the interaction while the logging is routed to the client
-            loggingOutput.addOutputEventListener(listener);
-            try {
-                result = doRunWithLogging(command);
-            } finally {
-                loggingOutput.removeOutputEventListener(listener);
-            }
-         } catch (ReportedException e) {
-            failure = e;
-        } catch (Throwable throwable) {
-            LOGGER.error("Could not execute build.", throwable);
-            failure = throwable;
-        }
-        if (failure != null) {
-            result = new CommandComplete(UncheckedException.asUncheckedException(failure));
-        }
-        assert result != null;
-        connection.dispatch(result);
-    }
-
-    private CommandComplete doRunWithLogging(Command command) {
-        try {
-            return doRunWithExceptionHandling(command);
-        } catch (ReportedException e) {
-            throw e;
-        } catch (Throwable throwable) {
-            StyledTextOutputFactory outputFactory = loggingServices.get(StyledTextOutputFactory.class);
-            BuildClientMetaData clientMetaData = command.getClientMetaData();
-            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(outputFactory, new StartParameter(), clientMetaData);
-            exceptionReporter.reportException(throwable);
-            throw new ReportedException(throwable);
-        }
-    }
-
-    private CommandComplete doRunWithExceptionHandling(Command command) {
-        LOGGER.info("Executing {}", command);
-        if (command instanceof Sleep) {
-            ((Sleep) command).run();
-            return new Result("Command executed successfully: " + command);
-        }
-
-        DefaultGradleLauncherActionExecuter executer = new DefaultGradleLauncherActionExecuter(launcherFactory, loggingServices);
-        Object result = new EnvironmentAwareExecuter(executer).executeBuild((Build) command);
-        return new Result(result);
     }
 
 }

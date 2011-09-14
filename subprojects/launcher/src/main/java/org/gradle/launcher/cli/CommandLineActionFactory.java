@@ -32,6 +32,7 @@ import org.gradle.launcher.daemon.client.DaemonConnector;
 import org.gradle.launcher.daemon.client.ExternalDaemonConnector;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
+import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
@@ -131,7 +132,7 @@ public class CommandLineActionFactory {
         DaemonClient client = new DaemonClient(connector, clientMetaData, loggingServices.get(OutputEventListener.class));
 
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new Daemon(loggingServices, new DaemonTcpServerConnector(), connector.getDaemonRegistry()));
+            return new ActionAdapter(new Daemon(new DaemonTcpServerConnector(), connector.getDaemonRegistry(), new DefaultDaemonCommandExecuter(loggingServices)));
         }
         if (commandLine.hasOption(STOP)) {
             return new ActionAdapter(new StopDaemonAction(client));
