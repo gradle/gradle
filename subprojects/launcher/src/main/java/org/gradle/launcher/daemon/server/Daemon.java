@@ -59,16 +59,17 @@ public class Daemon implements Runnable, Stoppable {
     private final DaemonRegistry daemonRegistry;
     private final GradleLauncherFactory launcherFactory;
 
-    private Address connectorAddress;
-    final private CompletionHandler control;
+    private final DaemonStateCoordinator stateCoordinator = new DaemonStateCoordinator();
 
     private final StoppableExecutor handlersExecutor = new DefaultExecutorFactory().create("Daemon Connection Handler");
 
-    private boolean started;
     private final Lock lifecycleLock = new ReentrantLock();
 
     private final CountDownLatch stopLatch = new CountDownLatch(1);
     private final StoppableExecutor stopperExecutor = new DefaultExecutorFactory().create("Daemon Stopper");
+
+    private Address connectorAddress;
+    private DomainRegistryUpdater registryUpdater;
 
     /**
      * Creates a new daemon instance.
@@ -83,7 +84,6 @@ public class Daemon implements Runnable, Stoppable {
         this.daemonRegistry = daemonRegistry;
         
         this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
-        this.control = new CompletionHandler();
     }
 
     /**
@@ -94,7 +94,7 @@ public class Daemon implements Runnable, Stoppable {
     public void start() {
         lifecycleLock.lock();
         try {
-            if (started) {
+            if (stateCoordinator.isStarted()) {
                 throw new IllegalStateException("cannot start daemon as it is already running");
             }
 
@@ -120,8 +120,6 @@ public class Daemon implements Runnable, Stoppable {
                 }
             });
 
-            control.setActivityListener(new DomainRegistryUpdater(daemonRegistry, connectorAddress));
-
             // Start a new thread to watch the stop latch
             stopperExecutor.execute(new Runnable() {
                 public void run() {
@@ -132,22 +130,59 @@ public class Daemon implements Runnable, Stoppable {
                         return;
                     }
 
-                    LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
-                    connector.stop();
-                    LOGGER.info("Waking and signalling stop to the main daemon thread...");
-                    control.stop();
+                    onStop();
                 }
             });
-            
-            control.start();
-            started = true;
-            LOGGER.lifecycle("Daemon started at: " + new Date() + ", with address: " + connectorAddress);
+
+            registryUpdater = new DomainRegistryUpdater(daemonRegistry, connectorAddress);
+
+            onStart();
         } catch (Exception e) {
             LOGGER.warn("exception starting daemon", e);
             stopLatch.countDown();
         } finally {
             lifecycleLock.unlock();
         }
+    }
+
+    /**
+     * Called in start() when the daemon is up and running and ready for connections.
+     */
+    private void onStart() {
+        stateCoordinator.start(); // go into started state
+        registryUpdater.onStart(); // advertise in the registry
+
+        LOGGER.lifecycle("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
+    }
+
+    /**
+     * Called whenever a command is received, except Stop, and is about to be actioned.
+     * 
+     * @throws BusyException if the daemon is already actioning a command.
+     */
+    private void onStartActivity() throws BusyException {
+        stateCoordinator.onStartActivity(); // will throw BusyException if the daemon is already busy
+        registryUpdater.onStartActivity(); // mark as busy in the registry
+    }
+
+    /**
+     * Called whenever a received command has been completed.
+     */
+    private void onCompleteActivity() {
+        stateCoordinator.onActivityComplete();
+        registryUpdater.onCompleteActivity(); // mark as idle in the registry
+    }
+
+    /**
+     * Called by the “stopping thread” when the countdown latch is triggered (either by the stop() method or a Stop command) 
+     */
+    private void onStop() {
+        LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
+        registryUpdater.onStop(); // remove this daemon from the registry
+        connector.stop(); // stop accepting new connections
+
+        LOGGER.info("Waking and signalling stop to the main daemon thread...");
+        stateCoordinator.stop(); // will block until any “workers” finish and put the daemon in “stopped” state
     }
 
     private void handleIncoming(Connection<Object> connection) {
@@ -166,7 +201,7 @@ public class Daemon implements Runnable, Stoppable {
         }
 
         try {
-            control.onStartActivity();
+            onStartActivity();
         } catch (BusyException e) {
             LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
             connection.dispatch(new CommandComplete(e));
@@ -175,7 +210,7 @@ public class Daemon implements Runnable, Stoppable {
         try {
             doRun(connection, command);
         } finally {
-            control.onActivityComplete();
+            onCompleteActivity();
             connection.stop();
         }
     }
@@ -199,7 +234,7 @@ public class Daemon implements Runnable, Stoppable {
      * Blocks until this daemon is stopped by something else (i.e. does not ask it to stop)
      */
     public void awaitStop() {
-        control.awaitStop();
+        stateCoordinator.awaitStop();
     }
 
     /**
@@ -208,7 +243,7 @@ public class Daemon implements Runnable, Stoppable {
      * @return true if it was stopped, false if it hit the given idle timeout.
      */
     public boolean awaitStopOrIdleTimeout(int idleTimeout) {
-        return control.awaitStopOrIdleTimeout(idleTimeout);
+        return stateCoordinator.awaitStopOrIdleTimeout(idleTimeout);
     }
 
     /**

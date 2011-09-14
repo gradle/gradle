@@ -20,7 +20,6 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry.EmptyRegistryException
 import org.gradle.messaging.remote.Address
 import spock.lang.Specification
 import org.gradle.launcher.daemon.server.DomainRegistryUpdater
-import org.gradle.launcher.daemon.server.CompletionAware
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
@@ -33,18 +32,10 @@ public class DomainRegistryUpdaterTest extends Specification {
 
     def "marks idle"() {
         when:
-        updater.onCompleteActivity({ stopped : false} as CompletionAware )
+        updater.onCompleteActivity()
 
         then:
         1 * registry.markIdle(address)
-    }
-
-    def "avoids marking idle when stopped"() {
-        when:
-        updater.onCompleteActivity({ stopped : true} as CompletionAware )
-
-        then:
-        0 * registry.markIdle(address)
     }
 
     def "ignores empty cache on marking idle"() {
@@ -52,7 +43,7 @@ public class DomainRegistryUpdaterTest extends Specification {
         1 * registry.markIdle(address) >> { throw new EmptyRegistryException("") }
 
         when:
-        updater.onCompleteActivity({ stopped : false} as CompletionAware )
+        updater.onCompleteActivity()
 
         then:
         noExceptionThrown()
@@ -60,18 +51,10 @@ public class DomainRegistryUpdaterTest extends Specification {
 
     def "marks busy"() {
         when:
-        updater.onStartActivity({ stopped : false} as CompletionAware )
+        updater.onStartActivity()
 
         then:
         1 * registry.markBusy(address)
-    }
-
-    def "avoids marking busy when stopped"() {
-        when:
-        updater.onStartActivity({ stopped : true} as CompletionAware )
-
-        then:
-        0 * registry.markBusy(address)
     }
 
     def "ignores empty cache on marking busy"() {
@@ -79,7 +62,7 @@ public class DomainRegistryUpdaterTest extends Specification {
         1 * registry.markBusy(address) >> { throw new EmptyRegistryException("") }
 
         when:
-        updater.onStartActivity({ stopped : false} as CompletionAware )
+        updater.onStartActivity()
 
         then:
         noExceptionThrown()

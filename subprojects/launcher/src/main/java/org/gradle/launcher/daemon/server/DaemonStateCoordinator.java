@@ -27,24 +27,22 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * synchronizes the daemon server work
-*/
-class CompletionHandler implements Stoppable, CompletionAware {
+ * A tool for synchronising the state amongst different threads.
+ *
+ * This class has no knowledge of the Daemon's internals and is designed to be used internally by the
+ * daemon to coordinate itself and allow worker threads to control the daemon's busy/idle status.
+ * 
+ * This is not exposed to clients of the daemon.
+ */
+class DaemonStateCoordinator implements Stoppable {
+
+    private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private boolean running;
     private boolean stopped;
-    private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(CompletionHandler.class);
     private long lastActivityAt = -1;
-    private ActivityListener activityListener = new EmptyActivityListener();
-
-    public CompletionHandler setActivityListener(ActivityListener activityListener) {
-        assert activityListener != null;
-        //TODO SF wrap the listener into something 100% safe
-        this.activityListener = activityListener;
-        return this;
-    }
 
     /**
      * Waits until stopped.
@@ -71,22 +69,10 @@ class CompletionHandler implements Stoppable, CompletionAware {
         lock.lock();
         try {
             updateActivityTimestamp();
-            activityListener.onStart();
             condition.signalAll();
         } finally {
             lock.unlock();
         }
-    }
-
-    /**
-     * Has the daemon started accepting connections.
-     */
-    public boolean isStarted() {
-        return lastActivityAt != -1;
-    }
-
-    public boolean hasBeenIdleFor(int milliseconds) {
-        return lastActivityAt < (System.currentTimeMillis() - milliseconds);
     }
 
     /**
@@ -120,7 +106,6 @@ class CompletionHandler implements Stoppable, CompletionAware {
         try {
             LOGGER.info("Stop requested. The daemon is running a build: " + running);
             stopped = true;
-            activityListener.onStop();
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -134,7 +119,6 @@ class CompletionHandler implements Stoppable, CompletionAware {
                 throw new BusyException();
             }
             running = true;
-            activityListener.onStartActivity(this);
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -146,7 +130,6 @@ class CompletionHandler implements Stoppable, CompletionAware {
         try {
             running = false;
             updateActivityTimestamp();
-            activityListener.onCompleteActivity(this);
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -157,6 +140,17 @@ class CompletionHandler implements Stoppable, CompletionAware {
         lastActivityAt = System.currentTimeMillis();
     }
 
+    /**
+     * Has the daemon started accepting connections.
+     */
+    public boolean isStarted() {
+        return lastActivityAt != -1;
+    }
+
+    public boolean hasBeenIdleFor(int milliseconds) {
+        return lastActivityAt < (System.currentTimeMillis() - milliseconds);
+    }
+
     public boolean isStopped() {
         return stopped;
     }
@@ -165,17 +159,4 @@ class CompletionHandler implements Stoppable, CompletionAware {
         return running;
     }
 
-    static interface ActivityListener {
-        void onStart();
-        void onStop();
-        void onStartActivity(CompletionAware completionAware);
-        void onCompleteActivity(CompletionAware completionAware);
-    }
-
-    static class EmptyActivityListener implements ActivityListener {
-        public void onStart() {}
-        public void onStop() {}
-        public void onStartActivity(CompletionAware completionAware) {}
-        public void onCompleteActivity(CompletionAware completionAware) {}
-    }
 }

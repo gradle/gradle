@@ -24,7 +24,7 @@ import org.gradle.messaging.remote.Address;
 /**
 * @author: Szczepan Faber, created at: 9/12/11
 */
-class DomainRegistryUpdater implements CompletionHandler.ActivityListener {
+class DomainRegistryUpdater {
 
     private static final Logger LOGGER = Logging.getLogger(DomainRegistryUpdater.class);
 
@@ -36,12 +36,8 @@ class DomainRegistryUpdater implements CompletionHandler.ActivityListener {
         this.connectorAddress = connectorAddress;
     }
 
-    public void onStartActivity(CompletionAware completionAware) {
+    public void onStartActivity() {
         LOGGER.info("Marking the daemon as busy, address: " + connectorAddress);
-        if (completionAware.isStopped()) {
-            LOGGER.info("The daemon was stopped so it's no longer in the registry. We will not update the registry.");
-            return;
-        }
         try {
             daemonRegistry.markBusy(connectorAddress);
         } catch (DaemonRegistry.EmptyRegistryException e) {
@@ -49,12 +45,8 @@ class DomainRegistryUpdater implements CompletionHandler.ActivityListener {
         }
     }
 
-    public void onCompleteActivity(CompletionAware completionAware) {
+    public void onCompleteActivity() {
         LOGGER.info("Marking the daemon as idle, address: " + connectorAddress);
-        if (completionAware.isStopped()) {
-            LOGGER.info("The daemon was stopped so it's no longer in the registry. We will not update the registry.");
-            return;
-        }
         try {
             daemonRegistry.markIdle(connectorAddress);
         } catch (DaemonRegistry.EmptyRegistryException e) {
