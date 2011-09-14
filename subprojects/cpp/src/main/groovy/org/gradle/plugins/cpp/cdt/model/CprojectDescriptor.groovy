@@ -23,7 +23,7 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
  */
 class CprojectDescriptor extends XmlPersistableConfigurationObject {
 
-    private static boolean LINUX_NOT_MACOS = true
+    private static final boolean LINUX_NOT_MACOS = true
     
     static public final String GNU_COMPILER_TOOL_ID_PREFIX = "cdt.managedbuild.tool.gnu.cpp.compiler"
     static public final String GNU_COMPILER_TOOL_INCLUDE_PATHS_OPTION_PREFIX = "gnu.cpp.compiler.option.include.paths"
