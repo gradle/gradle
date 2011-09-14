@@ -3,6 +3,7 @@ package org.gradle.api.internal.file
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.util.OperatingSystem
 
 class FileCanonicalisationTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -28,6 +29,9 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def "normalises absolute path which has mismatched case"() {
+        if (OperatingSystem.current().caseSensitiveFileSystem) {
+            return
+        }
         def file = tmpDir.createFile('dir/file.txt')
         def path = tmpDir.file('dir/FILE.txt')
         assert path.exists() && path.file
@@ -37,6 +41,9 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def "normalises absolute path which points to a link using mismatched case"() {
+        if (OperatingSystem.current().caseSensitiveFileSystem) {
+            return
+        }
         def target = tmpDir.createFile('target.txt')
         def file = tmpDir.file('dir/file.txt')
         file.linkTo(target)
@@ -88,7 +95,8 @@ class FileCanonicalisationTest extends Specification {
 
     def normalise(Object path) {
         if (path instanceof File) {
-            def result = path.canonicalFile
+            def result = new IdentityFileResolver().resolve(path)
+            assert path.canonicalPath == result.absolutePath
             assert result == normalise(path.absolutePath)
             assert result == normalise(path.path)
             return result

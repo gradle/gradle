@@ -24,8 +24,11 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.OperatingSystem;
+import org.gradle.util.PosixUtil;
+import org.jruby.ext.posix.FileStat;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -47,8 +50,33 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     public File resolve(Object path, PathValidation validation) {
         File file = doResolve(path);
-        file = GFileUtils.canonicalise(file);
+
+        String[] segments = file.getAbsolutePath().split("/");
+        File current = new File(segments[0]);
+        File target = current;
+        for (int i = 1; i < segments.length; i++) {
+            String segment = segments[i];
+            current = new File(current, segment);
+            target = new File(target, segment);
+            if (target.exists()) {
+                FileStat lstat = PosixUtil.current().lstat(target.getAbsolutePath());
+                System.out.format("current: %s, target: %s%n", current, target);
+                System.out.println("  lstat symlink " + lstat.isSymlink());
+                System.out.println("  lstat type " + lstat.ftype());
+                if (lstat.isSymlink()) {
+                    try {
+                        target = new File(PosixUtil.current().readlink(target.getAbsolutePath()));
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+            }
+        }
+
+        file = current;
         validate(file, validation);
+
+        System.out.format("resolved '%s' to '%s'%n", path, file);
         return file;
     }
 

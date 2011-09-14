@@ -16,6 +16,8 @@
 package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.plugins.ide.eclipse.model.FileReference
+import org.gradle.api.internal.file.BaseDirConverter
+import org.gradle.api.internal.file.IdentityFileResolver
 
 class FileReferenceFactory {
     private final Map<String, File> variables = [:]
@@ -32,9 +34,9 @@ class FileReferenceFactory {
      */
     FileReference fromFile(File file) {
         if (!file) {
-
             return null
         }
+        file = new IdentityFileResolver().resolve(file)
         def path = null
         def usedVar = false
         for (entry in variables.entrySet()) {

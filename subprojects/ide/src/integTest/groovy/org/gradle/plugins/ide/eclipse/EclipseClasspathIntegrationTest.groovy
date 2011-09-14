@@ -44,23 +44,28 @@ apply plugin: 'eclipse'
 
 repositories {
     maven { url "${mavenRepo.rootDir.toURI()}" }
+    mavenCentral()
 }
 
 dependencies {
     compile 'coolGroup:niceArtifact:1.0'
+    compile 'commons-lang:commons-lang:2.6'
     compile files('lib/dep.jar')
 }
 """
 
         //then
         def libraries = classpath.libs
-        assert libraries.size() == 2
+        assert libraries.size() == 3
         libraries[0].assertHasJar(jar)
         libraries[0].assertHasSource(srcJar)
         libraries[0].assertHasNoJavadoc()
-        libraries[1].assertHasJar(file('lib/dep.jar'))
-        libraries[1].assertHasNoSource()
-        libraries[1].assertHasNoJavadoc()
+        libraries[1].assertHasJar('??')
+        libraries[2].assertHasNoSource()
+        libraries[2].assertHasNoJavadoc()
+        libraries[2].assertHasJar(file('lib/dep.jar'))
+        libraries[2].assertHasNoSource()
+        libraries[2].assertHasNoJavadoc()
     }
 
     @Test
