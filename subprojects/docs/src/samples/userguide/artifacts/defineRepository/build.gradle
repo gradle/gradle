@@ -56,13 +56,36 @@ repositories {
 //END SNIPPET flat-dir
 //END SNIPPET flat-dir-multi
 
-//START SNIPPET ivy-repo
+//START SNIPPET ivy-repo-with-maven-layout
 repositories {
     ivy {
-        artifactPattern "http://repo.mycompany.com/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        url "http:/repo.mycompany.com/repo"
+        layout "maven"
     }
 }
-//END SNIPPET ivy-repo
+//END SNIPPET ivy-repo-with-maven-layout
+
+//START SNIPPET ivy-repo-with-pattern-layout
+repositories {
+    ivy {
+        url "http:/repo.mycompany.com/repo"
+        layout 'pattern', {
+            artifact "[module]/[revision]/[artifact].[ext]"
+            ivy "[module]/[revision]/ivy.xml"
+        }
+    }
+}
+//END SNIPPET ivy-repo-with-pattern-layout
+
+//START SNIPPET ivy-repo-with-custom-pattern
+repositories {
+    ivy {
+        artifactPattern "http://repo.mycompany.com/3rd-party-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        artifactPattern "http://repo.mycompany.com/company-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        ivyPattern "http://repo.mycompany.com/ivy-files/[organisation]/[module]/[revision]/ivy.xml"
+    }
+}
+//END SNIPPET ivy-repo-with-custom-pattern
 
 //START SNIPPET authenticated-ivy-repo
 repositories {

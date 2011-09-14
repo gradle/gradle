@@ -63,7 +63,7 @@ public interface IvyArtifactRepository extends ArtifactRepository {
      * Sets the base URL of this repository. The provided value is evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means,
      * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
      *
-     * File are resolved based on the supplied URL and the configured {@link #layout(String)} for this repository.
+     * File are resolved based on the supplied URL and the configured {@link #layout(String, Closure)} for this repository.
      *
      * @param url The base URL.
      */
@@ -85,7 +85,7 @@ public interface IvyArtifactRepository extends ArtifactRepository {
 
     /**
      * Specifies the layout to use with this repository, based on the root url.
-     * Valid values for layoutName are: 'gradle', 'maven', 'pattern'
+     * See {@link #layout(String, Closure)}.
      *
      * @param layoutName The name of the layout to use.
      */
@@ -93,7 +93,31 @@ public interface IvyArtifactRepository extends ArtifactRepository {
 
     /**
      * Specifies the layout to use with this repository, based on the root url. The returned layout is configured with the supplied closure.
-     * Valid values for layoutName are 'gradle', 'maven', 'pattern'
+     * Available layouts are outlined below.
+     * <h4>'gradle'</h4>
+     * A Repository Layout that applies the following patterns:
+     * <ul>
+     *     <li>Artifacts: <code>$baseUri/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])</code></li>
+     *     <li>Ivy: <code>$baseUri/[organisation]/[module]/[revision]/ivy-[revision].xml</code></li>
+     * </ul>
+     *
+     * <h4>'maven'</h4>
+     * A Repository Layout that applies the following patterns:
+     * <ul>
+     *     <li>Artifacts: <code>$baseUri/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])</code></li>
+     *     <li>Ivy: <code>$baseUri/[organisation]/[module]/[revision]/ivy-[revision].xml</code></li>
+     * </ul>
+     *
+     * Following the maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
+     *
+     * <h4>'pattern'</h4>
+     * A repository layout that allows custom patterns to be defined:
+     * <pre>
+     *     layout 'pattern' , {
+     *         artifacts '[module]/[revision]/[artifact](.[ext])'
+     *         ivy '[module]/[revision]/ivy.xml'
+     *     }
+     * </pre>
      *
      * @param layoutName The name of the layout to use.
      * @param config The closure used to configure the layout.

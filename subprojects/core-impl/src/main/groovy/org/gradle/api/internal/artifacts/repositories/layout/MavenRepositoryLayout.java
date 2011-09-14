@@ -23,7 +23,7 @@ import java.net.URI;
  * A Repository Layout that applies the following patterns:
  * <ul>
  *     <li>Artifacts: $baseUri/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])</li>
- *     <li>Ivy: $baseUri/"[organisation]/[module]/[revision]/ivy-[revision].xml"</li>
+ *     <li>Ivy: $baseUri/[organisation]/[module]/[revision]/ivy-[revision].xml</li>
  * </ul>
  *
  * Following the maven convention, the 'organisation' value is further processed by replacing '.' with '/'.

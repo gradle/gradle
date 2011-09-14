@@ -23,7 +23,7 @@ import java.net.URI;
  * A Repository Layout that applies the following patterns:
  * <ul>
  *     <li>Artifacts: $baseUri/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])</li>
- *     <li>Ivy: $baseUri/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])</li>
+ *     <li>Ivy: $baseUri/[organisation]/[module]/[revision]/ivy-[revision].xml</li>
  * </ul>
  *
  * Note the pattern is the same for both artifacts and ivy files.
@@ -37,7 +37,7 @@ public class GradleRepositoryLayout extends RepositoryLayout {
         ResolvedPattern artifactPattern = new ResolvedPattern(baseUri, "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])");
         resolver.addArtifactPattern(artifactPattern.absolutePattern);
 
-        ResolvedPattern ivyPattern = new ResolvedPattern(baseUri, "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])");
+        ResolvedPattern ivyPattern = new ResolvedPattern(baseUri, "[organisation]/[module]/[revision]/ivy-[revision].xml");
         resolver.addIvyPattern(ivyPattern.absolutePattern);
     }
 }

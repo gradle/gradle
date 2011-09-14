@@ -137,7 +137,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.repository instanceof CommonsHttpClientBackedRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
-        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"] as List
+        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
     }
 
     def "uses maven patterns with specified url and maven layout"() {
@@ -208,7 +208,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.repository instanceof CommonsHttpClientBackedRepository
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'http://host/[other]/artifact'] as List
-        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])", 'http://host/[other]/ivy'] as List
+        resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml", 'http://host/[other]/ivy'] as List
     }
 
     def "uses artifact pattern for ivy files when no ivy pattern provided"() {
