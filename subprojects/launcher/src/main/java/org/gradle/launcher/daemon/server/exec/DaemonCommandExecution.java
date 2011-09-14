@@ -98,11 +98,11 @@ public class DaemonCommandExecution {
      * @return true if execution did occur, false if this execution has already occurred.
      */
     public boolean proceed() {
-        if (!actions.isEmpty()) {
+        if (actions.isEmpty()) {
+            return false;
+        } else {
             actions.remove(0).execute(this);
             return true;
-        } else {
-            return false;
         }
     }
 }
