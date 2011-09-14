@@ -99,7 +99,7 @@ public class DaemonCommandExecution {
      */
     public boolean proceed() {
         if (!actions.isEmpty()) {
-            actions.pop().execute(this);
+            actions.remove(0).execute(this);
             return true;
         } else {
             return false;
