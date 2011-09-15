@@ -30,7 +30,6 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.Connection;
 
 import java.util.Date;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -49,14 +48,11 @@ public class Daemon implements Runnable, Stoppable {
     private final DaemonRegistry daemonRegistry;
     private final DaemonCommandExecuter commandExecuter;
 
-    private final DaemonStateCoordinator stateCoordinator = new DaemonStateCoordinator();
+    private DaemonStateCoordinator stateCoordinator;
 
     private final StoppableExecutor handlersExecutor = new DefaultExecutorFactory().create("Daemon Connection Handler");
 
     private final Lock lifecycleLock = new ReentrantLock();
-
-    private final CountDownLatch stopLatch = new CountDownLatch(1);
-    private final StoppableExecutor stopperExecutor = new DefaultExecutorFactory().create("Daemon Stopper");
 
     private Address connectorAddress;
     private DomainRegistryUpdater registryUpdater;
@@ -82,9 +78,10 @@ public class Daemon implements Runnable, Stoppable {
     public void start() {
         lifecycleLock.lock();
         try {
-            if (stateCoordinator.isStarted()) {
+            if (stateCoordinator != null) {
                 throw new IllegalStateException("cannot start daemon as it is already running");
             }
+            
 
             // Get ready to accept connections, but we are assuming that no connections will be established
             // because we have not yet advertised that we are open for business by entering our address into
@@ -108,69 +105,42 @@ public class Daemon implements Runnable, Stoppable {
                 }
             });
 
-            // Start a new thread to watch the stop latch
-            stopperExecutor.execute(new Runnable() {
-                public void run() {
-                    try {
-                        stopLatch.await();
-                    } catch (InterruptedException e) {
-                        // unsure what we can really do here, it shouldn't happen anyway.
-                        return;
-                    }
-
-                    onStop();
-                }
-            });
-
             registryUpdater = new DomainRegistryUpdater(daemonRegistry, connectorAddress);
+            
+            Runnable startHandler = new Runnable() {
+                public void run() {
+                    LOGGER.lifecycle("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
+                    registryUpdater.onStart();
+                }
+            };
+            
+            Runnable startActivityHandler = new Runnable() {
+                public void run() {
+                    registryUpdater.onStartActivity();
+                }
+            };
 
-            onStart();
-        } catch (Exception e) {
-            LOGGER.warn("exception starting daemon", e);
-            stopLatch.countDown();
+            Runnable completeActivityHandler = new Runnable() {
+                public void run() {
+                    registryUpdater.onCompleteActivity();
+                }
+            };
+            
+            Runnable stopHandler = new Runnable() {
+                public void run() {
+                    LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
+                    registryUpdater.onStop();
+                    connector.stop(); // will block until any running commands are finished
+                }
+            };
+
+            stateCoordinator = new DaemonStateCoordinator(startHandler, startActivityHandler, completeActivityHandler, stopHandler);
+
+            // ready, set, go
+            stateCoordinator.start();
         } finally {
             lifecycleLock.unlock();
         }
-    }
-
-    /**
-     * Called in start() when the daemon is up and running and ready for connections.
-     */
-    private void onStart() {
-        stateCoordinator.start(); // go into started state
-        registryUpdater.onStart(); // advertise in the registry
-
-        LOGGER.lifecycle("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
-    }
-
-    /**
-     * Called whenever a command is received, except Stop, and is about to be actioned.
-     * 
-     * @throws BusyException if the daemon is already actioning a command.
-     */
-    private void onStartActivity() throws BusyException {
-        stateCoordinator.onStartActivity(); // will throw BusyException if the daemon is already busy
-        registryUpdater.onStartActivity(); // mark as busy in the registry
-    }
-
-    /**
-     * Called whenever a received command has been completed.
-     */
-    private void onCompleteActivity() {
-        stateCoordinator.onActivityComplete();
-        registryUpdater.onCompleteActivity(); // mark as idle in the registry
-    }
-
-    /**
-     * Called by the “stopping thread” when the countdown latch is triggered (either by the stop() method or a Stop command) 
-     */
-    private void onStop() {
-        LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
-        registryUpdater.onStop(); // remove this daemon from the registry
-        connector.stop(); // stop accepting new connections
-
-        LOGGER.info("Waking and signalling stop to the main daemon thread...");
-        stateCoordinator.stop(); // will block until any “workers” finish and put the daemon in “stopped” state
     }
 
     private void handleIncoming(Connection<Object> connection) {
@@ -183,13 +153,12 @@ public class Daemon implements Runnable, Stoppable {
         if (command instanceof Stop) {
             LOGGER.lifecycle("Stopping");
             connection.dispatch(new CommandComplete(null));
-            stopLatch.countDown();
-            stopperExecutor.stop();
+            stateCoordinator.requestStop();
             return;
         }
 
         try {
-            onStartActivity();
+            stateCoordinator.onStartActivity();
         } catch (BusyException e) {
             LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
             connection.dispatch(new CommandComplete(e));
@@ -198,7 +167,7 @@ public class Daemon implements Runnable, Stoppable {
         try {
             commandExecuter.executeCommand(connection, command);
         } finally {
-            onCompleteActivity();
+            stateCoordinator.onActivityComplete();
             connection.stop();
         }
     }
@@ -211,8 +180,7 @@ public class Daemon implements Runnable, Stoppable {
     public void stop() {
         lifecycleLock.lock();
         try {
-            stopLatch.countDown();
-            stopperExecutor.stop();
+            stateCoordinator.stop();
         } finally {
             lifecycleLock.unlock();
         }

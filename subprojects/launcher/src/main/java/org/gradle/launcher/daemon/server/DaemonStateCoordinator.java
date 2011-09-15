@@ -19,22 +19,24 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.protocol.BusyException;
 import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.util.UncheckedException;
 
 import java.util.Date;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 
 /**
  * A tool for synchronising the state amongst different threads.
  *
  * This class has no knowledge of the Daemon's internals and is designed to be used internally by the
  * daemon to coordinate itself and allow worker threads to control the daemon's busy/idle status.
- * 
+ *
  * This is not exposed to clients of the daemon.
  */
-class DaemonStateCoordinator implements Stoppable {
+public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
 
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
@@ -43,6 +45,18 @@ class DaemonStateCoordinator implements Stoppable {
     private boolean running;
     private boolean stopped;
     private long lastActivityAt = -1;
+
+    private final Runnable startHandler;
+    private final Runnable activityStartHandler;
+    private final Runnable activityCompleteHandler;
+    private final Runnable stopHandler;
+    
+    public DaemonStateCoordinator(Runnable startHandler, Runnable activityStartHandler, Runnable activityCompleteHandler, Runnable stopHandler) {
+        this.startHandler = startHandler;
+        this.activityStartHandler = activityStartHandler;
+        this.activityCompleteHandler = activityCompleteHandler;
+        this.stopHandler = stopHandler;
+    }
 
     /**
      * Waits until stopped.
@@ -69,6 +83,7 @@ class DaemonStateCoordinator implements Stoppable {
         lock.lock();
         try {
             updateActivityTimestamp();
+            startHandler.run();
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -106,10 +121,19 @@ class DaemonStateCoordinator implements Stoppable {
         try {
             LOGGER.info("Stop requested. The daemon is running a build: " + running);
             stopped = true;
+            stopHandler.run();
             condition.signalAll();
         } finally {
             lock.unlock();
         }
+    }
+    
+    public void requestStop() {
+        new DefaultExecutorFactory().create("Daemon Async Stop Request").execute(new Runnable() {
+            public void run() {
+                stop();
+            }
+        });
     }
 
     public void onStartActivity() {
@@ -119,6 +143,8 @@ class DaemonStateCoordinator implements Stoppable {
                 throw new BusyException();
             }
             running = true;
+            updateActivityTimestamp();
+            activityStartHandler.run();
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -130,6 +156,7 @@ class DaemonStateCoordinator implements Stoppable {
         try {
             running = false;
             updateActivityTimestamp();
+            activityCompleteHandler.run();
             condition.signalAll();
         } finally {
             lock.unlock();
