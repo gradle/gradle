@@ -101,19 +101,32 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     public boolean awaitStopOrIdleTimeout(int timeout) {
         lock.lock();
         try {
-            while ((!isStarted() || isRunning()) || (!isStopped() && !hasBeenIdleFor(timeout))) {
+            LOGGER.lifecycle("waiting for daemon to stop or be idle for {}ms", timeout);
+            while (true) {
+                if (isStopped()) {
+                    return true;
+                } else if (hasBeenIdleFor(timeout)) {
+                    return false;
+                }
+            
                 try {
-                    if (!isStarted() || isRunning()) {
+                    if (!isStarted()) {
+                        LOGGER.lifecycle("waiting for daemon to stop or idle timeout, daemon has not yet started, sleeping until then");
                         condition.await();
+                    } else if (isBusy()) {
+                        LOGGER.lifecycle("waiting for daemon to stop or idle timeout, daemon is busy, sleeping until it finishes");
+                        condition.await();
+                    } else if (isIdle()) {
+                        Date waitUntil = new Date(lastActivityAt + timeout);
+                        LOGGER.lifecycle("waiting for daemon to stop or idle timeout, daemon is idle, sleeping until daemon state change or idle timeout at {}", waitUntil);
+                        condition.awaitUntil(waitUntil);
                     } else {
-                        condition.awaitUntil(new Date(lastActivityAt + timeout));
+                        throw new IllegalStateException("waiting for daemon to stop or idle timeout, daemon has started but is not busy or idle, this shouldn't happen");
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.asUncheckedException(e);
                 }
             }
-            assert !isRunning();
-            return isStopped();
         } finally {
             lock.unlock();
         }
@@ -122,7 +135,7 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     public void stop() {
         lock.lock();
         try {
-            LOGGER.info("Stop requested. The daemon is running a build: " + isRunning());
+            LOGGER.lifecycle("Stop requested. The daemon is running a build: " + isRunning());
             stopped = true;
             onStop.run();
             condition.signalAll();
@@ -143,15 +156,17 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
      * Called when the execution of a command begins.
      * <p>
      * If the daemon is busy (i.e. already executing a command), this method will return the existing
-     * execution which the caller should be prepared for without considering the given execution to be in progress. 
+     * execution which the caller should be prepared for without considering the given execution to be in progress.
      * If the daemon is idle the return value will be {@code null} and the given execution will be considered in progress.
      */
     public DaemonCommandExecution onStartCommand(DaemonCommandExecution execution) {
         lock.lock();
         try {
             if (currentCommandExecution != null) { // daemon is busy
+                LOGGER.warn("onStartCommand({}) called while currentCommandExecution = {}", execution, currentCommandExecution);
                 return currentCommandExecution;
             } else {
+                LOGGER.lifecycle("onStartCommand({}) called after {} mins of idle", execution, getIdleMinutes());
                 currentCommandExecution = execution;
                 updateActivityTimestamp();
                 onStartCommand.run();
@@ -173,7 +188,10 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         lock.lock();
         try {
             DaemonCommandExecution execution = currentCommandExecution;
-            if (execution != null) {
+            if (execution == null) {
+                LOGGER.warn("onFinishCommand() called while currentCommandExecution is null");
+            } else {
+                LOGGER.lifecycle("onFinishCommand() called while execution = {}", execution);
                 currentCommandExecution = null;
                 updateActivityTimestamp();
                 onFinishCommand.run();
@@ -187,7 +205,9 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     }
 
     private void updateActivityTimestamp() {
-        lastActivityAt = System.currentTimeMillis();
+        long now = System.currentTimeMillis();
+        LOGGER.lifecycle("updating lastActivityAt to {}", now);
+        lastActivityAt = now;
     }
 
     /**
@@ -209,8 +229,25 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         return lastActivityAt != -1;
     }
 
+    public double getIdleMinutes() {
+        lock.lock();
+        try {
+            if (isStarted()) {
+                return (System.currentTimeMillis() - lastActivityAt) / 1000 / 60;
+            } else {
+                return -1;
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public boolean hasBeenIdleFor(int milliseconds) {
-        return lastActivityAt < (System.currentTimeMillis() - milliseconds);
+        if (!isStarted()) {
+            return false;
+        } else {
+            return lastActivityAt < (System.currentTimeMillis() - milliseconds);
+        }
     }
 
     public boolean isStopped() {
@@ -218,7 +255,11 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     }
 
     public boolean isIdle() {
-        return currentCommandExecution == null;
+        return isRunning() && currentCommandExecution == null;
+    }
+
+    public boolean isBusy() {
+        return isRunning() && !isIdle();
     }
     
     public boolean isRunning() {
