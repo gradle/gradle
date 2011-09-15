@@ -3,7 +3,7 @@ apply plugin: 'java'
 def repoUrl = hasProperty('repoUrl') ? repoUrl : uri('repo')
 
 repositories {
-    mavenRepo(urls: repoUrl) {
+    mavenRepo(url: repoUrl) {
         if (project.hasProperty('noTimeout')) {
             setSnapshotTimeout(0)
         }

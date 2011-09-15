@@ -16,20 +16,22 @@
 package org.gradle.api.internal.artifacts.repositories.layout;
 
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 
 import java.net.URI;
 
 /**
  * A Repository Layout that applies the following patterns:
  * <ul>
- *     <li>Artifacts: $baseUri/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])</li>
- *     <li>Ivy: $baseUri/[organisation]/[module]/[revision]/ivy-[revision].xml</li>
+ *     <li>Artifacts: $baseUri/{@value IvyArtifactRepository#MAVEN_ARTIFACT_PATTERN}</li>
+ *     <li>Ivy: $baseUri/{@value IvyArtifactRepository#MAVEN_IVY_PATTERN}</li>
  * </ul>
  *
  * Following the maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
  * Note that the resolver will follow the layout only, but will <em>not</em> use .pom files for meta data. Ivy metadata files are required/published.
  */
 public class MavenRepositoryLayout extends RepositoryLayout {
+
     public void apply(URI baseUri, RepositoryResolver resolver) {
         if (baseUri == null) {
             return;
@@ -37,10 +39,10 @@ public class MavenRepositoryLayout extends RepositoryLayout {
 
         resolver.setM2compatible(true); // Replace '.' with '/' in organisation
 
-        ResolvedPattern artifactPattern = new ResolvedPattern(baseUri, "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])");
+        ResolvedPattern artifactPattern = new ResolvedPattern(baseUri, IvyArtifactRepository.MAVEN_ARTIFACT_PATTERN);
         resolver.addArtifactPattern(artifactPattern.absolutePattern);
 
-        ResolvedPattern ivyPattern = new ResolvedPattern(baseUri, "[organisation]/[module]/[revision]/ivy-[revision].xml");
+        ResolvedPattern ivyPattern = new ResolvedPattern(baseUri, IvyArtifactRepository.MAVEN_IVY_PATTERN);
         resolver.addIvyPattern(ivyPattern.absolutePattern);
     }
 }

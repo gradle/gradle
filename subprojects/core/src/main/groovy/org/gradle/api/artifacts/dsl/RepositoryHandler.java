@@ -98,18 +98,17 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME} is used as the name. A name
      * must be unique amongst a repository group.
      * </td></tr>
-     * <tr><td><code>urls</code></td>
-     *     <td>A single jar repository or a collection of jar repositories. Sometimes the artifact
-     * lives in a different repository than the POM. In such a case you can specify further locations to look for an artifact.
-     * But be aware that the POM is only looked up in the root repository. The provided values are evaluated as for
-     * {@link org.gradle.api.Project#uri(Object)}.</td></tr>
+     * <tr><td><code>artifactUrls</code></td>
+     *     <td>A single jar repository or a collection of jar repositories containing additional artifacts not found in the maven central repository.
+     * But be aware that the POM must exist in maven central.
+     * The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}.</td></tr>
      * </table>
      *
      * <p>Examples:
      * <pre>
      * repositories {
-     *     mavenCentral urls: ["http://www.mycompany.com/repository1", "http://www.mycompany.com/repository2"]
-     *     mavenCentral name: "nonDefaultName", urls: ["http://www.mycompany.com/repository"]
+     *     mavenCentral artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
+     *     mavenCentral name: "nonDefaultName", artifactUrls: ["http://www.mycompany.com/artifacts1"]
      * }
      * </pre>
      * </p>
@@ -174,18 +173,21 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The name is used in the console output,
      * to point to information related to a particular repository. A name must be unique amongst a repository group.
      * </td></tr>
-     * <tr><td><code>urls</code></td>
-     *     <td>A single repository url or a list of urls. The first url is the the url of the root repo.
-     * Gradle always looks first for the pom in the root repository. After this it looks for the artifact in the root repository.
-     * If the artifact can't be found there, it looks for it in the other repositories. The provided values are evaluated as for
-     * {@link org.gradle.api.Project#uri(Object)}.</td></tr>
+     * <tr><td><code>url</code></td>
+     *     <td>The root repository where POM files and artifacts are located.
+     * The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}.</td></tr>
+     * <tr><td><code>artifactUrls</code></td>
+     *     <td>A single jar repository or a collection of jar repositories containing additional artifacts not found in the root repository. Sometimes the artifact
+     * lives in a different repository than the POM. In such a case you can specify further locations to look for an artifact.
+     * But be aware that the POM is only looked up in the root repository.
+     * The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}.</td></tr>
      * </table>
      *
      * <p>Examples:
      * <pre>
      * repositories {
-     *     mavenRepo urls: ["http://www.mycompany.com/repository1", "http://www.mycompany.com/repository2"]
-     *     mavenRepo name: "nonDefaultName", urls: ["http://www.mycompany.com/repository"]
+     *     mavenRepo url: "http://www.mycompany.com/repository", artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
+     *     mavenRepo name: "nonDefaultName", url: "http://www.mycompany.com/repository"
      * }
      * </pre>
      * </p>

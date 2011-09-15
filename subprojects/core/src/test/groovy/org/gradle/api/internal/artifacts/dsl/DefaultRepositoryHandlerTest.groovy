@@ -131,7 +131,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             one(repository).setArtifactUrls([testUrl2])
         }
 
-        assert repositoryHandler.mavenCentral(urls: testUrl2).is(repository)
+        assert repositoryHandler.mavenCentral(artifactUrls: [testUrl2]).is(repository)
     }
 
     @Test
@@ -151,7 +151,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             one(repository).setArtifactUrls([testUrl1, testUrl2])
         }
 
-        assert repositoryHandler.mavenCentral(name: name, urls: [testUrl1, testUrl2]).is(repository)
+        assert repositoryHandler.mavenCentral(name: name, artifactUrls: [testUrl1, testUrl2]).is(repository)
     }
 
     @Test
@@ -173,6 +173,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
     @Test
     public void testMavenRepoWithNameAndUrls() {
+        String testUrl1 = 'http://www.gradle1.org'
         String testUrl2 = 'http://www.gradle2.org'
         String repoRoot = 'http://www.reporoot.org'
         String repoName = 'mavenRepoName'
@@ -186,11 +187,11 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             allowing(repository).getName()
             will(returnValue(repoName))
             one(repository).setUrl(repoRoot)
-            one(repository).setArtifactUrls([testUrl2])
+            one(repository).setArtifactUrls([testUrl1, testUrl2])
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.mavenRepo([name: repoName, urls: [repoRoot, testUrl2]]).is(expectedResolver)
+        assert repositoryHandler.mavenRepo([name: repoName, url: repoRoot, artifactUrls: [testUrl1, testUrl2]]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
@@ -208,11 +209,10 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             allowing(repository).getName()
             will(returnValue(repoName))
             one(repository).setUrl(repoRoot)
-            one(repository).setArtifactUrls([])
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.mavenRepo([name: repoName, urls: repoRoot]).is(expectedResolver)
+        assert repositoryHandler.mavenRepo([name: repoName, url: repoRoot]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
@@ -233,7 +233,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
         }
 
-        assert repositoryHandler.mavenRepo([urls: [repoRoot, testUrl2]]).is(expectedResolver)
+        assert repositoryHandler.mavenRepo([url: repoRoot, artifactUrls: [testUrl2]]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 

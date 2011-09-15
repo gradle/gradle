@@ -63,7 +63,7 @@ configurations {
 }
 
 repositories {
-    mavenRepo(urls: ['http://gradle.sourceforge.net/repository/', 'http://gradle.sourceforge.net/otherrepo/']) {
+    mavenRepo(url: 'http://gradle.sourceforge.net/repository/', artifactUrls: ['http://gradle.sourceforge.net/otherrepo/']) {
         descriptor="required"
     }
     maven { url 'http://gradle.sourceforge.net/otherrepo/' }

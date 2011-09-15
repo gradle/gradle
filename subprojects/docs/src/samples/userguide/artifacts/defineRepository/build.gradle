@@ -10,8 +10,8 @@ org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials("REALM", "HOST"
 
 //START SNIPPET maven-central-jar-repo
 repositories {
-    mavenCentral name: 'single-jar-repo', urls: "http://repo.mycompany.com/jars"
-    mavenCentral name: 'multi-jar-repos', urls: ["http://repo.mycompany.com/jars1", "http://repo.mycompany.com/jars2"]
+    mavenCentral name: 'single-jar-repo', artifactUrls: ["http://repo.mycompany.com/jars"]
+    mavenCentral name: 'multi-jar-repos', artifactUrls: ["http://repo.mycompany.com/jars1", "http://repo.mycompany.com/jars2"]
 }
 //END SNIPPET maven-central-jar-repo
 

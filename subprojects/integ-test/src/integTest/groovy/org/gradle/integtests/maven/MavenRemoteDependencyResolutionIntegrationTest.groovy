@@ -47,7 +47,7 @@ class MavenRemoteDependencyResolutionIntegrationTest {
 
         dist.testFile('build.gradle') << """
 repositories {
-    mavenRepo(urls: "http://localhost:${server.port}/repo") {
+    mavenRepo(url: "http://localhost:${server.port}/repo") {
         if (project.hasProperty('noTimeout')) {
             setSnapshotTimeout(0L)
         }
@@ -163,7 +163,7 @@ task retrieve(type: Sync) {
 
         dist.testFile('build.gradle') << """
 repositories {
-    mavenRepo(urls: "http://localhost:${server.port}/repo") {
+    mavenRepo(url: "http://localhost:${server.port}/repo") {
         setSnapshotTimeout(0)
     }
 }

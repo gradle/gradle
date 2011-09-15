@@ -24,6 +24,12 @@ import java.net.URI;
  */
 public interface IvyArtifactRepository extends ArtifactRepository {
 
+    String GRADLE_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
+    String GRADLE_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
+
+    String MAVEN_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
+    String MAVEN_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
+
     /**
      * Returns the user name to use when authenticating to this repository.
      *
@@ -97,21 +103,20 @@ public interface IvyArtifactRepository extends ArtifactRepository {
      * <h4>'gradle'</h4>
      * A Repository Layout that applies the following patterns:
      * <ul>
-     *     <li>Artifacts: <code>$baseUri/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])</code></li>
-     *     <li>Ivy: <code>$baseUri/[organisation]/[module]/[revision]/ivy-[revision].xml</code></li>
+     *     <li>Artifacts: <code>$baseUri/{@value #GRADLE_ARTIFACT_PATTERN}</code></li>
+     *     <li>Ivy: <code>$baseUri/{@value #GRADLE_IVY_PATTERN}</code></li>
      * </ul>
      *
      * <h4>'maven'</h4>
      * A Repository Layout that applies the following patterns:
      * <ul>
-     *     <li>Artifacts: <code>$baseUri/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])</code></li>
-     *     <li>Ivy: <code>$baseUri/[organisation]/[module]/[revision]/ivy-[revision].xml</code></li>
+     *     <li>Artifacts: <code>$baseUri/{@value #MAVEN_ARTIFACT_PATTERN}</code></li>
+     *     <li>Ivy: <code>$baseUri/{@value #MAVEN_IVY_PATTERN}</code></li>
      * </ul>
-     *
      * Following the maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
      *
      * <h4>'pattern'</h4>
-     * A repository layout that allows custom patterns to be defined:
+     * A repository layout that allows custom patterns to be defined. eg:
      * <pre>
      *     layout 'pattern' , {
      *         artifacts '[module]/[revision]/[artifact](.[ext])'

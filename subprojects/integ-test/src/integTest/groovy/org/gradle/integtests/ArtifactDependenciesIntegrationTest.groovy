@@ -366,7 +366,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    mavenRepo urls: '${repo.rootDir.toURI()}'
+    mavenRepo url: '${repo.rootDir.toURI()}'
 }
 configurations {
     transitive

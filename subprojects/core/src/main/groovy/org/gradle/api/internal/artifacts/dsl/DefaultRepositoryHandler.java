@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.dsl;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ResolverFactory;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;
@@ -66,6 +67,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         if (modifiedArgs.containsKey("urls")) {
+            DeprecationLogger.nagUser("urls", "artifactUrls");
             List<Object> urls = toList(modifiedArgs.remove("urls"));
             modifiedArgs.put("artifactUrls", urls);
         }
@@ -85,6 +87,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         if (modifiedArgs.containsKey("urls")) {
             List<Object> urls = toList(modifiedArgs.remove("urls"));
             if (!urls.isEmpty()) {
+                DeprecationLogger.nagUserWith("The urls method is deprecated and will be removed in a future version of Gradle. "
+                        + "You should use the url method to define the core maven repository & the artifactUrls method to define any additional artifact locations.");
                 modifiedArgs.put("url", urls.get(0));
                 List<Object> extraUrls = urls.subList(1, urls.size());
                 modifiedArgs.put("artifactUrls", extraUrls);
