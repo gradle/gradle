@@ -15,30 +15,24 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
-import org.gradle.launcher.daemon.protocol.BusyException;
+import org.gradle.launcher.daemon.protocol.DaemonBusy;
+import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 
 /**
- * Updates the daemon idle/busy status, and sets the execution exception to a BusyException
- * if the daemon is already busy.
+ * Updates the daemon idle/busy status, sending a DaemonBusy result back to the client if the daemon is busy.
  */
 public class UpdateDaemonStatus implements DaemonCommandAction {
 
-    private static final Logger LOGGER = Logging.getLogger(UpdateDaemonStatus.class);
-    
     public void execute(DaemonCommandExecution execution) {
-        try {
-            execution.getDaemonStateCoordinator().onStartActivity();
-        } catch (BusyException e) {
-            LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
-            execution.setException(e);
-            return;
+        DaemonStateCoordinator stateCoordinator = execution.getDaemonStateCoordinator();
+
+        DaemonCommandExecution existingExecution = stateCoordinator.onStartCommand(execution);
+        if (existingExecution != null) {
+            execution.getConnection().dispatch(new DaemonBusy(existingExecution.getCommand()));
+        } else {
+            execution.proceed();
+            stateCoordinator.onFinishCommand();
         }
-        
-        execution.proceed();
-        execution.getDaemonStateCoordinator().onActivityComplete();
     }
 
 }

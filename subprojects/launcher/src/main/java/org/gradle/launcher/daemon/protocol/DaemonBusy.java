@@ -16,10 +16,13 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import java.io.Serializable;
-
 /**
-* @author: Szczepan Faber, created at: 8/23/11
-*/
-public class BusyException extends RuntimeException implements Serializable {
+ * Returned when the daemon is busy running a different command. The command that the
+ * daemon is running is the value of this result.
+ */
+public class DaemonBusy extends Result<Command> {
+
+    public DaemonBusy(Command value) {
+        super(value);
+    }
 }

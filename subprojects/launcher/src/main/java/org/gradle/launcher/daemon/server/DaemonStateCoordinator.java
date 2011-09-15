@@ -16,17 +16,19 @@
 
 package org.gradle.launcher.daemon.server;
 
+import org.gradle.util.UncheckedException;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.protocol.BusyException;
+
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.util.UncheckedException;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+
+import org.gradle.launcher.daemon.server.exec.DaemonCommandExecution;
 
 import java.util.Date;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 
 /**
  * A tool for synchronising the state amongst different threads.
@@ -42,20 +44,21 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private boolean running;
+
     private boolean stopped;
     private long lastActivityAt = -1;
+    private DaemonCommandExecution currentCommandExecution;
 
-    private final Runnable startHandler;
-    private final Runnable activityStartHandler;
-    private final Runnable activityCompleteHandler;
-    private final Runnable stopHandler;
-    
-    public DaemonStateCoordinator(Runnable startHandler, Runnable activityStartHandler, Runnable activityCompleteHandler, Runnable stopHandler) {
-        this.startHandler = startHandler;
-        this.activityStartHandler = activityStartHandler;
-        this.activityCompleteHandler = activityCompleteHandler;
-        this.stopHandler = stopHandler;
+    private final Runnable onStart;
+    private final Runnable onStartCommand;
+    private final Runnable onFinishCommand;
+    private final Runnable onStop;
+
+    public DaemonStateCoordinator(Runnable onStart, Runnable onStartCommand, Runnable onFinishCommand, Runnable onStop) {
+        this.onStart = onStart;
+        this.onStartCommand = onStartCommand;
+        this.onFinishCommand = onFinishCommand;
+        this.onStop = onStop;
     }
 
     /**
@@ -64,7 +67,7 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     public void awaitStop() {
         lock.lock();
         try {
-            while (!stopped) {
+            while (!isStopped()) {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
@@ -83,7 +86,7 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         lock.lock();
         try {
             updateActivityTimestamp();
-            startHandler.run();
+            onStart.run();
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -98,9 +101,9 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     public boolean awaitStopOrIdleTimeout(int timeout) {
         lock.lock();
         try {
-            while ((running || !isStarted()) || (!stopped && !hasBeenIdleFor(timeout))) {
+            while ((!isStarted() || isRunning()) || (!isStopped() && !hasBeenIdleFor(timeout))) {
                 try {
-                    if (running || !isStarted()) {
+                    if (!isStarted() || isRunning()) {
                         condition.await();
                     } else {
                         condition.awaitUntil(new Date(lastActivityAt + timeout));
@@ -109,8 +112,8 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
                     throw UncheckedException.asUncheckedException(e);
                 }
             }
-            assert !running;
-            return stopped;
+            assert !isRunning();
+            return isStopped();
         } finally {
             lock.unlock();
         }
@@ -119,15 +122,15 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     public void stop() {
         lock.lock();
         try {
-            LOGGER.info("Stop requested. The daemon is running a build: " + running);
+            LOGGER.info("Stop requested. The daemon is running a build: " + isRunning());
             stopped = true;
-            stopHandler.run();
+            onStop.run();
             condition.signalAll();
         } finally {
             lock.unlock();
         }
     }
-    
+
     public void requestStop() {
         new DefaultExecutorFactory().create("Daemon Async Stop Request").execute(new Runnable() {
             public void run() {
@@ -136,28 +139,48 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         });
     }
 
-    public void onStartActivity() {
+    /**
+     * Called when the execution of a command begins.
+     * <p>
+     * If the daemon is busy (i.e. already executing a command), this method will return the existing
+     * execution which the caller should be prepared for without considering the given execution to be in progress. 
+     * If the daemon is idle the return value will be {@code null} and the given execution will be considered in progress.
+     */
+    public DaemonCommandExecution onStartCommand(DaemonCommandExecution execution) {
         lock.lock();
         try {
-            if (running) {
-                throw new BusyException();
+            if (currentCommandExecution != null) { // daemon is busy
+                return currentCommandExecution;
+            } else {
+                currentCommandExecution = execution;
+                updateActivityTimestamp();
+                onStartCommand.run();
+                condition.signalAll();
+                return null;
             }
-            running = true;
-            updateActivityTimestamp();
-            activityStartHandler.run();
-            condition.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
-    public void onActivityComplete() {
+    /**
+     * Called when the execution of a command is complete (or at least the daemon is available for new commands).
+     * <p>
+     * If the daemon is currently idle, this method will return {@code null}. If it is busy, it will return what was the
+     * current execution which will considered to be complete (putting the daemon back in idle state).
+     */
+    public DaemonCommandExecution onFinishCommand() {
         lock.lock();
         try {
-            running = false;
-            updateActivityTimestamp();
-            activityCompleteHandler.run();
-            condition.signalAll();
+            DaemonCommandExecution execution = currentCommandExecution;
+            if (execution != null) {
+                currentCommandExecution = null;
+                updateActivityTimestamp();
+                onFinishCommand.run();
+                condition.signalAll();
+            }
+
+            return execution;
         } finally {
             lock.unlock();
         }
@@ -165,6 +188,18 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
 
     private void updateActivityTimestamp() {
         lastActivityAt = System.currentTimeMillis();
+    }
+
+    /**
+     * The current command execution, or {@code null} if the daemon is idle.
+     */
+    public DaemonCommandExecution getCurrentCommandExecution() {
+        lock.lock();
+        try {
+            return currentCommandExecution;
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -182,8 +217,12 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         return stopped;
     }
 
+    public boolean isIdle() {
+        return currentCommandExecution == null;
+    }
+    
     public boolean isRunning() {
-        return running;
+        return isStarted() && !isStopped();
     }
 
 }

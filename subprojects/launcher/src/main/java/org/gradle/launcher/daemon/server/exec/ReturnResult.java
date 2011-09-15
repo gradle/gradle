@@ -15,14 +15,11 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
 import org.gradle.util.UncheckedException;
 
+import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Success;
 import org.gradle.launcher.daemon.protocol.CommandFailure;
-import org.gradle.launcher.daemon.protocol.DaemonFailure;
 
 /**
  * Handles sending the result of the execution back to the client.
@@ -31,22 +28,15 @@ import org.gradle.launcher.daemon.protocol.DaemonFailure;
  */
 public class ReturnResult implements DaemonCommandAction {
 
-    private static final Logger LOGGER = Logging.getLogger(ReturnResult.class);
-
     public void execute(DaemonCommandExecution execution) {
-        Object result;
+        execution.proceed();
 
-        try {
-            execution.proceed();
-            Throwable commandException = execution.getException();
-            if (commandException != null) {
-                result = new CommandFailure(UncheckedException.asUncheckedException(commandException));
-            } else {
-                result = new Success(execution.getResult());
-            }
-        } catch (Throwable daemonException) { // Should this be Exception and not Throwable?
-            LOGGER.error(String.format("Daemon failure during execution of %s - ", execution.getCommand()), daemonException);
-            result = new DaemonFailure(UncheckedException.asUncheckedException(daemonException));
+        Result result;
+        Throwable commandException = execution.getException();
+        if (commandException != null) {
+            result = new CommandFailure(UncheckedException.asUncheckedException(commandException));
+        } else {
+            result = new Success(execution.getResult());
         }
 
         execution.getConnection().dispatch(result);

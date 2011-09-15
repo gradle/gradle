@@ -24,8 +24,8 @@ import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Failure;
-import org.gradle.launcher.daemon.protocol.BusyException;
 import org.gradle.launcher.daemon.protocol.Success;
+import org.gradle.launcher.daemon.protocol.DaemonBusy;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
@@ -89,19 +89,17 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
         while(true) {
             Connection<Object> connection = connector.connect();
-            try {
-                Result result = runBuild(new Build(action, parameters), connection);
-                
-                if (result instanceof Failure) {
-                    // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                    throw ((Failure)result).getValue();
-                } else if (result instanceof Success) {
-                    return (T) result.getValue();
-                } else {
-                    throw new IllegalStateException(String.format("Daemon returned %s which is neither Success or Failure result", result));
-                }
-            } catch (BusyException e) {
-                //ignore. We'll continue looping until we get a connection that is able handle a build request.
+
+            Result result = runBuild(new Build(action, parameters), connection);
+            if (result instanceof DaemonBusy) {
+                continue; // try a different daemon
+            } else if (result instanceof Failure) {
+                // Could potentially distinguish between CommandFailure and DaemonFailure here.
+                throw ((Failure)result).getValue();
+            } else if (result instanceof Success) {
+                return (T) result.getValue();
+            } else {
+                throw new IllegalStateException(String.format("Daemon returned %s for which there is no strategy to handle (i.e. is an unknown Result type)", result));
             }
         }
     }
