@@ -226,6 +226,7 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: userguideXhtml) {
 
 task javadoc(type: Javadoc) {
     group = 'documentation'
+    options.encoding = 'utf-8'
     source groovyProjects().collect {project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
     classpath = files(groovyProjects().collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
