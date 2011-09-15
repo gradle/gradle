@@ -51,7 +51,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new HandleClientDisconnectBeforeSendingCommand(),
             new CatchAndForwardDaemonFailure(),
             new HandleStop(),
-            new UpdateDaemonStatus(),
+            new UpdateDaemonStateAndHandleBusyDaemon(),
             new ReturnResult(),
             new ForwardOutput(loggingOutput),
             new ReportExceptions(loggingServices),

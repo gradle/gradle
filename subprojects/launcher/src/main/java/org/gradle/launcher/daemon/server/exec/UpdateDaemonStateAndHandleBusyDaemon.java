@@ -21,7 +21,7 @@ import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 /**
  * Updates the daemon idle/busy status, sending a DaemonBusy result back to the client if the daemon is busy.
  */
-public class UpdateDaemonStatus implements DaemonCommandAction {
+public class UpdateDaemonStateAndHandleBusyDaemon implements DaemonCommandAction {
 
     public void execute(DaemonCommandExecution execution) {
         DaemonStateCoordinator stateCoordinator = execution.getDaemonStateCoordinator();
