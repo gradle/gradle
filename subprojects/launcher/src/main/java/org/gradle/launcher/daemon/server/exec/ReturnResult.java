@@ -19,35 +19,37 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 import org.gradle.util.UncheckedException;
-import org.gradle.launcher.exec.ReportedException;
 
-import org.gradle.launcher.daemon.protocol.Result;
-import org.gradle.launcher.daemon.protocol.CommandComplete;
+import org.gradle.launcher.daemon.protocol.Success;
+import org.gradle.launcher.daemon.protocol.CommandFailure;
+import org.gradle.launcher.daemon.protocol.DaemonFailure;
 
 /**
  * Handles sending the result of the execution back to the client.
- * 
+ *
  * Likely to be the first thing in the pipeline.
  */
 public class ReturnResult implements DaemonCommandAction {
 
     private static final Logger LOGGER = Logging.getLogger(ReturnResult.class);
-    
-    public void execute(DaemonCommandExecution execution) {
-        execution.proceed();
 
-        Object toReturn = null;
-        Throwable exception = execution.getException();
-        if (exception != null) {
-            if (!(exception instanceof ReportedException)) {
-                LOGGER.error("Could not execute build.", exception);
+    public void execute(DaemonCommandExecution execution) {
+        Object result;
+
+        try {
+            execution.proceed();
+            Throwable commandException = execution.getException();
+            if (commandException != null) {
+                result = new CommandFailure(UncheckedException.asUncheckedException(commandException));
+            } else {
+                result = new Success(execution.getResult());
             }
-            toReturn = new CommandComplete(UncheckedException.asUncheckedException(exception));
-        } else {
-            toReturn = new Result(execution.getResult());
+        } catch (Throwable daemonException) { // Should this be Exception and not Throwable?
+            LOGGER.error(String.format("Daemon failure during execution of %s - ", execution.getCommand()), daemonException);
+            result = new DaemonFailure(UncheckedException.asUncheckedException(daemonException));
         }
 
-        execution.getConnection().dispatch(toReturn);
+        execution.getConnection().dispatch(result);
     }
 
 }

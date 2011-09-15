@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.Sleep;
-import org.gradle.launcher.daemon.protocol.Result;
 
 /**
  * Handles the special sleep command.
@@ -30,7 +29,7 @@ public class HandleSleep implements DaemonCommandAction {
         Command command = execution.getCommand();
         if (command instanceof Sleep) {
             ((Sleep) command).run();
-            execution.setResult(new Result("Command executed successfully: " + command));
+            execution.setResult("Command executed successfully: " + command);
             // don't proceed, don't need to go further
         } else {
             execution.proceed();

@@ -22,9 +22,10 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.daemon.protocol.BusyException;
-import org.gradle.launcher.daemon.protocol.CommandComplete;
 import org.gradle.launcher.daemon.protocol.Result;
+import org.gradle.launcher.daemon.protocol.Failure;
+import org.gradle.launcher.daemon.protocol.BusyException;
+import org.gradle.launcher.daemon.protocol.Success;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
@@ -40,7 +41,7 @@ import org.gradle.messaging.remote.internal.Connection;
  *
  * <li>Server sends zero or more {@link org.gradle.logging.internal.OutputEvent} messages. Note that the server may send output messages before it receives the command message. </li>
  *
- * <li>Server sends a {@link org.gradle.launcher.daemon.protocol.CommandComplete} message.</li>
+ * <li>Server sends a {@link org.gradle.launcher.daemon.protocol.Result} message.</li>
  *
  * <li>Connection is closed.</li>
  *
@@ -89,33 +90,37 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         while(true) {
             Connection<Object> connection = connector.connect();
             try {
-                Result result = (Result) runBuild(new Build(action, parameters), connection);
-                return (T) result.getResult();
+                Result result = runBuild(new Build(action, parameters), connection);
+                
+                if (result instanceof Failure) {
+                    // Could potentially distinguish between CommandFailure and DaemonFailure here.
+                    throw ((Failure)result).getValue();
+                } else if (result instanceof Success) {
+                    return (T) result.getValue();
+                } else {
+                    throw new IllegalStateException(String.format("Daemon returned %s which is neither Success or Failure result", result));
+                }
             } catch (BusyException e) {
                 //ignore. We'll continue looping until we get a connection that is able handle a build request.
             }
         }
     }
 
-    private CommandComplete runBuild(Build build, Connection<Object> connection) {
+    private Result runBuild(Build build, Connection<Object> connection) {
         try {
             //TODO SF - this may fail. We should handle it and have tests for that. It means the server is gone.
             connection.dispatch(build);
             while (true) {
                 Object object = connection.receive();
-                if (object instanceof CommandComplete) {
-                    CommandComplete commandComplete = (CommandComplete) object;
-                    if (commandComplete.getFailure() != null) {
-                        throw commandComplete.getFailure();
-                    }
-                    return commandComplete;
-                } else if (object instanceof OutputEvent) {
-                    OutputEvent outputEvent = (OutputEvent) object;
-                    outputEventListener.onOutput(outputEvent);
-                } else if (object == null) {
+                
+                if (object == null) {
                     throw new IllegalStateException(String.format("Daemon returned null after we sent %s", build));
+                } else if (object instanceof OutputEvent) {
+                    outputEventListener.onOutput((OutputEvent) object);
+                } else if (object instanceof Result) {
+                    return (Result) object;
                 } else {
-                    throw new IllegalStateException(String.format("Daemon returned %s (type: %s) which there is no strategy to respond to", object, object.getClass()));
+                    throw new IllegalStateException(String.format("Daemon returned %s (type: %s) for which there is no strategy to handle", object, object.getClass()));
                 }
             }
         } finally {

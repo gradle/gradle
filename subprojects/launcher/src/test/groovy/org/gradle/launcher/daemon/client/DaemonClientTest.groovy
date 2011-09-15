@@ -19,8 +19,8 @@ import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.GradleLauncherAction
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.launcher.daemon.protocol.Build
-import org.gradle.launcher.daemon.protocol.CommandComplete
-import org.gradle.launcher.daemon.protocol.Result
+import org.gradle.launcher.daemon.protocol.Success
+import org.gradle.launcher.daemon.protocol.CommandFailure
 import org.gradle.launcher.daemon.protocol.Stop
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
@@ -40,7 +40,7 @@ class DaemonClientTest extends Specification {
         then:
         2 * connector.maybeConnect() >>> [connection, null]
         1 * connection.dispatch({it instanceof Stop})
-        1 * connection.receive() >> new CommandComplete(null)
+        1 * connection.receive() >> new Success(null)
         1 * connection.stop()
         0 * _._
     }
@@ -52,7 +52,7 @@ class DaemonClientTest extends Specification {
         then:
         3 * connector.maybeConnect() >>> [connection, connection, null]
         2 * connection.dispatch({it instanceof Stop})
-        2 * connection.receive() >> new CommandComplete(null)
+        2 * connection.receive() >> new Success(null)
     }
 
     def stopsTheDaemonWhenNotRunning() {
@@ -75,7 +75,7 @@ class DaemonClientTest extends Specification {
         result == '[result]'
         1 * connector.connect() >> connection
         1 * connection.dispatch({it instanceof Build})
-        1 * connection.receive() >> new Result('[result]')
+        1 * connection.receive() >> new Success('[result]')
         1 * connection.stop()
     }
 
@@ -92,7 +92,7 @@ class DaemonClientTest extends Specification {
         e == failure
         1 * connector.connect() >> connection
         1 * connection.dispatch({it instanceof Build})
-        1 * connection.receive() >> new CommandComplete(failure)
+        1 * connection.receive() >> new CommandFailure(failure)
         1 * connection.stop()
     }
 }

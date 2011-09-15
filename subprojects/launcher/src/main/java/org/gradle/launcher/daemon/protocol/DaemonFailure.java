@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import java.io.Serializable;
-
-public class CommandComplete implements Serializable {
-    private final RuntimeException failure;
-
-    public CommandComplete(RuntimeException failure) {
-        this.failure = failure;
-    }
-
-    public RuntimeException getFailure() {
-        return failure;
+/**
+ * Signifies that the daemon infrastructure encountered an internal error in trying to
+ * execute the command it received.
+ * <p>
+ * This is different to {@link CommandFailure}, which signifies that the daemon did its job successfully
+ * but the command itself failed.
+ */
+public class DaemonFailure extends Failure {
+    
+    public DaemonFailure(RuntimeException value) {
+        super(value);
     }
 }

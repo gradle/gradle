@@ -15,15 +15,30 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-public class Result extends CommandComplete {
-    private final Object result;
+import java.io.Serializable;
 
-    public Result(Object result) {
-        super(null);
-        this.result = result;
+/**
+ * The supertype of all objects sent from the daemon server back to the client.
+ * <p>
+ * Specific subclass types carry extra context, e.g. whether it was a failure or successful result.
+ * <p>
+ * The meaning of the value parameter is specific to each concrete subclass. The validity of {@code null}
+ * is also to be defined by each subclass. This implementation does allow null values.
+ */
+abstract public class Result<T> implements Serializable {
+
+    private final T value;
+
+    public Result(T value) {
+        this.value = value;
     }
 
-    public Object getResult() {
-        return result;
+    public T getValue() {
+        return value;
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("DaemonCommandResult[type=%s, value=%s]", getClass().getSimpleName(), getValue());
     }
 }
