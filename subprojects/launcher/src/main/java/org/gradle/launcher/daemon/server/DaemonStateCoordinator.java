@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.util.UncheckedException;
-import org.gradle.api.logging.Logging;
 
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.AsyncStoppable;
@@ -39,8 +38,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * This is not exposed to clients of the daemon.
  */
 public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
-
-    private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
@@ -101,7 +98,6 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     public boolean awaitStopOrIdleTimeout(int timeout) {
         lock.lock();
         try {
-            LOGGER.lifecycle("waiting for daemon to stop or be idle for {}ms", timeout);
             while (true) {
                 if (isStopped()) {
                     return true;
@@ -111,14 +107,11 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
             
                 try {
                     if (!isStarted()) {
-                        LOGGER.lifecycle("waiting for daemon to stop or idle timeout, daemon has not yet started, sleeping until then");
                         condition.await();
                     } else if (isBusy()) {
-                        LOGGER.lifecycle("waiting for daemon to stop or idle timeout, daemon is busy, sleeping until it finishes");
                         condition.await();
                     } else if (isIdle()) {
                         Date waitUntil = new Date(lastActivityAt + timeout);
-                        LOGGER.lifecycle("waiting for daemon to stop or idle timeout, daemon is idle, sleeping until daemon state change or idle timeout at {}", waitUntil);
                         condition.awaitUntil(waitUntil);
                     } else {
                         throw new IllegalStateException("waiting for daemon to stop or idle timeout, daemon has started but is not busy or idle, this shouldn't happen");
@@ -135,7 +128,6 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     public void stop() {
         lock.lock();
         try {
-            LOGGER.lifecycle("Stop requested. The daemon is running a build: " + isRunning());
             stopped = true;
             onStop.run();
             condition.signalAll();
@@ -163,10 +155,8 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         lock.lock();
         try {
             if (currentCommandExecution != null) { // daemon is busy
-                LOGGER.warn("onStartCommand({}) called while currentCommandExecution = {}", execution, currentCommandExecution);
                 return currentCommandExecution;
             } else {
-                LOGGER.lifecycle("onStartCommand({}) called after {} mins of idle", execution, getIdleMinutes());
                 currentCommandExecution = execution;
                 updateActivityTimestamp();
                 onStartCommand.run();
@@ -188,10 +178,7 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         lock.lock();
         try {
             DaemonCommandExecution execution = currentCommandExecution;
-            if (execution == null) {
-                LOGGER.warn("onFinishCommand() called while currentCommandExecution is null");
-            } else {
-                LOGGER.lifecycle("onFinishCommand() called while execution = {}", execution);
+            if (execution != null) {
                 currentCommandExecution = null;
                 updateActivityTimestamp();
                 onFinishCommand.run();
@@ -206,7 +193,6 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
 
     private void updateActivityTimestamp() {
         long now = System.currentTimeMillis();
-        LOGGER.lifecycle("updating lastActivityAt to {}", now);
         lastActivityAt = now;
     }
 
