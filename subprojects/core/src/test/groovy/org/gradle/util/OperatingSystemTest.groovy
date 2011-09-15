@@ -28,7 +28,24 @@ class OperatingSystemTest extends Specification {
         OperatingSystem.current() instanceof OperatingSystem.Windows
     }
 
-    def "uses os.name property to determine if os x"() {
+    def "windows identifies itself correctly"() {
+        def os = new OperatingSystem.Windows()
+
+        expect:
+        os.windows
+        !os.unix
+        !os.macOsX
+    }
+
+    def "windows has case insensitive file system"() {
+        def os = new OperatingSystem.Windows()
+
+        expect:
+        !os.fileSystem.caseSensitive
+        !os.fileSystem.symlinkAware
+    }
+
+    def "uses os.name property to determine if Mac OS X"() {
         when:
         System.properties['os.name'] = 'Mac OS X'
 
@@ -40,6 +57,23 @@ class OperatingSystemTest extends Specification {
 
         then:
         OperatingSystem.current() instanceof OperatingSystem.MacOs
+    }
+
+    def "Mac OS X identifies itself correctly"() {
+        def os = new OperatingSystem.MacOs()
+
+        expect:
+        !os.windows
+        os.unix
+        os.macOsX
+    }
+
+    def "Mac OS X has case insensitive file system"() {
+        def os = new OperatingSystem.MacOs()
+
+        expect:
+        !os.fileSystem.caseSensitive
+        os.fileSystem.symlinkAware
     }
 
     def "uses os.name property to determine if solaris"() {
@@ -54,6 +88,23 @@ class OperatingSystemTest extends Specification {
 
         expect:
         OperatingSystem.current() instanceof OperatingSystem.Unix
+    }
+
+    def "UNIX identifies itself correctly"() {
+        def os = new OperatingSystem.Unix()
+
+        expect:
+        !os.windows
+        os.unix
+        !os.macOsX
+    }
+
+    def "UNIX has case sensitive file system"() {
+        def os = new OperatingSystem.Unix()
+
+        expect:
+        os.fileSystem.caseSensitive
+        os.fileSystem.symlinkAware
     }
 
     def "solaris uses prefix of x86 for 32bit intel"() {

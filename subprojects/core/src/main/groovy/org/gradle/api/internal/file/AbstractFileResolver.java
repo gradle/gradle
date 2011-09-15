@@ -55,28 +55,31 @@ public abstract class AbstractFileResolver implements FileResolver {
 
         validate(file, validation);
 
-        System.out.format("resolved '%s' to '%s'%n", path, file);
         return file;
     }
 
     private File normalise(File file) {
         try {
             assert file.isAbsolute();
-            String[] segments = file.getPath().split("/");
+
+            if (!OperatingSystem.current().getFileSystem().isSymlinkAware()) {
+                return file.getCanonicalFile();
+            }
+
+            String[] segments = file.getPath().split(String.format("[/%s]", Pattern.quote(File.separator)));
             List<String> path = new ArrayList<String>(segments.length);
             for (String segment : segments) {
-                if (segment.equals(".") || segment.length() == 0) {
-                    continue;
-                }
                 if (segment.equals("..")) {
-                    path.remove(path.size() - 1);
-                } else {
+                    if (!path.isEmpty()) {
+                        path.remove(path.size() - 1);
+                    }
+                } else if (!segment.equals(".") && segment.length() > 0) {
                     path.add(segment);
                 }
             }
-            
+
             File candidate = new File(GUtil.join(path, File.separator));
-            if (OperatingSystem.current().isCaseSensitiveFileSystem()) {
+            if (OperatingSystem.current().getFileSystem().isCaseSensitive()) {
                 return candidate;
             }
 
@@ -181,7 +184,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         for (File file : File.listRoots()) {
             String rootPath = file.getAbsolutePath();
             String normalisedStr = str;
-            if (!OperatingSystem.current().isCaseSensitiveFileSystem()) {
+            if (!OperatingSystem.current().getFileSystem().isCaseSensitive()) {
                 rootPath = rootPath.toLowerCase();
                 normalisedStr = normalisedStr.toLowerCase();
             }

@@ -45,7 +45,7 @@ public class CommandLineIntegrationTest {
         File javaprojectDir;
         if (OperatingSystem.current().isWindows()) {
             javaprojectDir = new File(dist.samplesDir, 'java/QUICKS~1')
-        } else if (!OperatingSystem.current().isCaseSensitiveFileSystem()) {
+        } else if (!OperatingSystem.current().fileSystem.caseSensitive) {
             javaprojectDir = new File(dist.samplesDir, 'JAVA/QuickStart')
         } else {
             javaprojectDir = new File(dist.samplesDir, 'java/multiproject/../quickstart')

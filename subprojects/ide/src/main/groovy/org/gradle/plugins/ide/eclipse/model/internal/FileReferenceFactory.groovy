@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.plugins.ide.eclipse.model.FileReference
-import org.gradle.api.internal.file.BaseDirConverter
 import org.gradle.api.internal.file.IdentityFileResolver
 
 class FileReferenceFactory {

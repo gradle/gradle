@@ -16,17 +16,22 @@
 package org.gradle.util;
 
 public abstract class OperatingSystem {
+    private static final Windows WINDOWS = new Windows();
+    private static final MacOs MAC_OS = new MacOs();
+    private static final Solaris SOLARIS = new Solaris();
+    private static final Unix UNIX = new Unix();
+
     public static OperatingSystem current() {
         String osName = System.getProperty("os.name").toLowerCase();
         if (osName.contains("windows")) {
-            return new Windows();
+            return WINDOWS;
         } else if (osName.contains("mac os x") || osName.contains("darwin")) {
-            return new MacOs();
+            return MAC_OS;
         } else if (osName.contains("sunos")) {
-            return new Solaris();
+            return SOLARIS;
         } else {
             // Not strictly true
-            return new Unix();
+            return UNIX;
         }
     }
 
@@ -39,16 +44,20 @@ public abstract class OperatingSystem {
 
     public abstract boolean isUnix();
 
-    public abstract boolean isCaseSensitiveFileSystem();
+    public abstract boolean isMacOsX();
+
+    public abstract FileSystem getFileSystem();
 
     public abstract String getNativePrefix();
 
     public abstract String getScriptName(String scriptPath);
 
-    public static class Windows extends OperatingSystem {
+    static class Windows extends OperatingSystem {
+        private static final FileSystem FILE_SYSTEM = new WindowsFileSystem();
+
         @Override
-        public boolean isCaseSensitiveFileSystem() {
-            return false;
+        public FileSystem getFileSystem() {
+            return FILE_SYSTEM;
         }
 
         @Override
@@ -58,6 +67,11 @@ public abstract class OperatingSystem {
 
         @Override
         public boolean isUnix() {
+            return false;
+        }
+
+        @Override
+        public boolean isMacOsX() {
             return false;
         }
 
@@ -79,14 +93,16 @@ public abstract class OperatingSystem {
         }
     }
 
-    public static class Unix extends OperatingSystem {
+    static class Unix extends OperatingSystem {
+        private static final FileSystem FILE_SYSTEM = new UnixFileSystem();
+
         public String getScriptName(String scriptPath) {
             return scriptPath;
         }
 
         @Override
-        public boolean isCaseSensitiveFileSystem() {
-            return true;
+        public FileSystem getFileSystem() {
+            return FILE_SYSTEM;
         }
 
         @Override
@@ -97,6 +113,11 @@ public abstract class OperatingSystem {
         @Override
         public boolean isUnix() {
             return true;
+        }
+
+        @Override
+        public boolean isMacOsX() {
+            return false;
         }
 
         public String getNativePrefix() {
@@ -131,10 +152,18 @@ public abstract class OperatingSystem {
         }
     }
 
-    public static class MacOs extends Unix {
+    static class MacOs extends Unix {
+        private static final FileSystem FILE_SYSTEM = new MacFileSystem();
+
         @Override
-        public boolean isCaseSensitiveFileSystem() {
-            return false;
+        public FileSystem getFileSystem() {
+            return FILE_SYSTEM;
+        }
+
+        @Override
+        public boolean isMacOsX() {
+            return true;
+
         }
 
         @Override
@@ -143,7 +172,7 @@ public abstract class OperatingSystem {
         }
     }
 
-    public static class Solaris extends Unix {
+    static class Solaris extends Unix {
         @Override
         protected String getOsPrefix() {
             return "sunos";
@@ -156,6 +185,34 @@ public abstract class OperatingSystem {
                 return "x86";
             }
             return super.getArch();
+        }
+    }
+
+    static class UnixFileSystem implements FileSystem {
+        public boolean isCaseSensitive() {
+            return true;
+        }
+
+        public boolean isSymlinkAware() {
+            return true;
+        }
+    }
+
+    static class MacFileSystem extends UnixFileSystem {
+        @Override
+        public boolean isCaseSensitive() {
+            return false;
+        }
+    }
+
+    static class WindowsFileSystem implements FileSystem {
+        public boolean isCaseSensitive() {
+            return false;
+        }
+
+        public boolean isSymlinkAware() {
+            // Not strictly true - Vista and later can handle symlinks. But not every user (most users?) don't have permission to create them.
+            return false;
         }
     }
 }

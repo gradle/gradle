@@ -50,7 +50,7 @@ public class JnaBootPathConfigurer {
     public void configure() {
         File tmpDir = new File(storageDir, "jna");
         tmpDir.mkdirs();
-        String jnaLibName = OperatingSystem.current() instanceof OperatingSystem.MacOs ? "libjnidispatch.jnilib" : System.mapLibraryName("jnidispatch");
+        String jnaLibName = OperatingSystem.current().isMacOsX() ? "libjnidispatch.jnilib" : System.mapLibraryName("jnidispatch");
         File libFile = new File(tmpDir, jnaLibName);
         if (!libFile.exists()) {
             String resourceName = "/com/sun/jna/" + OperatingSystem.current().getNativePrefix() + "/" + jnaLibName;

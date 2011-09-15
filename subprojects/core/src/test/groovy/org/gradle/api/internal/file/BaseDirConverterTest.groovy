@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.api.internal.file
 
 import org.gradle.api.InvalidUserDataException
@@ -160,7 +157,7 @@ class BaseDirConverterTest {
     }
 
     @Test public void testResolveAbsolutePathOnCaseInsensitiveFileSystemToUri() {
-        if (OperatingSystem.current().isCaseSensitiveFileSystem()) {
+        if (OperatingSystem.current().fileSystem.caseSensitive) {
             return
         }
 
