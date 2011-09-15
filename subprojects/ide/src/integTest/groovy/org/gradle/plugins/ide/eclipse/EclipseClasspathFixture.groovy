@@ -16,13 +16,16 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.util.TestFile
+import java.util.regex.Pattern
 
 class EclipseClasspathFixture {
     final TestFile projectDir
+    final TestFile userHomeDir
     Node classpath
 
-    EclipseClasspathFixture(TestFile projectDir) {
+    EclipseClasspathFixture(TestFile projectDir, TestFile userHomeDir) {
         this.projectDir = projectDir
+        this.userHomeDir = userHomeDir
     }
 
     Node getClasspath() {
@@ -62,12 +65,20 @@ class EclipseClasspathFixture {
             assert entry.@path == jar
         }
 
+        void assertHasCachedJar(String group, String module, String version) {
+            assert entry.@path ==~ Pattern.quote("${userHomeDir.absolutePath.replace(File.separator, '/')}/caches/artifacts/${group}/${module}/") + "\\w+/jars/" + Pattern.quote("${module}-${version}.jar")
+        }
+
         void assertHasSource(File jar) {
             assert entry.@sourcepath == jar.absolutePath.replace(File.separator, '/')
         }
 
         void assertHasSource(String jar) {
             assert entry.@sourcepath == jar
+        }
+
+        void assertHasCachedSource(String group, String module, String version) {
+            assert entry.@sourcepath ==~ Pattern.quote("${userHomeDir.absolutePath.replace(File.separator, '/')}/caches/artifacts/${group}/${module}/") + "\\w+/sources/" + Pattern.quote("${module}-${version}-sources.jar")
         }
 
         void assertHasNoSource() {
