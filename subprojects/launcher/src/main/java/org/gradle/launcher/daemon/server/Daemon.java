@@ -105,26 +105,26 @@ public class Daemon implements Runnable, Stoppable {
 
             registryUpdater = new DomainRegistryUpdater(daemonRegistry, connectorAddress);
             
-            Runnable startHandler = new Runnable() {
+            Runnable onStart = new Runnable() {
                 public void run() {
                     LOGGER.lifecycle("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
                     registryUpdater.onStart();
                 }
             };
             
-            Runnable startActivityHandler = new Runnable() {
+            Runnable onStartCommand = new Runnable() {
                 public void run() {
                     registryUpdater.onStartActivity();
                 }
             };
 
-            Runnable completeActivityHandler = new Runnable() {
+            Runnable onFinishCommand = new Runnable() {
                 public void run() {
                     registryUpdater.onCompleteActivity();
                 }
             };
             
-            Runnable stopHandler = new Runnable() {
+            Runnable onStop = new Runnable() {
                 public void run() {
                     LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
                     registryUpdater.onStop();
@@ -132,7 +132,7 @@ public class Daemon implements Runnable, Stoppable {
                 }
             };
 
-            stateCoordinator = new DaemonStateCoordinator(startHandler, startActivityHandler, completeActivityHandler, stopHandler);
+            stateCoordinator = new DaemonStateCoordinator(onStart, onStartCommand, onFinishCommand, onStop);
 
             // ready, set, go
             stateCoordinator.start();
