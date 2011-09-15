@@ -22,16 +22,16 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
 import org.gradle.util.OperatingSystem;
-import org.gradle.util.PosixUtil;
-import org.jruby.ext.posix.FileStat;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,33 +51,70 @@ public abstract class AbstractFileResolver implements FileResolver {
     public File resolve(Object path, PathValidation validation) {
         File file = doResolve(path);
 
-        String[] segments = file.getAbsolutePath().split("/");
-        File current = new File(segments[0]);
-        File target = current;
-        for (int i = 1; i < segments.length; i++) {
-            String segment = segments[i];
-            current = new File(current, segment);
-            target = new File(target, segment);
-            if (target.exists()) {
-                FileStat lstat = PosixUtil.current().lstat(target.getAbsolutePath());
-                System.out.format("current: %s, target: %s%n", current, target);
-                System.out.println("  lstat symlink " + lstat.isSymlink());
-                System.out.println("  lstat type " + lstat.ftype());
-                if (lstat.isSymlink()) {
-                    try {
-                        target = new File(PosixUtil.current().readlink(target.getAbsolutePath()));
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }
-            }
-        }
+        file = normalise(file);
 
-        file = current;
         validate(file, validation);
 
         System.out.format("resolved '%s' to '%s'%n", path, file);
         return file;
+    }
+
+    private File normalise(File file) {
+        try {
+            assert file.isAbsolute();
+            String[] segments = file.getPath().split("/");
+            List<String> path = new ArrayList<String>(segments.length);
+            for (String segment : segments) {
+                if (segment.equals(".") || segment.length() == 0) {
+                    continue;
+                }
+                if (segment.equals("..")) {
+                    path.remove(path.size() - 1);
+                } else {
+                    path.add(segment);
+                }
+            }
+            
+            File candidate = new File(GUtil.join(path, File.separator));
+            if (OperatingSystem.current().isCaseSensitiveFileSystem()) {
+                return candidate;
+            }
+
+            // Short-circuit the slower lookup method by using the canonical file
+            File canonical = candidate.getCanonicalFile();
+            if (candidate.getPath().equalsIgnoreCase(canonical.getPath())) {
+                return canonical;
+            }
+
+            // Canonical path is different to what we expected (eg there is a link somewhere in there). Normalise a segment at a time
+            // TODO - start resolving only from where the expected and canonical paths are different
+            File current = File.listRoots()[0];
+            for (int pos = 0; pos < path.size(); pos++) {
+                File child = findChild(current, path.get(pos));
+                if (child == null) {
+                    current = new File(current, GUtil.join(path.subList(pos, path.size()), File.separator));
+                    break;
+                }
+                current = child;
+            }
+            return current;
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not normalise path for file '%s'.", file), e);
+        }
+    }
+
+    private File findChild(File current, String segment) throws IOException {
+        String[] children = current.list();
+        if (children == null) {
+            return null;
+        }
+        // TODO - find some native methods for doing this
+        for (String child : children) {
+            if (child.equalsIgnoreCase(segment)) {
+                return new File(current, child);
+            }
+        }
+        return new File(current, segment);
     }
 
     public FileSource resolveLater(final Object path) {
@@ -189,7 +226,7 @@ public abstract class AbstractFileResolver implements FileResolver {
                     throw new RuntimeException(e);
                 }
             } else if (current instanceof FileSource) {
-                return ((FileSource)current).get();
+                return ((FileSource) current).get();
             } else {
                 return current;
             }

@@ -4,14 +4,15 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.util.OperatingSystem
+import org.gradle.util.PosixUtil
 
 class FileCanonicalisationTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
 
     def "normalises absolute path which points to an absolute link"() {
-        def target = tmpDir.createFile('target.txt')
-        def file = tmpDir.file('a/other.txt')
-        file.linkTo(target)
+        def target = createFile(new File(tmpDir.dir, 'target.txt'))
+        def file = new File(tmpDir.dir, 'a/other.txt')
+        link(target, file)
         assert file.exists() && file.file
 
         expect:
@@ -19,9 +20,9 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def "normalises absolute path which points to a relative link"() {
-        tmpDir.createFile('target.txt')
-        def file = tmpDir.file('a/other.txt')
-        file.linkTo('../target.txt')
+        createFile(new File(tmpDir.dir, 'target.txt'))
+        def file = new File(tmpDir.dir, 'a/other.txt')
+        link('../target.txt', file)
         assert file.exists() && file.file
 
         expect:
@@ -32,8 +33,8 @@ class FileCanonicalisationTest extends Specification {
         if (OperatingSystem.current().caseSensitiveFileSystem) {
             return
         }
-        def file = tmpDir.createFile('dir/file.txt')
-        def path = tmpDir.file('dir/FILE.txt')
+        def file = createFile(new File(tmpDir.dir, 'dir/file.txt'))
+        def path = new File(tmpDir.dir, 'dir/FILE.txt')
         assert path.exists() && path.file
 
         expect:
@@ -44,10 +45,10 @@ class FileCanonicalisationTest extends Specification {
         if (OperatingSystem.current().caseSensitiveFileSystem) {
             return
         }
-        def target = tmpDir.createFile('target.txt')
-        def file = tmpDir.file('dir/file.txt')
-        file.linkTo(target)
-        def path = tmpDir.file('dir/FILE.txt')
+        def target = createFile(new File(tmpDir.dir, 'target.txt'))
+        def file = new File(tmpDir.dir, 'dir/file.txt')
+        link(target, file)
+        def path = new File(tmpDir.dir, 'dir/FILE.txt')
         assert path.exists() && path.file
 
         expect:
@@ -55,8 +56,8 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def "normalises path which points to a link to something that does not exist"() {
-        def file = tmpDir.file('a/other.txt')
-        file.linkTo('unknown.txt')
+        def file = new File(tmpDir.dir, 'a/other.txt')
+        link('unknown.txt', file)
         assert !file.exists() && !file.file
 
         expect:
@@ -64,9 +65,9 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def "normalises path when ancestor is an absolute link"() {
-        def target = tmpDir.createFile('target/file.txt')
-        def file = tmpDir.file('a/b/file.txt')
-        file.parentFile.linkTo(target.parentFile)
+        def target = createFile(new File(tmpDir.dir, 'target/file.txt'))
+        def file = new File(tmpDir.dir, 'a/b/file.txt')
+        link(target.parentFile, file.parentFile)
         assert file.exists() && file.file
 
         expect:
@@ -74,15 +75,37 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def "normalises path when ancestor has mismatched case"() {
-        expect: false
+        def file = createFile(new File(tmpDir.dir, "a/b/file.txt"))
+        def path = new File(tmpDir.dir, "A/b/file.txt")
+        assert file.exists() && file.file
+
+        expect:
+        normalise(path) == file
     }
 
-    def "normalises ancestor when target file does not exist"() {
-        expect: false
+    def "normalises ancestor with mismatched case when target file does not exist"() {
+        tmpDir.createDir("a")
+        def file = new File(tmpDir.dir, "a/b/file.txt")
+        def path = new File(tmpDir.dir, "A/b/file.txt")
+
+        expect:
+        normalise(path) == file
     }
 
     def "normalises relative path"() {
-        expect: false
+        def ancestor = new File(tmpDir.dir, "test")
+        def baseDir = new File(ancestor, "base")
+        def sibling = new File(ancestor, "sub")
+        def child = createFile(new File(baseDir, "a/b/file.txt"))
+
+        expect:
+        normalise("a/b/file.txt", baseDir) == child
+        normalise("./a/b/file.txt", baseDir) == child
+        normalise(".//a/b//file.txt", baseDir) == child
+        normalise("sub/../a/b/file.txt", baseDir) == child
+        normalise("../sub", baseDir) == sibling
+        normalise("..", baseDir) == ancestor
+        normalise(".", baseDir) == baseDir
     }
 
     def "normalises relative path when base dir is a link"() {
@@ -93,15 +116,34 @@ class FileCanonicalisationTest extends Specification {
         expect: false
     }
 
-    def normalise(Object path) {
-        if (path instanceof File) {
-            def result = new IdentityFileResolver().resolve(path)
-            assert path.canonicalPath == result.absolutePath
-            assert result == normalise(path.absolutePath)
-            assert result == normalise(path.path)
-            return result
-        }
+    def "normalises file system roots"() {
+        expect: false
+    }
 
-        return new File(path.toString()).canonicalFile
+    def "normalises non-existent file system root"() {
+        expect: false
+    }
+
+    def "fails when relative path refers to ancestor of file system root"() {
+        expect: false
+    }
+
+    def link(File target, File file) {
+        link(target.absolutePath, file)
+    }
+
+    def link(String target, File file) {
+        file.getParentFile().mkdirs()
+        PosixUtil.current().symlink(target, file.getAbsolutePath())
+    }
+
+    def createFile(File file) {
+        file.parentFile.mkdirs()
+        file.text = 'content'
+        return file
+    }
+
+    def normalise(Object path, File baseDir = tmpDir.dir) {
+        return new BaseDirConverter(baseDir).resolve(path)
     }
 }
