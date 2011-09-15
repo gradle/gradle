@@ -36,6 +36,8 @@ public interface DaemonCommandExecuter {
      * If an error occurs during the action of the command that is to be reasonably expected 
      * (e.g. a failure in actually running the build for a Build command), the exception should be
      * reported to the client and <b>NOT</b> thrown from this method.
+     * <p>
+     * The {@code command} param may be {@code null}, which means the client disconnected before sending a command.
      */
     void executeCommand(Connection<Object> connection, Command command, DaemonStateCoordinator daemonStateCoordinator);
 }

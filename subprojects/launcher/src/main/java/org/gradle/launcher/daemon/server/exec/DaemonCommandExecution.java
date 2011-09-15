@@ -54,6 +54,11 @@ public class DaemonCommandExecution {
         return connection;
     }
 
+    /**
+     * The command to execute.
+     * <p>
+     * If the client disconnects before sending a command, this <b>will</b> be {@code null}.
+     */
     public Command getCommand() {
         return command;
     }
