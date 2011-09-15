@@ -17,10 +17,7 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.protocol.Command;
-import org.gradle.launcher.daemon.protocol.BusyException;
-import org.gradle.launcher.daemon.protocol.CommandComplete;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
@@ -94,7 +91,8 @@ public class Daemon implements Runnable, Stoppable {
                     handlersExecutor.execute(new Runnable() {
                         public void run() {
                             try {
-                                handleIncoming(connection);
+                                Command command = (Command) connection.receive();
+                                commandExecuter.executeCommand(connection, command, stateCoordinator);
                             } catch (RuntimeException e) {
                                 LOGGER.error("Error processing the incoming command.", e);
                                 //TODO SF figure out if we can use our executor's exception handler.
@@ -140,35 +138,6 @@ public class Daemon implements Runnable, Stoppable {
             stateCoordinator.start();
         } finally {
             lifecycleLock.unlock();
-        }
-    }
-
-    private void handleIncoming(Connection<Object> connection) {
-        Command command = (Command) connection.receive();
-        if (command == null) {
-            LOGGER.warn("It seems the client dropped the connection before sending any command. Stopping connection.");
-            connection.stop(); //TODO SF why do we need to stop the connection here and there?
-            return;
-        }
-        if (command instanceof Stop) {
-            LOGGER.lifecycle("Stopping");
-            connection.dispatch(new CommandComplete(null));
-            stateCoordinator.requestStop();
-            return;
-        }
-
-        try {
-            stateCoordinator.onStartActivity();
-        } catch (BusyException e) {
-            LOGGER.info("The daemon is busy and another build request received. Returning Busy response.");
-            connection.dispatch(new CommandComplete(e));
-            return;
-        }
-        try {
-            commandExecuter.executeCommand(connection, command);
-        } finally {
-            stateCoordinator.onActivityComplete();
-            connection.stop();
         }
     }
 

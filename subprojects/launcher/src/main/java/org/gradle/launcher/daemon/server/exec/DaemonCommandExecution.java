@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 
 import java.util.LinkedList;
 
@@ -32,16 +33,18 @@ public class DaemonCommandExecution {
 
     final private Connection<Object> connection;
     final private Command command;
+    final private DaemonStateCoordinator daemonStateCoordinator;
     final private LinkedList<DaemonCommandAction> actions;
 
     private Throwable exception;
     private Object result;
 
-    public DaemonCommandExecution(Connection<Object> connection, Command command, DaemonCommandAction... actions) {
+    public DaemonCommandExecution(Connection<Object> connection, Command command, DaemonStateCoordinator daemonStateCoordinator, DaemonCommandAction... actions) {
         this.connection = connection;
         this.command = command;
+        this.daemonStateCoordinator = daemonStateCoordinator;
+        
         this.actions = new LinkedList<DaemonCommandAction>();
-
         for (DaemonCommandAction action : actions) {
             this.actions.add(action);
         }
@@ -53,6 +56,10 @@ public class DaemonCommandExecution {
 
     public Command getCommand() {
         return command;
+    }
+
+    public DaemonStateCoordinator getDaemonStateCoordinator() {
+        return daemonStateCoordinator;
     }
 
     /**
@@ -94,7 +101,7 @@ public class DaemonCommandExecution {
      * Continues (or starts) execution.
      * <p>
      * Each action should call this method if it determines that execution should continue.
-     * 
+     *
      * @return true if execution did occur, false if this execution has already occurred.
      */
     public boolean proceed() {

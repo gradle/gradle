@@ -25,6 +25,8 @@ import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.launcher.daemon.protocol.Command;
 
+import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
+
 /**
  * The default implementation of how to execute commands that the daemon receives.
  */
@@ -40,11 +42,16 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
         this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 
-    public void executeCommand(Connection<Object> connection, Command command) {
+    public void executeCommand(Connection<Object> connection, Command command, DaemonStateCoordinator daemonStateCoordinator) {
         new DaemonCommandExecution(
             connection,
             command,
+            daemonStateCoordinator,
+            new StopConnectionAfterExecution(),
+            new HandleClientDisconnectBeforeSendingCommand(),
             new ReturnResult(),
+            new HandleStop(),
+            new UpdateDaemonStatus(),
             new ForwardOutput(loggingOutput),
             new ReportExceptions(loggingServices),
             new HandleSleep(),
