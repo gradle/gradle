@@ -117,4 +117,9 @@ public class DaemonCommandExecution {
             return true;
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("DaemonCommandExecution[command = %s, connection = %s]", command, connection);
+    }
 }
