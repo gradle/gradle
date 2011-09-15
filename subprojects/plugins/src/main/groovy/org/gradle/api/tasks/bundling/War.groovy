@@ -16,8 +16,12 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
@@ -130,5 +134,61 @@ class War extends Jar {
      */
     public void setWebXml(File webXml) {
         this.webXml = webXml;
+    }
+
+    /**
+     * Re-enables the jar task, includes the jar as part of the war instead of
+     * of the classes, and replaces the war with the jar in the archives
+     * (which is the normal archive object for the java plugin).
+     */
+    public void restoreJar() {
+        Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
+
+        // REVISIT: jar task name is located in plugin class, which means it
+        //          cannot be directly used here
+        Jar jarTask = (Jar) project.getTasks().getByName("jar");
+        reenableJarTaskAndRestoreToArchivesConfiguration(archivesConfiguration, jarTask);
+
+        // REVISIT: war task name is located in plugin class, which means it
+        //          cannot be directly used here
+        War warTask = (War) project.getTasks().getByName("war");
+        removeWarTaskFromArchivesConfiguration(archivesConfiguration, warTask);
+
+        classpath = jarTask.outputs.files + project.configurations.runtime - project.configurations.providedRuntime;
+    }
+
+  private void reenableJarTaskAndRestoreToArchivesConfiguration(Configuration archivesConfiguration, Jar jarTask) {
+        jarTask.setEnabled(true);
+        restoreJarTaskToArchivesConfiguration(archivesConfiguration, jarTask);
+    }
+
+    private void restoreJarTaskToArchivesConfiguration(Configuration archivesConfiguration, Jar jar) {
+        boolean jarAlreadyRestored = false;
+        for (PublishArtifact publishArtifact : archivesConfiguration.getAllArtifacts()) {
+            if (publishArtifact instanceof ArchivePublishArtifact) {
+                ArchivePublishArtifact archivePublishArtifact = (ArchivePublishArtifact) publishArtifact;
+                if (archivePublishArtifact.getArchiveTask() == jar) {
+                    // If found, then do not re-add
+                    jarAlreadyRestore = true;
+                    break;
+                }
+            }
+        }
+
+        if (! jarAlreadyRestored){
+            archivesConfiguration.getArtifacts().add(new ArchivePublishArtifact(jar));
+        }
+    }
+
+    private void removeWarTaskFromArchivesConfiguration(Configuration archivesConfiguration, War war) {
+        // todo: There should be a richer connection between an ArchiveTask and a PublishArtifact
+        for (PublishArtifact publishArtifact : archivesConfiguration.getAllArtifacts()) {
+            if (publishArtifact instanceof ArchivePublishArtifact) {
+                ArchivePublishArtifact archivePublishArtifact = (ArchivePublishArtifact) publishArtifact;
+                if (archivePublishArtifact.getArchiveTask() == war) {
+                    archivesConfiguration.getArtifacts().remove(publishArtifact);
+                }
+            }
+        }
     }
 }

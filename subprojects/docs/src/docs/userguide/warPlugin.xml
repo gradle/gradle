@@ -185,5 +185,8 @@
         <sample id="customisedWebApplication" dir="webApplication/customised" title="Generation of JAR archive in addition to WAR archive">
             <sourcefile file="build.gradle" snippet="enable-jar"/>
         </sample>
+        <sample id="restoredJar" dir="webApplication/customised" title="Restores the JAR archive as default artifact for project">
+            <sourcefile file="build.gradle" snippet="restore-jar"/>
+        </sample>
     </section>
 </chapter>

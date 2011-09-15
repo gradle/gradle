@@ -40,6 +40,7 @@ import java.util.concurrent.Callable;
 public class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
+    public static final String WARS_CONFIGURATION_NAME = "wars";
     public static final String WAR_TASK_NAME = "war";
     public static final String WEB_APP_GROUP = "web application";
 
@@ -80,6 +81,10 @@ public class WarPlugin implements Plugin<Project> {
         disableJarTaskAndRemoveFromArchivesConfiguration(project, archivesConfiguration);
         archivesConfiguration.getArtifacts().add(new ArchivePublishArtifact(war));
         configureConfigurations(project.getConfigurations());
+
+        Configuration warsConfiguration = project.getConfigurations().getByName(WARS_CONFIGURATION_NAME);
+
+        warsConfiguration.getArtifacts().add(new ArchivePublishArtifact(war));
     }
 
     private void disableJarTaskAndRemoveFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
@@ -108,5 +113,9 @@ public class WarPlugin implements Plugin<Project> {
                 setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
         configurationContainer.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+
+        Configuration warsConfiguration = configurationContainer.
+                add(WARS_CONFIGURATION_NAME).
+                setDescription("WAR archive destination instead of archives");
     }
 }
