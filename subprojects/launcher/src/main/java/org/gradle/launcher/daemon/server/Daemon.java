@@ -73,6 +73,7 @@ public class Daemon implements Runnable, Stoppable {
      * @throws IllegalStateException if this daemon is already running, or has already been stopped.
      */
     public void start() {
+        LOGGER.lifecycle("start() called on daemon");
         lifecycleLock.lock();
         try {
             if (stateCoordinator != null) {
@@ -147,6 +148,7 @@ public class Daemon implements Runnable, Stoppable {
      * This is the semantically the same as sending the daemon the Stop command.
      */
     public void stop() {
+        LOGGER.lifecycle("stop() called on daemon");
         lifecycleLock.lock();
         try {
             stateCoordinator.stop();
@@ -159,6 +161,7 @@ public class Daemon implements Runnable, Stoppable {
      * Blocks until this daemon is stopped by something else (i.e. does not ask it to stop)
      */
     public void awaitStop() {
+        LOGGER.lifecycle("awaitStop() called on daemon");
         stateCoordinator.awaitStop();
     }
 
@@ -168,6 +171,7 @@ public class Daemon implements Runnable, Stoppable {
      * @return true if it was stopped, false if it hit the given idle timeout.
      */
     public boolean awaitStopOrIdleTimeout(int idleTimeout) {
+        LOGGER.lifecycle("awaitStopOrIdleTimeout({}) called on daemon", idleTimeout);
         return stateCoordinator.awaitStopOrIdleTimeout(idleTimeout);
     }
 
