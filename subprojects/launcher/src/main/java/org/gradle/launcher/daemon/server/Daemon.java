@@ -33,7 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * A long-lived build server that accepts commands via a communication channel.
  * <p>
- * Daemon instances are single use and have a start/stop lifecycle. They are also threadsafe.
+ * Daemon instances are single use and have a start/stop debug. They are also threadsafe.
  * <p>
  * See {@link org.gradle.launcher.daemon.client.DaemonClient} for a description of the daemon communication protocol.
  */
@@ -49,7 +49,7 @@ public class Daemon implements Runnable, Stoppable {
 
     private final StoppableExecutor handlersExecutor = new DefaultExecutorFactory().create("Daemon Connection Handler");
 
-    private final Lock lifecycleLock = new ReentrantLock();
+    private final Lock debugLock = new ReentrantLock();
 
     private Address connectorAddress;
     private DomainRegistryUpdater registryUpdater;
@@ -73,8 +73,8 @@ public class Daemon implements Runnable, Stoppable {
      * @throws IllegalStateException if this daemon is already running, or has already been stopped.
      */
     public void start() {
-        LOGGER.lifecycle("start() called on daemon");
-        lifecycleLock.lock();
+        LOGGER.debug("start() called on daemon");
+        debugLock.lock();
         try {
             if (stateCoordinator != null) {
                 throw new IllegalStateException("cannot start daemon as it is already running");
@@ -108,7 +108,7 @@ public class Daemon implements Runnable, Stoppable {
             
             Runnable onStart = new Runnable() {
                 public void run() {
-                    LOGGER.lifecycle("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
+                    LOGGER.debug("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
                     registryUpdater.onStart();
                 }
             };
@@ -138,7 +138,7 @@ public class Daemon implements Runnable, Stoppable {
             // ready, set, go
             stateCoordinator.start();
         } finally {
-            lifecycleLock.unlock();
+            debugLock.unlock();
         }
     }
 
@@ -148,12 +148,12 @@ public class Daemon implements Runnable, Stoppable {
      * This is the semantically the same as sending the daemon the Stop command.
      */
     public void stop() {
-        LOGGER.lifecycle("stop() called on daemon");
-        lifecycleLock.lock();
+        LOGGER.debug("stop() called on daemon");
+        debugLock.lock();
         try {
             stateCoordinator.stop();
         } finally {
-            lifecycleLock.unlock();
+            debugLock.unlock();
         }
     }
 
@@ -161,7 +161,7 @@ public class Daemon implements Runnable, Stoppable {
      * Blocks until this daemon is stopped by something else (i.e. does not ask it to stop)
      */
     public void awaitStop() {
-        LOGGER.lifecycle("awaitStop() called on daemon");
+        LOGGER.debug("awaitStop() called on daemon");
         stateCoordinator.awaitStop();
     }
 
@@ -171,7 +171,7 @@ public class Daemon implements Runnable, Stoppable {
      * @return true if it was stopped, false if it hit the given idle timeout.
      */
     public boolean awaitStopOrIdleTimeout(int idleTimeout) {
-        LOGGER.lifecycle("awaitStopOrIdleTimeout({}) called on daemon", idleTimeout);
+        LOGGER.debug("awaitStopOrIdleTimeout({}) called on daemon", idleTimeout);
         return stateCoordinator.awaitStopOrIdleTimeout(idleTimeout);
     }
 
