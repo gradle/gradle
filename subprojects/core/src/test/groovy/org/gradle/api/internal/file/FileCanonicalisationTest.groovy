@@ -139,11 +139,20 @@ class FileCanonicalisationTest extends Specification {
         if (!fileSystem.symlinkAware) {
             return
         }
+        def target = createFile(new File(tmpDir.dir, 'target/file.txt'))
+        def baseDir = new File(tmpDir.dir, 'base')
+        link("target", baseDir)
+        def file = new File(baseDir, 'file.txt')
+        assert file.exists() && file.file
 
-        expect: false
+        expect:
+        normalise('file.txt', baseDir) == file
     }
 
     def "normalises path which uses windows 8.3 name"() {
+        if (!OperatingSystem.current().windows) {
+            return
+        }
         def file = createFile(new File(tmpDir.dir, 'dir/file-with-long-name.txt'))
         def path = new File(tmpDir.dir, 'dir/FILE-W~1.TXT')
         assert path.exists() && path.file
@@ -161,7 +170,10 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def "normalises non-existent file system root"() {
-        def file = new File("Q:/")
+        if (!OperatingSystem.current().windows) {
+            return
+        }
+        def file = new File("Q:\\")
         assert !file.exists()
         assert file.absolute
 

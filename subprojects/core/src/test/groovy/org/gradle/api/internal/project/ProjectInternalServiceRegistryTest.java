@@ -81,7 +81,7 @@ public class ProjectInternalServiceRegistryTest {
             allowing(project).getGradle();
             will(returnValue(gradle));
             allowing(project).getProjectDir();
-            will(returnValue(new File("project-dir")));
+            will(returnValue(new File("project-dir").getAbsoluteFile()));
             allowing(project).getBuildScriptSource();
             allowing(parent).get(ITaskFactory.class);
             will(returnValue(taskFactory));

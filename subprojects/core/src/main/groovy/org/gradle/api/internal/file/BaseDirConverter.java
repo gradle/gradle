@@ -31,6 +31,7 @@ public class BaseDirConverter extends AbstractFileResolver {
     private final File baseDir;
 
     public BaseDirConverter(File baseDir) {
+        assert baseDir.isAbsolute() : String.format("base dir '%s' is not an absolute file.", baseDir);
         this.baseDir = baseDir;
     }
 

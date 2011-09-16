@@ -81,7 +81,7 @@ class HelperUtil {
                 DefaultProject.class,
                 name,
                 parentProject,
-                projectDir ?: new File(parentProject.getProjectDir(), name),
+                projectDir ? projectDir.absoluteFile : new File(parentProject.getProjectDir(), name),
                 new StringScriptSource("test build file", null),
                 parentProject.gradle,
                 parentProject.gradle.services
