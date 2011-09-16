@@ -30,20 +30,20 @@ class DependencyClassPathProviderTest extends Specification {
         def classpath = provider.findClassPath("GRADLE_API")
 
         then:
-        classpath.collect{it.name} == ["gradle-cli-runtime", "gradle-core-runtime", "gradle-core-impl-runtime", "gradle-tooling-api-impl", "plugin1-runtime", "plugin2-runtime"]
+        classpath.collect{it.name} == ["gradle-core-runtime", "gradle-cli-runtime", "gradle-core-impl-runtime", "gradle-tooling-api-impl", "plugin1-runtime", "plugin2-runtime"]
 
         and:
-        1 * moduleRegistry.getModule("gradle-cli") >> module("gradle-cli")
-        1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core")
+        1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core", module("gradle-cli"))
         1 * moduleRegistry.getModule("gradle-core-impl") >> module("gradle-core-impl")
         1 * moduleRegistry.getModule("gradle-tooling-api") >> module("gradle-tooling-api")
         1 * pluginModuleRegistry.getPluginModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
     }
 
-    def module(String name) {
+    def module(String name, Module ... requiredModules) {
         Module module = Mock()
         _ * module.classpath >> ([new File("$name-runtime")] as Set)
         _ * module.implementationClasspath >> ([new File("$name-impl")] as Set)
+        _ * module.allRequiredModules >> (([module] + (requiredModules as List)) as LinkedHashSet)
         return module
     }
 }

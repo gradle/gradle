@@ -15,7 +15,7 @@
  */
 
 /*
-    This module contains some utilities for parsing command line arguments.
+    This project contains some utilities for parsing command line arguments.
 
     It's packaged separately because it's used by multiple “applications” (i.e. gradle core and the wrapper).
     It has no dependencies, and should never have any.

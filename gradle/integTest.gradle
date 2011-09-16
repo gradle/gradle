@@ -120,10 +120,7 @@ class IntegTestConvention {
         if (!project.tasks.findByName('ciBuild') || !project.gradle.taskGraph.populated) {
             return null
         }
-        if (OperatingSystem.current().isWindows()) {
-            return 'embedded'
-        }
-        if (project.isCIBuild() || OperatingSystem.current().isWindows()) {
+        if (project.isCIBuild()) {
             return 'forking'
         }
         return 'embedded'

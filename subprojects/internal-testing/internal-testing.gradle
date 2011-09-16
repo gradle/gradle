@@ -21,6 +21,7 @@ dependencies {
     groovy libraries.groovy
 
     compile project(":core")
+    compile project(":native")
 
     compile libraries.junit
     compile libraries.jmock

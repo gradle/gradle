@@ -1,0 +1,11 @@
+/*
+    This project contains various native operating system integration utilities.
+*/
+dependencies {
+    groovy libraries.groovy
+    compile libraries.slf4j_api
+    compile libraries.jna
+    compile module('org.jruby.ext.posix:jna-posix:1.0.3') {
+        dependency libraries.jna
+    }
+}

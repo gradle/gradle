@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
-import org.gradle.launcher.jna.WindowsProcessStarter;
+import org.gradle.os.jna.WindowsProcessStarter;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.OperatingSystem;

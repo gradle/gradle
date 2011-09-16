@@ -94,7 +94,7 @@ class TestFileHelper {
     }
 
     public String getPermissions() {
-        FileStat stat = PosixUtil.current().stat(file.absolutePath)
+        FileStat stat = org.gradle.os.PosixUtil.current().stat(file.absolutePath)
         [6, 3, 0].collect {
             def m = stat.mode() >> it
             [m & 4 ? 'r' : '-', m & 2 ? 'w' : '-', m & 1 ? 'x' : '-']
@@ -108,7 +108,7 @@ class TestFileHelper {
             mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
             return mode
         }
-        int retval = PosixUtil.current().chmod(file.absolutePath, m)
+        int retval = org.gradle.os.PosixUtil.current().chmod(file.absolutePath, m)
         if (retval != 0) {
             throw new UncheckedIOException("Could not set permissions of '${file}' to '${permissions}'.")
         }

@@ -36,6 +36,7 @@ include 'sonar'
 include 'signing'
 include 'cpp'
 include 'ear'
+include 'native'
 include 'internalTesting'
 include 'internalIntegTesting'
 

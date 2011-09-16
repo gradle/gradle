@@ -6,10 +6,11 @@ dependencies {
     groovy libraries.groovy
 
     compile project(':core')
+    compile project(':cli')
     compile project(':ui')
     compile project(':toolingApi')
+    compile project(':native')
 
-    compile libraries.jna
     compile libraries.slf4j_api
 
     startScriptGenerator project(':plugins')

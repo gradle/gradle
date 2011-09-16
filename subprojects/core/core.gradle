@@ -41,12 +41,10 @@ dependencies {
     compile module('org.fusesource.jansi:jansi:1.2.1') {
         dependency libraries.jna
     }
-    compile module('org.jruby.ext.posix:jna-posix:1.0.3') {
-        dependency libraries.jna
-    }
     compile libraries.commons_httpclient
 
     compile project(":cli")
+    compile project(":native")
 
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j

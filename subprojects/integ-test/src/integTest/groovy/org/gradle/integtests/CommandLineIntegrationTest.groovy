@@ -26,8 +26,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Chmod
-import org.gradle.util.PosixUtil
 import org.gradle.util.TestFile
+import org.gradle.os.PosixUtil
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()

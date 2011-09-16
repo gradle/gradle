@@ -33,7 +33,7 @@ class ToolingApiSuite extends ToolingApiCompatibilitySuite {
     @Override
     List<Class<?>> getClasses() {
         return [ToolingApiEclipseLinkedResourcesIntegrationTest,
-                ToolingApiMinimalModelFixesTest,
-                ToolingApiTaskExecutionFixesTest]
+                ToolingApiEclipseMinimalModelFixesIntegrationTest,
+                ToolingApiBuildableEclipseModelFixesIntegrationTest]
     }
 }
