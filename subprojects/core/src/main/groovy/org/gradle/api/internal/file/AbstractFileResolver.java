@@ -41,7 +41,7 @@ public abstract class AbstractFileResolver implements FileResolver {
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
 
     public FileResolver withBaseDir(Object path) {
-        return new BaseDirConverter(resolve(path));
+        return new BaseDirFileResolver(resolve(path));
     }
 
     public File resolve(Object path) {

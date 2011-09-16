@@ -27,10 +27,10 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-public class BaseDirConverter extends AbstractFileResolver {
+public class BaseDirFileResolver extends AbstractFileResolver {
     private final File baseDir;
 
-    public BaseDirConverter(File baseDir) {
+    public BaseDirFileResolver(File baseDir) {
         assert baseDir.isAbsolute() : String.format("base dir '%s' is not an absolute file.", baseDir);
         this.baseDir = baseDir;
     }

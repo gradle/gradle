@@ -320,7 +320,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def resolver() {
-        return new BaseDirConverter(tmpDir.testDir)
+        return new BaseDirFileResolver(tmpDir.testDir)
     }
 }
 

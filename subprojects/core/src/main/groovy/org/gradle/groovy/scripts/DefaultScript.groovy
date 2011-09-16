@@ -50,7 +50,7 @@ abstract class DefaultScript extends BasicScript {
         if (target instanceof FileOperations) {
             fileOperations = target
         } else if (scriptSource.resource.file) {
-            fileOperations = new DefaultFileOperations(new BaseDirConverter(scriptSource.resource.file.parentFile), null, null)
+            fileOperations = new DefaultFileOperations(new BaseDirFileResolver(scriptSource.resource.file.parentFile), null, null)
         } else {
             fileOperations = new DefaultFileOperations(new IdentityFileResolver(), null, null)
         }

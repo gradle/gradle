@@ -184,7 +184,7 @@ public class ProjectInternalServiceRegistryTest {
 
     @Test
     public void providesAFileResolver() {
-        assertThat(registry.get(FileResolver.class), instanceOf(BaseDirConverter.class));
+        assertThat(registry.get(FileResolver.class), instanceOf(BaseDirFileResolver.class));
         assertThat(registry.get(FileResolver.class), sameInstance(registry.get(FileResolver.class)));
     }
 

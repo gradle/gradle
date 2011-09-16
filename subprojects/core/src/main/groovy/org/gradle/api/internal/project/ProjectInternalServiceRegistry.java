@@ -68,7 +68,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected FileResolver createFileResolver() {
-        return new BaseDirConverter(project.getProjectDir());
+        return new BaseDirFileResolver(project.getProjectDir());
     }
 
     protected LoggingManagerInternal createLoggingManager() {

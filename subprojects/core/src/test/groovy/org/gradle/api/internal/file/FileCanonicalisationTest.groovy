@@ -216,6 +216,6 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def normalise(Object path, File baseDir = tmpDir.dir) {
-        return new BaseDirConverter(baseDir).resolve(path)
+        return new BaseDirFileResolver(baseDir).resolve(path)
     }
 }

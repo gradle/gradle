@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.gradle.api.internal.file.BaseDirConverter
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.internal.file.BaseDirFileResolver
 
 /**
  * @author Hans Dockter
@@ -29,7 +29,7 @@ class DeleteActionImplTest extends Specification {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder();
 
-    FileResolver fileResolver = new BaseDirConverter(tmpDir.getDir())
+    FileResolver fileResolver = new BaseDirFileResolver(tmpDir.getDir())
     
     DeleteActionImpl delete = new DeleteActionImpl(fileResolver);
 

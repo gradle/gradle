@@ -28,7 +28,7 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.api.internal.file.BaseDirConverter;
+import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
@@ -122,7 +122,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         LoggingConfiguration loggingConfiguration = loggingConfigurationCommandLineConverter.convert(options);
         startParameter.setLogLevel(loggingConfiguration.getLogLevel());
         startParameter.setColorOutput(loggingConfiguration.isColorOutput());
-        FileResolver resolver = new BaseDirConverter(startParameter.getCurrentDir());
+        FileResolver resolver = new BaseDirFileResolver(startParameter.getCurrentDir());
 
         Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options);
         startParameter.getSystemPropertiesArgs().putAll(systemProperties);
