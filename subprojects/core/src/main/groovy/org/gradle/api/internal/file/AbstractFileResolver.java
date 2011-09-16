@@ -78,7 +78,12 @@ public abstract class AbstractFileResolver implements FileResolver {
                 }
             }
 
-            File candidate = new File(GUtil.join(path, File.separator));
+            String resolvedPath = GUtil.join(path, File.separator);
+            boolean needLeadingSeparator = File.listRoots()[0].getPath().startsWith(File.separator);
+            if (needLeadingSeparator) {
+                resolvedPath = File.separator + resolvedPath;
+            }
+            File candidate = new File(resolvedPath);
             if (OperatingSystem.current().getFileSystem().isCaseSensitive()) {
                 return candidate;
             }

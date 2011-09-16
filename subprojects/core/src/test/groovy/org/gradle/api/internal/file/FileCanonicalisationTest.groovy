@@ -102,6 +102,9 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def "normalises path when ancestor has mismatched case"() {
+        if (fileSystem.caseSensitive) {
+            return
+        }
         def file = createFile(new File(tmpDir.dir, "a/b/file.txt"))
         def path = new File(tmpDir.dir, "A/b/file.txt")
         assert file.exists() && file.file
@@ -111,6 +114,9 @@ class FileCanonicalisationTest extends Specification {
     }
 
     def "normalises ancestor with mismatched case when target file does not exist"() {
+        if (fileSystem.caseSensitive) {
+            return
+        }
         tmpDir.createDir("a")
         def file = new File(tmpDir.dir, "a/b/file.txt")
         def path = new File(tmpDir.dir, "A/b/file.txt")
