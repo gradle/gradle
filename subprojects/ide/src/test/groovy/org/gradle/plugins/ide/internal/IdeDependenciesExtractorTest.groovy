@@ -27,9 +27,9 @@ class IdeDependenciesExtractorTest extends Specification {
     final ResolvedConfiguration resolvedConfiguration = Mock()
     final LenientConfiguration lenientConfiguration = Mock()
 
-    def "returns dependency entries sorted by name"() {
+    def "returns dependency entries in the order they were resolved in"() {
         given:
-        def actualDependencies = [module('a'), module('z'), module('b'), module('d'), module('c')] as Set
+        def actualDependencies = [module('a'), module('b'), module('c'), module('d'), module('z')] as LinkedHashSet
         configuration.resolvedConfiguration >> resolvedConfiguration
         resolvedConfiguration.lenientConfiguration >> lenientConfiguration
         lenientConfiguration.getFiles(_) >> actualDependencies

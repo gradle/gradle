@@ -26,6 +26,7 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.util.OperatingSystem
 
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -319,6 +320,11 @@ apply plugin: "idea"
         try {
             XMLAssert.assertXMLEqual(diff, true)
         } catch (AssertionFailedError e) {
+            if (OperatingSystem.current().unix) {
+                def process = ["diff", expectedFile.absolutePath, file.absolutePath].execute()
+                process.consumeProcessOutput(System.out, System.err)
+                process.waitFor()
+            }
             throw new AssertionFailedError("generated file '$path' does not contain the expected contents: ${e.message}.\nExpected:\n${expectedXml}\nActual:\n${actualXml}").initCause(e)
         }
     }

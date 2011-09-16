@@ -114,10 +114,6 @@ class IdeDependenciesExtractor {
             out << new UnresolvedIdeRepoFileDependency(problem: it.problem, file: new File("unresolved dependency - $it.id"), declaredConfiguration: it.gradleConfiguration)
         }
 
-        out.sort {
-            it.file
-        }
-
         out
     }
 
@@ -179,7 +175,7 @@ class IdeDependenciesExtractor {
         result
     }
 
-    private Set getAllDeps(Collection deps, Set allDeps = []) {
+    private Set getAllDeps(Collection deps, Set allDeps = new LinkedHashSet()) {
         deps.each { ResolvedDependency resolvedDependency ->
             def notSeenBefore = allDeps.add(resolvedDependency)
             if (notSeenBefore) { // defend against circular dependencies
