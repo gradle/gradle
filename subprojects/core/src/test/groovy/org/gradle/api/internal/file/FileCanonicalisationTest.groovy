@@ -19,6 +19,7 @@ import org.gradle.util.OperatingSystem
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.os.PosixUtil
 
 class FileCanonicalisationTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -201,7 +202,7 @@ class FileCanonicalisationTest extends Specification {
     def link(String target, File file) {
         file.getParentFile().mkdirs()
 
-        def posix = org.gradle.util.PosixUtil.current()
+        def posix = PosixUtil.current()
         int retval = posix.symlink(target, file.getAbsolutePath())
         if (retval != 0) {
             throw new IOException("Could not create link ${file} to ${target}. errno = ${posix.errno()}")
