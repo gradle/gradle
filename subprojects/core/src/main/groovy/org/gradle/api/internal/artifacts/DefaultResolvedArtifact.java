@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.apache.ivy.core.module.descriptor.Artifact;
@@ -27,12 +28,13 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class DefaultResolvedArtifact implements ResolvedArtifact {
-    private ResolvedDependency resolvedDependency;
-    private Artifact artifact;
-    private ResolveEngine resolvedEngine;
+    private final ResolvedDependency resolvedDependency;
+    private final Artifact artifact;
+    private final ResolveEngine resolvedEngine;
     private File file;
 
-    public DefaultResolvedArtifact(Artifact artifact, ResolveEngine resolvedEngine) {
+    public DefaultResolvedArtifact(ResolvedDependency resolvedDependency, Artifact artifact, ResolveEngine resolvedEngine) {
+        this.resolvedDependency = resolvedDependency;
         this.artifact = artifact;
         this.resolvedEngine = resolvedEngine;
     }
@@ -41,13 +43,41 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         return resolvedDependency;
     }
 
-    public void setResolvedDependency(ResolvedDependency resolvedDependency) {
-        this.resolvedDependency = resolvedDependency;
+    @Override
+    public String toString() {
+        return String.format("[ResolvedArtifact dependency:%s name:%s classifier:%s extension:%s type:%s]", resolvedDependency, getName(), getClassifier(), getExtension(), getType());
     }
 
     @Override
-    public String toString() {
-        return String.format("%s;%s", resolvedDependency, artifact.getName());
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
+        if (!other.resolvedDependency.equals(resolvedDependency)) {
+            return false;
+        }
+        if (!other.getName().equals(getName())) {
+            return false;
+        }
+        if (!other.getType().equals(getType())) {
+            return false;
+        }
+        if (!other.getExtension().equals(getExtension())) {
+            return false;
+        }
+        if (!other.artifact.getExtraAttributes().equals(artifact.getExtraAttributes())) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return resolvedDependency.hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ artifact.getExtraAttributes().hashCode();
     }
 
     public String getName() {
@@ -62,6 +92,10 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         return artifact.getExt();
     }
 
+    public String getClassifier() {
+        return artifact.getExtraAttribute(Dependency.CLASSIFIER);
+    }
+    
     public String getVersion() {
         return getResolvedDependency() == null ? null : getResolvedDependency().getModuleVersion();
     }

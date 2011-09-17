@@ -15,15 +15,16 @@
  */
 package org.gradle.api.artifacts;
 
-import org.jmock.Expectations;
-import org.jmock.Mockery;
-import org.gradle.api.internal.artifacts.*;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveEngine;
-import org.apache.ivy.core.report.ArtifactDownloadReport;
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
+import org.jmock.Expectations;
+import org.jmock.Mockery;
 
 import java.io.File;
+import java.util.Collections;
 
 public class ArtifactsTestUtils {
     
@@ -36,6 +37,10 @@ public class ArtifactsTestUtils {
             will(returnValue(type));
             allowing(artifactStub).getExt();
             will(returnValue(extension));
+            allowing(artifactStub).getExtraAttributes();
+            will(returnValue(Collections.emptyMap()));
+            allowing(artifactStub).getExtraAttribute(with(org.hamcrest.Matchers.notNullValue(String.class)));
+            will(returnValue(null));
         }});
         final ResolveEngine resolveEngineMock = context.mock(ResolveEngine.class, "engine" + name);
         final ArtifactDownloadReport artifactDownloadReport = new ArtifactDownloadReport(artifactStub);
@@ -44,7 +49,7 @@ public class ArtifactsTestUtils {
             one(resolveEngineMock).download(with(equal(artifactStub)), with(any(DownloadOptions.class)));
             will(returnValue(artifactDownloadReport));
         }});
-        return new DefaultResolvedArtifact(artifactStub, resolveEngineMock);
+        return new DefaultResolvedArtifact(context.mock(ResolvedDependency.class), artifactStub, resolveEngineMock);
     }
     
 }

@@ -144,11 +144,58 @@ project(':b') {
     }
 
     @Test
+    public void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'lib', '1.0', null, 'zip').publishArtifact()
+        repo.module('org.gradle.test', 'lib', '1.0', 'classifier').publishArtifact()
+        repo.module('org.gradle.test', 'lib', '1.0').publishArtifact()
+        repo.module('org.gradle.test', 'dist', '1.0', null, 'zip').publishArtifact()
+
+        testFile('build.gradle') << """
+repositories {
+    maven { url '${repo.rootDir.toURI()}' }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile "org.gradle.test:lib:1.0"
+    compile "org.gradle.test:lib:1.0:classifier"
+    compile "org.gradle.test:lib:1.0@zip"
+    compile "org.gradle.test:dist:1.0"
+}
+task test << {
+    assert configurations.compile.files.collect { it.name } == ['lib-1.0.zip', 'lib-1.0-classifier.jar', 'lib-1.0.jar', 'dist-1.0.zip']
+    def artifacts = configurations.compile.resolvedConfiguration.resolvedArtifacts as List
+    assert artifacts.size() == 4
+    assert artifacts[0].name == 'lib'
+    assert artifacts[0].type == 'jar'
+    assert artifacts[0].extension == 'jar'
+    assert artifacts[0].classifier == null
+    assert artifacts[1].name == 'lib'
+    assert artifacts[1].type == 'zip'
+    assert artifacts[1].extension == 'zip'
+    assert artifacts[1].classifier == null
+    assert artifacts[2].name == 'lib'
+    assert artifacts[2].type == 'jar'
+    assert artifacts[2].extension == 'jar'
+    assert artifacts[2].classifier == 'classifier'
+    assert artifacts[3].name == 'dist'
+    assert artifacts[3].type == 'zip'
+    assert artifacts[3].extension == 'zip'
+    assert artifacts[3].classifier == null
+}
+"""
+
+        inTestDirectory().withTasks('test').run()
+    }
+
+    @Test
     @Issue("GRADLE-1567")
     public void resolutionDifferentiatesBetweenArtifactsThatDifferOnlyInClassifier() {
         def repo = repo()
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier1').publishArtifact().text = "jar:classifier1 content"
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier2').publishArtifact().text = "jar:classifier2 content"
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier1').publishArtifact()
+        repo.module('org.gradle.test', 'external1', '1.0', 'classifier2').publishArtifact()
 
         testFile('settings.gradle') << 'include "a", "b", "c"'
         testFile('build.gradle') << """
@@ -165,7 +212,8 @@ project(':a') {
         compile 'org.gradle.test:external1:1.0:classifier1'
     }
     task test(dependsOn: configurations.compile) << {
-        assert configurations.compile.collect { it.text } == ['jar:classifier1 content']
+        assert configurations.compile.collect { it.name } == ['external1-1.0-classifier1.jar']
+        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\${it.name}-\${it.classifier}" } == ['external1-classifier1']
     }
 }
 project(':b') {
@@ -173,7 +221,8 @@ project(':b') {
         compile 'org.gradle.test:external1:1.0:classifier2'
     }
     task test(dependsOn: configurations.compile) << {
-        assert configurations.compile.collect { it.text } == ['jar:classifier2 content']
+        assert configurations.compile.collect { it.name } == ['external1-1.0-classifier2.jar']
+        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\${it.name}-\${it.classifier}" } == ['external1-classifier2']
     }
 }
 """
@@ -399,6 +448,7 @@ task test << {
     /*
      * Originally, we were aliasing dependency descriptors that were identical. This caused alias errors when we subsequently modified one of these descriptors.
      */
+
     @Test
     public void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
         def repo = repo()

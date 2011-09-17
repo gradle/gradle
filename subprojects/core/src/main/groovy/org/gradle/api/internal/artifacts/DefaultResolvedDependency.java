@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -27,30 +28,23 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultResolvedDependency implements ResolvedDependency {
-    private Set<ResolvedDependency> children = new LinkedHashSet<ResolvedDependency>();
-    private Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
-    private Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts
-            = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();
-    private String name;
+    private final Set<ResolvedDependency> children = new LinkedHashSet<ResolvedDependency>();
+    private final Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
+    private final Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();
+    private final String name;
     private final ResolvedConfigurationIdentifier id;
-    private Set<ResolvedArtifact> moduleArtifacts = new LinkedHashSet<ResolvedArtifact>();
-    private Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
+    private final Set<ResolvedArtifact> moduleArtifacts;
+    private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
-    public DefaultResolvedDependency(String name, String moduleGroup, String moduleName, String moduleVersion,
-                                     String configuration, Set<ResolvedArtifact> moduleArtifacts) {
-        assert name != null;
-        assert moduleArtifacts != null;
-
+    public DefaultResolvedDependency(String name, String moduleGroup, String moduleName, String moduleVersion, String configuration) {
         this.name = name;
         id = new ResolvedConfigurationIdentifier(moduleGroup, moduleName, moduleVersion, configuration);
-        this.moduleArtifacts = moduleArtifacts;
+        this.moduleArtifacts = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
     }
 
-    public DefaultResolvedDependency(String moduleGroup, String moduleName, String moduleVersion, String configuration,
-                                     Set<ResolvedArtifact> moduleArtifacts) {
-        this(moduleGroup + ":" + moduleName + ":" + moduleVersion, moduleGroup, moduleName, moduleVersion,
-                configuration, moduleArtifacts);
+    public DefaultResolvedDependency(String moduleGroup, String moduleName, String moduleVersion, String configuration) {
+        this(moduleGroup + ":" + moduleName + ":" + moduleVersion, moduleGroup, moduleName, moduleVersion, configuration);
     }
 
     public String getName() {
@@ -131,10 +125,6 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         return name + ";" + getConfiguration();
     }
 
-    public void addParentSpecificArtifacts(ResolvedDependency parent, Set<ResolvedArtifact> artifacts) {
-        parentArtifacts.put(parent, artifacts);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -156,5 +146,38 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     public void addChild(DefaultResolvedDependency child) {
         children.add(child);
         child.parents.add(this);
+    }
+
+    public void addParentSpecificArtifacts(ResolvedDependency parent, Set<ResolvedArtifact> artifacts) {
+        TreeSet<ResolvedArtifact> sortedArtifacts = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
+        sortedArtifacts.addAll(artifacts);
+        parentArtifacts.put(parent, sortedArtifacts);
+    }
+
+    public void addModuleArtifact(ResolvedArtifact artifact) {
+        moduleArtifacts.add(artifact);
+    }
+
+    private static class ResolvedArtifactComparator implements Comparator<ResolvedArtifact> {
+        public int compare(ResolvedArtifact artifact1, ResolvedArtifact artifact2) {
+            int diff = artifact1.getName().compareTo(artifact2.getName());
+            if (diff != 0) {
+                return diff;
+            }
+            diff = ObjectUtils.compare(artifact1.getClassifier(), artifact2.getClassifier());
+            if (diff != 0) {
+                return diff;
+            }
+            diff = artifact1.getExtension().compareTo(artifact2.getExtension());
+            if (diff != 0) {
+                return diff;
+            }
+            diff = artifact1.getType().compareTo(artifact2.getType());
+            if (diff != 0) {
+                return diff;
+            }
+            // Use an arbitrary ordering when the artifacts have the same public attributes
+            return artifact1.hashCode() - artifact2.hashCode();
+        }
     }
 }

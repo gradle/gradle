@@ -32,4 +32,6 @@ public interface ResolvedArtifact {
     String getType();
 
     String getExtension();
+
+    String getClassifier();
 }

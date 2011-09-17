@@ -211,7 +211,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                             parent.get(IvyFactory.class),
                                             new SelfResolvingDependencyResolver(
                                                     new DefaultIvyDependencyResolver(
-                                                            new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate),
+                                                            new DefaultIvyReportConverter(
+                                                                    dependencyDescriptorFactoryDelegate,
+                                                                    new ResolvedArtifactFactory()),
                                                             parent.get(PublishModuleDescriptorConverter.class),
                                                             resolveIvyFactory)),
                                             new DefaultIvyDependencyPublisher(
