@@ -23,6 +23,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
 import org.gradle.launcher.daemon.protocol.Command;
 
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
@@ -44,7 +45,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
 
     public void executeCommand(Connection<Object> connection, Command command, DaemonStateCoordinator daemonStateCoordinator) {
         new DaemonCommandExecution(
-            connection,
+            new DisconnectAwareConnectionDecorator<Object>(connection),
             command,
             daemonStateCoordinator,
             new StopConnectionAfterExecution(),
@@ -57,6 +58,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new ReportExceptions(loggingServices),
             new HandleSleep(),
             new EstablishBuildEnvironment(),
+            new WatchForDisconnection(),
             new ExecuteBuild(loggingServices, launcherFactory)
         ).proceed();
     }

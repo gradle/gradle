@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.protocol.Command;
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.DisconnectAwareConnection;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 
 import java.util.LinkedList;
@@ -31,7 +31,7 @@ import java.util.LinkedList;
  */
 public class DaemonCommandExecution {
 
-    final private Connection<Object> connection;
+    final private DisconnectAwareConnection<Object> connection;
     final private Command command;
     final private DaemonStateCoordinator daemonStateCoordinator;
     final private LinkedList<DaemonCommandAction> actions;
@@ -39,7 +39,7 @@ public class DaemonCommandExecution {
     private Throwable exception;
     private Object result;
 
-    public DaemonCommandExecution(Connection<Object> connection, Command command, DaemonStateCoordinator daemonStateCoordinator, DaemonCommandAction... actions) {
+    public DaemonCommandExecution(DisconnectAwareConnection<Object> connection, Command command, DaemonStateCoordinator daemonStateCoordinator, DaemonCommandAction... actions) {
         this.connection = connection;
         this.command = command;
         this.daemonStateCoordinator = daemonStateCoordinator;
@@ -50,7 +50,7 @@ public class DaemonCommandExecution {
         }
     }
 
-    public Connection<Object> getConnection() {
+    public DisconnectAwareConnection<Object> getConnection() {
         return connection;
     }
 
