@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiHonorsProjectCustomizationsIntegrationTest extends ToolingApiSpecification {
 
@@ -119,10 +117,7 @@ eclipse { classpath { downloadJavadoc = true } }
 
         when:
         EclipseProject eclipseProject = withConnection { ProjectConnection connection ->
-            def builder = connection.model(EclipseProject.class)
-            builder.standardOutput = new FileOutputStream(FileDescriptor.out)
-            builder.standardError = new FileOutputStream(FileDescriptor.err)
-            return builder.get()
+            return connection.model(EclipseProject.class).get()
         }
 
         then:
