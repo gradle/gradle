@@ -51,19 +51,34 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
         for (URL url : ClasspathUtil.getClasspath(classLoader)) {
             if (url.getProtocol().equals("file")) {
                 try {
-                    File entry = new File(url.toURI());
-                    classpath.add(entry);
-                    if (entry.isFile()) {
-                        classpathJars.put(entry.getName(), entry);
-                    }
+                    addClasspathEntry(new File(url.toURI()));
                 } catch (URISyntaxException e) {
                     throw new UncheckedIOException(e);
                 }
             }
         }
+
+        // The file names passed to -cp are canonicalised by the JVM when it creates the system classloader, and so the file names are
+        // lost if they happen to refer to links, for example, into the Gradle artifact cache. Try to reconstitute the file names
+        // from the system classpath
+        if (classLoader == ClassLoader.getSystemClassLoader()) {
+            for (String value : System.getProperty("java.class.path").split(File.pathSeparator)) {
+                addClasspathEntry(new File(value));
+            }
+        }
+
         if (distDir != null) {
             libDirs.add(new File(distDir, "lib"));
             libDirs.add(new File(distDir, "lib/plugins"));
+        }
+    }
+
+    private void addClasspathEntry(File entry) {
+        if (entry.exists()) {
+            classpath.add(entry);
+            if (entry.isFile() && !classpathJars.containsKey(entry.getName())) {
+                classpathJars.put(entry.getName(), entry);
+            }
         }
     }
 
