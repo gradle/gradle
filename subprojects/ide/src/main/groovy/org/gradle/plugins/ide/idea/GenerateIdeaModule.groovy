@@ -52,13 +52,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     File getModuleDir() {
-        DeprecationLogger.nagUser("ideaModule.moduleDir", "idea.module.contentRoot")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.moduleDir", "idea.module.contentRoot")
         module.contentRoot
     }
 
     @Deprecated
     void setModuleDir(File contentRoot) {
-        DeprecationLogger.nagUser("ideaModule.moduleDir", "idea.module.contentRoot")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.moduleDir", "idea.module.contentRoot")
         module.contentRoot = contentRoot
     }
 
@@ -69,13 +69,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     Set<File> getSourceDirs() {
-       DeprecationLogger.nagUser("ideaModule.sourceDirs", "idea.module.sourceDirs")
+       DeprecationLogger.nagUserOfReplacedMethod("ideaModule.sourceDirs", "idea.module.sourceDirs")
        module.sourceDirs
     }
 
     @Deprecated
     void setSourceDirs(Set<File> sourceDirs) {
-       DeprecationLogger.nagUser("ideaModule.sourceDirs", "idea.module.sourceDirs")
+       DeprecationLogger.nagUserOfReplacedMethod("ideaModule.sourceDirs", "idea.module.sourceDirs")
        module.sourceDirs = sourceDirs
     }
 
@@ -86,13 +86,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     Set<File> getTestSourceDirs() {
-        DeprecationLogger.nagUser("ideaModule.testSourceDirs", "idea.module.testSourceDirs")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.testSourceDirs", "idea.module.testSourceDirs")
         module.testSourceDirs
     }
 
     @Deprecated
     void setTestSourceDirs(Set<File> testSourceDirs) {
-        DeprecationLogger.nagUser("ideaModule.testSourceDirs", "idea.module.testSourceDirs")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.testSourceDirs", "idea.module.testSourceDirs")
         module.testSourceDirs = testSourceDirs
     }
 
@@ -103,13 +103,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     Set<File> getExcludeDirs() {
-        DeprecationLogger.nagUser("ideaModule.excludeDirs", "idea.module.excludeDirs")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.excludeDirs", "idea.module.excludeDirs")
         module.excludeDirs
     }
 
     @Deprecated
     void setExcludeDirs(Set<File> excludeDirs) {
-        DeprecationLogger.nagUser("ideaModule.excludeDirs", "idea.module.excludeDirs")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.excludeDirs", "idea.module.excludeDirs")
         module.excludeDirs = excludeDirs
     }
 
@@ -121,13 +121,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     Boolean getInheritOutputDirs() {
-        DeprecationLogger.nagUser("ideaModule.inheritOutputDirs", "idea.module.inheritOutputDirs")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.inheritOutputDirs", "idea.module.inheritOutputDirs")
         module.inheritOutputDirs
     }
 
     @Deprecated
     void setInheritOutputDirs(Boolean inheritOutputDirs) {
-        DeprecationLogger.nagUser("ideaModule.inheritOutputDirs", "idea.module.inheritOutputDirs")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.inheritOutputDirs", "idea.module.inheritOutputDirs")
         module.inheritOutputDirs = inheritOutputDirs
     }
 
@@ -138,13 +138,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     File getOutputDir() {
-        DeprecationLogger.nagUser("ideaModule.outputDir", "idea.module.outputDir")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.outputDir", "idea.module.outputDir")
         module.outputDir
     }
 
     @Deprecated
     void setOutputDir(File outputDir) {
-        DeprecationLogger.nagUser("ideaModule.outputDir", "idea.module.outputDir")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.outputDir", "idea.module.outputDir")
         module.outputDir = outputDir
     }
 
@@ -155,13 +155,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     File getTestOutputDir() {
-        DeprecationLogger.nagUser("ideaModule.testOutputDir", "idea.module.testOutputDir")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.testOutputDir", "idea.module.testOutputDir")
         module.testOutputDir
     }
 
     @Deprecated
     void setTestOutputDir(File testOutputDir) {
-        DeprecationLogger.nagUser("ideaModule.testOutputDir", "idea.module.testOutputDir")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.testOutputDir", "idea.module.testOutputDir")
         module.testOutputDir = testOutputDir
     }
 
@@ -174,13 +174,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     String getJavaVersion() {
-        DeprecationLogger.nagUser("ideaModule.javaVersion", "idea.module.jdkName")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.javaVersion", "idea.module.jdkName")
         module.jdkName
     }
 
     @Deprecated
     void setJavaVersion(String jdkName) {
-        DeprecationLogger.nagUser("ideaModule.javaVersion", "idea.module.jdkName")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.javaVersion", "idea.module.jdkName")
         module.jdkName = jdkName
     }
 
@@ -191,13 +191,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     boolean getDownloadSources() {
-        DeprecationLogger.nagUser("ideaModule.downloadSources", "idea.module.downloadSources")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.downloadSources", "idea.module.downloadSources")
         module.downloadSources
     }
 
     @Deprecated
     void setDownloadSources(boolean downloadSources) {
-        DeprecationLogger.nagUser("ideaModule.downloadSources", "idea.module.downloadSources")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.downloadSources", "idea.module.downloadSources")
         module.downloadSources = downloadSources
     }
 
@@ -208,13 +208,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     boolean getDownloadJavadoc() {
-        DeprecationLogger.nagUser("ideaModule.downloadJavadoc", "idea.module.downloadJavadoc")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.downloadJavadoc", "idea.module.downloadJavadoc")
         module.downloadJavadoc
     }
 
     @Deprecated
     void setDownloadJavadoc(boolean downloadJavadoc) {
-        DeprecationLogger.nagUser("ideaModule.downloadJavadoc", "idea.module.downloadJavadoc")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.downloadJavadoc", "idea.module.downloadJavadoc")
         module.downloadJavadoc = downloadJavadoc
     }
 
@@ -226,13 +226,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     Map<String, File> getVariables() {
-        DeprecationLogger.nagUser("ideaModule.variables", "idea.pathVariables")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.variables", "idea.pathVariables")
         module.pathVariables
     }
 
     @Deprecated
     void setVariables(Map<String, File> variables) {
-        DeprecationLogger.nagUser("ideaModule.variables", "idea.pathVariables")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.variables", "idea.pathVariables")
         module.pathVariables = variables
     }
 
@@ -264,13 +264,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     Map<String, Map<String, Collection<Configuration>>> getScopes() {
-        DeprecationLogger.nagUser("ideaModule.scopes", "idea.module.scopes")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.scopes", "idea.module.scopes")
         module.scopes
     }
 
     @Deprecated
     void setScopes(Map<String, Map<String, Collection<Configuration>>> scopes) {
-        DeprecationLogger.nagUser("ideaModule.scopes", "idea.module.scopes")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.scopes", "idea.module.scopes")
         module.scopes = scopes
     }
 
@@ -314,13 +314,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      */
     @Deprecated
     String getModuleName() {
-        DeprecationLogger.nagUser("ideaModule.moduleName", "idea.module.name")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.moduleName", "idea.module.name")
         return module.name
     }
 
     @Deprecated
     void setModuleName(String moduleName) {
-        DeprecationLogger.nagUser("ideaModule.moduleName", "idea.module.name")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaModule.moduleName", "idea.module.name")
         module.name = moduleName
     }
 }

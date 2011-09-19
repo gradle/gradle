@@ -66,13 +66,13 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     String getJavaVersion() {
-        DeprecationLogger.nagUser("ideaProject.javaVersion", "idea.project.jdkName")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaProject.javaVersion", "idea.project.jdkName")
         ideaProject.jdkName
     }
 
     @Deprecated
     void setJavaVersion(String jdkName) {
-        DeprecationLogger.nagUser("ideaProject.javaVersion", "idea.project.jdkName")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaProject.javaVersion", "idea.project.jdkName")
         ideaProject.jdkName = jdkName
     }
 
@@ -83,13 +83,13 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     Set getWildcards() {
-        DeprecationLogger.nagUser("ideaProject.wildcards", "idea.project.wildcards")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaProject.wildcards", "idea.project.wildcards")
         ideaProject.wildcards
     }
 
     @Deprecated
     void setWildcards(Set wildcards) {
-        DeprecationLogger.nagUser("ideaProject.wildcards", "idea.project.wildcards")
+        DeprecationLogger.nagUserOfReplacedMethod("ideaProject.wildcards", "idea.project.wildcards")
         ideaProject.wildcards = wildcards
     }
 

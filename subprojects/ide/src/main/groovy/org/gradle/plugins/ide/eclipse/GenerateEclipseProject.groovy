@@ -73,13 +73,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     String getProjectName() {
-        DeprecationLogger.nagUser("eclipseProject.projectName", "eclipse.project.name")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.projectName", "eclipse.project.name")
         projectModel.name
     }
 
     @Deprecated
     void setProjectName(String projectName) {
-        DeprecationLogger.nagUser("eclipseProject.projectName", "eclipse.project.name")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.projectName", "eclipse.project.name")
         projectModel.name = projectName
     }
 
@@ -90,13 +90,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     String getComment() {
-        DeprecationLogger.nagUser("eclipseProject.comment", "eclipse.project.comment")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.comment", "eclipse.project.comment")
         projectModel.comment
     }
 
     @Deprecated
     void setComment(String comment) {
-        DeprecationLogger.nagUser("eclipseProject.comment", "eclipse.project.comment")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.comment", "eclipse.project.comment")
         projectModel.comment = comment
     }
 
@@ -107,13 +107,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     Set<String> getReferencedProjects() {
-        DeprecationLogger.nagUser("eclipseProject.referencedProjects", "eclipse.project.referencedProjects")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.referencedProjects", "eclipse.project.referencedProjects")
         projectModel.referencedProjects
     }
 
     @Deprecated
     void setReferencedProjects(Set<String> referencedProjects) {
-        DeprecationLogger.nagUser("eclipseProject.referencedProjects", "eclipse.project.referencedProjects")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.referencedProjects", "eclipse.project.referencedProjects")
         projectModel.referencedProjects = referencedProjects
     }
 
@@ -124,13 +124,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     List<String> getNatures() {
-        DeprecationLogger.nagUser("eclipseProject.natures", "eclipse.project.natures")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.natures", "eclipse.project.natures")
         projectModel.natures
     }
 
     @Deprecated
     void setNatures(List<String> natures) {
-        DeprecationLogger.nagUser("eclipseProject.natures", "eclipse.project.natures")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.natures", "eclipse.project.natures")
         projectModel.natures = natures
     }
 
@@ -141,13 +141,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     List<BuildCommand> getBuildCommands() {
-        DeprecationLogger.nagUser("eclipseProject.buildCommands", "eclipse.project.buildCommands")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.buildCommands", "eclipse.project.buildCommands")
         projectModel.buildCommands
     }
 
     @Deprecated
     void setBuildCommands(List<BuildCommand> buildCommands) {
-        DeprecationLogger.nagUser("eclipseProject.buildCommands", "eclipse.project.buildCommands")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.buildCommands", "eclipse.project.buildCommands")
         projectModel.buildCommands = buildCommands
     }
 
@@ -158,13 +158,13 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     Set<Link> getLinks() {
-        DeprecationLogger.nagUser("eclipseProject.links", "eclipse.project.linkedResources")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.links", "eclipse.project.linkedResources")
         projectModel.linkedResources
     }
 
     @Deprecated
     void setLinks(Set<Link> links) {
-        DeprecationLogger.nagUser("eclipseProject.links", "eclipse.project.linkedResources")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.links", "eclipse.project.linkedResources")
         projectModel.linkedResources = links
     }
 
@@ -176,7 +176,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     void natures(String... natures) {
-        DeprecationLogger.nagUser("eclipseProject.natures", "eclipse.project.natures")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.natures", "eclipse.project.natures")
         projectModel.natures(natures)
     }
 
@@ -189,7 +189,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     void referencedProjects(String... referencedProjects) {
-        DeprecationLogger.nagUser("eclipseProject.referencedProjects", "eclipse.project.referencedProjects")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.referencedProjects", "eclipse.project.referencedProjects")
         projectModel.referencedProjects(referencedProjects)
     }
 
@@ -204,7 +204,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     void buildCommand(Map args, String buildCommand) {
-        DeprecationLogger.nagUser("eclipseProject.buildCommand", "eclipse.project.buildCommand")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.buildCommand", "eclipse.project.buildCommand")
         projectModel.buildCommand(args, buildCommand)
     }
 
@@ -218,7 +218,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     void buildCommand(String buildCommand) {
-        DeprecationLogger.nagUser("eclipseProject.buildCommand", "eclipse.project.buildCommand")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.buildCommand", "eclipse.project.buildCommand")
         projectModel.buildCommand(buildCommand)
     }
 
@@ -231,7 +231,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
      */
     @Deprecated
     void link(Map<String, String> args) {
-        DeprecationLogger.nagUser("eclipseProject.link", "eclipse.project.linkedResource")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseProject.link", "eclipse.project.linkedResource")
         projectModel.linkedResource(args)
     }
 }

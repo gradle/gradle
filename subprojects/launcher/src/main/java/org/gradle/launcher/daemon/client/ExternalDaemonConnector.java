@@ -64,6 +64,7 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentD
         daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
         daemonArgs.add("-Xmx1024m");
         daemonArgs.add("-XX:MaxPermSize=256m");
+        daemonArgs.add("-XX:MaxPermSize=256m");
         //TODO SF - remove later
 //        daemonArgs.add("-Xdebug");
 //        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");

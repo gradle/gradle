@@ -153,12 +153,12 @@ abstract class DefaultScript extends BasicScript {
     }
 
     public void captureStandardOutput(LogLevel level) {
-        DeprecationLogger.nagUser('captureStandardOutput()', 'getLogging().captureStandardOutput()')
+        DeprecationLogger.nagUserOfReplacedMethod('captureStandardOutput()', 'getLogging().captureStandardOutput()')
         logging.captureStandardOutput(level)
     }
 
     public void disableStandardOutputCapture() {
-        DeprecationLogger.nagUser('disableStandardOutputCapture')
+        DeprecationLogger.nagUserOfDiscontinuedMethod('disableStandardOutputCapture')
         logging.disableStandardOutputCapture()
     }
 

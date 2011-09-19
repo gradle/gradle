@@ -42,13 +42,13 @@ class GenerateEclipseJdt extends GeneratorTask<Jdt> {
      */
     @Deprecated
     JavaVersion getSourceCompatibility() {
-        DeprecationLogger.nagUser("eclipseJdt.sourceCompatibility", "eclipse.jdt.sourceCompatibility")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseJdt.sourceCompatibility", "eclipse.jdt.sourceCompatibility")
         jdt.sourceCompatibility
     }
 
     @Deprecated
     void setSourceCompatibility(Object sourceCompatibility) {
-        DeprecationLogger.nagUser("eclipseJdt.sourceCompatibility", "eclipse.jdt.sourceCompatibility")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseJdt.sourceCompatibility", "eclipse.jdt.sourceCompatibility")
         jdt.sourceCompatibility = sourceCompatibility
     }
 
@@ -59,13 +59,13 @@ class GenerateEclipseJdt extends GeneratorTask<Jdt> {
      */
     @Deprecated
     JavaVersion getTargetCompatibility() {
-        DeprecationLogger.nagUser("eclipseJdt.targetCompatibility", "eclipse.jdt.targetCompatibility")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseJdt.targetCompatibility", "eclipse.jdt.targetCompatibility")
         jdt.targetCompatibility
     }
 
     @Deprecated
     void setTargetCompatibility(Object targetCompatibility) {
-        DeprecationLogger.nagUser("eclipseJdt.targetCompatibility", "eclipse.jdt.targetCompatibility")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseJdt.targetCompatibility", "eclipse.jdt.targetCompatibility")
         jdt.targetCompatibility = targetCompatibility
     }
 

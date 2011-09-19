@@ -55,13 +55,13 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
      */
     @Deprecated
     List<Facet> getFacets() {
-        DeprecationLogger.nagUser("eclipseWtpFacet.facets", "eclipse.wtp.facet.facets")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseWtpFacet.facets", "eclipse.wtp.facet.facets")
         facet.facets
     }
 
     @Deprecated
     void setFacets(List<Facet> facets) {
-        DeprecationLogger.nagUser("eclipseWtpFacet.facets", "eclipse.wtp.facet.facets")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseWtpFacet.facets", "eclipse.wtp.facet.facets")
         facet.facets = facets
     }
 
@@ -74,7 +74,7 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
      */
     @Deprecated
     void facet(Map<String, ?> args) {
-        DeprecationLogger.nagUser("eclipseWtpFacet.facet", "eclipse.wtp.facet.facet")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseWtpFacet.facet", "eclipse.wtp.facet.facet")
         facet.facet(args)
     }
 }

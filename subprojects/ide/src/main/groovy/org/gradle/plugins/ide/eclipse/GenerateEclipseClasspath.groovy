@@ -51,7 +51,7 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * The source sets to be added to the classpath.
      */
     Iterable<SourceSet> getSourceSets() {
-        DeprecationLogger.nagUser("eclipseClasspath.sourceSets", "eclipse.classpath.sourceSets")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.sourceSets", "eclipse.classpath.sourceSets")
         classpath.sourceSets
     }
 
@@ -61,7 +61,7 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * The source sets to be added to the classpath.
      */
     void setSourceSets(Iterable<SourceSet> sourceSets) {
-        DeprecationLogger.nagUser("eclipseClasspath.sourceSets", "eclipse.classpath.sourceSets")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.sourceSets", "eclipse.classpath.sourceSets")
         classpath.sourceSets = sourceSets
     }
 
@@ -71,12 +71,12 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * The configurations which files are to be transformed into classpath entries.
      */
     Collection<Configuration> getPlusConfigurations() {
-        DeprecationLogger.nagUser("eclipseClasspath.plusConfigurations", "eclipse.classpath.plusConfigurations")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.plusConfigurations", "eclipse.classpath.plusConfigurations")
         classpath.plusConfigurations
     }
 
     void setPlusConfigurations(Collection<Configuration> plusConfigurations) {
-        DeprecationLogger.nagUser("eclipseClasspath.plusConfigurations", "eclipse.classpath.plusConfigurations")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.plusConfigurations", "eclipse.classpath.plusConfigurations")
         classpath.plusConfigurations = plusConfigurations
     }
 
@@ -86,12 +86,12 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * The configurations which files are to be excluded from the classpath entries.
      */
     Collection<Configuration> getMinusConfigurations() {
-        DeprecationLogger.nagUser("eclipseClasspath.minusConfigurations", "eclipse.classpath.minusConfigurations")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.minusConfigurations", "eclipse.classpath.minusConfigurations")
         classpath.minusConfigurations
     }
 
     void setMinusConfigurations(Collection<Configuration> minusConfigurations) {
-        DeprecationLogger.nagUser("eclipseClasspath.minusConfigurations", "eclipse.classpath.minusConfigurations")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.minusConfigurations", "eclipse.classpath.minusConfigurations")
         classpath.minusConfigurations = minusConfigurations
     }
 
@@ -103,12 +103,12 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * @param pathVariables A map with String->File pairs.
      */
     Map<String, File> getVariables() {
-        DeprecationLogger.nagUser("eclipseClasspath.variables", "eclipse.pathVariables")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.variables", "eclipse.pathVariables")
         classpath.pathVariables
     }
 
     void setVariables(Map<String, File> variables) {
-        DeprecationLogger.nagUser("eclipseClasspath.variables", "eclipse.pathVariables")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.variables", "eclipse.pathVariables")
         classpath.pathVariables = variables
     }
 
@@ -118,12 +118,12 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * Containers to be added to the classpath
      */
     Set<String> getContainers() {
-        DeprecationLogger.nagUser("eclipseClasspath.containers", "eclipse.classpath.containers")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.containers", "eclipse.classpath.containers")
         classpath.containers
     }
 
     void setContainers(Set<String> containers) {
-        DeprecationLogger.nagUser("eclipseClasspath.containers", "eclipse.classpath.containers")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.containers", "eclipse.classpath.containers")
         classpath.containers = containers
     }
 
@@ -133,12 +133,12 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * The default output directory for eclipse generated files, eg classes.
      */
     File getDefaultOutputDir() {
-        DeprecationLogger.nagUser("eclipseClasspath.defaultOutputDir", "eclipse.classpath.defaultOutputDir")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.defaultOutputDir", "eclipse.classpath.defaultOutputDir")
         classpath.defaultOutputDir
     }
 
     void setDefaultOutputDir(File defaultOutputDir) {
-        DeprecationLogger.nagUser("eclipseClasspath.defaultOutputDir", "eclipse.classpath.defaultOutputDir")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.defaultOutputDir", "eclipse.classpath.defaultOutputDir")
         classpath.defaultOutputDir = defaultOutputDir
     }
 
@@ -148,12 +148,12 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * Whether to download and add sources associated with the dependency jars. Defaults to true.
      */
     boolean getDownloadSources() {
-        DeprecationLogger.nagUser("eclipseClasspath.downloadSources", "eclipse.classpath.downloadSources")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.downloadSources", "eclipse.classpath.downloadSources")
         classpath.downloadSources
     }
 
     void setDownloadSources(boolean downloadSources) {
-        DeprecationLogger.nagUser("eclipseClasspath.downloadSources", "eclipse.classpath.downloadSources")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.downloadSources", "eclipse.classpath.downloadSources")
         classpath.downloadSources = downloadSources
     }
 
@@ -163,12 +163,12 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * Whether to download and add javadocs associated with the dependency jars. Defaults to false.
      */
     boolean getDownloadJavadoc() {
-        DeprecationLogger.nagUser("eclipseClasspath.downloadJavadoc", "eclipse.classpath.downloadJavadoc")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.downloadJavadoc", "eclipse.classpath.downloadJavadoc")
         classpath.downloadJavadoc
     }
 
     void setDownloadJavadoc(boolean downloadJavadoc) {
-        DeprecationLogger.nagUser("eclipseClasspath.downloadJavadoc", "eclipse.classpath.downloadJavadoc")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.downloadJavadoc", "eclipse.classpath.downloadJavadoc")
         classpath.downloadJavadoc = downloadJavadoc
     }
 
@@ -180,7 +180,7 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * @param containers the container names to be added to the .classpath.
      */
     void containers(String... containers) {
-        DeprecationLogger.nagUser("eclipseClasspath.containers", "eclipse.classpath.containers")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.containers", "eclipse.classpath.containers")
         classpath.containers(containers)
     }
 
@@ -192,7 +192,7 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
      * @param variables A map where the keys are the variable names and the values are the variable values.
      */
     void variables(Map<String, File> variables) {
-        DeprecationLogger.nagUser("eclipseClasspath.variables", "eclipse.pathVariables")
+        DeprecationLogger.nagUserOfReplacedMethod("eclipseClasspath.variables", "eclipse.pathVariables")
         assert variables != null
         classpath.pathVariables.putAll variables
     }

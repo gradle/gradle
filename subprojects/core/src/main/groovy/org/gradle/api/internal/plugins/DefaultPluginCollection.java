@@ -60,12 +60,12 @@ public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObje
     }
 
     public void allPlugins(Action<? super T> action) {
-        DeprecationLogger.nagUser("PluginCollection.allPlugins()", "all()");
+        DeprecationLogger.nagUserOfReplacedMethod("PluginCollection.allPlugins()", "all()");
         all(action);
     }
 
     public void allPlugins(Closure closure) {
-        DeprecationLogger.nagUser("PluginCollection.allPlugins()", "all()");
+        DeprecationLogger.nagUserOfReplacedMethod("PluginCollection.allPlugins()", "all()");
         all(closure);
     }
 }

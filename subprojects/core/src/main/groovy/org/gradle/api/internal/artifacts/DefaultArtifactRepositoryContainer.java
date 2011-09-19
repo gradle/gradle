@@ -95,13 +95,13 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
     @Deprecated
     public DependencyResolver addLast(Object userDescription) {
-        DeprecationLogger.nagUser("ArtifactRepositoryContainer.addLast()", "maven() or add()");
+        DeprecationLogger.nagUserOfReplacedMethod("ArtifactRepositoryContainer.addLast()", "maven() or add()");
         return addInternal(userDescription, null, addLastAction);
     }
 
     @Deprecated
     public DependencyResolver addLast(Object userDescription, Closure configureClosure) {
-        DeprecationLogger.nagUser("ArtifactRepositoryContainer.addLast()", "maven() or add()");
+        DeprecationLogger.nagUserOfReplacedMethod("ArtifactRepositoryContainer.addLast()", "maven() or add()");
         return addInternal(userDescription, configureClosure, addLastAction);
     }
 

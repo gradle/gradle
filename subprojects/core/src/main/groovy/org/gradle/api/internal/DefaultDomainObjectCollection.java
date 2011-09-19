@@ -123,13 +123,13 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Deprecated
     public void allObjects(Action<? super T> action) {
-        DeprecationLogger.nagUser("DomainObjectCollection.allObjects()", "all()");
+        DeprecationLogger.nagUserOfReplacedMethod("DomainObjectCollection.allObjects()", "all()");
         all(action);
     }
 
     @Deprecated
     public void allObjects(Closure action) {
-        DeprecationLogger.nagUser("DomainObjectCollection.allObjects()", "all()");
+        DeprecationLogger.nagUserOfReplacedMethod("DomainObjectCollection.allObjects()", "all()");
         all(action);
     }
 

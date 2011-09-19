@@ -72,12 +72,12 @@ class Module extends XmlPersistableConfigurationObject {
     String jdkName
 
     String getJavaVersion() {
-        DeprecationLogger.nagUser("javaVersion", "jdkName")
+        DeprecationLogger.nagUserOfReplacedMethod("javaVersion", "jdkName")
         jdkName
     }
 
     void setJavaVersion(String jdkName) {
-        DeprecationLogger.nagUser("javaVersion", "jdkName")
+        DeprecationLogger.nagUserOfReplacedMethod("javaVersion", "jdkName")
         this.jdkName = jdkName
     }
 

@@ -286,13 +286,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task disableStandardOutputCapture() {
-        DeprecationLogger.nagUser("Task.disableStandardOutputCapture()");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.disableStandardOutputCapture()");
         loggingManager.disableStandardOutputCapture();
         return this;
     }
 
     public Task captureStandardOutput(LogLevel level) {
-        DeprecationLogger.nagUser("Task.captureStandardOutput()", "getLogging().captureStandardOutput()");
+        DeprecationLogger.nagUserOfReplacedMethod("Task.captureStandardOutput()", "getLogging().captureStandardOutput()");
         loggingManager.captureStandardOutput(level);
         return this;
     }

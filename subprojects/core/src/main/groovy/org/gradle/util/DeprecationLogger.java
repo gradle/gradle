@@ -29,7 +29,7 @@ public class DeprecationLogger {
         METHODS.clear();
     }
 
-    public static void nagUser(String methodName, String replacement) {
+    public static void nagUserOfReplacedMethod(String methodName, String replacement) {
         if (METHODS.add(methodName)) {
             LOGGER.warn(String.format(
                     "The %s method is deprecated and will be removed in the next version of Gradle. You should use the %s method instead.",
@@ -37,7 +37,7 @@ public class DeprecationLogger {
         }
     }
 
-    public static void nagUser(String methodName) {
+    public static void nagUserOfDiscontinuedMethod(String methodName) {
         if (METHODS.add(methodName)) {
             LOGGER.warn(String.format("The %s method is deprecated and will be removed in the next version of Gradle.",
                     methodName));

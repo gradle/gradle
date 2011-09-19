@@ -162,7 +162,7 @@ public class Wrapper extends DefaultTask {
      */
     @Deprecated
     public String getScriptDestinationPath() {
-        DeprecationLogger.nagUser("Wrapper.getScriptDestinationPath()", "getScriptFile()");
+        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.getScriptDestinationPath()", "getScriptFile()");
         return getProject().relativePath(getScriptFile().getParentFile());
     }
 
@@ -176,7 +176,7 @@ public class Wrapper extends DefaultTask {
      */
     @Deprecated
     public void setScriptDestinationPath(String scriptDestinationPath) {
-        DeprecationLogger.nagUser("Wrapper.setScriptDestinationPath()", "setScriptFile()");
+        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setScriptDestinationPath()", "setScriptFile()");
         setScriptFile(scriptDestinationPath + "/gradlew");
     }
 
@@ -209,7 +209,7 @@ public class Wrapper extends DefaultTask {
      */
     @Deprecated
     public String getJarPath() {
-        DeprecationLogger.nagUser("Wrapper.getJarPath()", "getJarFile()");
+        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.getJarPath()", "getJarFile()");
         return getProject().relativePath(getJarFile().getParentFile());
     }
 
@@ -220,7 +220,7 @@ public class Wrapper extends DefaultTask {
      */
     @Deprecated
     public void setJarPath(String jarPath) {
-        DeprecationLogger.nagUser("Wrapper.setJarPath()", "setJarFile()");
+        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setJarPath()", "setJarFile()");
         setJarFile(jarPath + "/gradle-wrapper.jar");
     }
 
@@ -301,7 +301,7 @@ public class Wrapper extends DefaultTask {
      */
     @Deprecated
     public void setUrlRoot(String urlRoot) {
-        DeprecationLogger.nagUser("Wrapper.setUrlRoot()", "setDistributionUrl()");
+        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setUrlRoot()", "setDistributionUrl()");
         this.urlRoot = urlRoot;
     }
 
@@ -367,7 +367,7 @@ public class Wrapper extends DefaultTask {
 
     @Deprecated
     public void setArchiveName(String archiveName) {
-        DeprecationLogger.nagUser("Wrapper.setArchiveName()", "setDistributionUrl()");
+        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setArchiveName()", "setDistributionUrl()");
         this.archiveName = archiveName;
     }
 
@@ -385,7 +385,7 @@ public class Wrapper extends DefaultTask {
 
     @Deprecated
     public void setArchiveClassifier(String archiveClassifier) {
-        DeprecationLogger.nagUser("Wrapper.setArchiveClassifier()", "setDistributionUrl()");
+        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setArchiveClassifier()", "setDistributionUrl()");
         this.archiveClassifier = archiveClassifier;
     }
 }

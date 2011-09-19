@@ -77,12 +77,12 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     public void allTasks(Action<? super T> action) {
-        DeprecationLogger.nagUser("TaskCollection.allTasks()", "all()");
+        DeprecationLogger.nagUserOfReplacedMethod("TaskCollection.allTasks()", "all()");
         all(action);
     }
 
     public void allTasks(Closure action) {
-        DeprecationLogger.nagUser("TaskCollection.allTasks()", "all()");
+        DeprecationLogger.nagUserOfReplacedMethod("TaskCollection.allTasks()", "all()");
         all(action);
     }
 

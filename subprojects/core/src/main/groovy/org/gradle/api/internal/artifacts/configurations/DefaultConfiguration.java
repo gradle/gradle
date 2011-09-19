@@ -285,7 +285,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildArtifacts() {
-        DeprecationLogger.nagUser("Configuration.getBuildArtifacts()", "getAllArtifacts().getBuildDependencies()");
+        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getBuildArtifacts()", "getAllArtifacts().getBuildDependencies()");
         return allArtifacts.getBuildDependencies();
     }
 
@@ -298,30 +298,30 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public <T extends Dependency> DomainObjectSet<T> getDependencies(Class<T> type) {
-        DeprecationLogger.nagUser("Configuration.getDependencies(type)", "getDependencies().withType(type)");
+        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getDependencies(type)", "getDependencies().withType(type)");
         return dependencies.withType(type);
     }
 
     public <T extends Dependency> DomainObjectSet<T> getAllDependencies(Class<T> type) {
-        DeprecationLogger.nagUser("Configuration.getAllDependencies(type)", "getAllDependencies().withType(type)");
+        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getAllDependencies(type)", "getAllDependencies().withType(type)");
         return allDependencies.withType(type);
     }
 
     public void addDependency(Dependency dependency) {
-        DeprecationLogger.nagUser("Configuration.addDependency()", "getDependencies().add()");
+        DeprecationLogger.nagUserOfReplacedMethod("Configuration.addDependency()", "getDependencies().add()");
         throwExceptionIfNotInUnresolvedState();
         dependencies.add(dependency);
     }
 
     public Configuration addArtifact(PublishArtifact artifact) {
-        DeprecationLogger.nagUser("Configuration.addArtifact()", "getArtifacts().add()");
+        DeprecationLogger.nagUserOfReplacedMethod("Configuration.addArtifact()", "getArtifacts().add()");
         throwExceptionIfNotInUnresolvedState();
         artifacts.add(artifact);
         return this;
     }
 
     public Configuration removeArtifact(PublishArtifact artifact) {
-        DeprecationLogger.nagUser("Configuration.removeArtifact()", "getArtifacts().remove()");
+        DeprecationLogger.nagUserOfReplacedMethod("Configuration.removeArtifact()", "getArtifacts().remove()");
         throwExceptionIfNotInUnresolvedState();
         artifacts.remove(artifact);
         return this;
@@ -336,7 +336,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public FileCollection getAllArtifactFiles() {
-        DeprecationLogger.nagUser("Configuration.getAllArtifactFiles()", "getAllArtifacts().getFiles()");
+        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getAllArtifactFiles()", "getAllArtifacts().getFiles()");
         return allArtifacts.getFiles();
     }
 
