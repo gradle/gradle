@@ -16,18 +16,21 @@
 
 package org.gradle.launcher.env;
 
+import org.gradle.os.ProcessEnvironment;
 import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.OperatingSystem;
+
+import java.io.File;
 
 /**
  * *Not* thread safe
  *
  * @author: Szczepan Faber, created at: 9/1/11
  */
-class Environment {
+class Environment implements ProcessEnvironment {
 
     //for updates to environment in a native way
-    private final NativeEnvironment.Posix posix;
+    private final ProcessEnvironment posix;
     //for updates to private JDK caches of the environment state
     private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
 
@@ -41,21 +44,21 @@ class Environment {
         }
     }
 
-    public int unsetenv(String name) {
+    public void unsetenv(String name) {
         reflectiveEnvironment.unsetenv(name);
-        return posix.unsetenv(name);
+        posix.unsetenv(name);
     }
 
-    public int setenv(String name, String value) {
+    public void setenv(String name, String value) {
         reflectiveEnvironment.setenv(name, value);
-        return posix.setenv(name, value, 1);
+        posix.setenv(name, value);
     }
 
-    public String getProcessDir() {
+    public File getProcessDir() {
         return posix.getProcessDir();
     }
 
-    public void setProcessDir(String processDir) {
+    public void setProcessDir(File processDir) {
         posix.setProcessDir(processDir);
     }
 }

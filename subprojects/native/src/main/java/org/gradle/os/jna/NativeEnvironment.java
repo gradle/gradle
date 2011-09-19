@@ -18,6 +18,9 @@ package org.gradle.os.jna;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import org.gradle.os.ProcessEnvironment;
+
+import java.io.File;
 
 /**
  * Uses jna to update the environment variables
@@ -28,9 +31,10 @@ public class NativeEnvironment {
 
     //CHECKSTYLE:OFF
     public interface WinLibC extends Library {
-        public int _putenv(String name);
-        public int _chdir(String name);
-        public int _getcwd(byte[] out, int size);
+        public int _wputenv_s(String name, String value);
+        public int _wchdir(String name);
+        public String _wgetcwd(char[] out, int size);
+        public int _errno();
     }
 
     public interface UnixLibC extends Library {
@@ -38,61 +42,75 @@ public class NativeEnvironment {
         public int unsetenv(String name);
         public String getcwd(byte[] out, int size);
         public int chdir(String dirAbsolutePath);
-
+        public int errno();
     }
     //CHECKSTYLE:ON
 
-    public static interface Posix {
-        int setenv(String name, String value, int overwrite);
-        int unsetenv(String name);
-        void setProcessDir(String dir);
-        String getProcessDir();
-    }
-
     //2 bytes per unicode character, this should be enough to handle sane path lengths
-    private static final int LOTS_OF_BYTES = 2048;
+    private static final int LOTS_OF_CHARS = 2048;
 
-    public static class Windows implements Posix {
+    public static class Windows implements ProcessEnvironment {
         private final WinLibC libc = (WinLibC) Native.loadLibrary("msvcrt", WinLibC.class);
 
-        public int setenv(String name, String value, int overwrite) {
-            return libc._putenv(name + "=" + value);
+        public void setenv(String name, String value) {
+            int retval = libc._wputenv_s(name, value);
+            if (retval != 0) {
+                throw new RuntimeException(String.format("Could not set environment variable '%s'. errno: %d", name, libc._errno()));
+            }
         }
 
-        public int unsetenv(String name) {
-            return libc._putenv(name + "=");
+        public void unsetenv(String name) {
+            setenv(name, "");
         }
 
-        public void setProcessDir(String dir) {
-            libc._chdir(dir);
+        public void setProcessDir(File dir) {
+            int retval = libc._wchdir(dir.getAbsolutePath());
+            if (retval != 0) {
+                throw new RuntimeException(String.format("Could not set process working directory to '%s'. errno: %d", dir, libc._errno()));
+            }
         }
 
-        public String getProcessDir() {
-            byte[] out = new byte[LOTS_OF_BYTES];
-            libc._getcwd(out, LOTS_OF_BYTES);
-            return Native.toString(out);
+        public File getProcessDir() {
+            char[] out = new char[LOTS_OF_CHARS];
+            String retval = libc._wgetcwd(out, LOTS_OF_CHARS);
+            if (retval == null) {
+                throw new RuntimeException(String.format("Could not get process working directory. errno: %d", libc._errno()));
+            }
+            return new File(Native.toString(out));
         }
     }
 
-    public static class Unix implements Posix {
+    public static class Unix implements ProcessEnvironment {
         final UnixLibC libc = (UnixLibC) Native.loadLibrary("c", UnixLibC.class);
 
-        public int setenv(String name, String value, int overwrite) {
-            return libc.setenv(name, value, overwrite);
+        public void setenv(String name, String value) {
+            int retval = libc.setenv(name, value, 1);
+            if (retval != 0) {
+                throw new RuntimeException(String.format("Could not set environment variable '%s'. errno: %d", name, libc.errno()));
+            }
         }
 
-        public int unsetenv(String name) {
-            return libc.unsetenv(name);
+        public void unsetenv(String name) {
+            int retval = libc.unsetenv(name);
+            if (retval != 0) {
+                throw new RuntimeException(String.format("Could not unset environment variable '%s'. errno: %d", name, libc.errno()));
+            }
         }
 
-        public void setProcessDir(String dir) {
-            libc.chdir(dir);
+        public void setProcessDir(File dir) {
+            int retval = libc.chdir(dir.getAbsolutePath());
+            if (retval != 0) {
+                throw new RuntimeException(String.format("Could not set process working directory to '%s'. errno: %d", dir, libc.errno()));
+            }
         }
 
-        public String getProcessDir() {
-            byte[] out = new byte[LOTS_OF_BYTES];
-            libc.getcwd(out, LOTS_OF_BYTES);
-            return Native.toString(out);
+        public File getProcessDir() {
+            byte[] out = new byte[LOTS_OF_CHARS];
+            String retval = libc.getcwd(out, LOTS_OF_CHARS);
+            if (retval == null) {
+                throw new RuntimeException(String.format("Could not get process working directory. errno: %d", libc.errno()));
+            }
+            return new File(Native.toString(out));
         }
     }
 }

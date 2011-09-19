@@ -130,26 +130,7 @@ class LenientEnvHackerTest extends Specification {
         hacker.setenv(test.methodName, "bar")
         hacker.setenv(GUtil.map())
         hacker.processDir
-        hacker.processDir = "foo"
-
-        then:
-        noExceptionThrown()
-    }
-
-    def "does not explode when local environment is unstable"() {
-        given:
-        def provider = Mock(EnvironmentProvider)
-        def env = Mock(Environment)
-        provider.environment >> { env }
-        env._ >> { throw new RuntimeException("You are using some awkward OS we don't know how to handle!") }
-
-        hacker = new LenientEnvHacker(provider)
-
-        when:
-        hacker.setenv(test.methodName, "bar")
-        hacker.setenv(GUtil.map())
-        hacker.processDir
-        hacker.processDir = "foo"
+        hacker.processDir = new File("foo")
 
         then:
         noExceptionThrown()
@@ -157,12 +138,12 @@ class LenientEnvHackerTest extends Specification {
 
     def "updates current work dir of the process"() {
         given:
-        assert hacker.processDir != temp.dir.absolutePath
+        assert hacker.processDir != temp.dir
 
         when:
-        hacker.processDir = temp.dir.absolutePath
+        hacker.processDir = temp.dir
 
         then:
-        hacker.processDir == temp.dir.absolutePath
+        hacker.processDir == temp.dir
     }
 }

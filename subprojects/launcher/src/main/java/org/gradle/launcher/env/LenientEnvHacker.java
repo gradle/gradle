@@ -18,8 +18,10 @@ package org.gradle.launcher.env;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.os.ProcessEnvironment;
 import org.gradle.util.OperatingSystem;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -28,10 +30,10 @@ import java.util.Map;
  *
  * @author: Szczepan Faber, created at: 9/1/11
  */
-public class LenientEnvHacker {
+public class LenientEnvHacker implements ProcessEnvironment {
 
     private static final Logger LOGGER = Logging.getLogger(LenientEnvHacker.class);
-    private Environment env;
+    private ProcessEnvironment env;
 
     public LenientEnvHacker() {
         this(new EnvironmentProvider());
@@ -47,16 +49,18 @@ public class LenientEnvHacker {
         }
     }
 
+    public void unsetenv(String name) {
+        if (env == null) {
+            return;
+        }
+        env.unsetenv(name);
+    }
+
     public void setenv(String key, String value) {
         if (env == null) {
             return;
         }
-        try {
-            env.setenv(key, value);
-        } catch (Throwable t) {
-            String warning = String.format("Unable to set env variable %s=%s on OS: %s.", key, value, OperatingSystem.current());
-            LOGGER.warn(warning, t);
-        }
+        env.setenv(key, value);
     }
 
     //Existing system env is removed and passed env map becomes the system env.
@@ -64,48 +68,37 @@ public class LenientEnvHacker {
         if (env == null) {
             return;
         }
-        try {
-            Map<String, String> currentEnv = System.getenv();
-            Iterable<String> names = new LinkedList(currentEnv.keySet());
-            for (String name : names) {
-                env.unsetenv(name);
-            }
-            for (String key : source.keySet()) {
-                env.setenv(key, source.get(key));
-            }
-        } catch (Throwable t) {
-            String warning = String.format("Unable to set env variables on OS: %s.", OperatingSystem.current());
-            LOGGER.warn(warning, t);
+        Map<String, String> currentEnv = System.getenv();
+        Iterable<String> names = new LinkedList<String>(currentEnv.keySet());
+        for (String name : names) {
+            env.unsetenv(name);
+        }
+        for (String key : source.keySet()) {
+            env.setenv(key, source.get(key));
         }
     }
 
-    public String getProcessDir() {
+    public File getProcessDir() {
         if (env == null) {
             return null;
         }
-        try {
-            return env.getProcessDir();
-        } catch (Throwable t) {
-            String warning = String.format("Unable to get process dir on OS: %s.", OperatingSystem.current());
-            LOGGER.warn(warning, t);
-            return null;
-        }
+        return env.getProcessDir();
     }
 
-    public void setProcessDir(String dirAbsolutePath) {
+    public void setProcessDir(File dir) {
+        if (!dir.exists()) {
+            return;
+        }
+
+        System.setProperty("user.dir", dir.getAbsolutePath());
         if (env == null) {
             return;
         }
-        try {
-            env.setProcessDir(dirAbsolutePath);
-        } catch (Throwable t) {
-            String warning = String.format("Unable to set process dir to: %s on OS: %s.", dirAbsolutePath, OperatingSystem.current());
-            LOGGER.warn(warning, t);
-        }
+        env.setProcessDir(dir);
     }
 
     static class EnvironmentProvider {
-        public Environment getEnvironment() {
+        public ProcessEnvironment getEnvironment() {
             return new Environment();
         }
     }

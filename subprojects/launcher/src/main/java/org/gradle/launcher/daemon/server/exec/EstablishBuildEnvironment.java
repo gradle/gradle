@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.env.LenientEnvHacker;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.Map;
 
@@ -25,28 +26,29 @@ import java.util.Map;
  * Aims to make the local environment the same as the client's environment.
  */
 public class EstablishBuildEnvironment extends BuildCommandOnly {
+    private final LenientEnvHacker processEnvironment = new LenientEnvHacker();
 
     protected void doBuild(DaemonCommandExecution execution, Build build) {
         Properties originalSystemProperties = new Properties();
         originalSystemProperties.putAll(System.getProperties());
+        File currentDir = new File(".").getAbsoluteFile();
+
         Properties clientSystemProperties = new Properties();
         clientSystemProperties.putAll(build.getParameters().getSystemProperties());
         System.setProperties(clientSystemProperties);
 
-        LenientEnvHacker envHacker = new LenientEnvHacker();
         Map<String, String> originalEnv = System.getenv();
-        envHacker.setenv(build.getParameters().getEnvVariables());
+        processEnvironment.setenv(build.getParameters().getEnvVariables());
 
-        //TODO SF I want explicit coverage for this feature
-        envHacker.setProcessDir(build.getParameters().getCurrentDir().getAbsolutePath());
+        processEnvironment.setProcessDir(build.getParameters().getCurrentDir());
 
-        execution.proceed();
-
-        System.setProperties(originalSystemProperties);
-        //TODO SF I'm not sure we should set the original env / work dir
-        // in theory if character encoding the native code emits doesn't match Java's modified UTF-16
-        // we're going to set some rubbish because we used native way to read the env
-        envHacker.setenv(originalEnv);
+        try {
+            execution.proceed();
+        } finally {
+            System.setProperties(originalSystemProperties);
+            processEnvironment.setenv(originalEnv);
+            processEnvironment.setProcessDir(currentDir);
+        }
     }
 
 }
