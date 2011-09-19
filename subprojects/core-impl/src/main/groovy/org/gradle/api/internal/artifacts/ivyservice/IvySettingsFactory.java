@@ -25,6 +25,7 @@ import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 import static org.gradle.cache.CacheBuilder.VersionStrategy;
 
 public class IvySettingsFactory implements Factory<IvySettings> {
+    private static final int CACHE_LAYOUT_VERSION = 2;
     private final CacheRepository cacheRepository;
 
     public IvySettingsFactory(CacheRepository cacheRepository) {
@@ -33,7 +34,7 @@ public class IvySettingsFactory implements Factory<IvySettings> {
 
     public IvySettings create() {
         IvySettings ivySettings = new IvySettings();
-        PersistentCache cache = cacheRepository.store("artifacts").withVersionStrategy(VersionStrategy.SharedCache).open();
+        PersistentCache cache = cacheRepository.store(String.format("artifacts/%d", CACHE_LAYOUT_VERSION)).withVersionStrategy(VersionStrategy.SharedCache).open();
         ivySettings.setDefaultCache(cache.getBaseDir());
         ivySettings.setDefaultCacheIvyPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
