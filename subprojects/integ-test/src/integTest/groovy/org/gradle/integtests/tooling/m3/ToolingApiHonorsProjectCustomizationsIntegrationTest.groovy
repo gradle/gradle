@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.ProjectConnection
 
 class ToolingApiHonorsProjectCustomizationsIntegrationTest extends ToolingApiSpecification {
 
@@ -117,7 +118,12 @@ eclipse { classpath { downloadJavadoc = true } }
 '''
 
         when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject eclipseProject = withConnection { ProjectConnection connection ->
+            def builder = connection.model(EclipseProject.class)
+            builder.standardOutput = new FileOutputStream(FileDescriptor.out)
+            builder.standardError = new FileOutputStream(FileDescriptor.err)
+            return builder.get()
+        }
 
         then:
         eclipseProject.classpath.size() == 2
