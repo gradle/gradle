@@ -18,8 +18,6 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import org.gradle.api.Action;
-import org.gradle.messaging.remote.internal.Disconnection;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnection;
 
 public class WatchForDisconnection implements DaemonCommandAction {
@@ -30,9 +28,9 @@ public class WatchForDisconnection implements DaemonCommandAction {
         DisconnectAwareConnection connection = execution.getConnection();
 
         // Watch for the client disconnecting before we call stop()
-        connection.onDisconnect(new Action<Disconnection<Object>>() {
-            public void execute(Disconnection<Object> disconnection) {
-                LOGGER.warn("client disconnection detected, we're going down (hard) - uncollected messages: {}", disconnection.getUncollectedMessages());
+        connection.onDisconnect(new Runnable() {
+            public void run() {
+                LOGGER.warn("client disconnection detected, we're going down (hard)");
                 System.exit(1);
             }
         });

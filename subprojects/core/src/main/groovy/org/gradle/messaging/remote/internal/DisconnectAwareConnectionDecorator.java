@@ -18,7 +18,6 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import org.gradle.api.Action;
 import org.gradle.util.UncheckedException;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
@@ -60,17 +59,17 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
 
     private final LinkedBlockingQueue<MessageWrapper<T>> messages = new LinkedBlockingQueue<MessageWrapper<T>>();
 
-    private Action<Disconnection<T>> disconnectAction;
+    private Runnable disconnectAction;
 
     public DisconnectAwareConnectionDecorator(Connection<T> connection) {
         super(connection);
         startConsuming();
     }
 
-    public Action<Disconnection<T>> onDisconnect(Action<Disconnection<T>> disconnectAction) {
+    public Runnable onDisconnect(Runnable disconnectAction) {
         actionLock.lock();
         try {
-            Action<Disconnection<T>> previous = disconnectAction;
+            Runnable previous = disconnectAction;
             this.disconnectAction = disconnectAction;
             return previous;
         } finally {
@@ -122,22 +121,11 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
                 while (true) {
                     T message = DisconnectAwareConnectionDecorator.super.receive(); // will return null if underlying connection stopped
                     if (message == null) {
-                        List<T> uncollected = new LinkedList<T>();
-                        if (!stopped) {
-                            List<MessageWrapper<T>> wrappers = new LinkedList<MessageWrapper<T>>();
-                            messages.drainTo(wrappers);
-                            for (MessageWrapper<T> wrapper : wrappers) {
-                                uncollected.add(wrapper.message);
-                            }
-                        }
-
-                        // put the end-of-stream sentinel on the queue
-                        put(null);
+                        put(null); // put the end-of-stream sentinel on the queue
 
                         if (!stopped) {
-                            invokeDisconnectAction(uncollected);
+                            invokeDisconnectAction();
                         }
-
                         break;
                     } else {
                         put(message);
@@ -147,15 +135,10 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
         });
     }
 
-    private void invokeDisconnectAction(final List<T> uncollectedMessages) {
+    private void invokeDisconnectAction() {
         actionLock.lock();
         try {
-            if (disconnectAction != null) {
-                disconnectAction.execute(new Disconnection() {
-                    public Connection<T> getConnection() { return DisconnectAwareConnectionDecorator.this; }
-                    public List<T> getUncollectedMessages() { return uncollectedMessages; }
-                });
-            }
+            disconnectAction.run();
         } finally {
             actionLock.unlock();
         }

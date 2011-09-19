@@ -15,8 +15,6 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.Action;
-
 /**
  * A {@code DisconnectAwareConnection} is a connection capable of executing an action when
  * the other side of connection disconnects before the stop method is called on this connection.
@@ -42,6 +40,6 @@ public interface DisconnectAwareConnection<T> extends Connection<T> {
      * @param disconnectAction The action to perform on disconnection, or {@code null} to remove any existing action.
      * @return The previous disconnect action, or {@code null} if no action had been previously registered.
      */
-    Action<Disconnection<T>> onDisconnect(Action<Disconnection<T>> disconnectAction);
+    Runnable onDisconnect(Runnable disconnectAction);
 
 }

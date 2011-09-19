@@ -47,17 +47,17 @@ class DisconnectAwareConnectionDecoratorTest extends Specification {
         connection.receive()
     }
 
-    def uncollectedMessagesHolder = new BlockingVariable(3) // allow 3 seconds for the disconnect handler to fire
+    def disconnectedHolder = new BlockingVariable(3) // allow 3 seconds for the disconnect handler to fire
 
-    def onDisconnect(Closure action = { uncollectedMessagesHolder.set(it.uncollectedMessages) }) {
-        connection.onDisconnect(action as Action)
+    def onDisconnect(Closure action = { disconnectedHolder.set(true) }) {
+        connection.onDisconnect(action)
     }
 
-    def getUncollectedMessages() {
+    boolean isDisconnectHandlerDidFire() {
         try {
-            uncollectedMessagesHolder.get()
+            disconnectedHolder.get()
         } catch (SpockTimeoutError e) {
-            null
+            false
         }
     }
 
@@ -81,10 +81,10 @@ class DisconnectAwareConnectionDecoratorTest extends Specification {
         disconnect()
 
         then:
-        uncollectedMessages == [1]
+        disconnectHandlerDidFire
 
         and:
-        receive() == null
+        receive() == 1
     }
 
     def "disconnect before sending any messages"() {
@@ -92,7 +92,7 @@ class DisconnectAwareConnectionDecoratorTest extends Specification {
         disconnect()
 
         then:
-        uncollectedMessages == []
+        disconnectHandlerDidFire
 
         and:
         receive() == null
@@ -112,41 +112,7 @@ class DisconnectAwareConnectionDecoratorTest extends Specification {
         receive() == null
 
         and:
-        uncollectedMessages == null // i.e. disconnect handler never fires
-    }
-
-    def "received + uncollected at time of disconnection is all of the messages"() {
-        given:
-        def toSend = 1..100
-        def receieved = new BlockingVariable(3)
-
-        and:
-        Thread.start {
-            def messages = []
-            while (true) {
-                def message = receive()
-                if (message == null) {
-                    break
-                } else {
-                    messages << message
-                }
-                sleep 100 // to ensure messages are being sent faster than received
-            }
-            receieved.set(messages)
-        }
-
-        when:
-        Thread.start {
-            toSend.each { sendMessage(it) }
-            sleep 2000 // wait for some messages to be received
-            disconnect()
-        }
-
-        then:
-        receieved.get() + uncollectedMessages == toSend
-        
-        where: // run this ten times to give it more of a shake (probably unnecessary and should be removed at some point)
-        iteration << [0,1,2,3,4,5,6,7,8,9]
+        !disconnectHandlerDidFire
     }
 
     def cleanup() {
