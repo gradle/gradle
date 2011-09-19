@@ -18,5 +18,6 @@ dependencies {
     groovy libraries.groovy
     compile project(":internalTesting")
     compile project(':cli')
+    compile project(':launcher')
     compile libraries.jetty
 }

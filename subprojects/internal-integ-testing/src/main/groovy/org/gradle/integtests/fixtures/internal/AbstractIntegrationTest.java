@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests.fixtures.internal;
 
-import org.gradle.CacheUsage;
-import org.gradle.StartParameter;
 import org.gradle.integtests.fixtures.*;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
@@ -40,17 +38,6 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
         return file(name);
     }
 
-    private StartParameter startParameter() {
-        StartParameter parameter = new StartParameter();
-        parameter.setGradleUserHomeDir(distribution.getUserHomeDir());
-
-        parameter.setSearchUpwards(false);
-        parameter.setCacheUsage(CacheUsage.ON);
-        parameter.setCurrentDir(getTestDir());
-
-        return parameter;
-    }
-
     protected GradleExecuter inTestDirectory() {
         return inDirectory(getTestDir());
     }
@@ -72,6 +59,8 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     }
 
     protected ArtifactBuilder artifactBuilder() {
-        return new GradleBackedArtifactBuilder(new InProcessGradleExecuter(startParameter()), getTestDir().file("artifacts"));
+        InProcessGradleExecuter gradleExecuter = new InProcessGradleExecuter();
+        gradleExecuter.withUserHomeDir(distribution.getUserHomeDir());
+        return new GradleBackedArtifactBuilder(gradleExecuter, getTestDir().file("artifacts"));
     }
 }

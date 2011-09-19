@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.StartParameter;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Matchers;
 import org.gradle.util.TestFile;
@@ -178,11 +176,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             throw new RuntimeException("Assertions must be enabled when running integration tests.");
         }
 
-        StartParameter parameter = new StartParameter();
-        parameter.setLogLevel(LogLevel.INFO);
-        parameter.setSearchUpwards(false);
-
-        InProcessGradleExecuter inProcessGradleExecuter = new InProcessGradleExecuter(parameter);
+        InProcessGradleExecuter inProcessGradleExecuter = new InProcessGradleExecuter();
         copyTo(inProcessGradleExecuter);
 
         GradleExecuter returnedExecuter = inProcessGradleExecuter;

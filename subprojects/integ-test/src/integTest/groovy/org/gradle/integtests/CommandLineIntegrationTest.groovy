@@ -28,29 +28,22 @@ import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Chmod
 import org.gradle.util.TestFile
 import org.gradle.os.PosixUtil
+import org.junit.Before
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final TestResources resources = new TestResources()
 
+    @Before
+    public void setup() {
+        executer.type = GradleDistributionExecuter.Executer.forking
+    }
+
     @Test
     public void hasNonZeroExitCodeOnBuildFailure() {
         ExecutionFailure failure = executer.withTasks('unknown').runWithFailure()
         failure.assertHasDescription("Task 'unknown' not found in root project 'commandLine'.")
-    }
-
-    @Test
-    public void canonicalisesWorkingDirectory() {
-        File javaprojectDir;
-        if (OperatingSystem.current().isWindows()) {
-            javaprojectDir = new File(dist.samplesDir, 'java/QUICKS~1')
-        } else if (!OperatingSystem.current().fileSystem.caseSensitive) {
-            javaprojectDir = new File(dist.samplesDir, 'JAVA/QuickStart')
-        } else {
-            javaprojectDir = new File(dist.samplesDir, 'java/multiproject/../quickstart')
-        }
-        executer.inDirectory(javaprojectDir).withTasks('classes').run()
     }
 
     @Test

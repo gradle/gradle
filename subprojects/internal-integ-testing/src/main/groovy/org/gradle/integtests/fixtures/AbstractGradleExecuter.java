@@ -103,6 +103,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public File getBuildScript() {
+        return buildScript;
+    }
+
     public GradleExecuter usingBuildScript(String scriptText) {
         this.buildScriptText = scriptText;
         return this;
@@ -116,6 +120,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter usingSettingsFile(File settingsFile) {
         this.settingsFile = settingsFile;
         return this;
+    }
+
+    public File getSettingsFile() {
+        return settingsFile;
     }
 
     public GradleExecuter usingInitScript(File initScript) {
