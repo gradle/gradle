@@ -19,7 +19,7 @@ package org.gradle.integtests.environment
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.junit.Test
 import spock.lang.Issue
-import org.gradle.util.OperatingSystem
+import org.gradle.os.OperatingSystem
 
 /**
  * @author: Szczepan Faber, created at: 8/11/11

@@ -32,7 +32,7 @@ import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
 import org.gradle.util.ClasspathUtil
-import org.gradle.util.OperatingSystem
+import org.gradle.os.OperatingSystem
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule

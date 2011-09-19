@@ -16,10 +16,10 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
+import org.gradle.os.OperatingSystem;
 import org.gradle.os.jna.WindowsProcessStarter;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.gradle.util.OperatingSystem;
 
 import java.io.File;
 import java.util.ArrayList;

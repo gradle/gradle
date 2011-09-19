@@ -31,7 +31,7 @@ import org.gradle.openapi.external.foundation.RequestVersion1
 import org.gradle.openapi.external.foundation.TaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
-import org.gradle.util.OperatingSystem
+import org.gradle.os.OperatingSystem
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test

@@ -19,7 +19,7 @@ package org.gradle.logging.internal;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.OperatingSystem;
+import org.gradle.os.OperatingSystem;
 
 import java.io.File;
 import java.io.FileOutputStream;

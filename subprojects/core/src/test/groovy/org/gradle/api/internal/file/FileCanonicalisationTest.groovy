@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.util.OperatingSystem
+import org.gradle.os.OperatingSystem
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification

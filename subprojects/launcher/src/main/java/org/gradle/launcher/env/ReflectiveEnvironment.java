@@ -16,7 +16,8 @@
 
 package org.gradle.launcher.env;
 
-import org.gradle.util.OperatingSystem;
+import org.gradle.os.NativeIntegrationException;
+import org.gradle.os.OperatingSystem;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class ReflectiveEnvironment {
             caseinsensitive.setAccessible(true);
             return (Map<String, String>) caseinsensitive.get(null);
         } catch (Exception e) {
-            throw new EnvironmentException("Unable to get mutable windows case insensitive environment map", e);
+            throw new NativeIntegrationException("Unable to get mutable windows case insensitive environment map", e);
         }
     }
 
@@ -68,7 +69,7 @@ public class ReflectiveEnvironment {
             m.setAccessible(true);
             return (Map<String, String>) m.get(theUnmodifiableEnvironment);
         } catch (Exception e) {
-            throw new EnvironmentException("Unable to get mutable environment map", e);
+            throw new NativeIntegrationException("Unable to get mutable environment map", e);
         }
     }
 }

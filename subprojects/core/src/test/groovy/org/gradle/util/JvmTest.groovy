@@ -18,6 +18,7 @@ package org.gradle.util
 
 import spock.lang.Specification
 import org.junit.Rule
+import org.gradle.os.OperatingSystem
 
 class JvmTest extends Specification {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()

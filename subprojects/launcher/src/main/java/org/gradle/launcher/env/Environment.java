@@ -18,7 +18,6 @@ package org.gradle.launcher.env;
 
 import org.gradle.os.ProcessEnvironment;
 import org.gradle.os.jna.NativeEnvironment;
-import org.gradle.util.OperatingSystem;
 
 import java.io.File;
 
@@ -35,13 +34,7 @@ class Environment implements ProcessEnvironment {
     private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
 
     Environment() {
-        if (OperatingSystem.current().isUnix()) {
-            posix = new NativeEnvironment.Unix();
-        } else if (OperatingSystem.current().isWindows()) {
-            posix = new NativeEnvironment.Windows();
-        } else {
-            throw new RuntimeException("We don't support this operating system: " + OperatingSystem.current());
-        }
+        posix = NativeEnvironment.current();
     }
 
     public void unsetenv(String name) {

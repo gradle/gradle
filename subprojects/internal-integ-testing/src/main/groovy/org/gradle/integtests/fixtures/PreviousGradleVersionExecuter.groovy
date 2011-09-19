@@ -19,7 +19,7 @@ import org.gradle.util.Jvm
 import org.gradle.util.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.DistributionLocator
-import org.gradle.util.OperatingSystem
+import org.gradle.os.OperatingSystem
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.CacheUsage

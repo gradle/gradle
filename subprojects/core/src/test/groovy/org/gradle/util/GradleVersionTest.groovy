@@ -20,6 +20,7 @@ import org.apache.ivy.Ivy
 import org.apache.tools.ant.Main
 import org.codehaus.groovy.runtime.InvokerHelper
 import spock.lang.Specification
+import org.gradle.os.OperatingSystem
 
 /**
  * @author Hans Dockter

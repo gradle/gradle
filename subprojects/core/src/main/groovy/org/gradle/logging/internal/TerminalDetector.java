@@ -18,8 +18,8 @@ package org.gradle.logging.internal;
 
 import org.fusesource.jansi.WindowsAnsiOutputStream;
 import org.gradle.api.specs.Spec;
+import org.gradle.os.OperatingSystem;
 import org.gradle.os.PosixUtil;
-import org.gradle.util.OperatingSystem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;

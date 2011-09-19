@@ -25,6 +25,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DeleteAction;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.os.OperatingSystem;
 import org.gradle.os.PosixUtil;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;

@@ -17,11 +17,11 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.api.Action;
+import org.gradle.os.OperatingSystem;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
-import org.gradle.util.OperatingSystem;
 import org.gradle.util.TestFile;
 import org.hamcrest.Matcher;
 import org.slf4j.Logger;

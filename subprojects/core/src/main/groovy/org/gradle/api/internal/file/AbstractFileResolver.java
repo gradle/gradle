@@ -22,8 +22,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.os.OperatingSystem;
 import org.gradle.util.GUtil;
-import org.gradle.util.OperatingSystem;
 
 import java.io.File;
 import java.io.IOException;

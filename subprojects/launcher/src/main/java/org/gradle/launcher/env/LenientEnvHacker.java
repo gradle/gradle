@@ -16,10 +16,11 @@
 
 package org.gradle.launcher.env;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.os.OperatingSystem;
 import org.gradle.os.ProcessEnvironment;
-import org.gradle.util.OperatingSystem;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -39,9 +40,9 @@ public class LenientEnvHacker implements ProcessEnvironment {
         this(new EnvironmentProvider());
     }
 
-    public LenientEnvHacker(EnvironmentProvider provider) {
+    public LenientEnvHacker(Factory<? extends ProcessEnvironment> provider) {
         try {
-            this.env = provider.getEnvironment();
+            this.env = provider.create();
         } catch (Throwable t) {
             String warning = String.format("Unable to initialize native environment. Updating env variables will not be possible. Operation system: %s.", OperatingSystem.current());
             LOGGER.warn(warning, t);
@@ -97,8 +98,8 @@ public class LenientEnvHacker implements ProcessEnvironment {
         env.setProcessDir(dir);
     }
 
-    static class EnvironmentProvider {
-        public ProcessEnvironment getEnvironment() {
+    static class EnvironmentProvider implements Factory<ProcessEnvironment> {
+        public ProcessEnvironment create() {
             return new Environment();
         }
     }

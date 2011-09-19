@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.jruby.ext.posix.FileStat
 import org.gradle.api.UncheckedIOException
+import org.gradle.os.OperatingSystem
 
 class TestFileHelper {
     TestFile file

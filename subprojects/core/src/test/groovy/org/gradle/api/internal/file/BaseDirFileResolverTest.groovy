@@ -25,7 +25,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import java.util.concurrent.Callable
-import org.gradle.util.OperatingSystem
+import org.gradle.os.OperatingSystem
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 
 /**

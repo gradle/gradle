@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.os;
 
-package org.gradle.launcher.env;
+public interface FileSystem {
+    boolean isCaseSensitive();
 
-/**
- * @author: Szczepan Faber, created at: 9/6/11
- */
-public class EnvironmentException extends RuntimeException {
-    public EnvironmentException(String message, Exception cause) {
-        super(message, cause);
-    }
+    boolean isSymlinkAware();
 }

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Jvm
-import org.gradle.util.OperatingSystem
+import org.gradle.os.OperatingSystem
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test

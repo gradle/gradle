@@ -26,7 +26,7 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.util.OperatingSystem
+import org.gradle.os.OperatingSystem
 
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule

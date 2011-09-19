@@ -9,3 +9,6 @@ dependencies {
         dependency libraries.jna
     }
 }
+
+useTestFixtures()
+

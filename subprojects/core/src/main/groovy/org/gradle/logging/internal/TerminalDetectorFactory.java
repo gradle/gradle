@@ -20,7 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.util.OperatingSystem;
+import org.gradle.os.OperatingSystem;
 
 import java.io.FileDescriptor;
 

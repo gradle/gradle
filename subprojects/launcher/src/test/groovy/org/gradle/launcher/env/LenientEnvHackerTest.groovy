@@ -19,7 +19,7 @@ package org.gradle.launcher.env;
 
 import org.gradle.launcher.env.LenientEnvHacker.EnvironmentProvider
 import org.gradle.util.GUtil
-import org.gradle.util.OperatingSystem
+import org.gradle.os.OperatingSystem
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.rules.TestName
