@@ -28,6 +28,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void "canonicalizes working directory"() {
+        distribution.testFile("java/multiproject").createDir()
         def projectDir = distribution.testFile("java/quickstart")
         projectDir.file('build.gradle') << """
 assert file('.') == new File(new URI('${projectDir.toURI()}'))
