@@ -26,11 +26,12 @@ import org.jfrog.wharf.ivy.lock.LockLogger;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultCacheLockingManager implements LockHolderFactory, CacheLockingManager {
     private final ArtifactCacheMetaData cacheMetaData;
     private final FileLockManager fileLockManager;
-    private boolean locked;
+    private final AtomicBoolean locked = new AtomicBoolean();
 
     public DefaultCacheLockingManager(FileLockManager fileLockManager, ArtifactCacheMetaData cacheMetaData) {
         this.fileLockManager = fileLockManager;
@@ -38,17 +39,21 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
     }
 
     public <T> T withCacheLock(Callable<? extends T> action) {
-        FileLock lock = fileLockManager.lock(cacheMetaData.getCacheDir(), FileLockManager.LockMode.Exclusive, "artifact cache");
+        boolean wasUnlocked = locked.compareAndSet(false, true);
+        if (!wasUnlocked) {
+            throw new IllegalStateException("Cannot lock artifact cache, as is already locked by this process.");
+        }
         try {
-            locked = true;
+            FileLock lock = fileLockManager.lock(cacheMetaData.getCacheDir(), FileLockManager.LockMode.Exclusive, "artifact cache");
             try {
                 return action.call();
             } catch (Exception e) {
                 throw UncheckedException.asUncheckedException(e);
+            } finally {
+                lock.close();
             }
         } finally {
-            locked = false;
-            lock.close();
+            locked.set(false);
         }
     }
 
@@ -74,8 +79,8 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
             }
 
             public boolean acquireLock() {
-                if (!locked) {
-                    throw new IllegalStateException("Cannot acquire artifact lock, as artifact cache is not locked.");
+                if (!locked.get()) {
+                    throw new IllegalStateException("Cannot acquire artifact lock, as artifact cache is not locked by this process.");
                 }
                 protectedFile.getParentFile().mkdirs();
                 return true;
