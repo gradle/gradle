@@ -381,20 +381,9 @@ gradle.taskGraph.whenReady {graph ->
 task releaseVersion
 //TODO SF - this task name is inconsistent because other releaseXxx tasks actually upload some content somewhere. Should be called something like 'markReleaseVersion'
 
-def tagNow() {
-    def git = new Git(project)
-    git.checkNoModifications()
-    git.tag("REL_$version", "Release $version")
-    git.branch("RB_$version")
-}
+task tag(type: Tag)
 
-task tag << {
-    tagNow()
-}
-
-task testedTag(dependsOn: testedDists) << {
-    tagNow()
-}
+task testedTag(type: Tag, dependsOn: testedDists)
 
 task releaseArtifacts {
     description = 'Builds the release artifacts'
@@ -436,6 +425,17 @@ def publishedProjects() {
 def pluginProjects() {
     ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear'].collect {
         project(it)
+    }
+}
+
+class Tag extends DefaultTask {
+    @TaskAction
+    def tagNow() {
+        def version = project.version
+        def git = new Git(project)
+        git.checkNoModifications()
+        git.tag("REL_$version", "Release $version")
+        git.branch("RB_$version")
     }
 }
 
