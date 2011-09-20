@@ -39,6 +39,12 @@ public interface Kernel32 extends Library {
                            Pointer lpEnvironment, WString lpCurrentDirectory, StartupInfo lpStartupInfo,
                            ProcessInfo lpProcessInformation);
 
+    boolean SetEnvironmentVariableW(WString lpName, WString lpValue);
+
+    boolean SetCurrentDirectoryW(WString lpPathName);
+
+    int GetCurrentDirectoryW(int nBufferLength, char[] lpBuffer);
+
     class HANDLE extends PointerType {
         public HANDLE() {
         }

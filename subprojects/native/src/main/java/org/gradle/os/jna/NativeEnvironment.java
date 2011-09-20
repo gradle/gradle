@@ -18,6 +18,7 @@ package org.gradle.os.jna;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.WString;
 import org.gradle.os.NativeIntegrationException;
 import org.gradle.os.OperatingSystem;
 import org.gradle.os.ProcessEnvironment;
@@ -32,13 +33,6 @@ import java.io.File;
 public class NativeEnvironment {
 
     //CHECKSTYLE:OFF
-    public interface WinLibC extends Library {
-        public int _wputenv_s(String name, String value);
-        public int _wchdir(String name);
-        public String _wgetcwd(char[] out, int size);
-        public int _errno();
-    }
-
     public interface UnixLibC extends Library {
         public int setenv(String name, String value, int overwrite);
         public int unsetenv(String name);
@@ -62,31 +56,31 @@ public class NativeEnvironment {
     }
 
     public static class Windows implements ProcessEnvironment {
-        private final WinLibC libc = (WinLibC) Native.loadLibrary("msvcrt", WinLibC.class);
+        private final Kernel32 kernel32 = Kernel32.INSTANCE;
 
         public void setenv(String name, String value) {
-            int retval = libc._wputenv_s(name, value);
-            if (retval != 0) {
-                throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, libc._errno()));
+            boolean retval = kernel32.SetEnvironmentVariableW(new WString(name), value == null ? null : new WString(value));
+            if (!retval) {
+                throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, kernel32.GetLastError()));
             }
         }
 
         public void unsetenv(String name) {
-            setenv(name, "");
+            setenv(name, null);
         }
 
         public void setProcessDir(File dir) {
-            int retval = libc._wchdir(dir.getAbsolutePath());
-            if (retval != 0) {
-                throw new NativeIntegrationException(String.format("Could not set process working directory to '%s'. errno: %d", dir, libc._errno()));
+            boolean retval = kernel32.SetCurrentDirectoryW(new WString(dir.getAbsolutePath()));
+            if (!retval) {
+                throw new NativeIntegrationException(String.format("Could not set process working directory to '%s'. errno: %d", dir, kernel32.GetLastError()));
             }
         }
 
         public File getProcessDir() {
             char[] out = new char[LOTS_OF_CHARS];
-            String retval = libc._wgetcwd(out, LOTS_OF_CHARS);
-            if (retval == null) {
-                throw new NativeIntegrationException(String.format("Could not get process working directory. errno: %d", libc._errno()));
+            int retval = kernel32.GetCurrentDirectoryW(out.length, out);
+            if (retval == 0) {
+                throw new NativeIntegrationException(String.format("Could not get process working directory. errno: %d", kernel32.GetLastError()));
             }
             return new File(Native.toString(out));
         }
@@ -96,6 +90,10 @@ public class NativeEnvironment {
         final UnixLibC libc = (UnixLibC) Native.loadLibrary("c", UnixLibC.class);
 
         public void setenv(String name, String value) {
+            if (value == null) {
+                unsetenv(name);
+                return;
+            }
             int retval = libc.setenv(name, value, 1);
             if (retval != 0) {
                 throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, libc.errno()));
