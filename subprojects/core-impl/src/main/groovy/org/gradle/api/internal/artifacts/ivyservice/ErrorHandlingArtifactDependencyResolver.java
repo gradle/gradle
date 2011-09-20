@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,24 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
 import java.util.Set;
 
-public class ErrorHandlingIvyService implements IvyService {
-    private final IvyService ivyService;
+public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependencyResolver {
+    private final ArtifactDependencyResolver dependencyResolver;
 
-    public ErrorHandlingIvyService(IvyService ivyService) {
-        this.ivyService = ivyService;
-    }
-
-    public IvyService getIvyService() {
-        return ivyService;
-    }
-
-    public void publish(ConfigurationInternal configuration, File descriptorDestination) {
-        try {
-            ivyService.publish(configuration, descriptorDestination);
-        } catch (Throwable e) {
-            throw new PublishException(String.format("Could not publish %s.", configuration), e);
-        }
+    public ErrorHandlingArtifactDependencyResolver(ArtifactDependencyResolver dependencyResolver) {
+        this.dependencyResolver = dependencyResolver;
     }
 
     public ResolvedConfiguration resolve(final ConfigurationInternal configuration) {
         final ResolvedConfiguration resolvedConfiguration;
         try {
-            resolvedConfiguration = ivyService.resolve(configuration);
+            resolvedConfiguration = dependencyResolver.resolve(configuration);
         } catch (final Throwable e) {
             return new BrokenResolvedConfiguration(e, configuration);
         }

@@ -23,9 +23,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -39,37 +37,30 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public class DefaultIvyService implements IvyService {
+public class IvyBackedArtifactPublisher implements ArtifactPublisher {
     private final SettingsConverter settingsConverter;
     private final ModuleDescriptorConverter publishModuleDescriptorConverter;
     private final ModuleDescriptorConverter fileModuleDescriptorConverter;
     private final IvyFactory ivyFactory;
-    private final ArtifactDependencyResolver dependencyResolver;
     private final IvyDependencyPublisher dependencyPublisher;
     private final ResolverProvider resolverProvider;
 
-    public DefaultIvyService(ResolverProvider resolverProvider,
-                             SettingsConverter settingsConverter,
-                             ModuleDescriptorConverter publishModuleDescriptorConverter,
-                             ModuleDescriptorConverter fileModuleDescriptorConverter,
-                             IvyFactory ivyFactory,
-                             ArtifactDependencyResolver dependencyResolver,
-                             IvyDependencyPublisher dependencyPublisher) {
+    public IvyBackedArtifactPublisher(ResolverProvider resolverProvider,
+                                      SettingsConverter settingsConverter,
+                                      ModuleDescriptorConverter publishModuleDescriptorConverter,
+                                      ModuleDescriptorConverter fileModuleDescriptorConverter,
+                                      IvyFactory ivyFactory,
+                                      IvyDependencyPublisher dependencyPublisher) {
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
         this.publishModuleDescriptorConverter = publishModuleDescriptorConverter;
         this.fileModuleDescriptorConverter = fileModuleDescriptorConverter;
         this.ivyFactory = ivyFactory;
-        this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
     }
 
     private Ivy ivyForPublish(List<DependencyResolver> publishResolvers) {
         return ivyFactory.createIvy(settingsConverter.convertForPublish(publishResolvers));
-    }
-
-    public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
-        return dependencyResolver.resolve(configuration);
     }
 
     public void publish(ConfigurationInternal configuration, File descriptorDestination) throws PublishException {

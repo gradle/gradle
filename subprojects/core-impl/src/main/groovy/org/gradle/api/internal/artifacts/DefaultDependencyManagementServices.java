@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -34,7 +33,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenCacheLocator;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
@@ -127,7 +125,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected SettingsConverter createSettingsConverter() {
         return new DefaultSettingsConverter(
                 get(ProgressLoggerFactory.class),
-                new IvySettingsFactory(get(CacheRepository.class)));
+                new IvySettingsFactory(
+                        get(CacheRepository.class),
+                        new CacheLockingManager()));
     }
 
     protected IvyFactory createIvyFactory() {
@@ -171,8 +171,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         public ConfigurationContainerInternal getConfigurationContainer() {
             if (configurationContainer == null) {
                 Instantiator instantiator = parent.get(Instantiator.class);
-                IvyService ivyService = createIvyService(getResolveRepositoryHandler());
-                configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class, ivyService, instantiator, domainObjectContext, parent.get(ListenerManager.class), dependencyMetaDataProvider);
+                ArtifactDependencyResolver dependencyResolver = createDependencyResolver(getResolveRepositoryHandler());
+                configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class, dependencyResolver, instantiator, domainObjectContext, parent.get(ListenerManager.class), dependencyMetaDataProvider);
             }
             return configurationContainer;
         }
@@ -192,49 +192,57 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             };
         }
 
-        IvyService createIvyService(DefaultRepositoryHandler resolverProvider) {
-            DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
+        ArtifactDependencyResolver createDependencyResolver(DefaultRepositoryHandler resolverProvider) {
+            return new ErrorHandlingArtifactDependencyResolver(
+                    new EventBroadcastingArtifactDependencyResolver(
+                            new ShortcircuitEmptyConfigsArtifactDependencyResolver(
+                                    new SelfResolvingDependencyResolver(
+                                            new DefaultIvyDependencyResolver(
+                                                    new DefaultIvyReportConverter(
+                                                            createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
+                                                            new ResolvedArtifactFactory()),
+                                                    parent.get(PublishModuleDescriptorConverter.class),
+                                                    new ResolveIvyFactory(
+                                                            parent.get(IvyFactory.class),
+                                                            resolverProvider,
+                                                            parent.get(SettingsConverter.class),
+                                                            new DefaultInternalRepository(
+                                                                    projectFinder,
+                                                                    parent.get(ModuleDescriptorConverter.class)),
+                                                            clientModuleRegistry))))));
+        }
+
+        ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {
             PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
                     createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
                     new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
-            InternalRepository internalRepository = new DefaultInternalRepository(projectFinder, parent.get(ModuleDescriptorConverter.class));
-            Factory<Ivy> resolveIvyFactory = new ResolveIvyFactory(parent.get(IvyFactory.class), resolverProvider, parent.get(SettingsConverter.class), internalRepository, clientModuleRegistry);
 
-            return new ErrorHandlingIvyService(
-                    new EventBroadcastingIvyService(
-                            new ShortcircuitEmptyConfigsIvyService(
-                                    new DefaultIvyService(
-                                            resolverProvider,
-                                            parent.get(SettingsConverter.class),
-                                            parent.get(PublishModuleDescriptorConverter.class),
-                                            fileModuleDescriptorConverter,
-                                            parent.get(IvyFactory.class),
-                                            new SelfResolvingDependencyResolver(
-                                                    new DefaultIvyDependencyResolver(
-                                                            new DefaultIvyReportConverter(
-                                                                    dependencyDescriptorFactoryDelegate,
-                                                                    new ResolvedArtifactFactory()),
-                                                            parent.get(PublishModuleDescriptorConverter.class),
-                                                            resolveIvyFactory)),
-                                            new DefaultIvyDependencyPublisher(
-                                                    new DefaultPublishOptionsFactory())))));
+            return new ErrorHandlingArtifactPublisher(
+                    new IvyBackedArtifactPublisher(
+                            resolverProvider,
+                            parent.get(SettingsConverter.class),
+                            parent.get(PublishModuleDescriptorConverter.class),
+                            fileModuleDescriptorConverter,
+                            parent.get(IvyFactory.class),
+                            new DefaultIvyDependencyPublisher(
+                                    new DefaultPublishOptionsFactory())));
         }
     }
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
         private final DefaultDependencyResolutionServices dependencyResolutionServices;
         private DefaultRepositoryHandler repositoryHandler;
-        private IvyService ivyService;
+        private ArtifactPublisher artifactPublisher;
 
         public DefaultArtifactPublicationServices(DefaultDependencyResolutionServices dependencyResolutionServices) {
             this.dependencyResolutionServices = dependencyResolutionServices;
         }
 
-        public IvyService getIvyService() {
-            if (ivyService == null) {
-                ivyService = dependencyResolutionServices.createIvyService(getRepositoryHandler());
+        public ArtifactPublisher getArtifactPublisher() {
+            if (artifactPublisher == null) {
+                artifactPublisher = dependencyResolutionServices.createArtifactPublisher(getRepositoryHandler());
             }
-            return ivyService;
+            return artifactPublisher;
         }
 
         public DefaultRepositoryHandler getRepositoryHandler() {

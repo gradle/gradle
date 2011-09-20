@@ -21,15 +21,18 @@ import org.gradle.api.internal.Factory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.jfrog.wharf.ivy.cache.WharfCacheManager;
+import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 
 import static org.gradle.cache.CacheBuilder.VersionStrategy;
 
 public class IvySettingsFactory implements Factory<IvySettings> {
     private static final int CACHE_LAYOUT_VERSION = 2;
     private final CacheRepository cacheRepository;
+    private final LockHolderFactory lockHolderFactory;
 
-    public IvySettingsFactory(CacheRepository cacheRepository) {
+    public IvySettingsFactory(CacheRepository cacheRepository, LockHolderFactory lockHolderFactory) {
         this.cacheRepository = cacheRepository;
+        this.lockHolderFactory = lockHolderFactory;
     }
 
     public IvySettings create() {
@@ -39,7 +42,16 @@ public class IvySettingsFactory implements Factory<IvySettings> {
         ivySettings.setDefaultCacheIvyPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
-        ivySettings.setDefaultRepositoryCacheManager(WharfCacheManager.newInstance(ivySettings));
+
+        WharfCacheManager cacheManager = WharfCacheManager.newInstance(ivySettings);
+//        try {
+//            Field field = WharfCacheManager.class.getDeclaredField("lockFactory");
+//            field.setAccessible(true);
+//            field.set(cacheManager, lockHolderFactory);
+//        } catch (Exception e) {
+//            throw UncheckedException.asUncheckedException(e);
+//        }
+        ivySettings.setDefaultRepositoryCacheManager(cacheManager);
         return ivySettings;
     }
 }

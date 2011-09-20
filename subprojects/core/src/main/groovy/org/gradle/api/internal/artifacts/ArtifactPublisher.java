@@ -23,6 +23,6 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public interface IvyService extends ArtifactDependencyResolver {
+public interface ArtifactPublisher {
     void publish(ConfigurationInternal configuration, File descriptorDestination) throws PublishException;
 }

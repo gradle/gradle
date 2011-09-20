@@ -15,17 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.artifacts.DependencyResolutionListener;
+import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
-import java.io.File;
+public class EventBroadcastingArtifactDependencyResolver implements ArtifactDependencyResolver {
+    private final ArtifactDependencyResolver dependencyResolver;
 
-public class EventBroadcastingIvyService implements IvyService {
-    private final IvyService ivyService;
-
-    public EventBroadcastingIvyService(IvyService ivyService) {
-        this.ivyService = ivyService;
+    public EventBroadcastingArtifactDependencyResolver(ArtifactDependencyResolver dependencyResolver) {
+        this.dependencyResolver = dependencyResolver;
     }
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException {
@@ -33,13 +34,9 @@ public class EventBroadcastingIvyService implements IvyService {
         ResolvableDependencies dependencies = configuration.getIncoming();
         broadcast.beforeResolve(dependencies);
         try {
-            return ivyService.resolve(configuration);
+            return dependencyResolver.resolve(configuration);
         } finally {
             broadcast.afterResolve(dependencies);
         }
-    }
-
-    public void publish(ConfigurationInternal configuration, File descriptorDestination) throws PublishException {
-        ivyService.publish(configuration, descriptorDestination);
     }
 }

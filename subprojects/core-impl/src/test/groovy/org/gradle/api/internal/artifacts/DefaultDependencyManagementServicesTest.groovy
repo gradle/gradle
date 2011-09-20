@@ -91,14 +91,14 @@ class DefaultDependencyManagementServicesTest extends Specification {
         publishResolverHandler == publishRepositoryHandler
     }
 
-    def "publish services provide an IvyService"() {
+    def "publish services provide an ArtifactPublisher"() {
         given:
         _ * parent.get(StartParameter.class) >> startParameter
         _ * parent.get(Instantiator.class) >> instantiator
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def ivyService = resolutionServices.publishServicesFactory.create().ivyService
+        def ivyService = resolutionServices.publishServicesFactory.create().artifactPublisher
 
         then:
         ivyService != null

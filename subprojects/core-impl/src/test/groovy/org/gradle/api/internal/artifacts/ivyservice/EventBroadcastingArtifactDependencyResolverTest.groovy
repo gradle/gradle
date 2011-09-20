@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import spock.lang.Specification
-import org.gradle.api.internal.artifacts.IvyService
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import spock.lang.Specification
 
-class EventBroadcastingIvyServiceTest extends Specification {
-    final IvyService target = Mock()
+class EventBroadcastingArtifactDependencyResolverTest extends Specification {
+    final ArtifactDependencyResolver target = Mock()
     final ConfigurationInternal configuration = Mock()
     final DependencyResolutionListener broadcast = Mock()
     final ResolvableDependencies dependencies = Mock()
-    final EventBroadcastingIvyService ivyService = new EventBroadcastingIvyService(target)
+    final EventBroadcastingArtifactDependencyResolver ivyService = new EventBroadcastingArtifactDependencyResolver(target)
 
     def "fires events before and after resolution"() {
         given:

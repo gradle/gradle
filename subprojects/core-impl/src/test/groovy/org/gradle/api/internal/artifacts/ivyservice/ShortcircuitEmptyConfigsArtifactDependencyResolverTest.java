@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Specs;
 import org.jmock.Expectations;
@@ -27,20 +27,18 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-
 import static org.gradle.util.Matchers.isEmpty;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
-public class ShortcircuitEmptyConfigsIvyServiceTest {
+public class ShortcircuitEmptyConfigsArtifactDependencyResolverTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final IvyService delegate = context.mock(IvyService.class);
+    private final ArtifactDependencyResolver delegate = context.mock(ArtifactDependencyResolver.class);
     private final ConfigurationInternal configuration = context.mock(ConfigurationInternal.class);
     private final DependencySet dependencies = context.mock(DependencySet.class);
-    private final ShortcircuitEmptyConfigsIvyService ivyService = new ShortcircuitEmptyConfigsIvyService(delegate);
+    private final ShortcircuitEmptyConfigsArtifactDependencyResolver dependencyResolver = new ShortcircuitEmptyConfigsArtifactDependencyResolver(delegate);
 
     @Test
     public void resolveReturnsEmptyResolvedConfigWhenConfigHasNoDependencies() {
@@ -52,7 +50,7 @@ public class ShortcircuitEmptyConfigsIvyServiceTest {
             will(returnValue(true));
         }});
 
-        ResolvedConfiguration resolvedConfig = ivyService.resolve(configuration);
+        ResolvedConfiguration resolvedConfig = dependencyResolver.resolve(configuration);
 
         assertFalse(resolvedConfig.hasError());
         resolvedConfig.rethrowFailure();
@@ -76,17 +74,6 @@ public class ShortcircuitEmptyConfigsIvyServiceTest {
             will(returnValue(resolvedConfigDummy));
         }});
 
-        assertThat(ivyService.resolve(configuration), sameInstance(resolvedConfigDummy));
-    }
-
-    @Test
-    public void publishDelegatesToBackingService() {
-        final File someDescriptorDestination = new File("somePth");
-
-        context.checking(new Expectations(){{
-            one(delegate).publish(configuration, someDescriptorDestination);
-        }});
-
-        ivyService.publish(configuration, someDescriptorDestination);
+        assertThat(dependencyResolver.resolve(configuration), sameInstance(resolvedConfigDummy));
     }
 }

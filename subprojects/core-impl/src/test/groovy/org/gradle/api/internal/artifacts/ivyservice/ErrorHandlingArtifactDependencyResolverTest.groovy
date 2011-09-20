@@ -16,37 +16,39 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 
-import org.gradle.api.internal.artifacts.IvyService
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ResolveException
+import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.specs.Spec
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.artifacts.*
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 
 @RunWith(JMock.class)
-public class ErrorHandlingIvyServiceTest {
+public class ErrorHandlingArtifactDependencyResolverTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-    private final IvyService ivyServiceMock = context.mock(IvyService.class);
+    private final ArtifactDependencyResolver resolverMock = context.mock(ArtifactDependencyResolver.class);
     private final ResolvedConfiguration resolvedConfigurationMock = context.mock(ResolvedConfiguration.class);
     private final ConfigurationInternal configurationMock = context.mock(ConfigurationInternal.class, "<config display name>");
     private final Spec<Dependency> specDummy = context.mock(Spec.class);
     private final RuntimeException failure = new RuntimeException();
-    private final ErrorHandlingIvyService ivyService = new ErrorHandlingIvyService(ivyServiceMock);
+    private final ErrorHandlingArtifactDependencyResolver dependencyResolver = new ErrorHandlingArtifactDependencyResolver(resolverMock);
 
     @Test
     public void resolveDelegatesToBackingService() {
         context.checking {
-            one(ivyServiceMock).resolve(configurationMock);
+            one(resolverMock).resolve(configurationMock);
             will(returnValue(resolvedConfigurationMock));
         }
 
-        ResolvedConfiguration resolvedConfiguration = ivyService.resolve(configurationMock);
+        ResolvedConfiguration resolvedConfiguration = dependencyResolver.resolve(configurationMock);
 
         context.checking {
             one(resolvedConfigurationMock).hasError();
@@ -63,11 +65,11 @@ public class ErrorHandlingIvyServiceTest {
     public void returnsAnExceptionThrowingConfigurationWhenResolveFails() {
 
         context.checking {
-            one(ivyServiceMock).resolve(configurationMock);
+            one(resolverMock).resolve(configurationMock);
             will(throwException(failure));
         }
 
-        ResolvedConfiguration resolvedConfiguration = ivyService.resolve(configurationMock);
+        ResolvedConfiguration resolvedConfiguration = dependencyResolver.resolve(configurationMock);
 
         assertThat(resolvedConfiguration.hasError(), equalTo(true));
 
@@ -88,11 +90,11 @@ public class ErrorHandlingIvyServiceTest {
     @Test
     public void wrapsExceptionsThrownByResolvedConfiguration() {
         context.checking {
-            one(ivyServiceMock).resolve(configurationMock);
+            one(resolverMock).resolve(configurationMock);
             will(returnValue(resolvedConfigurationMock));
         }
 
-        ResolvedConfiguration resolvedConfiguration = ivyService.resolve(configurationMock);
+        ResolvedConfiguration resolvedConfiguration = dependencyResolver.resolve(configurationMock);
 
         context.checking {
             allowing(resolvedConfigurationMock).rethrowFailure()
@@ -116,32 +118,6 @@ public class ErrorHandlingIvyServiceTest {
         }
         assertFailsWithResolveException {
             resolvedConfiguration.getResolvedArtifacts();
-        }
-    }
-
-    @Test
-    public void publishDelegatesToBackingService() {
-        context.checking {
-            one(ivyServiceMock).publish(configurationMock, null)
-        }
-
-        ivyService.publish(configurationMock, null)
-    }
-
-    @Test
-    public void wrapsPublishException() {
-        context.checking {
-            one(ivyServiceMock).publish(configurationMock, null)
-            will(throwException(failure))
-        }
-
-        try {
-            ivyService.publish(configurationMock, null)
-            fail()
-        }
-        catch(PublishException e) {
-            assertThat e.message, equalTo("Could not publish <config display name>.")
-            assertThat(e.cause, sameInstance((Throwable) failure));
         }
     }
 

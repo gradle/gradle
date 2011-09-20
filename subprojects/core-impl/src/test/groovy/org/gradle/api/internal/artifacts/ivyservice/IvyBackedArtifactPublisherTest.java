@@ -22,7 +22,6 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -45,7 +44,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class DefaultIvyServicePublishTest {
+public class IvyBackedArtifactPublisherTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private ModuleDescriptor publishModuleDescriptorDummy = context.mock(ModuleDescriptor.class);
@@ -67,7 +66,7 @@ public class DefaultIvyServicePublishTest {
         final File someDescriptorDestination = new File("somePath");
         final List<DependencyResolver> publishResolversDummy = createPublishResolversDummy();
         final Module moduleDummy = context.mock(Module.class, "moduleForResolve");
-        final DefaultIvyService ivyService = createIvyService();
+        final IvyBackedArtifactPublisher ivyService = createIvyService();
 
         setUpForPublish(configurations, publishResolversDummy, moduleDummy,
                 ivySettingsDummy);
@@ -88,11 +87,12 @@ public class DefaultIvyServicePublishTest {
         ivyService.publish(configuration, someDescriptorDestination);
     }
 
-    private DefaultIvyService createIvyService() {
-        return new DefaultIvyService(resolverProvider,
-                settingsConverterStub, publishModuleDescriptorConverter,
+    private IvyBackedArtifactPublisher createIvyService() {
+        return new IvyBackedArtifactPublisher(resolverProvider,
+                settingsConverterStub,
+                publishModuleDescriptorConverter,
                 fileModuleDescriptorConverter,
-                ivyFactoryStub, context.mock(ArtifactDependencyResolver.class),
+                ivyFactoryStub,
                 ivyDependencyPublisherMock);
     }
 

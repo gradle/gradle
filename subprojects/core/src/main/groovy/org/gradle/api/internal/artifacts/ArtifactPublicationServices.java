@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
 public interface ArtifactPublicationServices {
-    IvyService getIvyService();
+    ArtifactPublisher getArtifactPublisher();
 
     RepositoryHandler getRepositoryHandler();
 }

@@ -21,17 +21,22 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.DirectoryCacheBuilder
+import org.jfrog.wharf.ivy.lock.LockHolderFactory
+import org.jfrog.wharf.ivy.cache.WharfCacheManager
 
 class IvySettingsFactoryTest extends Specification {
     final File cacheDir = new File('user-dir')
     final CacheRepository cacheRepository = Mock()
     final DirectoryCacheBuilder cacheBuilder = Mock()
     final PersistentCache cache = Mock()
-    final IvySettingsFactory factory = new IvySettingsFactory(cacheRepository)
+    final LockHolderFactory lockHolderFactory = Mock()
+    final IvySettingsFactory factory = new IvySettingsFactory(cacheRepository, lockHolderFactory)
 
     def "creates and configures an IvySettings instance"() {
         when:
         def settings = factory.create()
+        settings.defaultRepositoryCacheManager instanceof WharfCacheManager
+        settings.defaultRepositoryCacheManager.lockFactory == lockHolderFactory
 
         then:
         settings.defaultCache == cacheDir

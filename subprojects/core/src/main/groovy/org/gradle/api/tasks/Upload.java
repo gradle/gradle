@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
@@ -49,18 +49,18 @@ public class Upload extends ConventionTask {
      */
     private RepositoryHandler repositories;
 
-    private IvyService ivyService;
+    private ArtifactPublisher artifactPublisher;
 
     public Upload() {
         ArtifactPublicationServices publicationServices = getServices().getFactory(ArtifactPublicationServices.class).create();
         repositories = publicationServices.getRepositoryHandler();
-        ivyService = publicationServices.getIvyService();
+        artifactPublisher = publicationServices.getArtifactPublisher();
     }
 
     @TaskAction
     protected void upload() {
         logger.info("Publishing configuration: " + configuration);
-        ivyService.publish((ConfigurationInternal) configuration, isUploadDescriptor() ? getDescriptorDestination() : null);
+        artifactPublisher.publish((ConfigurationInternal) configuration, isUploadDescriptor() ? getDescriptorDestination() : null);
     }
 
     /**
@@ -125,7 +125,7 @@ public class Upload extends ConventionTask {
         this.repositories = repositories;
     }
 
-    void setIvyService(IvyService ivyService) {
-        this.ivyService = ivyService;
+    void setArtifactPublisher(ArtifactPublisher artifactPublisher) {
+        this.artifactPublisher = artifactPublisher;
     }
 }

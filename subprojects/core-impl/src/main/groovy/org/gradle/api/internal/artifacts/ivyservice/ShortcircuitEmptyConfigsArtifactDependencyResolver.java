@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 
@@ -24,7 +24,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class ShortcircuitEmptyConfigsIvyService implements IvyService {
+public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements ArtifactDependencyResolver {
     private final ResolvedConfiguration emptyConfig = new ResolvedConfiguration() {
         public boolean hasError() {
             return false;
@@ -65,24 +65,16 @@ public class ShortcircuitEmptyConfigsIvyService implements IvyService {
             return Collections.emptySet();
         }
     };
-    private final IvyService ivyService;
+    private final ArtifactDependencyResolver dependencyResolver;
 
-    public ShortcircuitEmptyConfigsIvyService(IvyService ivyService) {
-        this.ivyService = ivyService;
-    }
-
-    public IvyService getIvyService() {
-        return ivyService;
-    }
-
-    public void publish(ConfigurationInternal configuration, File descriptorDestination) throws PublishException {
-        ivyService.publish(configuration, descriptorDestination);
+    public ShortcircuitEmptyConfigsArtifactDependencyResolver(ArtifactDependencyResolver dependencyResolver) {
+        this.dependencyResolver = dependencyResolver;
     }
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
         if (configuration.getAllDependencies().isEmpty()) {
             return emptyConfig;
         }
-        return ivyService.resolve(configuration);
+        return dependencyResolver.resolve(configuration);
     }
 }
