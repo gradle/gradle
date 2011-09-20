@@ -17,13 +17,22 @@ package org.gradle.cache;
 
 /**
  * A persistent store of objects of type V indexed by a key of type K.
- *
- * An exclusive lock is held on this cache by this process, to prevent it being modified by another process.
  */
 public interface PersistentIndexedCache<K, V> {
+    /**
+     * Fetches the value of a key from this cache. A shared or exclusive lock is held while fetching the value, depending on implementation.
+     *
+     * @return The value, or null if no value associated with the key.
+     */
     V get(K key);
 
+    /**
+     * Puts/replaces the value of a key in this cache. A shared lock is held while updating the value.
+     */
     void put(K key, V value);
 
+    /**
+     * Removes a key-value mapping from this cache. A shared lock is held while updating the value.
+     */
     void remove(K key);
 }

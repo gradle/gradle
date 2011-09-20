@@ -36,6 +36,8 @@ public interface CacheRepository {
     /**
      * Returns a builder for the store with the given key. Default is a Gradle version-specific store shared by all builds, though this can be changed using the given builder.
      *
+     * <p>A store is always opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility to coordinate access to the cache.</p>
+     *
      * @param key The cache key.
      * @return The builder.
      */
@@ -43,6 +45,8 @@ public interface CacheRepository {
 
     /**
      * Returns a builder for the cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be changed using the given builder.
+     *
+     * <p>A state cache is always opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility to coordinate access to the cache.</p>
      *
      * @param key The cache key.
      * @return The builder.
@@ -53,6 +57,8 @@ public interface CacheRepository {
      * Returns a builder for the state cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be changed using the given
      * builder.
      *
+     * <p>A state cache is always opened with an exclusive lock, so that it can be accessed only by this process.</p>
+     *
      * @param key The cache key.
      * @param elementType The type of element kept in the cache.
      * @return The builder.
@@ -62,6 +68,8 @@ public interface CacheRepository {
     /**
      * Returns a builder for the indexed cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be changed using the given
      * builder.
+     *
+     * <p>An indexed cache is always opened with an exclusive lock, so that it can be accessed only by this process.</p>
      *
      * @param key The cache key.
      * @param keyType The type of key kept in the cache.
