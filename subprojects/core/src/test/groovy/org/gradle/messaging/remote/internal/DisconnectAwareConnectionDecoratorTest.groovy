@@ -15,8 +15,9 @@
  */
 package org.gradle.messaging.remote.internal
 
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.CountDownLatch
 
 import spock.lang.*
 import spock.util.concurrent.*
@@ -29,11 +30,20 @@ class DisconnectAwareConnectionDecoratorTest extends Specification {
     def rawConnection = new Connection() {
         void stop() { disconnect() }
         void requestStop() { disconnect() }
-        def receive() { messageQueue.take().first() }
+        def receive() { 
+            def val = messageQueue.take().first()
+            if (val == null) {
+                messageQueue.put([null])
+            }
+            val
+        }
         void dispatch(message) {}
     }
-
-    def connection = new DisconnectAwareConnectionDecorator(rawConnection, new DefaultExecutorFactory().create("test"))
+    def connection
+    
+    def connection() {
+        new DisconnectAwareConnectionDecorator(rawConnection, new DefaultExecutorFactory().create("test"))
+    }
 
     void sendMessage(message = 1) {
         messageQueue.put([message])
@@ -62,6 +72,7 @@ class DisconnectAwareConnectionDecoratorTest extends Specification {
     }
 
     def setup() {
+        connection = connection()
         onDisconnect() // install the default handler
     }
 
@@ -114,6 +125,41 @@ class DisconnectAwareConnectionDecoratorTest extends Specification {
 
         and:
         !disconnectHandlerDidFire
+    }
+
+
+    @Timeout(10)
+    def "receive does not return null until disconnect handler set and complete"() {
+        given:
+        connection = connection() // default connection has the default disconnect handler, create a new one with no handler
+        disconnect()
+        
+        def disconnectLatch = new CountDownLatch(1)
+        def receiveLatch = new CountDownLatch(1)
+        
+        and:
+        def received = []
+        Thread.start { received << receive(); receiveLatch.countDown() }
+
+        when:
+        sleep 1000
+
+        then:
+        received.empty // receive() should be blocked, waiting for the disconnect handler
+
+        when:
+        onDisconnect { disconnectLatch.await(); }
+
+        then:
+        received.empty // receive() should still be blocked because the disconnect handler hasn't completed
+
+        when:
+        disconnectLatch.countDown()
+        receiveLatch.await()
+
+        then:
+        received.size() == 1
+        received[0] == null
     }
 
     def cleanup() {

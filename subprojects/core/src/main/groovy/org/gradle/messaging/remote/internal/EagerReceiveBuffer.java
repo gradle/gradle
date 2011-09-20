@@ -131,9 +131,9 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
     private void onReceiveThreadExit() {
         lock.lock();
         try {
-            --numActiveReceivers;
-            onReceiversExhausted();
-            notEmptyOrNoReceivers.signalAll();
+            if (--numActiveReceivers == 0) {
+                notEmptyOrNoReceivers.signalAll();
+            }
         } finally {
             lock.unlock();
         }
@@ -162,13 +162,16 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
                 LOGGER.error("receiver {} threw exception {}", receiver, e);
                 return;
             }
-            
-            if (message == null) {
-                return; // end of this channel so wrap up this consumer
-            }
 
             lock.lock();
             try {
+                if (message == null) {
+                    if (numActiveReceivers == 1) { // we are the last receiver and are about to finish
+                        onReceiversExhausted();
+                    }
+                    return; // end of this channel so wrap up this consumer
+                }
+
                 while (queue.size() == bufferSize && state == State.Started) {
                     try {
                         notFullOrStop.await();

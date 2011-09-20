@@ -18,10 +18,12 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
+import org.gradle.util.UncheckedException;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * A {@link DisconnectAwareConnection} implementation that decorates an existing connection, adding disconnect awareness.
@@ -37,6 +39,7 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
     private static final int DEFAULT_BUFFER_SIZE = 200;
 
     private final Lock actionLock = new ReentrantLock();
+    private final CountDownLatch actionSetLatch = new CountDownLatch(1);
     private final EagerReceiveBuffer<T> receiveBuffer;
     private Runnable disconnectAction;
 
@@ -50,8 +53,13 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
         super(connection);
 
         receiveBuffer = new EagerReceiveBuffer<T>(executor, bufferSize, connection) {
+
+            // EagerReceiveBuffer guaranteest that onReceiversExhausted() will be completed before it returns null from receive(),
+            // which means we satisfy the condition of the DisconnectAwareConnection contract that disconnect handlers must complete
+            // before receive() returns null.
+
             protected void onReceiversExhausted() {
-                invokeDisconnectActionIfNecessary();
+                invokeDisconnectAction();
             }
         };
 
@@ -63,6 +71,7 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
         try {
             Runnable previous = disconnectAction;
             this.disconnectAction = disconnectAction;
+            actionSetLatch.countDown();
             return previous;
         } finally {
             actionLock.unlock();
@@ -73,12 +82,26 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
         return receiveBuffer.receive();
     }
 
-    private void invokeDisconnectActionIfNecessary() {
+    private void invokeDisconnectAction() {
         if (!stopped) {
+            try {
+                actionSetLatch.await();
+            } catch (InterruptedException e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
+
             actionLock.lock();
             try {
                 if (disconnectAction != null) {
-                    disconnectAction.run();
+                    LOGGER.debug("about to invoke disconnection handler {}", disconnectAction);
+                    try {
+                        disconnectAction.run();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        LOGGER.error("disconnection handler threw exception", e);
+                        throw UncheckedException.asUncheckedException(e);
+                    }
+                    LOGGER.info("completed disconnection handler {}", disconnectAction);
                 }
             } finally {
                 actionLock.unlock();
@@ -88,11 +111,13 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
 
     public void requestStop() {
         stopped = true;
+        onDisconnect(null);
         super.requestStop();
     }
 
     public void stop() {
         stopped = true;
+        onDisconnect(null);
         super.stop();
         receiveBuffer.stop();
     }
