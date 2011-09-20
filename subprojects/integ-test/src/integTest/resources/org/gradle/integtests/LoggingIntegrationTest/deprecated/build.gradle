@@ -1,0 +1,5 @@
+
+task log << {
+    DeprecationLogger.nagUserWith("A deprecation warning")
+    DeprecationLogger.nagUserWith("A deprecation warning")
+}
