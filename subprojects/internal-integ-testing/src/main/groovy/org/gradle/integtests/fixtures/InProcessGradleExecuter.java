@@ -81,17 +81,20 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setSearchUpwards(true);
         parameter.setCurrentDir(getWorkingDir());
+
+        CommandLineParser parser = new CommandLineParser();
+        DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
+        converter.configure(parser);
+        converter.convert(parser.parse(getAllArgs()), parameter);
+
+        Properties originalSysProperties = new Properties();
+        originalSysProperties.putAll(System.getProperties());
         envHacker.setProcessDir(getWorkingDir());
         Map<String, String> previousEnv = new HashMap<String, String>();
         for (Map.Entry<String, String> entry : getEnvironmentVars().entrySet()) {
             previousEnv.put(entry.getKey(), System.getenv(entry.getKey()));
             envHacker.setenv(entry.getKey(), entry.getValue());
         }
-
-        CommandLineParser parser = new CommandLineParser();
-        DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
-        converter.configure(parser);
-        converter.convert(parser.parse(getAllArgs()), parameter);
 
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
         factory.addListener(listener);
@@ -101,7 +104,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         try {
             return gradleLauncher.run();
         } finally {
-            System.clearProperty("test.single");
+            System.setProperties(originalSysProperties);
             envHacker.setProcessDir(userDir);
             for (Map.Entry<String, String> entry : previousEnv.entrySet()) {
                 String oldValue = entry.getValue();
