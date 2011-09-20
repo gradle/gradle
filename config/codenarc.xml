@@ -22,7 +22,10 @@
         <!--<exclude name='ExplicitCallToOrMethod'/>-->
     <!--</ruleset-ref>-->
     <ruleset-ref path='rulesets/braces.xml'/>
-    <ruleset-ref path='rulesets/imports.xml'/>
+    <ruleset-ref path='rulesets/imports.xml'>
+        <exclude name="ImportFromSunPackages"/>
+        <exclude name="MisorderedStaticImports"/>
+    </ruleset-ref>
     <ruleset-ref path='rulesets/naming.xml'>
         <rule-config name='ClassName'>
             <property name='regex' value='^[A-Z][\$a-zA-Z0-9]*$'/>
@@ -37,5 +40,6 @@
         <rule-config name='VariableName'>
             <property name='finalRegex' value='^[a-z][a-zA-Z0-9]*$'/>
         </rule-config>
+        <exclude name="ConfusingMethodName"/>
     </ruleset-ref>
 </ruleset>
