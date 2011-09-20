@@ -18,52 +18,44 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import org.gradle.util.UncheckedException;
 import org.gradle.messaging.concurrent.StoppableExecutor;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.List;
-import java.util.LinkedList;
 
 /**
  * A {@link DisconnectAwareConnection} implementation that decorates an existing connection, adding disconnect awareness.
  * <p>
- * A side effect of using this decorator is that messages will be consumed as quickly as possible into an in memory
- * buffer, which the receive() method collects from.
+ * This implementation uses {@link EagerReceiveBuffer} internally to receive messages as fast as they are sent.
+ * The messages are then collected by {@link #receive()} as per normal.
+ * <p>
+ * NOTE: due to the use of a bounded buffer, disconnection may not be detected immediately if the internal buffer is full.
  */
 public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<T> implements DisconnectAwareConnection<T> {
 
     private static final Logger LOGGER = Logging.getLogger(DisconnectAwareConnectionDecorator.class);
+    private static final int DEFAULT_BUFFER_SIZE = 200;
 
     private final Lock actionLock = new ReentrantLock();
-    private final Lock receiveLock = new ReentrantLock();
-
-    private final StoppableExecutor consumerExecutor = new DefaultExecutorFactory().create("DisconnectAwareConnectionDecorator Consumer");
+    private final EagerReceiveBuffer<T> receiveBuffer;
+    private Runnable disconnectAction;
 
     private volatile boolean stopped;
 
-    /**
-     * A wrapper for messages, as a way to have an end-of-stream sentinel (i.e. a MessageWrapper with a null message)
-     * Necessary to communicate to the receive end that there's no more coming.
-     */
-    private class MessageWrapper<T> {
-        public final T message;
-
-        MessageWrapper(T message) {
-            this.message = message;
-        }
+    public DisconnectAwareConnectionDecorator(Connection<T> connection, StoppableExecutor executor) {
+        this(connection, executor, DEFAULT_BUFFER_SIZE);
     }
 
-    private final LinkedBlockingQueue<MessageWrapper<T>> messages = new LinkedBlockingQueue<MessageWrapper<T>>();
-
-    private Runnable disconnectAction;
-
-    public DisconnectAwareConnectionDecorator(Connection<T> connection) {
+    public DisconnectAwareConnectionDecorator(Connection<T> connection, StoppableExecutor executor, int bufferSize) {
         super(connection);
-        startConsuming();
+
+        receiveBuffer = new EagerReceiveBuffer<T>(executor, bufferSize, connection) {
+            protected void onReceiversExhausted() {
+                invokeDisconnectActionIfNecessary();
+            }
+        };
+
+        receiveBuffer.start();
     }
 
     public Runnable onDisconnect(Runnable disconnectAction) {
@@ -78,69 +70,19 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
     }
 
     public T receive() {
-        receiveLock.lock();
-        try {
-            // acquire lock and relenquish in order to wait for onDisconnect() to complete
-            // if it's in progress (to ensure the disconnect handler fires before we receive the null)
+        return receiveBuffer.receive();
+    }
+
+    private void invokeDisconnectActionIfNecessary() {
+        if (!stopped) {
             actionLock.lock();
-            actionLock.unlock();
-
-            T received = take();
-            if (received == null) {
-                assert messages.size() == 0; // There are no more messages coming, there should be no more messages
-                put(null); // Put this one back for the next receive() call
-                return null;
-            } else {
-                return received;
-            }
-        } finally {
-            receiveLock.unlock();
-        }
-    }
-
-    private T take() {
-        try {
-            return messages.take().message;
-        } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-    }
-
-    private void put(T message) {
-        try {
-            messages.put(new MessageWrapper(message));
-        } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-    }
-
-    private void startConsuming() {
-        consumerExecutor.execute(new Runnable() {
-            public void run() {
-                LOGGER.info("starting disconnect aware consumer {}", this);
-                while (true) {
-                    T message = DisconnectAwareConnectionDecorator.super.receive(); // will return null if underlying connection stopped
-                    if (message == null) {
-                        put(null); // put the end-of-stream sentinel on the queue
-
-                        if (!stopped) {
-                            invokeDisconnectAction();
-                        }
-                        break;
-                    } else {
-                        put(message);
-                    }
+            try {
+                if (disconnectAction != null) {
+                    disconnectAction.run();
                 }
+            } finally {
+                actionLock.unlock();
             }
-        });
-    }
-
-    private void invokeDisconnectAction() {
-        actionLock.lock();
-        try {
-            disconnectAction.run();
-        } finally {
-            actionLock.unlock();
         }
     }
 
@@ -152,6 +94,7 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
     public void stop() {
         stopped = true;
         super.stop();
+        receiveBuffer.stop();
     }
 
 }

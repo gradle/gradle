@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote.internal
 
-import org.gradle.api.Action
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import java.util.concurrent.LinkedBlockingQueue
 
 import spock.lang.*
@@ -33,7 +33,7 @@ class DisconnectAwareConnectionDecoratorTest extends Specification {
         void dispatch(message) {}
     }
 
-    def connection = new DisconnectAwareConnectionDecorator(rawConnection)
+    def connection = new DisconnectAwareConnectionDecorator(rawConnection, new DefaultExecutorFactory().create("test"))
 
     void sendMessage(message = 1) {
         messageQueue.put([message])
@@ -98,12 +98,13 @@ class DisconnectAwareConnectionDecoratorTest extends Specification {
         receive() == null
     }
 
-    def "stop while there are unreceived messages"() {
+    def "stopping connection does not fire handler"() {
         given:
         sendMessage(1)
         sendMessage(2)
 
         when:
+        sleep 1000 // wait for the messages to be consumed by the buffer
         connection.stop()
 
         then:
