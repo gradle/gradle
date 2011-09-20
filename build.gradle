@@ -124,7 +124,7 @@ allprojects {
     }
 
     repositories {
-        mavenRepo(urls: 'http://repo.gradle.org/gradle/libs')
+        mavenRepo(url: 'http://repo.gradle.org/gradle/libs')
         ivy {
             artifactPattern('http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
 //        artifactPattern('http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml')
