@@ -132,7 +132,7 @@ allprojects {
     }
 
     version = this.version
-    
+
     apply from: "$rootDir/gradle/conventions-dsl.gradle"
 }
 
@@ -186,29 +186,10 @@ task test(overwrite: true, dependsOn: groovyProjects()*.test)
 task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
 task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
 
-task aggregateTestResults {
+task aggregateTestReports(type: TestReportAggregator) {
     testReportDir = file("${reportsDir}/tests")
     testResultsDir = file("${buildDir}/test-results")
-
-    doFirst {
-        assert (!testReportDir.exists() || testReportDir.deleteDir()) && testReportDir.mkdirs()
-
-        copy {
-            into testResultsDir
-            subprojects.each { subproject ->
-                subproject.tasks.withType(Test).each { task ->
-                    if (task.testResultsDir.exists()) {
-                        from (task.testResultsDir) {
-                            include "TEST-*.xml"
-                        }
-                    }
-                }
-            }
-        }
-
-        def report = new org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport(testReportDir: testReportDir, testResultsDir: testResultsDir)
-        report.generateReport()
-    }
+    projects = subprojects
 }
 
 zipRootFolder = "$archivesBaseName-${-> version}"
@@ -426,6 +407,36 @@ def pluginProjects() {
     ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear'].collect {
         project(it)
     }
+}
+
+class TestReportAggregator extends Copy {
+    def projects
+
+    File testResultsDir
+
+    @OutputDirectory
+    File testReportDir
+
+    def TestReportAggregator() {
+        dependsOn { testTasks }
+        from { inputTestResultDirs }
+        into { testResultsDir }
+    }
+
+    @TaskAction
+    def aggregate() {
+        def report = new org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport(testReportDir: testReportDir, testResultsDir: testResultsDir)
+        report.generateReport()
+    }
+
+    def getTestTasks() {
+        projects.collect { it.tasks.withType(Test) }.flatten()
+    }
+
+    def getInputTestResultDirs() {
+        testTasks*.testResultsDir
+    }
+
 }
 
 class Tag extends DefaultTask {
