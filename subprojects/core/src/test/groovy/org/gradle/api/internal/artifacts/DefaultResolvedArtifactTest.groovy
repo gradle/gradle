@@ -16,18 +16,18 @@
 package org.gradle.api.internal.artifacts
 
 import org.apache.ivy.core.module.descriptor.Artifact
-import org.apache.ivy.core.resolve.ResolveEngine
-import spock.lang.Specification
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.internal.file.FileSource
 import org.gradle.util.Matchers
+import spock.lang.Specification
 
 class DefaultResolvedArtifactTest extends Specification {
-    final ResolveEngine resolveEngine = Mock()
+    final FileSource artifactSource = Mock()
 
     def "uses extended attributes to determine classifier"() {
         Artifact ivyArtifact = Mock()
         ResolvedDependency dependency = Mock()
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArtifact, resolveEngine)
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArtifact, artifactSource)
 
         given:
         _ * ivyArtifact.getExtraAttribute("m:classifier") >> "classifier"
@@ -44,13 +44,13 @@ class DefaultResolvedArtifactTest extends Specification {
         Artifact ivyArtifactWithDifferentType = ivyArtifact("name", "type2", "ext", [attr: "value"])
         Artifact ivyArtifactWithDifferentExt = ivyArtifact("name", "type", "ext2", [attr: "value"])
         Artifact ivyArtWithDifferentAttributes = ivyArtifact("name", "type", "ext", [attr: "value2"])
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, resolveEngine)
-        def equalArtifact = new DefaultResolvedArtifact(dependency, ivyArt, resolveEngine)
-        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, resolveEngine)
-        def differentName = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentName, resolveEngine)
-        def differentType = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentType, resolveEngine)
-        def differentExtension = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentExt, resolveEngine)
-        def differentAttributes = new DefaultResolvedArtifact(dependency, ivyArtWithDifferentAttributes, resolveEngine)
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactSource)
+        def equalArtifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactSource)
+        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactSource)
+        def differentName = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentName, artifactSource)
+        def differentType = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentType, artifactSource)
+        def differentExtension = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentExt, artifactSource)
+        def differentAttributes = new DefaultResolvedArtifact(dependency, ivyArtWithDifferentAttributes, artifactSource)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)

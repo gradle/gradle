@@ -29,7 +29,11 @@ import static org.gradle.cache.internal.FileLockManager.LockMode;
 
 public class DefaultCacheFactory implements Factory<CacheFactory> {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
-    private final FileLockManager lockManager = new DefaultFileLockManager();
+    private final FileLockManager lockManager;
+
+    public DefaultCacheFactory(FileLockManager fileLockManager) {
+        this.lockManager = fileLockManager;
+    }
 
     public CacheFactory create() {
         return new CacheFactoryImpl();

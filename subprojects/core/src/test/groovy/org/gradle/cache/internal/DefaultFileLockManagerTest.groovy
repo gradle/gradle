@@ -16,46 +16,77 @@
 
 package org.gradle.cache.internal
 
-import java.nio.channels.OverlappingFileLockException
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
  * @author: Szczepan Faber, created at: 8/30/11
  */
-@Ignore //it seems to work differently on our linux box (due to java 1.5?)
 class DefaultFileLockManagerTest extends Specification {
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
     def manager = new DefaultFileLockManager()
 
-    def "cannot lock twice in single process"() {
+    def "can lock a file"() {
         when:
-        lock(FileLockManager.LockMode.Exclusive);
+        def lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Shared, "lock")
+
+        then:
+        lock.isLockFile(tmpDir.createFile("file.txt.lock"))
+    }
+
+    def "can lock a directory"() {
+        when:
+        def lock = manager.lock(tmpDir.createDir("some-dir"), LockMode.Shared, "lock")
+
+        then:
+        lock.isLockFile(tmpDir.createFile("some-dir/some-dir.lock"))
+    }
+
+    def "can lock a file once it has been released"() {
+        given:
+        def fileLock = lock(FileLockManager.LockMode.Exclusive);
+        fileLock.close()
+
+        when:
         lock(FileLockManager.LockMode.Exclusive);
 
         then:
-        thrown(OverlappingFileLockException)
+        notThrown(RuntimeException)
+    }
+
+    def "cannot lock a file twice in single process"() {
+        given:
+        lock(FileLockManager.LockMode.Exclusive);
+
+        when:
+        lock(FileLockManager.LockMode.Exclusive);
+
+        then:
+        thrown(IllegalStateException)
     }
 
     def "cannot lock twice in single process for mixed modes"() {
-        when:
+        given:
         lock(FileLockManager.LockMode.Exclusive);
+
+        when:
         lock(FileLockManager.LockMode.Shared);
 
         then:
-        thrown(OverlappingFileLockException)
+        thrown(IllegalStateException)
     }
 
     def "cannot lock twice in single process for shared mode"() {
-        when:
+        given:
         lock(FileLockManager.LockMode.Shared);
+
+        when:
         lock(FileLockManager.LockMode.Shared);
 
         then:
-        thrown(OverlappingFileLockException)
+        thrown(IllegalStateException)
     }
 
     private FileLock lock(LockMode lockMode) {

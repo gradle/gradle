@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.util.GFileUtils;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,41 +24,55 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     private static final byte LOCK_PROTOCOL = 1;
-    private static final int LOCK_TIMEOUT = 15000;
+    private static final int LOCK_TIMEOUT = 120000;
+    private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
 
     public FileLock lock(File target, LockMode mode, String displayName) {
-        return new DefaultFileLock(target, mode, displayName);
+        File canonicalTarget = GFileUtils.canonicalise(target);
+        if (!lockedFiles.add(canonicalTarget)) {
+            throw new IllegalStateException(String.format("Cannot lock file '%s' as it has already been locked by this process.", target));
+        }
+        try {
+            return new DefaultFileLock(canonicalTarget, mode, displayName);
+        } catch (Throwable t) {
+            lockedFiles.remove(canonicalTarget);
+            throw UncheckedException.asUncheckedException(t);
+        }
     }
 
-    private static class DefaultFileLock implements FileLock {
+    private class DefaultFileLock implements FileLock {
         private final File lockFile;
         private final RandomAccessFile lockFileAccess;
+        private final File target;
         private final LockMode mode;
         private final String displayName;
         private java.nio.channels.FileLock lock;
 
-        public DefaultFileLock(File target, LockMode mode, String displayName) {
+        public DefaultFileLock(File target, LockMode mode, String displayName) throws Throwable {
+            this.target = target;
             this.mode = mode;
             this.displayName = displayName;
-            lockFile = new File(target.getParentFile(), target.getName() + ".lock");
+            if (target.isDirectory()) {
+                lockFile = new File(target, target.getName() + ".lock");
+            } else {
+                lockFile = new File(target.getParentFile(), target.getName() + ".lock");
+            }
+            lockFile.getParentFile().mkdirs();
+            lockFile.createNewFile();
+            lockFileAccess = new RandomAccessFile(lockFile, "rw");
             try {
-                lockFile.getParentFile().mkdirs();
-                lockFile.createNewFile();
-                lockFileAccess = new RandomAccessFile(lockFile, "rw");
-                try {
-                    lock = lock(mode);
-                } catch (Throwable t) {
-                    // Also releases any locks
-                    lockFileAccess.close();
-                    throw t;
-                }
-            } catch (Throwable throwable) {
-                throw UncheckedException.asUncheckedException(throwable);
+                lock = lock(mode);
+            } catch (Throwable t) {
+                // Also releases any locks
+                lockFileAccess.close();
+                throw t;
             }
         }
 
@@ -135,6 +150,7 @@ public class DefaultFileLockManager implements FileLockManager {
         public void close() {
             try {
                 LOGGER.debug("Releasing lock on {}.", displayName);
+                lockedFiles.remove(target);
                 // Also releases any locks
                 lockFileAccess.close();
             } catch (IOException e) {

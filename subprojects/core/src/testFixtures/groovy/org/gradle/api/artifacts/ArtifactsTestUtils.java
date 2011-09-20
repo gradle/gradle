@@ -16,10 +16,8 @@
 package org.gradle.api.artifacts;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.report.ArtifactDownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.core.resolve.ResolveEngine;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
+import org.gradle.api.internal.file.FileSource;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 
@@ -28,7 +26,7 @@ import java.util.Collections;
 
 public class ArtifactsTestUtils {
     
-    public static DefaultResolvedArtifact createResolvedArtifact(Mockery context, final String name, final String type, final String extension, File file) {
+    public static DefaultResolvedArtifact createResolvedArtifact(Mockery context, final String name, final String type, final String extension, final File file) {
         final Artifact artifactStub = context.mock(Artifact.class, "artifact" + name);
         context.checking(new Expectations() {{
             allowing(artifactStub).getName();
@@ -42,14 +40,12 @@ public class ArtifactsTestUtils {
             allowing(artifactStub).getExtraAttribute(with(org.hamcrest.Matchers.notNullValue(String.class)));
             will(returnValue(null));
         }});
-        final ResolveEngine resolveEngineMock = context.mock(ResolveEngine.class, "engine" + name);
-        final ArtifactDownloadReport artifactDownloadReport = new ArtifactDownloadReport(artifactStub);
-        artifactDownloadReport.setLocalFile(file);
+        final FileSource artifactSource = context.mock(FileSource.class);
         context.checking(new Expectations() {{
-            one(resolveEngineMock).download(with(equal(artifactStub)), with(any(DownloadOptions.class)));
-            will(returnValue(artifactDownloadReport));
+            allowing(artifactSource).get();
+            will(returnValue(file));
         }});
-        return new DefaultResolvedArtifact(context.mock(ResolvedDependency.class), artifactStub, resolveEngineMock);
+        return new DefaultResolvedArtifact(context.mock(ResolvedDependency.class), artifactStub, artifactSource);
     }
     
 }

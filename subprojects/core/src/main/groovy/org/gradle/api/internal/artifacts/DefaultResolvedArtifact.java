@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.resolve.ResolveEngine;
-import org.apache.ivy.core.resolve.DownloadOptions;
+import org.gradle.api.internal.file.FileSource;
 
 import java.io.File;
 
@@ -30,13 +29,13 @@ import java.io.File;
 public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final ResolvedDependency resolvedDependency;
     private final Artifact artifact;
-    private final ResolveEngine resolvedEngine;
+    private final FileSource artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedDependency resolvedDependency, Artifact artifact, ResolveEngine resolvedEngine) {
+    public DefaultResolvedArtifact(ResolvedDependency resolvedDependency, Artifact artifact, FileSource artifactSource) {
         this.resolvedDependency = resolvedDependency;
         this.artifact = artifact;
-        this.resolvedEngine = resolvedEngine;
+        this.artifactSource = artifactSource;
     }
 
     public ResolvedDependency getResolvedDependency() {
@@ -106,7 +105,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     public File getFile() {
         if (file == null) {
-            file = resolvedEngine.download(artifact, new DownloadOptions()).getLocalFile();
+            file = artifactSource.get();
         }
         return file;
     }

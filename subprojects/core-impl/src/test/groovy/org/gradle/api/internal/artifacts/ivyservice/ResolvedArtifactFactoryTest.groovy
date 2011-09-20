@@ -22,7 +22,8 @@ import org.apache.ivy.core.resolve.ResolveEngine
 import org.gradle.api.artifacts.ResolvedDependency
 
 class ResolvedArtifactFactoryTest extends Specification {
-    final ResolvedArtifactFactory factory = new ResolvedArtifactFactory()
+    final CacheLockingManager lockingManager = Mock()
+    final ResolvedArtifactFactory factory = new ResolvedArtifactFactory(lockingManager)
 
     def "creates an artifact"() {
         Artifact artifact = Mock()

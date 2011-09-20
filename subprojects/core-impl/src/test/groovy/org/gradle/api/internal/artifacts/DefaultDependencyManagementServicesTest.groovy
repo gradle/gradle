@@ -32,6 +32,7 @@ import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
+import org.gradle.cache.internal.FileLockManager
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -56,6 +57,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         ClassPathRegistry classPathRegistry = Mock()
         _ * parent.get(ClassPathRegistry) >> classPathRegistry
         _ * parent.get(ListenerManager) >> listenerManager
+        _ * parent.get(FileLockManager) >> Mock(FileLockManager)
     }
 
     def "can create dependency resolution services"() {

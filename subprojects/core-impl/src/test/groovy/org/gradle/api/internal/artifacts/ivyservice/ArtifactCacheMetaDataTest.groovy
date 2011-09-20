@@ -15,28 +15,35 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.artifacts.ArtifactRepositoryContainer
-import org.jfrog.wharf.ivy.cache.WharfCacheManager
+import org.gradle.cache.CacheRepository
+import org.gradle.cache.DirectoryCacheBuilder
+import org.gradle.cache.PersistentCache
 import org.jfrog.wharf.ivy.lock.LockHolderFactory
 import spock.lang.Specification
+import org.gradle.cache.CacheBuilder
 
-class IvySettingsFactoryTest extends Specification {
+class ArtifactCacheMetaDataTest extends Specification {
     final File cacheDir = new File('user-dir')
-    final ArtifactCacheMetaData cacheMetaData = Mock()
+    final CacheRepository cacheRepository = Mock()
+    final DirectoryCacheBuilder cacheBuilder = Mock()
+    final PersistentCache cache = Mock()
     final LockHolderFactory lockHolderFactory = Mock()
-    final IvySettingsFactory factory = new IvySettingsFactory(cacheMetaData, lockHolderFactory)
+    final ArtifactCacheMetaData metaData = new ArtifactCacheMetaData(cacheRepository)
 
     def "creates and configures an IvySettings instance"() {
         given:
-        _ * cacheMetaData.cacheDir >> cacheDir
+        _ * cache.baseDir >> cacheDir
 
         when:
-        def settings = factory.create()
+        def result = metaData.cacheDir
 
         then:
-        settings.defaultRepositoryCacheManager instanceof WharfCacheManager
-        settings.defaultRepositoryCacheManager.lockFactory == lockHolderFactory
-        settings.defaultCache == cacheDir
-        settings.defaultCacheArtifactPattern == ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN
+        result == cacheDir
+
+        and:
+        1 * cacheRepository.store("artifacts/2") >> cacheBuilder
+        1 * cacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> cacheBuilder
+        1 * cacheBuilder.open() >> cache
     }
+
 }

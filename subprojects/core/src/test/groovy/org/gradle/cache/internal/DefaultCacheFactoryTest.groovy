@@ -16,21 +16,20 @@
 package org.gradle.cache.internal
 
 import org.gradle.CacheUsage
+import org.gradle.api.Action
+import org.gradle.cache.DefaultSerializer
+import org.gradle.cache.internal.CacheFactory.CrossVersionMode
+import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
-import org.gradle.api.Action
-
-import org.gradle.cache.DefaultSerializer
-import org.gradle.cache.internal.CacheFactory.CrossVersionMode
 
 class DefaultCacheFactoryTest extends Specification {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder()
     final Action<?> opened = Mock()
     final Action<?> closed = Mock()
-    private final DefaultCacheFactory factoryFactory = new DefaultCacheFactory() {
+    private final DefaultCacheFactory factoryFactory = new DefaultCacheFactory(new DefaultFileLockManager()) {
         @Override
         void onOpen(Object cache) {
             opened.execute(cache)

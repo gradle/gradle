@@ -24,6 +24,8 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
+import org.gradle.cache.internal.DefaultFileLockManager;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
@@ -65,7 +67,7 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     }
 
     protected Factory<CacheFactory> createCacheFactory() {
-        return new DefaultCacheFactory();
+        return new DefaultCacheFactory(get(FileLockManager.class));
     }
 
     protected ClassLoaderRegistry createClassLoaderRegistry() {
@@ -94,5 +96,9 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
 
     protected Instantiator createInstantiator() {
         return new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DirectInstantiator());
+    }
+
+    protected FileLockManager createFileLockManager() {
+        return new DefaultFileLockManager();
     }
 }

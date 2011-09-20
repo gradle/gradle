@@ -23,6 +23,8 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
+import org.gradle.cache.internal.DefaultFileLockManager;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
@@ -113,5 +115,10 @@ public class GlobalServicesRegistryTest {
     @Test
     public void providesAnInstantiator() {
         assertThat(registry.get(Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
+    }
+
+    @Test
+    public void providesAFileLockManager() {
+        assertThat(registry.get(FileLockManager.class), instanceOf(DefaultFileLockManager.class));
     }
 }

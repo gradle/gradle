@@ -29,6 +29,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
+import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
@@ -62,7 +63,7 @@ public class WorkerProcessIntegrationTest {
     private final MessagingServices messagingServices = new MessagingServices(getClass().getClassLoader());
     private final MessagingServer server = messagingServices.get(MessagingServer.class);
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getDir(), ".gradle", CacheUsage.ON, new DefaultCacheFactory().create());
+    private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getDir(), ".gradle", CacheUsage.ON, new DefaultCacheFactory(new DefaultFileLockManager()).create());
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new BaseDirFileResolver(tmpDir.getTestDir()), new LongIdGenerator());

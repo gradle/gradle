@@ -38,9 +38,11 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
+import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -122,12 +124,22 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 projectDependencyFactory);
     }
 
+    protected ArtifactCacheMetaData createArtifactCacheMetaData() {
+        return new ArtifactCacheMetaData(get(CacheRepository.class));
+    }
+
+    protected DefaultCacheLockingManager createCacheLockingManager() {
+        return new DefaultCacheLockingManager(
+                get(FileLockManager.class),
+                get(ArtifactCacheMetaData.class));
+    }
+
     protected SettingsConverter createSettingsConverter() {
         return new DefaultSettingsConverter(
                 get(ProgressLoggerFactory.class),
                 new IvySettingsFactory(
-                        get(CacheRepository.class),
-                        new CacheLockingManager()));
+                        get(ArtifactCacheMetaData.class),
+                        get(LockHolderFactory.class)));
     }
 
     protected IvyFactory createIvyFactory() {
@@ -197,19 +209,23 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     new EventBroadcastingArtifactDependencyResolver(
                             new ShortcircuitEmptyConfigsArtifactDependencyResolver(
                                     new SelfResolvingDependencyResolver(
-                                            new DefaultIvyDependencyResolver(
-                                                    new DefaultIvyReportConverter(
-                                                            createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
-                                                            new ResolvedArtifactFactory()),
-                                                    parent.get(PublishModuleDescriptorConverter.class),
-                                                    new ResolveIvyFactory(
-                                                            parent.get(IvyFactory.class),
-                                                            resolverProvider,
-                                                            parent.get(SettingsConverter.class),
-                                                            new DefaultInternalRepository(
-                                                                    projectFinder,
-                                                                    parent.get(ModuleDescriptorConverter.class)),
-                                                            clientModuleRegistry))))));
+                                            new CacheLockingArtifactDependencyResolver(
+                                                    get(CacheLockingManager.class),
+                                                    new DefaultIvyDependencyResolver(
+                                                            new DefaultIvyReportConverter(
+                                                                    createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
+                                                                    new ResolvedArtifactFactory(
+                                                                            get(CacheLockingManager.class)
+                                                                    )),
+                                                            get(PublishModuleDescriptorConverter.class),
+                                                            new ResolveIvyFactory(
+                                                                    get(IvyFactory.class),
+                                                                    resolverProvider,
+                                                                    get(SettingsConverter.class),
+                                                                    new DefaultInternalRepository(
+                                                                            projectFinder,
+                                                                            get(ModuleDescriptorConverter.class)),
+                                                                    clientModuleRegistry)))))));
         }
 
         ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {
@@ -220,10 +236,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return new ErrorHandlingArtifactPublisher(
                     new IvyBackedArtifactPublisher(
                             resolverProvider,
-                            parent.get(SettingsConverter.class),
-                            parent.get(PublishModuleDescriptorConverter.class),
+                            get(SettingsConverter.class),
+                            get(PublishModuleDescriptorConverter.class),
                             fileModuleDescriptorConverter,
-                            parent.get(IvyFactory.class),
+                            get(IvyFactory.class),
                             new DefaultIvyDependencyPublisher(
                                     new DefaultPublishOptionsFactory())));
         }
