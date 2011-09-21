@@ -51,8 +51,8 @@ public class Jvm {
         return new File(JavaEnvUtils.getJdkExecutable("javadoc"));
     }
 
-    public File getJpsExecutable() {
-        return new File(JavaEnvUtils.getJdkExecutable("jps"));
+    public File getExecutable(String name) {
+        return new File(JavaEnvUtils.getJdkExecutable(name));
     }
 
     public boolean isJava5Compatible() {

@@ -15,15 +15,14 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.Jvm;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -31,7 +30,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     private static final byte LOCK_PROTOCOL = 2;
-    private static final int LOCK_TIMEOUT = 60000;
+    private static final int LOCK_TIMEOUT = 5000;
     private static final int STATE_REGION_SIZE = 2;
     private static final int STATE_REGION_POS = 0;
     private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
@@ -192,8 +191,20 @@ public class DefaultFileLockManager implements FileLockManager {
                         informationRegionLock.release();
                     }
                 }
-                throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nLock file: %s",
-                        displayName, ownerProcess, ownerPid, lockFile));
+
+                String extra = "";
+                if (ownerPid.matches("\\d+")) {
+                    ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+                    ExecHandleBuilder builder = new ExecHandleBuilder();
+                    builder.workingDir(new File(".").getAbsoluteFile());
+                    builder.commandLine(Jvm.current().getExecutable("jstack"), ownerPid);
+                    builder.setStandardOutput(outstr);
+                    builder.setErrorOutput(outstr);
+                    builder.build().start().waitForFinish();
+                    extra = new String(outstr.toByteArray());
+                }
+                throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nLock file: %s%n%s",
+                        displayName, ownerProcess, ownerPid, lockFile, extra));
             }
 
             if (!stateRegionLock.isShared()) {
