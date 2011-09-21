@@ -50,18 +50,18 @@ public class LenientEnvHacker implements ProcessEnvironment {
         }
     }
 
-    public void unsetenv(String name) {
+    public void removeEnvironmentVariable(String name) {
         if (env == null) {
             return;
         }
-        env.unsetenv(name);
+        env.removeEnvironmentVariable(name);
     }
 
-    public void setenv(String key, String value) {
+    public void setEnvironmentVariable(String key, String value) {
         if (env == null) {
             return;
         }
-        env.setenv(key, value);
+        env.setEnvironmentVariable(key, value);
     }
 
     //Existing system env is removed and passed env map becomes the system env.
@@ -72,10 +72,10 @@ public class LenientEnvHacker implements ProcessEnvironment {
         Map<String, String> currentEnv = System.getenv();
         Iterable<String> names = new LinkedList<String>(currentEnv.keySet());
         for (String name : names) {
-            env.unsetenv(name);
+            env.removeEnvironmentVariable(name);
         }
         for (String key : source.keySet()) {
-            env.setenv(key, source.get(key));
+            env.setEnvironmentVariable(key, source.get(key));
         }
     }
 
@@ -96,6 +96,13 @@ public class LenientEnvHacker implements ProcessEnvironment {
             return;
         }
         env.setProcessDir(dir);
+    }
+
+    public Long getPid() {
+        if (env == null) {
+            return null;
+        }
+        return env.getPid();
     }
 
     static class EnvironmentProvider implements Factory<ProcessEnvironment> {

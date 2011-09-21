@@ -93,7 +93,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         Map<String, String> previousEnv = new HashMap<String, String>();
         for (Map.Entry<String, String> entry : getEnvironmentVars().entrySet()) {
             previousEnv.put(entry.getKey(), System.getenv(entry.getKey()));
-            envHacker.setenv(entry.getKey(), entry.getValue());
+            envHacker.setEnvironmentVariable(entry.getKey(), entry.getValue());
         }
 
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
@@ -109,9 +109,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             for (Map.Entry<String, String> entry : previousEnv.entrySet()) {
                 String oldValue = entry.getValue();
                 if (oldValue != null) {
-                    envHacker.setenv(entry.getKey(), oldValue);
+                    envHacker.setEnvironmentVariable(entry.getKey(), oldValue);
                 } else {
-                    envHacker.unsetenv(entry.getKey());
+                    envHacker.removeEnvironmentVariable(entry.getKey());
                 }
             }
             factory.removeListener(listener);

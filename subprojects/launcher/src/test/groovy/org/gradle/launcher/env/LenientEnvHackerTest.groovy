@@ -51,7 +51,7 @@ class LenientEnvHackerTest extends Specification {
 
     def "added env is available explicitly"() {
         when:
-        hacker.setenv(test.methodName, "bar")
+        hacker.setEnvironmentVariable(test.methodName, "bar")
 
         then:
         "bar" == System.getenv(test.methodName)
@@ -59,7 +59,7 @@ class LenientEnvHackerTest extends Specification {
 
     def "added env is available in envs map"() {
         when:
-        hacker.setenv(test.methodName, "bar")
+        hacker.setEnvironmentVariable(test.methodName, "bar")
 
         then:
         "bar" == System.getenv()[test.methodName]
@@ -67,8 +67,8 @@ class LenientEnvHackerTest extends Specification {
 
     def "updated env is available explicitly"() {
         when:
-        hacker.setenv(test.methodName, "one")
-        hacker.setenv(test.methodName, "two")
+        hacker.setEnvironmentVariable(test.methodName, "one")
+        hacker.setEnvironmentVariable(test.methodName, "two")
 
         then:
         "two" == System.getenv(test.methodName)
@@ -76,8 +76,8 @@ class LenientEnvHackerTest extends Specification {
 
     def "updated env is available in envs map"() {
         when:
-        hacker.setenv(test.methodName, "one")
-        hacker.setenv(test.methodName, "two")
+        hacker.setEnvironmentVariable(test.methodName, "one")
+        hacker.setEnvironmentVariable(test.methodName, "two")
 
         then:
         "two" == System.getenv()[test.methodName]
@@ -94,7 +94,7 @@ class LenientEnvHackerTest extends Specification {
 
     def "replaces existing env variables"() {
         when:
-        hacker.setenv(test.methodName + 1, "one");
+        hacker.setEnvironmentVariable(test.methodName + 1, "one");
 
         then:
         "one" == System.getenv(test.methodName + 1)
@@ -109,7 +109,7 @@ class LenientEnvHackerTest extends Specification {
 
      def "is case sensitive on windows"() {
         when:
-        hacker.setenv(test.methodName, "one");
+        hacker.setEnvironmentVariable(test.methodName, "one");
 
         then:
         "one" == System.getenv(test.methodName)
@@ -127,7 +127,7 @@ class LenientEnvHackerTest extends Specification {
         hacker = new LenientEnvHacker(provider)
 
         when:
-        hacker.setenv(test.methodName, "bar")
+        hacker.setEnvironmentVariable(test.methodName, "bar")
         hacker.setenv(GUtil.map())
         hacker.processDir
         hacker.processDir = new File("foo")

@@ -13,29 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os;
+package org.gradle.os.jna
 
-import java.io.File;
+import org.gradle.os.ProcessEnvironment
+import spock.lang.Specification
 
-/**
- * Provides access to the environment and working directory of the current process.
- *
- * <p>Implementations are not thread-safe.</p>
- */
-public interface ProcessEnvironment {
-    void removeEnvironmentVariable(String name);
+class NativeEnvironmentTest extends Specification {
+    final ProcessEnvironment env = NativeEnvironment.current()
 
-    void setEnvironmentVariable(String name, String value);
+    def "can get working directory of current process"() {
+        expect:
+        env.processDir.canonicalFile == new File('.').canonicalFile
+    }
 
-    /**
-     * Returns the working directory of the current process, or null if not available.
-     */
-    File getProcessDir();
-
-    void setProcessDir(File processDir);
-
-    /**
-     * Returns the PID for the current process, or null if not available.
-     */
-    Long getPid();
+    def "can get pid of current process"() {
+        expect:
+        env.pid != null
+    }
 }

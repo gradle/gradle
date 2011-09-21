@@ -29,29 +29,33 @@ import java.io.File;
 class Environment implements ProcessEnvironment {
 
     //for updates to environment in a native way
-    private final ProcessEnvironment posix;
+    private final ProcessEnvironment nativeEnvironment;
     //for updates to private JDK caches of the environment state
     private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
 
     Environment() {
-        posix = NativeEnvironment.current();
+        nativeEnvironment = NativeEnvironment.current();
     }
 
-    public void unsetenv(String name) {
+    public void removeEnvironmentVariable(String name) {
         reflectiveEnvironment.unsetenv(name);
-        posix.unsetenv(name);
+        nativeEnvironment.removeEnvironmentVariable(name);
     }
 
-    public void setenv(String name, String value) {
+    public void setEnvironmentVariable(String name, String value) {
         reflectiveEnvironment.setenv(name, value);
-        posix.setenv(name, value);
+        nativeEnvironment.setEnvironmentVariable(name, value);
     }
 
     public File getProcessDir() {
-        return posix.getProcessDir();
+        return nativeEnvironment.getProcessDir();
     }
 
     public void setProcessDir(File processDir) {
-        posix.setProcessDir(processDir);
+        nativeEnvironment.setProcessDir(processDir);
+    }
+
+    public Long getPid() {
+        return nativeEnvironment.getPid();
     }
 }

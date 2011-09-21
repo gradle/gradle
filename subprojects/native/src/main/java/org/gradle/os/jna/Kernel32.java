@@ -45,6 +45,8 @@ public interface Kernel32 extends Library {
 
     int GetCurrentDirectoryW(int nBufferLength, char[] lpBuffer);
 
+    int GetCurrentProcessId();
+
     class HANDLE extends PointerType {
         public HANDLE() {
         }

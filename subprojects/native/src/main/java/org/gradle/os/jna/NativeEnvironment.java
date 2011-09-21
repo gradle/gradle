@@ -39,6 +39,7 @@ public class NativeEnvironment {
         public String getcwd(byte[] out, int size);
         public int chdir(String dirAbsolutePath);
         public int errno();
+        public int getpid();
     }
     //CHECKSTYLE:ON
 
@@ -58,15 +59,15 @@ public class NativeEnvironment {
     public static class Windows implements ProcessEnvironment {
         private final Kernel32 kernel32 = Kernel32.INSTANCE;
 
-        public void setenv(String name, String value) {
+        public void setEnvironmentVariable(String name, String value) {
             boolean retval = kernel32.SetEnvironmentVariableW(new WString(name), value == null ? null : new WString(value));
             if (!retval) {
                 throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, kernel32.GetLastError()));
             }
         }
 
-        public void unsetenv(String name) {
-            setenv(name, null);
+        public void removeEnvironmentVariable(String name) {
+            setEnvironmentVariable(name, null);
         }
 
         public void setProcessDir(File dir) {
@@ -84,14 +85,18 @@ public class NativeEnvironment {
             }
             return new File(Native.toString(out));
         }
+
+        public Long getPid() {
+            return Long.valueOf(kernel32.GetCurrentProcessId());
+        }
     }
 
     public static class Unix implements ProcessEnvironment {
         final UnixLibC libc = (UnixLibC) Native.loadLibrary("c", UnixLibC.class);
 
-        public void setenv(String name, String value) {
+        public void setEnvironmentVariable(String name, String value) {
             if (value == null) {
-                unsetenv(name);
+                removeEnvironmentVariable(name);
                 return;
             }
             int retval = libc.setenv(name, value, 1);
@@ -100,7 +105,7 @@ public class NativeEnvironment {
             }
         }
 
-        public void unsetenv(String name) {
+        public void removeEnvironmentVariable(String name) {
             int retval = libc.unsetenv(name);
             if (retval != 0) {
                 throw new NativeIntegrationException(String.format("Could not unset environment variable '%s'. errno: %d", name, libc.errno()));
@@ -121,6 +126,10 @@ public class NativeEnvironment {
                 throw new NativeIntegrationException(String.format("Could not get process working directory. errno: %d", libc.errno()));
             }
             return new File(Native.toString(out));
+        }
+
+        public Long getPid() {
+            return Long.valueOf(libc.getpid());
         }
     }
 }
