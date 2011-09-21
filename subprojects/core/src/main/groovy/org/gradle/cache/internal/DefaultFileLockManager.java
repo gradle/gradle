@@ -193,11 +193,12 @@ public class DefaultFileLockManager implements FileLockManager {
                 }
 
                 String extra = "";
-                if (ownerPid.matches("\\d+")) {
+                File jstack = Jvm.current().getExecutable("jstack");
+                if (jstack.isFile() && ownerPid.matches("\\d+")) {
                     ByteArrayOutputStream outstr = new ByteArrayOutputStream();
                     ExecHandleBuilder builder = new ExecHandleBuilder();
                     builder.workingDir(new File(".").getAbsoluteFile());
-                    builder.commandLine(Jvm.current().getExecutable("jstack"), ownerPid);
+                    builder.commandLine(jstack, ownerPid);
                     builder.setStandardOutput(outstr);
                     builder.setErrorOutput(outstr);
                     builder.build().start().waitForFinish();
