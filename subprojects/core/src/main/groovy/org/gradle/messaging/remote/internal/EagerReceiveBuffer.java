@@ -23,6 +23,8 @@ import org.gradle.messaging.dispatch.Receive;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 
+import java.util.Collection;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -58,18 +60,32 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
 
     private final StoppableExecutor executor;
     private final int bufferSize;
-    private final Receive<T>[] receivers;
+    private final Collection<Receive<T>> receivers;
     private final LinkedList<T> queue = new LinkedList<T>();
 
     private int numActiveReceivers;
     private State state = State.Init;
 
-    public EagerReceiveBuffer(StoppableExecutor executor, Receive<T>... receivers) {
+    private static <T> Collection<Receive<T>> toReceiveCollection(Receive<T> receiver) {
+        Collection<Receive<T>> list = new ArrayList<Receive<T>>(1);
+        list.add(receiver);
+        return list;
+    }
+    
+    public EagerReceiveBuffer(StoppableExecutor executor, Receive<T> receiver) {
+        this(executor, DEFAULT_BUFFER_SIZE, toReceiveCollection(receiver));
+    }
+
+    public EagerReceiveBuffer(StoppableExecutor executor, Collection<Receive<T>> receivers) {
         this(executor, DEFAULT_BUFFER_SIZE, receivers);
     }
 
-    public EagerReceiveBuffer(StoppableExecutor executor, int bufferSize, Receive<T>... receivers) {
-        if (receivers.length == 0) {
+    public EagerReceiveBuffer(StoppableExecutor executor, int bufferSize, Receive<T> receiver) {
+        this(executor, bufferSize, toReceiveCollection(receiver));
+    }
+
+    public EagerReceiveBuffer(StoppableExecutor executor, int bufferSize, Collection<Receive<T>> receivers) {
+        if (receivers.size() == 0) {
             throw new IllegalArgumentException("eager receive buffer created with no receivers");
         }
 

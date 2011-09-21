@@ -45,9 +45,9 @@ class EagerReceiveBufferTest extends Specification {
 
     def buffer(Receive... receivers) {
         if (bufferSize == null) {
-            new EagerReceiveBuffer(executor(), *receivers)
+            new EagerReceiveBuffer(executor(), receivers as List)
         } else {
-            new EagerReceiveBuffer(executor(), bufferSize, *receivers)
+            new EagerReceiveBuffer(executor(), bufferSize, receivers as List)
         }
     }
 
