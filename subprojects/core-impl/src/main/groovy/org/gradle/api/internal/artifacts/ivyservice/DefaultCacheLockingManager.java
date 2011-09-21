@@ -41,7 +41,7 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
     public <T> T withCacheLock(Callable<? extends T> action) {
         boolean wasUnlocked = locked.compareAndSet(false, true);
         if (!wasUnlocked) {
-            throw new IllegalStateException("Cannot lock artifact cache, as is already locked by this process.");
+            throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this process.");
         }
         try {
             FileLock lock = fileLockManager.lock(cacheMetaData.getCacheDir(), FileLockManager.LockMode.Exclusive, "artifact cache");
@@ -80,7 +80,7 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
 
             public boolean acquireLock() {
                 if (!locked.get()) {
-                    throw new IllegalStateException("Cannot acquire artifact lock, as artifact cache is not locked by this process.");
+                    throw new IllegalStateException("Cannot acquire artifact lock, as the artifact cache is not locked by this process.");
                 }
                 protectedFile.getParentFile().mkdirs();
                 return true;
