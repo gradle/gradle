@@ -30,7 +30,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     private static final byte LOCK_PROTOCOL = 2;
-    private static final int LOCK_TIMEOUT = 5000;
+    private static final int LOCK_TIMEOUT = 60000;
     private static final int STATE_REGION_SIZE = 2;
     private static final int STATE_REGION_POS = 0;
     private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
