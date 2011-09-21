@@ -27,9 +27,11 @@ import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.cache.internal.CacheFactory.CrossVersionMode
 import org.gradle.api.Action
 import org.gradle.cache.internal.DefaultFileLockManager
+import org.gradle.cache.internal.DefaultProcessMetaDataProvider
+import org.gradle.os.jna.NativeEnvironment
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
-    private static final CACHE_FACTORY = new DefaultCacheFactory(new DefaultFileLockManager()).create()
+    private static final CACHE_FACTORY = new DefaultCacheFactory(new DefaultFileLockManager(new DefaultProcessMetaDataProvider(NativeEnvironment.current()))).create()
     private final GradleDistribution dist
     final GradleVersion version
     private final TestFile versionDir
