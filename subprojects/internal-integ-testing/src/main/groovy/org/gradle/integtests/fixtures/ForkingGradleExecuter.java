@@ -28,13 +28,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.fail;
 
-public class ForkingGradleExecuter extends AbstractGradleExecuter {
+public class ForkingGradleExecuter extends OutputScrapingGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final TestFile gradleHomeDir;
     private final List<String> gradleOpts = new ArrayList<String>();
@@ -48,18 +46,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return gradleHomeDir;
     }
 
-    @Override
-    protected ExecutionResult doRun() {
-        Map<String, String> result = doRun(false);
-        return new OutputScrapingExecutionResult(result.get("output"), result.get("error"));
-    }
-
-    @Override
-    protected ExecutionFailure doRunWithFailure() {
-        Map<String, String> result = doRun(true);
-        return new OutputScrapingExecutionFailure(result.get("output"), result.get("error"));
-    }
-
     /**
      * Adds some options to the GRADLE_OPTS environment variable to use.
      */
@@ -67,7 +53,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         gradleOpts.addAll(Arrays.asList(opts));
     }
 
-    protected Map<String, String> doRun(boolean expectFailure) {
+    protected GradleOutput doRun(boolean expectFailure) {
         if (!gradleHomeDir.isDirectory()) {
             fail(gradleHomeDir + " is not a directory.\n"
                     + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
@@ -120,10 +106,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             throw new RuntimeException(message);
         }
         
-        Map<String, String> map = new HashMap<String, String>(2);
-        map.put("output", output);
-        map.put("error", error);
-        return map;
+        return new GradleOutput(output, error);
     }
 
     private String formatGradleOpts() {

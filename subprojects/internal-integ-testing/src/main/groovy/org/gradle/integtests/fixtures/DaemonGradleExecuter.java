@@ -28,14 +28,13 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     @Override
-    protected Map doRun(boolean expectFailure) {
+    protected GradleOutput doRun(boolean expectFailure) {
         registerDaemon(getUserHomeDir());
-        Map result = super.doRun(expectFailure);
-        String output = (String) result.get("output");
+        GradleOutput gradleOutput = super.doRun(expectFailure);
+        String output = gradleOutput.getOutput();
         output = output.replace(String.format("Note: the Gradle build daemon is an experimental feature.%n"), "");
         output = output.replace(String.format("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.%n"), "");
-        result.put("output", output);
-        return result;
+        return new GradleOutput(output, gradleOutput.getError());
     }
 
     public static void registerDaemon(final File userHomeDir) {
