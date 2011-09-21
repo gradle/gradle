@@ -47,7 +47,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     public enum Executer {
         embedded(false), 
         forking(true), 
-        daemon(true);
+        daemon(true),
+        embeddedDaemon(false);
         
         final public boolean forks;
         
@@ -57,7 +58,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     }
 
     public static Executer getSystemPropertyExecuter() {
-        return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()).toLowerCase());
+        return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()));
     }
 
     public GradleDistributionExecuter() {
@@ -184,7 +185,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         TestFile tmpDir = getTmpDir();
         tmpDir.deleteDir().createDir();
 
-        if (executerType != Executer.embedded || !inProcessGradleExecuter.canExecute()) {
+        if (executerType.forks || !inProcessGradleExecuter.canExecute()) {
             boolean useDaemon = executerType == Executer.daemon && getExecutable() == null;
             ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist.getGradleHomeDir()) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
@@ -195,6 +196,12 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());
         }
 
+        if (executerType == Executer.embeddedDaemon) {
+            GradleExecuter embeddedDaemonExecutor = new EmbeddedDaemonGradleExecuter();
+            copyTo(embeddedDaemonExecutor);
+            returnedExecuter = embeddedDaemonExecutor;
+        }
+        
         boolean settingsFound = false;
         for (
                 TestFile dir = new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound;
