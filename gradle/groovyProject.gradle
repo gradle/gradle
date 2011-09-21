@@ -21,6 +21,10 @@ test {
     maxParallelForks = guessMaxForks()
 }
 
+tasks.matching { it instanceof Compile || it instanceof GroovyCompile }.all {
+    options.compilerArgs << "-Xlint:unchecked"
+}
+
 tasks.withType(Jar).each { jar ->
     jar.manifest.mainAttributes([
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
