@@ -21,7 +21,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.os.PosixUtil
 
-class FileCanonicalisationTest extends Specification {
+class BaseDirFileResolverSpec extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final def fileSystem = OperatingSystem.current().fileSystem
 
