@@ -26,7 +26,13 @@ import spock.lang.Specification
  */
 class DefaultFileLockManagerTest extends Specification {
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
-    def manager = new DefaultFileLockManager()
+    final ProcessMetaDataProvider metaDataProvider = Mock()
+    def manager = new DefaultFileLockManager(metaDataProvider)
+
+    def setup() {
+        _ * metaDataProvider.processIdentifier >> '123'
+        _ * metaDataProvider.processDisplayName >> 'other process'
+    }
 
     def "can lock a file"() {
         when:
@@ -34,6 +40,9 @@ class DefaultFileLockManagerTest extends Specification {
 
         then:
         lock.isLockFile(tmpDir.createFile("file.txt.lock"))
+
+        cleanup:
+        lock?.close()
     }
 
     def "can lock a directory"() {
@@ -42,6 +51,9 @@ class DefaultFileLockManagerTest extends Specification {
 
         then:
         lock.isLockFile(tmpDir.createFile("some-dir/some-dir.lock"))
+
+        cleanup:
+        lock?.close()
     }
 
     def "can lock a file once it has been released"() {
@@ -54,6 +66,70 @@ class DefaultFileLockManagerTest extends Specification {
 
         then:
         notThrown(RuntimeException)
+    }
+
+    def "new shared lock is not unlocked cleanly"() {
+        when:
+        def lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Shared, "lock")
+
+        then:
+        !lock.unlockedCleanly
+
+        cleanup:
+        lock?.close()
+    }
+
+    def "new exclusive lock is not unlocked cleanly"() {
+        when:
+        def lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Exclusive, "lock")
+
+        then:
+        !lock.unlockedCleanly
+
+        cleanup:
+        lock?.close()
+    }
+
+    def "existing lock is unlocked cleanly after writeToFile() has been called"() {
+        when:
+        def lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Exclusive, "lock")
+        lock.writeToFile({} as Runnable)
+
+        then:
+        lock.unlockedCleanly
+
+        when:
+        lock.close()
+        lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Exclusive, "lock")
+
+        then:
+        lock.unlockedCleanly
+
+        cleanup:
+        lock?.close()
+    }
+
+    def "existing lock is unlocked cleanly after writeToFile() throws exception"() {
+        def failure = new RuntimeException()
+
+        when:
+        def lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Exclusive, "lock")
+        lock.writeToFile({throw failure} as Runnable)
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+        !lock.unlockedCleanly
+
+        when:
+        lock.close()
+        lock = manager.lock(tmpDir.createFile("file.txt"), LockMode.Exclusive, "lock")
+
+        then:
+        !lock.unlockedCleanly
+
+        cleanup:
+        lock?.close()
     }
 
     def "cannot lock a file twice in single process"() {

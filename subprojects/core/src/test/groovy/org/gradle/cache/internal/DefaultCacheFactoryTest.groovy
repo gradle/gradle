@@ -29,7 +29,8 @@ class DefaultCacheFactoryTest extends Specification {
     public final TemporaryFolder tmpDir = new TemporaryFolder()
     final Action<?> opened = Mock()
     final Action<?> closed = Mock()
-    private final DefaultCacheFactory factoryFactory = new DefaultCacheFactory(new DefaultFileLockManager()) {
+    final ProcessMetaDataProvider metaDataProvider = Mock()
+    private final DefaultCacheFactory factoryFactory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider)) {
         @Override
         void onOpen(Object cache) {
             opened.execute(cache)
@@ -39,6 +40,11 @@ class DefaultCacheFactoryTest extends Specification {
         void onClose(Object cache) {
             closed.execute(cache)
         }
+    }
+
+    def setup() {
+        _ * metaDataProvider.processIdentifier >> '123'
+        _ * metaDataProvider.processDisplayName >> 'process'
     }
 
     def cleanup() {

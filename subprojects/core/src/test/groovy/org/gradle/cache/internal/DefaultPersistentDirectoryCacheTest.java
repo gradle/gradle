@@ -19,6 +19,7 @@ import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentCache;
+import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TemporaryFolder;
@@ -43,7 +44,7 @@ import static org.junit.Assert.fail;
 public class DefaultPersistentDirectoryCacheTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final FileLockManager lockManager = new DefaultFileLockManager();
+    private final FileLockManager lockManager = new DefaultFileLockManager(new DefaultProcessMetaDataProvider(NativeEnvironment.current()));
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final Action<PersistentCache> action = context.mock(Action.class);
     private final Map<String, String> properties = GUtil.map("prop", "value", "prop2", "other-value");

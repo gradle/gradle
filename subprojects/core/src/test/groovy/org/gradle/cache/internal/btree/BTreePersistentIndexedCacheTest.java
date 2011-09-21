@@ -18,8 +18,10 @@ package org.gradle.cache.internal.btree;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.Serializer;
 import org.gradle.cache.internal.DefaultFileLockManager;
+import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.junit.After;
@@ -47,7 +49,7 @@ public class BTreePersistentIndexedCacheTest {
     @Before
     public void setup() {
         cacheFile = tmpDir.file("cache.bin");
-        fileLock = new DefaultFileLockManager().lock(cacheFile, FileLockManager.LockMode.Exclusive, "cache");
+        fileLock = new DefaultFileLockManager(new DefaultProcessMetaDataProvider(NativeEnvironment.current())).lock(cacheFile, FileLockManager.LockMode.Exclusive, "cache");
         cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, fileLock, serializer, (short) 4, 100);
     }
 

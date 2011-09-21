@@ -20,6 +20,7 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.cache.DefaultSerializer
+import org.gradle.cache.PersistentStateCache
 
 class SimpleStateCacheTest extends Specification {
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
@@ -49,6 +50,48 @@ class SimpleStateCacheTest extends Specification {
 
         then:
         result == 'some value'
+        1 * lock.readFromFile(!null) >> { it[0].call() }
+    }
+
+    def "update provides access to cached value"() {
+        when:
+        cache.set("foo")
+
+        then:
+        1 * lock.writeToFile(!null) >> { it[0].run() }
+
+        when:
+        cache.update({ value ->
+            assert value == "foo"
+            return "foo bar"
+        } as PersistentStateCache.UpdateAction)
+
+        then:
+        1 * lock.writeToFile(!null) >> { it[0].run() }
+
+        when:
+        def result = cache.get()
+
+        then:
+        result == "foo bar"
+        1 * lock.readFromFile(!null) >> { it[0].call() }
+    }
+
+    def "update does not explode when no existing value"() {
+        when:
+        cache.update({ value ->
+            assert value == null
+            return "bar"
+        } as PersistentStateCache.UpdateAction)
+
+        then:
+        1 * lock.writeToFile(!null) >> { it[0].run() }
+
+        when:
+        def result = cache.get()
+
+        then:
+        result == "bar"
         1 * lock.readFromFile(!null) >> { it[0].call() }
     }
 }

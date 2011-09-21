@@ -19,9 +19,11 @@ package org.gradle.launcher.daemon.registry;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.DefaultFileLockManager;
+import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.OnDemandFileLock;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.messaging.remote.Address;
+import org.gradle.os.jna.NativeEnvironment;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -39,8 +41,15 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public PersistentDaemonRegistry(File baseFolder) {
         this.daemonDir = new DaemonDir(baseFolder);
-        cache = new SimpleStateCache<DaemonRegistryContent>(daemonDir.registryFile,
-                new OnDemandFileLock(daemonDir.getRegistry(), "daemon addresses registry", new DefaultFileLockManager()),
+        cache = new SimpleStateCache<DaemonRegistryContent>(
+                daemonDir.registryFile,
+                new OnDemandFileLock(
+                        daemonDir.getRegistry(),
+                        "daemon addresses registry",
+                        new DefaultFileLockManager(
+                                new DefaultProcessMetaDataProvider(
+                                        NativeEnvironment.current()
+                                ))),
                 new DefaultSerializer<DaemonRegistryContent>());
     }
 

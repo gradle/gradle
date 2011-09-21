@@ -30,14 +30,22 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
-    private static final byte LOCK_PROTOCOL = 1;
-    private static final int LOCK_TIMEOUT = 120000;
+    private static final byte LOCK_PROTOCOL = 2;
+    private static final int LOCK_TIMEOUT = 60000;
+    private static final int STATE_REGION_SIZE = 2;
+    private static final int STATE_REGION_POS = 0;
+    private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
+    private final ProcessMetaDataProvider metaDataProvider;
+
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider) {
+        this.metaDataProvider = metaDataProvider;
+    }
 
     public FileLock lock(File target, LockMode mode, String displayName) {
         File canonicalTarget = GFileUtils.canonicalise(target);
         if (!lockedFiles.add(canonicalTarget)) {
-            throw new IllegalStateException(String.format("Cannot lock file '%s' as it has already been locked by this process.", target));
+            throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.", displayName));
         }
         try {
             return new DefaultFileLock(canonicalTarget, mode, displayName);
@@ -83,7 +91,7 @@ public class DefaultFileLockManager implements FileLockManager {
         public boolean getUnlockedCleanly() {
             return readFromFile(new Callable<Boolean>() {
                 public Boolean call() throws Exception {
-                    lockFileAccess.seek(0);
+                    lockFileAccess.seek(STATE_REGION_POS);
                     try {
                         if (lockFileAccess.readByte() != LOCK_PROTOCOL) {
                             throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
@@ -128,23 +136,23 @@ public class DefaultFileLockManager implements FileLockManager {
                         lock = lock(mode);
                     }
                 }
-            } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
-            } catch (InterruptedException e) {
-                throw UncheckedException.asUncheckedException(e);
+            } catch (Throwable t) {
+                throw UncheckedException.asUncheckedException(t);
             }
         }
 
         private void markClean() throws IOException {
-            lockFileAccess.seek(0);
+            lockFileAccess.seek(STATE_REGION_POS);
             lockFileAccess.writeByte(LOCK_PROTOCOL);
             lockFileAccess.writeBoolean(true);
+            assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
         }
 
         private void markDirty() throws IOException {
-            lockFileAccess.seek(0);
+            lockFileAccess.seek(STATE_REGION_POS);
             lockFileAccess.writeByte(LOCK_PROTOCOL);
             lockFileAccess.writeBoolean(false);
+            assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
         }
 
         public void close() {
@@ -158,18 +166,82 @@ public class DefaultFileLockManager implements FileLockManager {
             }
         }
 
-        private java.nio.channels.FileLock lock(FileLockManager.LockMode lockMode) throws IOException, InterruptedException {
+        private java.nio.channels.FileLock lock(FileLockManager.LockMode lockMode) throws Throwable {
             LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode, displayName);
             long timeout = System.currentTimeMillis() + LOCK_TIMEOUT;
+
+            // Lock the state region, with the requested mode
+            java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, timeout);
+            if (stateRegionLock == null) {
+                // Can't acquire lock, get details of owner to include in the error message
+                String ownerPid = "unknown";
+                String ownerProcess = "unknown";
+                java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, timeout);
+                if (informationRegionLock == null) {
+                    LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
+                } else {
+                    try {
+                        if (lockFileAccess.length() < INFORMATION_REGION_POS) {
+                            LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
+                        } else {
+                            lockFileAccess.seek(INFORMATION_REGION_POS);
+                            ownerPid = lockFileAccess.readUTF();
+                            ownerProcess = lockFileAccess.readUTF();
+                        }
+                    } finally {
+                        informationRegionLock.release();
+                    }
+                }
+                throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nLock file: %s",
+                        displayName, ownerProcess, ownerPid, lockFile));
+            }
+
+            if (!stateRegionLock.isShared()) {
+                // We have an exclusive lock (whether we asked for it or not). Update the information region.
+                // Acquire an exclusive lock on the region and write our details there
+                try {
+                    if (lockFileAccess.length() < INFORMATION_REGION_POS) {
+                        // File did not exist, or was corrupted
+                        markDirty();
+                    }
+                    java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, timeout);
+                    if (informationRegionLock == null) {
+                        throw new IllegalStateException(String.format("Timeout waiting to lock the information region for lock %s", displayName));
+                    }
+                    try {
+                        lockFileAccess.seek(INFORMATION_REGION_POS);
+                        lockFileAccess.writeUTF(metaDataProvider.getProcessIdentifier());
+                        lockFileAccess.writeUTF(metaDataProvider.getProcessDisplayName());
+                    } finally {
+                        informationRegionLock.release();
+                    }
+                } catch (Throwable t) {
+                    stateRegionLock.release();
+                    throw t;
+                }
+            }
+
+            LOGGER.debug("Lock acquired.");
+            return stateRegionLock;
+        }
+
+        private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
+            return lockRegion(lockMode, timeout, STATE_REGION_POS, STATE_REGION_SIZE);
+        }
+
+        private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
+            return lockRegion(lockMode, timeout, INFORMATION_REGION_POS, Long.MAX_VALUE - INFORMATION_REGION_POS);
+        }
+
+        private java.nio.channels.FileLock lockRegion(FileLockManager.LockMode lockMode, long timeout, long start, long size) throws IOException, InterruptedException {
             do {
-                java.nio.channels.FileLock fileLock = lockFileAccess.getChannel().tryLock(0, Long.MAX_VALUE, lockMode == LockMode.Shared);
+                java.nio.channels.FileLock fileLock = lockFileAccess.getChannel().tryLock(start, size, lockMode == LockMode.Shared);
                 if (fileLock != null) {
-                    LOGGER.debug("Lock acquired.");
                     return fileLock;
                 }
                 Thread.sleep(200L);
             } while (System.currentTimeMillis() < timeout);
-            throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.", displayName));
+            return null;
         }
     }
 }
