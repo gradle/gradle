@@ -218,7 +218,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         public Set<String> getSkippedTasks() {
-            return new HashSet(grepTasks(skippedTaskPattern));
+            return new HashSet<String>(grepTasks(skippedTaskPattern));
         }
         
         public ExecutionResult assertTasksSkipped(String... taskPaths) {

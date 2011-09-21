@@ -221,7 +221,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public List<String> getExecutedTasks() {
-            return new ArrayList(plannedTasks);
+            return new ArrayList<String>(plannedTasks);
         }
 
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
@@ -231,7 +231,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public Set<String> getSkippedTasks() {
-            return new HashSet(skippedTasks);
+            return new HashSet<String>(skippedTasks);
         }
 
         public ExecutionResult assertTasksSkipped(String... taskPaths) {
