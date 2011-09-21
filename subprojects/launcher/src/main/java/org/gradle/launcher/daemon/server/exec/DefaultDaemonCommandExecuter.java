@@ -56,6 +56,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new UpdateDaemonStateAndHandleBusyDaemon(),
             new ReturnResult(),
             new ForwardOutput(loggingOutput),
+            new ResetDeprecationLogger(),
             new ReportExceptions(loggingServices),
             new HandleSleep(),
             new EstablishBuildEnvironment(),
