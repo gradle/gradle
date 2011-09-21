@@ -19,5 +19,6 @@ dependencies {
     compile project(":internalTesting")
     compile project(':cli')
     compile project(':launcher')
+    compile project(':native')
     compile libraries.jetty
 }
