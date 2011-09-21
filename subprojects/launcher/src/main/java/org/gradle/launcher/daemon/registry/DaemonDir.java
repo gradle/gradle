@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.UUIDGenerator;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -50,8 +50,8 @@ public class DaemonDir {
 
     //very simplistic, just making sure each damon has unique log file
     public File createUniqueLog() {
-        String uid = new UUIDGenerator().generateId().toString();
-        return new File(dir, String.format("daemon-%s.out.log", uid));
+        Long pid = NativeEnvironment.current().getPid();
+        return new File(dir, String.format("daemon-%s.out.log", pid));
     }
 
     public List<File> getLogs() {
