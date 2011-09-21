@@ -180,16 +180,20 @@ eclipse {
   }
 }
 """
-        content = getFile([print: true], '.classpath').text
 
         //then
-        contains('foo.txt')
+        def vars = classpath.vars
+        assert vars.size() == 1
+        vars[0].assertHasJar("fooPathVariable/foo.txt")
 
-        contains('fooPathVariable')
-        contains('someFriendlyContainer', 'andYetAnotherContainer')
+        def containers = classpath.containers
+        assert containers.size() == 3
+        assert containers[1] == 'someFriendlyContainer'
+        assert containers[2] == 'andYetAnotherContainer'
 
-        contains('build-eclipse')
-        contains('<message>be cool')
+        assert classpath.output == 'build-eclipse'
+
+        assert classpath.classpath.message[0].text() == 'be cool'
     }
 
     @Test
@@ -215,11 +219,6 @@ eclipse.classpath {
     minusConfigurations += configurations.someOtherConfig
 }
 """
-        content = getFile([print: true], '.classpath').text
-
-        //then
-        contains 'foo.txt', 'bar.txt'
-        assert !content.contains('unwanted.txt')
 
         //then
         def libraries = classpath.libs
@@ -255,11 +254,9 @@ eclipse.classpath {
     minusConfigurations += configurations.someOtherConfig
 }
 """
-        content = getFile([print: true], '.classpath').text
 
         //then
-        contains 'foo', 'bar'
-        assert !content.contains('unwanted')
+        assert classpath.projects == ['/foo', '/bar']
     }
 
     @Test
@@ -560,7 +557,38 @@ eclipse {
         libraries[1].assertNotExported()
     }
 
-    protected def contains(String... wanted) {
-        wanted.each { assert content.contains(it)}
+    @Test
+    void "does not break when some dependencies cannot be resolved"() {
+        //given
+        def repoJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publishArtifact()
+        def localJar = file('someDependency.jar').createFile()
+
+        file("settings.gradle") << "include 'someApiProject'\n"
+
+        //when
+        runEclipseTask """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+}
+
+repositories {
+    maven { url "${mavenRepo.rootDir.toURI()}" }
+}
+
+dependencies {
+    compile 'coolGroup:niceArtifact:1.0'
+    compile project(':someApiProject')
+    compile 'i.dont:Exist:1.0'
+    compile files('someDependency.jar')
+}
+"""
+
+        //then
+        def libraries = classpath.libs
+        assert libraries.size() == 3
+        libraries[0].assertHasJar(repoJar)
+        libraries[1].assertHasJar(file('unresolved dependency - i.dont#Exist;1.0'))
+        libraries[2].assertHasJar(localJar)
     }
 }

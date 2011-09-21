@@ -21,7 +21,7 @@ import java.util.regex.Pattern
 class EclipseClasspathFixture {
     final TestFile projectDir
     final TestFile userHomeDir
-    Node classpath
+    private Node classpath
 
     EclipseClasspathFixture(TestFile projectDir, TestFile userHomeDir) {
         this.projectDir = projectDir
@@ -40,6 +40,18 @@ class EclipseClasspathFixture {
 
     List<Node> getEntries() {
         return getClasspath().classpathentry as List
+    }
+
+    String getOutput() {
+        return getClasspath().classpathentry.find { it.@kind == 'output' }.@path
+    }
+
+    List<String> getContainers() {
+        return getClasspath().classpathentry.findAll { it.@kind == 'con' }.collect { it.@path }
+    }
+
+    List<String> getProjects() {
+        return getClasspath().classpathentry.findAll { it.@kind == 'src' && it.@path.startsWith('/') }.collect { it.@path }
     }
 
     List<EclipseLibrary> getLibs() {

@@ -21,7 +21,7 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
 
-class ConfigurationHooksTest extends AbstractIdeIntegrationTest {
+class ConfigurationHooksIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 

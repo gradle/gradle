@@ -22,7 +22,7 @@ import org.junit.Test
 /**
  * @author Szczepan Faber, created at: 3/27/11
  */
-class AutoTestedSamplesTest extends AbstractAutoTestedSamplesTest {
+class AutoTestedSamplesIntegrationTest extends AbstractAutoTestedSamplesTest {
 
     @Test
     void runSamples() {

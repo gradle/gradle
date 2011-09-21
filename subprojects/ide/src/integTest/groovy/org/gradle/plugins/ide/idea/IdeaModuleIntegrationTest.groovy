@@ -251,7 +251,7 @@ idea.module {
     }
 
     @Test
-    void "does not break when dependency unresolved"() {
+    void "does not break when some dependencies cannot be resolved"() {
         //given
         def repoDir = file("repo")
         publishArtifact(repoDir, "groupOne", "artifactTwo")
@@ -286,6 +286,5 @@ project(':impl') {
         assert content.count("artifactTwo-1.0.jar") == 1
         assert content.count("someApiProject") == 1
         assert content.count("unresolved dependency - i.dont#Exist;1.0") == 1
-        //TODO SF might do similar test for eclipse
     }
 }
