@@ -19,8 +19,8 @@ import java.io.File;
 
 public interface FileLockManager {
     /**
-     * Creates a locks for the given file with the given mode. Acquires a lock with the given mode, which is held until the returned lock is released by calling {@link
-     * org.gradle.cache.internal.FileLock#close()}.
+     * Creates a locks for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
+     * released by calling {@link org.gradle.cache.internal.FileLock#close()}. This method blocks until the lock can be acquired.
      */
     FileLock lock(File target, LockMode mode, String displayName) throws LockTimeoutException;
 

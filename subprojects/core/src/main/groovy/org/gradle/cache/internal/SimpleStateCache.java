@@ -85,7 +85,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
                 inStr.close();
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not read cache value from '%s' due to %s.", cacheFile, e), e);
+            throw new GradleException(String.format("Could not read cache value from '%s'.", cacheFile), e);
         }
     }
 }

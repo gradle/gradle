@@ -100,7 +100,7 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
             return false;
         }
         if (!lock.getUnlockedCleanly()) {
-            LOGGER.debug("Invalidating {} as it was not close cleanly.", this);
+            LOGGER.debug("Invalidating {} as it was not closed cleanly.", this);
             return false;
         }
         Properties currentProperties = GUtil.loadProperties(propertiesFile);
