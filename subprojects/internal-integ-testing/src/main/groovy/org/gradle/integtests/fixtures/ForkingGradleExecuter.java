@@ -24,6 +24,7 @@ import org.gradle.util.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class ForkingGradleExecuter extends OutputScrapingGradleExecuter {
         gradleOpts.addAll(Arrays.asList(opts));
     }
 
-    protected GradleOutput doRun(boolean expectFailure) {
+    public ExecHandleBuilder createExecHandleBuilder() {
         if (!gradleHomeDir.isDirectory()) {
             fail(gradleHomeDir + " is not a directory.\n"
                     + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
@@ -61,9 +62,6 @@ public class ForkingGradleExecuter extends OutputScrapingGradleExecuter {
 
         CommandBuilder commandBuilder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder()
                 : new UnixCommandBuilder();
-
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        ByteArrayOutputStream errStream = new ByteArrayOutputStream();
 
         ExecHandleBuilder builder = new ExecHandleBuilder() {
             @Override
@@ -73,8 +71,6 @@ public class ForkingGradleExecuter extends OutputScrapingGradleExecuter {
                 return ForkingGradleExecuter.this.getWorkingDir();
             }
         };
-        builder.setStandardOutput(outStream);
-        builder.setErrorOutput(errStream);
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", Jvm.current().getJavaHome());
         builder.environment("GRADLE_OPTS", formatGradleOpts());
@@ -88,6 +84,17 @@ public class ForkingGradleExecuter extends OutputScrapingGradleExecuter {
         LOG.info(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(),
                 builder.getArgs()));
 
+        return builder;
+    }
+
+    protected GradleOutput doRun(boolean expectFailure) {
+        ExecHandleBuilder builder = createExecHandleBuilder();
+
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+        builder.setStandardOutput(outStream);
+        builder.setErrorOutput(errStream);
+
         ExecHandle proc = builder.build();
         int exitValue = proc.start().waitForFinish().getExitValue();
 
@@ -99,13 +106,12 @@ public class ForkingGradleExecuter extends OutputScrapingGradleExecuter {
         LOG.info("ERROR: " + error);
 
         if (failed != expectFailure) {
-            String message = String.format("Gradle execution %s in %s with: %s %s%nOutput:%n%s%nError:%n%s%n-----%n",
-                    expectFailure ? "did not fail" : "failed", builder.getWorkingDir(), builder.getExecutable(),
-                    builder.getArgs(), output, error);
+            String message = String.format("Gradle execution %s in %s with: %s %nOutput:%n%s%nError:%n%s%n-----%n",
+                    expectFailure ? "did not fail" : "failed", proc.getDirectory(), proc.getCommand(), output, error);
             System.out.println(message);
             throw new RuntimeException(message);
         }
-        
+
         return new GradleOutput(output, error);
     }
 
