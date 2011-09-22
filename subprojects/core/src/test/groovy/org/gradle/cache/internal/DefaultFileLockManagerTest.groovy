@@ -22,6 +22,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.util.TestFile
 import java.util.concurrent.Callable
+import org.gradle.os.OperatingSystem
 
 /**
  * @author: Szczepan Faber, created at: 8/30/11
@@ -245,6 +246,10 @@ class DefaultFileLockManagerTest extends Specification {
     }
 
     def "writes version 2 lock file while exclusive lock is open"() {
+        if (OperatingSystem.current().fileSystem.implicitlyLocksFileOnOpen) {
+            // We won't be able to open the lock file for reading during the test - bail
+            return
+        }
         def file = tmpDir.file("state.bin")
         def lockFile = tmpDir.file("state.bin.lock")
 

@@ -196,6 +196,10 @@ public abstract class OperatingSystem {
         public boolean isSymlinkAware() {
             return true;
         }
+
+        public boolean getImplicitlyLocksFileOnOpen() {
+            return false;
+        }
     }
 
     static class MacFileSystem extends UnixFileSystem {
@@ -213,6 +217,10 @@ public abstract class OperatingSystem {
         public boolean isSymlinkAware() {
             // Not strictly true - Vista and later can handle symlinks. But not every user (most users?) don't have permission to create them.
             return false;
+        }
+
+        public boolean getImplicitlyLocksFileOnOpen() {
+            return true;
         }
     }
 }

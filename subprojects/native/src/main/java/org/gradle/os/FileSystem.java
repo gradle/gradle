@@ -19,4 +19,6 @@ public interface FileSystem {
     boolean isCaseSensitive();
 
     boolean isSymlinkAware();
+
+    boolean getImplicitlyLocksFileOnOpen();
 }
