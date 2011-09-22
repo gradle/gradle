@@ -20,8 +20,8 @@ import java.util.concurrent.Callable;
 
 public interface FileLock {
     /**
-     * Returns true if the most recent {@link #writeToFile(Runnable)} by any process succeeded (ie a process did not crash while updating the target file).
-     * Returns false if {@link #writeToFile(Runnable)} has never been called for the target file.
+     * Returns true if the most recent {@link #writeToFile(Runnable)} by any process succeeded (ie a process did not crash while updating
+     * the target file). Returns false if {@link #writeToFile(Runnable)} has never been called for the target file.
      */
     boolean getUnlockedCleanly();
 
@@ -35,6 +35,9 @@ public interface FileLock {
      *
      * <p>If an exclusive or shared lock is already held, the lock level is not changed and the action is executed. If no lock is already held,
      * a shared lock is acquired, the action executed, and the lock released. This method blocks until the lock can be acquired.
+     *
+     * @throws LockTimeoutException On timeout acquiring lock, if required.
+     * @throws IllegalStateException When this lock has been closed.
      */
     <T> T readFromFile(Callable<T> action) throws LockTimeoutException;
 
@@ -44,6 +47,9 @@ public interface FileLock {
      * <p>If an exclusive lock is already held, the lock level is not changed and the action is executed. If a shared lock is already held,
      * the lock is escalated to an exclusive lock, and reverted back to a shared lock when the action completes. If no lock is already held, an
      * exclusive lock is acquired, the action executed, and the lock released.
+     *
+     * @throws LockTimeoutException On timeout acquiring lock, if required.
+     * @throws IllegalStateException When this lock has been closed.
      */
     void writeToFile(Runnable action) throws LockTimeoutException;
 
