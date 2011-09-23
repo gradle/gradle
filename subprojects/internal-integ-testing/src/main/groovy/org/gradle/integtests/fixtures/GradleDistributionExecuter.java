@@ -16,9 +16,7 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.Matchers;
 import org.gradle.util.TestFile;
-import org.junit.Assert;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
