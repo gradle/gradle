@@ -33,7 +33,7 @@ public class DefaultMavenDeployment implements MavenDeployment {
     public DefaultMavenDeployment(PublishArtifact pomArtifact, PublishArtifact mainArtifact, Iterable<? extends PublishArtifact> attachedArtifacts) {
         this.pomArtifact = pomArtifact;
         this.mainArtifact = mainArtifact;
-        this.attachedArtifacts = GUtil.addSets(attachedArtifacts);
+        this.attachedArtifacts = GUtil.toSet(attachedArtifacts);
     }
 
     public void addArtifact(PublishArtifact artifact) {
