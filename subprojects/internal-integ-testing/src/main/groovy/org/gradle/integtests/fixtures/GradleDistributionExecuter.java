@@ -160,7 +160,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
                     unexpectedFiles.add(file.getName());
                 }
             }
-            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
+//            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
         }
         return result;
     }
