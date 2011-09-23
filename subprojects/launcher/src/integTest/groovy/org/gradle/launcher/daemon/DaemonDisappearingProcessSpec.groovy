@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.integtests.fixtures.*
