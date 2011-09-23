@@ -27,7 +27,7 @@ class RouterTest extends ConcurrentSpecification {
     final DispatchFailureHandler<Message> handler = Mock()
     final Router router = new Router(executor, handler)
 
-    public cleanup() {
+    def cleanup() {
         router?.stop()
     }
 
