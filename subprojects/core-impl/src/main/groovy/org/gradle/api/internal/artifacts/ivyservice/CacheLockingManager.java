@@ -18,5 +18,5 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import java.util.concurrent.Callable;
 
 public interface CacheLockingManager {
-    <T> T withCacheLock(Callable<? extends T> action);
+    <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action);
 }

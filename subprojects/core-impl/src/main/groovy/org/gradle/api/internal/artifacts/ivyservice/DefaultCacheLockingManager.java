@@ -38,13 +38,13 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
         this.cacheMetaData = cacheMetaData;
     }
 
-    public <T> T withCacheLock(Callable<? extends T> action) {
+    public <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action) {
         boolean wasUnlocked = locked.compareAndSet(false, true);
         if (!wasUnlocked) {
             throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this process.");
         }
         try {
-            FileLock lock = fileLockManager.lock(cacheMetaData.getCacheDir(), FileLockManager.LockMode.Exclusive, "artifact cache");
+            FileLock lock = fileLockManager.lock(cacheMetaData.getCacheDir(), FileLockManager.LockMode.Exclusive, "artifact cache", operationDisplayName);
             try {
                 return action.call();
             } catch (Exception e) {

@@ -32,7 +32,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  *
  * <ul>
  *     <li>State region: 1 byte version field, 1 byte clean flag.</li>
- *     <li>Owner information region: 1 byte version field, utf-8 encoded owner process id, utf-8 encoded owner process display name.</li>
+ *     <li>Owner information region: 1 byte version field, utf-8 encoded owner process id, utf-8 encoded owner process display name, utf-8 encoded owner operation display name</li>
  * </ul>
  */
 public class DefaultFileLockManager implements FileLockManager {
@@ -50,13 +50,17 @@ public class DefaultFileLockManager implements FileLockManager {
         this.metaDataProvider = metaDataProvider;
     }
 
-    public FileLock lock(File target, LockMode mode, String displayName) {
+    public FileLock lock(File target, LockMode mode, String targetDisplayName) throws LockTimeoutException {
+        return lock(target, mode, targetDisplayName, "");
+    }
+
+    public FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName) {
         File canonicalTarget = GFileUtils.canonicalise(target);
         if (!lockedFiles.add(canonicalTarget)) {
-            throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.", displayName));
+            throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.", targetDisplayName));
         }
         try {
-            return new DefaultFileLock(canonicalTarget, mode, displayName);
+            return new DefaultFileLock(canonicalTarget, mode, targetDisplayName, operationDisplayName);
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
             throw UncheckedException.asUncheckedException(t);
@@ -68,13 +72,15 @@ public class DefaultFileLockManager implements FileLockManager {
         private final File target;
         private final LockMode mode;
         private final String displayName;
+        private final String operationDisplayName;
         private java.nio.channels.FileLock lock;
         private RandomAccessFile lockFileAccess;
 
-        public DefaultFileLock(File target, LockMode mode, String displayName) throws Throwable {
+        public DefaultFileLock(File target, LockMode mode, String displayName, String operationDisplayName) throws Throwable {
             this.target = target;
             this.mode = mode;
             this.displayName = displayName;
+            this.operationDisplayName = operationDisplayName;
             if (target.isDirectory()) {
                 lockFile = new File(target, target.getName() + ".lock");
             } else {
@@ -202,6 +208,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 // Can't acquire lock, get details of owner to include in the error message
                 String ownerPid = "unknown";
                 String ownerProcess = "unknown";
+                String ownerOperation = "unknown";
                 java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, timeout);
                 if (informationRegionLock == null) {
                     LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
@@ -216,6 +223,7 @@ public class DefaultFileLockManager implements FileLockManager {
                             }
                             ownerPid = lockFileAccess.readUTF();
                             ownerProcess = lockFileAccess.readUTF();
+                            ownerOperation= lockFileAccess.readUTF();
                         }
                     } finally {
                         informationRegionLock.release();
@@ -234,8 +242,8 @@ public class DefaultFileLockManager implements FileLockManager {
                     builder.build().start().waitForFinish();
                     extra = new String(outstr.toByteArray());
                 }
-                throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nLock file: %s%n%s",
-                        displayName, ownerProcess, ownerPid, lockFile, extra));
+                throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nOperation: %s%nOur operation: %s%nLock file: %s%n%s",
+                        displayName, ownerProcess, ownerPid, ownerOperation, operationDisplayName, lockFile, extra));
             }
 
             try {
@@ -265,6 +273,7 @@ public class DefaultFileLockManager implements FileLockManager {
                         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
                         lockFileAccess.writeUTF(metaDataProvider.getProcessIdentifier());
                         lockFileAccess.writeUTF(metaDataProvider.getProcessDisplayName());
+                        lockFileAccess.writeUTF(operationDisplayName);
                         lockFileAccess.setLength(lockFileAccess.getFilePointer());
                     } finally {
                         informationRegionLock.release();

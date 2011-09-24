@@ -32,7 +32,7 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
     }
 
     public ResolvedConfiguration resolve(final ConfigurationInternal configuration) throws ResolveException {
-        return lockingManager.withCacheLock(new Callable<ResolvedConfiguration>() {
+        return lockingManager.withCacheLock(String.format("resolve %s", configuration), new Callable<ResolvedConfiguration>() {
             public ResolvedConfiguration call() throws Exception {
                 return resolver.resolve(configuration);
             }

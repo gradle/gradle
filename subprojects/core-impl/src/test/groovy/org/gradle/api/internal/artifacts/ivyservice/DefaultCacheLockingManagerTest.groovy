@@ -35,13 +35,13 @@ class DefaultCacheLockingManagerTest extends Specification {
         FileLock lock = Mock()
 
         when:
-        def result = lockingManager.withCacheLock(action)
+        def result = lockingManager.withCacheLock("some operation", action)
 
         then:
         result == 'result'
 
         and:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache") >> lock
+        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache", "some operation") >> lock
         1 * action.call() >> 'result'
         1 * lock.close()
         _ * cacheMetaData.cacheDir >> cacheDir
@@ -54,14 +54,14 @@ class DefaultCacheLockingManagerTest extends Specification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        lockingManager.withCacheLock(action)
+        lockingManager.withCacheLock("some operation", action)
 
         then:
         RuntimeException e = thrown()
         e == failure
 
         and:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache") >> lock
+        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache", "some operation") >> lock
         1 * action.call() >> { throw failure }
         1 * lock.close()
         _ * cacheMetaData.cacheDir >> cacheDir
@@ -75,10 +75,10 @@ class DefaultCacheLockingManagerTest extends Specification {
         given:
 
         when:
-        lockingManager.withCacheLock(action)
+        lockingManager.withCacheLock("some operation", action)
 
         then:
-        _ * fileLockManager.lock(_, _, _) >> lock
+        _ * fileLockManager.lock(_, _, _, _) >> lock
         1 * action.call() >> {
             def lockHolder = lockingManager.getLockHolder(tmpDir.file("artifact"))
             assert lockHolder.acquireLock()

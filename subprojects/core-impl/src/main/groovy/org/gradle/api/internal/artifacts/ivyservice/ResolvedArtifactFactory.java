@@ -36,7 +36,7 @@ public class ResolvedArtifactFactory {
     public ResolvedArtifact create(ResolvedDependency owner, final Artifact artifact, final ResolveEngine resolvedEngine) {
         return new DefaultResolvedArtifact(owner, artifact, new FileSource() {
             public File get() {
-                return lockingManager.withCacheLock(new Callable<File>() {
+                return lockingManager.withCacheLock(String.format("download %s", artifact), new Callable<File>() {
                     public File call() throws Exception {
                         return resolvedEngine.download(artifact, new DownloadOptions()).getLocalFile();
                     }
