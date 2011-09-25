@@ -319,7 +319,6 @@ uploadDists {
     doFirst {
         repositories {
             ivy {
-                name = 'gradleReleases'
                 artifactPattern "${version.distributionUrl}/[artifact]-[revision](-[classifier]).[ext]"
                 userName = artifactoryUserName
                 password = artifactoryUserPassword
