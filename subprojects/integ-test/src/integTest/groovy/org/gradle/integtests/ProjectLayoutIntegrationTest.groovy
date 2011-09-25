@@ -36,7 +36,6 @@ apply plugin: 'groovy'
 apply plugin: 'scala'
 
 repositories {
-    maven { url 'http://scala-tools.org/repo-releases/' }
     mavenCentral()
 }
 dependencies {
