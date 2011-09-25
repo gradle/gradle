@@ -240,7 +240,18 @@ public class DefaultFileLockManager implements FileLockManager {
                     builder.setStandardOutput(outstr);
                     builder.setErrorOutput(outstr);
                     builder.build().start().waitForFinish();
-                    extra = new String(outstr.toByteArray());
+                    extra = String.format("=== JSTACK OUTPUT ===%n%s", new String(outstr.toByteArray()));
+                }
+                File jps = Jvm.current().getExecutable("jps");
+                if (jps.isFile()) {
+                    ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+                    ExecHandleBuilder builder = new ExecHandleBuilder();
+                    builder.workingDir(new File(".").getAbsoluteFile());
+                    builder.commandLine(jps, "-lvm");
+                    builder.setStandardOutput(outstr);
+                    builder.setErrorOutput(outstr);
+                    builder.build().start().waitForFinish();
+                    extra += String.format("=== JPS OUTPUT ===%n%s", new String(outstr.toByteArray()));
                 }
                 throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nOperation: %s%nOur operation: %s%nLock file: %s%n%s",
                         displayName, ownerProcess, ownerPid, ownerOperation, operationDisplayName, lockFile, extra));
