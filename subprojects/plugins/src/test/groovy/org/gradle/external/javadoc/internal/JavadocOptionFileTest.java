@@ -17,32 +17,23 @@
 package org.gradle.external.javadoc.internal;
 
 import org.gradle.external.javadoc.JavadocOptionFileOption;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
-import org.junit.Before;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Tom Eyckmans
  */
 public class JavadocOptionFileTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
-    private JavadocOptionFileOption optionFileOptionMock;
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
+    @SuppressWarnings("unchecked")
+    private JavadocOptionFileOption<String> optionFileOptionMock = context.mock(JavadocOptionFileOption.class);
     private final String optionName = "testOption";
-    
-
-    private JavadocOptionFile optionFile;
-
-    @Before
-    public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-
-        optionFileOptionMock = context.mock(JavadocOptionFileOption.class);
-
-        optionFile = new JavadocOptionFile();
-    }
+    private JavadocOptionFile optionFile = new JavadocOptionFile();
 
     @Test
     public void testDefaults() {

@@ -43,7 +43,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class GroovyCompileTest extends AbstractCompileTest {
-    static final List TEST_GROOVY_CLASSPATH = toList(new File("groovy.jar"));
+    static final List<File> TEST_GROOVY_CLASSPATH = toList(new File("groovy.jar"));
 
     private GroovyCompile testObj;
 

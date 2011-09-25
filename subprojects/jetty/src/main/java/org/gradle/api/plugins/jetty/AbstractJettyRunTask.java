@@ -22,7 +22,10 @@ import org.gradle.api.plugins.jetty.internal.ConsoleScanner;
 import org.gradle.api.plugins.jetty.internal.JettyPluginServer;
 import org.gradle.api.plugins.jetty.internal.JettyPluginWebAppContext;
 import org.gradle.api.plugins.jetty.internal.Monitor;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GFileUtils;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.RequestLog;
@@ -132,7 +135,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * List of Listeners for the scanner.
      */
-    protected ArrayList scannerListeners;
+    protected List<Scanner.Listener> scannerListeners;
 
     /**
      * A scanner to check ENTER hits on the console.
@@ -180,11 +183,11 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.server = server;
     }
 
-    public void setScannerListeners(ArrayList listeners) {
-        this.scannerListeners = new ArrayList(listeners);
+    public void setScannerListeners(List<Scanner.Listener> listeners) {
+        this.scannerListeners = new ArrayList<Scanner.Listener>(listeners);
     }
 
-    public ArrayList getScannerListeners() {
+    public List<Scanner.Listener> getScannerListeners() {
         return this.scannerListeners;
     }
 
