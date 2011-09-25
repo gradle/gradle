@@ -32,7 +32,6 @@ dependencies {
     compile libraries.slf4j_api
     compile 'org.testng:testng:5.14.10'
 
-    testCompile libraries.xmlunit
     testCompile 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 }
 
