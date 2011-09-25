@@ -35,7 +35,7 @@ public class DaemonRegistryContent implements Serializable {
      * returns all statuses. May be empty.
      */
     public List<DaemonStatus> getStatuses() {
-        return new LinkedList(statusesMap.values());
+        return new LinkedList<DaemonStatus>(statusesMap.values());
     }
 
     /**

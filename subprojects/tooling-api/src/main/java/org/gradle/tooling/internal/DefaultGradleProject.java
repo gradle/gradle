@@ -36,7 +36,7 @@ public class DefaultGradleProject implements ProjectVersion3, GradleProject, Ser
     private String description;
     private String path;
     private GradleProject parent;
-    private List<GradleProject> children = new LinkedList<GradleProject>();
+    private List<? extends GradleProject> children = new LinkedList<GradleProject>();
     private List<GradleTask> tasks = new LinkedList<GradleTask>();
 
     public DefaultGradleProject() {}
@@ -72,11 +72,11 @@ public class DefaultGradleProject implements ProjectVersion3, GradleProject, Ser
         return this;
     }
 
-    public DomainObjectSet<GradleProject> getChildren() {
+    public DomainObjectSet<? extends GradleProject> getChildren() {
         return new ImmutableDomainObjectSet<GradleProject>(children);
     }
 
-    public DefaultGradleProject setChildren(List<GradleProject> children) {
+    public DefaultGradleProject setChildren(List<? extends GradleProject> children) {
         this.children = children;
         return this;
     }

@@ -113,7 +113,7 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
     public List<Daemon> getDaemons() {
         daemonsLock.lock();
         try {
-            return new ArrayList(daemons);
+            return new ArrayList<Daemon>(daemons);
         } finally {
             daemonsLock.unlock();
         }
@@ -135,7 +135,7 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         
         daemonsLock.lock();
         try {
-            daemonsToStop = new ArrayList(daemons);
+            daemonsToStop = new ArrayList<Daemon>(daemons);
             daemons.clear();
         } finally {
             daemonsLock.unlock();

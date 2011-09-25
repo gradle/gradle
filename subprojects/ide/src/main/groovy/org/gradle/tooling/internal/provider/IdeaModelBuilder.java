@@ -30,13 +30,11 @@ import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import java.io.File;
 import java.util.*;
 
-import static org.codehaus.groovy.runtime.InvokerHelper.asList;
-
 /**
  * @author: Szczepan Faber, created at: 7/23/11
  */
 public class IdeaModelBuilder implements BuildsModel {
-    public boolean canBuild(Class type) {
+    public boolean canBuild(Class<?> type) {
         return type == InternalIdeaProject.class;
     }
 
@@ -74,7 +72,7 @@ public class IdeaModelBuilder implements BuildsModel {
         for (IdeaModule module : projectModel.getModules()) {
             buildDependencies(modules, module);
         }
-        out.setChildren(new LinkedList(modules.values()));
+        out.setChildren(new LinkedList<DefaultIdeaModule>(modules.values()));
 
         return out;
     }
@@ -117,7 +115,7 @@ public class IdeaModelBuilder implements BuildsModel {
                 .setParent(ideaProject)
                 .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
                 .setModuleFileDir(ideaModule.getIml().getGenerateTo())
-                .setContentRoots(asList(contentRoot))
+                .setContentRoots(Collections.singletonList(contentRoot))
                 .setCompilerOutput(new DefaultIdeaCompilerOutput()
                     .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                     .setOutputDir(ideaModule.getOutputDir())

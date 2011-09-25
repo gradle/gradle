@@ -39,7 +39,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 //    public static final long serialVersionUID = 1L;
 
     private String name;
-    private List<IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
+    private List<? extends IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
     private IdeaProject parent;
 
     private File moduleFileDir;
@@ -61,7 +61,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return new ImmutableDomainObjectSet<IdeaContentRoot>(contentRoots);
     }
 
-    public DefaultIdeaModule setContentRoots(List<IdeaContentRoot> contentRoots) {
+    public DefaultIdeaModule setContentRoots(List<? extends IdeaContentRoot> contentRoots) {
         this.contentRoots = contentRoots;
         return this;
     }
