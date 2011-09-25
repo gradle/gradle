@@ -32,7 +32,7 @@ public class ArtifactCacheMetaData {
 
     public File getCacheDir() {
         if (cache == null) {
-            cache = cacheRepository.store(String.format("artifacts/%d", CACHE_LAYOUT_VERSION)).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open();
+            cache = cacheRepository.store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION)).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open();
         }
         return cache.getBaseDir();
     }
