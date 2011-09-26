@@ -180,10 +180,24 @@ task testRemote(type: Test, dependsOn: uploadWebsite) {
     systemProperties 'test.ignore.docs': false
 }
 
-task install(type: Copy) {
+task install(type: Sync) {
     dependsOn html
     from buildWebsiteDir
     into "${System.getProperty('user.home')}/Sites/gradle"
+}
+
+// note, will fail if you don't have permissions for this repo
+task checkoutRoadmap(type: Exec, dependsOn: [install]) {
+    checkoutDir = file("$install.destinationDir/board")
+    executable "git"
+    args "clone", "git@github.com:gradleware/gradle-status-board.git", checkoutDir
+    onlyIf { !checkoutDir.exists() }
+}
+
+task updateRoadmap(type: Exec, dependsOn: [checkoutRoadmap]) {
+    executable "git"
+    args "pull"
+    workingDir checkoutRoadmap.checkoutDir
 }
 
 task ciBuild(dependsOn: [clean, html, uploadWebsite, testRemote])
