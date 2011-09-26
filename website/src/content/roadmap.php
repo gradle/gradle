@@ -3,7 +3,7 @@
   <div id="status-board-container">
     <h1>Development Roadmap</h1>
     <p>This page gives a very <em>high level</em> view of the current project roadmap and status.</p>
-    <p style="text-align: center; font-weight: bold">You can hover over each item for more information, or click the item on a touchscreen device (e.g. iPad).</p>
+    <p style="font-weight: bold">You can hover over each item for more information, or click the item on a touchscreen device (e.g. iPad).</p>
     <? require "board/board.php"; ?>
   </div>
 
