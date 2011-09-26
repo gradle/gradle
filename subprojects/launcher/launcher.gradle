@@ -18,18 +18,30 @@ dependencies {
 
 useTestFixtures()
 
-jar.manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
-jar.doFirst {
-    jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name}")
+jar {
+    manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
+    doFirst {
+        jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name}")
+    }
 }
 
-task startScripts {
+task startScripts(type: StartScriptGenerator) {
     startScriptsDir = new File("$buildDir/startScripts")
-    inputs.files configurations.startScriptGenerator
-    inputs.properties['classpath'] = jar.archiveName
-    outputs.dir startScriptsDir
+    classpath = configurations.startScriptGenerator
+    launcherJar = jar.outputs.files
+}
 
-    doLast {
+class StartScriptGenerator extends DefaultTask {
+    @OutputDirectory
+    File startScriptsDir
+
+    @InputFiles
+    FileCollection classpath
+
+    @InputFiles
+    FileCollection launcherJar
+
+    def generate() {
         logging.captureStandardOutput(LogLevel.INFO)
         def factory = services.get(ClassLoaderFactory)
         def classLoader = factory.createIsolatedClassLoader(configurations.startScriptGenerator.collect { it.toURI().toURL() })
@@ -39,7 +51,7 @@ task startScripts {
         generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
         generator.mainClassName = 'org.gradle.launcher.GradleMain'
         generator.scriptRelPath = 'bin/gradle'
-        generator.classpath = ["lib/${jar.archiveName}" as String]
+        generator.classpath = ["lib/${launcherJar.singleFile.name}" as String]
         generator.appNameSystemProperty = 'org.gradle.appname'
         generator.generateUnixScript(file("$startScriptsDir/gradle"))
         generator.generateWindowsScript(file("$startScriptsDir/gradle.bat"))
