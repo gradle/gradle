@@ -24,6 +24,7 @@ jar.doFirst {
 }
 
 task startScripts {
+    startScriptsDir = new File("$buildDir/startScripts")
     inputs.files configurations.startScriptGenerator
     inputs.properties['classpath'] = jar.archiveName
     outputs.dir startScriptsDir

@@ -46,7 +46,6 @@ srcDocsDir = file('src/docs')
 userguideSrcDir = new File(srcDocsDir, 'userguide')
 cssSrcDir = new File(srcDocsDir, 'css')
 dslSrcDir = new File(srcDocsDir, 'dsl')
-
 docsDir = file("$buildDir/docs")
 userguideDir = new File(docsDir, 'userguide')
 distDocsDir = new File(buildDir, 'distDocs')
@@ -54,6 +53,18 @@ samplesDir = file("$buildDir/samples")
 docbookSrc = new File(project.buildDir, 'src')
 samplesSrcDir = file('src/samples')
 websiteDocs = new File(buildDir, 'websiteDocs')
+
+outputs = [:]
+outputs.samples = files(samplesDir) {
+    builtBy 'samples'
+}
+outputs.distDocs = files(distDocsDir) {
+    builtBy 'distDocs'
+}
+outputs.docs = files(docsDir) {
+    builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml'
+}
+
 
 tasks.withType(Docbook2Xhtml) {
     dependsOn userguideStyleSheets
