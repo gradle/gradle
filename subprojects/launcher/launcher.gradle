@@ -41,6 +41,7 @@ class StartScriptGenerator extends DefaultTask {
     @InputFiles
     FileCollection launcherJar
 
+    @TaskAction
     def generate() {
         logging.captureStandardOutput(LogLevel.INFO)
         def factory = services.get(ClassLoaderFactory)
