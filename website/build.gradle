@@ -107,6 +107,7 @@ task html(dependsOn: configureReleases) << {
     pages << new IndexPage(srcFile: "$webContentSrcDir/index.php" as File)
     pages << new PhpPage(srcFile: "$webContentSrcDir/news.php" as File)
     pages << new PhpPage(srcFile: "$webContentSrcDir/cookbook.php" as File)
+    pages << new PhpPage(srcFile: "$webContentSrcDir/roadmap.php" as File)
     pages.each { Page page ->
         page.destFile = new File(buildWebsiteDir, page.srcFile.name)
         page.engine = engine
