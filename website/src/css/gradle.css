@@ -45,18 +45,16 @@ p {
     margin-right: auto;
 }
 
-#header, #footer {
-    margin-bottom: 10px;
-}
-
 #header {
     position: relative;
-    height: 122px;
+    height: 90px;
+    margin: 0 33px 10px 33px;
+    margin-left: 33px;
+    margin-right: 33px;
 }
 
 #footer {
-    margin-left: 70px;
-    margin-right: 70px;
+    margin: 0 70px 10px 70px;
     width: 990px;
 }
 
