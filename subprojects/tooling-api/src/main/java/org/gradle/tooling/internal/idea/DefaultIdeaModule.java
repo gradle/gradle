@@ -28,8 +28,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import static java.util.Collections.emptySet;
+import java.util.Collections;
 
 /**
  * @author: Szczepan Faber, created at: 7/25/11
@@ -102,7 +101,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     }
 
     public DomainObjectSet<? extends HierarchicalElement> getChildren() {
-        return new ImmutableDomainObjectSet<HierarchicalElement>((Set<HierarchicalElement>) emptySet());
+        return new ImmutableDomainObjectSet<HierarchicalElement>(Collections.<HierarchicalElement>emptySet());
     }
 
     public String getDescription() {
