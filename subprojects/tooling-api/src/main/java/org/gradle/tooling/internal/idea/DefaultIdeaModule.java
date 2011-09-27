@@ -102,7 +102,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     }
 
     public DomainObjectSet<? extends HierarchicalElement> getChildren() {
-        return new ImmutableDomainObjectSet<HierarchicalElement>((Set) emptySet());
+        return new ImmutableDomainObjectSet<HierarchicalElement>((Set<HierarchicalElement>) emptySet());
     }
 
     public String getDescription() {
