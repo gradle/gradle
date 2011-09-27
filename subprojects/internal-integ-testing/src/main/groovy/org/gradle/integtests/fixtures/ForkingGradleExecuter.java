@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.os.OperatingSystem;
+import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.Jvm;
@@ -32,7 +33,7 @@ import java.util.List;
 
 import static org.junit.Assert.fail;
 
-public class ForkingGradleExecuter extends OutputScrapingGradleExecuter {
+public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final TestFile gradleHomeDir;
     private final List<String> gradleOpts = new ArrayList<String>();
@@ -86,32 +87,16 @@ public class ForkingGradleExecuter extends OutputScrapingGradleExecuter {
         return builder;
     }
 
-    protected GradleOutput doRun(boolean expectFailure) {
-        ExecHandleBuilder builder = createExecHandleBuilder();
+    public GradleHandle<? extends ForkingGradleExecuter> createHandle() {
+        return new ForkingGradleHandle<ForkingGradleExecuter>(this);
+    }
 
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        ByteArrayOutputStream errStream = new ByteArrayOutputStream();
-        builder.setStandardOutput(outStream);
-        builder.setErrorOutput(errStream);
+    protected ExecutionResult doRun() {
+        return createHandle().start().waitForFinish();
+    }
 
-        ExecHandle proc = builder.build();
-        int exitValue = proc.start().waitForFinish().getExitValue();
-
-        String output = outStream.toString();
-        String error = errStream.toString();
-        boolean failed = exitValue != 0;
-
-        LOG.info("OUTPUT: " + output);
-        LOG.info("ERROR: " + error);
-
-        if (failed != expectFailure) {
-            String message = String.format("Gradle execution %s in %s with: %s %nOutput:%n%s%nError:%n%s%n-----%n",
-                    expectFailure ? "did not fail" : "failed", proc.getDirectory(), proc.getCommand(), output, error);
-            System.out.println(message);
-            throw new RuntimeException(message);
-        }
-
-        return new GradleOutput(output, error);
+    protected ExecutionFailure doRunWithFailure() {
+        return createHandle().start().waitForFailure();
     }
 
     private String formatGradleOpts() {
@@ -175,6 +160,94 @@ public class ForkingGradleExecuter extends OutputScrapingGradleExecuter {
             } else {
                 builder.executable(String.format("%s/bin/gradle", gradleHomeDir.getAbsolutePath()));
             }
+        }
+    }
+
+    protected static class ForkingGradleHandle<T extends ForkingGradleExecuter> extends OutputScrapingGradleHandle<T> {
+        private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleHandle.class);
+        
+        final private T executer;
+
+        final private ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
+        final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+
+        private ExecHandle execHandle;
+
+        public ForkingGradleHandle(T executer) {
+            this.executer = executer;
+        }
+
+        public T getExecuter() {
+            return executer;
+        }
+
+        public String getStandardOutput() {
+            return standardOutput.toString();
+        }
+
+        public String getErrorOutput() {
+            return errorOutput.toString();
+        }
+
+        public GradleHandle<T> start() {
+            createExecHandle().start();
+            return this;
+        }
+
+        public GradleHandle<T> abort() {
+            getExecHandle().abort();
+            return this;
+        }
+
+        protected ExecHandle getExecHandle() {
+            if (execHandle == null) {
+                throw new IllegalStateException("you must call start() before calling this method");
+            }
+
+            return execHandle;
+        }
+
+        protected ExecHandle createExecHandle() {
+            if (execHandle != null) {
+                throw new IllegalStateException("you have already called start() on this handle");
+            }
+
+            ExecHandleBuilder execBuilder = getExecuter().createExecHandleBuilder();
+            execBuilder.setStandardOutput(standardOutput);
+            execBuilder.setErrorOutput(errorOutput);
+            execHandle = execBuilder.build();
+
+            return execHandle;
+        }
+
+        public ExecutionResult waitForFinish() {
+            return waitForStop(false);
+        }
+
+        public ExecutionFailure waitForFailure() {
+            return (ExecutionFailure)waitForStop(true);
+        }
+
+        protected ExecutionResult waitForStop(boolean expectFailure) {
+            ExecHandle execHandle = getExecHandle();
+            ExecResult execResult = execHandle.waitForFinish();
+            execResult.rethrowFailure(); // nop if all ok
+
+            String output = getStandardOutput();
+            String error = getErrorOutput();
+
+            LOG.info("OUTPUT: " + output);
+            LOG.info("ERROR: " + error);
+
+            boolean didFail = execResult.getExitValue() != 0;
+            if (didFail != expectFailure) {
+                String message = String.format("Gradle execution %s in %s with: %s %nOutput:%n%s%nError:%n%s%n-----%n",
+                        expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), output, error);
+                System.out.println(message);
+                throw new RuntimeException(message);
+            }
+
+            return expectFailure ? toExecutionFailure(output, error) : toExecutionResult(output, error);
         }
     }
 

@@ -31,11 +31,19 @@ import org.gradle.logging.internal.StreamBackedStandardOutputListener;
 
 import java.lang.management.ManagementFactory;
 
-public class EmbeddedDaemonGradleExecuter extends OutputScrapingGradleExecuter {
+public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
 
-    protected GradleOutput doRun(boolean expectFailure) {
+    protected ExecutionResult doRun() {
+        return doRun(false);
+    }
+
+    protected ExecutionFailure doRunWithFailure() {
+        return (ExecutionFailure)doRun(true);
+    }
+
+    protected ExecutionResult doRun(boolean expectFailure) {
         StringBuilder output = new StringBuilder();
         StringBuilder error = new StringBuilder();
 
@@ -62,7 +70,11 @@ public class EmbeddedDaemonGradleExecuter extends OutputScrapingGradleExecuter {
             throw new RuntimeException(String.format("Gradle execution in %s %s with: %nOutput:%n%s%nError:%n%s%n-----%n", getWorkingDir(), didOrDidntSnippet, output, error), failure);
         }
 
-        return new GradleOutput(output, error);
+        if (expectFailure) {
+            return new OutputScrapingExecutionFailure(output.toString(), error.toString());
+        } else {
+            return new OutputScrapingExecutionResult(output.toString(), error.toString());
+        }
     }
 
     private DaemonClient createClient() {

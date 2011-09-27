@@ -25,42 +25,35 @@ import spock.lang.*
 
 class DaemonDisappearingProcessSpec extends Specification {
 
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
+    @Rule public final GradleHandles handles = new GradleHandles()
 
-    def processes = []
+    def usedHandles = []
 
     def setup() {
-        distribution.requireOwnUserHomeDir()
-        distribution.file("build.gradle") << """
-            task('sleep') << {
-                println "about to sleep"
-                sleep 10000
-            }
-        """
+        handles.distribution.with {
+            requireOwnUserHomeDir()
+            file("build.gradle") << """
+                task('sleep') << {
+                    println "about to sleep"
+                    sleep 10000
+                }
+            """
+        }
     }
 
-    ForkingGradleExecuter executer() {
-        new ForkingGradleExecuter(distribution.gradleHomeDir).
-            usingProjectDirectory(distribution.testDir).
-            withUserHomeDir(distribution.userHomeDir)
+    GradleHandle handle(Closure executerConfig) {
+        def handle = handles.createHandle()
+        usedHandles << handle
+        handle.executer.with(executerConfig)
+        handle
+    }
+    
+    GradleHandle client() {
+        handle { withArguments("--daemon", "--info").withTasks("sleep") }
     }
 
-    ExecHandle withStreams(ExecHandleBuilder builder) {
-        builder.standardOutput = new ByteArrayOutputStream()
-        builder.errorOutput = new ByteArrayOutputStream()
-        def process = builder.build()
-        processes << process
-        process.metaClass.getOutput = { -> builder.standardOutput.toString() }
-        process.metaClass.getError = { -> builder.errorOutput.toString() }
-        process
-    }
-
-    ExecHandle client() {
-        withStreams(executer().withArguments("--daemon", "--info").withTasks("sleep").createExecHandleBuilder())
-    }
-
-    ExecHandle daemon() {
-        withStreams(executer().withArguments("--foreground", "--info").createExecHandleBuilder())
+    GradleHandle daemon() {
+        handle { withArguments("--foreground", "--info") }
     }
 
     @Timeout(10)
@@ -71,22 +64,22 @@ class DaemonDisappearingProcessSpec extends Specification {
 
         when:
         daemon.start()
-        waitFor { assert daemon.output.contains("Advertising the daemon address to the clients"); true }
+        waitFor { assert daemon.standardOutput.contains("Advertising the daemon address to the clients"); true }
 
         and:
         client.start()
 
         then:
-        waitFor { assert daemon.output.contains("about to sleep"); true }
+        waitFor { assert daemon.standardOutput.contains("about to sleep"); true }
 
         when:
         client.abort()
 
         then:
-        waitFor { daemon.waitForFinish() }.exitValue == 1
+        daemon.waitForFailure()
 
         and:
-        daemon.output.contains "client disconnection detected"
+        daemon.standardOutput.contains "client disconnection detected"
     }
 
     def waitFor(int timeout = 10000, Closure assertion) {
@@ -110,10 +103,10 @@ class DaemonDisappearingProcessSpec extends Specification {
 
     def cleanup() {
         try {
-            processes*.abort()
+            usedHandles*.abort()
         } catch (IllegalStateException e) {}
             
-        processes.each { process ->
+        usedHandles.each { process ->
             waitFor { process.waitForFinish() }
         }
     }

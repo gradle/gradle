@@ -28,37 +28,27 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     @Override
-    protected GradleOutput doRun(boolean expectFailure) {
-        registerDaemon(getUserHomeDir());
-        GradleOutput gradleOutput = super.doRun(expectFailure);
-        String output = gradleOutput.getOutput();
-        output = output.replace(String.format("Note: the Gradle build daemon is an experimental feature.%n"), "");
-        output = output.replace(String.format("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.%n"), "");
-        return new GradleOutput(output, gradleOutput.getError());
-    }
-
-    public static void registerDaemon(final File userHomeDir) {
-//        assert userHomeDir != null;
-//        if (!DAEMONS.add(userHomeDir)) {
-//            return;
-//        }
-//        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-//            public void run() {
-//                ExecHandleBuilder builder = new ExecHandleBuilder();
-//                builder.workingDir(new File(".").getAbsolutePath());
-//                builder.executable(Jvm.current().getJpsExecutable());
-//                builder.args("-lm");
-//                builder.setStandardOutput(new ByteArrayOutputStream());
-//                builder.build().start().waitForFinish();
-//            }
-//        }));
-    }
-
-    @Override
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>();
         args.add("--daemon");
         args.addAll(super.getAllArgs());
         return args;
     }
+
+    public GradleHandle<DaemonGradleExecuter> createHandle() {
+        return new DaemonGradleHandle<DaemonGradleExecuter>(this);
+    }
+
+    protected static class DaemonGradleHandle<T extends DaemonGradleExecuter> extends ForkingGradleHandle<T> {
+        public DaemonGradleHandle(T executer) {
+            super(executer);
+        }
+
+        protected String transformStandardOutput(String output) {
+            output = output.replace(String.format("Note: the Gradle build daemon is an experimental feature.%n"), "");
+            output = output.replace(String.format("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.%n"), "");
+            return output;
+        }
+    }
+
 }

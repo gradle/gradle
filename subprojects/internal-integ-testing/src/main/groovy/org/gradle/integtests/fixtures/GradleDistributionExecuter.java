@@ -43,13 +43,13 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private Executer executerType;
 
     public enum Executer {
-        embedded(false), 
-        forking(true), 
+        embedded(false),
+        forking(true),
         daemon(true),
         embeddedDaemon(false);
-        
+
         final public boolean forks;
-        
+
         Executer(boolean forks) {
             this.forks = forks;
         }
@@ -66,7 +66,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     public GradleDistributionExecuter(Executer executerType) {
         this.executerType = executerType;
     }
-    
+
     public GradleDistributionExecuter(GradleDistribution dist) {
         this(getSystemPropertyExecuter(), dist);
     }
@@ -163,6 +163,15 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return result;
     }
 
+    public GradleHandle<? extends ForkingGradleExecuter> createHandle() {
+        GradleExecuter executer = configureExecuter();
+        if (!(executer instanceof ForkingGradleExecuter)) {
+            throw new IllegalStateException("can only create handles for forking executers right now");
+        }
+        ForkingGradleExecuter forkingExecuter = (ForkingGradleExecuter)executer;
+        return forkingExecuter.createHandle();
+    }
+
     private GradleExecuter configureExecuter() {
         if (!workingDirSet) {
             inDirectory(dist.getTestDir());
@@ -199,7 +208,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             copyTo(embeddedDaemonExecutor);
             returnedExecuter = embeddedDaemonExecutor;
         }
-        
+
         boolean settingsFound = false;
         for (
                 TestFile dir = new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound;
