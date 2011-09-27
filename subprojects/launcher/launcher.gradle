@@ -32,7 +32,6 @@ task startScripts(type: StartScriptGenerator) {
 }
 
 class StartScriptGenerator extends DefaultTask {
-    @OutputDirectory
     File startScriptsDir
 
     @InputFiles
@@ -41,11 +40,21 @@ class StartScriptGenerator extends DefaultTask {
     @InputFiles
     FileCollection launcherJar
 
+    @OutputFile
+    File getShellScript() {
+        return new File(startScriptsDir, "gradle")
+    }
+
+    @OutputFile
+    File getBatchFile() {
+        return new File(startScriptsDir, "gradle.bat")
+    }
+
     @TaskAction
     def generate() {
         logging.captureStandardOutput(LogLevel.INFO)
         def factory = services.get(ClassLoaderFactory)
-        def classLoader = factory.createIsolatedClassLoader(configurations.startScriptGenerator.collect { it.toURI().toURL() })
+        def classLoader = factory.createIsolatedClassLoader(classpath.collect { it.toURI().toURL() })
         def generator = classLoader.loadClass('org.gradle.api.internal.plugins.StartScriptGenerator').newInstance()
         generator.applicationName = 'Gradle'
         generator.optsEnvironmentVar = 'GRADLE_OPTS'
@@ -54,7 +63,7 @@ class StartScriptGenerator extends DefaultTask {
         generator.scriptRelPath = 'bin/gradle'
         generator.classpath = ["lib/${launcherJar.singleFile.name}" as String]
         generator.appNameSystemProperty = 'org.gradle.appname'
-        generator.generateUnixScript(file("$startScriptsDir/gradle"))
-        generator.generateWindowsScript(file("$startScriptsDir/gradle.bat"))
+        generator.generateUnixScript(shellScript)
+        generator.generateWindowsScript(batchFile)
     }
 }
