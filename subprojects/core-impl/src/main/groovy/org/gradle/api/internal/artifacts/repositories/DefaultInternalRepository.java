@@ -28,13 +28,10 @@ import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.plugins.repository.file.FileRepository;
-import org.apache.ivy.plugins.repository.file.FileResource;
-import org.apache.ivy.plugins.resolver.BasicResolver;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
@@ -46,14 +43,11 @@ import org.gradle.util.ReflectionUtil;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultInternalRepository extends BasicResolver implements InternalRepository {
+public class DefaultInternalRepository extends AbstractResolver implements InternalRepository {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ProjectFinder projectFinder;
 
@@ -64,7 +58,6 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         setRepositoryCacheManager(new NoOpRepositoryCacheManager(getName()));
     }
 
-    @Override
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
         ModuleDescriptor moduleDescriptor = findProject(dd);
         if (moduleDescriptor == null) {
@@ -109,17 +102,6 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         return projectDescriptor;
     }
 
-    @Override
-    protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
-        String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
-        if (path == null) {            
-            return null;
-        }
-        File file = new File(path);
-        return new ResolvedResource(new FileResource(new FileRepository(), file), artifact.getId().getRevision());
-    }
-
-    @Override
     public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
         DownloadReport dr = new DownloadReport();
         for (Artifact artifact : artifacts) {
@@ -140,24 +122,18 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
     }
 
     @Override
-    protected Resource getResource(String source) throws IOException {
-        return null;
+    public void reportFailure() {
     }
 
     @Override
-    protected Collection findNames(Map tokenValues, String token) {
-        return null;
-    }
-
-    @Override
-    protected long get(Resource resource, File dest) throws IOException {
-        return 0;
+    public void reportFailure(Artifact art) {
     }
 
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
+        throw new UnsupportedOperationException();
     }
 }

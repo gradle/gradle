@@ -20,25 +20,25 @@ import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.report.ArtifactDownloadReport;
+import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
+import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.plugins.resolver.BasicResolver;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.artifacts.ClientModule;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Date;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-public class ClientModuleResolver extends BasicResolver {
+public class ClientModuleResolver extends AbstractResolver {
     private Map<String, ModuleDescriptor> moduleRegistry;
     private DependencyResolver userResolver;
 
@@ -51,7 +51,7 @@ public class ClientModuleResolver extends BasicResolver {
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dde, ResolveData data) {
         if (dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY) == null) {
-            return null;
+            return data.getCurrentResolvedModuleRevision();
         }
 
         IvyContext context = IvyContext.pushNewCopyContext();
@@ -68,27 +68,30 @@ public class ClientModuleResolver extends BasicResolver {
         }
     }
 
+    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
+        DownloadReport dr = new DownloadReport();
+        for (Artifact artifact : artifacts) {
+            ArtifactDownloadReport artifactDownloadReport = new ArtifactDownloadReport(artifact);
+            artifactDownloadReport.setDownloadStatus(DownloadStatus.FAILED);
+            dr.addArtifactReport(artifactDownloadReport);
+        }
+        return dr;
+    }
+
+    @Override
+    public void reportFailure() {
+    }
+
+    @Override
+    public void reportFailure(Artifact art) {
+    }
+
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
-        return null;
-    }
-
-    protected Collection findNames(Map tokenValues, String token) {
-        return null;
-    }
-
-    protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
-        return null;
-    }
-
-    protected long get(Resource resource, File dest) {
-        return resource.getContentLength();
-    }
-
-    protected Resource getResource(String s) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public void publish(Artifact artifact, File src, boolean overwrite) {
+        throw new UnsupportedOperationException();
     }
 
 }

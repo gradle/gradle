@@ -16,22 +16,42 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.junit.Test
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.resolve.ResolveData
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import spock.lang.Specification
+import org.gradle.api.artifacts.ClientModule
 
 /**
  * @author Hans Dockter
  */
-class ClientModuleResolverTest {
-    @Test public void testGetDependency() {
-      // todo implement
-//        ClientModuleResolver clientModuleResolver = new ClientModuleResolver()
-//        clientModuleResolver.moduleRegistry = [:]
-//        clientModuleResolver.mainResolver = [:] as DependencyResolver
-//
-//        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(null,
-//                createModuleRevisionId([(CLIENT_MODULE_KEY): id]), false, true, true)
-//        ResolveData resolveData = new ResolveData(new ResolveEngine(), new ResolveOptions())
-//        ModuleDescriptor = clientModuleResolver.getDependency(dd, resolveData)
+class ClientModuleResolverTest extends Specification {
+    final ModuleDescriptor module = Mock()
+    final DependencyResolver targetResolver = Mock()
+    final ResolveData resolveData = Mock()
+    final ClientModuleResolver resolver = new ClientModuleResolver("name", [module: module], targetResolver)
 
+    def "resolves dependency descriptor that matches module in supplied registry"() {
+        DependencyDescriptor dependencyDescriptor = dependency("module")
+
+        expect:
+        def resolvedDependency = resolver.getDependency(dependencyDescriptor, resolveData)
+        resolvedDependency.descriptor == module
+        resolvedDependency.resolver == targetResolver
+        resolvedDependency.artifactResolver == targetResolver
+    }
+
+    def "returns null for unknown module"() {
+        DependencyDescriptor dependencyDescriptor = dependency(null)
+        
+        expect:
+        resolver.getDependency(dependencyDescriptor, resolveData) == null   
+    }
+    
+    def dependency(String module) {
+        DependencyDescriptor descriptor = Mock()
+        _ * descriptor.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY) >> module
+        return descriptor
     }
 }
