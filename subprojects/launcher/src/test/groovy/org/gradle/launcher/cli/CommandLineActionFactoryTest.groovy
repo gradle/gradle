@@ -30,7 +30,7 @@ import org.gradle.cli.CommandLineArgumentException
 import org.gradle.initialization.GradleLauncherFactory
 
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.launcher.daemon.server.Daemon
+import org.gradle.launcher.daemon.bootstrap.DaemonMain
 import org.gradle.launcher.exec.ExceptionReportingAction
 import org.gradle.launcher.exec.ExecutionListener
 
@@ -229,6 +229,6 @@ class CommandLineActionFactoryTest extends Specification {
         action instanceof WithLoggingAction
         action.action instanceof ExceptionReportingAction
         action.action.action instanceof ActionAdapter
-        action.action.action.action instanceof Daemon
+        action.action.action.action instanceof DaemonMain
     }
 }

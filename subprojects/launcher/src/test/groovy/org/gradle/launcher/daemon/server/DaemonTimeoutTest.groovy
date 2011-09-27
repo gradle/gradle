@@ -44,10 +44,9 @@ class DaemonTimeoutTest extends Specification {
         ex.message.contains 'asdf'
 
         when:
-        new DaemonTimeout([:]).idleTimeout
+        def timeout = new DaemonTimeout([:]).idleTimeout
 
         then:
-        ex = thrown(GradleException)
-        ex.message.contains 'org.gradle.daemon.idletimeout'
+        timeout == DaemonTimeout.DEFAULT_IDLE_TIMEOUT
     }
 }

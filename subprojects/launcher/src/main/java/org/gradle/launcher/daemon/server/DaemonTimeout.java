@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.GradleException;
 
 import java.util.Map;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,8 +26,13 @@ import java.util.regex.Pattern;
  * @author: Szczepan Faber, created at: 8/29/11
  */
 public class DaemonTimeout {
+    public static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     private static final String TIMEOUT_PROPERTY = "org.gradle.daemon.idletimeout";
     private final int idleTimeout;
+
+    public DaemonTimeout(String vmParams) {
+        this(vmParams, DEFAULT_IDLE_TIMEOUT);
+    }
 
     /**
      * parses input vm params and looks for the timeout property. If not found the default is used.
@@ -40,18 +46,27 @@ public class DaemonTimeout {
         }
     }
 
+    public DaemonTimeout(Map<String, String> sysProperties) {
+        this(sysProperties, DEFAULT_IDLE_TIMEOUT);
+    }
+
     /**
      * throws exception if timeout property is not in the properties or when it is not a valid int
      */
-    public DaemonTimeout(Map<String, String> sysProperties) {
+    public DaemonTimeout(Map<String, String> sysProperties, int defaultIdleTimeout) {
+        if (sysProperties == null) {
+            sysProperties = Collections.<String, String>emptyMap();
+        }
+        
         String timeoutProperty = sysProperties.get(TIMEOUT_PROPERTY);
         if (timeoutProperty == null) {
-            throw new GradleException("System property: " + TIMEOUT_PROPERTY + " not found. It needs to be provided.");
-        }
-        try {
-            idleTimeout = Integer.parseInt(timeoutProperty);
-        } catch (Exception e) {
-            throw new GradleException(String.format("Unable to parse %s sys property. The value should be an int but is: %s", TIMEOUT_PROPERTY, timeoutProperty));
+            idleTimeout = defaultIdleTimeout;
+        } else {
+            try {
+                idleTimeout = Integer.parseInt(timeoutProperty);
+            } catch (Exception e) {
+                throw new GradleException(String.format("Unable to parse %s sys property. The value should be an int but is: %s", TIMEOUT_PROPERTY, timeoutProperty));
+            }
         }
     }
 

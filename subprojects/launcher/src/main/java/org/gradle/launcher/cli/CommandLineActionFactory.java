@@ -27,12 +27,10 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.launcher.daemon.bootstrap.DaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonConnector;
 import org.gradle.launcher.daemon.client.ExternalDaemonConnector;
-import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
-import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
@@ -124,7 +122,7 @@ public class CommandLineActionFactory {
             return new ActionAdapter(new ShowGuiAction());
         }
 
-        StartParameter startParameter = new StartParameter();
+        final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
         DaemonConnector connector = new ExternalDaemonConnector(startParameter.getGradleUserHomeDir());
         GradleLauncherMetaData clientMetaData = clientMetaData();
@@ -132,7 +130,7 @@ public class CommandLineActionFactory {
         DaemonClient client = new DaemonClient(connector, clientMetaData, loggingServices.get(OutputEventListener.class));
 
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new Daemon(new DaemonTcpServerConnector(), connector.getDaemonRegistry(), new DefaultDaemonCommandExecuter(loggingServices)));
+            return new ActionAdapter(new DaemonMain(startParameter));
         }
         if (commandLine.hasOption(STOP)) {
             return new ActionAdapter(new StopDaemonAction(client));

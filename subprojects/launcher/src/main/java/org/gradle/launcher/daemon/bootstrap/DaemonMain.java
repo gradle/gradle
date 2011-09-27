@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
+import org.gradle.util.UncheckedException;
 import org.gradle.StartParameter;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
@@ -25,21 +26,44 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.env.LenientEnvHacker;
 
 import java.io.*;
 import java.util.Arrays;
-import java.util.Date;
 
 /**
  * The server portion of the build daemon. See {@link org.gradle.launcher.daemon.client.DaemonClient} for a description of the protocol.
  */
-abstract public class DaemonMain  {
+public class DaemonMain implements Runnable {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
     
-    public static void main(String[] args) throws IOException {
+    final private StartParameter startParameter;
+    
+    public static void main(String[] args) {
         StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
-        redirectOutputsAndInput(startParameter);
+        
+        try {
+            redirectOutputsAndInput(startParameter);
+        } catch (IOException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+        
+        new DaemonMain(startParameter).run();
+    }
+    
+    public DaemonMain(StartParameter startParameter) {
+        this.startParameter = startParameter;
+    }
+    
+    public void run() {
+        final Long pid = new LenientEnvHacker().getPid();
+        
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                LOGGER.info("Daemon[pid = {}] finishing", pid);
+            }
+        });
         
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
         DaemonServerConnector connector = new DaemonTcpServerConnector();
@@ -50,7 +74,7 @@ abstract public class DaemonMain  {
         int idleTimeout = getIdleTimeout(startParameter);
         float idleTimeoutSecs = idleTimeout / 1000;
         
-        LOGGER.lifecycle("Starting daemon (at {}) with settings: idleTimeout = {} secs, registryDir = {}", new Date(), idleTimeoutSecs, registryDir);
+        LOGGER.lifecycle("Starting daemon[pid = {}] with settings: idleTimeout = {} secs, registryDir = {}", pid, idleTimeoutSecs, registryDir);
         Daemon daemon = new Daemon(connector, daemonRegistry, new DefaultDaemonCommandExecuter(loggingServices));
         
         daemon.start();
