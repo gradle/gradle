@@ -53,6 +53,7 @@ File generatedDocs = new File("$gradleCorePath/subprojects/docs/build/websiteDoc
 
 //buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
 buildWebsiteDir = new File(buildDir, 'website')
+buildWebsiteNoFileExtensionsDir = new File(buildDir, 'website-no-extensions')
 
 checkstyleConfigDir = "$gradleCorePath/config/checkstyle"
 checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
@@ -84,57 +85,77 @@ task configureReleases << {
     }
 }
 
-task html(dependsOn: configureReleases) << {
-    buildWebsiteDir.mkdirs()
-    File webContentSrcDir = new File(webSrcDir, 'content')
-    def engine = new SimpleTemplateEngine()
-    def binding = [
-            php: new PhpIncludes(phpSrcDir: new File(webSrcDir, 'php')),
-            currentRelease: releases[0],
-            releases: releases,
-            previousReleases: releases.subList(1, releases.size())
-    ]
-    binding.sidebar = engine.createTemplate(new File(webSrcDir, 'sidebar.html')).make(binding).toString()
-    def skeletonTemplate = engine.createTemplate(new File(webSrcDir, 'skeleton.html'))
+task html(dependsOn: configureReleases) {
+    outputs.dir buildWebsiteDir
+    doFirst {
+        buildWebsiteDir.mkdirs()
+        File webContentSrcDir = new File(webSrcDir, 'content')
+        def engine = new SimpleTemplateEngine()
+        def binding = [
+                php: new PhpIncludes(phpSrcDir: new File(webSrcDir, 'php')),
+                currentRelease: releases[0],
+                releases: releases,
+                previousReleases: releases.subList(1, releases.size())
+        ]
+        binding.sidebar = engine.createTemplate(new File(webSrcDir, 'sidebar.html')).make(binding).toString()
+        def skeletonTemplate = engine.createTemplate(new File(webSrcDir, 'skeleton.html'))
 
-    List pages = []
-    webContentSrcDir.eachFileMatch(~/^.+?\.html$/) { pages << new Page(srcFile: it) }
-    generatedDocs.eachFileMatch(~/^.+?\.html$/) {
-        if (it.name != 'userguide.html' && it.name != 'website.html') {
-            pages << new GeneratedPage(srcFile: it)
+        List pages = []
+        webContentSrcDir.eachFileMatch(~/^.+?\.html$/) { pages << new Page(srcFile: it) }
+        generatedDocs.eachFileMatch(~/^.+?\.html$/) {
+            if (it.name != 'userguide.html' && it.name != 'website.html') {
+                pages << new GeneratedPage(srcFile: it)
+            }
         }
-    }
-    pages << new IndexPage(srcFile: "$webContentSrcDir/index.php" as File)
-    pages << new PhpPage(srcFile: "$webContentSrcDir/news.php" as File)
-    pages << new PhpPage(srcFile: "$webContentSrcDir/cookbook.php" as File)
-    pages << new PhpPage(srcFile: "$webContentSrcDir/roadmap.php" as File)
-    pages.each { Page page ->
-        page.destFile = new File(buildWebsiteDir, page.srcFile.name)
-        page.engine = engine
-        page.pageTemplate = skeletonTemplate
-        page.templateBinding = binding
-        page.transform()
-    }
+        pages << new IndexPage(srcFile: "$webContentSrcDir/index.php" as File)
+        pages << new PhpPage(srcFile: "$webContentSrcDir/news.php" as File)
+        pages << new PhpPage(srcFile: "$webContentSrcDir/cookbook.php" as File)
+        pages << new PhpPage(srcFile: "$webContentSrcDir/roadmap.php" as File)
+        pages.each { Page page ->
+            page.destFile = new File(buildWebsiteDir, page.srcFile.name)
+            page.engine = engine
+            page.pageTemplate = skeletonTemplate
+            page.templateBinding = binding
+            page.transform()
+        }
 
-    copy {
-        into buildWebsiteDir
-        from(webSrcDir) {
-            include 'css/**'
-            include 'img/**'
-            include 'other-resources/**'
-            include 'php/*.inc'
-        }
-        from(generatedDocs) {
-            include 'base.css'
-            into 'css'
-        }
-        from(generatedDocs) {
-            include 'img/**'
+        copy {
+            into buildWebsiteDir
+            from(webSrcDir) {
+                include 'css/**'
+                include 'img/**'
+                include 'other-resources/**'
+                include 'php/*.inc'
+            }
+            from(generatedDocs) {
+                include 'base.css'
+                into 'css'
+            }
+            from(generatedDocs) {
+                include 'img/**'
+            }
         }
     }
 }
 
 assemble.dependsOn html
+
+// have to copy these separately so we don't attempt to filter, which messes up binary files
+task htmlNoFileExtensionsNoFilter(type: Copy) {
+    from html.outputs.files
+    into buildWebsiteNoFileExtensionsDir
+    exclude "**/*.html", "**/*.php"
+}
+
+task htmlNoFileExtensions(type: Copy, dependsOn: [htmlNoFileExtensionsNoFilter]) {
+    from html.outputs.files
+    into buildWebsiteNoFileExtensionsDir
+    include "**/*.html", "**/*.php"
+    filter {
+        it.replaceAll("href=[\"']([\\w-]+)\\.(?:html|php)", "href=\"\$1")
+    }
+    outputs.dir buildWebsiteNoFileExtensionsDir
+}
 
 // A marker to indicate we are doing a release
 task releaseVersion
@@ -152,7 +173,7 @@ test {
 }
 
 task uploadHtml(dependsOn: html, type: Scp) {
-    sourceDir = buildWebsiteDir
+    sourceDir = buildWebsiteNoFileExtensionsDir
     gradle.taskGraph.whenReady {
         destinationDir = remoteLocations.scpDir
     }
@@ -181,8 +202,7 @@ task testRemote(type: Test, dependsOn: uploadWebsite) {
 }
 
 task install(type: Sync) {
-    dependsOn html
-    from buildWebsiteDir
+    from htmlNoFileExtensions.outputs.files
     into "${System.getProperty('user.home')}/Sites/gradle"
 }
 
