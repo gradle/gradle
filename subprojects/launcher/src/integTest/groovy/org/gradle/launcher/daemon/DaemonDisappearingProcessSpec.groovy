@@ -25,8 +25,6 @@ class DaemonDisappearingProcessSpec extends Specification {
 
     @Rule public final GradleHandles handles = new GradleHandles()
 
-    def usedHandles = []
-
     def setup() {
         handles.distribution.with {
             requireOwnUserHomeDir()
@@ -38,20 +36,13 @@ class DaemonDisappearingProcessSpec extends Specification {
             """
         }
     }
-
-    GradleHandle handle(Closure executerConfig) {
-        def handle = handles.createHandle()
-        usedHandles << handle
-        handle.executer.with(executerConfig)
-        handle
-    }
     
     GradleHandle client() {
-        handle { withArguments("--daemon", "--info").withTasks("sleep") }
+        handles.createHandle { withArguments("--daemon", "--info").withTasks("sleep") }
     }
 
     GradleHandle daemon() {
-        handle { withArguments("--foreground", "--info") }
+        handles.createHandle { withArguments("--foreground", "--info") }
     }
 
     @Timeout(10)
@@ -101,10 +92,10 @@ class DaemonDisappearingProcessSpec extends Specification {
 
     def cleanup() {
         try {
-            usedHandles*.abort()
+            handles.createdHandles*.abort()
         } catch (IllegalStateException e) {}
             
-        usedHandles.each { process ->
+        handles.createdHandles.each { process ->
             waitFor { process.waitForFinish() }
         }
     }

@@ -19,10 +19,17 @@ import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import java.util.List;
+import java.util.LinkedList;
+
+import groovy.lang.Closure;
+
 public class GradleHandles implements MethodRule {
 
     private final GradleDistribution distribution;
     private final GradleDistributionExecuter executer;
+
+    private final List<GradleHandle<? extends ForkingGradleExecuter>> createdHandles = new LinkedList<GradleHandle<? extends ForkingGradleExecuter>>();
 
     public GradleHandles() {
         this(new GradleDistribution());
@@ -37,8 +44,21 @@ public class GradleHandles implements MethodRule {
         return this.executer;
     }
 
+    public List<GradleHandle<? extends ForkingGradleExecuter>> getCreatedHandles() {
+        return new LinkedList<GradleHandle<? extends ForkingGradleExecuter>>(createdHandles);
+    }
+
     public GradleHandle<? extends ForkingGradleExecuter> createHandle() {
-        return executer.createHandle();
+        GradleHandle<? extends ForkingGradleExecuter> handle = executer.createHandle();
+        createdHandles.add(handle);
+        return handle;
+    }
+
+    public GradleHandle<? extends ForkingGradleExecuter> createHandle(Closure executerConfig) {
+        GradleHandle<? extends ForkingGradleExecuter> handle = createHandle();
+        executerConfig.setDelegate(executerConfig);
+        executerConfig.call(handle);
+        return handle;
     }
 
     public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
