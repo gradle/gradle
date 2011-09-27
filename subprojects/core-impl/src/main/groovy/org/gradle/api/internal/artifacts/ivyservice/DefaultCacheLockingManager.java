@@ -18,42 +18,68 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.UncheckedException;
 import org.jfrog.wharf.ivy.lock.LockHolder;
 import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 import org.jfrog.wharf.ivy.lock.LockLogger;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultCacheLockingManager implements LockHolderFactory, CacheLockingManager {
-    private final ArtifactCacheMetaData cacheMetaData;
     private final FileLockManager fileLockManager;
-    private final AtomicBoolean locked = new AtomicBoolean();
+    private final Lock lock = new ReentrantLock();
+    private final Map<File, ArtifactLock> locks = new HashMap<File, ArtifactLock>();
+    private boolean locked;
+    private String operationDisplayName;
 
-    public DefaultCacheLockingManager(FileLockManager fileLockManager, ArtifactCacheMetaData cacheMetaData) {
+    public DefaultCacheLockingManager(FileLockManager fileLockManager) {
         this.fileLockManager = fileLockManager;
-        this.cacheMetaData = cacheMetaData;
     }
 
     public <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action) {
-        boolean wasUnlocked = locked.compareAndSet(false, true);
-        if (!wasUnlocked) {
-            throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this process.");
-        }
+        lockCache(operationDisplayName);
         try {
-            FileLock lock = fileLockManager.lock(cacheMetaData.getCacheDir(), FileLockManager.LockMode.Exclusive, "artifact cache", operationDisplayName);
-            try {
-                return action.call();
-            } catch (Exception e) {
-                throw UncheckedException.asUncheckedException(e);
-            } finally {
-                lock.close();
+            return action.call();
+        } catch (Exception e) {
+            throw UncheckedException.asUncheckedException(e);
+        } finally {
+            unlockCache();
+        }
+    }
+
+    private void lockCache(String operationDisplayName) {
+        lock.lock();
+        try {
+            if (locked) {
+                throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this process.");
+            }
+            this.operationDisplayName = operationDisplayName;
+            locked = true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void unlockCache() {
+        lock.lock();
+        try {
+            if (!locks.isEmpty()) {
+                new CompositeStoppable().addCloseables(locks.values()).stop();
+                throw new IllegalStateException("Some artifact file locks were not released.");
             }
         } finally {
-            locked.set(false);
+            locked = false;
+            locks.clear();
+            lock.unlock();
         }
     }
 
@@ -73,15 +99,50 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
         throw new UnsupportedOperationException();
     }
 
+    private void acquire(File protectedFile) {
+        lock.lock();
+        try {
+            if (!locked) {
+                throw new IllegalStateException("Cannot acquire artifact lock, as the artifact cache is not locked by this process.");
+            }
+            ArtifactLock artifactLock = locks.get(protectedFile);
+            if (artifactLock == null) {
+                FileLock fileLock = fileLockManager.lock(protectedFile, FileLockManager.LockMode.Exclusive, String.format("artifact file %s", protectedFile), operationDisplayName);
+                artifactLock = new ArtifactLock(fileLock);
+                locks.put(protectedFile, artifactLock);
+            }
+            artifactLock.refCount++;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void release(File protectedFile) {
+        lock.lock();
+        try {
+            ArtifactLock artifactLock = locks.get(protectedFile);
+            if (artifactLock == null || artifactLock.refCount <= 0) {
+                throw new IllegalStateException("Cannot release artifact file lock, as the file is not locked.");
+            }
+            artifactLock.refCount--;
+            if (artifactLock.refCount == 0) {
+                locks.remove(protectedFile);
+                artifactLock.lock.close();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public LockHolder getLockHolder(final File protectedFile) {
+        final File canonicalFile = GFileUtils.canonicalise(protectedFile);
         return new LockHolder() {
             public void releaseLock() {
+                release(canonicalFile);
             }
 
             public boolean acquireLock() {
-                if (!locked.get()) {
-                    throw new IllegalStateException("Cannot acquire artifact lock, as the artifact cache is not locked by this process.");
-                }
+                acquire(canonicalFile);
                 protectedFile.getParentFile().mkdirs();
                 return true;
             }
@@ -111,4 +172,16 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
         throw new UnsupportedOperationException();
     }
 
+    private static class ArtifactLock implements Closeable {
+        private final FileLock lock;
+        private int refCount;
+
+        private ArtifactLock(FileLock lock) {
+            this.lock = lock;
+        }
+
+        public void close() {
+            lock.close();
+        }
+    }
 }

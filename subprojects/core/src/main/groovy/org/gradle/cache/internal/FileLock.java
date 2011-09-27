@@ -15,10 +15,11 @@
  */
 package org.gradle.cache.internal;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-public interface FileLock {
+public interface FileLock extends Closeable {
     /**
      * Returns true if the most recent {@link #writeToFile(Runnable)} by any process succeeded (ie a process did not crash while updating
      * the target file). Returns false if {@link #writeToFile(Runnable)} has never been called for the target file.
