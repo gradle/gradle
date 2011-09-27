@@ -19,8 +19,6 @@ package org.gradle.launcher.daemon
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.integtests.fixtures.*
-import org.gradle.process.internal.ExecHandle
-import org.gradle.process.internal.ExecHandleBuilder
 import spock.lang.*
 
 class DaemonDisappearingProcessSpec extends Specification {
