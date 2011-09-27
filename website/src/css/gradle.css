@@ -410,3 +410,36 @@ div.caution {
 #footer .container .entry {
     padding-top: 5px;
 }
+
+.clearfix:after {
+    content: ".";
+    display: block;
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+}
+
+.clearfix {
+    display: inline-block;
+}
+
+html[xmlns] .clearfix {
+    display: block;
+}
+
+* html .clearfix {
+    height: 1%;
+}
+
+div.book img {
+    margin-right: 1em;
+}
+
+div.book h2, div.book h3 {
+    margin-top: 0;
+}
+
+div.book p.authors {
+    font-style: italic;
+}
