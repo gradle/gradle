@@ -172,7 +172,7 @@ test {
     inputs.dir buildWebsiteDir
 }
 
-task uploadHtml(dependsOn: html, type: Scp) {
+task uploadHtml(dependsOn: htmlNoFileExtensions, type: Scp) {
     sourceDir = buildWebsiteNoFileExtensionsDir
     gradle.taskGraph.whenReady {
         destinationDir = remoteLocations.scpDir
