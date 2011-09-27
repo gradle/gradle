@@ -208,6 +208,10 @@ public class CommandLineActionFactory {
         public void execute(ExecutionListener executionListener) {
             action.run();
         }
+
+        public String toString() {
+            return String.format("ActionAdapter[runnable=%s]", action);
+        }
     }
 
     static class WithLoggingAction implements Action<ExecutionListener> {
