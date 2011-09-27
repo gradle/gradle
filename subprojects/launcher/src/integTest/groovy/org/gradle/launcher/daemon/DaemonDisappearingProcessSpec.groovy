@@ -56,11 +56,11 @@ class DaemonDisappearingProcessSpec extends Specification {
     }
 
     ExecHandle client() {
-        withStreams(executer().withArguments("--daemon").withTasks("sleep").createExecHandleBuilder())
+        withStreams(executer().withArguments("--daemon", "--info").withTasks("sleep").createExecHandleBuilder())
     }
 
     ExecHandle daemon() {
-        withStreams(executer().withArguments("--daemon", "--foreground").createExecHandleBuilder())
+        withStreams(executer().withArguments("--foreground", "--info").createExecHandleBuilder())
     }
 
     @Timeout(10)
@@ -71,6 +71,7 @@ class DaemonDisappearingProcessSpec extends Specification {
 
         when:
         daemon.start()
+        waitFor { assert daemon.output.contains("Advertising the daemon address to the clients"); true }
 
         and:
         client.start()
