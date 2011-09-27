@@ -336,7 +336,6 @@ class DefaultFileLockManagerTest extends Specification {
             assert !str.readBoolean()
             assert str.readByte() == 2
             assert str.readUTF() == '123'
-            assert str.readUTF() == 'process'
             assert str.readUTF() == 'operation'
             assert str.read() < 0
         }

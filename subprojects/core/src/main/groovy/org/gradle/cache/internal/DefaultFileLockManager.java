@@ -15,14 +15,15 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.Jvm;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -32,7 +33,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  *
  * <ul>
  *     <li>State region: 1 byte version field, 1 byte clean flag.</li>
- *     <li>Owner information region: 1 byte version field, utf-8 encoded owner process id, utf-8 encoded owner process display name, utf-8 encoded owner operation display name</li>
+ *     <li>Owner information region: 1 byte version field, utf-8 encoded owner process id, utf-8 encoded owner operation display name.</li>
  * </ul>
  */
 public class DefaultFileLockManager implements FileLockManager {
@@ -207,7 +208,6 @@ public class DefaultFileLockManager implements FileLockManager {
             if (stateRegionLock == null) {
                 // Can't acquire lock, get details of owner to include in the error message
                 String ownerPid = "unknown";
-                String ownerProcess = "unknown";
                 String ownerOperation = "unknown";
                 java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, timeout);
                 if (informationRegionLock == null) {
@@ -222,7 +222,6 @@ public class DefaultFileLockManager implements FileLockManager {
                                 throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
                             }
                             ownerPid = lockFileAccess.readUTF();
-                            ownerProcess = lockFileAccess.readUTF();
                             ownerOperation= lockFileAccess.readUTF();
                         }
                     } finally {
@@ -230,31 +229,8 @@ public class DefaultFileLockManager implements FileLockManager {
                     }
                 }
 
-                String extra = "";
-                File jstack = Jvm.current().getExecutable("jstack");
-                if (jstack.isFile() && ownerPid.matches("\\d+")) {
-                    ByteArrayOutputStream outstr = new ByteArrayOutputStream();
-                    ExecHandleBuilder builder = new ExecHandleBuilder();
-                    builder.workingDir(new File(".").getAbsoluteFile());
-                    builder.commandLine(jstack, ownerPid);
-                    builder.setStandardOutput(outstr);
-                    builder.setErrorOutput(outstr);
-                    builder.build().start().waitForFinish();
-                    extra = String.format("=== JSTACK OUTPUT ===%n%s", new String(outstr.toByteArray()));
-                }
-                File jps = Jvm.current().getExecutable("jps");
-                if (jps.isFile()) {
-                    ByteArrayOutputStream outstr = new ByteArrayOutputStream();
-                    ExecHandleBuilder builder = new ExecHandleBuilder();
-                    builder.workingDir(new File(".").getAbsoluteFile());
-                    builder.commandLine(jps, "-lvm");
-                    builder.setStandardOutput(outstr);
-                    builder.setErrorOutput(outstr);
-                    builder.build().start().waitForFinish();
-                    extra += String.format("=== JPS OUTPUT ===%n%s", new String(outstr.toByteArray()));
-                }
-                throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nProcess: %s%nPID: %s%nOperation: %s%nOur operation: %s%nLock file: %s%n%s",
-                        displayName, ownerProcess, ownerPid, ownerOperation, operationDisplayName, lockFile, extra));
+                throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",
+                        displayName, metaDataProvider.getProcessIdentifier(), ownerPid, ownerOperation, operationDisplayName, lockFile));
             }
 
             try {
@@ -283,7 +259,6 @@ public class DefaultFileLockManager implements FileLockManager {
                         lockFileAccess.seek(INFORMATION_REGION_POS);
                         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
                         lockFileAccess.writeUTF(metaDataProvider.getProcessIdentifier());
-                        lockFileAccess.writeUTF(metaDataProvider.getProcessDisplayName());
                         lockFileAccess.writeUTF(operationDisplayName);
                         lockFileAccess.setLength(lockFileAccess.getFilePointer());
                     } finally {
