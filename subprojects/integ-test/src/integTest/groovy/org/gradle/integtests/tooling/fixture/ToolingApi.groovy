@@ -86,7 +86,6 @@ class ToolingApi {
             connector.useInstallation(new File(dist.gradleHomeDir.absolutePath))
             connector.embedded(false)
             connector.daemonMaxIdleTime(300, TimeUnit.SECONDS)
-            DaemonGradleExecuter.registerDaemon(dist.userHomeDir)
         }
         connectorConfigurers.each {
             it.call(connector)
