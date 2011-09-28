@@ -16,7 +16,6 @@
 package org.gradle.integtests.tooling.fixture
 
 import java.util.concurrent.TimeUnit
-import org.gradle.integtests.fixtures.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.internal.IntegrationTestHint
