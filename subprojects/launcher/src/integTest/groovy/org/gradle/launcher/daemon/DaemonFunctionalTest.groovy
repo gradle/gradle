@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.daemon
+package org.gradle.launcher.daemon
 
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.launcher.daemon.client.DaemonClient

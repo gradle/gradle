@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.daemon
+package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.SetSystemProperties
