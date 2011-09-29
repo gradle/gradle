@@ -103,6 +103,12 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
                     configuration);
             }
             this.configuration = configuration;
+
+            try {
+                rethrowFailure();
+            } catch (ResolveException e) {
+                e.printStackTrace();
+            }
         }
 
         public boolean hasError() {
