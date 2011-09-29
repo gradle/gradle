@@ -63,4 +63,8 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
         gradleExecuter.withUserHomeDir(distribution.getUserHomeDir());
         return new GradleBackedArtifactBuilder(gradleExecuter, getTestDir().file("artifacts"));
     }
+
+    public MavenRepository maven(TestFile repo) {
+        return new MavenRepository(repo);
+    }
 }

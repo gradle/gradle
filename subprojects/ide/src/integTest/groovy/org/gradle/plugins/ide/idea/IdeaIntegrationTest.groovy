@@ -22,11 +22,11 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.os.OperatingSystem
 
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -106,8 +106,8 @@ apply plugin: 'idea'
     @Test
     void canHandleCircularModuleDependencies() {
         def repoDir = file("repo")
-        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
-        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2", "myArtifact1")
+        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publishArtifact()
+        def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").dependsOn("myArtifact1").publishArtifact()
 
         runIdeaTask """
 apply plugin: "java"
@@ -174,8 +174,8 @@ tasks.idea << {
     @Test
     void respectsPerConfigurationExcludes() {
         def repoDir = file("repo")
-        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
-        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publishArtifact()
+        def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").publishArtifact()
 
         runIdeaTask """
 apply plugin: 'java'
@@ -202,8 +202,8 @@ dependencies {
     @Test
     void respectsPerDependencyExcludes() {
         def repoDir = file("repo")
-        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
-        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2")
+        maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publishArtifact()
+        maven(repoDir).module("myGroup", "myArtifact2").publishArtifact()
 
         runIdeaTask """
 apply plugin: 'java'

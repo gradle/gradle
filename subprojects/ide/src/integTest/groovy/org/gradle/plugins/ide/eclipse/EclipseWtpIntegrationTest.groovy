@@ -19,7 +19,7 @@ import org.junit.Test
 import spock.lang.Issue
 
 // TODO: run prepareWebProject() only once per class for performance reasons (not as simply as it seems)
-class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
+class EclipseWtpIntĽegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void projectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
         prepareWebProject()
@@ -106,8 +106,8 @@ dependencies {
 
     private prepareWebProject() {
         def repoDir = file("repo")
-        publishArtifact(repoDir, "mygroup", "myartifact", "myartifactdep")
-        publishArtifact(repoDir, "mygroup", "myartifactdep")
+        maven(repoDir).module("mygroup", "myartifact").dependsOn("myartifactdep").publishArtifact()
+        maven(repoDir).module("mygroup", "myartifactdep").publishArtifact()
 
         def settingsFile = file("settings.gradle")
         settingsFile << """

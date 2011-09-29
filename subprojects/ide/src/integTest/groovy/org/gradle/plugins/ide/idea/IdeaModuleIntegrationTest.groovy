@@ -221,9 +221,9 @@ task generateForTest << {}
     void "enables toggling javadoc and sources off"() {
         //given
         def repoDir = file("repo")
-        publishArtifact(repoDir, "coolGroup", "niceArtifact")
-        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "sources")
-        publishArtifact(repoDir, "coolGroup", "niceArtifact", null, "javadoc")
+        maven(repoDir).module("coolGroup", "niceArtifact").publishArtifact()
+        maven(repoDir).module("coolGroup", "niceArtifact", 1.0, "sources").publishArtifact()
+        maven(repoDir).module("coolGroup", "niceArtifact", 1.0, "javadoc").publishArtifact()
 
         //when
         runIdeaTask """
@@ -254,7 +254,7 @@ idea.module {
     void "does not break when some dependencies cannot be resolved"() {
         //given
         def repoDir = file("repo")
-        publishArtifact(repoDir, "groupOne", "artifactTwo")
+        maven(repoDir).module("groupOne", "artifactTwo").publishArtifact()
 
         file("settings.gradle") << "include 'someApiProject', 'impl'\n"
         file('someDependency.jar').createFile()

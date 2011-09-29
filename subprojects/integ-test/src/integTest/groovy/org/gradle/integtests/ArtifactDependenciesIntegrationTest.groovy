@@ -612,7 +612,7 @@ project(':b') {
     }
 
     MavenRepository repo() {
-        return new MavenRepository(testFile('repo'))
+        return maven(testFile('repo'))
     }
 
     IvyRepository ivyRepo() {

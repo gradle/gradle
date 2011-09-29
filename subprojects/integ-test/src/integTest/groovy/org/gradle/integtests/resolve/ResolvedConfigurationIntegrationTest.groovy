@@ -42,8 +42,8 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
 
     @Test
     public void "resolves leniently"() {
-        publishArtifact('org.foo', 'hiphop')
-        publishArtifact('org.foo', 'rock', "some unresolved dependency")
+        maven(repo).module('org.foo', 'hiphop').publishArtifact()
+        maven(repo).module('org.foo', 'rock').dependsOn("some unresolved dependency").publishArtifact()
 
         project.dependencies {
             compile 'org.foo:hiphop:1.0'
@@ -68,10 +68,14 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
         assert unresolved.find { it.id.contains 'some unresolved dependency' }
     }
 
+    public MavenRepository maven(File repo) {
+        return new MavenRepository(repo)
+    }
+
     @Test
     public void "resolves leniently from mixed confs"() {
-        publishArtifact('org.foo', 'hiphop')
-        publishArtifact('org.foo', 'rock', "some unresolved dependency")
+        maven(repo).module('org.foo', 'hiphop').publishArtifact()
+        maven(repo).module('org.foo', 'rock').dependsOn("some unresolved dependency").publishArtifact()
 
         project.allprojects { apply plugin: 'java' }
 
@@ -105,14 +109,5 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
         assert resolved.size() == 0
         assert unresolved.size() == 1
         assert unresolved.find { it.id.contains 'hiphopxx' }
-    }
-
-    protected File publishArtifact(group, artifact, dependency = null, classifier = null) {
-        //TODO SF - duplicated in few places
-        def module = new MavenRepository(repo).module(group, artifact, 1.0, classifier)
-        if (dependency) {
-            module.dependsOn(dependency)
-        }
-        return module.publishArtifact()
     }
 }
