@@ -86,6 +86,7 @@ task configureReleases << {
 }
 
 task html(dependsOn: configureReleases) {
+    inputs.dir file("src")
     outputs.dir buildWebsiteDir
     doFirst {
         buildWebsiteDir.mkdirs()
