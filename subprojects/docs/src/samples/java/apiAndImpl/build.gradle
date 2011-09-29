@@ -1,0 +1,91 @@
+apply plugin: "java"
+apply plugin: "maven"
+
+group = "myorg"
+version = 1.0
+
+["api", "impl"].each { type ->
+    def configuration = { name ->
+        def conf
+        configurations {
+            conf = delegate."${type}${name.capitalize()}"
+        }
+        conf
+    }
+
+    configuration("runtime").extendsFrom configuration("compile")
+    configuration("default").extendsFrom configuration("runtime"), configuration("archives")
+
+    sourceSets {
+        delegate."$type" {
+            compileClasspath = configuration("compile")
+            runtimeClasspath = output + configuration("runtime")
+        }
+    }
+
+    def jarTask = task("${type}Jar", type: Jar) {
+        baseName = baseName + "-$type"
+        from sourceSets[type].output
+    }
+
+    artifacts {
+        delegate."${configuration("archives").name}" jarTask
+    }
+}
+
+sourceSets {
+    impl {
+        compileClasspath += api.output
+    }
+
+    test {
+        [api, impl].each {
+            compileClasspath += it.output
+            runtimeClasspath += it.output
+        }
+    }
+}
+
+configurations {
+    runtime.extendsFrom implRuntime, apiRuntime
+    archives.extendsFrom apiArchives, implArchives
+}
+
+jar {
+    from sourceSets.api.output
+    from sourceSets.impl.output
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri("${buildDir}/repo"))
+
+            addFilter("main") { artifact, file -> artifact.name == project.name }
+            ["api", "impl"].each { type ->
+                addFilter(type) { artifact, file -> artifact.name.endsWith("-$type") }
+                
+                // We now have to map our configurations to the correct maven scope for each pom
+                ["compile", "runtime"].each { scope ->
+                    configuration = configurations[type + scope.capitalize()]
+                    ["main", type].each { pomName ->
+                        pom(pomName).scopeMappings.addMapping 1, configuration, scope
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+// These aren't needed by this project, but are here for illustration
+dependencies {
+    implCompile 'commons-lang:commons-lang:2.6'
+    apiCompile 'commons-codec:commons-codec:1.5'
+
+    testCompile 'junit:junit:4.9'
+}
