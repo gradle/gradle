@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -39,6 +40,9 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Set;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 /**
  * @author Hans Dockter
@@ -139,12 +143,12 @@ public class IvyBackedArtifactPublisherTest {
             allowing(setUpIvyFactory(ivySettingsDummy)).getPublishEngine();
             will(returnValue(publishEngineDummy));
 
-            allowing(publishModuleDescriptorConverter).convert(configurations,
-                    moduleDummy, ivySettingsDummy);
+            allowing(publishModuleDescriptorConverter).convert(with(equalTo(configurations)),
+                    with(equalTo(moduleDummy)), (IvyConfig) with(is(IvyConfig.class)));
             will(returnValue(publishModuleDescriptorDummy));
 
-            allowing(fileModuleDescriptorConverter).convert(configurations,
-                    moduleDummy, ivySettingsDummy);
+            allowing(fileModuleDescriptorConverter).convert(with(equalTo(configurations)),
+                    with(equalTo(moduleDummy)), (IvyConfig) with(is(IvyConfig.class)));
             will(returnValue(fileModuleDescriptorMock));
         }});
     }

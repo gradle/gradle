@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,7 +73,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         dependencyPublisher.publish(
                 confs,
                 publishResolvers,
-                publishModuleDescriptorConverter.convert(configurationsToPublish, configuration.getModule(), ivy.getSettings()),
+                publishModuleDescriptorConverter.convert(configurationsToPublish, configuration.getModule(), new IvyConfig(ivy.getSettings())),
                 descriptorDestination,
                 ivy.getPublishEngine());
     }
@@ -83,7 +84,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         }
         assert configurationsToPublish.size() > 0;
         Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
-        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(allConfigurations, module, ivySettings);
+        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(allConfigurations, module, new IvyConfig(ivySettings));
         try {
             moduleDescriptor.toIvyFile(descriptorDestination);
         } catch (ParseException e) {

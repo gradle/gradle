@@ -24,6 +24,8 @@ import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 
 /**
+ * Contains ivy settings and conflict management. The purpose of this class is to insulate from ivy a bit.
+ *
  * @author: Szczepan Faber, created at: 9/29/11
  */
 public class IvyConfig {

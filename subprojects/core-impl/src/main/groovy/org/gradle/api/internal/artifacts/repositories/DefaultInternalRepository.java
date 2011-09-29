@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublishe
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.ReflectionUtil;
 
@@ -86,7 +87,7 @@ public class DefaultInternalRepository extends AbstractResolver implements Inter
         Module projectModule = project.getModule();
         ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(
                 project.getConfigurations(),
-                projectModule, IvyContext.getContext().getIvy().getSettings());
+                projectModule, new IvyConfig(IvyContext.getContext().getIvy().getSettings()));
 
         for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
             for (Artifact artifact : projectDescriptor.getAllArtifacts()) {

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
@@ -43,10 +42,10 @@ public abstract class AbstractModuleDescriptorConverter implements ModuleDescrip
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
     }
 
-    protected DefaultModuleDescriptor createCommonModuleDescriptor(Module module, Set<? extends Configuration> configurations, IvySettings ivySettings) {
+    protected DefaultModuleDescriptor createCommonModuleDescriptor(Module module, Set<? extends Configuration> configurations, IvyConfig ivyConfig) {
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations, new IvyConfig(ivySettings));
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations, ivyConfig);
         return moduleDescriptor;
     }
 }

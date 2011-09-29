@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.settings.IvySettings
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Module
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
@@ -34,7 +33,7 @@ public class ResolveModuleDescriptorConverterTest extends Specification {
         given:
         def configurations = [Mock(Configuration), Mock(Configuration)] as Set
         def module = Mock(Module)
-        def ivySettings = new IvySettings()
+        def ivyConfig = Mock(IvyConfig)
         def moduleDescriptor = Mock(DefaultModuleDescriptor)
         def moduleDescriptorFactory = Mock(ModuleDescriptorFactory)
         def configurationsConverter = Mock(ConfigurationsToModuleDescriptorConverter)
@@ -48,11 +47,11 @@ public class ResolveModuleDescriptorConverterTest extends Specification {
         moduleDescriptorFactory.createModuleDescriptor(module) >> moduleDescriptor
 
         when:
-        def actualDescriptor = resolveModuleDescriptorConverter.convert(configurations, module, ivySettings);
+        def actualDescriptor = resolveModuleDescriptorConverter.convert(configurations, module, ivyConfig);
 
         then:
         1 * configurationsConverter.addConfigurations(moduleDescriptor, configurations)
-        1 * dependenciesConverter.addDependencyDescriptors(moduleDescriptor, configurations, _ as IvyConfig)
+        1 * dependenciesConverter.addDependencyDescriptors(moduleDescriptor, configurations, ivyConfig)
 
         actualDescriptor == moduleDescriptor
     }

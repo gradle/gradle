@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 
 import java.util.Set;
 
@@ -26,5 +26,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface ModuleDescriptorConverter {
-    ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module, IvySettings settings);
+    ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module, IvyConfig ivyConfig);
 }

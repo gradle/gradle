@@ -27,6 +27,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
@@ -63,7 +64,6 @@ public class DefaultIvyDependencyResolverTest {
 
     private ConfigurationInternal configurationStub = context.mock(ConfigurationInternal.class, "<configuration>");
     private Ivy ivyStub = context.mock(Ivy.class);
-    private IvySettings ivySettings = context.mock(IvySettings.class);
     private DefaultIvyReportConverter ivyReportConverterStub = context.mock(DefaultIvyReportConverter.class);
     private ResolveReport resolveReportMock = context.mock(ResolveReport.class);
     private ModuleDescriptorConverter moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
@@ -79,7 +79,7 @@ public class DefaultIvyDependencyResolverTest {
             allowing(configurationStub).getName();
             will(returnValue("someConfName"));
             allowing(ivyStub).getSettings();
-            will(returnValue(ivySettings));
+            will(returnValue(new IvySettings()));
         }});
     }
 
@@ -299,7 +299,8 @@ public class DefaultIvyDependencyResolverTest {
             will(returnValue(module));
             one(ivyFactory).create();
             will(returnValue(ivyStub));
-            one(moduleDescriptorConverter).convert(toSet(configurationStub, otherConfiguration), module, ivySettings);
+            one(moduleDescriptorConverter)
+                    .convert(with(equalTo(toSet(configurationStub, otherConfiguration))), with(equalTo(module)), (IvyConfig) with(instanceOf(IvyConfig.class)));
             will(returnValue(moduleDescriptor));
             one(ivyStub).resolve(with(equal(moduleDescriptor)), with(equaltResolveOptions(confName)));
             will(returnValue(resolveReportMock));

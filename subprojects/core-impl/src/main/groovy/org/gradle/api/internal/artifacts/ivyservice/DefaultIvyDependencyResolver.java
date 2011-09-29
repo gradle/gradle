@@ -28,6 +28,7 @@ import org.gradle.api.internal.DirectedGraphWithEdgeValues;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.Clock;
@@ -57,7 +58,7 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
         Clock clock = new Clock();
         Ivy ivy = ivyFactory.create();
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), ivy.getSettings());
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), new IvyConfig(ivy.getSettings()));
         ResolveOptions resolveOptions = createResolveOptions(configuration);
         ResolveReport resolveReport;
         try {
