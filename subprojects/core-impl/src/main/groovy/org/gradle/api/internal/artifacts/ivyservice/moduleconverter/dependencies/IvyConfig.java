@@ -33,6 +33,7 @@ public class IvyConfig {
     private final IvySettings ivySettings;
 
     public IvyConfig(IvySettings ivySettings) {
+        assert ivySettings != null : "ivySettings cannot be null!";
         this.ivySettings = ivySettings;
     }
 

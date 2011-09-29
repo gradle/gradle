@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
@@ -69,7 +68,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         Ivy ivy = ivyForPublish(publishResolvers);
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
         Set<String> confs = Configurations.getNames(configurationsToPublish, false);
-        writeDescriptorFile(descriptorDestination, configurationsToPublish, ivy.getSettings(), configuration.getModule());
+        writeDescriptorFile(descriptorDestination, configurationsToPublish, new IvyConfig(ivy.getSettings()), configuration.getModule());
         dependencyPublisher.publish(
                 confs,
                 publishResolvers,
@@ -78,13 +77,13 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                 ivy.getPublishEngine());
     }
 
-    private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, IvySettings ivySettings, Module module) {
+    private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, IvyConfig ivyConfig, Module module) {
         if (descriptorDestination == null) {
             return;
         }
         assert configurationsToPublish.size() > 0;
         Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
-        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(allConfigurations, module, new IvyConfig(ivySettings));
+        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(allConfigurations, module, ivyConfig);
         try {
             moduleDescriptor.toIvyFile(descriptorDestination);
         } catch (ParseException e) {
