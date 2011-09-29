@@ -25,13 +25,13 @@ import org.junit.Test
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
-@Ignore
 class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
 
     @Rule
     public final TestResources testResources = new TestResources()
 
     @Test
+    @Ignore
     void shouldFailAndReportVersionConflict() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", 1.3).publishArtifact()
@@ -84,10 +84,10 @@ project(':tool') {
     }
 
     @Test
-    void shouldBeHappyBecauseVersionsMatch() {
+    void shouldResolveToLatestVersionByDefault() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", 1.3).publishArtifact()
-        maven(repo).module("org", "foo", 1.4).publishArtifact()
+        maven(repo).module("org", "foo", 1.33).publishArtifact()
+        maven(repo).module("org", "foo", 1.44).publishArtifact()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -103,13 +103,13 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3')
+		compile (group: 'org', name: 'foo', version:'1.33')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4')
+		compile (group: 'org', name: 'foo', version:'1.44')
 	}
 }
 
@@ -118,15 +118,16 @@ project(':tool') {
 		compile project(':api')
 		compile project(':impl')
 	}
-	//configurations.compile.versionConflictStrategy = VersionConflictStrategy.STRICT
 }
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
-            .withArguments("-s")
-            .withTasks("tool:dependencies").run()
+        def result = executer.usingBuildScript(buildFile)
+                .usingSettingsFile(settingsFile).withArguments("-s")
+                .withTasks("tool:dependencies").run()
 
-        //then no errors
+        //then
+        assert result.output.contains('1.44')
+        assert !result.output.contains('1.33')
     }
 }

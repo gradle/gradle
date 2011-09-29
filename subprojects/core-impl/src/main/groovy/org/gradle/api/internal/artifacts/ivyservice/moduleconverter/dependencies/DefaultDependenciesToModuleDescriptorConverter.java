@@ -16,11 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.conflict.LatestConflictManager;
-import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -42,11 +37,11 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     }
 
     public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations,
-                                         IvySettings ivySettings) {
+                                         IvyConfig ivyConfig) {
         assert !configurations.isEmpty();
         addDependencies(moduleDescriptor, configurations);
         addExcludeRules(moduleDescriptor, configurations);
-        addConflictManager(moduleDescriptor, ivySettings);
+        addConflictManager(moduleDescriptor, ivyConfig);
     }
 
     private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
@@ -67,12 +62,8 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         }
     }
 
-    private void addConflictManager(DefaultModuleDescriptor moduleDescriptor, IvySettings ivySettings) {
-        LatestConflictManager conflictManager = new LatestConflictManager(new LatestRevisionStrategy());
-        conflictManager.setSettings(ivySettings);
-        moduleDescriptor.addConflictManager(new ModuleId(ExactPatternMatcher.ANY_EXPRESSION,
-                ExactPatternMatcher.ANY_EXPRESSION), ExactPatternMatcher.INSTANCE,
-                conflictManager);
+    private void addConflictManager(DefaultModuleDescriptor moduleDescriptor, IvyConfig ivyConfig) {
+        ivyConfig.applyConflictManager(moduleDescriptor);
     }
 
     public DependencyDescriptorFactory getDependencyDescriptorFactory() {
