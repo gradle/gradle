@@ -19,7 +19,7 @@ import org.junit.Test
 import spock.lang.Issue
 
 // TODO: run prepareWebProject() only once per class for performance reasons (not as simply as it seems)
-class EclipseWtpIntĽegrationTest extends AbstractEclipseIntegrationTest {
+class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void projectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
         prepareWebProject()
