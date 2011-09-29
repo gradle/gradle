@@ -19,7 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.conflict.AbstractConflictManager;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
+import org.apache.ivy.plugins.conflict.StrictConflictManager;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.VersionConflictStrategy;
@@ -42,10 +44,20 @@ public class IvyConfig {
     }
 
     public void applyConflictManager(DefaultModuleDescriptor moduleDescriptor) {
-        LatestConflictManager conflictManager = new LatestConflictManager(new LatestRevisionStrategy());
+        AbstractConflictManager conflictManager = createIvyConflictManager();
         conflictManager.setSettings(ivySettings);
         moduleDescriptor.addConflictManager(new ModuleId(ExactPatternMatcher.ANY_EXPRESSION,
                 ExactPatternMatcher.ANY_EXPRESSION), ExactPatternMatcher.INSTANCE,
                 conflictManager);
+    }
+
+    private AbstractConflictManager createIvyConflictManager() {
+        if (conflictStrategy == VersionConflictStrategy.LATEST) {
+            return new LatestConflictManager(new LatestRevisionStrategy());
+        } else if (conflictStrategy == VersionConflictStrategy.STRICT) {
+            return new StrictConflictManager();
+        } else {
+            throw new RuntimeException("I don't know what ivy conflict manager to use for this VersionConflictStrategy: " + conflictStrategy);
+        }
     }
 }

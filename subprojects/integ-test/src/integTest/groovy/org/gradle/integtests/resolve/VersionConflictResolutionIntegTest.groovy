@@ -18,7 +18,6 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -31,11 +30,10 @@ class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
     public final TestResources testResources = new TestResources()
 
     @Test
-    @Ignore
-    void shouldFailAndReportVersionConflict() {
+    void "strict conflict resolution should fail due to conflict"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", 1.3).publishArtifact()
-        maven(repo).module("org", "foo", 1.4).publishArtifact()
+        maven(repo).module("org", "foo", 1.33).publishArtifact()
+        maven(repo).module("org", "foo", 1.44).publishArtifact()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -51,13 +49,13 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3')
+		compile (group: 'org', name: 'foo', version:'1.33')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4')
+		compile (group: 'org', name: 'foo', version:'1.44')
 	}
 }
 
@@ -66,7 +64,7 @@ project(':tool') {
 		compile project(':api')
 		compile project(':impl')
 	}
-	//configurations.compile.versionConflictStrategy = VersionConflictStrategy.STRICT
+	configurations.compile.versionConflictStrategy = VersionConflictStrategy.STRICT
 }
 """
 
@@ -77,14 +75,60 @@ project(':tool') {
                 .withTasks("tool:dependencies").run() //for some reason I cannot use runWithFailure
 
             //then
-            //assert false
+            assert false
         } catch(Exception e) {
-            //assert e.cause.cause.cause.message.contains('StrictConflictException') //nice, huh? :D
+            assert e.cause.cause.cause.message.contains('StrictConflictException') //nice, huh? :D
         }
     }
 
     @Test
-    void shouldResolveToLatestVersionByDefault() {
+    void "strict conflict resolution should pass when no conflicts"() {
+        TestFile repo = file("repo")
+        maven(repo).module("org", "foo", 1.33).publishArtifact()
+
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << "include 'api', 'impl', 'tool'"
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+	apply plugin: 'java'
+	repositories {
+		maven { url "${repo.toURI()}" }
+	}
+}
+
+project(':api') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.33')
+	}
+}
+
+project(':impl') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.33')
+	}
+}
+
+project(':tool') {
+	dependencies {
+		compile project(':api')
+		compile project(':impl')
+	}
+	configurations.compile.versionConflictStrategy = VersionConflictStrategy.STRICT
+}
+"""
+
+            //when
+            executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
+                .withArguments("-s")
+                .withTasks("tool:dependencies").run()
+
+            //then no exceptions are thrown
+    }
+
+    @Test
+    void "resolves to the latest version by default"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", 1.33).publishArtifact()
         maven(repo).module("org", "foo", 1.44).publishArtifact()

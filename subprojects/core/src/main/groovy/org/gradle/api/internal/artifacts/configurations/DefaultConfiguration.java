@@ -68,6 +68,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Object lock = new Object();
     private State state = State.UNRESOLVED;
     private ResolvedConfiguration cachedResolvedConfiguration;
+    private VersionConflictStrategy strategy = VersionConflictStrategy.LATEST;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider) {
@@ -427,7 +428,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public VersionConflictStrategy getVersionConflictStrategy() {
-        return VersionConflictStrategy.LATEST;
+        return strategy;
+    }
+
+    public void setVersionConflictStrategy(VersionConflictStrategy strategy) {
+        assert strategy != null : "Cannot set null VersionConflictStrategy!";
+        this.strategy = strategy;
     }
 
     private void throwExceptionIfNotInUnresolvedState() {
