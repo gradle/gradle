@@ -22,6 +22,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
+import org.gradle.api.artifacts.VersionConflictStrategy;
 
 /**
  * Contains ivy settings and conflict management. The purpose of this class is to insulate from ivy a bit.
@@ -31,10 +32,13 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 public class IvyConfig {
 
     private final IvySettings ivySettings;
+    private final VersionConflictStrategy conflictStrategy;
 
-    public IvyConfig(IvySettings ivySettings) {
+    public IvyConfig(IvySettings ivySettings, VersionConflictStrategy conflictStrategy) {
         assert ivySettings != null : "ivySettings cannot be null!";
+        assert conflictStrategy != null : "conflictStrategy cannot be null!";
         this.ivySettings = ivySettings;
+        this.conflictStrategy = conflictStrategy;
     }
 
     public void applyConflictManager(DefaultModuleDescriptor moduleDescriptor) {

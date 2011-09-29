@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyResolutionListener;
-import org.gradle.api.artifacts.VersionConflictStrategy;
+package org.gradle.api.artifacts;
 
-public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
-    DependencyResolutionListener getDependencyResolutionBroadcast();
-    VersionConflictStrategy getVersionConflictStrategy();
+/**
+ * Defines the strategy in case there's a dependency version conflict
+ */
+public enum VersionConflictStrategy {
+    /**
+     * use the latest of conflicting versions and move on
+     */
+    LATEST,
+
+    /**
+     * fail eagerly on conflict
+     */
+    STRICT
 }

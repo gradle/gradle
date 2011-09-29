@@ -68,7 +68,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         Ivy ivy = ivyForPublish(publishResolvers);
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
         Set<String> confs = Configurations.getNames(configurationsToPublish, false);
-        IvyConfig ivyConfig = new IvyConfig(ivy.getSettings());
+        IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getVersionConflictStrategy());
         writeDescriptorFile(descriptorDestination, configurationsToPublish, ivyConfig, configuration.getModule());
         dependencyPublisher.publish(
                 confs,

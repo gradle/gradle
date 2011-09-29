@@ -22,6 +22,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.VersionConflictStrategy;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -83,6 +84,8 @@ public class IvyBackedArtifactPublisherTest {
             will(returnValue(moduleDummy));
             allowing(resolverProvider).getResolvers();
             will(returnValue(publishResolversDummy));
+            allowing(configuration).getVersionConflictStrategy();
+            will(returnValue(VersionConflictStrategy.LATEST));
             one(fileModuleDescriptorMock).toIvyFile(someDescriptorDestination);
             one(ivyDependencyPublisherMock).publish(expectedConfigurations,
                     publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, publishEngineDummy);

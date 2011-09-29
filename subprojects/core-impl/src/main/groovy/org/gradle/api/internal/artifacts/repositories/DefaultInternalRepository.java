@@ -28,10 +28,12 @@ import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.VersionConflictStrategy;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
@@ -85,9 +87,11 @@ public class DefaultInternalRepository extends AbstractResolver implements Inter
         }
         ProjectInternal project = projectFinder.getProject(projectPathValue);
         Module projectModule = project.getModule();
-        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(
-                project.getConfigurations(),
-                projectModule, new IvyConfig(IvyContext.getContext().getIvy().getSettings()));
+        IvySettings ivySettings = IvyContext.getContext().getIvy().getSettings();
+        //in this instance we don't care about the version conflict strategy because we're not resolving
+        VersionConflictStrategy whateverStrategy = VersionConflictStrategy.LATEST;
+        IvyConfig ivyConfig = new IvyConfig(ivySettings, whateverStrategy);
+        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule, ivyConfig);
 
         for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
             for (Artifact artifact : projectDescriptor.getAllArtifacts()) {

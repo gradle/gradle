@@ -81,6 +81,8 @@ public class DefaultIvyDependencyResolverTest {
             allowing(ivyStub).getSettings();
             will(returnValue(new IvySettings()));
         }});
+
+        configurationIsAskedForConflictStrategy();
     }
 
     @Test
@@ -125,6 +127,7 @@ public class DefaultIvyDependencyResolverTest {
             allowing(conversionResultStub).getRoot();
             will(returnValue(root));
         }});
+
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
 
@@ -146,6 +149,13 @@ public class DefaultIvyDependencyResolverTest {
         assertThat(actualDeps, equalTo(toSet(resolvedDependency1, resolvedDependency2)));
     }
 
+    private void configurationIsAskedForConflictStrategy() {
+        context.checking(new Expectations() {{
+            allowing(configurationStub).getVersionConflictStrategy();
+            will(returnValue(VersionConflictStrategy.LATEST));
+        }});
+    }
+
     @Test
     public void testGetModuleDependencies() throws IOException, ParseException {
         prepareResolveReport();
@@ -163,6 +173,7 @@ public class DefaultIvyDependencyResolverTest {
             allowing(root).getChildren();
             will(returnValue(resolvedDependenciesSet));
         }});
+
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
 
