@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.IvyRepository
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.junit.Rule
 
 class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
