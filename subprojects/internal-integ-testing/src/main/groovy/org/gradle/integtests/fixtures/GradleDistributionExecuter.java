@@ -165,9 +165,10 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
         File resolversFile = new File(getUserHomeDir(), "caches/artifacts-2/.wharf/resolvers.kryo");
         Assert.assertTrue(resolversFile.getParentFile().isDirectory());
-        Assert.assertTrue(resolversFile.isFile());
-        Assert.assertThat(resolversFile.length(), Matchers.greaterThan(0L));
-                
+        if (resolversFile.exists()) {
+            Assert.assertThat(resolversFile.length(), Matchers.greaterThan(0L));
+        }
+
         return result;
     }
 
