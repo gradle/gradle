@@ -21,7 +21,6 @@ import java.io.File;
 import java.util.*;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
-    private static final Set<File> DAEMONS = new HashSet<File>();
 
     public DaemonGradleExecuter(TestFile gradleHomeDir) {
         super(gradleHomeDir);
