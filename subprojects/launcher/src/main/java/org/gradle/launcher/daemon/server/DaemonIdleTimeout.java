@@ -75,6 +75,10 @@ public class DaemonIdleTimeout {
         }
     }
 
+    public DaemonIdleTimeout(int idleTimeout) {
+        this.idleTimeout = idleTimeout;
+    }
+
     private String readProperty(String vmParams) {
         String idleDaemonTimeoutArg = null;
         if (vmParams != null) {
