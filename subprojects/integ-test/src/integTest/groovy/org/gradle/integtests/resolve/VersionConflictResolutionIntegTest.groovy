@@ -63,8 +63,8 @@ project(':tool') {
 	dependencies {
 		compile project(':api')
 		compile project(':impl')
+		versionConflictStrategy = VersionConflictStrategy.STRICT
 	}
-	configurations.compile.versionConflictStrategy = VersionConflictStrategy.STRICT
 }
 """
 
@@ -72,13 +72,22 @@ project(':tool') {
             //when
             executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
                 .withArguments("-s")
-                .withTasks("tool:dependencies").run() //for some reason I cannot use runWithFailure
+                .withTasks("tool:dependencies").run() //cannot runWithFailure until the error reporting is fixed
 
             //then
             assert false
         } catch(Exception e) {
-            assert e.cause.cause.cause.message.contains('StrictConflictException') //nice, huh? :D
+            assert messages(e).contains('StrictConflictException')
         }
+    }
+
+    String messages(Exception e) {
+        String out = e.toString()
+        while(e.cause) {
+            e = e.cause
+            out += "\n$e"
+        }
+        out
     }
 
     @Test
@@ -114,8 +123,8 @@ project(':tool') {
 	dependencies {
 		compile project(':api')
 		compile project(':impl')
+		versionConflictStrategy = VersionConflictStrategy.STRICT
 	}
-	configurations.compile.versionConflictStrategy = VersionConflictStrategy.STRICT
 }
 """
 

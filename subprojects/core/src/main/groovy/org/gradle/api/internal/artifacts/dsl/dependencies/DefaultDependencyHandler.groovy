@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.VersionConflictStrategy
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
 
@@ -96,5 +99,13 @@ class DefaultDependencyHandler implements DependencyHandler {
             doAdd(configuration, notation, null)
         }
         return null;
+    }
+
+    void setVersionConflictStrategy(VersionConflictStrategy strategy) {
+        configurationContainer.all(new Action<Configuration>() {
+            public void execute(Configuration configuration) {
+                ((ConfigurationInternal) configuration).setVersionConflictStrategy(strategy);
+            }
+        });
     }
 }

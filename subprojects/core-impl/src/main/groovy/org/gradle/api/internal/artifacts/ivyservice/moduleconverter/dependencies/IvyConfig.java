@@ -21,9 +21,11 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.conflict.AbstractConflictManager;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
+import org.apache.ivy.plugins.conflict.StrictConflictException;
 import org.apache.ivy.plugins.conflict.StrictConflictManager;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.VersionConflictStrategy;
 
 /**
@@ -58,6 +60,15 @@ public class IvyConfig {
             return new StrictConflictManager();
         } else {
             throw new RuntimeException("I don't know what ivy conflict manager to use for this VersionConflictStrategy: " + conflictStrategy);
+        }
+    }
+
+    //TODO SF some tests around that
+    public void maybeTranslateIvyResolveException(Exception e) {
+        if (e instanceof StrictConflictException) {
+            throw new GradleException("Your dependencies exhibit a version conflict. "
+                    + "The conflict resolution strategy is set to: " + conflictStrategy
+                    + ". Details: " + e.getMessage(), e);
         }
     }
 }

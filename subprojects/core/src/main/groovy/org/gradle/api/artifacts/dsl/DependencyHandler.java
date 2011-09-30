@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.VersionConflictStrategy;
 
 import java.util.Map;
 
@@ -176,4 +177,20 @@ public interface DependencyHandler {
      * @return The dependency.
      */
     Dependency localGroovy();
+
+
+    /**
+     * Configures the version conflict strategy.
+     *
+     * <pre>
+     *     dependencies {
+     *         //..
+     *
+     *         versionConflictStrategy = VersionConflictStrategy.STRICT
+     *     }
+     * </pre>
+     *
+     * @param strategy to use
+     */
+    void setVersionConflictStrategy(VersionConflictStrategy strategy);
 }

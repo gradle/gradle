@@ -65,6 +65,7 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
         try {
             resolveReport = ivy.resolve(moduleDescriptor, resolveOptions);
         } catch (Exception e) {
+            ivyConfig.maybeTranslateIvyResolveException(e);
             throw new RuntimeException(e);
         }
         logger.debug("Timing: Ivy resolve took {}", clock.getTime());

@@ -22,4 +22,5 @@ import org.gradle.api.artifacts.VersionConflictStrategy;
 public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
     DependencyResolutionListener getDependencyResolutionBroadcast();
     VersionConflictStrategy getVersionConflictStrategy();
+    void setVersionConflictStrategy(VersionConflictStrategy strategy);
 }
