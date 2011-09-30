@@ -24,13 +24,14 @@ public class WatchForDisconnection implements DaemonCommandAction {
 
     private static final Logger LOGGER = Logging.getLogger(WatchForDisconnection.class);
 
-    public void execute(DaemonCommandExecution execution) {
+    public void execute(final DaemonCommandExecution execution) {
         DisconnectAwareConnection connection = execution.getConnection();
 
         // Watch for the client disconnecting before we call stop()
         connection.onDisconnect(new Runnable() {
             public void run() {
                 LOGGER.warn("client disconnection detected, we're going down (hard)");
+                execution.getDaemonStateCoordinator().stop(); // to remove us from the registry
                 System.exit(1);
             }
         });
