@@ -17,6 +17,8 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TestFile;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -160,6 +162,11 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             }
 //            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
         }
+
+        File resolversFile = new File(getUserHomeDir(), "caches/artifacts-2/.wharf/resolvers.kryo");
+        Assert.assertTrue(resolversFile.isFile());
+        Assert.assertThat(resolversFile.length(), Matchers.greaterThan(0L));
+                
         return result;
     }
 
