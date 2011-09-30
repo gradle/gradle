@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 
 import java.util.Map;
@@ -23,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author: Szczepan Faber, created at: 8/29/11
+ * Centralises determining the daemon idle timeout and default value.
  */
 public class DaemonIdleTimeout {
     public static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
@@ -32,6 +33,10 @@ public class DaemonIdleTimeout {
 
     public DaemonIdleTimeout(String vmParams) {
         this(vmParams, DEFAULT_IDLE_TIMEOUT);
+    }
+
+    public DaemonIdleTimeout(StartParameter startParameter) {
+        this(startParameter.getSystemPropertiesArgs());
     }
 
     /**
