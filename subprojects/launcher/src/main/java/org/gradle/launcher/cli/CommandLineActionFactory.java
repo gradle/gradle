@@ -31,6 +31,7 @@ import org.gradle.launcher.daemon.bootstrap.DaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonConnector;
 import org.gradle.launcher.daemon.client.ExternalDaemonConnector;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
@@ -124,7 +125,8 @@ public class CommandLineActionFactory {
 
         final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
-        DaemonConnector connector = new ExternalDaemonConnector(startParameter.getGradleUserHomeDir());
+        int idleTimeout = new DaemonIdleTimeout(startParameter).getIdleTimeout();
+        DaemonConnector connector = new ExternalDaemonConnector(startParameter.getGradleUserHomeDir(), idleTimeout);
         GradleLauncherMetaData clientMetaData = clientMetaData();
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
         DaemonClient client = new DaemonClient(connector, clientMetaData, loggingServices.get(OutputEventListener.class));
