@@ -33,13 +33,11 @@ import java.util.Set;
  * A daemon connector that starts daemons by launching new processes.
  */
 public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentDaemonRegistry> {
-    public static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
-    
     private final File userHomeDir;
     private final int idleTimeout;
     
     public ExternalDaemonConnector(File userHomeDir) {
-        this(userHomeDir, DEFAULT_IDLE_TIMEOUT, DEFAULT_CONNECT_TIMEOUT);
+        this(userHomeDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT, DEFAULT_CONNECT_TIMEOUT);
     }
 
     ExternalDaemonConnector(File userHomeDir, int idleTimeout, int connectTimeout) {
