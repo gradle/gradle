@@ -58,8 +58,8 @@ public class GradleHandles implements MethodRule {
 
     public GradleHandle<? extends ForkingGradleExecuter> createHandle(Closure executerConfig) {
         GradleHandle<? extends ForkingGradleExecuter> handle = createHandle();
-        executerConfig.setDelegate(executerConfig);
-        executerConfig.call(handle);
+        executerConfig.setDelegate(handle.getExecuter());
+        executerConfig.call(handle.getExecuter());
         return handle;
     }
 
@@ -68,13 +68,7 @@ public class GradleHandles implements MethodRule {
     }
 
     public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
-        Statement doWithDistribution = new Statement() {
-            public void evaluate() {
-                executer.apply(base, method, target);
-            }
-        };
-
-        return distribution.apply(doWithDistribution, method, target);
+        return distribution.apply(executer.apply(base, method, target), method, target);
     }
 
 }

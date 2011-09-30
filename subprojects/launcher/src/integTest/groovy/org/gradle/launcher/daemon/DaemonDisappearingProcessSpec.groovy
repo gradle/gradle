@@ -44,7 +44,7 @@ class DaemonDisappearingProcessSpec extends Specification {
     def "tearing down client while daemon is building tears down daemon"() {
         given:
         daemons = handles.daemonRegistry
-        client = handles.createHandle { delegate.withArguments("--daemon", "--info").withTasks("sleep") }
+        client = handles.createHandle { withArguments("--daemon", "--info").withTasks("sleep") }
 
         expect:
         daemons.all.empty
@@ -62,7 +62,7 @@ class DaemonDisappearingProcessSpec extends Specification {
         waitFor { assert daemons.all.empty; true }
     }
 
-    def waitFor(int timeout = 10000, Closure assertion) {
+    def waitFor(int timeout = 5000, Closure assertion) {
         int x = 0;
         while(true) {
             try {
@@ -85,9 +85,6 @@ class DaemonDisappearingProcessSpec extends Specification {
         try {
             client?.abort()
         } catch (IllegalStateException e) {}
-
-        waitFor { client?.waitForFinish(); true }
-        waitFor { assert !daemons || daemons.all.empty; true }
     }
 
 }
