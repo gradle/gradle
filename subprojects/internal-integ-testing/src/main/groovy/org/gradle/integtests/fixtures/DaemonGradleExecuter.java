@@ -17,7 +17,6 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.util.TestFile;
 
-import java.io.File;
 import java.util.*;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
