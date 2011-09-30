@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
-import org.gradle.launcher.daemon.server.DaemonTimeout;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
@@ -75,9 +75,9 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentD
         daemonArgs.add(userHomeDir.getAbsolutePath());
 
         //TODO SF daemon server should use all gradle opts (that requires more digging & windows validation) but it is a part of a different story
-        //for now I only pass the idle timeout
-        DaemonTimeout timeout = new DaemonTimeout(System.getenv("GRADLE_OPTS"), idleTimeout);
-        daemonArgs.add(timeout.toSysArg());
+        //for now I only pass the idle idleTimeout
+        DaemonIdleTimeout idleTimeout = new DaemonIdleTimeout(System.getenv("GRADLE_OPTS"), this.idleTimeout);
+        daemonArgs.add(idleTimeout.toSysArg());
 
         DaemonStartAction daemon = new DaemonStartAction();
         daemon.args(daemonArgs);

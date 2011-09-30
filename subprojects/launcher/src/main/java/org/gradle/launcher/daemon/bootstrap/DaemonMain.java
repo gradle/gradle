@@ -105,6 +105,6 @@ public class DaemonMain implements Runnable {
     }
     
     private static int getIdleTimeout(StartParameter startParameter) {
-        return new DaemonTimeout(startParameter.getSystemPropertiesArgs()).getIdleTimeout();
+        return new DaemonIdleTimeout(startParameter.getSystemPropertiesArgs()).getIdleTimeout();
     }
 }
