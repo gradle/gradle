@@ -63,8 +63,6 @@ integTestTasks.all {
         systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
         systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
         systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
-        // TODO - remove this once wharf is behaving itself
-        delete fileTree(dir: "$integTestUserDir/worker-1/caches/artifacts-2/.wharf")
     }
 }
 
