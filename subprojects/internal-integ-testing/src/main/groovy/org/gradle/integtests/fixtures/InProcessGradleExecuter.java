@@ -32,6 +32,8 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
 import org.gradle.launcher.env.LenientEnvHacker;
 import org.gradle.os.ProcessEnvironment;
 import org.hamcrest.Matcher;
@@ -116,6 +118,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             }
             factory.removeListener(listener);
         }
+    }
+
+    public DaemonRegistry getDaemonRegistry() {
+        // doesn't quite make sense, but there will never be daemons started by this executer.
+        // we could create a capability interface for the executer hierarchy but I'm not sure it's worth it
+        return new EmbeddedDaemonRegistry();
     }
 
     public void assertCanExecute() {

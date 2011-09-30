@@ -20,6 +20,7 @@ import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -100,6 +101,10 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         }
         reset();
         return base;
+    }
+
+    public DaemonRegistry getDaemonRegistry() {
+        return configureExecuter().getDaemonRegistry();
     }
 
     @Override

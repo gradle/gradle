@@ -22,6 +22,8 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.EmbeddedDaemonConnector;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
@@ -34,6 +36,11 @@ import java.lang.management.ManagementFactory;
 public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+    private EmbeddedDaemonRegistry daemonRegistry = new EmbeddedDaemonRegistry();
+
+    public DaemonRegistry getDaemonRegistry() {
+        return daemonRegistry;
+    }
 
     protected ExecutionResult doRun() {
         return doRun(false);
@@ -78,7 +85,7 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private DaemonClient createClient() {
-        return new DaemonClient(new EmbeddedDaemonConnector(), clientMetaData(), loggingServices.get(OutputEventListener.class));
+        return new DaemonClient(new EmbeddedDaemonConnector(daemonRegistry), clientMetaData(), loggingServices.get(OutputEventListener.class));
     }
 
     private LoggingManagerInternal createLoggingManager(StringBuilder output, StringBuilder error) {

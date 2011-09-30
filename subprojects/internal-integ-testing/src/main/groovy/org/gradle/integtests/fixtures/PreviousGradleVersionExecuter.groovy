@@ -28,6 +28,10 @@ import org.gradle.cache.internal.CacheFactory.CrossVersionMode
 import org.gradle.api.Action
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider
+import org.gradle.StartParameter
+import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
+
 import org.gradle.os.jna.NativeEnvironment
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
@@ -60,6 +64,15 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         return version == GradleVersion.version('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
     }
 
+    DaemonRegistry getDaemonRegistry() {
+        File userHome = getUserHomeDir()
+        if (userHome == null) {
+            userHome = StartParameter.DEFAULT_GRADLE_USER_HOME
+        }
+
+        new PersistentDaemonRegistry(userHome)
+    }
+    
     boolean daemonSupported() {
         if (OperatingSystem.current().isWindows()) {
             // On windows, daemon is ok for anything > 1.0-milestone-3

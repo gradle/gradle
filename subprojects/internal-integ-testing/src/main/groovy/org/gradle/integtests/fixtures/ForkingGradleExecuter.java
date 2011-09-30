@@ -16,10 +16,13 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.StartParameter;
 import org.gradle.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
 import org.gradle.util.Jvm;
 import org.gradle.util.TestFile;
 import org.slf4j.Logger;
@@ -47,6 +50,15 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return gradleHomeDir;
     }
 
+    public DaemonRegistry getDaemonRegistry() {
+        File userHome = getUserHomeDir();
+        if (userHome == null) {
+            userHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
+        }
+
+        return new PersistentDaemonRegistry(userHome);
+    }
+    
     /**
      * Adds some options to the GRADLE_OPTS environment variable to use.
      */

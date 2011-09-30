@@ -22,6 +22,8 @@ import org.junit.runners.model.Statement;
 import java.util.List;
 import java.util.LinkedList;
 
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+
 import groovy.lang.Closure;
 
 public class GradleHandles implements MethodRule {
@@ -59,6 +61,10 @@ public class GradleHandles implements MethodRule {
         executerConfig.setDelegate(executerConfig);
         executerConfig.call(handle);
         return handle;
+    }
+
+    DaemonRegistry getDaemonRegistry() {
+        return getExecuter().getDaemonRegistry();
     }
 
     public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {

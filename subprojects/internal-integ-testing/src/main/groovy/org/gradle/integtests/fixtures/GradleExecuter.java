@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -102,4 +104,11 @@ public interface GradleExecuter {
      * @return The result.
      */
     ExecutionFailure runWithFailure();
+    
+    /**
+     * Provides a daemon registry for any daemons started by this executer, which may be none.
+     * 
+     * @return the daemon registry, never null.
+     */
+    DaemonRegistry getDaemonRegistry();
 }

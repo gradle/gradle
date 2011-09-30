@@ -25,6 +25,9 @@ class DaemonDisappearingProcessSpec extends Specification {
 
     @Rule public final GradleHandles handles = new GradleHandles()
 
+    def daemons
+    def client
+
     def setup() {
         handles.distribution.with {
             requireOwnUserHomeDir()
@@ -36,39 +39,27 @@ class DaemonDisappearingProcessSpec extends Specification {
             """
         }
     }
-    
-    GradleHandle client() {
-        handles.createHandle { withArguments("--daemon", "--info").withTasks("sleep") }
-    }
-
-    GradleHandle daemon() {
-        handles.createHandle { withArguments("--foreground", "--info") }
-    }
 
     @Timeout(10)
     def "tearing down client while daemon is building tears down daemon"() {
         given:
-        def client = client()
-        def daemon = daemon()
+        daemons = handles.daemonRegistry
+        client = handles.createHandle { delegate.withArguments("--daemon", "--info").withTasks("sleep") }
+
+        expect:
+        daemons.all.empty
 
         when:
-        daemon.start()
-        waitFor { assert daemon.standardOutput.contains("Advertising the daemon address to the clients"); true }
-
-        and:
         client.start()
 
         then:
-        waitFor { assert daemon.standardOutput.contains("about to sleep"); true }
+        waitFor { assert daemons.busy.size() == 1; true }
 
         when:
         client.abort()
 
         then:
-        daemon.waitForFailure()
-
-        and:
-        daemon.standardOutput.contains "client disconnection detected"
+        waitFor { assert daemons.all.empty; true }
     }
 
     def waitFor(int timeout = 10000, Closure assertion) {
@@ -92,12 +83,11 @@ class DaemonDisappearingProcessSpec extends Specification {
 
     def cleanup() {
         try {
-            handles.createdHandles*.abort()
+            client?.abort()
         } catch (IllegalStateException e) {}
-            
-        handles.createdHandles.each { process ->
-            waitFor { process.waitForFinish() }
-        }
+
+        waitFor { client?.waitForFinish(); true }
+        waitFor { assert !daemons || daemons.all.empty; true }
     }
 
 }
