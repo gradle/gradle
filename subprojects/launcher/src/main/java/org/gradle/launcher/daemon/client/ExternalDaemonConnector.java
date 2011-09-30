@@ -40,6 +40,10 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentD
         this(userHomeDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT, DEFAULT_CONNECT_TIMEOUT);
     }
 
+    ExternalDaemonConnector(File userHomeDir, int idleTimeout) {
+        this(userHomeDir, idleTimeout, DEFAULT_CONNECT_TIMEOUT);
+    }
+
     ExternalDaemonConnector(File userHomeDir, int idleTimeout, int connectTimeout) {
         super(new PersistentDaemonRegistry(userHomeDir), connectTimeout);
         this.idleTimeout = idleTimeout;
