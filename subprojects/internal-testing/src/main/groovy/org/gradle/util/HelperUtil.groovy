@@ -72,11 +72,19 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        return ProjectBuilder.builder().withProjectDir(rootDir).build()
+        return ProjectBuilder
+                .builder()
+                .withProjectDir(rootDir)
+                .build()
     }
 
     static DefaultProject createChildProject(DefaultProject parent, String name, File projectDir = null) {
-        return ProjectBuilder.createChildProject(parent, name, projectDir)
+        return ProjectBuilder
+                .builder()
+                .withName(name)
+                .withParent(parent)
+                .withProjectDir(projectDir)
+                .build();
     }
 
     static def pureStringTransform(def collection) {

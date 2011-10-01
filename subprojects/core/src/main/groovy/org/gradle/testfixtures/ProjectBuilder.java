@@ -90,10 +90,6 @@ public class ProjectBuilder {
         return this;
     }
 
-    public static Project createChildProject(Project parent, String name, File projectDir) {
-        return builder().withName(name).withParent(parent).withProjectDir(projectDir).createChildProject();
-    }
-
     private Project createChildProject() {
         ProjectInternal parentProject = (ProjectInternal) parent;
         DefaultProject project = CLASS_GENERATOR.newInstance(
@@ -116,6 +112,13 @@ public class ProjectBuilder {
      * @return The project
      */
     public Project build() {
+        if (parent != null) {
+            return createChildProject();
+        }
+        return createProject();
+    }
+
+    private Project createProject() {
         prepareProjectDir();
 
         final File homeDir = new File(projectDir, "gradleHome");
