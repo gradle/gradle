@@ -28,6 +28,8 @@ public interface GradleHandle<T extends GradleExecuter> {
     ExecutionResult waitForFinish();
     ExecutionFailure waitForFailure();
 
+    GradleHandle<T> passthroughOutput();
+    
     // ExecutionResult waitForFinish(double secondsToWait);
     // ExecutionFailure waitForFailure(double secondsToWait);
 

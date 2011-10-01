@@ -28,6 +28,8 @@ import org.gradle.util.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.OutputStream;
+import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
@@ -179,7 +181,26 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleHandle.class);
         
         final private T executer;
+        private boolean passthrough;
 
+        private class MultiplexingOutputStream extends OutputStream {
+            OutputStream systemOut;
+            OutputStream nonSystemOut;
+            
+            public MultiplexingOutputStream(OutputStream systemOut, OutputStream nonSystemOut) {
+                this.systemOut = systemOut;
+                this.nonSystemOut = nonSystemOut;
+            }
+            
+            public void write(int b) throws IOException {
+                nonSystemOut.write(b);
+                if (passthrough) {
+                    systemOut.write(b);
+                }
+            }
+        }
+        
+        
         final private ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
 
@@ -193,6 +214,11 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             return executer;
         }
 
+        public GradleHandle<T> passthroughOutput() {
+            passthrough = true;
+            return this;
+        }
+        
         public String getStandardOutput() {
             return standardOutput.toString();
         }
@@ -225,8 +251,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             }
 
             ExecHandleBuilder execBuilder = getExecuter().createExecHandleBuilder();
-            execBuilder.setStandardOutput(standardOutput);
-            execBuilder.setErrorOutput(errorOutput);
+            execBuilder.setStandardOutput(new MultiplexingOutputStream(System.out, standardOutput));
+            execBuilder.setErrorOutput(new MultiplexingOutputStream(System.err, errorOutput));
             execHandle = execBuilder.build();
 
             return execHandle;
