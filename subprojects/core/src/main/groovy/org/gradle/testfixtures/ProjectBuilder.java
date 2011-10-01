@@ -73,28 +73,28 @@ public class ProjectBuilder {
      * Specifies the project directory for the project to build.
      *
      * @param dir The project directory
-     * @return A new ProjectBuilder.
+     * @return This ProjectBuilder.
      */
     public ProjectBuilder withProjectDir(File dir) {
-        projectDir = GFileUtils.canonicalise(dir);
+        projectDir = dir;
         return this;
     }
 
-    public ProjectBuilder name(String name) {
+    public ProjectBuilder withName(String name) {
         this.name = name;
         return this;
     }
 
-    public ProjectBuilder parent(Project parent) {
+    public ProjectBuilder withParent(Project parent) {
         this.parent = parent;
         return this;
     }
 
     public static Project createChildProject(Project parent, String name, File projectDir) {
-        return builder().name(name).parent(parent).createChildProject(projectDir);
+        return builder().withName(name).withParent(parent).withProjectDir(projectDir).createChildProject();
     }
 
-    private Project createChildProject(File projectDir) {
+    private Project createChildProject() {
         ProjectInternal parentProject = (ProjectInternal) parent;
         DefaultProject project = CLASS_GENERATOR.newInstance(
                 DefaultProject.class,
@@ -116,16 +116,7 @@ public class ProjectBuilder {
      * @return The project
      */
     public Project build() {
-        if (projectDir == null) {
-            try {
-                projectDir = GFileUtils.canonicalise(File.createTempFile("gradle", "projectDir"));
-                projectDir.delete();
-                projectDir.mkdir();
-                projectDir.deleteOnExit();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
+        prepareProjectDir();
 
         final File homeDir = new File(projectDir, "gradleHome");
 
@@ -144,4 +135,18 @@ public class ProjectBuilder {
         return project;
     }
 
+    private void prepareProjectDir() {
+        if (projectDir == null) {
+            try {
+                projectDir = GFileUtils.canonicalise(File.createTempFile("gradle", "projectDir"));
+                projectDir.delete();
+                projectDir.mkdir();
+                projectDir.deleteOnExit();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        } else {
+            projectDir = GFileUtils.canonicalise(projectDir);
+        }
+    }
 }
