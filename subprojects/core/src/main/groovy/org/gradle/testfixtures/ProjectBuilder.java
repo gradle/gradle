@@ -73,21 +73,45 @@ public class ProjectBuilder {
      * Specifies the project directory for the project to build.
      *
      * @param dir The project directory
-     * @return This ProjectBuilder.
+     * @return The builder
      */
     public ProjectBuilder withProjectDir(File dir) {
         projectDir = dir;
         return this;
     }
 
+    /**
+     * Specifies the name for the project
+     *
+     * @param name project name
+     * @return The builder
+     */
     public ProjectBuilder withName(String name) {
         this.name = name;
         return this;
     }
 
+    /**
+     * Specifies the parent project. Use it to create multi-module projects.
+     *
+     * @param parent parent project
+     * @return The builder
+     */
     public ProjectBuilder withParent(Project parent) {
         this.parent = parent;
         return this;
+    }
+
+    /**
+     * Creates the project.
+     *
+     * @return The project
+     */
+    public Project build() {
+        if (parent != null) {
+            return createChildProject();
+        }
+        return createProject();
     }
 
     private Project createChildProject() {
@@ -104,18 +128,6 @@ public class ProjectBuilder {
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);
         return project;
-    }
-
-    /**
-     * Creates the project.
-     *
-     * @return The project
-     */
-    public Project build() {
-        if (parent != null) {
-            return createChildProject();
-        }
-        return createProject();
     }
 
     private Project createProject() {
