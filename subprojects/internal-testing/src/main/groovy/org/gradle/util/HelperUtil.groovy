@@ -43,7 +43,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.testfixtures.ProjectBuilder
 
 /**
@@ -76,19 +75,8 @@ class HelperUtil {
         return ProjectBuilder.builder().withProjectDir(rootDir).build()
     }
 
-    static DefaultProject createChildProject(DefaultProject parentProject, String name, File projectDir = null) {
-        DefaultProject project = CLASS_GENERATOR.newInstance(
-                DefaultProject.class,
-                name,
-                parentProject,
-                projectDir ? projectDir.absoluteFile : new File(parentProject.getProjectDir(), name),
-                new StringScriptSource("test build file", null),
-                parentProject.gradle,
-                parentProject.gradle.services
-        )
-        parentProject.addChildProject project
-        parentProject.projectRegistry.addProject project
-        return project
+    static DefaultProject createChildProject(DefaultProject parent, String name, File projectDir = null) {
+        return ProjectBuilder.createChildProject(parent, name, projectDir)
     }
 
     static def pureStringTransform(def collection) {

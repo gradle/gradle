@@ -18,10 +18,13 @@ package org.gradle.testfixtures;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.invocation.DefaultGradle;
@@ -52,7 +55,9 @@ import java.io.IOException;
  */
 public class ProjectBuilder {
     private static final GlobalTestServices GLOBAL_SERVICES = new GlobalTestServices();
+    private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator();
     private File projectDir;
+    private String name = "test";
 
     /**
      * Creates a project builder.
@@ -72,6 +77,31 @@ public class ProjectBuilder {
     public ProjectBuilder withProjectDir(File dir) {
         projectDir = GFileUtils.canonicalise(dir);
         return this;
+    }
+
+    public ProjectBuilder name(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public static Project createChildProject(Project parent, String name, File projectDir) {
+        return builder().name(name).createChildProject(parent, projectDir);
+    }
+
+    private Project createChildProject(Project parent, File projectDir) {
+        ProjectInternal parentProject = (ProjectInternal) parent;
+        DefaultProject project = CLASS_GENERATOR.newInstance(
+                DefaultProject.class,
+                name,
+                parentProject,
+                (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name),
+                new StringScriptSource("test build file", null),
+                parentProject.getGradle(),
+                parentProject.getGradle().getServices()
+        );
+        parentProject.addChildProject(project);
+        parentProject.getProjectRegistry().addProject(project);
+        return project;
     }
 
     /**
@@ -99,7 +129,7 @@ public class ProjectBuilder {
         ServiceRegistryFactory topLevelRegistry = new TestTopLevelBuildServiceRegistry(GLOBAL_SERVICES, startParameter, homeDir);
         GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry);
 
-        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, "test", projectDir, new DefaultProjectDescriptorRegistry());
+        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry());
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle);
 
         gradle.setRootProject(project);
