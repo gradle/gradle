@@ -58,6 +58,7 @@ public class ProjectBuilder {
     private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator();
     private File projectDir;
     private String name = "test";
+    private Project parent;
 
     /**
      * Creates a project builder.
@@ -84,11 +85,16 @@ public class ProjectBuilder {
         return this;
     }
 
-    public static Project createChildProject(Project parent, String name, File projectDir) {
-        return builder().name(name).createChildProject(parent, projectDir);
+    public ProjectBuilder parent(Project parent) {
+        this.parent = parent;
+        return this;
     }
 
-    private Project createChildProject(Project parent, File projectDir) {
+    public static Project createChildProject(Project parent, String name, File projectDir) {
+        return builder().name(name).parent(parent).createChildProject(projectDir);
+    }
+
+    private Project createChildProject(File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
         DefaultProject project = CLASS_GENERATOR.newInstance(
                 DefaultProject.class,
