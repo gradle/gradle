@@ -27,43 +27,43 @@ import org.gradle.util.GUtil;
 import org.gradle.util.JavaMethod;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * A {@link BuildExecuter} which selects tasks which match the provided names. For each name, selects all tasks in all
+ * A {@link BuildConfigurationAction} which selects tasks which match the provided names. For each name, selects all tasks in all
  * projects whose name is the given name.
  */
-public class TaskNameResolvingBuildExecuter implements BuildExecuter {
-    private final List<String> names;
-    private String description;
-    private TaskGraphExecuter executer;
+public class TaskNameResolvingBuildConfigurationAction implements BuildConfigurationAction {
     private final TaskNameResolver taskNameResolver;
 
-    public TaskNameResolvingBuildExecuter(Collection<String> names) {
-        this(names, new TaskNameResolver());
+    public TaskNameResolvingBuildConfigurationAction() {
+        this(new TaskNameResolver());
     }
 
-    TaskNameResolvingBuildExecuter(Collection<String> names, TaskNameResolver taskNameResolver) {
+    TaskNameResolvingBuildConfigurationAction(TaskNameResolver taskNameResolver) {
         this.taskNameResolver = taskNameResolver;
-        this.names = new ArrayList<String>(names);
     }
 
-    public List<String> getNames() {
-        return names;
-    }
+    public void configure(BuildExecutionContext context) {
+        GradleInternal gradle = context.getGradle();
+        List<String> taskNames = gradle.getStartParameter().getTaskNames();
+        Multimap<String, Task> selectedTasks = doSelect(gradle, taskNames, taskNameResolver);
 
-    public void select(GradleInternal gradle) {
-        Multimap<String, Task> selectedTasks = doSelect(gradle, names, taskNameResolver);
-
-        this.executer = gradle.getTaskGraph();
+        TaskGraphExecuter executer = gradle.getTaskGraph();
         for (String name : selectedTasks.keySet()) {
             executer.addTasks(selectedTasks.get(name));
         }
+
         if (selectedTasks.keySet().size() == 1) {
-            description = String.format("primary task %s", GUtil.toString(selectedTasks.keySet()));
+            context.setDisplayName(String.format("primary task %s", GUtil.toString(selectedTasks.keySet())));
         } else {
-            description = String.format("primary tasks %s", GUtil.toString(selectedTasks.keySet()));
+            context.setDisplayName(String.format("primary tasks %s", GUtil.toString(selectedTasks.keySet())));
         }
+
+        context.proceed();
     }
 
     private Multimap<String, Task> doSelect(GradleInternal gradle, List<String> paths, TaskNameResolver taskNameResolver) {
@@ -103,13 +103,5 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
         }
 
         return matches;
-    }
-
-    public String getDisplayName() {
-        return description;
-    }
-
-    public void execute() {
-        executer.execute();
     }
 }

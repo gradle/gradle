@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,42 +16,69 @@
 package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
+import org.gradle.util.GUtil;
 
-import java.util.*;
+import java.util.List;
 
-/**
- * <p>The standard {@link BuildExecuter} implementation.</p>
- */
-public class DefaultBuildExecuter extends DelegatingBuildExecuter {
-    private final Set<String> excludedTaskNames;
+public class DefaultBuildExecuter implements BuildExecuter {
+    private final List<BuildConfigurationAction> configurationActions;
+    private final List<BuildExecutionAction> executionActions;
+    private GradleInternal gradle;
+    private String displayName;
 
-    public DefaultBuildExecuter(Collection<String> includedTaskNames, Collection<String> excludedTaskNames) {
-        this.excludedTaskNames = new HashSet<String>(excludedTaskNames);
-        if (includedTaskNames.isEmpty()) {
-            setDelegate(new ProjectDefaultsBuildExecuter());
-        } else {
-            setDelegate(new TaskNameResolvingBuildExecuter(includedTaskNames));
-        }
+    public DefaultBuildExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildExecutionAction> executionActions) {
+        this.configurationActions = GUtil.toList(configurationActions);
+        this.executionActions = GUtil.toList(executionActions);
     }
 
-    @Override
     public void select(GradleInternal gradle) {
-        if (!excludedTaskNames.isEmpty()) {
-            final Set<Task> excludedTasks = new HashSet<Task>();
-            TaskSelector selector = new TaskSelector();
-            for (String taskName : excludedTaskNames) {
-                selector.selectTasks(gradle, taskName);
-                excludedTasks.addAll(selector.getTasks());
-            }
-            gradle.getTaskGraph().useFilter(new Spec<Task>() {
-                public boolean isSatisfiedBy(Task task) {
-                    return !excludedTasks.contains(task);
-                }
-            });
-        }
+        this.gradle = gradle;
+        configure(0);
+    }
 
-        super.select(gradle);
+    private void configure(final int index) {
+        if (index >= configurationActions.size()) {
+            return;
+        }
+        configurationActions.get(index).configure(new BuildExecutionContext() {
+            public void setDisplayName(String displayName) {
+                DefaultBuildExecuter.this.displayName = displayName;
+            }
+
+            public GradleInternal getGradle() {
+                return gradle;
+            }
+
+            public void proceed() {
+                configure(index + 1);
+            }
+        });
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void execute() {
+        execute(0);
+    }
+
+    private void execute(final int index) {
+        if (index >= executionActions.size()) {
+            return;
+        }
+        executionActions.get(index).execute(new BuildExecutionContext() {
+            public GradleInternal getGradle() {
+                return gradle;
+            }
+
+            public void setDisplayName(String displayName) {
+                DefaultBuildExecuter.this.displayName = displayName;
+            }
+
+            public void proceed() {
+                execute(index + 1);
+            }
+        });
     }
 }

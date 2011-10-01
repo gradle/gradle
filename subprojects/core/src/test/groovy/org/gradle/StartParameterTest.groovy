@@ -16,13 +16,8 @@
 
 package org.gradle
 
-import static org.gradle.util.Matchers.*
-
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.logging.LogLevel
-import org.gradle.execution.BuildExecuter
-import org.gradle.execution.DefaultBuildExecuter
-import org.gradle.execution.DryRunBuildExecuter
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
@@ -30,12 +25,13 @@ import org.gradle.initialization.BuildFileProjectSpec
 import org.gradle.initialization.DefaultProjectSpec
 import org.gradle.initialization.ProjectDirectoryProjectSpec
 import org.gradle.initialization.ProjectSpec
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.Test
+import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.util.SetSystemProperties
 
 /**
  * @author Hans Dockter
@@ -80,7 +76,6 @@ class StartParameterTest {
         assertThat(parameter.excludedTaskNames, isEmpty())
         assertThat(parameter.projectProperties, isEmptyMap())
         assertThat(parameter.systemPropertiesArgs, isEmptyMap())
-        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertFalse(parameter.dryRun)
     }
@@ -168,28 +163,6 @@ class StartParameterTest {
         assertThat(parameter.settingsScriptSource, sameInstance(scriptSource))
     }
 
-    @Test public void testSetTaskNames() {
-        StartParameter parameter = new StartParameter()
-        parameter.taskNames = ['a', 'b']
-        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
-        assertThat(parameter.buildExecuter.delegate.names, equalTo(['a', 'b']))
-    }
-
-    @Test public void testSetTaskNamesUsesDefaultExecuter() {
-        StartParameter parameter = new StartParameter()
-
-        parameter.setBuildExecuter({} as BuildExecuter)
-        parameter.taskNames = []
-        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
-    }
-
-    @Test public void testSetExcludedTaskNames() {
-        StartParameter parameter = new StartParameter()
-        parameter.excludedTaskNames = ['a', 'b']
-        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
-        assertThat(parameter.buildExecuter.excludedTaskNames, equalTo(['a', 'b'] as Set))
-    }
-
     @Test public void testUseEmbeddedBuildFile() {
         StartParameter parameter = new StartParameter();
         parameter.useEmbeddedBuildFile("<content>")
@@ -204,17 +177,6 @@ class StartParameterTest {
         StartParameter parameter = new StartParameter()
         parameter.gradleUserHomeDir = null
         assertThat(parameter.gradleUserHomeDir, equalTo(StartParameter.DEFAULT_GRADLE_USER_HOME))
-    }
-
-    @Test public void testWrapsExecuterWhenDryRunIsTrue() {
-        StartParameter parameter = new StartParameter()
-        def originalExecuter = [:] as BuildExecuter
-        parameter.buildExecuter = originalExecuter
-        parameter.dryRun = true
-        assertThat(parameter.buildExecuter, instanceOf(DryRunBuildExecuter))
-        assertThat(parameter.buildExecuter.delegate, sameInstance(originalExecuter))
-        parameter.dryRun = false
-        assertThat(parameter.buildExecuter, sameInstance(originalExecuter))
     }
 
     @Test public void testNewBuild() {

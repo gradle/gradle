@@ -26,6 +26,7 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cache.CacheRepository;
 import org.gradle.configuration.BuildConfigurer;
+import org.gradle.execution.BuildExecuter;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
@@ -139,7 +140,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 serviceRegistry.get(BuildConfigurer.class),
                 gradle.getBuildListenerBroadcaster(),
                 serviceRegistry.get(ExceptionAnalyser.class),
-                loggingManager);
+                loggingManager,
+                serviceRegistry.get(BuildExecuter.class));
     }
 
     public void setCommandLineConverter(

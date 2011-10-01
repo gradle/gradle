@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,8 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.Task;
-
-/**
- * A {@link org.gradle.execution.BuildExecuter} which disables all selected tasks before they are executed.
- */
-public class DryRunBuildExecuter extends DelegatingBuildExecuter {
-    public DryRunBuildExecuter(BuildExecuter delegate) {
-        super(delegate);
-    }
-
-    @Override
-    public void execute() {
-        for (Task task : getBuild().getTaskGraph().getAllTasks()) {
-            task.setEnabled(false);
-        }
-        super.execute();
+public class SelectedTaskExecutionAction implements BuildExecutionAction {
+    public void execute(BuildExecutionContext context) {
+        context.getGradle().getTaskGraph().execute();
     }
 }

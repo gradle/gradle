@@ -17,6 +17,7 @@ package org.gradle.execution;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import org.gradle.StartParameter;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.AbstractProject;
@@ -31,7 +32,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
@@ -39,7 +42,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 @RunWith (org.jmock.integration.junit4.JMock.class)
-public class TaskNameResolvingBuildExecuterTest {
+public class TaskNameResolvingBuildConfigurationActionTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ProjectInternal project = context.mock(AbstractProject.class, "[project]");
     private final ProjectInternal otherProject = context.mock(AbstractProject.class, "[otherProject]");
@@ -47,14 +50,21 @@ public class TaskNameResolvingBuildExecuterTest {
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private final TaskNameResolver resolver = context.mock(TaskNameResolver.class);
+    private final BuildExecutionContext executionContext = context.mock(BuildExecutionContext.class);
+    private final StartParameter startParameter = context.mock(StartParameter.class);
+    private final TaskNameResolvingBuildConfigurationAction action = new TaskNameResolvingBuildConfigurationAction(resolver);
 
     @Before
     public void setUp() {
         context.checking(new Expectations(){{
+            allowing(executionContext).getGradle();
+            will(returnValue(gradle));
             allowing(gradle).getDefaultProject();
             will(returnValue(project));
             allowing(gradle).getTaskGraph();
             will(returnValue(taskExecuter));
+            allowing(gradle).getStartParameter();
+            will(returnValue(startParameter));
             allowing(project).getAllprojects();
             will(returnValue(toSet(project, otherProject)));
             allowing(otherProject).getPath();
@@ -71,14 +81,17 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task3 = task("other");
 
         context.checking(new Expectations() {{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("name")));
+
             one(resolver).selectAll("name", project);
             will(returnValue(tasks(task1, task2, task3)));
             one(taskExecuter).addTasks(toSet(task1, task2));
+            one(executionContext).setDisplayName("primary task 'name'");
+            one(executionContext).proceed();
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name"), resolver);
-        executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary task 'name'"));
+        action.configure(executionContext);
     }
 
     @Test
@@ -108,14 +121,17 @@ public class TaskNameResolvingBuildExecuterTest {
         tasks.add(task("other"));
 
         context.checking(new Expectations() {{
+            one(startParameter).getTaskNames();
+            will(returnValue(toList(pattern)));
+
             one(resolver).selectAll(pattern, project);
             will(returnValue(tasks(tasks)));
             one(taskExecuter).addTasks(toSet(task1, task2));
+            one(executionContext).setDisplayName(String.format("primary task '%s'", matches));
+            one(executionContext).proceed();
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList(pattern), resolver);
-        executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo(String.format("primary task '%s'", matches)));
+        action.configure(executionContext);
     }
     
     @Test
@@ -124,16 +140,19 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task2 = task("a");
 
         context.checking(new Expectations(){{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("a:b")));
+
             one(project).getChildProjects();
             will(returnValue(toMap("a", otherProject)));
             one(resolver).select("b", otherProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
+            one(executionContext).setDisplayName("primary task 'a:b'");
+            one(executionContext).proceed();
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:b"), resolver);
-        executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary task 'a:b'"));
+        action.configure(executionContext);
     }
 
     @Test
@@ -142,16 +161,19 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task2 = task("a");
 
         context.checking(new Expectations(){{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList(":b")));
+
             one(project).getRootProject();
             will(returnValue(rootProject));
             one(resolver).select("b", rootProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
+            one(executionContext).setDisplayName("primary task ':b'");
+            one(executionContext).proceed();
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList(":b"), resolver);
-        executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary task ':b'"));
+        action.configure(executionContext);
     }
 
     @Test
@@ -160,6 +182,9 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task2 = task("a");
 
         context.checking(new Expectations(){{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList(":a:b")));
+
             one(project).getRootProject();
             will(returnValue(rootProject));
             one(rootProject).getChildProjects();
@@ -167,11 +192,11 @@ public class TaskNameResolvingBuildExecuterTest {
             one(resolver).select("b", otherProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
+            one(executionContext).setDisplayName("primary task ':a:b'");
+            one(executionContext).proceed();
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList(":a:b"), resolver);
-        executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary task ':a:b'"));
+        action.configure(executionContext);
     }
 
     @Test
@@ -180,16 +205,19 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task2 = task("other");
 
         context.checking(new Expectations(){{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("anotherProject:soTa")));
+
             one(project).getChildProjects();
             will(returnValue(toMap("anotherProject", otherProject)));
             one(resolver).select("soTa", otherProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
+            one(executionContext).setDisplayName("primary task ':anotherProject:someTask'");
+            one(executionContext).proceed();
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("anotherProject:soTa"), resolver);
-        executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary task ':anotherProject:someTask'"));
+        action.configure(executionContext);
     }
 
     @Test
@@ -198,16 +226,19 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task2 = task("other");
 
         context.checking(new Expectations(){{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("anPr:soTa")));
+
             one(project).getChildProjects();
             will(returnValue(toMap("anotherProject", otherProject)));
             one(resolver).select("soTa", otherProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
+            one(executionContext).setDisplayName("primary task ':anotherProject:someTask'");
+            one(executionContext).proceed();
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("anPr:soTa"), resolver);
-        executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary task ':anotherProject:someTask'"));
+        action.configure(executionContext);
     }
 
     @Test
@@ -216,13 +247,15 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task2 = task("someTasks");
 
         context.checking(new Expectations() {{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("soTa")));
+
             one(resolver).selectAll("soTa", project);
             will(returnValue(tasks(task1, task2)));
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("soTa"), resolver);
         try {
-            executer.select(gradle);
+            action.configure(executionContext);
             fail();
         } catch (TaskSelectionException e) {
             assertThat(e.getMessage(), equalTo("Task 'soTa' is ambiguous in [project]. Candidates are: 'someTask', 'someTasks'."));
@@ -237,13 +270,15 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task4 = task("other");
 
         context.checking(new Expectations() {{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("ssomeTask")));
+
             one(resolver).selectAll("ssomeTask", project);
             will(returnValue(tasks(task1, task2, task3, task4)));
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("ssomeTask"), resolver);
         try {
-            executer.select(gradle);
+            action.configure(executionContext);
             fail();
         } catch (TaskSelectionException e) {
             assertThat(e.getMessage(), equalTo("Task 'ssomeTask' not found in [project]. Some candidates are: 'someTask', 'someTasks', 'sometask'."));
@@ -251,28 +286,14 @@ public class TaskNameResolvingBuildExecuterTest {
     }
 
     @Test
-    public void executesAllSelectedTasks() {
-        final Task task1 = task("name");
-        final Task task2 = task("name");
-
-        context.checking(new Expectations() {{
-            one(resolver).selectAll("name", project);
-            will(returnValue(tasks(task1, task2)));
-            one(taskExecuter).addTasks(toSet(task1, task2));
-            one(taskExecuter).execute();
-        }});
-
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name"), resolver);
-        executer.select(gradle);
-        executer.execute();
-    }
-    
-    @Test
     public void treatsEachProvidedNameAsASeparateGroup() {
         final Task task1 = task("name1");
         final Task task2 = task("name2");
 
         context.checking(new Expectations() {{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("child:name1", "name2")));
+
             one(project).getChildProjects();
             will(returnValue(toMap("child", otherProject)));
             one(resolver).select("name1", otherProject);
@@ -288,14 +309,10 @@ public class TaskNameResolvingBuildExecuterTest {
             one(taskExecuter).addTasks(toSet(task2));
             inSequence(sequence);
 
-            one(taskExecuter).execute();
-            inSequence(sequence);
+            ignoring(executionContext);
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("child:name1", "name2"), resolver);
-        executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary tasks 'child:name1', 'name2'"));
-        executer.execute();
+        action.configure(executionContext);
     }
 
     @Test
@@ -304,6 +321,9 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task2 = task("name2");
 
         context.checking(new Expectations() {{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("name1", "--all", "name2")));
+
             one(resolver).selectAll("name1", project);
             will(returnValue(tasks(task1)));
             one(resolver).selectAll("name2", project);
@@ -318,11 +338,11 @@ public class TaskNameResolvingBuildExecuterTest {
 
             one(taskExecuter).addTasks(toSet(task2));
             inSequence(sequence);
+
+            ignoring(executionContext);
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "--all", "name2"), resolver);
-        executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary tasks 'name1', 'name2'"));
+        action.configure(executionContext);
     }
 
     @Test
@@ -331,13 +351,15 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task2 = task("t2");
 
         context.checking(new Expectations() {{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("b3")));
+
             one(resolver).selectAll("b3", project);
             will(returnValue(tasks(task1, task2)));
         }});
 
-        BuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("b3"), resolver);
         try {
-            executer.select(gradle);
+            action.configure(executionContext);
             fail();
         } catch (TaskSelectionException e) {
             assertThat(e.getMessage(), equalTo("Task 'b3' not found in [project]."));
@@ -347,13 +369,15 @@ public class TaskNameResolvingBuildExecuterTest {
     @Test
     public void failsWhenCannotFindProjectInPath() {
         context.checking(new Expectations() {{
+            allowing(startParameter).getTaskNames();
+            will(returnValue(toList("a:b", "name2")));
+
             one(project).getChildProjects();
             will(returnValue(GUtil.map("aa", otherProject, "ab", otherProject)));
         }});
 
-        BuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:b", "name2"), resolver);
         try {
-            executer.select(gradle);
+            action.configure(executionContext);
             fail();
         } catch (TaskSelectionException e) {
             assertThat(e.getMessage(), equalTo("Project 'a' is ambiguous in [project]. Candidates are: 'aa', 'ab'."));

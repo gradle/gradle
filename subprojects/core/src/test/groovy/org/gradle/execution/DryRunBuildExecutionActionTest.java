@@ -17,20 +17,21 @@ package org.gradle.execution;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import static org.gradle.util.WrapUtil.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.gradle.util.WrapUtil.toList;
+
 @RunWith(JMock.class)
-public class DryRunBuildExecuterTest {
+public class DryRunBuildExecutionActionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final BuildExecuter delegate = context.mock(BuildExecuter.class);
+    private final BuildExecutionContext executionContext = context.mock(BuildExecutionContext.class);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
-    private final DryRunBuildExecuter executer = new DryRunBuildExecuter(delegate);
+    private final DryRunBuildExecutionAction action = new DryRunBuildExecutionAction();
 
     @Test
     public void disablesAllSelectedTasksBeforeExecution() {
@@ -38,24 +39,20 @@ public class DryRunBuildExecuterTest {
         final Task task2 = context.mock(Task.class, "task2");
 
         context.checking(new Expectations() {{
+            allowing(executionContext).getGradle();
+            will(returnValue(gradle));
             allowing(gradle).getTaskGraph();
             will(returnValue(taskExecuter));
 
-            one(delegate).select(gradle);
-        }});
-
-        executer.select(gradle);
-
-        context.checking(new Expectations() {{
             one(taskExecuter).getAllTasks();
             will(returnValue(toList(task1, task2)));
 
             one(task1).setEnabled(false);
             one(task2).setEnabled(false);
 
-            one(delegate).execute();
+            one(executionContext).proceed();
         }});
 
-        executer.execute();
+        action.execute(executionContext);
     }
 }
