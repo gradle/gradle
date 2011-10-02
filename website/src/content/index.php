@@ -24,6 +24,7 @@
         <li>Try the <a href="tutorials.html">tutorials</a></li>
         <li>Read the <a href="documentation.html">documentation</a></li>
         <li>Join the <a href="community.html">community</a></li>
+        <li>Read the <a href="books.html">books</a></li>
     </ol>
 </div>
 <div id="news" class="homeList">
