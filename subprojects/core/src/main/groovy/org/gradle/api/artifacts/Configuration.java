@@ -16,10 +16,10 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.DomainObjectSet;
 
 import java.io.File;
 import java.util.Map;
@@ -29,6 +29,21 @@ import java.util.Set;
  * <p>A {@code Configuration} represents a group of artifacts and their dependencies.</p>
  */
 public interface Configuration extends FileCollection {
+
+    /**
+     * Returns the version conflict strategy used by this configuration
+     *
+     * @return strategy
+     */
+    VersionConflictStrategy getVersionConflictStrategy();
+
+    /**
+     * Configures the version conflict strategy for this configuration
+     *
+     * @param strategy to set
+     */
+    Configuration setVersionConflictStrategy(VersionConflictStrategy strategy);
+
     /**
      * The states a configuration can be into. A configuration is only mutable as long as it is
      * in the unresolved state.

@@ -63,8 +63,9 @@ project(':tool') {
 	dependencies {
 		compile project(':api')
 		compile project(':impl')
-		versionConflictStrategy = VersionConflictStrategy.STRICT
 	}
+
+	configurations.compile.versionConflictStrategy = VersionConflictStrategy.STRICT
 }
 """
 
@@ -123,8 +124,9 @@ project(':tool') {
 	dependencies {
 		compile project(':api')
 		compile project(':impl')
-		versionConflictStrategy = VersionConflictStrategy.STRICT
 	}
+
+	configurations.all { it.versionConflictStrategy = VersionConflictStrategy.STRICT }
 }
 """
 
@@ -177,6 +179,8 @@ project(':tool') {
 
 		versionConflictStrategy = VersionConflictStrategy.STRICT
 	}
+
+	configurations.all { it.versionConflictStrategy = VersionConflictStrategy.STRICT }
 }
 """
 
