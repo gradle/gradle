@@ -22,7 +22,6 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.conflict.AbstractConflictManager;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.conflict.StrictConflictException;
-import org.apache.ivy.plugins.conflict.StrictConflictManager;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.GradleException;
@@ -57,7 +56,7 @@ public class IvyConfig {
         if (conflictStrategy == VersionConflictStrategy.LATEST) {
             return new LatestConflictManager(new LatestRevisionStrategy());
         } else if (conflictStrategy == VersionConflictStrategy.STRICT) {
-            return new StrictConflictManager();
+            return new ForceAwareStrictConflictManager();
         } else {
             throw new RuntimeException("I don't know what ivy conflict manager to use for this VersionConflictStrategy: " + conflictStrategy);
         }

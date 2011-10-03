@@ -137,6 +137,58 @@ project(':tool') {
     }
 
     @Test
+    void "strict conflict strategy can be used with forced versions"() {
+        TestFile repo = file("repo")
+        maven(repo).module("org", "foo", 1.33).publishArtifact()
+        maven(repo).module("org", "foo", 1.44).publishArtifact()
+        maven(repo).module("org", "foo", 1.55).publishArtifact()
+
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << "include 'api', 'impl', 'tool'"
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+	apply plugin: 'java'
+	repositories {
+		maven { url "${repo.toURI()}" }
+	}
+}
+
+project(':api') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.44')
+	}
+}
+
+project(':impl') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.33')
+	}
+}
+
+project(':tool') {
+	dependencies {
+		compile project(':api')
+		compile project(':impl')
+		compile (group: 'org', name: 'foo', version:'1.55') {
+		    force = true
+		}
+
+		versionConflictStrategy = VersionConflictStrategy.STRICT
+	}
+}
+"""
+
+            //when
+            executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
+                .withArguments("-s")
+                .withTasks("tool:dependencies").run()
+
+            //then no exceptions are thrown because we forced a certain version of conflicting dependency
+    }
+
+    @Test
     void "resolves to the latest version by default"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", 1.33).publishArtifact()
