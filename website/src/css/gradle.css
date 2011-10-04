@@ -443,3 +443,16 @@ div.book h2, div.book h3 {
 div.book p.authors {
     font-style: italic;
 }
+
+img.book-cover {
+    float: right; 
+    margin: 10px; 
+    width: 180px; 
+    height: 236px;
+    clear: both;
+}
+
+div.book-listing h2 {
+    width: 790px;
+    clear: both;
+}
