@@ -1,6 +1,6 @@
 
 ------------------------------------------------------------
-Root Project
+All tasks runnable from root project
 ------------------------------------------------------------
 
 Default tasks: dists
@@ -23,4 +23,4 @@ dependencies - Displays the dependencies of root project 'projectReports'.
 help - Displays a help message
 projects - Displays the sub-projects of root project 'projectReports'.
 properties - Displays the properties of root project 'projectReports'.
-tasks - Displays the tasks in root project 'projectReports'.
+tasks - Displays the tasks runnable from root project 'projectReports' (some of the displayed tasks may belong to subprojects).

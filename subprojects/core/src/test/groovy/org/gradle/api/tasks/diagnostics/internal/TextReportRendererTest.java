@@ -71,7 +71,7 @@ public class TextReportRendererTest {
         renderer.completeProject(project);
         renderer.complete();
 
-        assertThat(textOutput.toString(), containsLine("Root Project"));
+        assertThat(textOutput.toString(), containsLine("Root project"));
     }
 
     @Test
@@ -113,6 +113,6 @@ public class TextReportRendererTest {
         renderer.completeProject(project);
         renderer.complete();
 
-        assertThat(textOutput.toString(), containsLine("Root Project - this is the root project"));
+        assertThat(textOutput.toString(), containsLine("Root project - this is the root project"));
     }
 }
