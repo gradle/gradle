@@ -135,7 +135,7 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
     public void stop() {
         lock.lock();
         try {
-            LOGGER.debug("Stop requested. The daemon is running a build: " + isRunning());
+            LOGGER.debug("Stop requested. The daemon is running a build: " + isBusy());
             stopped = true;
             onStop.run();
             condition.signalAll();
