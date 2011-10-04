@@ -18,6 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -126,7 +127,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 
-	configurations.all { it.versionConflictStrategy = VersionConflictStrategy.STRICT }
+	configurations.all { versionConflictStrategy = VersionConflictStrategy.STRICT }
 }
 """
 
@@ -176,11 +177,9 @@ project(':tool') {
 		compile (group: 'org', name: 'foo', version:'1.55') {
 		    force = true
 		}
-
-		versionConflictStrategy = VersionConflictStrategy.STRICT
 	}
 
-	configurations.all { it.versionConflictStrategy = VersionConflictStrategy.STRICT }
+	configurations.all { versionConflictStrategy = VersionConflictStrategy.STRICT }
 }
 """
 
@@ -189,6 +188,58 @@ project(':tool') {
                 .withArguments("-s")
                 .withTasks("tool:dependencies").run()
 
+            //then no exceptions are thrown because we forced a certain version of conflicting dependency
+    }
+
+    @Ignore
+    @Test
+    void "strict conflict strategy with forced transitive dependency that is already resolved"() {
+        TestFile repo = file("repo")
+        maven(repo).module("org", "foo", 1.33).publishArtifact()
+        maven(repo).module("org", "foo", 1.44).publishArtifact()
+
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << "include 'api', 'impl', 'tool'"
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+	apply plugin: 'java'
+	repositories {
+		maven { url "${repo.toURI()}" }
+	}
+}
+
+project(':api') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.44')
+	}
+}
+
+project(':impl') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.33')
+	}
+}
+
+project(':tool') {
+	dependencies {
+		compile project(':api')
+		compile project(':impl')
+	}
+
+	configurations.all {
+	    versionConflictStrategy.type = versionConflictStrategy.strict(force: ['org:foo:1.44'])
+	}
+}
+"""
+
+            //when
+            executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
+                .withArguments("-s")
+                .withTasks("tool:dependencies").run()
+
+            System.out.println("foo");
             //then no exceptions are thrown because we forced a certain version of conflicting dependency
     }
 
