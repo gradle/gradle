@@ -1059,6 +1059,7 @@ public interface Project extends Comparable<Project> {
      * <p>
      * Example:
      * <pre autoTested=''>
+     * //the java plugin will become handy later...
      * apply plugin: 'java'
      *
      * configurations {
