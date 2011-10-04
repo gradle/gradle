@@ -30,8 +30,9 @@ class DaemonLifecycleSpec extends Specification {
     @Rule public final GradleHandles handles = new GradleHandles()
 
     def buildCounter = 0
-    def buildSleepsFor = 3
-    def daemonIdleTimeout = 3
+    def buildSleepsFor = 5
+    def daemonIdleTimeout = 5
+    def pollWaitsFor = 10
 
     def daemons // have to set this in setup, after we have changed the user home location
 
@@ -74,7 +75,7 @@ class DaemonLifecycleSpec extends Specification {
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    void poll(int timeout = 5, Closure assertion) {
+    void poll(int timeout = pollWaitsFor, Closure assertion) {
         int x = 0;
         timeout = timeout * 1000 // convert to m
         while(true) {
@@ -116,7 +117,6 @@ class DaemonLifecycleSpec extends Specification {
         true
     }
 
-    @Timeout(20)
     def "daemons do some work - sit idle - then timeout and die"() {
         when:
         expectedDaemons.times { sleepyBuild().start() }
@@ -131,7 +131,6 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped
     }
 
-    @Timeout(20)
     def "sending stop to idle daemons causing them to terminate immediately"() {
         given:
         daemonIdleTimeout = 10 // long timeout so we know they don't stop from idle timeout
@@ -149,7 +148,6 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped
     }
 
-    @Timeout(20)
     def "sending stop to busy daemons causes them to disappear from the registry"() {
         given:
         daemonIdleTimeout = 10 // long timeout so we know they don't stop from idle timeout
@@ -167,8 +165,6 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped // daemon processes will still be running, but they have dropped their connection to the client, and disappeared from registry.
     }
 
-    @IgnoreRest
-    @Timeout(10)
     def "sending stop to buys daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
         given:
         expectedDaemons = 1
@@ -207,7 +203,6 @@ class DaemonLifecycleSpec extends Specification {
         poll { assert daemon.waitForFinish() }
     }
 
-    @Timeout(10)
     def "tearing down client while daemon is building tears down daemon"() {
         given:
         expectedDaemons = 1
