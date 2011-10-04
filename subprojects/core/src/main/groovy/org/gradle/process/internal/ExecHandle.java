@@ -42,6 +42,8 @@ public interface ExecHandle {
      */
     ExecHandle start();
 
+    ExecHandleState getState();
+
     void abort();
 
     ExecResult waitForFinish();
