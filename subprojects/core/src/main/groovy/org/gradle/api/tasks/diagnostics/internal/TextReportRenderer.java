@@ -50,7 +50,7 @@ public class TextReportRenderer implements ReportRenderer {
     protected String createHeader(Project project) {
         String header;
         if (project.getRootProject() == project) {
-            header = "Root Project";
+            header = "Root project";
         } else {
             header = String.format("Project %s", project.getPath());
         }
