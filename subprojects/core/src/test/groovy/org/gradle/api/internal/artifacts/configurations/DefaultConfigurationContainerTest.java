@@ -53,7 +53,7 @@ public class DefaultConfigurationContainerTest {
     private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class);
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(dependencyResolver, instantiator, domainObjectContext, listenerManager, metaDataProvider);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(dependencyResolver, instantiator, domainObjectContext, listenerManager, metaDataProvider, null);
 
     @Test
     public void testAdd() {

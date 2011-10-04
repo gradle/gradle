@@ -183,8 +183,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         public ConfigurationContainerInternal getConfigurationContainer() {
             if (configurationContainer == null) {
                 Instantiator instantiator = parent.get(Instantiator.class);
+                DependencyFactory dependencyFactory = parent.get(DependencyFactory.class);
                 ArtifactDependencyResolver dependencyResolver = createDependencyResolver(getResolveRepositoryHandler());
-                configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class, dependencyResolver, instantiator, domainObjectContext, parent.get(ListenerManager.class), dependencyMetaDataProvider);
+                configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
+                        dependencyResolver, instantiator, domainObjectContext, parent.get(ListenerManager.class),
+                        dependencyMetaDataProvider, dependencyFactory);
             }
             return configurationContainer;
         }

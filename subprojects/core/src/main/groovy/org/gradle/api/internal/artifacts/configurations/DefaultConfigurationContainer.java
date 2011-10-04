@@ -25,6 +25,7 @@ import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.listener.ListenerManager;
 
 import java.util.Collection;
@@ -42,16 +43,20 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final DomainObjectContext context;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final DependencyFactory dependencyFactory;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(ArtifactDependencyResolver dependencyResolver, Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public DefaultConfigurationContainer(ArtifactDependencyResolver dependencyResolver,
+                 Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
+                 DependencyMetaDataProvider dependencyMetaDataProvider, DependencyFactory dependencyFactory) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.dependencyResolver = dependencyResolver;
         this.instantiator = instantiator;
         this.context = context;
         this.listenerManager = listenerManager;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.dependencyFactory = dependencyFactory;
     }
 
     @Override
