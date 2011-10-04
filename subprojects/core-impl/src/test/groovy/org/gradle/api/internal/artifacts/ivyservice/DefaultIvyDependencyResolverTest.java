@@ -27,6 +27,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.DefaultVersionConflictStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -152,7 +153,7 @@ public class DefaultIvyDependencyResolverTest {
     private void configurationIsAskedForConflictStrategy() {
         context.checking(new Expectations() {{
             allowing(configurationStub).getVersionConflictStrategy();
-            will(returnValue(VersionConflictStrategy.LATEST));
+            will(returnValue(new DefaultVersionConflictStrategy()));
         }});
     }
 

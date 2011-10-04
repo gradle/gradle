@@ -26,6 +26,7 @@ import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.VersionConflictStrategy;
+import org.gradle.api.artifacts.VersionConflictStrategyType;
 
 /**
  * Contains ivy settings and conflict management. The purpose of this class is to insulate from ivy a bit.
@@ -53,9 +54,9 @@ public class IvyConfig {
     }
 
     private AbstractConflictManager createIvyConflictManager() {
-        if (conflictStrategy == VersionConflictStrategy.LATEST) {
+        if (conflictStrategy.getType() == VersionConflictStrategyType.LATEST) {
             return new LatestConflictManager(new LatestRevisionStrategy());
-        } else if (conflictStrategy == VersionConflictStrategy.STRICT) {
+        } else if (conflictStrategy.getType() == VersionConflictStrategyType.STRICT) {
             return new ForceAwareStrictConflictManager();
         } else {
             throw new RuntimeException("I don't know what ivy conflict manager to use for this VersionConflictStrategy: " + conflictStrategy);

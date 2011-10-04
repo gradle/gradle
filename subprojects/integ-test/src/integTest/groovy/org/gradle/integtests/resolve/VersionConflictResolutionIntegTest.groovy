@@ -66,7 +66,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 
-	configurations.compile.versionConflictStrategy = VersionConflictStrategy.STRICT
+	configurations.compile.versionConflictStrategy.type = configurations.compile.versionConflictStrategy.strict()
 }
 """
 
@@ -127,7 +127,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 
-	configurations.all { versionConflictStrategy = VersionConflictStrategy.STRICT }
+	configurations.all { versionConflictStrategy.type = versionConflictStrategy.strict() }
 }
 """
 
@@ -179,7 +179,7 @@ project(':tool') {
 		}
 	}
 
-	configurations.all { versionConflictStrategy = VersionConflictStrategy.STRICT }
+	configurations.all { versionConflictStrategy.type = versionConflictStrategy.strict() }
 }
 """
 

@@ -68,7 +68,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Object lock = new Object();
     private State state = State.UNRESOLVED;
     private ResolvedConfiguration cachedResolvedConfiguration;
-    private VersionConflictStrategy strategy = VersionConflictStrategy.LATEST;
+    private final VersionConflictStrategy versionConflictStrategy;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider) {
@@ -92,6 +92,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
         inheritedArtifacts = new CompositeDomainObjectSet<PublishArtifact>(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
+
+        versionConflictStrategy = new DefaultVersionConflictStrategy();
     }
 
     public String getName() {
@@ -428,13 +430,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public VersionConflictStrategy getVersionConflictStrategy() {
-        return strategy;
-    }
-
-    public DefaultConfiguration setVersionConflictStrategy(VersionConflictStrategy strategy) {
-        assert strategy != null : "Cannot set null VersionConflictStrategy!";
-        this.strategy = strategy;
-        return this;
+        return versionConflictStrategy;
     }
 
     private void throwExceptionIfNotInUnresolvedState() {

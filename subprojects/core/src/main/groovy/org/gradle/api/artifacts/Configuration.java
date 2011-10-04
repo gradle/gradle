@@ -38,13 +38,6 @@ public interface Configuration extends FileCollection {
     VersionConflictStrategy getVersionConflictStrategy();
 
     /**
-     * Configures the version conflict strategy for this configuration
-     *
-     * @param strategy to set
-     */
-    Configuration setVersionConflictStrategy(VersionConflictStrategy strategy);
-
-    /**
      * The states a configuration can be into. A configuration is only mutable as long as it is
      * in the unresolved state.
      */

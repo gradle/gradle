@@ -1078,7 +1078,7 @@ public interface Project extends Comparable<Project> {
      *
      * //Configuring strict conflict strategy - it will fail eagerly if on single classpath
      * //there are multiple different versions of the same library.
-     * configurations.all { it.versionConflictStrategy = VersionConflictStrategy.STRICT }
+     * configurations.all { versionConflictStrategy = versionConflictStrategy.strict() }
      *
      * </pre>
      *
