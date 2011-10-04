@@ -32,6 +32,6 @@ public class Command implements Serializable {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName();
+        return String.format("%s[id=%s]", getClass().getSimpleName(), System.identityHashCode(this));
     }
 }
