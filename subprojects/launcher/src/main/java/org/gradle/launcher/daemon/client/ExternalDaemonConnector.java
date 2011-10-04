@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
@@ -33,6 +35,8 @@ import java.util.Set;
  * A daemon connector that starts daemons by launching new processes.
  */
 public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentDaemonRegistry> {
+    private static final Logger LOGGER = Logging.getLogger(ExternalDaemonConnector.class);
+        
     private final File userHomeDir;
     private final int idleTimeout;
     
@@ -84,6 +88,8 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentD
         DaemonStartAction daemon = new DaemonStartAction();
         daemon.args(daemonArgs);
         daemon.workingDir(userHomeDir);
+        
+        LOGGER.info("starting daemon process: workingDir = {}, daemonArgs: {}", userHomeDir, daemonArgs);
         daemon.start();
     }
 
