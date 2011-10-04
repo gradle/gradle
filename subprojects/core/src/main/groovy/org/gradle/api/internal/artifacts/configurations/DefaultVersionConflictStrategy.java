@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.VersionConflictStrategy;
 import org.gradle.api.artifacts.VersionConflictStrategyType;
 
+import java.util.Map;
+
 /**
  * by Szczepan Faber, created at: 10/4/11
  */
@@ -40,10 +42,21 @@ public class DefaultVersionConflictStrategy implements VersionConflictStrategy {
     }
 
     public VersionConflictStrategyType latest() {
-        return VersionConflictStrategyType.LATEST;
+        return new Latest();
     }
 
-    public VersionConflictStrategyType strict() {
-        return VersionConflictStrategyType.STRICT;
+    public VersionConflictStrategyType strict(Map strategyConfig) {
+        return new Strict(strategyConfig);
+    }
+
+    public static class Strict implements VersionConflictStrategyType {
+        private final Map configuration;
+
+        public Strict(Map strategyConfig) {
+            this.configuration = strategyConfig;
+        }
+    }
+
+    public static class Latest implements VersionConflictStrategyType {
     }
 }

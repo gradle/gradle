@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts;
 
+import java.util.Map;
+
 /**
  * Defines the strategy in case there's a dependency version conflict. Example:
  * <pre autoTested=''>
@@ -44,5 +46,5 @@ public interface VersionConflictStrategy {
     /**
      * fail eagerly on conflict
      */
-    public VersionConflictStrategyType strict();
+    public VersionConflictStrategyType strict(Map strategyConfig);
 }

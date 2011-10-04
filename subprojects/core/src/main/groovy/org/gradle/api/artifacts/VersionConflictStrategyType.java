@@ -20,14 +20,4 @@ package org.gradle.api.artifacts;
  * <p>
  * by Szczepan Faber, created at: 10/4/11
  */
-public enum VersionConflictStrategyType {
-    /**
-     * use the latest of conflicting versions and move on
-     */
-    LATEST,
-
-    /**
-     * fail eagerly on conflict
-     */
-    STRICT
-}
+public interface VersionConflictStrategyType {}

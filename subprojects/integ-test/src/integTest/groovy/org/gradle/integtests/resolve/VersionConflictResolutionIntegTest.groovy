@@ -229,7 +229,7 @@ project(':tool') {
 	}
 
 	configurations.all {
-	    versionConflictStrategy.type = versionConflictStrategy.strict(force: ['org:foo:1.44'])
+	    versionConflictStrategy.type = versionConflictStrategy.strict(force: ['org:foo:1.33'])
 	}
 }
 """
