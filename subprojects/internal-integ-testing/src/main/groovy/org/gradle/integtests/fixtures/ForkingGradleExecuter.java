@@ -21,6 +21,7 @@ import org.gradle.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandleState;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
 import org.gradle.util.Jvm;
@@ -235,6 +236,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         public GradleHandle<T> abort() {
             getExecHandle().abort();
             return this;
+        }
+
+        public boolean isRunning() {
+            return execHandle != null && execHandle.getState() == ExecHandleState.STARTED;
         }
 
         protected ExecHandle getExecHandle() {
