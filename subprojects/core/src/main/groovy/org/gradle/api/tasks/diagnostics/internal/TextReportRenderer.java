@@ -43,6 +43,11 @@ public class TextReportRenderer implements ReportRenderer {
     }
 
     public void startProject(Project project) {
+        String header = createHeader(project);
+        writeHeading(header);
+    }
+
+    protected String createHeader(Project project) {
         String header;
         if (project.getRootProject() == project) {
             header = "Root Project";
@@ -52,7 +57,7 @@ public class TextReportRenderer implements ReportRenderer {
         if (GUtil.isTrue(project.getDescription())) {
             header = header + " - " + project.getDescription();
         }
-        writeHeading(header);
+        return header;
     }
 
     public void completeProject(Project project) {
