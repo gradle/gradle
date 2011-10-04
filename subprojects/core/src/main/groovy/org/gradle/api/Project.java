@@ -1054,8 +1054,32 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Configures the dependency configurations for this project.
      *
-     * <p>This method executes the given closure against the {@link ConfigurationContainer} for this project. The {@link
-     * ConfigurationContainer} is passed to the closure as the closure's delegate.
+     * <p>This method executes the given closure against the {@link ConfigurationContainer}
+     * for this project. The {@link ConfigurationContainer} is passed to the closure as the closure's delegate.
+     * <p>
+     * Example:
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * configurations {
+     *   //adding a configuration:
+     *   myConfiguration
+     *
+     *   //adding a configuration that extends existing configuration:
+     *   //(testCompile was added by the java plugin)
+     *   myIntegrationTestsCompile.extendsFrom(testCompile)
+     *
+     *   //configuring existing configurations not to put transitive dependencies on the compile classpath
+     *   //this way you can avoid issues with implicit dependencies to transitive libraries
+     *   compile.transitive = false
+     *   testCompile.transitive = false
+     * }
+     *
+     * //Configuring strict conflict strategy - it will fail eagerly if on single classpath
+     * //there are multiple different versions of the same library.
+     * configurations.all { it.versionConflictStrategy = VersionConflictStrategy.STRICT }
+     *
+     * </pre>
      *
      * @param configureClosure the closure to use to configure the dependency configurations.
      */

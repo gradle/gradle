@@ -431,9 +431,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return strategy;
     }
 
-    public void setVersionConflictStrategy(VersionConflictStrategy strategy) {
+    public DefaultConfiguration setVersionConflictStrategy(VersionConflictStrategy strategy) {
         assert strategy != null : "Cannot set null VersionConflictStrategy!";
         this.strategy = strategy;
+        return this;
     }
 
     private void throwExceptionIfNotInUnresolvedState() {

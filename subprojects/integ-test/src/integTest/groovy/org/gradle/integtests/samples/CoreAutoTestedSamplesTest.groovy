@@ -26,6 +26,6 @@ class CoreAutoTestedSamplesTest extends AbstractAutoTestedSamplesTest {
 
     @Test
     void runSamples() {
-        runSamplesFrom("subprojects/core/src/main/groovy/org/gradle/api/tasks")
+        runSamplesFrom("subprojects/core/src/main/groovy/org/gradle/api")
     }
 }

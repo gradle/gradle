@@ -17,7 +17,10 @@
 package org.gradle.api.artifacts;
 
 /**
- * Defines the strategy in case there's a dependency version conflict
+ * Defines the strategy in case there's a dependency version conflict. Example:
+ * <pre autoTested=''>
+ * configurations.all { it.versionConflictStrategy = VersionConflictStrategy.STRICT }
+ * </pre>
  */
 public enum VersionConflictStrategy {
     /**
