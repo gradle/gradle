@@ -49,7 +49,7 @@ public class Daemon implements Runnable, Stoppable {
 
     private final StoppableExecutor handlersExecutor = new DefaultExecutorFactory().create("Daemon Connection Handler");
 
-    private final Lock debugLock = new ReentrantLock();
+    private final Lock lifecyleLock = new ReentrantLock();
 
     private Address connectorAddress;
     private DomainRegistryUpdater registryUpdater;
@@ -74,7 +74,7 @@ public class Daemon implements Runnable, Stoppable {
      */
     public void start() {
         LOGGER.debug("start() called on daemon");
-        debugLock.lock();
+        lifecyleLock.lock();
         try {
             if (stateCoordinator != null) {
                 throw new IllegalStateException("cannot start daemon as it is already running");
@@ -138,7 +138,7 @@ public class Daemon implements Runnable, Stoppable {
             // ready, set, go
             stateCoordinator.start();
         } finally {
-            debugLock.unlock();
+            lifecyleLock.unlock();
         }
     }
 
@@ -149,11 +149,11 @@ public class Daemon implements Runnable, Stoppable {
      */
     public void stop() {
         LOGGER.debug("stop() called on daemon");
-        debugLock.lock();
+        lifecyleLock.lock();
         try {
             stateCoordinator.stop();
         } finally {
-            debugLock.unlock();
+            lifecyleLock.unlock();
         }
     }
 
