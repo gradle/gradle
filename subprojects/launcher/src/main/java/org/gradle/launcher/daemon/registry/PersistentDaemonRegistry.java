@@ -53,6 +53,10 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                 new DefaultSerializer<DaemonRegistryContent>());
     }
 
+    public String toString() {
+        return String.format("PersistentDaemonRegistry[dir=%s]", daemonDir.getDir());
+    }
+
     public synchronized List<DaemonStatus> getAll() {
         DaemonRegistryContent content = cache.get();
         if (content == null) {
