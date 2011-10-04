@@ -90,14 +90,18 @@ public class Daemon implements Runnable, Stoppable {
                     //we're spinning a thread to do work to avoid blocking the connection
                     //This means that the Daemon potentially can do multiple things but we only allows a single build at a time
                     handlersExecutor.execute(new Runnable() {
+                        private Command command;
                         public void run() {
                             try {
-                                Command command = (Command) connection.receive();
+                                command = (Command) connection.receive();
+                                LOGGER.debug("received command {} in new thread", command);
                                 commandExecuter.executeCommand(connection, command, stateCoordinator);
                             } catch (RuntimeException e) {
                                 LOGGER.error("Error processing the incoming command.", e);
                                 //TODO SF figure out if we can use our executor's exception handler.
                                 throw e; //in case the default exception handler needs it.
+                            } finally {
+                                LOGGER.debug("finishing processing of command {}", command);
                             }
                         }
                     });
