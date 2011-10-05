@@ -112,7 +112,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 Object object = connection.receive();
                 
                 if (object == null) {
-                    throw new IllegalStateException(String.format("Daemon returned null after we sent %s", build));
+                    throw new DaemonDisappearedException(build, connection);
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
                 } else if (object instanceof Result) {

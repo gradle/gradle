@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout
+import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.integtests.fixtures.GradleHandles
 
 import org.junit.Rule
@@ -117,8 +118,14 @@ class DaemonLifecycleSpec extends Specification {
         true
     }
 
-    boolean fails(handle) {
-        poll { assert handle.waitForFailure() }
+    boolean failed(handle) {
+        poll { assert handle.waitForFailure(); }
+        true
+    }
+
+    boolean failedWithDaemonDisappearedMessage(build) {
+        failed build
+        assert build.errorOutput.contains(DaemonDisappearedException.MESSAGE)
         true
     }
     
@@ -167,7 +174,7 @@ class DaemonLifecycleSpec extends Specification {
         stopBuild().start().waitForFinish()
 
         then:
-        daemonsStopped // daemon processes will still be running, but they have dropped their connection to the client, and disappeared from registry.
+        daemonsStopped
     }
 
     def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
@@ -193,11 +200,11 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped // just means the daemon has disappeared from the registry
 
         then:
-        fails build
+        failedWithDaemonDisappearedMessage build
         // should check we get a nice error message here
 
         and:
-        fails daemon
+        failed daemon
     }
 
     def "tearing down client while daemon is building tears down daemon"() {
@@ -240,7 +247,32 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped // just means the daemon has disappeared from the registry
 
         and:
-        fails daemon
+        failed daemon
     }
 
+    def "tearing down daemon process produces nice error message for client"() {
+        given:
+        expectedDaemons = 1
+        
+        when:
+        def daemon = foregroundDaemon().start()
+        
+        then:
+        daemonsIdle
+        
+        when:
+        def build = sleepyBuild(10).start()
+        
+        then:
+        daemonsBusy
+        
+        when:
+        daemon.abort().waitForFailure()
+        
+        then:
+        daemonsBusy // daemon crashed, so is still in the registry
+        
+        and:
+        failedWithDaemonDisappearedMessage build
+    }
 }
