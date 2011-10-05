@@ -117,6 +117,11 @@ class DaemonLifecycleSpec extends Specification {
         true
     }
 
+    boolean fails(handle) {
+        poll { assert handle.waitForFailure() }
+        true
+    }
+    
     def "daemons do some work - sit idle - then timeout and die"() {
         when:
         expectedDaemons.times { sleepyBuild().start() }
@@ -188,11 +193,11 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped // just means the daemon has disappeared from the registry
 
         then:
-        poll { assert build.waitForFailure() }
+        fails build
         // should check we get a nice error message here
 
         and:
-        poll { assert daemon.waitForFailure() }
+        fails daemon
     }
 
     def "tearing down client while daemon is building tears down daemon"() {
@@ -235,7 +240,7 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped // just means the daemon has disappeared from the registry
 
         and:
-        poll(2) { assert daemon.waitForFailure() }
+        fails daemon
     }
 
 }
