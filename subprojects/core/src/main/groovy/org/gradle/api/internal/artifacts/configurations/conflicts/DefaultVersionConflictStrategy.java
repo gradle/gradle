@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.util.ConfigureUtil;
 
 /**
+ * Allows selecting the conflict resolution strategy
+ * <p>
  * by Szczepan Faber, created at: 10/4/11
  */
 public class DefaultVersionConflictStrategy implements VersionConflictStrategy {

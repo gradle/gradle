@@ -26,6 +26,7 @@ import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.VersionConflictStrategy;
+import org.gradle.api.internal.artifacts.configurations.conflicts.DependencySelector;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestStrategyType;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictStrategyType;
 
@@ -58,7 +59,8 @@ public class IvyConfig {
         if (conflictStrategy.getType() instanceof LatestStrategyType) {
             return new LatestConflictManager(new LatestRevisionStrategy());
         } else if (conflictStrategy.getType() instanceof StrictStrategyType) {
-            return new ForceAwareStrictConflictManager((StrictStrategyType) conflictStrategy.getType());
+            DependencySelector selector = new DependencySelector(((StrictStrategyType) conflictStrategy.getType()).getForce());
+            return new ForceAwareStrictConflictManager(selector);
         } else {
             throw new RuntimeException("I don't know what ivy conflict manager to use for this VersionConflictStrategy: " + conflictStrategy);
         }

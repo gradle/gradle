@@ -21,7 +21,7 @@ import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.plugins.conflict.AbstractConflictManager;
 import org.apache.ivy.plugins.conflict.StrictConflictException;
 import org.apache.ivy.plugins.version.VersionMatcher;
-import org.gradle.api.internal.artifacts.configurations.conflicts.StrictStrategyType;
+import org.gradle.api.internal.artifacts.configurations.conflicts.DependencySelector;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,10 +36,10 @@ import java.util.Collections;
  */
 public class ForceAwareStrictConflictManager extends AbstractConflictManager {
 
-    private final StrictStrategyType strategyType;
+    private final DependencySelector dependencySelector;
 
-    public ForceAwareStrictConflictManager(StrictStrategyType strategyType) {
-        this.strategyType = strategyType;
+    public ForceAwareStrictConflictManager(DependencySelector dependencySelector) {
+        this.dependencySelector = dependencySelector;
     }
 
     public Collection resolveConflicts(IvyNode parent, Collection conflicts) {
@@ -66,7 +66,7 @@ public class ForceAwareStrictConflictManager extends AbstractConflictManager {
             }
 
             if (lastNode != null && !lastNode.equals(node)) {
-                IvyNode chosenOne = strategyType.maybeChooseVersion(lastNode, node);
+                IvyNode chosenOne = dependencySelector.maybeSelect(lastNode, node);
                 if (chosenOne != null) {
                     return Collections.singleton(chosenOne);
                 }
