@@ -45,12 +45,12 @@ public class DefaultVersionConflictStrategy implements VersionConflictStrategy {
     }
 
     public VersionConflictStrategyType latest() {
-        return new LatestStrategy();
+        return new LatestStrategyType();
     }
 
     public VersionConflictStrategyType strict(Closure configure) {
-        StrictStrategy strict = new StrictStrategy(dependencyFactory);
-        ConfigureUtil.configure(configure, strict);
-        return strict;
+        StrictStrategyType strictType = new StrictStrategyType(dependencyFactory);
+        ConfigureUtil.configure(configure, strictType);
+        return strictType;
     }
 }

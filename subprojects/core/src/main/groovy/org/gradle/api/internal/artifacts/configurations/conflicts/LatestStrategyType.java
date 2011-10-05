@@ -21,4 +21,4 @@ import org.gradle.api.artifacts.VersionConflictStrategyType;
 /**
 * by Szczepan Faber, created at: 10/5/11
 */
-public class LatestStrategy implements VersionConflictStrategyType {}
+public class LatestStrategyType implements VersionConflictStrategyType {}

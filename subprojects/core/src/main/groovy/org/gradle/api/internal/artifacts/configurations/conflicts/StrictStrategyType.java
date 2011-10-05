@@ -28,16 +28,16 @@ import java.util.Set;
 /**
 * by Szczepan Faber, created at: 10/5/11
 */
-public class StrictStrategy implements VersionConflictStrategyType {
+public class StrictStrategyType implements VersionConflictStrategyType {
 
     private final DependencyFactory dependencyFactory;
     private Set<Dependency> force = new HashSet<Dependency>();
 
-    public StrictStrategy(DependencyFactory dependencyFactory) {
+    public StrictStrategyType(DependencyFactory dependencyFactory) {
         this.dependencyFactory = dependencyFactory;
     }
 
-    public StrictStrategy setForce(Object ... dependencyNotations) {
+    public StrictStrategyType setForce(Object ... dependencyNotations) {
         for (Object notation : dependencyNotations) {
             Dependency dependency = dependencyFactory.createDependency(notation);
             force.add(dependency);
