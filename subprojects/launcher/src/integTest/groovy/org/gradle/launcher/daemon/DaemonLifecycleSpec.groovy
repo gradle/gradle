@@ -218,7 +218,7 @@ class DaemonLifecycleSpec extends Specification {
         daemonsBusy
 
         when:
-        build.abort()
+        build.abort().waitForFailure()
 
         then:
         daemonsStopped
@@ -241,7 +241,7 @@ class DaemonLifecycleSpec extends Specification {
         daemonsBusy
 
         when:
-        build.abort()
+        build.abort().waitForFailure()
 
         then:
         daemonsStopped // just means the daemon has disappeared from the registry
