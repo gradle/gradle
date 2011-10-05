@@ -50,13 +50,15 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         }
     };
 
-    private final Spec<DaemonStatus> idleSpec = Specs.and(allSpec, new Spec<DaemonStatus>() {
+    @SuppressWarnings("unchecked")
+    private final Spec<DaemonStatus> idleSpec = Specs.<DaemonStatus>and(allSpec, new Spec<DaemonStatus>() {
         public boolean isSatisfiedBy(DaemonStatus status) {
             return status.isIdle();
         }
     });
 
-    private final Spec<DaemonStatus> busySpec = Specs.and(allSpec, new Spec<DaemonStatus>() {
+    @SuppressWarnings("unchecked")
+    private final Spec<DaemonStatus> busySpec = Specs.<DaemonStatus>and(allSpec, new Spec<DaemonStatus>() {
         public boolean isSatisfiedBy(DaemonStatus status) {
             return !status.isIdle();
         }

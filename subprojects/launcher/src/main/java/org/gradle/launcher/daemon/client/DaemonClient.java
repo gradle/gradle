@@ -90,21 +90,21 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         while(true) {
             Connection<Object> connection = connector.connect();
 
-            Result result = runBuild(new Build(action, parameters), connection);
+            Result<T> result = runBuild(new Build(action, parameters), connection);
             if (result instanceof DaemonBusy) {
                 continue; // try a different daemon
             } else if (result instanceof Failure) {
                 // Could potentially distinguish between CommandFailure and DaemonFailure here.
                 throw ((Failure)result).getValue();
             } else if (result instanceof Success) {
-                return (T) result.getValue();
+                return result.getValue();
             } else {
                 throw new IllegalStateException(String.format("Daemon returned %s for which there is no strategy to handle (i.e. is an unknown Result type)", result));
             }
         }
     }
 
-    private Result runBuild(Build build, Connection<Object> connection) {
+    private <T> Result<T> runBuild(Build build, Connection<Object> connection) {
         try {
             //TODO SF - this may fail. We should handle it and have tests for that. It means the server is gone.
             connection.dispatch(build);
@@ -116,7 +116,9 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
                 } else if (object instanceof Result) {
-                    return (Result) object;
+                    @SuppressWarnings("unchecked")
+                    Result<T> result = (Result<T>) object;
+                    return result;
                 } else {
                     throw new IllegalStateException(String.format("Daemon returned %s (type: %s) for which there is no strategy to handle", object, object.getClass()));
                 }

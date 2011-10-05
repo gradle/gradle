@@ -19,7 +19,6 @@ import org.gradle.api.GradleException;
 import org.gradle.os.OperatingSystem;
 import org.gradle.os.jna.WindowsProcessStarter;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,7 +29,9 @@ public class DaemonStartAction {
     private File dir = GFileUtils.canonicalise(new File("."));
 
     public void args(Iterable<String> args) {
-        GUtil.addToCollection(this.args, args);
+        for (String arg : args) {
+            this.args.add(arg);
+        }
     }
 
     public void workingDir(File dir) {

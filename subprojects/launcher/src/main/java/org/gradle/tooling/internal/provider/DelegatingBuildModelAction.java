@@ -42,6 +42,7 @@ class DelegatingBuildModelAction implements GradleLauncherAction<ProjectVersion3
         return action.run(launcher);
     }
 
+    @SuppressWarnings("unchecked")
     private void loadAction(DefaultGradleLauncher launcher) {
         DefaultGradleLauncher gradleLauncher = launcher;
         ClassLoaderRegistry classLoaderRegistry = gradleLauncher.getGradle().getServices().get(ClassLoaderRegistry.class);

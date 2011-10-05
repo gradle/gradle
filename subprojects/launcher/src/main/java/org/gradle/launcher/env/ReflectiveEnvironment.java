@@ -55,7 +55,9 @@ public class ReflectiveEnvironment {
             Class<?> sc = Class.forName("java.lang.ProcessEnvironment");
             Field caseinsensitive = sc.getDeclaredField("theCaseInsensitiveEnvironment");
             caseinsensitive.setAccessible(true);
-            return (Map<String, String>) caseinsensitive.get(null);
+            @SuppressWarnings("unchecked")
+            Map<String, String> result = (Map<String, String>)caseinsensitive.get(null);
+            return result;
         } catch (Exception e) {
             throw new NativeIntegrationException("Unable to get mutable windows case insensitive environment map", e);
         }
@@ -67,7 +69,9 @@ public class ReflectiveEnvironment {
             Class<?> cu = theUnmodifiableEnvironment.getClass();
             Field m = cu.getDeclaredField("m");
             m.setAccessible(true);
-            return (Map<String, String>) m.get(theUnmodifiableEnvironment);
+            @SuppressWarnings("unchecked")
+            Map<String, String> result = (Map<String, String>)m.get(theUnmodifiableEnvironment);
+            return result;
         } catch (Exception e) {
             throw new NativeIntegrationException("Unable to get mutable environment map", e);
         }

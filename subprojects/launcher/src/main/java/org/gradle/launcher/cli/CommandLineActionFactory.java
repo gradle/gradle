@@ -88,7 +88,8 @@ public class CommandLineActionFactory {
         Action<ExecutionListener> action;
         try {
             ParsedCommandLine commandLine = parser.parse(args);
-            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = loggingServices.get(CommandLineConverter.class);
+            @SuppressWarnings("unchecked")
+            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = (CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
             loggingConfiguration = loggingConfigurationConverter.convert(commandLine);
             action = createAction(parser, commandLine, startParameterConverter, loggingServices);
         } catch (CommandLineArgumentException e) {
