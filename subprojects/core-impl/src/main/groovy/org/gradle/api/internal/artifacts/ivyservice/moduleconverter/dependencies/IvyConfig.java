@@ -26,7 +26,7 @@ import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.VersionConflictStrategy;
-import org.gradle.api.internal.artifacts.configurations.DefaultVersionConflictStrategy;
+import org.gradle.api.internal.artifacts.configurations.conflicts.DefaultVersionConflictStrategy;
 
 /**
  * Contains ivy settings and conflict management. The purpose of this class is to insulate from ivy a bit.

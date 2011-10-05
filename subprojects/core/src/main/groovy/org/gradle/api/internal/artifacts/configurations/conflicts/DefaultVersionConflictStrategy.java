@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.api.internal.artifacts.configurations.conflicts;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.id.ModuleRevisionId;

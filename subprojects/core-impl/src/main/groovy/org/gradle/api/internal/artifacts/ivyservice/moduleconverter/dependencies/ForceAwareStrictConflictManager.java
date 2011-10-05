@@ -21,7 +21,7 @@ import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.plugins.conflict.AbstractConflictManager;
 import org.apache.ivy.plugins.conflict.StrictConflictException;
 import org.apache.ivy.plugins.version.VersionMatcher;
-import org.gradle.api.internal.artifacts.configurations.DefaultVersionConflictStrategy;
+import org.gradle.api.internal.artifacts.configurations.conflicts.DefaultVersionConflictStrategy;
 
 import java.util.Collection;
 import java.util.Collections;
