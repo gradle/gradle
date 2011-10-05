@@ -15,20 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.configurations
 
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-
-import spock.lang.*
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.api.Task
-import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.Action
-import org.gradle.listener.ListenerManager
-import org.gradle.api.artifacts.DependencyResolutionListener
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.Task
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.tasks.TaskDependency
+import org.gradle.listener.ListenerBroadcast
+import org.gradle.listener.ListenerManager
+import spock.lang.Specification
+import org.gradle.api.artifacts.*
 
 class DefaultConfigurationSpec extends Specification {
 
@@ -36,9 +31,10 @@ class DefaultConfigurationSpec extends Specification {
     ArtifactDependencyResolver dependencyResolver = Mock()
     ListenerManager listenerManager = Mock()
     DependencyMetaDataProvider metaDataProvider = Mock()
+    VersionConflictStrategy versionConflictStrategy = Mock()
 
     DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, dependencyResolver, listenerManager, metaDataProvider)
+        new DefaultConfiguration(path, confName, configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, versionConflictStrategy)
     }
 
     DefaultPublishArtifact artifact(String name) {
