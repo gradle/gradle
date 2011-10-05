@@ -57,7 +57,7 @@ public class IvyConfig {
         if (conflictStrategy.getType() instanceof DefaultVersionConflictStrategy.Latest) {
             return new LatestConflictManager(new LatestRevisionStrategy());
         } else if (conflictStrategy.getType() instanceof DefaultVersionConflictStrategy.Strict) {
-            return new ForceAwareStrictConflictManager();
+            return new ForceAwareStrictConflictManager((DefaultVersionConflictStrategy.Strict) conflictStrategy.getType());
         } else {
             throw new RuntimeException("I don't know what ivy conflict manager to use for this VersionConflictStrategy: " + conflictStrategy);
         }

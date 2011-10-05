@@ -21,6 +21,7 @@ import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.plugins.conflict.AbstractConflictManager;
 import org.apache.ivy.plugins.conflict.StrictConflictException;
 import org.apache.ivy.plugins.version.VersionMatcher;
+import org.gradle.api.internal.artifacts.configurations.DefaultVersionConflictStrategy;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +35,12 @@ import java.util.Collections;
  * by Szczepan Faber, created at: 10/3/11
  */
 public class ForceAwareStrictConflictManager extends AbstractConflictManager {
+
+    private final DefaultVersionConflictStrategy.Strict strategy;
+
+    public ForceAwareStrictConflictManager(DefaultVersionConflictStrategy.Strict strategy) {
+        this.strategy = strategy;
+    }
 
     public Collection resolveConflicts(IvyNode parent, Collection conflicts) {
         VersionMatcher versionMatcher = getSettings().getVersionMatcher();
@@ -59,6 +66,10 @@ public class ForceAwareStrictConflictManager extends AbstractConflictManager {
             }
 
             if (lastNode != null && !lastNode.equals(node)) {
+                IvyNode chosenOne = strategy.maybeChooseVersion(lastNode, node);
+                if (chosenOne != null) {
+                    return Collections.singleton(chosenOne);
+                }
                 throw new StrictConflictException(lastNode, node);
             }
             lastNode = node;

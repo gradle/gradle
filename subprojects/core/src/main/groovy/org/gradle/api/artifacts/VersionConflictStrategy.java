@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts;
 
-import java.util.Map;
+import groovy.lang.Closure;
 
 /**
  * Defines the strategy in case there's a dependency version conflict. Example:
@@ -46,5 +46,5 @@ public interface VersionConflictStrategy {
     /**
      * fail eagerly on conflict
      */
-    public VersionConflictStrategyType strict(Map strategyConfig);
+    public VersionConflictStrategyType strict(Closure closure);
 }

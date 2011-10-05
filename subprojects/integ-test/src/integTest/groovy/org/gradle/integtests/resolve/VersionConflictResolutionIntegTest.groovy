@@ -18,7 +18,6 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -191,7 +190,6 @@ project(':tool') {
             //then no exceptions are thrown because we forced a certain version of conflicting dependency
     }
 
-    @Ignore
     @Test
     void "strict conflict strategy with forced transitive dependency that is already resolved"() {
         TestFile repo = file("repo")
@@ -229,7 +227,9 @@ project(':tool') {
 	}
 
 	configurations.all {
-	    versionConflictStrategy.type = versionConflictStrategy.strict(force: ['org:foo:1.33'])
+	    versionConflictStrategy.type = versionConflictStrategy.strict {
+	        force = ['org:foo:1.33']
+	    }
 	}
 }
 """

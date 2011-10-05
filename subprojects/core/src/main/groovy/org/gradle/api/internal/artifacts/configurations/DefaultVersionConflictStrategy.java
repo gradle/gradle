@@ -16,11 +16,17 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import groovy.lang.Closure;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.resolve.IvyNode;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.VersionConflictStrategy;
 import org.gradle.api.artifacts.VersionConflictStrategyType;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.util.ConfigureUtil;
 
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * by Szczepan Faber, created at: 10/4/11
@@ -30,7 +36,6 @@ public class DefaultVersionConflictStrategy implements VersionConflictStrategy {
     private VersionConflictStrategyType type;
     private final DependencyFactory dependencyFactory;
 
-    //TODO SF don't like to pass whole DependencyFactory
     public DefaultVersionConflictStrategy(DependencyFactory dependencyFactory) {
         this.dependencyFactory = dependencyFactory;
         setType(latest());
@@ -49,18 +54,50 @@ public class DefaultVersionConflictStrategy implements VersionConflictStrategy {
         return new Latest();
     }
 
-    public VersionConflictStrategyType strict(Map strategyConfig) {
-        return new Strict(strategyConfig);
+    public VersionConflictStrategyType strict(Closure configure) {
+        Strict strict = new Strict(dependencyFactory);
+        ConfigureUtil.configure(configure, strict);
+        return strict;
     }
 
     public static class Strict implements VersionConflictStrategyType {
-        private final Map configuration;
 
-        public Strict(Map strategyConfig) {
-            this.configuration = strategyConfig;
+        private final DependencyFactory dependencyFactory;
+        private Set<Dependency> force = new HashSet<Dependency>();
+
+        public Strict(DependencyFactory dependencyFactory) {
+            this.dependencyFactory = dependencyFactory;
+        }
+
+        public Strict setForce(Object ... dependencyNotations) {
+            for (Object notation : dependencyNotations) {
+                Dependency dependency = dependencyFactory.createDependency(notation);
+                force.add(dependency);
+            }
+            return this;
+        }
+
+        public Set<Dependency> getForce() {
+            return force;
+        }
+
+        public IvyNode maybeChooseVersion(IvyNode lhs, IvyNode rhs) {
+            for (Dependency d : force) {
+                if (matches(lhs.getId(), d)) {
+                    return lhs;
+                } else if (matches(rhs.getId(), d)) {
+                    return rhs;
+                }
+            }
+            return null;
+        }
+
+        private boolean matches(ModuleRevisionId id, Dependency dependency) {
+            return id.getName().equals(dependency.getName()) &&
+                    id.getOrganisation().equals(dependency.getGroup()) &&
+                    id.getRevision().equals(dependency.getVersion());
         }
     }
 
-    public static class Latest implements VersionConflictStrategyType {
-    }
+    public static class Latest implements VersionConflictStrategyType {}
 }
