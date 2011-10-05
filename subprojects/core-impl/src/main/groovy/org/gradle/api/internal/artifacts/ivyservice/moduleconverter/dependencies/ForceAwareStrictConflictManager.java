@@ -21,7 +21,7 @@ import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.plugins.conflict.AbstractConflictManager;
 import org.apache.ivy.plugins.conflict.StrictConflictException;
 import org.apache.ivy.plugins.version.VersionMatcher;
-import org.gradle.api.internal.artifacts.configurations.conflicts.DefaultVersionConflictStrategy;
+import org.gradle.api.internal.artifacts.configurations.conflicts.StrictStrategy;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,9 +36,9 @@ import java.util.Collections;
  */
 public class ForceAwareStrictConflictManager extends AbstractConflictManager {
 
-    private final DefaultVersionConflictStrategy.Strict strategy;
+    private final StrictStrategy strategy;
 
-    public ForceAwareStrictConflictManager(DefaultVersionConflictStrategy.Strict strategy) {
+    public ForceAwareStrictConflictManager(StrictStrategy strategy) {
         this.strategy = strategy;
     }
 
