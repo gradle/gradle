@@ -132,6 +132,12 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         }
     }
 
+    public void awaitIdleTimeout(int timeout) throws DaemonStoppedException {
+        if (awaitStopOrIdleTimeout(timeout)) {
+            throw new DaemonStoppedException(currentCommandExecution);
+        }
+    }
+
     public void stop() {
         lock.lock();
         try {

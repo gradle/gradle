@@ -192,15 +192,7 @@ class DaemonLifecycleSpec extends Specification {
         // should check we get a nice error message here
 
         and:
-        /*
-            This is not quite right. What happens here is that because we have started the daemon and used --foreground
-            we have gone through Main.main() which explicitly calls exit(0) when the started action wraps up.
-            
-            When the daemon receives the stop command, it will allow the call to awaitStop in DaemonMain to progress while
-            the build thread is still running. This means we end up getting back to Main.main() and it calls System.exit(0)
-            which tears down the JVM. This is not the right behaviour and will be fixed soon.
-        */
-        poll { assert daemon.waitForFinish() }
+        poll { assert daemon.waitForFailure() }
     }
 
     def "tearing down client while daemon is building tears down daemon"() {

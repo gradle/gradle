@@ -33,7 +33,11 @@ import java.io.*;
 import java.util.Arrays;
 
 /**
- * The server portion of the build daemon. See {@link org.gradle.launcher.daemon.client.DaemonClient} for a description of the protocol.
+ * The entry point for a daemon process.
+ * 
+ * If the daemon hits the specified idle timeout the process will exit with 0. If the daemon encounters
+ * an internal error or is explicitly stopped (which can be via receiving a stop command, or unexpected client disconnection)
+ * the process will exit with 1.
  */
 public class DaemonMain extends EntryPoint {
 
@@ -83,12 +87,13 @@ public class DaemonMain extends EntryPoint {
         Daemon daemon = new Daemon(connector, daemonRegistry, new DefaultDaemonCommandExecuter(loggingServices));
 
         daemon.start();
-        boolean wasStopped = daemon.awaitStopOrIdleTimeout(idleTimeout);
-        if (wasStopped) {
-            LOGGER.info("Daemon stopping due to stop request");
-        } else {
+        try {
+            daemon.awaitIdleTimeout(idleTimeout);
             LOGGER.info("Daemon hit idle timeout (" + idleTimeoutSecs + " secs), stopping");
             daemon.stop();
+        } catch (DaemonStoppedException e) {
+            LOGGER.info("Daemon stopping due to stop request");
+            listener.onFailure(e);
         }
     }
 

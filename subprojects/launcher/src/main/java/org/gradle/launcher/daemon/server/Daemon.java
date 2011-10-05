@@ -180,6 +180,16 @@ public class Daemon implements Runnable, Stoppable {
     }
 
     /**
+     * Waits for the daemon to be idle for the specified number of milliseconds.
+     * 
+     * @throws DaemonStoppedException if the daemon is explicitly stopped instead of idling out.
+     */
+    public void awaitIdleTimeout(int idleTimeout) throws DaemonStoppedException {
+        LOGGER.debug("awaitIdleTimeout({}) called on daemon", idleTimeout);
+        stateCoordinator.awaitIdleTimeout(idleTimeout);
+    }
+
+    /**
      * Starts the daemon, blocking until it is stopped (either by Stop command or by another thread calling stop())
      */
     public void run() {
