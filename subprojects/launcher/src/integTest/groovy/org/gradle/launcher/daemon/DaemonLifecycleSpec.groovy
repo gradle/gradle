@@ -165,7 +165,7 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped // daemon processes will still be running, but they have dropped their connection to the client, and disappeared from registry.
     }
 
-    def "sending stop to buys daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
+    def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
         given:
         expectedDaemons = 1
 
