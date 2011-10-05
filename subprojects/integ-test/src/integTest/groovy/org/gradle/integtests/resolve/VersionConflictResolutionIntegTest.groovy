@@ -32,8 +32,8 @@ class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
     @Test
     void "strict conflict resolution should fail due to conflict"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", 1.33).publishArtifact()
-        maven(repo).module("org", "foo", 1.44).publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
+        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -49,13 +49,13 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.33')
+		compile (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.44')
+		compile (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
@@ -94,7 +94,7 @@ project(':tool') {
     @Test
     void "strict conflict resolution should pass when no conflicts"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", 1.33).publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -110,13 +110,13 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.33')
+		compile (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.33')
+		compile (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
@@ -130,20 +130,20 @@ project(':tool') {
 }
 """
 
-            //when
-            executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
-                .withArguments("-s")
-                .withTasks("tool:dependencies").run()
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
+            .withArguments("-s")
+            .withTasks("tool:dependencies").run()
 
-            //then no exceptions are thrown
+        //then no exceptions are thrown
     }
 
     @Test
     void "strict conflict strategy can be used with forced versions"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", 1.33).publishArtifact()
-        maven(repo).module("org", "foo", 1.44).publishArtifact()
-        maven(repo).module("org", "foo", 1.55).publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
+        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
+        maven(repo).module("org", "foo", '1.5.5').publishArtifact()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -159,13 +159,13 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.44')
+		compile (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.33')
+		compile (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
@@ -173,7 +173,7 @@ project(':tool') {
 	dependencies {
 		compile project(':api')
 		compile project(':impl')
-		compile (group: 'org', name: 'foo', version:'1.55') {
+		compile (group: 'org', name: 'foo', version:'1.5.5') {
 		    force = true
 		}
 	}
@@ -182,19 +182,19 @@ project(':tool') {
 }
 """
 
-            //when
-            executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
-                .withArguments("-s")
-                .withTasks("tool:dependencies").run()
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
+            .withArguments("-s")
+            .withTasks("tool:dependencies").run()
 
-            //then no exceptions are thrown because we forced a certain version of conflicting dependency
+        //then no exceptions are thrown because we forced a certain version of conflicting dependency
     }
 
     @Test
     void "strict conflict strategy with forced transitive dependency that is already resolved"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", 1.33).publishArtifact()
-        maven(repo).module("org", "foo", 1.44).publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
+        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -210,13 +210,13 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.44')
+		compile (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.33')
+		compile (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
@@ -228,26 +228,26 @@ project(':tool') {
 
 	configurations.all {
 	    versionConflictStrategy.type = versionConflictStrategy.strict {
-	        force = ['org:foo:1.33']
+	        force = ['org:foo:1.3.3']
 	    }
 	}
 }
 """
 
-            //when
-            executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
-                .withArguments("-s")
-                .withTasks("tool:dependencies").run()
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
+            .withArguments("-s")
+            .withTasks("tool:dependencies").run()
 
-            System.out.println("foo");
-            //then no exceptions are thrown because we forced a certain version of conflicting dependency
+        //then no exceptions are thrown because we forced a certain version of conflicting dependency
+        //TODO SF add coverage that checks if dependencies are not pushed to 1st level (write a functional test for it)
     }
 
     @Test
     void "resolves to the latest version by default"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", 1.33).publishArtifact()
-        maven(repo).module("org", "foo", 1.44).publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
+        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -263,13 +263,13 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.33')
+		compile (group: 'org', name: 'foo', version:'1.3.3')
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.44')
+		compile (group: 'org', name: 'foo', version:'1.4.4')
 	}
 }
 
@@ -287,7 +287,7 @@ project(':tool') {
                 .withTasks("tool:dependencies").run()
 
         //then
-        assert result.output.contains('1.44')
-        assert !result.output.contains('1.33')
+        assert result.output.contains('1.4.4')
+        assert !result.output.contains('1.3.3')
     }
 }
