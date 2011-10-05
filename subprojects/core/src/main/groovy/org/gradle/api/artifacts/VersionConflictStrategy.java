@@ -21,7 +21,14 @@ import groovy.lang.Closure;
 /**
  * Defines the strategy in case there's a dependency version conflict. Example:
  * <pre autoTested=''>
- * configurations.all { versionConflictStrategy = versionConflictStrategy.strict() }
+ * configurations.all {
+ *   versionConflictStrategy = versionConflictStrategy.strict()
+ *
+ *   //more sophisticated example, forcing certain versions of transitive dependencies:
+ *   versionConflictStrategy = versionConflictStrategy.strict {
+ *       force = ['foo.bar:bar:1.0', 'org.xyz:xyz:1.3']
+ *   }
+ * }
  * </pre>
  */
 public interface VersionConflictStrategy {
