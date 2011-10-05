@@ -132,7 +132,7 @@ public class CommandLineActionFactory {
         DaemonClient client = new DaemonClient(connector, clientMetaData, loggingServices.get(OutputEventListener.class));
 
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new DaemonMain(startParameter));
+            return new ActionAdapter(new DaemonMain(startParameter, false));
         }
         if (commandLine.hasOption(STOP)) {
             return new ActionAdapter(new StopDaemonAction(client));

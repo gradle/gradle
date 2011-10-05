@@ -15,9 +15,10 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.StartParameter;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
@@ -34,49 +35,53 @@ import java.util.Arrays;
 /**
  * The server portion of the build daemon. See {@link org.gradle.launcher.daemon.client.DaemonClient} for a description of the protocol.
  */
-public class DaemonMain implements Runnable {
+public class DaemonMain extends EntryPoint {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
-    
+
     final private StartParameter startParameter;
-    
+    final private boolean redirectIo;
+
     public static void main(String[] args) {
         StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
-        
-        try {
-            redirectOutputsAndInput(startParameter);
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-        
-        new DaemonMain(startParameter).run();
+        new DaemonMain(startParameter, true).run();
     }
-    
-    public DaemonMain(StartParameter startParameter) {
+
+    public DaemonMain(StartParameter startParameter, boolean redirectIo) {
         this.startParameter = startParameter;
+        this.redirectIo = redirectIo;
     }
-    
-    public void run() {
+
+    protected void doAction(ExecutionListener listener) {
+        if (redirectIo) {
+            try {
+                redirectOutputsAndInput(startParameter);
+            } catch (IOException e) {
+                listener.onFailure(e);
+                return;
+            }
+        }
+
         final Long pid = new LenientEnvHacker().getPid();
-        
+
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 LOGGER.info("Daemon[pid = {}] finishing", pid);
             }
         });
-        
+
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
         DaemonServerConnector connector = new DaemonTcpServerConnector();
-        
+
         File registryDir = startParameter.getGradleUserHomeDir();
         DaemonRegistry daemonRegistry = new PersistentDaemonRegistry(registryDir);
-        
+
         int idleTimeout = getIdleTimeout(startParameter);
         float idleTimeoutSecs = idleTimeout / 1000;
-        
+
         LOGGER.lifecycle("Starting daemon[pid = {}] with settings: idleTimeout = {} secs, registryDir = {}", pid, idleTimeoutSecs, registryDir);
         Daemon daemon = new Daemon(connector, daemonRegistry, new DefaultDaemonCommandExecuter(loggingServices));
-        
+
         daemon.start();
         boolean wasStopped = daemon.awaitStopOrIdleTimeout(idleTimeout);
         if (wasStopped) {
@@ -103,7 +108,7 @@ public class DaemonMain implements Runnable {
         // TODO - make this work on windows
 //        originalIn.close();
     }
-    
+
     private static int getIdleTimeout(StartParameter startParameter) {
         return new DaemonIdleTimeout(startParameter).getIdleTimeout();
     }
