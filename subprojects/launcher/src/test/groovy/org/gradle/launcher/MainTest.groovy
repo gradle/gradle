@@ -21,66 +21,82 @@ import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.api.Action
 import org.gradle.launcher.cli.CommandLineActionFactory
 import org.gradle.launcher.exec.ExecutionListener
+import org.gradle.launcher.exec.ExecutionCompleter
 
 class MainTest extends Specification {
+    
     @Rule final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
-    final Main.BuildCompleter completer = Mock()
-    final CommandLineActionFactory factory = Mock()
+    
+    Action actionImpl 
+    
+    void action(Closure closure) {
+        actionImpl = closure as Action
+    }
+    
+    def actionFactoryImpl
+    
+    void actionFactory(Closure closure) {
+        actionFactoryImpl = new CommandLineActionFactory() { Action<ExecutionListener> convert(List args) { closure(args) } }
+    }
+    boolean completedSuccessfully
+    boolean completedWithFailure
+    Throwable failure
+        
     final String[] args = ['arg']
+    
     final Main main = new Main(args) {
-        @Override
-        Main.BuildCompleter createBuildCompleter() {
-            completer
+        protected ExecutionCompleter createCompleter() {
+            [complete: { completedSuccessfully = true }, completeWithFailure: { completedWithFailure = true; failure = it }] as ExecutionCompleter
         }
 
-        @Override
-        CommandLineActionFactory createActionFactory() {
-            factory
+        protected CommandLineActionFactory createActionFactory() {
+            actionFactoryImpl
         }
     }
+    
 
+    def setup() {
+        actionFactory { actionImpl }
+    }
+    
     def createsAndExecutesCommandLineAction() {
-        Action<ExecutionListener> action = Mock()
-
+        given:
+        action {}
+            
         when:
-        main.execute()
+        main.run()
 
         then:
-        1 * factory.convert(args) >> action
-        1 * action.execute(completer)
-        1 * completer.exit()
-        0 * _._
+        completedSuccessfully
     }
 
     def reportsActionExecutionFailure() {
-        Action<ExecutionListener> action = Mock()
-        RuntimeException failure = new RuntimeException('broken')
+        given:
+        def thrownFailure = new RuntimeException('broken')
+        action { throw thrownFailure }
 
         when:
-        main.execute()
+        main.run()
 
         then:
-        1 * factory.convert(args) >> action
-        1 * action.execute(completer) >> { throw failure }
         outputs.stdErr.contains('internal error')
         outputs.stdErr.contains('java.lang.RuntimeException: broken')
-        1 * completer.onFailure(failure)
-        1 * completer.exit()
-        0 * _._
+        completedWithFailure
+        failure == thrownFailure
     }
 
     def reportsActionCreationFailure() {
-        RuntimeException failure = new RuntimeException('broken')
+        given:
+        def thrownFailure = new RuntimeException('broken')
+        actionFactory { throw thrownFailure }
 
         when:
-        main.execute()
+        main.run()
 
         then:
-        1 * factory.convert(args) >> { throw failure }
         outputs.stdErr.contains('internal error')
         outputs.stdErr.contains('java.lang.RuntimeException: broken')
-        1 * completer.onFailure(failure)
-        1 * completer.exit()
-        0 * _._
+        completedWithFailure
+        failure == thrownFailure
     }
 }

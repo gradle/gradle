@@ -15,13 +15,9 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.BuildExceptionReporter;
-import org.gradle.StartParameter;
-import org.gradle.api.Action;
-import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.launcher.cli.CommandLineActionFactory;
+import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.exec.ExecutionListener;
-import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
 
 import java.util.Arrays;
 
@@ -30,16 +26,17 @@ import java.util.Arrays;
  *
  * @author Hans Dockter
  */
-public class Main {
-    private final String[] args;
+public class Main extends EntryPoint {
 
+    private final String[] args;
+    
     public Main(String[] args) {
         this.args = args;
     }
 
     public static void main(String[] args) {
         try {
-            new Main(args).execute();
+            new Main(args).run();
             System.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -47,43 +44,11 @@ public class Main {
         }
     }
 
-    public void execute() {
-        BuildCompleter buildCompleter = createBuildCompleter();
-        try {
-            // We execute as much as possible inside this try block (including construction of dependencies), so that
-            // the error reporting below is applied to as much code as possible
-            CommandLineActionFactory actionFactory = createActionFactory();
-            Action<ExecutionListener> action = actionFactory.convert(Arrays.asList(args));
-            action.execute(buildCompleter);
-        } catch (Throwable e) {
-            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new StartParameter(), new GradleLauncherMetaData());
-            exceptionReporter.reportException(e);
-            buildCompleter.onFailure(e);
-        }
-        buildCompleter.exit();
+    protected void doAction(ExecutionListener listener) {
+        createActionFactory().convert(Arrays.asList(args)).execute(listener);
     }
 
     CommandLineActionFactory createActionFactory() {
         return new CommandLineActionFactory();
-    }
-
-    BuildCompleter createBuildCompleter() {
-        return new ProcessExitExecutionListener();
-    }
-
-    interface BuildCompleter extends ExecutionListener {
-        void exit();
-    }
-
-    static class ProcessExitExecutionListener implements BuildCompleter {
-        private boolean failure;
-
-        public void onFailure(Throwable failure) {
-            this.failure = true;
-        }
-
-        public void exit() {
-            System.exit(failure ? 1 : 0);
-        }
     }
 }
