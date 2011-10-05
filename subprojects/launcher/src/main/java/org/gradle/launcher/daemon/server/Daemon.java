@@ -150,6 +150,14 @@ public class Daemon implements Runnable, Stoppable {
      * Stops the daemon, blocking until any current requests/connections have been satisfied.
      * <p>
      * This is the semantically the same as sending the daemon the Stop command.
+     * <p>
+     * This method does not quite conform to the semantics of the Stoppable contract in that it will NOT
+     * wait for any executing builds to stop before returning. This is by design as we currently have no way of
+     * gracefully stopping a build process and blocking until it's done would not allow us to tear down the jvm
+     * like we need to. This may change in the future if we create a way to interrupt a build.
+     * <p>
+     * What will happen though is that the daemon will immediately disconnect from any clients and remove itself
+     * from the registry.
      */
     public void stop() {
         LOGGER.debug("stop() called on daemon");
