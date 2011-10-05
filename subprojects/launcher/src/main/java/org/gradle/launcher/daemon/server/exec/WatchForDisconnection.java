@@ -30,9 +30,15 @@ public class WatchForDisconnection implements DaemonCommandAction {
         // Watch for the client disconnecting before we call stop()
         connection.onDisconnect(new Runnable() {
             public void run() {
-                LOGGER.warn("client disconnection detected, we're going down (hard)");
-                execution.getDaemonStateCoordinator().stop(); // to remove us from the registry
-                System.exit(1);
+                LOGGER.warn("client disconnection detected, stopping the daemon");
+                
+                /*
+                    When the daemon was started through the DaemonMain entry point, this will cause the entire
+                    JVM to exit with code 1 (which is what we want) because the call to awaitIdleTimeout() in 
+                    DaemonMain#doAction will throw a DaemonStoppedException. Note that at this point we will also 
+                    immediately remove the daemon from the registry.
+                */
+                execution.getDaemonStateCoordinator().requestStop();
             }
         });
 
