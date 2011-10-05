@@ -61,8 +61,8 @@ public class StrictStrategy implements VersionConflictStrategyType {
     }
 
     private boolean matches(ModuleRevisionId id, Dependency dependency) {
-        return id.getName().equals(dependency.getName()) &&
-                id.getOrganisation().equals(dependency.getGroup()) &&
-                id.getRevision().equals(dependency.getVersion());
+        return id.getName().equals(dependency.getName())
+                && id.getOrganisation().equals(dependency.getGroup())
+                && id.getRevision().equals(dependency.getVersion());
     }
 }
