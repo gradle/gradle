@@ -153,7 +153,7 @@ public class DefaultIvyDependencyResolverTest {
     private void configurationIsAskedForConflictStrategy() {
         context.checking(new Expectations() {{
             allowing(configurationStub).getVersionConflictStrategy();
-            will(returnValue(new DefaultVersionConflictStrategy()));
+            will(returnValue(new DefaultVersionConflictStrategy(null)));
         }});
     }
 

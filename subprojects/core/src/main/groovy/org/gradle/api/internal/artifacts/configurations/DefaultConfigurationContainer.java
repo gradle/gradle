@@ -61,7 +61,9 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
 
     @Override
     protected Configuration doCreate(String name) {
-        return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, dependencyResolver, listenerManager, dependencyMetaDataProvider);
+        return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name),
+                name, this, dependencyResolver, listenerManager,
+                dependencyMetaDataProvider, new DefaultVersionConflictStrategy(dependencyFactory));
     }
 
     // Override deprecated version from DomainObjectCollection (through AbstractNamedDomainObjectContainer)
@@ -95,7 +97,9 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     public Configuration detachedConfiguration(Dependency... dependencies) {
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
-        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(name, name, detachedConfigurationsProvider, dependencyResolver, listenerManager, dependencyMetaDataProvider);
+        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(
+                name, name, detachedConfigurationsProvider, dependencyResolver,
+                listenerManager, dependencyMetaDataProvider, new DefaultVersionConflictStrategy(dependencyFactory));
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.VersionConflictStrategy;
 import org.gradle.api.artifacts.VersionConflictStrategyType;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 
 import java.util.Map;
 
@@ -27,8 +28,11 @@ import java.util.Map;
 public class DefaultVersionConflictStrategy implements VersionConflictStrategy {
 
     private VersionConflictStrategyType type;
+    private final DependencyFactory dependencyFactory;
 
-    public DefaultVersionConflictStrategy() {
+    //TODO SF don't like to pass whole DependencyFactory
+    public DefaultVersionConflictStrategy(DependencyFactory dependencyFactory) {
+        this.dependencyFactory = dependencyFactory;
         setType(latest());
     }
 

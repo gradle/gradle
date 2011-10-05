@@ -90,7 +90,7 @@ public class DefaultInternalRepository extends AbstractResolver implements Inter
         Module projectModule = project.getModule();
         IvySettings ivySettings = IvyContext.getContext().getIvy().getSettings();
         //in this instance we don't care about the version conflict strategy because we're not resolving
-        VersionConflictStrategy whateverStrategy = new DefaultVersionConflictStrategy();
+        VersionConflictStrategy whateverStrategy = new DefaultVersionConflictStrategy(null);
         IvyConfig ivyConfig = new IvyConfig(ivySettings, whateverStrategy);
         ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule, ivyConfig);
 

@@ -71,13 +71,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final VersionConflictStrategy versionConflictStrategy;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
-                                ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider) {
+                                ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager,
+                                DependencyMetaDataProvider metaDataProvider, VersionConflictStrategy versionConflictStrategy) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.dependencyResolver = dependencyResolver;
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
+        assert versionConflictStrategy != null : "Cannot create configuration with null versionConflictStrategy";
+        this.versionConflictStrategy = versionConflictStrategy;
+
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
@@ -92,8 +96,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
         inheritedArtifacts = new CompositeDomainObjectSet<PublishArtifact>(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
-
-        versionConflictStrategy = new DefaultVersionConflictStrategy();
     }
 
     public String getName() {
@@ -392,7 +394,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, dependencyResolver, listenerManager, metaDataProvider);
+                configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, versionConflictStrategy);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved

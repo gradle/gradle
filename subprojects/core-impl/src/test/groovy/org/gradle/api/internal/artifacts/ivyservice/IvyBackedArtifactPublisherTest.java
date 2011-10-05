@@ -81,7 +81,7 @@ public class IvyBackedArtifactPublisherTest {
             allowing(resolverProvider).getResolvers();
             will(returnValue(publishResolversDummy));
             allowing(configuration).getVersionConflictStrategy();
-            will(returnValue(new DefaultVersionConflictStrategy()));
+            will(returnValue(new DefaultVersionConflictStrategy(null)));
             one(fileModuleDescriptorMock).toIvyFile(someDescriptorDestination);
             one(ivyDependencyPublisherMock).publish(expectedConfigurations,
                     publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, publishEngineDummy);

@@ -22,10 +22,10 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -58,6 +58,7 @@ public class DefaultConfigurationTest {
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
+    private VersionConflictStrategy versionConflictStrategy = new DefaultVersionConflictStrategy(null);
     private DefaultConfiguration configuration;
 
     @Before
@@ -346,11 +347,11 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider);
+        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, versionConflictStrategy);
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
-        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider);
+        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, versionConflictStrategy);
     }
 
     @SuppressWarnings("unchecked")
