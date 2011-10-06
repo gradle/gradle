@@ -15,11 +15,14 @@
  */
 package org.gradle.execution;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,28 +30,51 @@ import static org.gradle.util.WrapUtil.toList;
 
 @RunWith(JMock.class)
 public class DryRunBuildExecutionActionTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final BuildExecutionContext executionContext = context.mock(BuildExecutionContext.class);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
+    private final StartParameter startParameter = context.mock(StartParameter.class);
     private final DryRunBuildExecutionAction action = new DryRunBuildExecutionAction();
 
-    @Test
-    public void disablesAllSelectedTasksBeforeExecution() {
-        final Task task1 = context.mock(Task.class, "task1");
-        final Task task2 = context.mock(Task.class, "task2");
-
-        context.checking(new Expectations() {{
+    @Before
+    public void setup() {
+        context.checking(new Expectations(){{
+            allowing(gradle).getStartParameter();
+            will(returnValue(startParameter));
             allowing(executionContext).getGradle();
             will(returnValue(gradle));
             allowing(gradle).getTaskGraph();
             will(returnValue(taskExecuter));
+        }});
+    }
+    
+    @Test
+    public void disablesAllSelectedTasksBeforeProceedingWhenDryRunIsEnabled() {
+        final Task task1 = context.mock(Task.class, "task1");
+        final Task task2 = context.mock(Task.class, "task2");
+
+        context.checking(new Expectations() {{
+            allowing(startParameter).isDryRun();
+            will(returnValue(true));
 
             one(taskExecuter).getAllTasks();
             will(returnValue(toList(task1, task2)));
 
             one(task1).setEnabled(false);
             one(task2).setEnabled(false);
+
+            one(executionContext).proceed();
+        }});
+
+        action.execute(executionContext);
+    }
+
+    @Test
+    public void proceedsWhenDryRunIsNotSelected() {
+        context.checking(new Expectations() {{
+            allowing(startParameter).isDryRun();
+            will(returnValue(false));
 
             one(executionContext).proceed();
         }});
