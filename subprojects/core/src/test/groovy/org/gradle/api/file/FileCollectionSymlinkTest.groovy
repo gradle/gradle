@@ -1,4 +1,4 @@
-package org.gradle.api.internal.file.collections
+package org.gradle.api.file
 
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.api.Project
