@@ -16,14 +16,18 @@
 package org.gradle.execution;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.GradleInternal;
 
 /**
  * A {@link org.gradle.execution.BuildExecuter} which disables all selected tasks before they are executed.
  */
 public class DryRunBuildExecutionAction implements BuildExecutionAction {
     public void execute(BuildExecutionContext context) {
-        for (Task task : context.getGradle().getTaskGraph().getAllTasks()) {
-            task.setEnabled(false);
+        GradleInternal gradle = context.getGradle();
+        if (gradle.getStartParameter().isDryRun()) {
+            for (Task task : gradle.getTaskGraph().getAllTasks()) {
+                task.setEnabled(false);
+            }
         }
         context.proceed();
     }
