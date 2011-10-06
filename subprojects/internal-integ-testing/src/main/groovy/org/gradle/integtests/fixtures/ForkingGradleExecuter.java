@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,7 +62,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
         return new PersistentDaemonRegistry(userHome);
     }
-    
+
     /**
      * Adds some options to the GRADLE_OPTS environment variable to use.
      */
@@ -180,19 +181,19 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     protected static class ForkingGradleHandle<T extends ForkingGradleExecuter> extends OutputScrapingGradleHandle<T> {
         private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleHandle.class);
-        
+
         final private T executer;
         private boolean passthrough;
 
         private class MultiplexingOutputStream extends OutputStream {
             OutputStream systemOut;
             OutputStream nonSystemOut;
-            
+
             public MultiplexingOutputStream(OutputStream systemOut, OutputStream nonSystemOut) {
                 this.systemOut = systemOut;
                 this.nonSystemOut = nonSystemOut;
             }
-            
+
             public void write(int b) throws IOException {
                 nonSystemOut.write(b);
                 if (passthrough) {
@@ -200,10 +201,11 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 }
             }
         }
-        
-        
+
+
         final private ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+        private InputStream inputStream;
 
         private ExecHandle execHandle;
 
@@ -219,13 +221,18 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             passthrough = true;
             return this;
         }
-        
+
         public String getStandardOutput() {
             return standardOutput.toString();
         }
 
         public String getErrorOutput() {
             return errorOutput.toString();
+        }
+
+        public GradleHandle<T> setStandardInput(InputStream inputStream) {
+            this.inputStream = inputStream;
+            return this;
         }
 
         public GradleHandle<T> start() {
@@ -258,6 +265,9 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             ExecHandleBuilder execBuilder = getExecuter().createExecHandleBuilder();
             execBuilder.setStandardOutput(new MultiplexingOutputStream(System.out, standardOutput));
             execBuilder.setErrorOutput(new MultiplexingOutputStream(System.err, errorOutput));
+            if (inputStream != null) {
+                execBuilder.setStandardInput(inputStream);
+            }
             execHandle = execBuilder.build();
 
             return execHandle;

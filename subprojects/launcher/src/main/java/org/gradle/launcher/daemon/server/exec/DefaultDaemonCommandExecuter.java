@@ -61,6 +61,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new HandleSleep(),
             new EstablishBuildEnvironment(),
             new WatchForDisconnection(),
+            new ForwardClientInput(),
             new ExecuteBuild(loggingServices, launcherFactory)
         ).proceed();
     }
