@@ -105,9 +105,11 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     }
 
     private <T> Result<T> runBuild(Build build, Connection<Object> connection) {
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(System.in, build.getClientMetaData(), connection);
         try {
             //TODO SF - this may fail. We should handle it and have tests for that. It means the server is gone.
             connection.dispatch(build);
+            inputForwarder.start();
             while (true) {
                 Object object = connection.receive();
                 
@@ -124,6 +126,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 }
             }
         } finally {
+            inputForwarder.stop();
             connection.stop();
         }
     }
