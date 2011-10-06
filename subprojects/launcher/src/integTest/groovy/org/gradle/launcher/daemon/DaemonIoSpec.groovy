@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout
-import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.integtests.fixtures.GradleHandles
 
 import org.junit.Rule

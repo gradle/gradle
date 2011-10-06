@@ -22,7 +22,6 @@ import org.gradle.initialization.BuildClientMetaData
 import org.gradle.messaging.dispatch.Dispatch
 
 import spock.lang.*
-import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
