@@ -69,10 +69,19 @@ class InputForwarderTest extends Specification {
         createForwarder()
     }
 
+    def closeInput() {
+        inputStream.close()
+        source.close()
+    }
+
+    def waitForForwarderToCollect() {
+        sleep 1000
+    }
+
     def "input from source is forwarded until forwarder is stopped"() {
         when:
         source << "abc\ndef\njkl"
-        sleep 500
+        waitForForwarderToCollect()
         forwarder.stop()
 
         then:
@@ -88,8 +97,8 @@ class InputForwarderTest extends Specification {
     def "input from source is forwarded until source input stream is closed"() {
         when:
         source << "abc\ndef\njkl"
-        source.close()
-        inputStream.close()
+        waitForForwarderToCollect()
+        closeInput()
 
         then:
         receive "abc\n"
@@ -121,6 +130,36 @@ class InputForwarderTest extends Specification {
         receive "ab\n"
     }
 
+    def "one partial line when input stream closed gets forwarded"() {
+        when:
+        source << "abc"
+        waitForForwarderToCollect()
+
+        and:
+        closeInput()
+
+        then:
+        receive "abc"
+
+        and:
+        noMoreInput
+    }
+
+    def "one partial line when forwarder stopped gets forwarded"() {
+        when:
+        source << "abc"
+        waitForForwarderToCollect()
+
+        and:
+        forwarder.stop()
+
+        then:
+        receive "abc"
+
+        and:
+        noMoreInput
+    }
+
     def "forwarder can be closed before receiving any output"() {
         when:
         forwarder.stop()
@@ -128,14 +167,14 @@ class InputForwarderTest extends Specification {
         then:
         noMoreInput
     }
-    
+
     def "can handle lines larger than the buffer size"() {
         given:
-        def longLine = ("a" * (bufferSize * 10) + "\n")  
-        
+        def longLine = ("a" * (bufferSize * 10) + "\n")
+
         when:
         source << longLine << longLine
-        
+
         then:
         receive longLine
         receive longLine
@@ -143,9 +182,8 @@ class InputForwarderTest extends Specification {
     }
 
     def cleanup() {
-        inputStream.close()
-        source.close()
+        closeInput()
         forwarder.stop()
     }
-    
+
 }
