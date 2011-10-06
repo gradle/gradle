@@ -31,7 +31,7 @@ public class Swapper<T> {
         this.setter = setter;
     }
 
-    public <N> N swap(T value, Callable<N> whileSwapped) throws Exception {
+    public <Y extends T, N> N swap(Y value, Callable<N> whileSwapped) throws Exception {
         T orginalValue = getter.call();
         setter.execute(value);
         try {
