@@ -45,24 +45,6 @@ class InputForwarderTest extends Specification {
         this.onFinish = runnable
     }
 
-    void poll(int timeout = pollWaitsFor, Closure assertion) {
-        int x = 0;
-        timeout = timeout * 1000 // convert to m
-        while(true) {
-            try {
-                assertion()
-                return
-            } catch (Throwable t) {
-                Thread.sleep(100);
-                x += 100;
-                if (x > timeout) {
-                    throw t;
-                }
-            }
-        }
-    }
-
-
     def forwarder
 
     def createForwarder() {
