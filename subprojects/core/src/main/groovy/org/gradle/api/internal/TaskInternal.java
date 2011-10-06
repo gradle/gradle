@@ -28,10 +28,9 @@ import java.util.List;
 public interface TaskInternal extends Task, Configurable<Task> {
     Spec<? super TaskInternal> getOnlyIf();
 
-    /**
-     * Executes this task.
-     */
     void execute();
+
+    void executeWithoutThrowingTaskFailure();
 
     StandardOutputCapture getStandardOutputCapture();
 

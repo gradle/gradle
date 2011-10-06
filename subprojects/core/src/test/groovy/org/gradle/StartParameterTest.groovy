@@ -57,6 +57,7 @@ class StartParameterTest {
         testObj.cacheUsage = CacheUsage.ON
         testObj.logLevel = LogLevel.WARN
         testObj.colorOutput = false
+        testObj.continueOnFailure = true
 
         StartParameter startParameter = testObj.newInstance()
         assertEquals(testObj, startParameter)
@@ -78,6 +79,7 @@ class StartParameterTest {
         assertThat(parameter.systemPropertiesArgs, isEmptyMap())
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertFalse(parameter.dryRun)
+        assertFalse(parameter.continueOnFailure)
     }
 
     @Test public void testDefaultWithGradleUserHomeSystemProp() {
@@ -196,6 +198,7 @@ class StartParameterTest {
         parameter.excludedTaskNames = ['excluded1']
         parameter.defaultProjectSelector = [:] as ProjectSpec
         parameter.dryRun = true
+        parameter.continueOnFailure = true
 
         StartParameter newParameter = parameter.newBuild();
 
@@ -205,6 +208,7 @@ class StartParameterTest {
         assertThat(newParameter.cacheUsage, equalTo(parameter.cacheUsage));
         assertThat(newParameter.logLevel, equalTo(parameter.logLevel));
         assertThat(newParameter.colorOutput, equalTo(parameter.colorOutput));
+        assertThat(newParameter.continueOnFailure, equalTo(parameter.continueOnFailure))
 
         assertThat(newParameter.buildFile, nullValue())
         assertThat(newParameter.taskNames, isEmpty())

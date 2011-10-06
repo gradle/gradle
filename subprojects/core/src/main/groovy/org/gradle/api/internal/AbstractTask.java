@@ -235,8 +235,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public final void execute() {
-        executer.execute(this, state);
+        executeWithoutThrowingTaskFailure();
         state.rethrowFailure();
+    }
+
+    public void executeWithoutThrowingTaskFailure() {
+        executer.execute(this, state);
     }
 
     public TaskExecuter getExecuter() {

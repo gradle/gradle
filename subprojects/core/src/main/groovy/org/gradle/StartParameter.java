@@ -81,6 +81,7 @@ public class StartParameter {
     private boolean noOpt;
     private boolean colorOutput = true;
     private boolean profile;
+    private boolean continueOnFailure;
     private String projectCacheDir = ".gradle";
 
     /**
@@ -145,6 +146,7 @@ public class StartParameter {
         startParameter.noOpt = noOpt;
         startParameter.profile = profile;
         startParameter.projectCacheDir = projectCacheDir;
+        startParameter.continueOnFailure = continueOnFailure;
         return startParameter;
     }
 
@@ -162,6 +164,7 @@ public class StartParameter {
         startParameter.logLevel = logLevel;
         startParameter.colorOutput = colorOutput;
         startParameter.profile = profile;
+        startParameter.continueOnFailure = continueOnFailure;
         return startParameter;
     }
 
@@ -513,6 +516,20 @@ public class StartParameter {
      */
     public boolean isProfile() {
         return profile;
+    }
+
+    /**
+     * Specifies whether the build should continue on task failure. The default is false.
+     */
+    public boolean isContinueOnFailure() {
+        return continueOnFailure;
+    }
+
+    /**
+     * Specifies whether the build should continue on task failure. The default is false.
+     */
+    public void setContinueOnFailure(boolean continueOnFailure) {
+        this.continueOnFailure = continueOnFailure;
     }
 
     @Override

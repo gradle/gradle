@@ -68,6 +68,7 @@ public class DefaultCommandLineConverterTest {
     private boolean expectedProfile;
 
     private final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
+    private boolean expectedContinue;
 
     @Test
     public void withoutAnyOptions() {
@@ -97,6 +98,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
         assertEquals(expectedInitScripts, startParameter.getInitScripts());
         assertEquals(expectedProfile, startParameter.isProfile());
+        assertEquals(expectedContinue, startParameter.isContinueOnFailure());
     }
 
     private void checkConversion(final boolean embedded, String... args) {
@@ -352,6 +354,12 @@ public class DefaultCommandLineConverterTest {
     public void withProfile() {
         expectedProfile = true;
         checkConversion("--profile");
+    }
+
+    @Test
+    public void withContinue() {
+        expectedContinue = true;
+        checkConversion("--continue");
     }
 
     @Test(expected = CommandLineArgumentException.class)

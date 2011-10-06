@@ -38,8 +38,7 @@ public interface TaskGraphExecuter extends TaskExecutionGraph {
     void execute();
 
     /**
-     * Adds the given tasks and their dependencies to this graph, then executes all the tasks in this graph. Discards
-     * the contents of this graph when completed.
+     * Sets the handler to use when a task fails.
      */
-    void execute(Iterable<? extends Task> tasks);
+    void useFailureHandler(TaskFailureHandler handler);
 }
