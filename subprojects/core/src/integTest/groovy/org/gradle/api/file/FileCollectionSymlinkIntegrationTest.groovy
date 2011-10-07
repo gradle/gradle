@@ -16,6 +16,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import static org.gradle.util.TextUtil.escapeString
 
 import spock.lang.Unroll
 
@@ -26,7 +27,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         def baseDir = getTestFile("file").getParentFile()
 
         buildScript << """
-def baseDir = new File("$baseDir")
+def baseDir = new File("${escapeString(baseDir)}")
 def file = new File(baseDir, "file")
 def symlink = new File(baseDir, "symlink")
 def symlinked = new File(baseDir, "symlinked")
