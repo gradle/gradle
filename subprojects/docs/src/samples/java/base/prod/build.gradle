@@ -12,6 +12,6 @@ task jar(type: Jar) {
 }
 
 artifacts {
-    archives jar
+    'default' jar
 }
 
