@@ -224,6 +224,7 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped
     }
 
+    @IgnoreRest
     def "tearing down client while daemon is building tears down daemon _process_"() {
         given:
         expectedDaemons = 1
