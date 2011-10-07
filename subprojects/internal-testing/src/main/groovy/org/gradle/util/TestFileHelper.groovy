@@ -13,103 +13,101 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.util
 
-import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+
 import org.apache.commons.lang.StringUtils
 import org.apache.tools.ant.taskdefs.Expand
 import org.apache.tools.ant.taskdefs.Untar
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.jruby.ext.posix.FileStat
 import org.gradle.api.UncheckedIOException
 import org.gradle.os.OperatingSystem
+
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 class TestFileHelper {
     TestFile file
 
-    public TestFileHelper(TestFile file) {
+    TestFileHelper(TestFile file) {
         this.file = file
     }
 
-    public void unzipTo(File target, boolean nativeTools) {
+    void unzipTo(File target, boolean nativeTools) {
         // Check that each directory in hierarchy is present
         file.withInputStream {InputStream instr ->
-            Set<String> dirs = [] as Set
-            ZipInputStream zipStr = new ZipInputStream(instr)
-            ZipEntry entry
+            def dirs = [] as Set
+            def zipStr = new ZipInputStream(instr)
+            def entry
             while (entry = zipStr.getNextEntry()) {
-                if (entry.isDirectory()) {
+                if (entry.directory) {
                     assertTrue("Duplicate directory '$entry.name'", dirs.add(entry.name))
                 }
                 if (!entry.name.contains('/')) {
                     continue
                 }
-                String parent = StringUtils.substringBeforeLast(entry.name, '/') + '/'
+                def parent = StringUtils.substringBeforeLast(entry.name, '/') + '/'
                 assertTrue("Missing dir '$parent'", dirs.contains(parent))
             }
         }
 
         if (nativeTools && OperatingSystem.current().isUnix()) {
-            Process process = ['unzip', '-o', file.absolutePath, '-d', target.absolutePath].execute()
+            def process = ['unzip', '-o', file.absolutePath, '-d', target.absolutePath].execute()
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
             return
         }
 
-        Expand unzip = new Expand();
-        unzip.src = file;
-        unzip.dest = target;
-        AntUtil.execute(unzip);
+        def unzip = new Expand()
+        unzip.src = file
+        unzip.dest = target
+        AntUtil.execute(unzip)
     }
 
-    public void untarTo(File target, boolean nativeTools) {
+    void untarTo(File target, boolean nativeTools) {
         if (nativeTools && OperatingSystem.current().isUnix()) {
             target.mkdirs()
-            ProcessBuilder builder = new ProcessBuilder(['tar', '-xf', file.absolutePath])
+            def builder = new ProcessBuilder(['tar', '-xf', file.absolutePath])
             builder.directory(target)
-            Process process = builder.start()
+            def process = builder.start()
             process.consumeProcessOutput()
             assertThat(process.waitFor(), equalTo(0))
             return
         }
 
-        Untar untar = new Untar();
-        untar.setSrc(file);
-        untar.setDest(target);
+        def untar = new Untar()
+        untar.setSrc(file)
+        untar.setDest(target)
 
-        if (file.getName().endsWith(".tgz")) {
-            Untar.UntarCompressionMethod method = new Untar.UntarCompressionMethod();
-            method.setValue("gzip");
-            untar.setCompression(method);
-        } else if (file.getName().endsWith(".tbz2")) {
-            Untar.UntarCompressionMethod method = new Untar.UntarCompressionMethod();
-            method.setValue("bzip2");
-            untar.setCompression(method);
+        if (file.name.endsWith(".tgz")) {
+            def method = new Untar.UntarCompressionMethod()
+            method.value = "gzip"
+            untar.compression = method
+        } else if (file.name.endsWith(".tbz2")) {
+            def method = new Untar.UntarCompressionMethod()
+            method.value = "bzip2"
+            untar.compression = method
         }
 
-        AntUtil.execute(untar);
+        AntUtil.execute(untar)
     }
 
-    public String getPermissions() {
-        FileStat stat = org.gradle.os.PosixUtil.current().stat(file.absolutePath)
+    String getPermissions() {
+        def stat = org.gradle.os.PosixUtil.current().stat(file.absolutePath)
         [6, 3, 0].collect {
             def m = stat.mode() >> it
             [m & 4 ? 'r' : '-', m & 2 ? 'w' : '-', m & 1 ? 'x' : '-']
         }.flatten().join('')
     }
 
-    def setPermissions(String permissions) {
+    void setPermissions(String permissions) {
         def m = [6, 3, 0].inject(0) { mode, pos ->
             mode |= permissions[9 - pos - 3] == 'r' ? 4 << pos : 0
             mode |= permissions[9 - pos - 2] == 'w' ? 2 << pos : 0
             mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
             return mode
         }
-        int retval = org.gradle.os.PosixUtil.current().chmod(file.absolutePath, m)
+        def retval = org.gradle.os.PosixUtil.current().chmod(file.absolutePath, m)
         if (retval != 0) {
             throw new UncheckedIOException("Could not set permissions of '${file}' to '${permissions}'.")
         }
