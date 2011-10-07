@@ -25,7 +25,6 @@ import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.conflicts.DefaultVersionConflictStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
@@ -40,7 +39,6 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -61,7 +59,6 @@ import static org.junit.Assert.*;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-@Ignore //TODO SF just for now
 public class DefaultIvyDependencyResolverTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
@@ -72,17 +69,21 @@ public class DefaultIvyDependencyResolverTest {
     private ModuleDescriptorConverter moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
     private Configuration otherConfiguration = context.mock(Configuration.class);
     private Module module = context.mock(Module.class);
-    private Factory<Ivy> ivyFactory = context.mock(Factory.class);
+    private ResolveIvyFactory ivyFactory = context.mock(ResolveIvyFactory.class);
+    private EntryPointResolverConfigurer resolverConfigurer = context.mock(EntryPointResolverConfigurer.class);
 
     private DefaultIvyDependencyResolver ivyDependencyResolver = new DefaultIvyDependencyResolver(ivyReportConverterStub, moduleDescriptorConverter, ivyFactory);
 
     @Before
     public void setUp() {
+        ivyDependencyResolver.entryPointResolverConfigurer = resolverConfigurer;
         context.checking(new Expectations() {{
             allowing(configurationStub).getName();
             will(returnValue("someConfName"));
             allowing(ivyStub).getSettings();
             will(returnValue(new IvySettings()));
+            ignoring(configurationStub).getResolution();
+            allowing(resolverConfigurer).configure(with(any(ConfigurationInternal.class)), with(any(EntryPointResolver.class)));
         }});
 
         configurationIsAskedForConflictStrategy();

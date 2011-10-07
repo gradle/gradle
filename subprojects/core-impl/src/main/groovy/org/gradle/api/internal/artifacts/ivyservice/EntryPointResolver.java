@@ -30,7 +30,6 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.extendable.UnmodifiableExtendableItem;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.ResolutionStrategy;
 
 import java.io.File;
 import java.io.IOException;
@@ -103,7 +102,7 @@ public class EntryPointResolver extends AbstractResolver {
         return delegate.findIvyFileRef(dd, data);
     }
 
-    public void configureUsing(ResolutionStrategy resolutionStrategy) {
-        this.forcedVersions = resolutionStrategy.getForcedVersions();
+    public void setForcedVersions(DependencySet forcedVersions) {
+        this.forcedVersions = forcedVersions;
     }
 }

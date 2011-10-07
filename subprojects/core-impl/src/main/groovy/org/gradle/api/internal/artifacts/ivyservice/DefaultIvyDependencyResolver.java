@@ -25,7 +25,6 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.CachingDirectedGraphWalker;
 import org.gradle.api.internal.DirectedGraphWithEdgeValues;
-import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
@@ -45,10 +44,11 @@ import java.util.*;
 public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyResolver.class);
     private final ModuleDescriptorConverter moduleDescriptorConverter;
-    private final Factory<Ivy> ivyFactory;
+    private final ResolveIvyFactory ivyFactory;
     private final IvyReportConverter ivyReportTranslator;
+    EntryPointResolverConfigurer entryPointResolverConfigurer = new EntryPointResolverConfigurer();
 
-    public DefaultIvyDependencyResolver(IvyReportConverter ivyReportTranslator, ModuleDescriptorConverter moduleDescriptorConverter, Factory<Ivy> ivyFactory) {
+    public DefaultIvyDependencyResolver(IvyReportConverter ivyReportTranslator, ModuleDescriptorConverter moduleDescriptorConverter, ResolveIvyFactory ivyFactory) {
         this.ivyReportTranslator = ivyReportTranslator;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.ivyFactory = ivyFactory;
@@ -59,9 +59,7 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
         Clock clock = new Clock();
         Ivy ivy = ivyFactory.create();
 
-        //TODO SF - hacky for now, will iterate
-        EntryPointResolver entryPointResolver = (EntryPointResolver) ivy.getSettings().getDefaultResolver();
-        entryPointResolver.configureUsing(configuration.getResolution());
+        entryPointResolverConfigurer.configure(configuration, (EntryPointResolver) ivy.getSettings().getDefaultResolver());
 
         IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getVersionConflictStrategy());
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), ivyConfig);

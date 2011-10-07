@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
 /**
- * by Szczepan Faber, created at: 10/7/11
+ * by Szczepan Faber, created at: 10/8/11
  */
-public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
-
-    private DependencySet forcedVersions;
-
-    public void setForcedVersions(DependencySet forcedVersions) {
-        assert forcedVersions != null : "forcedVersions cannot be null";
-        this.forcedVersions = forcedVersions;
-    }
-
-    public DependencySet getForcedVersions() {
-        return forcedVersions;
+public class EntryPointResolverConfigurer {
+    public void configure(ConfigurationInternal configuration, EntryPointResolver resolver) {
+        resolver.setForcedVersions(configuration.getResolution().getForcedVersions());
     }
 }

@@ -69,7 +69,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private State state = State.UNRESOLVED;
     private ResolvedConfiguration cachedResolvedConfiguration;
     private final VersionConflictStrategy versionConflictStrategy;
-    private final ResolutionStrategy resolution = new DefaultResolutionStrategy();
+    private final DefaultResolutionStrategy resolution = new DefaultResolutionStrategy();
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager,
@@ -436,7 +436,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return versionConflictStrategy;
     }
 
-    public ResolutionStrategy getResolution() {
+    public DefaultResolutionStrategy getResolution() {
         return resolution;
     }
 

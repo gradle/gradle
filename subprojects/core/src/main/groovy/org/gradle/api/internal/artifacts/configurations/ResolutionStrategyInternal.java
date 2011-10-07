@@ -16,21 +16,10 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ResolutionStrategy;
 
 /**
- * by Szczepan Faber, created at: 10/7/11
+ * by Szczepan Faber, created at: 10/8/11
  */
-public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
-
-    private DependencySet forcedVersions;
-
-    public void setForcedVersions(DependencySet forcedVersions) {
-        assert forcedVersions != null : "forcedVersions cannot be null";
-        this.forcedVersions = forcedVersions;
-    }
-
-    public DependencySet getForcedVersions() {
-        return forcedVersions;
-    }
+public interface ResolutionStrategyInternal extends ResolutionStrategy {
 }
