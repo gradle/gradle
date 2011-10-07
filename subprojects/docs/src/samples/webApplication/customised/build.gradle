@@ -39,6 +39,12 @@ war {
 jar.enabled = true
 // END SNIPPET enable-jar
 
+// START SNIPPET restore-jar
+war {
+    restoreJar()
+}
+// END SNIPPET restore-jar
+
 [jettyRun, jettyRunWar]*.daemon = true
 stopKey = 'foo'
 stopPort = 9451
