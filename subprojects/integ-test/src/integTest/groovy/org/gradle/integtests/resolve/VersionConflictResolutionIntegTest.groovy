@@ -244,6 +244,118 @@ project(':tool') {
     }
 
     @Test
+    void "can force the version of the dependency"() {
+        TestFile repo = file("repo")
+        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
+        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+apply plugin: 'java'
+repositories {
+    maven { url "${repo.toURI()}" }
+}
+
+configurations {
+    forcedVersions
+}
+
+dependencies {
+    compile 'org:foo:1.3.3'
+    forcedVersions 'org:foo:1.4.4'
+}
+
+configurations.all {
+    resolution.forcedVersions = configurations.forcedVersions.incoming.dependencies
+}
+"""
+
+        //when
+        def result = executer.usingBuildScript(buildFile).withArguments("-s").withTasks("dependencies").run()
+
+        //then
+        assert result.output.contains("1.4.4")
+        assert !result.output.contains("1.3.3")
+    }
+
+    @Test
+    void "can force the version of transitive dependency and avoid conflict"() {
+        TestFile repo = file("repo")
+        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
+        maven(repo).module("org", "foobar", '1.3.3').publishArtifact()
+        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
+        maven(repo).module("org", "foo", '1.5.5').publishArtifact()
+
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << "include 'api', 'impl', 'tool'"
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+	apply plugin: 'java'
+	apply plugin: 'maven'
+	repositories {
+		maven { url "${repo.toURI()}" }
+	}
+	group = 'org.foo.unittests'
+	version = '1.0'
+}
+
+project(':api') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.4.4')
+	}
+}
+
+project(':impl') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.3.3')
+	}
+}
+
+project(':tool') {
+	dependencies {
+		compile project(':api')
+		compile project(':impl')
+	}
+}
+
+allprojects {
+    configurations {
+	    forcedVersions
+	}
+
+	dependencies {
+	    forcedVersions 'org:foo:1.5.5'
+	}
+
+    configurations.all {
+        versionConflictStrategy.type = versionConflictStrategy.strict() {
+            force = ['org:foo:1.5.5']
+        }
+        resolution.forcedVersions = configurations.forcedVersions.incoming.dependencies
+    }
+
+    task genIvy(type: Upload) {
+        uploadDescriptor = true
+        configuration = configurations.archives
+        descriptorDestination = file('ivy.xml')
+    }
+}
+"""
+
+        //when
+        def result = executer
+                .usingBuildScript(buildFile).usingSettingsFile(settingsFile)
+                .withArguments("-s").withTasks(":tool:dependencies", "install", "genIvy").run()
+
+        //then
+        assert result.output.contains("1.5.5")
+        assert !result.output.contains("1.4.4")
+        assert !result.output.contains("1.3.3")
+    }
+
+    @Test
     void "resolves to the latest version by default"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", '1.3.3').publishArtifact()

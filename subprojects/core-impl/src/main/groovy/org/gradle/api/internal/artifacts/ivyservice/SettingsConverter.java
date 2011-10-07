@@ -29,6 +29,7 @@ public interface SettingsConverter {
     String CHAIN_RESOLVER_NAME = "chain";
     String CLIENT_MODULE_CHAIN_NAME = "clientModuleChain";
     String CLIENT_MODULE_NAME = "clientModule";
+    String ENTRY_POINT_RESOLVER = "entryPointResolver";
 
     IvySettings convertForPublish(List<DependencyResolver> publishResolvers);
 

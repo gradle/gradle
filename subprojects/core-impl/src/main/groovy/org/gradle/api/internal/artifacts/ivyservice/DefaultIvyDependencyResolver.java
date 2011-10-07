@@ -58,6 +58,11 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
         Clock clock = new Clock();
         Ivy ivy = ivyFactory.create();
+
+        //TODO SF - hacky for now, will iterate
+        EntryPointResolver entryPointResolver = (EntryPointResolver) ivy.getSettings().getDefaultResolver();
+        entryPointResolver.configureUsing(configuration.getResolution());
+
         IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getVersionConflictStrategy());
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), ivyConfig);
         ResolveOptions resolveOptions = createResolveOptions(configuration);

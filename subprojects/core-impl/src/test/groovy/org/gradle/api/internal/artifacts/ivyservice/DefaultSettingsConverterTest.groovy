@@ -69,15 +69,16 @@ class DefaultSettingsConverterTest {
 
         ClientModuleResolver clientModuleResolver = settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_NAME)
         ChainResolver clientModuleChain = settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME)
+        EntryPointResolver entryPointResolver = settings.getResolver(DefaultSettingsConverter.ENTRY_POINT_RESOLVER)
         assert clientModuleChain.resolvers == [clientModuleResolver, chainResolver]
         assert clientModuleChain.returnFirst
-        assert settings.defaultResolver.is(clientModuleChain)
+        assert settings.defaultResolver.is(entryPointResolver)
 
         [testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).repositoryCacheManager.settings == settings
         }
-        [DefaultSettingsConverter.CLIENT_MODULE_NAME, DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME, DefaultSettingsConverter.CHAIN_RESOLVER_NAME].each {
+        [DefaultSettingsConverter.ENTRY_POINT_RESOLVER, DefaultSettingsConverter.CLIENT_MODULE_NAME, DefaultSettingsConverter.CLIENT_MODULE_CHAIN_NAME, DefaultSettingsConverter.CHAIN_RESOLVER_NAME].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).repositoryCacheManager instanceof NoOpRepositoryCacheManager
         }
