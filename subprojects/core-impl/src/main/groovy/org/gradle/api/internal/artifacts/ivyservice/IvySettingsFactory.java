@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.cache.ResolutionCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.internal.Factory;
@@ -49,6 +50,10 @@ public class IvySettingsFactory implements Factory<IvySettings> {
             throw UncheckedException.asUncheckedException(e);
         }
         ivySettings.setDefaultRepositoryCacheManager(cacheManager);
+
+        ResolutionCacheManager resolutionCacheManager = new TempFileResolutionCacheManager(cacheMetaData.getCacheDir());
+        ivySettings.setResolutionCacheManager(resolutionCacheManager);
         return ivySettings;
     }
+
 }
