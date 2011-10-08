@@ -76,8 +76,7 @@ public class IvySettingsFactory implements Factory<IvySettings> {
                 throw new RuntimeException(String.format("Could not acquire lock for %s", file));
             }
             try {
-                PersistentStateCache<ModuleRevisionMetadata> cache = new SimpleStateCache<ModuleRevisionMetadata>(file, new NoOpFileLock(), new DefaultSerializer<ModuleRevisionMetadata>());
-                return cache.get();
+                return getCache(file).get();
             } finally {
                 lockHolder.releaseLock();
             }
@@ -89,11 +88,14 @@ public class IvySettingsFactory implements Factory<IvySettings> {
                 throw new RuntimeException(String.format("Could not acquire lock for %s", file));
             }
             try {
-                PersistentStateCache<ModuleRevisionMetadata> cache = new SimpleStateCache<ModuleRevisionMetadata>(file, new NoOpFileLock(), new DefaultSerializer<ModuleRevisionMetadata>());
-                cache.set(mrm);
+                getCache(file).set(mrm);
             } finally {
                 lockHolder.releaseLock();
             }
+        }
+
+        private PersistentStateCache<ModuleRevisionMetadata> getCache(File file) {
+            return new SimpleStateCache<ModuleRevisionMetadata>(file, new NoOpFileLock(), new DefaultSerializer<ModuleRevisionMetadata>(getClass().getClassLoader()));
         }
 
         public String getDataFilePattern() {
@@ -115,8 +117,7 @@ public class IvySettingsFactory implements Factory<IvySettings> {
                 throw new RuntimeException(String.format("Could not acquire lock for %s", file));
             }
             try {
-                PersistentStateCache<Set<WharfResolverMetadata>> cache = new SimpleStateCache<Set<WharfResolverMetadata>>(file, new NoOpFileLock(), new DefaultSerializer<Set<WharfResolverMetadata>>());
-                Set<WharfResolverMetadata> result = cache.get();
+                Set<WharfResolverMetadata> result = getCache(file).get();
                 if (result == null) {
                     return new HashSet<WharfResolverMetadata>();
                 }
@@ -133,11 +134,14 @@ public class IvySettingsFactory implements Factory<IvySettings> {
                 throw new RuntimeException(String.format("Could not acquire lock for %s", file));
             }
             try {
-                PersistentStateCache<Set<WharfResolverMetadata>> cache = new SimpleStateCache<Set<WharfResolverMetadata>>(file, new NoOpFileLock(), new DefaultSerializer<Set<WharfResolverMetadata>>());
-                cache.set(wharfResolverMetadatas);
+                getCache(file).set(wharfResolverMetadatas);
             } finally {
                 lockHolder.releaseLock();
             }
+        }
+
+        private PersistentStateCache<Set<WharfResolverMetadata>> getCache(File file) {
+            return new SimpleStateCache<Set<WharfResolverMetadata>>(file, new NoOpFileLock(), new DefaultSerializer<Set<WharfResolverMetadata>>(getClass().getClassLoader()));
         }
 
         private File getCacheFile(File baseDir) {
