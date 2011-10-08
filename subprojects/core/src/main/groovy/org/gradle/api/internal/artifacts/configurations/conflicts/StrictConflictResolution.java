@@ -26,13 +26,14 @@ import org.gradle.api.artifacts.DependencySet;
  */
 public class StrictConflictResolution implements ConflictResolution {
 
-    private final DependencySet forcedVersions;
-
-    public StrictConflictResolution(DependencySet forcedVersions) {
-        this.forcedVersions = forcedVersions;
-    }
+    private DependencySet forcedVersions;
 
     public DependencySet getForcedVersions() {
         return forcedVersions;
+    }
+
+    public StrictConflictResolution setForcedVersions(DependencySet forcedVersions) {
+        this.forcedVersions = forcedVersions;
+        return this;
     }
 }

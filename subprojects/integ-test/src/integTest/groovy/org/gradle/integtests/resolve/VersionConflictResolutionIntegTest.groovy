@@ -231,8 +231,8 @@ project(':tool') {
 	}
 
 	configurations.all {
-	    resolutionStrategy.conflictResolution = resolutionStrategy.strict()
 	    resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
+	    resolutionStrategy.conflictResolution = resolutionStrategy.strict()
 	}
 }
 """
@@ -333,8 +333,8 @@ allprojects {
 	}
 
     configurations.all {
-        resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
         resolutionStrategy.conflictResolution = resolutionStrategy.strict()
+        resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
     }
 
     task genIvy(type: Upload) {
