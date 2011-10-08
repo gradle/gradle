@@ -1,5 +1,3 @@
-import org.gradle.os.OperatingSystem
-
 configurations {
     startScriptGenerator
 }
@@ -24,14 +22,6 @@ jar {
     manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
     doFirst {
         jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name}")
-    }
-}
-
-integTestTasks.all {
-    doFirst {
-        if (OperatingSystem.current().windows) {
-            exclude "**/DaemonDisappearingProcessSpec.*"
-        }
     }
 }
 
