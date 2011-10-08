@@ -86,7 +86,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
             DependencyResolver outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
             entryPointResolver = new EntryPointResolver(outerChain);
             entryPointResolver.setName(ENTRY_POINT_RESOLVER);
-            entryPointResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(entryPointResolver.getName()));
             initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain, entryPointResolver));
         }
 
