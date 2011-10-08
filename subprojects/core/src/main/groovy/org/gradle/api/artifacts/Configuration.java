@@ -31,13 +31,6 @@ import java.util.Set;
 public interface Configuration extends FileCollection {
 
     /**
-     * Returns the version conflict strategy used by this configuration
-     *
-     * @return strategy
-     */
-    VersionConflictStrategy getVersionConflictStrategy();
-
-    /**
      * Returns the resolution strategy used by this configuration
      *
      * @return strategy

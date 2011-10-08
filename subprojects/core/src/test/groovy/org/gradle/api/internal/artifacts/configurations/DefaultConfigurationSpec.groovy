@@ -31,10 +31,10 @@ class DefaultConfigurationSpec extends Specification {
     ArtifactDependencyResolver dependencyResolver = Mock()
     ListenerManager listenerManager = Mock()
     DependencyMetaDataProvider metaDataProvider = Mock()
-    VersionConflictStrategy versionConflictStrategy = Mock()
+    DefaultResolutionStrategy defaultResolutionStrategy = Mock()
 
     DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, versionConflictStrategy)
+        new DefaultConfiguration(path, confName, configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, defaultResolutionStrategy)
     }
 
     DefaultPublishArtifact artifact(String name) {

@@ -65,7 +65,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 
-	configurations.compile.versionConflictStrategy.type = configurations.compile.versionConflictStrategy.strict()
+	configurations.compile.resolutionStrategy.conflictResolution = configurations.compile.resolutionStrategy.strict()
 }
 """
 
@@ -126,7 +126,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 
-	configurations.all { versionConflictStrategy.type = versionConflictStrategy.strict() }
+	configurations.all { resolutionStrategy.conflictResolution = resolutionStrategy.strict() }
 }
 """
 
@@ -178,7 +178,7 @@ project(':tool') {
 		}
 	}
 
-	configurations.all { versionConflictStrategy.type = versionConflictStrategy.strict() }
+	configurations.all { resolutionStrategy.conflictResolution = resolutionStrategy.strict() }
 }
 """
 
@@ -221,15 +221,18 @@ project(':impl') {
 }
 
 project(':tool') {
+
+	configurations { forcedVersions }
+
 	dependencies {
 		compile project(':api')
 		compile project(':impl')
+		forcedVersions 'org:foo:1.3.3'
 	}
 
 	configurations.all {
-	    versionConflictStrategy.type = versionConflictStrategy.strict {
-	        force = ['org:foo:1.3.3']
-	    }
+	    resolutionStrategy.conflictResolution = resolutionStrategy.strict()
+	    resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
 	}
 }
 """
@@ -330,10 +333,8 @@ allprojects {
 	}
 
     configurations.all {
-        versionConflictStrategy.type = versionConflictStrategy.strict() {
-            force = ['org:foo:1.5.5']
-        }
         resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
+        resolutionStrategy.conflictResolution = resolutionStrategy.strict()
     }
 
     task genIvy(type: Upload) {

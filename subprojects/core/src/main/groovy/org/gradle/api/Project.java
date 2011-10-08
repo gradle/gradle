@@ -1078,14 +1078,7 @@ public interface Project extends Comparable<Project> {
      *
      * //Configuring strict conflict strategy - it will fail eagerly if on single classpath
      * //there are multiple different versions of the same library.
-     * configurations.all { versionConflictStrategy = versionConflictStrategy.strict() }
-     *
-     * //more sophisticated example, forcing certain versions of transitive dependencies:
-     * configurations.all {
-     *   versionConflictStrategy = versionConflictStrategy.strict {
-     *       force = ['foo.bar:bar:1.0', 'org.xyz:xyz:1.3']
-     *   }
-     * }
+     * configurations.all { resolutionStrategy = resolutionStrategy.strict() }
      *
      * </pre>
      *

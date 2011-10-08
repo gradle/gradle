@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 
 import org.gradle.api.artifacts.UnknownConfigurationException
-import org.gradle.api.artifacts.VersionConflictStrategy
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
@@ -46,7 +45,7 @@ public class DefaultConfigurationContainerTest extends Specification {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, _ as VersionConflictStrategy) >> conf
+                dependencyResolver, listenerManager, metaDataProvider, _ as DefaultResolutionStrategy) >> conf
 
         when:
         def compile = configurationContainer.add("compile")
@@ -65,7 +64,7 @@ public class DefaultConfigurationContainerTest extends Specification {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, _ as VersionConflictStrategy) >> conf
+                dependencyResolver, listenerManager, metaDataProvider, _ as DefaultResolutionStrategy) >> conf
 
         when:
         def compile = configurationContainer.add("compile") {

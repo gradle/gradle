@@ -17,11 +17,53 @@
 package org.gradle.api.artifacts;
 
 /**
- * by Szczepan Faber, created at: 10/7/11
+ * Defines the strategies around forcing certain dependency versions or conflict resolutions.
+ * Example:
+ *
+ * <pre autoTested=''>
+ * configurations.all {
+ *   //fail eagerly on conflict
+ *   resolutionStrategy.conflictResolution = resolutionStrategy.strict()
+ * }
+ * </pre>
  */
 public interface ResolutionStrategy {
 
+    /**
+     * gets current conflict resolution
+     *
+     * @return conflict resolution
+     */
+    ConflictResolution getConflictResolution();
+
+    /**
+     * configures conflict resolution
+     *
+     * @param conflictResolution to set
+     */
+    void setConflictResolution(ConflictResolution conflictResolution);
+
+    /**
+     * configures forced versions
+     *
+     * @param forcedVersions to set
+     */
     void setForcedVersions(DependencySet forcedVersions);
+
+    /**
+     * returns currently configured forced versions
+     *
+     * @return forced versions
+     */
     DependencySet getForcedVersions();
 
+    /**
+     * use the latest of conflicting versions and move on
+     */
+    ConflictResolution latest();
+
+    /**
+     * fail eagerly on conflict
+     */
+    ConflictResolution strict();
 }

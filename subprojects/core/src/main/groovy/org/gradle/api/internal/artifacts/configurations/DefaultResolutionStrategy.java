@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
+import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 
 /**
  * by Szczepan Faber, created at: 10/7/11
@@ -24,6 +27,7 @@ import org.gradle.api.artifacts.DependencySet;
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private DependencySet forcedVersions;
+    private ConflictResolution conflictResolution = new LatestConflictResolution();
 
     public void setForcedVersions(DependencySet forcedVersions) {
         assert forcedVersions != null : "forcedVersions cannot be null";
@@ -32,5 +36,23 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public DependencySet getForcedVersions() {
         return forcedVersions;
+    }
+
+    public ConflictResolution latest() {
+        return new LatestConflictResolution();
+    }
+
+    public ConflictResolution strict() {
+        //TODO SF only now the forcedVersions are passed to the resolution
+        return new StrictConflictResolution(forcedVersions);
+    }
+
+    public ConflictResolution getConflictResolution() {
+        return this.conflictResolution;
+    }
+
+    public void setConflictResolution(ConflictResolution conflictResolution) {
+        assert conflictResolution != null : "Cannot set null conflictResolution";
+        this.conflictResolution = conflictResolution;
     }
 }

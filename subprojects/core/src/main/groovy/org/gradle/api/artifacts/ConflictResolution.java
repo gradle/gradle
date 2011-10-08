@@ -16,8 +16,6 @@
 package org.gradle.api.artifacts;
 
 /**
- * The type of the conflict strategy
- * <p>
- * by Szczepan Faber, created at: 10/4/11
+ * The conflict resolution
  */
-public interface VersionConflictStrategyType {}
+public interface ConflictResolution {}

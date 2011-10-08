@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts.configurations.conflicts;
 
-import org.gradle.api.artifacts.VersionConflictStrategyType;
+import org.gradle.api.artifacts.ConflictResolution;
 
 /**
  * Latest resolution strategy
  * <p>
  * by Szczepan Faber, created at: 10/5/11
  */
-public class LatestStrategyType implements VersionConflictStrategyType {
+public class LatestConflictResolution implements ConflictResolution {
 }

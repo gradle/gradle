@@ -61,7 +61,7 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
 
         entryPointResolverConfigurer.configure(configuration, (EntryPointResolver) ivy.getSettings().getDefaultResolver());
 
-        IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getVersionConflictStrategy());
+        IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getResolutionStrategy());
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), ivyConfig);
         ResolveOptions resolveOptions = createResolveOptions(configuration);
         ResolveReport resolveReport;

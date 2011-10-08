@@ -68,20 +68,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Object lock = new Object();
     private State state = State.UNRESOLVED;
     private ResolvedConfiguration cachedResolvedConfiguration;
-    private final VersionConflictStrategy versionConflictStrategy;
-    private final DefaultResolutionStrategy resolutionStrategy = new DefaultResolutionStrategy();
+    private final DefaultResolutionStrategy resolutionStrategy;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager,
-                                DependencyMetaDataProvider metaDataProvider, VersionConflictStrategy versionConflictStrategy) {
+                                DependencyMetaDataProvider metaDataProvider, DefaultResolutionStrategy resolutionStrategy) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.dependencyResolver = dependencyResolver;
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
-        assert versionConflictStrategy != null : "Cannot create configuration with null versionConflictStrategy";
-        this.versionConflictStrategy = versionConflictStrategy;
+        assert resolutionStrategy != null : "Cannot create configuration with null resolutionStrategy";
+        this.resolutionStrategy = resolutionStrategy;
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
@@ -395,7 +394,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, versionConflictStrategy);
+                configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -430,10 +429,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public DependencyResolutionListener getDependencyResolutionBroadcast() {
         return resolutionListenerBroadcast.getSource();
-    }
-
-    public VersionConflictStrategy getVersionConflictStrategy() {
-        return versionConflictStrategy;
     }
 
     public DefaultResolutionStrategy getResolutionStrategy() {

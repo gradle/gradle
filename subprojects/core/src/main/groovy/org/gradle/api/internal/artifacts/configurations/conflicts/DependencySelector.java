@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.configurations.conflicts;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencySet;
 
 import java.util.Set;
 
@@ -28,17 +29,19 @@ import java.util.Set;
  * by Szczepan Faber, created at: 10/5/11
  */
 public class DependencySelector {
-    private final Set<Dependency> forcedDependencyVersions;
+    private final Set<Dependency> forcedVersions;
 
-    public DependencySelector(Set<Dependency> forcedDependencyVersions) {
-        assert forcedDependencyVersions != null : "Cannot set null forcedDependencyVersions!";
-        this.forcedDependencyVersions = forcedDependencyVersions;
+    public DependencySelector(DependencySet forcedVersions) {
+        this.forcedVersions = forcedVersions;
     }
 
     public IvyNode maybeSelect(IvyNode lhs, IvyNode rhs) {
-       for (Dependency d : forcedDependencyVersions) {
-           ModuleRevisionId forcedId = ModuleRevisionId.newInstance(d.getGroup(), d.getName(), d.getVersion());
-           if (forcedId.equals(lhs.getId())) {
+        if (forcedVersions == null) {
+            return null;
+        }
+        for (Dependency d : forcedVersions) {
+            ModuleRevisionId forcedId = ModuleRevisionId.newInstance(d.getGroup(), d.getName(), d.getVersion());
+            if (forcedId.equals(lhs.getId())) {
                 return lhs;
             } else if (forcedId.equals(rhs.getId())) {
                 return rhs;
