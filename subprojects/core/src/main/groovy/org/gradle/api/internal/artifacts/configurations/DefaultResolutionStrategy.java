@@ -18,13 +18,14 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 
 /**
  * by Szczepan Faber, created at: 10/7/11
  */
-public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
+public class DefaultResolutionStrategy implements ResolutionStrategy {
 
     private DependencySet forcedVersions;
     private ConflictResolution conflictResolution = new LatestConflictResolution();

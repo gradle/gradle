@@ -27,7 +27,6 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.conflicts.DependencySelector;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
@@ -42,7 +41,7 @@ public class IvyConfig {
     private final IvySettings ivySettings;
     private final ResolutionStrategy resolutionStrategy;
 
-    public IvyConfig(IvySettings ivySettings, ResolutionStrategyInternal resolutionStrategy) {
+    public IvyConfig(IvySettings ivySettings, ResolutionStrategy resolutionStrategy) {
         assert ivySettings != null : "ivySettings cannot be null!";
         assert resolutionStrategy != null : "resolutionStrategy cannot be null!";
         this.ivySettings = ivySettings;
