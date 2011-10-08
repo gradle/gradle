@@ -65,7 +65,6 @@ dependencies {
 }
 
 ear {
-    //TODO SF for some awkard reason, setting this property won't work...
     libDirName 'CUSTOM/lib'
 
     deploymentDescriptor {
