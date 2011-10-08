@@ -42,7 +42,7 @@ public interface Configuration extends FileCollection {
      *
      * @return strategy
      */
-    ResolutionStrategy getResolution();
+    ResolutionStrategy getResolutionStrategy();
 
     /**
      * The states a configuration can be into. A configuration is only mutable as long as it is

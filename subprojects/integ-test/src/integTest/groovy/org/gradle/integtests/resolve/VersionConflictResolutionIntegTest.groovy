@@ -266,7 +266,7 @@ dependencies {
 }
 
 configurations.all {
-    resolution.forcedVersions = configurations.forcedVersions.incoming.dependencies
+    resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
 }
 """
 
@@ -333,7 +333,7 @@ allprojects {
         versionConflictStrategy.type = versionConflictStrategy.strict() {
             force = ['org:foo:1.5.5']
         }
-        resolution.forcedVersions = configurations.forcedVersions.incoming.dependencies
+        resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
     }
 
     task genIvy(type: Upload) {

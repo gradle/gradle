@@ -23,6 +23,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
  */
 public class EntryPointResolverConfigurer {
     public void configure(ConfigurationInternal configuration, EntryPointResolver resolver) {
-        resolver.setForcedVersions(configuration.getResolution().getForcedVersions());
+        resolver.setForcedVersions(configuration.getResolutionStrategy().getForcedVersions());
     }
 }

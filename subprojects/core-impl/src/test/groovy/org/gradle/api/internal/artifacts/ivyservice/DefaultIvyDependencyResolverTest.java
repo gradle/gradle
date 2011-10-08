@@ -82,7 +82,7 @@ public class DefaultIvyDependencyResolverTest {
             will(returnValue("someConfName"));
             allowing(ivyStub).getSettings();
             will(returnValue(new IvySettings()));
-            ignoring(configurationStub).getResolution();
+            ignoring(configurationStub).getResolutionStrategy();
             allowing(resolverConfigurer).configure(with(any(ConfigurationInternal.class)), with(any(EntryPointResolver.class)));
         }});
 
