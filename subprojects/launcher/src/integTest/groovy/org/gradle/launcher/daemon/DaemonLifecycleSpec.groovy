@@ -212,7 +212,7 @@ class DaemonLifecycleSpec extends Specification {
         expectedDaemons = 1
 
         when:
-        def build = sleepyBuild(10).start()
+        def build = sleepyBuild(20).start()
 
         then:
         daemonsBusy
@@ -224,7 +224,6 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped
     }
 
-    @IgnoreRest
     def "tearing down client while daemon is building tears down daemon _process_"() {
         given:
         expectedDaemons = 1
@@ -236,7 +235,7 @@ class DaemonLifecycleSpec extends Specification {
         daemonsIdle
 
         when:
-        def build = sleepyBuild(10).start()
+        def build = sleepyBuild(20).start()
 
         then:
         daemonsBusy
