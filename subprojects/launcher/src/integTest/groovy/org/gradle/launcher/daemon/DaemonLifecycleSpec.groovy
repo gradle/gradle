@@ -275,4 +275,9 @@ class DaemonLifecycleSpec extends Specification {
         and:
         failedWithDaemonDisappearedMessage build
     }
+    
+    def cleanup() {
+        stopBuild().start().waitForFinish()
+    }
+    
 }
