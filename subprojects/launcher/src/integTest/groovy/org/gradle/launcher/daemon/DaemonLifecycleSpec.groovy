@@ -128,7 +128,7 @@ class DaemonLifecycleSpec extends Specification {
         assert build.errorOutput.contains(DaemonDisappearedException.MESSAGE)
         true
     }
-    
+
     def "daemons do some work - sit idle - then timeout and die"() {
         when:
         expectedDaemons.times { sleepyBuild().start() }
@@ -253,31 +253,31 @@ class DaemonLifecycleSpec extends Specification {
     def "tearing down daemon process produces nice error message for client"() {
         given:
         expectedDaemons = 1
-        
+
         when:
         def daemon = foregroundDaemon().start()
-        
+
         then:
         daemonsIdle
-        
+
         when:
         def build = sleepyBuild(10).start()
-        
+
         then:
         daemonsBusy
-        
+
         when:
         daemon.abort().waitForFailure()
-        
+
         then:
         daemonsBusy // daemon crashed, so is still in the registry
-        
+
         and:
         failedWithDaemonDisappearedMessage build
     }
-    
+
     def cleanup() {
         stopBuild().start().waitForFinish()
     }
-    
+
 }
