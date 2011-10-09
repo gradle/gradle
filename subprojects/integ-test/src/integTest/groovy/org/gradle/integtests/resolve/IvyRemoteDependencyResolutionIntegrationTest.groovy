@@ -105,7 +105,6 @@ task listJars << {
 
 //        given:
         // TODO - it should not be doing these
-        server.expectGetMissing('/repo/group/projectB/1.3/ivy-1.3.xml')
         server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
         server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
 

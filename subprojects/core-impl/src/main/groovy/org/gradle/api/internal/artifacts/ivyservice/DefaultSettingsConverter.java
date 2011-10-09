@@ -110,7 +110,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private ChainResolver createUserResolverChain() {
-        ChainResolver chainResolver = new ChainResolver();
+        ChainResolver chainResolver = new CacheFirstChainResolver();
         chainResolver.setName(CHAIN_RESOLVER_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));

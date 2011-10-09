@@ -400,7 +400,6 @@ task listJars << {
         executer.withTasks('listJars').run()
 
         // TODO - these should not be here
-        server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.pom')
         server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
 
         executer.withTasks('listJars').run()
