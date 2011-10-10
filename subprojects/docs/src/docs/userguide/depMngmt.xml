@@ -128,11 +128,7 @@
                 of Ivy which Ivy does not offer itself.
             </para>
             <para>Right now there is a lot of movement in the field of dependency handling. There is OSGi and there is
-                JSR-294.
-                <footnote>
-                    <para>JSR 294: Improved Modularity Support in the JavaTM Programming Language, <ulink url='http://jcp.org/en/jsr/detail?id=294'/>
-                    </para>
-                </footnote>
+                JSR-294, Improved Modularity Support in the JavaTM Programming Language.
                 OSGi is available already, JSR-294 is supposed to be shipped with Java 7. These technologies
                 deal, amongst many other things, also with a painful problem which is neither solved by Maven nor by Ivy. This is enabling different
                 versions of the same jar to be used at runtime.
