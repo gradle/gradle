@@ -25,11 +25,13 @@ import org.apache.ivy.plugins.conflict.StrictConflictException;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ForcedVersion;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.configurations.conflicts.DependencySelector;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
+
+import java.util.Set;
 
 /**
  * Contains ivy settings and conflict management. The purpose of this class is to insulate from ivy a bit.
@@ -60,7 +62,7 @@ public class IvyConfig {
         if (resolutionStrategy.getConflictResolution()  instanceof LatestConflictResolution) {
             return new LatestConflictManager(new LatestRevisionStrategy());
         } else if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
-            DependencySet forcedVersions = ((StrictConflictResolution) resolutionStrategy.getConflictResolution()).getForcedVersions();
+            Set<ForcedVersion> forcedVersions = ((StrictConflictResolution) resolutionStrategy.getConflictResolution()).getForcedVersions();
             DependencySelector selector = new DependencySelector(forcedVersions);
             return new ForceAwareStrictConflictManager(selector);
         } else {

@@ -36,14 +36,14 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.extendable.UnmodifiableExtendableItem;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ForcedVersion;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Entry point to the resolvers. The delegate contains all the other resolvers. <p> by Szczepan Faber, created at: 10/7/11
@@ -51,7 +51,7 @@ import java.util.Map;
 public class EntryPointResolver implements DependencyResolver {
 
     private final DependencyResolver delegate;
-    private DependencySet forcedVersions;
+    private Set<ForcedVersion> forcedVersions;
     private String name;
 
     public EntryPointResolver(DependencyResolver delegate) {
@@ -70,7 +70,7 @@ public class EntryPointResolver implements DependencyResolver {
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
         //TODO SF - this resolver needs to be more generic, for now doing the work here...
         if (forcedVersions != null) {
-            for (Dependency forced : forcedVersions) {
+            for (ForcedVersion forced : forcedVersions) {
                 if (ModuleId.newInstance(forced.getGroup(), forced.getName()).equals(dd.getDependencyId())) {
 //                    ModuleRevisionId newRevId = ModuleRevisionId.newInstance(forced.getGroup(), forced.getName(), forced.getVersion());
 //                    DependencyDescriptor forcedVersion = dd.clone(newRevId);
@@ -183,7 +183,7 @@ public class EntryPointResolver implements DependencyResolver {
         throw new UnsupportedOperationException();
     }
 
-    public void setForcedVersions(DependencySet forcedVersions) {
+    public void setForcedVersions(Set<ForcedVersion> forcedVersions) {
         this.forcedVersions = forcedVersions;
     }
 }

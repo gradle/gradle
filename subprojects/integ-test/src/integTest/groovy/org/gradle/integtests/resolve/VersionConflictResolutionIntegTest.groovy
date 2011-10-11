@@ -222,25 +222,25 @@ project(':impl') {
 
 project(':tool') {
 
-	configurations { forcedVersions }
-
 	dependencies {
 		compile project(':api')
 		compile project(':impl')
-		forcedVersions 'org:foo:1.3.3'
 	}
+}
 
-	configurations.all {
-	    resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
+allprojects {
+    configurations.all {
+	    resolutionStrategy.force 'org:foo:1.3.3'
 	    resolutionStrategy.conflictResolution = resolutionStrategy.strict()
 	}
 }
+
 """
 
         //when
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
             .withArguments("-s")
-            .withTasks("tool:dependencies").run()
+            .withTasks("api:dependencies", "tool:dependencies").run()
 
         //then no exceptions are thrown because we forced a certain version of conflicting dependency
         //TODO SF add coverage that checks if dependencies are not pushed to 1st level (write a functional test for it)
@@ -259,17 +259,12 @@ repositories {
     maven { url "${repo.toURI()}" }
 }
 
-configurations {
-    forcedVersions
-}
-
 dependencies {
     compile 'org:foo:1.3.3'
-    forcedVersions 'org:foo:1.4.4'
 }
 
 configurations.all {
-    resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
+    resolutionStrategy.force 'org:foo:1.4.4'
 }
 """
 
@@ -324,17 +319,9 @@ project(':tool') {
 }
 
 allprojects {
-    configurations {
-	    forcedVersions
-	}
-
-	dependencies {
-	    forcedVersions 'org:foo:1.5.5'
-	}
-
     configurations.all {
         resolutionStrategy.conflictResolution = resolutionStrategy.strict()
-        resolutionStrategy.forcedVersions = configurations.forcedVersions.incoming.dependencies
+        resolutionStrategy.force 'org:foo:1.5.5'
     }
 
     task genIvy(type: Upload) {

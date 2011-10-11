@@ -14,28 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations.conflicts;
+package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.ForcedVersion;
 
-import java.util.Set;
-
 /**
- * Strict type, allows configuring (forcing) certain dependency versions using dependency notation
- * <p>
- * by Szczepan Faber, created at: 10/5/11
+ * by Szczepan Faber, created at: 10/11/11
  */
-public class StrictConflictResolution implements ConflictResolution {
+public class DefaultForcedVersion implements ForcedVersion {
+    private String group;
+    private String name;
+    private String version;
 
-    private Set<ForcedVersion> forcedVersions;
-
-    public Set<ForcedVersion> getForcedVersions() {
-        return forcedVersions;
+    public DefaultForcedVersion(String forcedVersion) {
+        //TODO SF - validate & test
+        String[] split = forcedVersion.split(":");
+        group = split[0];
+        name = split[1];
+        version = split[2];
     }
 
-    public StrictConflictResolution setForcedVersions(Set<ForcedVersion> forcedVersions) {
-        this.forcedVersions = forcedVersions;
-        return this;
+    public String getGroup() {
+        return group;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getVersion() {
+        return version;
     }
 }

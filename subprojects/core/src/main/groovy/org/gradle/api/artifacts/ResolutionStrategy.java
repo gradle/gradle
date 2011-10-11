@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts;
 
+import java.util.Set;
+
 /**
  * Defines the strategies around forcing certain dependency versions or conflict resolutions.
  * Example:
@@ -44,18 +46,18 @@ public interface ResolutionStrategy {
     void setConflictResolution(ConflictResolution conflictResolution);
 
     /**
-     * configures forced versions
+     * Configures forced versions in DSL friendly fashion
      *
-     * @param forcedVersions to set
+     * @param forcedVersions gav notations
      */
-    void setForcedVersions(DependencySet forcedVersions);
+    void force(String ... forcedVersions);
 
     /**
      * returns currently configured forced versions
      *
      * @return forced versions
      */
-    DependencySet getForcedVersions();
+    Set<ForcedVersion> getForcedVersions();
 
     /**
      * use the latest of conflicting versions and move on
