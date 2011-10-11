@@ -77,7 +77,9 @@ public class SocketConnection<T> implements Connection<T> {
             if (isEndOfStream(e)) {
                 return null;
             }
-            throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
+            MessageIOException exception = new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
+            exception.printStackTrace();
+            throw exception;
         }
     }
 
