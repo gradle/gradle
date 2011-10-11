@@ -15,24 +15,21 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.util.Jvm
-import org.gradle.util.TestFile
-import org.gradle.util.GradleVersion
-import org.gradle.util.DistributionLocator
-import org.gradle.os.OperatingSystem
-import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.CacheUsage
-import org.gradle.cache.internal.FileLockManager.LockMode
-import org.gradle.cache.internal.CacheFactory.CrossVersionMode
 import org.gradle.api.Action
+import org.gradle.cache.PersistentCache
+import org.gradle.cache.internal.CacheFactory.CrossVersionMode
+import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider
-import org.gradle.StartParameter
+import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.launcher.daemon.registry.DaemonRegistry
-import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
-
+import org.gradle.os.OperatingSystem
 import org.gradle.os.jna.NativeEnvironment
+import org.gradle.util.DistributionLocator
+import org.gradle.util.GradleVersion
+import org.gradle.util.Jvm
+import org.gradle.util.TestFile
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
     private static final CACHE_FACTORY = new DefaultCacheFactory(new DefaultFileLockManager(new DefaultProcessMetaDataProvider(NativeEnvironment.current()))).create()
@@ -65,12 +62,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     DaemonRegistry getDaemonRegistry() {
-        File userHome = getUserHomeDir()
-        if (userHome == null) {
-            userHome = StartParameter.DEFAULT_GRADLE_USER_HOME
-        }
-
-        new PersistentDaemonRegistry(userHome)
+        throw new UnsupportedOperationException()
     }
     
     boolean daemonSupported() {

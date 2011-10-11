@@ -67,11 +67,6 @@ public class ForwardClientInput implements DaemonCommandAction {
                     } catch (IOException e) {
                         LOGGER.warn("IO exception closing output stream connected to replacement stdin", e);
                     }
-                    try {
-                        replacementStdin.close();
-                    } catch (IOException e) {
-                        LOGGER.warn("IO exception closing replacement stdin", e);
-                    }
                 } else {
                     LOGGER.warn("while listening for IOCommands, received unexpected command: {}", command);
                 }
@@ -90,6 +85,7 @@ public class ForwardClientInput implements DaemonCommandAction {
                     return null;
                 }
             });
+            replacementStdin.close();
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         } finally {

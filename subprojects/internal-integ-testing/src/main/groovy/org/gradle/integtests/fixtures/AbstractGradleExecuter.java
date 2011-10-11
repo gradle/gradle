@@ -15,7 +15,9 @@
  */
 package org.gradle.integtests.fixtures;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.*;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
@@ -34,6 +36,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File projectDir;
     private String buildScriptText;
     private File settingsFile;
+    private String stdin;
 
     public GradleExecuter reset() {
         args.clear();
@@ -51,6 +54,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executable = null;
         userHomeDir = null;
         environmentVars.clear();
+        stdin = null;
         return this;
     }
 
@@ -96,6 +100,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.withDependencyList();
         }
         executer.withUserHomeDir(userHomeDir);
+        if (stdin != null) {
+            executer.withStdIn(stdin);
+        }
     }
 
     public GradleExecuter usingBuildScript(File buildScript) {
@@ -147,6 +154,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public String getExecutable() {
         return executable;
+    }
+
+    public GradleExecuter withStdIn(String text) {
+        this.stdin = text;
+        return this;
+    }
+
+    public InputStream getStdin() {
+        return new ByteArrayInputStream(stdin == null ? new byte[0] : stdin.getBytes());
     }
 
     public GradleExecuter withSearchUpwards() {

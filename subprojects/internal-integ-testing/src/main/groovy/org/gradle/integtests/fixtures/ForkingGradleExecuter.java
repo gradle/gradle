@@ -29,11 +29,7 @@ import org.gradle.util.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.OutputStream;
-import java.io.IOException;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -92,6 +88,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.environment("GRADLE_OPTS", formatGradleOpts());
         builder.environment(getEnvironmentVars());
         builder.workingDir(getWorkingDir());
+        builder.setStandardInput(getStdin());
 
         commandBuilder.build(builder);
 

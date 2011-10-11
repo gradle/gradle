@@ -92,6 +92,11 @@ public interface GradleExecuter {
     GradleExecuter usingExecutable(String script);
 
     /**
+     * Sets the stdin to use for the build. Defaults to an empty string.
+     */
+    GradleExecuter withStdIn(String text);
+
+    /**
      * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.
      *
      * @return The result.

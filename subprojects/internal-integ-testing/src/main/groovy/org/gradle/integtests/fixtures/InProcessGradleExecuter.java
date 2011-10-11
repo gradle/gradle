@@ -39,6 +39,7 @@ import org.gradle.os.ProcessEnvironment;
 import org.hamcrest.Matcher;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.*;
 
@@ -78,6 +79,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                               BuildListenerImpl listener) {
         assertCanExecute();
 
+        InputStream originalStdIn = System.in;
+        System.setIn(getStdin());
+        
         File userDir = new File(System.getProperty("user.dir"));
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
@@ -117,6 +121,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 }
             }
             factory.removeListener(listener);
+            System.setIn(originalStdIn);
         }
     }
 
