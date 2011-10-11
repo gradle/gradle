@@ -20,24 +20,54 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 
 class StdioIntegrationTest extends AbstractIntegrationSpec {
 
-    def "stdio is made available to build"() {
+    def "build can read stdin when stdin has bounded length"() {
         given:
-        buildFile << """
+        buildFile << '''
 task echo << {
     def reader = new BufferedReader(new InputStreamReader(System.in))
-    def line
-    while (line != "close") {
-        line = reader.readLine() // readline will chomp the newline off the end
-        println line
+    while (true) {
+        def line = reader.readLine() // readline will chomp the newline off the end
+        if (!line || line == 'close') {
+            break
+        }
+        print "[$line]"
     }
 }
-"""
+'''
 
         when:
-        executer.withStdIn("abc\n123\nclose\n").withArguments("-s")
+        executer.withStdIn("abc\n123").withArguments("-s")
         run "echo"
 
         then:
-        output.contains("abc\n123\n")
+        output.contains("[abc][123]")
+    }
+
+    def "build can read stdin when stdin has unbounded length"() {
+        def writeEnd = new PipedOutputStream()
+        def readEnd = new PipedInputStream(writeEnd)
+
+        given:
+        buildFile << '''
+task echo << {
+    def reader = new BufferedReader(new InputStreamReader(System.in))
+    while (true) {
+        def line = reader.readLine() // readline will chomp the newline off the end
+        if (!line || line == 'close') {
+            break
+        }
+        print "[$line]"
+    }
+}
+'''
+        and:
+        writeEnd.write("abc\n123\nclose\n".bytes)
+
+        when:
+        executer.withStdIn(readEnd).withArguments("-s")
+        run "echo"
+
+        then:
+        output.contains("[abc][123]")
     }
 }

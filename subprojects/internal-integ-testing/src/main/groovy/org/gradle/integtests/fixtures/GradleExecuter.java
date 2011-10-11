@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -95,6 +96,11 @@ public interface GradleExecuter {
      * Sets the stdin to use for the build. Defaults to an empty string.
      */
     GradleExecuter withStdIn(String text);
+
+    /**
+     * Sets the stdin to use for the build. Defaults to an empty string.
+     */
+    GradleExecuter withStdIn(InputStream stdin);
 
     /**
      * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.

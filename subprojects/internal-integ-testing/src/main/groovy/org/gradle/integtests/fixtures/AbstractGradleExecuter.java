@@ -36,7 +36,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File projectDir;
     private String buildScriptText;
     private File settingsFile;
-    private String stdin;
+    private InputStream stdin;
 
     public GradleExecuter reset() {
         args.clear();
@@ -157,12 +157,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withStdIn(String text) {
-        this.stdin = text;
+        this.stdin = new ByteArrayInputStream(text.getBytes());
+        return this;
+    }
+
+    public GradleExecuter withStdIn(InputStream stdin) {
+        this.stdin = stdin;
         return this;
     }
 
     public InputStream getStdin() {
-        return new ByteArrayInputStream(stdin == null ? new byte[0] : stdin.getBytes());
+        return stdin == null ? new ByteArrayInputStream(new byte[0]) : stdin;
     }
 
     public GradleExecuter withSearchUpwards() {
