@@ -15,21 +15,18 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.messaging.concurrent.DefaultExecutorFactory
-import org.gradle.launcher.daemon.protocol.ForwardInput
-import org.gradle.launcher.daemon.protocol.CloseInput
-import org.gradle.initialization.BuildClientMetaData
-import org.gradle.messaging.dispatch.Dispatch
-
-import spock.lang.*
-
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import org.gradle.initialization.BuildClientMetaData
+import org.gradle.launcher.daemon.protocol.CloseInput
+import org.gradle.launcher.daemon.protocol.ForwardInput
+import org.gradle.messaging.dispatch.Dispatch
+import org.gradle.util.ConcurrentSpecification
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class DaemonClientInputForwarderTest extends Specification {
+class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def bufferSize = 1024
-    def executerFactory = new DefaultExecutorFactory()
 
     def source = new PipedOutputStream()
     def inputStream = new PipedInputStream(source)
@@ -55,7 +52,7 @@ class DaemonClientInputForwarderTest extends Specification {
     def forwarder
 
     def createForwarder() {
-        forwarder = new DaemonClientInputForwarder(inputStream, [:] as BuildClientMetaData, dispatch, executerFactory, bufferSize)
+        forwarder = new DaemonClientInputForwarder(inputStream, [:] as BuildClientMetaData, dispatch, executorFactory, bufferSize)
         forwarder.start()
     }
     
@@ -64,40 +61,35 @@ class DaemonClientInputForwarderTest extends Specification {
     }
     
     def closeInput() {
-        inputStream.close()
         source.close()
     }
     
-    def waitForForwarderToCollect() {
-        sleep 1000
-    }
-    
-    def "input is forwarded"() {
+    def "input is forwarded until forwarder is stopped"() {
         when:
-        source << "abc\ndef\njkl"
-        waitForForwarderToCollect()
-        forwarder.stop()
-        
+        source << toPlatformLineSeparators("abc\ndef\njkl\n")
+
         then:
-        receive "abc\n"
-        receive "def\n"
-        receive "jkl"
-        
-        and:
+        receive toPlatformLineSeparators("abc\n")
+        receive toPlatformLineSeparators("def\n")
+        receive toPlatformLineSeparators("jkl\n")
+
+        when:
+        forwarder.stop()
+
+        then:
         receiveClosed()
     }
     
     def "close input is sent when the underlying input stream is closed"() {
         when:
-        source << "abc\ndef"
-        waitForForwarderToCollect()
-        
-        and:
+        source << toPlatformLineSeparators("abc\ndef\n")
         closeInput()
-        
+
         then:
-        receive "abc\n"
-        receive "def"
+        receive toPlatformLineSeparators("abc\n")
+        receive toPlatformLineSeparators("def\n")
+
+        and:
         receiveClosed()
     }
         
@@ -112,9 +104,6 @@ class DaemonClientInputForwarderTest extends Specification {
     def "one partial line when input stream closed gets forwarded"() {
         when:
         source << "abc"
-        waitForForwarderToCollect()
-
-        and:
         closeInput()
 
         then:
@@ -127,9 +116,9 @@ class DaemonClientInputForwarderTest extends Specification {
     def "one partial line when forwarder stopped gets forwarded"() {
         when:
         source << "abc"
-        waitForForwarderToCollect()
-
-        and:
+        // Semantics of DaemonClientInputForwarder.stop() mean we can't know when the input has been consumed
+        // so, let's just guess
+        sleep(1000)
         forwarder.stop()
 
         then:
@@ -140,7 +129,8 @@ class DaemonClientInputForwarderTest extends Specification {
     }
     
     def cleanup() {
-        closeInput()
+        source.close()
+        inputStream.close()
         forwarder.stop()
     }
 }
