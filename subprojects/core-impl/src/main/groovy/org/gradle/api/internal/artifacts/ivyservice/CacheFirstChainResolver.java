@@ -1,7 +1,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.cache.CacheMetadataOptions;
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.report.ArtifactDownloadReport;
+import org.apache.ivy.core.report.DownloadReport;
+import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
@@ -11,9 +16,13 @@ import org.gradle.api.GradleException;
 
 import java.lang.reflect.Method;
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CacheFirstChainResolver extends ChainResolver {
+    
+    private static final Map<ModuleRevisionId, DependencyResolver> resolversByRevision = new HashMap<ModuleRevisionId, DependencyResolver>();
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data)
             throws ParseException {
@@ -22,13 +31,43 @@ public class CacheFirstChainResolver extends ChainResolver {
         for (DependencyResolver resolver : getResolvers()) {
             ResolvedModuleRevision cachedModule = findModuleInCache(resolver, dd, data);
             if (cachedModule != null) {
+                rememberResolverForRevision(cachedModule);
                 return cachedModule;
             }
         }
 
         // Otherwise delegate to the regular chain (each resolver will re-check cache)
-        return super.getDependency(dd, data);
+        ResolvedModuleRevision downloadedModule = super.getDependency(dd, data);
+        rememberResolverForRevision(downloadedModule);
+        return downloadedModule;
     }
+
+    private void rememberResolverForRevision(ResolvedModuleRevision moduleRevision) {
+        if (moduleRevision != null) {
+            resolversByRevision.put(moduleRevision.getId(), moduleRevision.getResolver());
+        }
+    }
+
+    @Override
+    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
+        DownloadReport overallReport = new DownloadReport();
+        for (Artifact artifact : artifacts) {
+            DependencyResolver resolver = resolversByRevision.get(artifact.getModuleRevisionId());
+            DownloadReport downloadReport;
+            Artifact[] singleArtifact = {artifact};
+            // If possible, download from same resolver that provided meta-data
+            if (resolver != null && resolver != this) {
+                downloadReport = resolver.download(singleArtifact, options);
+            } else {
+                // Use default behaviour for client module artifacts, which use entire chain as module resolver (and any other unexpected cases)
+                // TODO Try all repositories for cached artifact first
+                downloadReport = super.download(singleArtifact, options);
+            }
+            ArtifactDownloadReport artifactDownloadReport = downloadReport.getArtifactReport(artifact);
+            overallReport.addArtifactReport(artifactDownloadReport);
+        }
+        return overallReport;
+     }
 
     private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd, ResolveData resolveData) {
         CacheMetadataOptions cacheOptions = getCacheMetadataOptions(resolver, resolveData);

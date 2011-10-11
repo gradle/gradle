@@ -68,6 +68,10 @@ class HttpServer implements MethodRule {
         server.stop()
     }
 
+    void resetExpectations() {
+        collection.setHandlers()
+    }
+
     Statement apply(Statement base, FrameworkMethod method, Object target) {
         return new Statement() {
             @Override

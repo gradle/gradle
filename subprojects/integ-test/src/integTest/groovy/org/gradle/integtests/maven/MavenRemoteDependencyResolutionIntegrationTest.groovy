@@ -111,6 +111,7 @@ task retrieve(type: Sync) {
         // Publish the second snapshot
         module.publishWithChangedContent()
 
+        server.resetExpectations()
         // TODO - these should not be here
         server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
@@ -126,6 +127,7 @@ task retrieve(type: Sync) {
         pom = repoDir.listFiles().find { it.name.matches('.*-2.pom') }
         jar = repoDir.listFiles().find { it.name.matches('.*-2.jar') }
         assert pom && jar
+        server.resetExpectations()
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
@@ -222,6 +224,7 @@ task retrieve(type: Sync) {
         def snapshot = jarFile.assertIsFile().snapshot()
 
         // Retrieve again with zero timeout should check for updated snapshot
+        server.resetExpectations()
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
 
         // TODO - these should not be here
@@ -277,6 +280,9 @@ task listJars << {
 """
 
         executer.withTasks('listJars').run()
+
+        server.resetExpectations()
+        // No server calls for cached dependencies
         executer.withTasks('listJars').run()
     }
 
@@ -326,6 +332,7 @@ task listJars << {
 
         executer.withTasks('listJars').run()
 
+        server.resetExpectations()
         server.expectHead('/repo1/group/projectA/1.0/projectA-1.0-sources.jar', sourceJar)
         server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-sources.jar.sha1')
         server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-sources.jar.md5')
@@ -399,8 +406,8 @@ task listJars << {
 
         executer.withTasks('listJars').run()
 
-        // TODO - these should not be here
-        server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
+        server.resetExpectations()
+        // No server requests when all jars cached
 
         executer.withTasks('listJars').run()
     }
