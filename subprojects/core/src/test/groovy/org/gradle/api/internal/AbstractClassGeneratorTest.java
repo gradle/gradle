@@ -196,8 +196,8 @@ public abstract class AbstractClassGeneratorTest {
         bean.setProp(toList("other"));
         assertThat(bean.getProp(), equalTo(toList("other")));
 
-        bean.setProp(Collections.EMPTY_LIST);
-        assertThat(bean.getProp(), equalTo(Collections.EMPTY_LIST));
+        bean.setProp(Collections.<String>emptyList());
+        assertThat(bean.getProp(), equalTo(Collections.<String>emptyList()));
 
         bean.setProp(null);
         assertThat(bean.getProp(), nullValue());

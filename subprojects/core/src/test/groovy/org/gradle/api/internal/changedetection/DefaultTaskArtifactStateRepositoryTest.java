@@ -440,7 +440,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());
-        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), (Matcher) hasItem(otherFile));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), hasItem((File) otherFile));
     }
 
     @Test
@@ -457,7 +457,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         state = repository.getStateFor(task());
         assertTrue(state.isUpToDate());
-        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), (Matcher) not(hasItem(outputDirFile)));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), not(hasItem((File) outputDirFile)));
         state.afterTask();
     }
 

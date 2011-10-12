@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Map;
 
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -48,7 +49,7 @@ public class DefaultTaskContainerTest {
 
     @Test
     public void addsTaskWithMap() {
-        final Map<String, ?> options = GUtil.map("option", "value");
+        final Map<String, ?> options = singletonMap("option", "value");
         final Task task = task("task");
 
         context.checking(new Expectations(){{
@@ -61,7 +62,7 @@ public class DefaultTaskContainerTest {
 
     @Test
     public void addsTaskWithName() {
-        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
+        final Map<String, ?> options = singletonMap(Task.TASK_NAME, "task");
         final Task task = task("task");
 
         context.checking(new Expectations(){{
@@ -86,7 +87,7 @@ public class DefaultTaskContainerTest {
     @Test
     public void addsTaskWithNameAndConfigureClosure() {
         final Closure action = HelperUtil.toClosure("{ description = 'description' }");
-        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
+        final Map<String, ?> options = singletonMap(Task.TASK_NAME, "task");
         final Task task = task("task");
 
         context.checking(new Expectations(){{
@@ -100,7 +101,7 @@ public class DefaultTaskContainerTest {
 
     @Test
     public void replacesTaskWithName() {
-        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
+        final Map<String, ?> options = singletonMap(Task.TASK_NAME, "task");
         final Task task = task("task");
 
         context.checking(new Expectations(){{
@@ -126,7 +127,7 @@ public class DefaultTaskContainerTest {
     @Test
     public void doesNotFireRuleWhenAddingTask() {
         Rule rule = context.mock(Rule.class);
-        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
+        final Map<String, ?> options = singletonMap(Task.TASK_NAME, "task");
         final Task task = task("task");
 
         container.addRule(rule);
@@ -144,7 +145,7 @@ public class DefaultTaskContainerTest {
         final Task task = addTask("task");
 
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, GUtil.map(Task.TASK_NAME, "task"));
+            one(taskFactory).createTask(project, singletonMap(Task.TASK_NAME, "task"));
             will(returnValue(task("task")));
         }});
 
@@ -164,7 +165,7 @@ public class DefaultTaskContainerTest {
 
         final Task newTask = task("task");
         context.checking(new Expectations() {{
-            one(taskFactory).createTask(project, GUtil.map(Task.TASK_NAME, "task"));
+            one(taskFactory).createTask(project, singletonMap(Task.TASK_NAME, "task"));
             will(returnValue(newTask));
         }});
         
@@ -288,7 +289,7 @@ public class DefaultTaskContainerTest {
 
     private Task addTask(String name) {
         final Task task = task(name);
-        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, name);
+        final Map<String, ?> options = singletonMap(Task.TASK_NAME, name);
         context.checking(new Expectations() {{
             one(taskFactory).createTask(project, options);
             will(returnValue(task));
