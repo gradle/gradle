@@ -15,13 +15,13 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
 
@@ -34,22 +34,18 @@ import java.util.Set;
 /**
  * A daemon connector that starts daemons by launching new processes.
  */
-public class ExternalDaemonConnector extends AbstractDaemonConnector<PersistentDaemonRegistry> {
+public class ExternalDaemonConnector extends AbstractDaemonConnector<DaemonRegistry> {
     private static final Logger LOGGER = Logging.getLogger(ExternalDaemonConnector.class);
         
     private final File userHomeDir;
     private final int idleTimeout;
     
-    public ExternalDaemonConnector(File userHomeDir) {
-        this(userHomeDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT, DEFAULT_CONNECT_TIMEOUT);
+    public ExternalDaemonConnector(DaemonRegistry registry, File userHomeDir, int idleTimeout) {
+        this(registry, userHomeDir, idleTimeout, DEFAULT_CONNECT_TIMEOUT);
     }
 
-    public ExternalDaemonConnector(File userHomeDir, int idleTimeout) {
-        this(userHomeDir, idleTimeout, DEFAULT_CONNECT_TIMEOUT);
-    }
-
-    public ExternalDaemonConnector(File userHomeDir, int idleTimeout, int connectTimeout) {
-        super(new PersistentDaemonRegistry(userHomeDir), connectTimeout);
+    public ExternalDaemonConnector(DaemonRegistry registry, File userHomeDir, int idleTimeout, int connectTimeout) {
+        super(registry, connectTimeout);
         this.idleTimeout = idleTimeout;
         this.userHomeDir = userHomeDir;
     }

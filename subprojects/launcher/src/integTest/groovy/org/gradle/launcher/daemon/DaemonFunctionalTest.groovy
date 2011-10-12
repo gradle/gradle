@@ -18,11 +18,11 @@ package org.gradle.launcher.daemon
 
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.launcher.daemon.client.DaemonClient
+import org.gradle.launcher.daemon.client.DaemonClientServices
 import org.gradle.launcher.daemon.client.DaemonConnector
-import org.gradle.launcher.daemon.client.ExternalDaemonConnector
-import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
 import org.gradle.launcher.daemon.protocol.Sleep
 import org.gradle.launcher.daemon.protocol.Stop
+import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.TemporaryFolder
@@ -37,15 +37,16 @@ class DaemonFunctionalTest extends Specification {
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
     DaemonConnector connector
-    PersistentDaemonRegistry reg
+    DaemonRegistry reg
     List<Connection> cleanMe = []
     OutputEventListener listener = Mock()
 
     //cannot use setup() because temp folder will get the proper name
     def prepare() {
         //connector with short-lived daemons
-        connector = new ExternalDaemonConnector<PersistentDaemonRegistry>(temp.testDir, 10000, 10000)
-        reg = connector.daemonRegistry
+        def clientServices = new DaemonClientServices(temp.testDir, 10000)
+        connector = clientServices.get(DaemonConnector)
+        reg = clientServices.get(DaemonRegistry)
     }
 
     def cleanup() {
@@ -69,7 +70,7 @@ class DaemonFunctionalTest extends Specification {
         prepare()
 
         when:
-        connector = new ExternalDaemonConnector(temp.testDir, 2000, 10000) //2000 sec expiry time
+        connector = new DaemonClientServices(temp.testDir, 2000).get(DaemonConnector) //2000 sec expiry time
         def c = connect()
         c.dispatch(new Sleep(1000))
 

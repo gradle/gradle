@@ -144,7 +144,7 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped
     }
 
-    def "sending stop to idle daemons causing them to terminate immediately"() {
+    def "sending stop to idle daemons causes them to terminate immediately"() {
         given:
         daemonIdleTimeout = 10 // long timeout so we know they don't stop from idle timeout
 

@@ -15,19 +15,18 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.StartParameter;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.launcher.exec.EntryPoint;
-import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
-import org.gradle.launcher.daemon.server.*;
-import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
-import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.server.*;
+import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.env.LenientEnvHacker;
+import org.gradle.launcher.exec.EntryPoint;
+import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.logging.LoggingServiceRegistry;
 
 import java.io.*;
 import java.util.Arrays;
@@ -78,7 +77,8 @@ public class DaemonMain extends EntryPoint {
         DaemonServerConnector connector = new DaemonTcpServerConnector();
 
         File registryDir = startParameter.getGradleUserHomeDir();
-        DaemonRegistry daemonRegistry = new PersistentDaemonRegistry(registryDir);
+        DaemonServices daemonServices = new DaemonServices(registryDir);
+        DaemonRegistry daemonRegistry = daemonServices.get(DaemonRegistry.class);
 
         int idleTimeout = getIdleTimeout(startParameter);
         float idleTimeoutSecs = idleTimeout / 1000;
