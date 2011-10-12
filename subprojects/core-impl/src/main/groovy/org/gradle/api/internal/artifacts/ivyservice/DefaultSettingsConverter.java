@@ -82,8 +82,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
-            DependencyResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
-            DependencyResolver outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
+            ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
+            DependencyResolver outerChain = new ClientModuleResolverChain(clientModuleResolver, userResolverChain);
+            outerChain.setName(CLIENT_MODULE_CHAIN_NAME);
             entryPointResolver = new EntryPointResolver(outerChain);
             entryPointResolver.setName(ENTRY_POINT_RESOLVER);
             initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain, entryPointResolver));
@@ -94,18 +95,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return resolveSettings;
     }
 
-    private DependencyResolver createOuterChain(Collection<DependencyResolver> resolvers) {
-        ChainResolver clientModuleChain = new ChainResolver();
-        clientModuleChain.setName(CLIENT_MODULE_CHAIN_NAME);
-        clientModuleChain.setReturnFirst(true);
-        clientModuleChain.setRepositoryCacheManager(new NoOpRepositoryCacheManager(clientModuleChain.getName()));
-        for (DependencyResolver resolver : resolvers) {
-            clientModuleChain.add(resolver);
-        }
-        return clientModuleChain;
-    }
-
-    private DependencyResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, DependencyResolver userResolverChain) {
+    private ClientModuleResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, DependencyResolver userResolverChain) {
         return new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
     }
 
