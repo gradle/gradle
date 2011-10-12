@@ -27,7 +27,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class Specs {
-    public static final Spec SATISFIES_ALL = satisfyAll();
+    public static final Spec<Object> SATISFIES_ALL = satisfyAll();
 
     public static <T> Spec<T> satisfyAll() {
         return new Spec<T>() {
@@ -37,7 +37,7 @@ public class Specs {
         };
     }
 
-    public static final Spec SATISFIES_NONE = satisfyNone();
+    public static final Spec<Object> SATISFIES_NONE = satisfyNone();
 
     public static <T> Spec<T> satisfyNone() {
         return new Spec<T>() {

@@ -33,7 +33,8 @@ import java.util.Set;
 public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
     private BaseMavenInstaller mavenInstaller;
 
-    private Factory<CustomInstallTask> installTaskFactoryMock;
+    @SuppressWarnings("unchecked")
+    private Factory<CustomInstallTask> installTaskFactoryMock = context.mock(Factory.class);
     private CustomInstallTask installTaskMock;
 
     protected BaseMavenInstaller createMavenInstaller() {
@@ -54,7 +55,6 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
 
     public void setUp() {
         super.setUp();
-        installTaskFactoryMock = context.mock(Factory.class);
         installTaskMock = context.mock(CustomInstallTask.class);
         mavenInstaller = createMavenInstaller();
         mavenInstaller.setInstallTaskFactory(installTaskFactoryMock);

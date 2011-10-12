@@ -39,8 +39,10 @@ import static org.junit.Assert.*;
 public class BasePomFilterContainerTest {
     private static final String TEST_NAME = "testName";
     
+    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private BasePomFilterContainer pomFilterContainer;
-    protected Factory<MavenPom> mavenPomFactoryMock;
+    @SuppressWarnings("unchecked")
+    protected Factory<MavenPom> mavenPomFactoryMock = context.mock(Factory.class);
     protected MavenPom pomMock;
     protected PomFilter pomFilterMock;
     protected PublishFilter publishFilterMock;
@@ -50,12 +52,10 @@ public class BasePomFilterContainerTest {
         return new BasePomFilterContainer(mavenPomFactoryMock);
     }
 
-    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
     @Before
     public void setUp() {
         pomFilterMock = context.mock(PomFilter.class);
-        mavenPomFactoryMock = context.mock(Factory.class);
         pomMock = context.mock(MavenPom.class);
         publishFilterMock = context.mock(PublishFilter.class);
         context.checking(new Expectations() {

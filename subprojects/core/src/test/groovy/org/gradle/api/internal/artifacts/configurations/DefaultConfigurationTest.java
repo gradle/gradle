@@ -254,13 +254,13 @@ public class DefaultConfigurationTest {
     }
 
 
-    @SuppressWarnings("unchecked")
     @Test
     public void fileCollectionWithSpec() {
+        @SuppressWarnings("unchecked")
         Spec<Dependency> spec = context.mock(Spec.class);
         DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
                 configuration.fileCollection(spec);
-        assertThat(fileCollection.getDependencySpec(), sameInstance(spec));
+        assertThat(fileCollection.getDependencySpec(), sameInstance((Object)spec));
     }
 
     @Test
@@ -308,7 +308,6 @@ public class DefaultConfigurationTest {
         }});
     }
 
-    @SuppressWarnings("unchecked")
     private void makeResolveReturnFileSet(final Set<File> fileSet) {
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         context.checking(new Expectations() {{

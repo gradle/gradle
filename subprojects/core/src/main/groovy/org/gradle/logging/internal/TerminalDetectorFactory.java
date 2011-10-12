@@ -38,7 +38,7 @@ public class TerminalDetectorFactory {
         } catch (JnaBootPathConfigurer.JnaNotAvailableException e) {
             LOGGER.info("Unable to find native jna lib for current platform: " + OperatingSystem.current()
                     + ". Details: " + e.getMessage());
-            return Specs.SATISFIES_NONE;
+            return Specs.satisfyNone();
         }
     }
 }

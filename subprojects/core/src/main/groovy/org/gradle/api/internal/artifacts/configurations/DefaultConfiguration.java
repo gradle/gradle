@@ -210,11 +210,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return fileCollection(dependencySpecClosure).getFiles();
     }
 
-    public Set<File> files(Spec<Dependency> dependencySpec) {
+    public Set<File> files(Spec<? super Dependency> dependencySpec) {
         return fileCollection(dependencySpec).getFiles();
     }
 
-    public FileCollection fileCollection(Spec<Dependency> dependencySpec) {
+    public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
         return new ConfigurationFileCollection(dependencySpec);
     }
 
@@ -383,11 +383,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return createCopy(getAllDependencies());
     }
 
-    public Configuration copy(Spec<Dependency> dependencySpec) {
+    public Configuration copy(Spec<? super Dependency> dependencySpec) {
         return createCopy(Specs.filterIterable(getDependencies(), dependencySpec));
     }
 
-    public Configuration copyRecursive(Spec<Dependency> dependencySpec) {
+    public Configuration copyRecursive(Spec<? super Dependency> dependencySpec) {
         return createCopy(Specs.filterIterable(getAllDependencies(), dependencySpec));
     }
 
@@ -442,9 +442,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     class ConfigurationFileCollection extends AbstractFileCollection {
-        private Spec<Dependency> dependencySpec;
+        private Spec<? super Dependency> dependencySpec;
 
-        private ConfigurationFileCollection(Spec<Dependency> dependencySpec) {
+        private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
             this.dependencySpec = dependencySpec;
         }
 
@@ -465,7 +465,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return DefaultConfiguration.this.getBuildDependencies();
         }
 
-        public Spec<Dependency> getDependencySpec() {
+        public Spec<? super Dependency> getDependencySpec() {
             return dependencySpec;
         }
 

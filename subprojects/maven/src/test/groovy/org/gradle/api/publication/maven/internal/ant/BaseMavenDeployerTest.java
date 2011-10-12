@@ -44,6 +44,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
     private BaseMavenDeployer mavenDeployer = createMavenDeployer();
 
+    @SuppressWarnings("unchecked")
     private Factory<CustomDeployTask> deployTaskFactoryMock = context.mock(Factory.class);
     private CustomDeployTask deployTaskMock = context.mock(CustomDeployTask.class);
 

@@ -45,7 +45,7 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
         return new ResolvedConfiguration() {
             private final CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
 
-            public Set<File> getFiles(Spec<Dependency> dependencySpec) {
+            public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
                 Set<File> files = new LinkedHashSet<File>();
 
                 Set<Dependency> selectedDependencies = Specs.filterIterable(dependencies, dependencySpec);
@@ -65,7 +65,7 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
                 return resolvedConfiguration.getFirstLevelModuleDependencies();
             }
 
-            public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException {
+            public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
                 return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
             }
 
