@@ -16,12 +16,13 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.launcher.daemon.server.DaemonIdleTimeout
-import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.integtests.fixtures.GradleHandles
-
+import org.gradle.launcher.daemon.client.DaemonDisappearedException
+import org.gradle.launcher.daemon.server.DaemonIdleTimeout
+import org.junit.Ignore
 import org.junit.Rule
-import spock.lang.*
+import spock.lang.Specification
+import static org.gradle.util.ConcurrentSpecification.poll
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
@@ -34,7 +35,6 @@ class DaemonLifecycleSpec extends Specification {
     def buildCounter = 0
     def buildSleepsFor = 5
     def daemonIdleTimeout = 5
-    def pollWaitsFor = 10
 
     def daemons // have to set this in setup, after we have changed the user home location
 
@@ -43,7 +43,6 @@ class DaemonLifecycleSpec extends Specification {
         buildDir.file("build.gradle") << buildScript
         buildDir
     }
-
 
     def sleepyBuild(sleepFor = buildSleepsFor) {
         handles.createHandle {
@@ -73,30 +72,8 @@ class DaemonLifecycleSpec extends Specification {
 
     def setup() {
         handles.distribution.requireOwnUserHomeDir()
-        daemons = handles.daemonRegistry
+        daemons = handles.daemonController
     }
-
-    //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    void poll(int timeout = pollWaitsFor, Closure assertion) {
-        int x = 0;
-        timeout = timeout * 1000 // convert to m
-        while(true) {
-            try {
-                assertion()
-                return
-            } catch (Throwable t) {
-                Thread.sleep(100);
-                x += 100;
-                if (x > timeout) {
-                    throw t;
-                }
-            }
-        }
-    }
-
-    def getNumDaemons() { daemons.all.size() }
-    def getNumBusyDaemons() { daemons.busy.size() }
-    def getNumIdleDaemons() { daemons.idle.size() }
 
     def expectedDaemons = 3
 
@@ -105,17 +82,17 @@ class DaemonLifecycleSpec extends Specification {
     }
 
     boolean isDaemonsRunning(num = expectedDaemons) {
-        poll { assert numDaemons == num; }
+        daemons.isDaemonsRunning(num)
         true
     }
 
     boolean isDaemonsIdle(num = expectedDaemons) {
-        poll { assert numIdleDaemons == num; }
+        daemons.isDaemonsIdle(num)
         true
     }
 
     boolean isDaemonsBusy(num = expectedDaemons) {
-        poll { assert numBusyDaemons == num; }
+        daemons.isDaemonsBusy(num)
         true
     }
 

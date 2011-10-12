@@ -17,12 +17,11 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.EmbeddedDaemonConnector;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -38,8 +37,8 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
     private LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
     private EmbeddedDaemonRegistry daemonRegistry = new EmbeddedDaemonRegistry();
 
-    public DaemonRegistry getDaemonRegistry() {
-        return daemonRegistry;
+    public DaemonController getDaemonController() {
+        return new RegistryBackedDaemonController(daemonRegistry);
     }
 
     protected ExecutionResult doRun() {

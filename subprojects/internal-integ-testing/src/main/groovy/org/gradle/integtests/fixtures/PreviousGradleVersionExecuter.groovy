@@ -23,7 +23,6 @@ import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider
 import org.gradle.cache.internal.FileLockManager.LockMode
-import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.os.OperatingSystem
 import org.gradle.os.jna.NativeEnvironment
 import org.gradle.util.DistributionLocator
@@ -61,7 +60,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         return version == GradleVersion.version('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
     }
 
-    DaemonRegistry getDaemonRegistry() {
+    DaemonController getDaemonController() {
         throw new UnsupportedOperationException()
     }
     

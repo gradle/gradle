@@ -16,11 +16,20 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.internal.project.DefaultServiceRegistry;
+import org.gradle.cache.internal.DefaultFileLockManager;
+import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
+import org.gradle.os.ProcessEnvironment;
+import org.gradle.os.jna.NativeEnvironment;
 
 import java.io.File;
 
+/**
+ * Takes care of instantiating and wiring together the services required by the daemon server.
+ */
 public class DaemonServices extends DefaultServiceRegistry {
     private final File userHomeDir;
 
@@ -28,7 +37,15 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.userHomeDir = userHomeDir;
     }
 
+    protected ProcessEnvironment createProcessEnvironment() {
+        return NativeEnvironment.current();
+    }
+    
+    protected FileLockManager createFileLockManager() {
+        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)));
+    }
+
     protected DaemonRegistry createDaemonRegistry() {
-        return new PersistentDaemonRegistry(userHomeDir);
+        return new PersistentDaemonRegistry(new DaemonDir(userHomeDir), get(FileLockManager.class));
     }
 }
