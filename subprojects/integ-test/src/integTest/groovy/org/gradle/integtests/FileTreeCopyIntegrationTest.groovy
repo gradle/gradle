@@ -44,6 +44,7 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
                 'one/sub/onesub.b',
                 'two/two.a',
                 'two/two.b',
+                'three/three.a'
         )
     }
 
@@ -61,6 +62,7 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
                 'one/one.b',
                 'two/two.a',
                 'two/two.b',
+                'three/three.a'
         )
     }
 
@@ -78,6 +80,7 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
                 'one/one.b',
                 'two/two.a',
                 'two/two.b',
+                'three/three.a'
         )
     }
 }

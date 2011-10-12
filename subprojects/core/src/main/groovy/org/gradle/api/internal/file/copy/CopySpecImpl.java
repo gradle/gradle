@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import groovy.text.TemplateEngine;
 import org.apache.tools.zip.UnixStat;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
@@ -333,6 +334,15 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         actions.add(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.expand(properties);
+            }
+        });
+        return this;
+    }
+
+    public CopySpec expand(final Class<? extends TemplateEngine> templateType, final Map<String, ?> properties) {
+        actions.add(new Action<FileCopyDetails>() {
+            public void execute(FileCopyDetails fileCopyDetails) {
+                fileCopyDetails.expand(templateType, properties);
             }
         });
         return this;

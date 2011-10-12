@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import groovy.text.TemplateEngine;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
@@ -161,6 +162,11 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
 
         public ContentFilterable expand(Map<String, ?> properties) {
             filterChain.expand(properties);
+            return this;
+        }
+
+        public ContentFilterable expand(Class<? extends TemplateEngine> templateType, Map<String, ?> properties) {
+            filterChain.expand(templateType, properties);
             return this;
         }
     }

@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import groovy.text.TemplateEngine;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
@@ -292,6 +293,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     public AbstractCopyTask expand(Map<String, ?> properties) {
         getMainSpec().expand(properties);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask expand(Class<? extends TemplateEngine> templateType, Map<String, ?> properties) {
+        getMainSpec().expand(templateType, properties);
         return this;
     }
 
