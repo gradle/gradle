@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.integtests.fixtures.DaemonController
 import org.gradle.integtests.fixtures.RegistryBackedDaemonController
 import org.gradle.launcher.daemon.client.DaemonClient
@@ -24,6 +23,7 @@ import org.gradle.launcher.daemon.client.DaemonClientServices
 import org.gradle.launcher.daemon.client.DaemonConnector
 import org.gradle.launcher.daemon.protocol.Sleep
 import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.TemporaryFolder
@@ -39,13 +39,15 @@ class DaemonFunctionalTest extends Specification {
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
     DaemonConnector connector
     DaemonController reg
+    DaemonClient client
     List<Connection> cleanMe = []
     OutputEventListener listener = Mock()
 
     //cannot use setup() because temp folder will get the proper name
-    def prepare() {
+    def prepare(int idleTimeout = 10000) {
         //connector with short-lived daemons
-        def clientServices = new DaemonClientServices(temp.testDir, 10000)
+        def clientServices = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), temp.testDir, idleTimeout)
+        client = clientServices.get(DaemonClient)
         connector = clientServices.get(DaemonConnector)
         reg = new RegistryBackedDaemonController(clientServices.get(DaemonRegistry))
     }
@@ -68,10 +70,9 @@ class DaemonFunctionalTest extends Specification {
     def "expired daemons are removed from registry"() {
         //we could write a proper test for expiration and look if processes are finished.
         //At the moment only windows build detects this potential problem because Windows is less forgiving :)
-        prepare()
+        prepare(2000)
 
         when:
-        connector = new DaemonClientServices(temp.testDir, 2000).get(DaemonConnector) //2000 sec expiry time
         def c = connect()
         c.dispatch(new Sleep(1000))
 
@@ -159,7 +160,7 @@ class DaemonFunctionalTest extends Specification {
         reg.isDaemonsIdle(1)
 
         when:
-        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+        client.stop()
 
         then:
         reg.isDaemonsRunning(0)
@@ -177,7 +178,7 @@ class DaemonFunctionalTest extends Specification {
         reg.isDaemonsBusy(1)
 
         when:
-        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+        client.stop()
 
         then:
         reg.isDaemonsRunning(0)
@@ -210,7 +211,7 @@ class DaemonFunctionalTest extends Specification {
         reg.isDaemonsIdle(1)
 
         when:
-        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+        client.stop()
 
         then:
         reg.isDaemonsRunning(0)

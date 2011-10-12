@@ -16,13 +16,16 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.project.DefaultServiceRegistry;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
+import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.os.*;
 import org.gradle.os.jna.NativeEnvironment;
 
@@ -32,14 +35,16 @@ import java.io.File;
  * Takes care of instantiating and wiring together the services required by the daemon client.
  */
 public class DaemonClientServices extends DefaultServiceRegistry {
+    private final ServiceRegistry loggingServices;
     private final File userHomeDir;
     private final int idleTimeout;
 
-    public DaemonClientServices(File userHomeDir) {
-        this(userHomeDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT);
+    public DaemonClientServices(ServiceRegistry loggingServices, File userHomeDir) {
+        this(loggingServices, userHomeDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT);
     }
 
-    public DaemonClientServices(File userHomeDir, int idleTimeout) {
+    public DaemonClientServices(ServiceRegistry loggingServices, File userHomeDir, int idleTimeout) {
+        this.loggingServices = loggingServices;
         this.userHomeDir = userHomeDir;
         this.idleTimeout = idleTimeout;
     }
@@ -62,5 +67,9 @@ public class DaemonClientServices extends DefaultServiceRegistry {
 
     protected DaemonConnector createDaemonConnector() {
         return new ExternalDaemonConnector(get(DaemonRegistry.class), userHomeDir, idleTimeout);
+    }
+    
+    protected DaemonClient createDaemonClient() {
+        return new DaemonClient(get(DaemonConnector.class), new GradleLauncherMetaData(), loggingServices.get(OutputEventListener.class));
     }
 }

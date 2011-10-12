@@ -21,6 +21,7 @@ import org.gradle.launcher.daemon.server.DaemonServerConnector;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 
 /**
  * A daemon connector that starts daemons by launching new daemons in the same jvm.
@@ -40,8 +41,8 @@ public class EmbeddedDaemonConnector extends AbstractDaemonConnector<EmbeddedDae
 
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newCommandLineProcessLogging();
         DaemonServerConnector server = new DaemonTcpServerConnector();
-
-        daemonRegistry.startDaemon(new Daemon(server, daemonRegistry, new DefaultDaemonCommandExecuter(loggingServices)));
+        DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
+        daemonRegistry.startDaemon(new Daemon(server, daemonRegistry, new DefaultDaemonCommandExecuter(loggingServices, executorFactory), executorFactory));
     }
 
 }

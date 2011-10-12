@@ -18,9 +18,10 @@ package org.gradle.launcher.daemon.client
 import spock.lang.Specification
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
+import org.gradle.logging.LoggingServiceRegistry
 
 class DaemonClientServicesTest extends Specification {
-    final DaemonClientServices services = new DaemonClientServices(new File("userdir"), 100)
+    final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), new File("userdir"), 100)
 
     def "makes a DaemonRegistry available"() {
         expect:
@@ -30,5 +31,10 @@ class DaemonClientServicesTest extends Specification {
     def "makes a DaemonConnector available"() {
         expect:
         services.get(DaemonConnector.class) instanceof ExternalDaemonConnector
+    }
+
+    def "makes a DaemonClient available"() {
+        expect:
+        services.get(DaemonClient) != null
     }
 }

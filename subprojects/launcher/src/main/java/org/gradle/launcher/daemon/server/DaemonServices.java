@@ -24,6 +24,8 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.os.ProcessEnvironment;
 import org.gradle.os.jna.NativeEnvironment;
 
@@ -39,6 +41,10 @@ public class DaemonServices extends DefaultServiceRegistry {
     public DaemonServices(File userHomeDir, ServiceRegistry loggingServices) {
         this.userHomeDir = userHomeDir;
         this.loggingServices = loggingServices;
+    }
+
+    protected ExecutorFactory createExecutorFactory() {
+        return new DefaultExecutorFactory();
     }
 
     protected ProcessEnvironment createProcessEnvironment() {
@@ -68,6 +74,8 @@ public class DaemonServices extends DefaultServiceRegistry {
                 new DaemonTcpServerConnector(),
                 get(DaemonRegistry.class),
                 new DefaultDaemonCommandExecuter(
-                        loggingServices));
+                        loggingServices,
+                        get(ExecutorFactory.class)),
+                get(ExecutorFactory.class));
     }
 }
