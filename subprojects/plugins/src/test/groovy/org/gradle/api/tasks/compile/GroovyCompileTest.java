@@ -103,7 +103,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
     @Test
     public void testExecuteWithEmptyGroovyClasspath() {
-        setUpMocksAndAttributes(testObj, Collections.emptyList());
+        setUpMocksAndAttributes(testObj, Collections.<File>emptyList());
         try {
             testObj.compile();
         } catch (InvalidUserDataException e) {
@@ -112,7 +112,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         Assert.fail();
     }
 
-    void setUpMocksAndAttributes(GroovyCompile compile, final List groovyClasspath) {
+    void setUpMocksAndAttributes(GroovyCompile compile, final List<File> groovyClasspath) {
         super.setUpMocksAndAttributes(compile);
 
         final FileCollection groovyClasspathCollection = context.mock(FileCollection.class);
