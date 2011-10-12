@@ -38,7 +38,7 @@ import java.util.Map;
 
 public class CacheFirstChainResolver extends ChainResolver {
     
-    private final Map<ModuleRevisionId, DependencyResolver> resolversByRevision = new HashMap<ModuleRevisionId, DependencyResolver>();
+    private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data)
             throws ParseException {
@@ -60,7 +60,7 @@ public class CacheFirstChainResolver extends ChainResolver {
 
     private void rememberResolverForRevision(ResolvedModuleRevision moduleRevision) {
         if (moduleRevision != null) {
-            resolversByRevision.put(moduleRevision.getId(), moduleRevision.getResolver());
+            artifactResolvers.put(moduleRevision.getId(), moduleRevision.getArtifactResolver());
         }
     }
 
@@ -68,14 +68,14 @@ public class CacheFirstChainResolver extends ChainResolver {
     public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
         DownloadReport overallReport = new DownloadReport();
         for (Artifact artifact : artifacts) {
-            DependencyResolver resolver = resolversByRevision.get(artifact.getModuleRevisionId());
+            DependencyResolver artifactResolver = artifactResolvers.get(artifact.getModuleRevisionId());
             DownloadReport downloadReport;
             Artifact[] singleArtifact = {artifact};
-            // If possible, download from same resolver that provided meta-data
-            if (resolver != null && resolver != this) {
-                downloadReport = resolver.download(singleArtifact, options);
+            // If possible, download from same artifactResolver that provided meta-data
+            if (artifactResolver != null && artifactResolver != this) {
+                downloadReport = artifactResolver.download(singleArtifact, options);
             } else {
-                // Use default behaviour for client module artifacts, which use entire chain as module resolver (and any other unexpected cases)
+                // Use default behaviour for client module artifacts, which use entire chain as module artifactResolver (and any other unexpected cases)
                 // TODO Try all repositories for cached artifact first
                 downloadReport = super.download(singleArtifact, options);
             }
