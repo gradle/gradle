@@ -61,11 +61,10 @@ repotest = 'repotest'
 configurations {
     test
 }
-
 repositories {
     maven {
         url 'http://gradle.sourceforge.net/repository/'
-        additionalUrls = ['http://gradle.sourceforge.net/otherrepo/']
+        artifactUrls = ['http://gradle.sourceforge.net/otherrepo/']
     }
     maven { url 'http://gradle.sourceforge.net/otherrepo/' }
     mavenCentral()

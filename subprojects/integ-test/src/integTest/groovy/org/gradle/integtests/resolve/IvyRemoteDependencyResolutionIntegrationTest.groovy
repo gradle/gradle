@@ -55,6 +55,12 @@ task listJars << {
 
         expect:
         succeeds('listJars')
+
+//        given:
+        server.resetExpectations()
+        // No extra calls for cached dependencies
+
+//        expect:
         succeeds('listJars')
     }
 
@@ -76,7 +82,6 @@ task listJars << {
         server.expectGet('/repo2/group/projectB/1.3/projectB-1.3.jar', module2.jarFile)
 
         // TODO - this shouldn't happen - it's already found B's ivy.xml on repo2
-        server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
         server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
 
         server.start()
@@ -103,11 +108,10 @@ task listJars << {
         expect:
         succeeds('listJars')
 
+
 //        given:
-        // TODO - it should not be doing these
-        server.expectGetMissing('/repo/group/projectB/1.3/ivy-1.3.xml')
-        server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
-        server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
+        server.resetExpectations()
+        // No extra calls for cached dependencies
 
 //        expect:
         succeeds('listJars')
@@ -218,6 +222,11 @@ task show << { println configurations.compile.files }
 
         expect:
         succeeds('show')
+
+//        given:
+        server.resetExpectations()
+
+//        expect:
         succeeds('show')
     }
 
