@@ -48,12 +48,16 @@ public class DaemonClientServices extends DefaultServiceRegistry {
         return NativeEnvironment.current();
     }
     
+    protected DaemonDir createDaemonDir() {
+        return new DaemonDir(userHomeDir, get(ProcessEnvironment.class));
+    }
+
     protected FileLockManager createFileLockManager() {
         return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)));
     }
     
     protected DaemonRegistry createDaemonRegistry() {
-        return new PersistentDaemonRegistry(new DaemonDir(userHomeDir), get(FileLockManager.class));
+        return new PersistentDaemonRegistry(get(DaemonDir.class).getRegistry(), get(FileLockManager.class));
     }
 
     protected DaemonConnector createDaemonConnector() {

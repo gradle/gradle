@@ -52,6 +52,6 @@ class RegistryBackedDaemonController implements DaemonController {
     }
 
     Collection<File> getDaemonLogs() {
-        return daemons.daemonDir.logs
+        return daemons.registryFile.parentFile.listFiles().findAll { it.name.matches("daemon-.+\\.out.log") }
     }
 }

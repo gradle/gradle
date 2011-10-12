@@ -20,13 +20,14 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.server.*;
-import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
-import org.gradle.launcher.env.LenientEnvHacker;
+import org.gradle.launcher.daemon.server.Daemon;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
+import org.gradle.launcher.daemon.server.DaemonServices;
+import org.gradle.launcher.daemon.server.DaemonStoppedException;
 import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.os.ProcessEnvironment;
 
 import java.io.*;
 import java.util.Arrays;
@@ -56,16 +57,23 @@ public class DaemonMain extends EntryPoint {
     }
 
     protected void doAction(ExecutionListener listener) {
+        File registryDir = startParameter.getGradleUserHomeDir();
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
+        DaemonServices daemonServices = new DaemonServices(registryDir, loggingServices);
+
         if (redirectIo) {
             try {
-                redirectOutputsAndInput(startParameter);
+                redirectOutputsAndInput(daemonServices.get(DaemonDir.class));
             } catch (IOException e) {
                 listener.onFailure(e);
                 return;
             }
         }
 
-        final Long pid = new LenientEnvHacker().getPid();
+        final Long pid = daemonServices.get(ProcessEnvironment.class).getPid();
+        int idleTimeout = getIdleTimeout(startParameter);
+        float idleTimeoutSecs = idleTimeout / 1000;
+        LOGGER.lifecycle("Starting daemon[pid = {}] with settings: idleTimeout = {} secs, registryDir = {}", pid, idleTimeoutSecs, registryDir);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -73,19 +81,7 @@ public class DaemonMain extends EntryPoint {
             }
         });
 
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
-        DaemonServerConnector connector = new DaemonTcpServerConnector();
-
-        File registryDir = startParameter.getGradleUserHomeDir();
-        DaemonServices daemonServices = new DaemonServices(registryDir);
-        DaemonRegistry daemonRegistry = daemonServices.get(DaemonRegistry.class);
-
-        int idleTimeout = getIdleTimeout(startParameter);
-        float idleTimeoutSecs = idleTimeout / 1000;
-
-        LOGGER.lifecycle("Starting daemon[pid = {}] with settings: idleTimeout = {} secs, registryDir = {}", pid, idleTimeoutSecs, registryDir);
-        Daemon daemon = new Daemon(connector, daemonRegistry, new DefaultDaemonCommandExecuter(loggingServices));
-
+        Daemon daemon = daemonServices.get(Daemon.class);
         daemon.start();
         try {
             daemon.awaitIdleTimeout(idleTimeout);
@@ -97,11 +93,10 @@ public class DaemonMain extends EntryPoint {
         }
     }
 
-    private static void redirectOutputsAndInput(StartParameter startParameter) throws IOException {
+    private static void redirectOutputsAndInput(DaemonDir daemonDir) throws IOException {
         PrintStream originalOut = System.out;
         PrintStream originalErr = System.err;
 //        InputStream originalIn = System.in;
-        DaemonDir daemonDir = new DaemonDir(startParameter.getGradleUserHomeDir());
         File logOutputFile = daemonDir.createUniqueLog();
         logOutputFile.getParentFile().mkdirs();
         PrintStream printStream = new PrintStream(new FileOutputStream(logOutputFile), true);

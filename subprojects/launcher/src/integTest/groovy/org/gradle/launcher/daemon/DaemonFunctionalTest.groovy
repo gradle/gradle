@@ -23,7 +23,6 @@ import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.DaemonClientServices
 import org.gradle.launcher.daemon.client.DaemonConnector
 import org.gradle.launcher.daemon.protocol.Sleep
-import org.gradle.launcher.daemon.protocol.Stop
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
@@ -31,7 +30,6 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
-import static org.gradle.util.ConcurrentSpecification.poll
 
 /**
  * @author: Szczepan Faber, created at: 8/18/11

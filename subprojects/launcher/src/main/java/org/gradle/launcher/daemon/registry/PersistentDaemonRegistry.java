@@ -23,6 +23,7 @@ import org.gradle.cache.internal.OnDemandFileLock;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.messaging.remote.Address;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,22 +33,22 @@ import java.util.List;
  * @author: Szczepan Faber, created at: 8/18/11
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
-    private final DaemonDir daemonDir;
     private final SimpleStateCache<DaemonRegistryContent> cache;
+    private final File registryFile;
 
-    public PersistentDaemonRegistry(DaemonDir daemonDir, FileLockManager fileLockManager) {
-        this.daemonDir = daemonDir;
+    public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager) {
+        this.registryFile = registryFile;
         cache = new SimpleStateCache<DaemonRegistryContent>(
-                daemonDir.registryFile,
+                registryFile,
                 new OnDemandFileLock(
-                        daemonDir.getRegistry(),
+                        registryFile,
                         "daemon addresses registry",
                         fileLockManager),
                 new DefaultSerializer<DaemonRegistryContent>());
     }
 
     public String toString() {
-        return String.format("PersistentDaemonRegistry[dir=%s]", daemonDir.getDir());
+        return String.format("PersistentDaemonRegistry[file=%s]", registryFile);
     }
 
     public synchronized List<DaemonStatus> getAll() {

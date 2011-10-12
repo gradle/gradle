@@ -15,15 +15,29 @@
  */
 package org.gradle.launcher.daemon.server
 
+import org.gradle.launcher.daemon.registry.DaemonDir
+import org.gradle.logging.LoggingServiceRegistry
+import org.gradle.os.ProcessEnvironment
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.launcher.daemon.registry.DaemonRegistry
-import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
 
 class DaemonServicesTest extends Specification {
-    final DaemonServices services = new DaemonServices()
+    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    final DaemonServices services = new DaemonServices(tmpDir.dir, LoggingServiceRegistry.newEmbeddableLogging())
 
-    def "makes a DaemonRegistry available"() {
+    def "makes a DaemonDir available"() {
         expect:
-        services.get(DaemonRegistry.class) instanceof PersistentDaemonRegistry
+        services.get(DaemonDir.class) != null
+    }
+
+    def "makes a ProcessEnvironment available"() {
+        expect:
+        services.get(ProcessEnvironment.class) != null
+    }
+
+    def "makes a Daemon available"() {
+        expect:
+        services.get(Daemon.class) != null
     }
 }
