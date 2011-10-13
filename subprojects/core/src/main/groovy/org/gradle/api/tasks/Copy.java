@@ -43,7 +43,7 @@ import java.io.File;
  *       exclude '**&#47;*.properties', '**&#47;*.xml'
  *    }
  *    from('src/main/languages') {
- *       rename 'EN_US_(*.)', '$1'
+ *       rename 'EN_US_(.*)', '$1'
  *    }
  *    into 'build/target/config'
  *    exclude '**&#47;*.bak'
