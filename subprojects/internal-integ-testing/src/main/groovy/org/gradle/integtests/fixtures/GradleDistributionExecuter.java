@@ -212,8 +212,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
             forkingGradleExecuter.addGradleOpts(String.format("-Dorg.gradle.daemon.idletimeout=%s", 5 * 60 * 1000));
             returnedExecuter = forkingGradleExecuter;
-        } else {
-            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());
+//        } else {
+//            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());
         }
 
         if (executerType == Executer.embeddedDaemon) {
