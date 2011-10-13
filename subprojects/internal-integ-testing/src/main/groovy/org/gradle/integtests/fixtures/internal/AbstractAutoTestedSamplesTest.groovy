@@ -21,8 +21,9 @@ package org.gradle.integtests.fixtures.internal
  */
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
+     def util = new AutoTestedSamplesUtil()
+
      void runSamplesFrom(String dir) {
-        def util = new AutoTestedSamplesUtil()
         util.findSamples(dir) { file, sample ->
             println "Found sample in $file"
             def buildFile = testFile('build.gradle')
@@ -30,5 +31,14 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
             usingBuildFile(buildFile).withQuietLogging().withTasks('help').withArguments("-s").run()
         }
+    }
+
+    /**
+     * Useful for quick dev cycles when you need to run test against a single file.
+     *
+     * @param includes ant-like includes, e.g. '**\SomeClass.java'
+     */
+    void includeOnly(String includes) {
+        util.includes = includes
     }
 }

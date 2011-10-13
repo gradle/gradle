@@ -21,12 +21,14 @@ package org.gradle.integtests.fixtures.internal
  */
 class AutoTestedSamplesUtil {
 
+    String includes = '**/*.groovy **/*.java'
+
     void findSamples(String dir, Closure runner) {
         def sources = findDir(dir)
         def ant = new AntBuilder()
 
         def list = ant.fileScanner {
-            fileset(dir: sources, includes: '**/*.groovy **/*.java')
+            fileset(dir: sources, includes: includes)
         }
 
         list.each() { runSamplesFromFile(it, runner) }

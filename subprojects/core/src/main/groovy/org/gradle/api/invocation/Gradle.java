@@ -132,6 +132,23 @@ public interface Gradle {
     /**
      * Adds a closure to be called when the projects for the build have been created from the settings.
      * None of the projects have been evaluated. This {@code Gradle} instance is passed to the closure as a parameter.
+     * <p>
+     * An example of hooking into the projectsLoaded to configure buildscript classpath from the init script.
+     * <pre autoTested=''>
+     * //init.gradle
+     * gradle.projectsLoaded {
+     *   rootProject.configure(rootProject) {
+     *     buildscript {
+     *       repositories {
+     *         //...
+     *       }
+     *       dependencies {
+     *         //...
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
      *
      * @param closure The closure to execute.
      */

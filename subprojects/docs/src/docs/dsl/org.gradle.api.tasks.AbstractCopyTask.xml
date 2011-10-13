@@ -32,6 +32,10 @@
                 <td>fileMode</td>
                 <td><literal>0644</literal></td>
             </tr>
+            <tr>
+                <td>includeEmptyDirs</td>
+                <td><literal>true</literal></td>
+            </tr>
         </table>
     </section>
     <section>

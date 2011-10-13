@@ -57,6 +57,9 @@
                 <td>projectsEvaluated</td>
             </tr>
             <tr>
+                <td>projectsLoaded</td>
+            </tr>
+            <tr>
                 <td>buildFinished</td>
             </tr>
             <tr>

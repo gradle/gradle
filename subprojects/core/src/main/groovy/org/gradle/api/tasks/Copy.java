@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 
@@ -27,11 +27,14 @@ import java.io.File;
  * implements {@link org.gradle.api.file.CopySpec CopySpec} for specifying what to copy.
  *
  * <p> Examples:
- * <pre>
+ * <pre autoTested=''>
  * task mydoc(type:Copy) {
  *    from 'src/main/doc'
  *    into 'build/target/doc'
  * }
+ *
+ * //for ant filter
+ * import org.apache.tools.ant.filters.ReplaceTokens
  *
  * task initconfig(type:Copy) {
  *    from('src/main/config') {
@@ -43,10 +46,12 @@ import java.io.File;
  *       exclude '**&#47;*.properties', '**&#47;*.xml'
  *    }
  *    from('src/main/languages') {
- *       rename 'EN_US_(*.)', '$1'
+ *       rename 'EN_US_(.*)', '$1'
  *    }
  *    into 'build/target/config'
  *    exclude '**&#47;*.bak'
+ *
+ *    includeEmptyDirs = false
  * }
  * </pre>
  *
