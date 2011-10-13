@@ -28,7 +28,7 @@ import java.util.Set;
  * by Szczepan Faber, created at: 10/8/11
  */
 public class EntryPointResolverConfigurer {
-    public void configure(ConfigurationInternal configuration, EntryPointResolver resolver) {
+    public void configureResolver(EntryPointResolver resolver, ConfigurationInternal configuration) {
         Set<ForcedVersion> forcedVersions = configuration.getResolutionStrategy().getForcedVersions();
         resolver.setIvyResolutionListener(new MaybeForceVersions(forcedVersions));
     }
