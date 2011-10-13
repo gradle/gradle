@@ -56,6 +56,21 @@ dependencies {
     }
 
     @Test
+    void "ear and war and java plugins"() {
+        file("build.gradle").write("""
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'ear'
+""")
+
+        executer.withTasks('assemble').run()
+
+        file("build/libs/root.jar").assertExists()
+        file("build/libs/root.war").assertExists()
+        file("build/libs/root.ear").assertExists()
+    }
+
+    @Test
     void "customizes ear archive"() {
         file("build.gradle").write("""
 apply plugin: 'ear'

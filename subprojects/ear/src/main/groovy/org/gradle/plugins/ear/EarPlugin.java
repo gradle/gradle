@@ -30,8 +30,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.bundling.War;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import java.util.concurrent.Callable;
@@ -126,7 +128,8 @@ public class EarPlugin implements Plugin<ProjectInternal> {
         }
         ear.setGroup(BasePlugin.BUILD_GROUP);
         Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
-        disableJarTaskAndRemoveFromArchivesConfiguration(project, archivesConfiguration);
+
+        removeJarAndWarTasksFromArchivesConfiguration(project, archivesConfiguration);
         archivesConfiguration.getArtifacts().add(new ArchivePublishArtifact(ear));
     }
 
@@ -156,12 +159,16 @@ public class EarPlugin implements Plugin<ProjectInternal> {
     }
 
     //TODO SF hack duplicated with War plugin
-    private void disableJarTaskAndRemoveFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
+    private void removeJarAndWarTasksFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
 
         Jar jarTask = (Jar) project.getTasks().findByName(JavaPlugin.JAR_TASK_NAME);
         if (jarTask != null) {
-            jarTask.setEnabled(false);
             removeJarTaskFromArchivesConfiguration(archivesConfiguration, jarTask);
+        }
+
+        War warTask = (War) project.getTasks().findByName(WarPlugin.WAR_TASK_NAME);
+        if (warTask != null) {
+            removeWarTaskFromArchivesConfiguration(archivesConfiguration, warTask);
         }
     }
 
@@ -172,6 +179,19 @@ public class EarPlugin implements Plugin<ProjectInternal> {
             if (publishArtifact instanceof ArchivePublishArtifact) {
                 ArchivePublishArtifact archivePublishArtifact = (ArchivePublishArtifact) publishArtifact;
                 if (archivePublishArtifact.getArchiveTask() == jar) {
+                    archivesConfiguration.getArtifacts().remove(publishArtifact);
+                }
+            }
+        }
+    }
+
+    private void removeWarTaskFromArchivesConfiguration(Configuration archivesConfiguration, War war) {
+
+        // todo: There should be a richer connection between an ArchiveTask and a PublishArtifact
+        for (PublishArtifact publishArtifact : archivesConfiguration.getAllArtifacts()) {
+            if (publishArtifact instanceof ArchivePublishArtifact) {
+                ArchivePublishArtifact archivePublishArtifact = (ArchivePublishArtifact) publishArtifact;
+                if (archivePublishArtifact.getArchiveTask() == war) {
                     archivesConfiguration.getArtifacts().remove(publishArtifact);
                 }
             }
