@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
@@ -35,24 +33,22 @@ import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.apache.ivy.util.extendable.UnmodifiableExtendableItem;
-import org.gradle.api.artifacts.ForcedVersion;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Entry point to the resolvers. The delegate contains all the other resolvers. <p> by Szczepan Faber, created at: 10/7/11
+ * Entry point to the resolvers. The delegate contains all the other resolvers.
+ * <p>
+ * by Szczepan Faber, created at: 10/7/11
  */
 public class EntryPointResolver implements DependencyResolver {
 
     private final DependencyResolver delegate;
-    private Set<ForcedVersion> forcedVersions;
     private String name;
+    private IvyResolutionListener ivyResolutionListener;
 
     public EntryPointResolver(DependencyResolver delegate) {
         assert delegate != null : "Delegate cannot be null!";
@@ -68,41 +64,9 @@ public class EntryPointResolver implements DependencyResolver {
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        //TODO SF - this resolver needs to be more generic, for now doing the work here...
-        if (forcedVersions != null) {
-            for (ForcedVersion forced : forcedVersions) {
-                if (ModuleId.newInstance(forced.getGroup(), forced.getName()).equals(dd.getDependencyId())) {
-//                    ModuleRevisionId newRevId = ModuleRevisionId.newInstance(forced.getGroup(), forced.getName(), forced.getVersion());
-//                    DependencyDescriptor forcedVersion = dd.clone(newRevId);
-                    updateFieldValue(dd.getDependencyRevisionId(), "revision", forced.getVersion());
-                    ((Map) getFieldValue(UnmodifiableExtendableItem.class, dd.getDependencyRevisionId(), "attributes"))
-                            .put(IvyPatternHelper.REVISION_KEY, forced.getVersion());
-                    return delegate.getDependency(dd, data);
-                }
-            }
-        }
-
+        assert ivyResolutionListener != null : "ivyResolutionListener was not configured";
+        ivyResolutionListener.beforeMetadataResolved(dd, data);
         return delegate.getDependency(dd, data);
-    }
-
-    private Object getFieldValue(Class targetClass, Object target, String fieldName) {
-        try {
-            Field field = targetClass.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            return field.get(target);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to perform reflection hacks on ivy object.", e);
-        }
-    }
-
-    private void updateFieldValue(Object target, String fieldName, String fieldValue) {
-        try {
-            Field field = target.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(target, fieldValue);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to perform reflection hacks on ivy object.", e);
-        }
     }
 
     public ArtifactOrigin locate(Artifact artifact) {
@@ -183,7 +147,7 @@ public class EntryPointResolver implements DependencyResolver {
         throw new UnsupportedOperationException();
     }
 
-    public void setForcedVersions(Set<ForcedVersion> forcedVersions) {
-        this.forcedVersions = forcedVersions;
+    public void setIvyResolutionListener(IvyResolutionListener ivyResolutionListener) {
+        this.ivyResolutionListener = ivyResolutionListener;
     }
 }
