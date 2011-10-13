@@ -30,12 +30,17 @@ public class NativeEnvironment {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeEnvironment.class);
     
     public static ProcessEnvironment current() {
-        if (OperatingSystem.current().isUnix()) {
-            return new Unix();
-        } else if (OperatingSystem.current().isWindows()) {
-            return new Windows();
-        } else {
-            LOGGER.warn(String.format("Unable to initialize native environment. Updating env variables and working directory will not be possible. Operating system: %s.", OperatingSystem.current()));
+        try {
+            if (OperatingSystem.current().isUnix()) {
+                return new Unix();
+            } else if (OperatingSystem.current().isWindows()) {
+                return new Windows();
+            } else {
+                LOGGER.warn("Unable to initialize native environment. Updating env variables and working directory will not be possible. Operating system: {}", OperatingSystem.current());
+                return new UnsupportedEnvironment();
+            }
+        } catch (NoClassDefFoundError e) {
+            // Thrown when jna cannot initialise the native stuff
             return new UnsupportedEnvironment();
         }
     }
