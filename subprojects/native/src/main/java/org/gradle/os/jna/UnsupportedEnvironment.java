@@ -20,8 +20,13 @@ import org.gradle.os.OperatingSystem;
 import org.gradle.os.ProcessEnvironment;
 
 import java.io.File;
+import java.util.Map;
 
 class UnsupportedEnvironment implements ProcessEnvironment {
+    public boolean maybeSetEnvironment(Map<String, String> source) {
+        return false;
+    }
+
     public void removeEnvironmentVariable(String name) throws NativeIntegrationException {
         throw notSupported();
     }

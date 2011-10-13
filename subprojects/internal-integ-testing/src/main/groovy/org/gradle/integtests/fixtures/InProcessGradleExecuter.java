@@ -32,8 +32,8 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.launcher.env.LenientEnvHacker;
 import org.gradle.os.ProcessEnvironment;
+import org.gradle.os.jna.NativeEnvironment;
 import org.hamcrest.Matcher;
 
 import java.io.File;
@@ -46,7 +46,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private final ProcessEnvironment envHacker = new LenientEnvHacker();
+    private final ProcessEnvironment envHacker = NativeEnvironment.current();
 
     @Override
     protected ExecutionResult doRun() {

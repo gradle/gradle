@@ -16,12 +16,14 @@
 package org.gradle.os.jna
 
 import org.gradle.os.ProcessEnvironment
-import spock.lang.Specification
-import org.junit.Rule
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder
+import org.junit.Rule
+import spock.lang.Specification
 
 class NativeEnvironmentTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final ProcessEnvironment env = NativeEnvironment.current()
 
     def "can set and remove environment variable"() {

@@ -25,10 +25,6 @@ class Unix extends AbstractNativeEnvironment {
     private final UnixLibC libc = (UnixLibC) Native.loadLibrary("c", UnixLibC.class);
 
     public void setNativeEnvironmentVariable(String name, String value) {
-        if (value == null) {
-            removeEnvironmentVariable(name);
-            return;
-        }
         int retval = libc.setenv(name, value, 1);
         if (retval != 0) {
             throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, libc.errno()));

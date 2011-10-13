@@ -33,7 +33,7 @@ class Windows extends AbstractNativeEnvironment {
     }
 
     public void removeNativeEnvironmentVariable(String name) {
-        setEnvironmentVariable(name, null);
+        setNativeEnvironmentVariable(name, null);
     }
 
     public void setNativeProcessDir(File dir) {

@@ -18,10 +18,24 @@ package org.gradle.os.jna;
 import org.gradle.os.*;
 
 import java.io.File;
+import java.util.LinkedList;
+import java.util.Map;
 
 public abstract class AbstractNativeEnvironment implements ProcessEnvironment {
     //for updates to private JDK caches of the environment state
     private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
+
+    public boolean maybeSetEnvironment(Map<String, String> source) {
+        Map<String, String> currentEnv = System.getenv();
+        Iterable<String> names = new LinkedList<String>(currentEnv.keySet());
+        for (String name : names) {
+            removeEnvironmentVariable(name);
+        }
+        for (String key : source.keySet()) {
+            setEnvironmentVariable(key, source.get(key));
+        }
+        return true;
+    }
 
     public void removeEnvironmentVariable(String name) throws NativeIntegrationException {
         removeNativeEnvironmentVariable(name);
@@ -36,6 +50,11 @@ public abstract class AbstractNativeEnvironment implements ProcessEnvironment {
     }
 
     public void setEnvironmentVariable(String name, String value) throws NativeIntegrationException {
+        if (value == null) {
+            removeEnvironmentVariable(name);
+            return;
+        }
+
         setNativeEnvironmentVariable(name, value);
         reflectiveEnvironment.setenv(name, value);
     }

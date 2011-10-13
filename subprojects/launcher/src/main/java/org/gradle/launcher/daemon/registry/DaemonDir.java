@@ -20,6 +20,7 @@ import org.gradle.os.ProcessEnvironment;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.util.UUID;
 
 /**
  * @author: Szczepan Faber, created at: 8/20/11
@@ -47,6 +48,7 @@ public class DaemonDir {
 
     //very simplistic, just making sure each damon has unique log file
     public File createUniqueLog() {
-        return new File(dir, String.format("daemon-%s.out.log", processEnvironment.getPid()));
+        Long pid = processEnvironment.maybeGetPid();
+        return new File(dir, String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid));
     }
 }

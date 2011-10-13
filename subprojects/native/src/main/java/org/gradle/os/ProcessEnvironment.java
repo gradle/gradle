@@ -16,6 +16,7 @@
 package org.gradle.os;
 
 import java.io.File;
+import java.util.Map;
 
 /**
  * Provides access to information about the current process.
@@ -23,6 +24,14 @@ import java.io.File;
  * <p>Implementations are not thread-safe.</p>
  */
 public interface ProcessEnvironment {
+    /**
+     * Sets the environment of this process, if possible.
+     *
+     * @param source The environment
+     * @return true if environment changed, false if not possible.
+     */
+    public boolean maybeSetEnvironment(Map<String, String> source);
+
     /**
      * Removes the given environment variable.
      *
@@ -43,7 +52,7 @@ public interface ProcessEnvironment {
      * Sets the given environment variable.
      *
      * @param name The name
-     * @param value The value
+     * @param value The value. Can be null, which removes the environment variable.
      * @throws NativeIntegrationException If the environment variable cannot be set.
      */
     void setEnvironmentVariable(String name, String value) throws NativeIntegrationException;
