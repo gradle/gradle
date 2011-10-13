@@ -15,22 +15,23 @@
  */
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.*
+import spock.lang.Issue
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-public class JUnitIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
+public class JUnitIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resources = new TestResources()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Test
     public void executesTestsInCorrectEnvironment() {
-        TestFile testDir = dist.testDir;
         executer.withTasks('build').run();
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
@@ -57,7 +58,7 @@ public class JUnitIntegrationTest {
         resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
         executer.withTasks('check').run()
 
-        def result = new JUnitTestExecutionResult(dist.testDir)
+        def result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest')
         result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
@@ -72,7 +73,7 @@ public class JUnitIntegrationTest {
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         executer.withTasks('check').run()
 
-        def result = new JUnitTestExecutionResult(dist.testDir)
+        def result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Junit3Test')
         result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
@@ -85,7 +86,7 @@ public class JUnitIntegrationTest {
         resources.maybeCopy('JUnitIntegrationTest/junit4_4Tests')
         executer.withTasks('check').run()
 
-        def result = new JUnitTestExecutionResult(dist.testDir)
+        def result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest')
         result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
@@ -97,7 +98,6 @@ public class JUnitIntegrationTest {
 
     @Test
     public void reportsAndBreaksBuildWhenTestFails() {
-        TestFile testDir = dist.getTestDir();
         ExecutionFailure failure = executer.withTasks('build').runWithFailure();
 
         failure.assertHasDescription("Execution failed for task ':test'.");
@@ -139,7 +139,7 @@ public class JUnitIntegrationTest {
     @Test
     public void canRunSingleTests() {
         executer.withTasks('test').withArguments('-Dtest.single=Ok2').run()
-        def result = new JUnitTestExecutionResult(dist.testDir)
+        def result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('Ok2')
 
         executer.withTasks('cleanTest', 'test').withArguments('-Dtest.single=Ok').run()
@@ -154,7 +154,6 @@ public class JUnitIntegrationTest {
 
     @Test
     public void canUseTestSuperClassesFromAnotherProject() {
-        TestFile testDir = dist.getTestDir();
         testDir.file('settings.gradle').write("include 'a', 'b'");
         testDir.file('b/build.gradle') << '''
             apply plugin: 'java'
@@ -188,7 +187,6 @@ public class JUnitIntegrationTest {
 
     @Test
     public void canExcludeSuperClassesFromExecution() {
-        TestFile testDir = dist.getTestDir();
         TestFile buildFile = testDir.file('build.gradle');
         buildFile << '''
             apply plugin: 'java'
@@ -219,7 +217,7 @@ public class JUnitIntegrationTest {
     public void detectsTestClasses() {
         executer.withTasks('test').run()
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(dist.testDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.EmptyRunWithSubclass', 'org.gradle.TestsOnInner', 'org.gradle.TestsOnInner$SomeInner')
         result.testClass('org.gradle.EmptyRunWithSubclass').assertTestsExecuted('ok')
         result.testClass('org.gradle.EmptyRunWithSubclass').assertTestPassed('ok')
@@ -229,7 +227,6 @@ public class JUnitIntegrationTest {
 
     @Test
     public void runsAllTestsInTheSameForkedJvm() {
-        TestFile testDir = dist.getTestDir();
         testDir.file('build.gradle').writelns(
                 "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
@@ -263,7 +260,6 @@ public class JUnitIntegrationTest {
 
     @Test
     public void canSpecifyMaximumNumberOfTestClassesToExecuteInAForkedJvm() {
-        TestFile testDir = dist.getTestDir();
         testDir.file('build.gradle').writelns(
                 "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
@@ -299,7 +295,6 @@ public class JUnitIntegrationTest {
 
     @Test
     public void canListenForTestResults() {
-        TestFile testDir = dist.getTestDir();
         testDir.file('src/main/java/AppException.java').writelns(
                 "public class AppException extends Exception { }"
         );
@@ -356,7 +351,6 @@ public class JUnitIntegrationTest {
 
     @Test
     public void canListenForTestResultsWhenJUnit3IsUsed() {
-        TestFile testDir = dist.getTestDir();
         testDir.file('src/test/java/SomeTest.java').writelns(
                 "public class SomeTest extends junit.framework.TestCase {",
                 "public void testPass() { }",
@@ -395,9 +389,62 @@ public class JUnitIntegrationTest {
     public void canHaveMultipleTestTaskInstances() {
         executer.withTasks('check').run()
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(dist.testDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Test1', 'org.gradle.Test2')
         result.testClass('org.gradle.Test1').assertTestPassed('ok')
         result.testClass('org.gradle.Test2').assertTestPassed('ok')
+    }
+
+    @Test
+    @Issue("GRADLE-1009")
+    public void "standard output is shown when tests are executed"() {
+        def test = file("src/test/java/SomeTest.java")
+        test << """
+import org.junit.*;
+
+public class SomeTest {
+    @Test
+    public void showsOutputWhenPassing() {
+        System.out.println("passing");
+        Assert.assertTrue(true);
+    }
+
+    @Test
+    public void showsOutputWhenFailing() {
+        System.out.println("failing");
+        Assert.assertTrue(false);
+    }
+}
+"""
+        def buildFile = file('build.gradle')
+        buildFile << """
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "junit:junit:4.8.2"
+}
+
+test.addOutputListener(new VerboseOutputListener(logger: project.logger))
+
+class VerboseOutputListener implements OutputListener {
+
+    def logger
+
+    public void onOutput(String output) {
+        logger.lifecycle(output);
+    }
+}
+"""
+
+        //when
+        def failure = executer.withTasks('test').runWithFailure()
+
+        //then
+        assert failure.output.contains('passing')
+        assert failure.output.contains('failing')
     }
 }

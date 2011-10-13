@@ -24,17 +24,19 @@ import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.gradle.util.Matchers.*
+import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.junit.Assert.assertThat
 
 @RunWith(JMock.class)
+@Ignore
 class TestListenerAdapterTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final TestListener listener = context.mock(TestListener.class)
-    private final TestListenerAdapter adapter = new TestListenerAdapter(listener)
+    private final TestListenerAdapter adapter = new TestListenerAdapter(listener, testLogging.getOutputBroadcast().getSource())
 
     @Test
     public void createsAResultForATest() {
