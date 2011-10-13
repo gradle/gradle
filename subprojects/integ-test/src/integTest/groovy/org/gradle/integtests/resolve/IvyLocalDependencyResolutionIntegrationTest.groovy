@@ -64,6 +64,49 @@ task retrieve(type: Sync) {
         file('libs/projectB-9-beta.jar').assertIsCopyOf(moduleB.jarFile)
     }
 
+    public void "uses latest version from version range"() {
+        distribution.requireOwnUserHomeDir()
+        def repo = ivyRepo()
+
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        artifactPattern "${repo.rootDir.toURI()}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile "group:projectA:1.+"
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        when:
+        def version1 = repo.module("group", "projectA", "1.1")
+        version1.publishArtifact()
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.1.jar')
+        file('libs/projectA-1.1.jar').assertIsCopyOf(version1.jarFile)
+
+        when:
+        def version2 = repo.module("group", "projectA", "1.2")
+        version2.publishArtifact()
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+        file('libs/projectA-1.2.jar').assertIsCopyOf(version2.jarFile)
+    }
+
     IvyRepository ivyRepo() {
         return new IvyRepository(file('ivy-repo'))
     }

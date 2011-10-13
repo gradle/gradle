@@ -58,7 +58,7 @@ class IvyModule {
         return moduleDir.file("ivy-${revision}.xml")
     }
 
-    File getJarFile() {
+    TestFile getJarFile() {
         return moduleDir.file("$module-${revision}.jar")
     }
 
