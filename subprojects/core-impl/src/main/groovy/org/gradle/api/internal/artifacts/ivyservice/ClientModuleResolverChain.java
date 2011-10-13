@@ -33,6 +33,8 @@ import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +46,7 @@ import java.util.Map;
  * Artifact download is delegated to user-defined resolver chain.
  */
 public class ClientModuleResolverChain implements DependencyResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientModuleResolverChain.class);
     private final ClientModuleResolver clientModuleResolver;
     private final DependencyResolver userResolverChain;
     private String name;
@@ -64,6 +67,7 @@ public class ClientModuleResolverChain implements DependencyResolver {
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
         ResolvedModuleRevision clientModuleDependency = clientModuleResolver.getDependency(dd, data);
         if (clientModuleDependency != null) {
+            LOGGER.debug("Found client module:", clientModuleDependency);
             return clientModuleDependency;
         }
         return userResolverChain.getDependency(dd, data);

@@ -29,6 +29,8 @@ import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.GradleException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.text.ParseException;
@@ -37,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CacheFirstChainResolver extends ChainResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CacheFirstChainResolver.class);
     
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
 
@@ -47,21 +50,19 @@ public class CacheFirstChainResolver extends ChainResolver {
         for (DependencyResolver resolver : getResolvers()) {
             ResolvedModuleRevision cachedModule = findModuleInCache(resolver, dd, data);
             if (cachedModule != null) {
-                rememberResolverForRevision(cachedModule);
+                LOGGER.debug("Found module {} in resolver cache {}", cachedModule, resolver.getName());
+                artifactResolvers.put(cachedModule.getId(), resolver);
                 return cachedModule;
             }
         }
 
         // Otherwise delegate to the regular chain (each resolver will re-check cache)
         ResolvedModuleRevision downloadedModule = super.getDependency(dd, data);
-        rememberResolverForRevision(downloadedModule);
-        return downloadedModule;
-    }
-
-    private void rememberResolverForRevision(ResolvedModuleRevision moduleRevision) {
-        if (moduleRevision != null) {
-            artifactResolvers.put(moduleRevision.getId(), moduleRevision.getArtifactResolver());
+        if (downloadedModule != null) {
+            LOGGER.debug("Found module {} using resolver {}", downloadedModule, downloadedModule.getArtifactResolver());
+            artifactResolvers.put(downloadedModule.getId(), downloadedModule.getArtifactResolver());
         }
+        return downloadedModule;
     }
 
     @Override
@@ -73,10 +74,12 @@ public class CacheFirstChainResolver extends ChainResolver {
             Artifact[] singleArtifact = {artifact};
             // If possible, download from same artifactResolver that provided meta-data
             if (artifactResolver != null && artifactResolver != this) {
+                LOGGER.debug("Attempting to download artifact {} using resolver {}", artifact, artifactResolver);
                 downloadReport = artifactResolver.download(singleArtifact, options);
             } else {
                 // Use default behaviour for client module artifacts, which use entire chain as module artifactResolver (and any other unexpected cases)
                 // TODO Try all repositories for cached artifact first
+                LOGGER.debug("Attempting to download {} using all resolvers", artifact);
                 downloadReport = super.download(singleArtifact, options);
             }
             ArtifactDownloadReport artifactDownloadReport = downloadReport.getArtifactReport(artifact);
