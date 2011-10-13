@@ -40,7 +40,7 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile "group:projectA:1.+"
+    compile group: "group", name: "projectA", version: "1.+"
 }
 
 task retrieve(type: Sync) {
@@ -79,12 +79,13 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.2.jar').assertIsCopyOf(version2.jarFile)
     }
 
-
+    // This doesn't work as expected - need to implement our own dynamic revision mechanism
     @Ignore
-    public void "uses cached dynamic revision resolved from an ivy HTTP repository until the timeout is reached"() {
+    public void "detects changed artifact when flagged as changing"() {
         distribution.requireOwnUserHomeDir()
         server.start()
 
+        given:
         buildFile << """
 repositories {
     ivy { url "http://localhost:${server.port}/repo" }
@@ -93,44 +94,45 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile "group:projectA:1.+"
+    compile group: "group", name: "projectA", version: "1.1", changing: true
 }
 
-task retrieve(type: Sync) {
+task retrieve(type: Copy) {
     into 'build'
     from configurations.compile
 }
 """
 
-        // Publish the first snapshot
+        and:
         def module = ivyRepo().module("group", "projectA", "1.1")
         module.publishArtifact()
 
-        // Retrieve the first snapshot
+        when:
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
 
         run 'retrieve'
 
+        then:
         def jarFile = file('build/projectA-1.1.jar')
         jarFile.assertIsCopyOf(module.jarFile)
         def snapshot = jarFile.snapshot()
 
-        // Publish a newer version
-        def module2 = ivyRepo().module("group", "projectA", "1.2")
-        module2.publishArtifact()
+        when:
+        module.publishWithChangedContent()
+        // TODO: Should cache with a timeout: check that the cached file is used prior to timeout
 
         server.resetExpectations()
-        // TODO - these should not be here
+        // Server will be hit to get updated versions
+        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
 
-        // Retrieve again should use cached snapshot, and should not hit the server
-        executer.withTasks('retrieve').run().assertTasksSkipped(':retrieve')
-        jarFile.assertHasNotChangedSince(snapshot)
+        run 'retrieve'
 
-        // Retrieve again with zero timeout should download and use updated snapshot
-        server.resetExpectations()
-        executer.withTasks('retrieve').withArguments("-PnoTimeout").run().assertTasksNotSkipped(':retrieve')
-        jarFile.assertIsCopyOf(module2.jarFile)
+        then:
+        jarFile.assertHasChangedSince(snapshot)
+        jarFile.assertIsCopyOf(module.jarFile)
+
     }
 
     IvyRepository ivyRepo() {
