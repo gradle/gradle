@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.env;
-
-import org.gradle.os.NativeIntegrationException;
-import org.gradle.os.OperatingSystem;
+package org.gradle.os;
 
 import java.lang.reflect.Field;
 import java.util.Map;

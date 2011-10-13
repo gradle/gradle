@@ -17,9 +17,8 @@
 package org.gradle.launcher.env;
 
 
-import org.gradle.launcher.env.LenientEnvHacker.EnvironmentProvider
-import org.gradle.util.GUtil
 import org.gradle.os.OperatingSystem
+import org.gradle.util.GUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.rules.TestName
@@ -117,23 +116,6 @@ class LenientEnvHackerTest extends Specification {
             assert "one" == System.getenv(test.methodName.toUpperCase())
             assert "one" == System.getenv(test.methodName.toLowerCase())
          }
-    }
-
-    def "does not explode when local environment cannot be initialized"() {
-        given:
-        def provider = Mock(EnvironmentProvider)
-        provider.environment >> { throw new RuntimeException("You are using some awkward OS we don't know how to handle!") }
-
-        hacker = new LenientEnvHacker(provider)
-
-        when:
-        hacker.setEnvironmentVariable(test.methodName, "bar")
-        hacker.setenv(GUtil.map())
-        hacker.processDir
-        hacker.processDir = new File("foo")
-
-        then:
-        noExceptionThrown()
     }
 
     def "updates current work dir of the process"() {

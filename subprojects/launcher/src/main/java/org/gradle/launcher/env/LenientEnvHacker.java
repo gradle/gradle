@@ -17,10 +17,8 @@
 package org.gradle.launcher.env;
 
 import org.gradle.api.internal.Factory;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.os.OperatingSystem;
 import org.gradle.os.ProcessEnvironment;
+import org.gradle.os.jna.NativeEnvironment;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -33,7 +31,6 @@ import java.util.Map;
  */
 public class LenientEnvHacker implements ProcessEnvironment {
 
-    private static final Logger LOGGER = Logging.getLogger(LenientEnvHacker.class);
     private ProcessEnvironment env;
 
     public LenientEnvHacker() {
@@ -41,73 +38,60 @@ public class LenientEnvHacker implements ProcessEnvironment {
     }
 
     public LenientEnvHacker(Factory<? extends ProcessEnvironment> provider) {
-        try {
-            this.env = provider.create();
-        } catch (Throwable t) {
-            String warning = String.format("Unable to initialize native environment. Updating env variables will not be possible. Operation system: %s.", OperatingSystem.current());
-            LOGGER.warn(warning, t);
-            this.env = null;
-        }
+        this.env = provider.create();
     }
 
     public void removeEnvironmentVariable(String name) {
-        if (env == null) {
-            return;
-        }
         env.removeEnvironmentVariable(name);
     }
 
+    public boolean maybeRemoveEnvironmentVariable(String name) {
+        return env.maybeRemoveEnvironmentVariable(name);
+    }
+
     public void setEnvironmentVariable(String key, String value) {
-        if (env == null) {
-            return;
-        }
         env.setEnvironmentVariable(key, value);
+    }
+
+    public boolean maybeSetEnvironmentVariable(String name, String value) {
+        return env.maybeSetEnvironmentVariable(name, value);
     }
 
     //Existing system env is removed and passed env map becomes the system env.
     public void setenv(Map<String, String> source) {
-        if (env == null) {
-            return;
-        }
         Map<String, String> currentEnv = System.getenv();
         Iterable<String> names = new LinkedList<String>(currentEnv.keySet());
         for (String name : names) {
-            env.removeEnvironmentVariable(name);
+            env.maybeRemoveEnvironmentVariable(name);
         }
         for (String key : source.keySet()) {
-            env.setEnvironmentVariable(key, source.get(key));
+            env.maybeSetEnvironmentVariable(key, source.get(key));
         }
     }
 
     public File getProcessDir() {
-        if (env == null) {
-            return null;
-        }
         return env.getProcessDir();
     }
 
     public void setProcessDir(File dir) {
-        if (!dir.exists()) {
-            return;
-        }
-
-        System.setProperty("user.dir", dir.getAbsolutePath());
-        if (env == null) {
-            return;
-        }
         env.setProcessDir(dir);
     }
 
+    public boolean maybeSetProcessDir(File processDir) {
+        return env.maybeSetProcessDir(processDir);
+    }
+
     public Long getPid() {
-        if (env == null) {
-            return null;
-        }
         return env.getPid();
+    }
+
+    public Long maybeGetPid() {
+        return env.maybeGetPid();
     }
 
     static class EnvironmentProvider implements Factory<ProcessEnvironment> {
         public ProcessEnvironment create() {
-            return new Environment();
+            return NativeEnvironment.current();
         }
     }
 }
