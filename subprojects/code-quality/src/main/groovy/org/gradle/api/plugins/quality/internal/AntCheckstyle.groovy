@@ -21,14 +21,14 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.AntBuilderAware
 
 class AntCheckstyle {
-    def checkstyle(AntBuilder ant, FileCollection source, File configFile, File resultFile, AntBuilderAware classpath, Map<String, ?> properties, boolean usePlainFormatter, boolean ignoreFailures) {
+    def checkstyle(AntBuilder ant, FileCollection source, File configFile, File resultFile, AntBuilderAware classpath, Map<String, ?> properties, boolean displayViolations, boolean ignoreFailures) {
         String propertyName = "org.gradle.checkstyle.violations"
 
         ant.project.addTaskDefinition('checkstyle', getClass().classLoader.loadClass('com.puppycrawl.tools.checkstyle.CheckStyleTask'))
         ant.checkstyle(config: configFile, failOnViolation: false, failureProperty: propertyName) {
             source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
             classpath.addToAntBuilder(ant, 'classpath')
-            if (usePlainFormatter) {
+            if (displayViolations) {
                 formatter(type: 'plain', useFile: false)
             }
             formatter(type: 'xml', toFile: resultFile)

@@ -37,13 +37,13 @@ public class Checkstyle extends SourceTask implements VerificationTask {
 
     private AntCheckstyle antCheckstyle = new AntCheckstyle();
 
-    private boolean usePlainFormatter = true;
+    private boolean displayViolations = true;
 
     private boolean ignoreFailures;
 
     @TaskAction
     public void check() {
-        antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties(), isUsePlainFormatter(), isIgnoreFailures());
+        antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties(), isDisplayViolations(), isIgnoreFailures());
     }
 
     /**
@@ -138,17 +138,17 @@ public class Checkstyle extends SourceTask implements VerificationTask {
      *
      * @return The configuration file.
      */
-    public boolean isUsePlainFormatter() {
-        return usePlainFormatter;
+    public boolean isDisplayViolations() {
+        return displayViolations;
     }
 
     /**
      * Specifies Whether or not to use the Plain Formatter.
      *
-     * @param usePlainFormatter Whether or not to use Plain Formatter.
+     * @param displayViolations Whether or not to use Plain Formatter.
      */
-    public Checkstyle setUsePlainFormatter(boolean usePlainFormatter) {
-        this.usePlainFormatter = usePlainFormatter;
+    public Checkstyle setDisplayViolations(boolean displayViolations) {
+        this.displayViolations = displayViolations;
         return this;
     }
 }

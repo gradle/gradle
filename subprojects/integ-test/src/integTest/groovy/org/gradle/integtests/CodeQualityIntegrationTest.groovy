@@ -110,7 +110,7 @@ apply plugin: 'code-quality'
     }
 
     @Test
-    public void checkstyleViolationWithUsePlainFormatterDefaultShouldOutputViolationsToError() {
+    public void checkstyleViolationWithDisplayViolationsDefaultShouldOutputViolationsToError() {
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
@@ -129,13 +129,13 @@ apply plugin: 'code-quality'
     }
 
     @Test
-    public void checkstyleViolationWithUsePlainFormatterTrueShouldOutputViolationsToError() {
+    public void checkstyleViolationWithDisplayViolationsTrueShouldOutputViolationsToError() {
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 
 checkstyleMain {
-    usePlainFormatter = true
+    displayViolations = true
 }
 '''
         writeCheckstyleConfig()
@@ -151,13 +151,13 @@ checkstyleMain {
         assertThat(failure.error, containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'."));
     }
     @Test
-    public void checkstyleViolationWithUsePlainFormatterFalseShouldNotOutputViolationsToError() {
+    public void checkstyleViolationWithDisplayViolationsFalseShouldNotOutputViolationsToError() {
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 
 checkstyleMain {
-    usePlainFormatter = false
+    displayViolations = false
 }
 '''
         writeCheckstyleConfig()
