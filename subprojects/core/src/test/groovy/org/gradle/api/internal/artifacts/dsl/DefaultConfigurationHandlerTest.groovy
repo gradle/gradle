@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-import groovy.lang.MissingMethodException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
