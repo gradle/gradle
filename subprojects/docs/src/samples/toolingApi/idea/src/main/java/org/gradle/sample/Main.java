@@ -1,5 +1,9 @@
 package org.gradle.sample;
 
+import org.gradle.tooling.*;
+import org.gradle.tooling.model.*;
+import org.gradle.tooling.model.idea.*;
+
 import java.io.File;
 
 public class Main {
