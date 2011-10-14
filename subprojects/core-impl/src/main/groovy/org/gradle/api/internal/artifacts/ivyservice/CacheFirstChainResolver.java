@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
+import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
@@ -65,34 +66,11 @@ public class CacheFirstChainResolver extends ChainResolver {
         return downloadedModule;
     }
 
-    @Override
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        DownloadReport overallReport = new DownloadReport();
-        for (Artifact artifact : artifacts) {
-            DependencyResolver artifactResolver = artifactResolvers.get(artifact.getModuleRevisionId());
-            DownloadReport downloadReport;
-            Artifact[] singleArtifact = {artifact};
-            // If possible, download from same artifactResolver that provided meta-data
-            if (artifactResolver != null && artifactResolver != this) {
-                LOGGER.debug("Attempting to download artifact {} using resolver {}", artifact, artifactResolver);
-                downloadReport = artifactResolver.download(singleArtifact, options);
-            } else {
-                // Use default behaviour for client module artifacts, which use entire chain as module artifactResolver (and any other unexpected cases)
-                // TODO Try all repositories for cached artifact first
-                LOGGER.debug("Attempting to download {} using all resolvers", artifact);
-                downloadReport = super.download(singleArtifact, options);
-            }
-            ArtifactDownloadReport artifactDownloadReport = downloadReport.getArtifactReport(artifact);
-            overallReport.addArtifactReport(artifactDownloadReport);
-        }
-        return overallReport;
-     }
-
     private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd, ResolveData resolveData) {
         CacheMetadataOptions cacheOptions = getCacheMetadataOptions(resolver, resolveData);
         return resolver.getRepositoryCacheManager().findModuleInCache(dd, dd.getDependencyRevisionId(), cacheOptions, resolver.getName());
     }
-    
+
     private CacheMetadataOptions getCacheMetadataOptions(DependencyResolver resolver, ResolveData resolveData) {
         if (resolver instanceof AbstractResolver) {
             try {
@@ -104,6 +82,47 @@ public class CacheFirstChainResolver extends ChainResolver {
             }
         }
         return new CacheMetadataOptions();
+    }
+
+    @Override
+    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
+        DownloadReport overallReport = new DownloadReport();
+        for (Artifact artifact : artifacts) {
+            DependencyResolver artifactResolver = artifactResolvers.get(artifact.getModuleRevisionId());
+            ArtifactDownloadReport artifactDownloadReport;
+            // If possible, download from same artifactResolver that provided meta-data
+            if (artifactResolver != null && artifactResolver != this) {
+                artifactDownloadReport = downloadFromSingleRepository(artifactResolver, artifact, options);
+            } else {
+                artifactDownloadReport = downloadFromAnyRepository(artifact, options);
+            }
+            overallReport.addArtifactReport(artifactDownloadReport);
+        }
+        return overallReport;
+     }
+
+    private ArtifactDownloadReport downloadFromSingleRepository(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
+        LOGGER.debug("Attempting to download artifact {} using resolver {}", artifact, artifactResolver);
+        DownloadReport downloadReport = artifactResolver.download(new Artifact[]{artifact}, options);
+        return downloadReport.getArtifactReport(artifact);
+    }
+
+    private ArtifactDownloadReport downloadFromAnyRepository(Artifact artifact, DownloadOptions options) {
+        // Check all of the resolvers in turn, stopping at the first successful match
+        Artifact[] singleArtifact = {artifact};
+        // TODO Try all repositories for cached artifact first
+        LOGGER.debug("Attempting to download {} using all resolvers", artifact);
+        for (DependencyResolver resolver : getResolvers()) {
+            DownloadReport downloadReport = resolver.download(singleArtifact, options);
+            ArtifactDownloadReport artifactDownload = downloadReport.getArtifactReport(artifact);
+            if (artifactDownload.getDownloadStatus() != DownloadStatus.FAILED) {
+                return artifactDownload;
+            }
+        }
+
+        ArtifactDownloadReport failedDownload = new ArtifactDownloadReport(artifact);
+        failedDownload.setDownloadStatus(DownloadStatus.FAILED);
+        return failedDownload;
     }
 
     @Override
