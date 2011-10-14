@@ -30,14 +30,14 @@ public class DefaultTestResult implements TestResult, Serializable {
     private final long successfulCount;
     private final long failedCount;
 
-    public DefaultTestResult(ResultType result, List<Throwable> failures, long startTime, long endTime, long testCount, long successfulCount, long failedCount) {
-        this.failures = failures;
-        this.result = result;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.testCount = testCount;
-        this.successfulCount = successfulCount;
-        this.failedCount = failedCount;
+    public DefaultTestResult(TestState state) {
+        this.failures = state.failures;
+        this.result = state.resultType;
+        this.startTime = state.getStartTime();
+        this.endTime = state.getEndTime();
+        this.testCount = state.testCount;
+        this.successfulCount = state.successfulCount;
+        this.failedCount = state.failedCount;
     }
 
     public ResultType getResultType() {

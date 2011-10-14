@@ -15,296 +15,170 @@
  */
 package org.gradle.api.internal.tasks.testing.results
 
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
-import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.api.tasks.testing.OutputListener
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.TestResult.ResultType
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Ignore
 import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Ignore
+import spock.lang.Specification
+import org.gradle.api.internal.tasks.testing.*
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-@RunWith(JMock.class)
-@Ignore
-class TestListenerAdapterTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final TestListener listener = context.mock(TestListener.class)
-    private final TestListenerAdapter adapter = new TestListenerAdapter(listener, testLogging.getOutputBroadcast().getSource())
+class TestListenerAdapterTest extends Specification {
 
-    @Test
-    public void createsAResultForATest() {
-        TestDescriptorInternal test = test('id')
+    def listener = Mock(TestListener.class)
+    def outputListener = Mock(OutputListener.class)
+    TestListenerAdapter adapter = new TestListenerAdapter(listener, outputListener)
 
-        context.checking {
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(t.parent, nullValue())
-            }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptor t, TestResult result ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(result.resultType, equalTo(ResultType.SUCCESS))
-                assertThat(result.exception, nullValue())
-                assertThat(result.exceptions, isEmpty())
-                assertThat(result.startTime, equalTo(100L))
-                assertThat(result.endTime, equalTo(200L))
-                assertThat(result.testCount, equalTo(1L))
-                assertThat(result.successfulTestCount, equalTo(1L))
-                assertThat(result.failedTestCount, equalTo(0L))
-            }
-        }
+    public void notifiesBefore() {
+        given:
+        TestDescriptor test = new DefaultTestDescriptor("id", "Foo", "bar");
 
+        when:
         adapter.started(test, new TestStartEvent(100L))
-        adapter.completed('id', new TestCompleteEvent(200L))
+
+        then:
+        1 * listener.beforeTest({ it instanceof DecoratingTestDescriptor && it.descriptor == test })
+        0 * _._
     }
 
-    @Test
+    public void notifiesAfter() {
+        given:
+        TestDescriptor test = new DefaultTestDescriptor("id", "Foo", "bar");
+
+        when:
+        adapter.started(test, new TestStartEvent(100L))
+        adapter.completed('id', new TestCompleteEvent(200L))
+
+        then:
+        1 * listener.beforeTest(_)
+        1 * listener.afterTest(
+                { it instanceof DecoratingTestDescriptor && it.descriptor == test },
+                { it.successfulTestCount == 1 && it.testCount == 1 && it.failedTestCount == 0 }
+        )
+        0 * _._
+    }
+
     public void createsAResultForATestWithFailure() {
+        given:
         RuntimeException failure = new RuntimeException()
+        TestDescriptor test = new DefaultTestDescriptor("15", "Foo", "bar");
 
-        TestDescriptorInternal test = test('id')
-
-        context.checking {
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(t.parent, nullValue())
-            }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptor t, TestResult result ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(result.resultType, equalTo(ResultType.FAILURE))
-                assertThat(result.exception, sameInstance(failure))
-                assertThat(result.exceptions, equalTo([failure]))
-                assertThat(result.startTime, equalTo(100L))
-                assertThat(result.endTime, equalTo(200L))
-                assertThat(result.testCount, equalTo(1L))
-                assertThat(result.successfulTestCount, equalTo(0L))
-                assertThat(result.failedTestCount, equalTo(1L))
-            }
-        }
-
+        when:
         adapter.started(test, new TestStartEvent(100L))
-        adapter.failure('id', failure)
-        adapter.completed('id', new TestCompleteEvent(200L))
+        adapter.failure('15', failure)
+        adapter.completed('15', new TestCompleteEvent(200L))
+
+        then:
+        1 * listener.beforeTest(_)
+        1 * listener.afterTest( { it.descriptor == test },
+            { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 1 && it.exception.is(failure) })
+        0 * _._
     }
 
-    @Test
     public void createsAResultForATestWithMultipleFailures() {
+        given:
         RuntimeException failure1 = new RuntimeException()
         RuntimeException failure2 = new RuntimeException()
+        TestDescriptor test = new DefaultTestDescriptor("15", "Foo", "bar");
 
-        TestDescriptorInternal test = test('id')
-
-        context.checking {
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(t.parent, nullValue())
-            }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptor t, TestResult result ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(result.resultType, equalTo(ResultType.FAILURE))
-                assertThat(result.exception, sameInstance(failure1))
-                assertThat(result.exceptions, equalTo([failure1, failure2]))
-                assertThat(result.startTime, equalTo(100L))
-                assertThat(result.endTime, equalTo(200L))
-                assertThat(result.testCount, equalTo(1L))
-                assertThat(result.successfulTestCount, equalTo(0L))
-                assertThat(result.failedTestCount, equalTo(1L))
-            }
-        }
-
+        when:
         adapter.started(test, new TestStartEvent(100L))
-        adapter.failure('id', failure1)
-        adapter.failure('id', failure2)
-        adapter.completed('id', new TestCompleteEvent(200L))
+        adapter.failure('15', failure1)
+        adapter.failure('15', failure2)
+        adapter.completed('15', new TestCompleteEvent(200L))
+
+        then:
+        1 * listener.afterTest(_,
+            { it.exception.is(failure1) && it.exceptions == [failure1, failure2] })
     }
 
-    @Test
-    public void createsAResultForASkippedTest() {
-        TestDescriptorInternal test = test('id')
-
-        context.checking {
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(t.parent, nullValue())
-            }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptor t, TestResult result ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(result.resultType, equalTo(ResultType.SKIPPED))
-                assertThat(result.exception, nullValue())
-                assertThat(result.exceptions, isEmpty())
-                assertThat(result.startTime, equalTo(100L))
-                assertThat(result.endTime, equalTo(200L))
-                assertThat(result.testCount, equalTo(1L))
-                assertThat(result.successfulTestCount, equalTo(0L))
-                assertThat(result.failedTestCount, equalTo(0L))
-            }
-        }
-
-        adapter.started(test, new TestStartEvent(100L))
-        adapter.completed('id', new TestCompleteEvent(200L, ResultType.SKIPPED))
-    }
-
-    @Test
     public void createsAnAggregateResultForEmptyTestSuite() {
-        TestDescriptorInternal suite = suite('id')
+        given:
+        TestDescriptor suite = new DefaultTestSuiteDescriptor("15", "FastTests");
 
-        context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(suite))
-                assertThat(t.parent, nullValue())
-            }
-            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptor t, TestResult result ->
-                assertThat(t.descriptor, equalTo(suite))
-                assertThat(result.resultType, equalTo(ResultType.SUCCESS))
-                assertThat(result.exception, nullValue())
-                assertThat(result.exceptions, isEmpty())
-                assertThat(result.startTime, equalTo(100L))
-                assertThat(result.endTime, equalTo(200L))
-                assertThat(result.testCount, equalTo(0L))
-                assertThat(result.successfulTestCount, equalTo(0L))
-                assertThat(result.failedTestCount, equalTo(0L))
-            }
-        }
-
+        when:
         adapter.started(suite, new TestStartEvent(100L))
-        adapter.completed('id', new TestCompleteEvent(200L))
+        adapter.completed('15', new TestCompleteEvent(200L))
+
+        then:
+        1 * listener.beforeSuite({it.descriptor == suite})
+        1 * listener.afterSuite({it.descriptor == suite}, {
+            it.testCount == 0 && it.resultType == ResultType.SUCCESS
+        })
+        0 * _._
     }
 
-    @Test
     public void createsAnAggregateResultForTestSuiteWithPassedTest() {
-        TestDescriptorInternal suite = suite('id')
-        TestDescriptorInternal test = test('testid')
+        given:
+        TestDescriptor suite = new DefaultTestSuiteDescriptor("suiteId", "FastTests");
+        TestDescriptor test = new DefaultTestDescriptor("testId", "DogTest", "shouldBarkAtStrangers");
 
-        context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(suite))
-                assertThat(t.parent, nullValue())
-            }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(t.parent.descriptor, equalTo(suite))
-            }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(test))
-            }
-            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptor t, TestResult result ->
-                assertThat(t.descriptor, equalTo(suite))
-                assertThat(result.resultType, equalTo(ResultType.SUCCESS))
-                assertThat(result.exception, nullValue())
-                assertThat(result.exceptions, isEmpty())
-                assertThat(result.testCount, equalTo(1L))
-                assertThat(result.successfulTestCount, equalTo(1L))
-                assertThat(result.failedTestCount, equalTo(0L))
-            }
-        }
-
+        when:
         adapter.started(suite, new TestStartEvent(100L))
-        adapter.started(test, new TestStartEvent(100L, 'id'))
-        adapter.completed('testid', new TestCompleteEvent(200L))
-        adapter.completed('id', new TestCompleteEvent(200L))
+        adapter.started(test, new TestStartEvent(100L, 'suiteId'))
+        adapter.completed('testId', new TestCompleteEvent(200L))
+        adapter.completed('suiteId', new TestCompleteEvent(200L))
+
+        then:
+        1 * listener.beforeSuite({it.descriptor == suite})
+        1 * listener.beforeTest({it.descriptor == test})
+        1 * listener.afterTest({it.descriptor == test}, _ as TestResult)
+        1 * listener.afterSuite({it.descriptor == suite}, { it.testCount == 1 } )
+        0 * _._
     }
 
-    @Test
     public void createsAnAggregateResultForTestSuiteWithFailedTest() {
-        TestDescriptorInternal suite = suite('id')
-        TestDescriptorInternal ok = test('ok')
-        TestDescriptorInternal broken = test('broken')
+        given:
+        TestDescriptor suite = new DefaultTestSuiteDescriptor("suiteId", "FastTests");
+        TestDescriptor ok = new DefaultTestDescriptor("okId", "DogTest", "shouldBarkAtStrangers");
+        TestDescriptor broken = new DefaultTestDescriptor("brokenId", "DogTest", "shouldDrinkMilk");
 
-        context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(suite))
-                assertThat(t.parent, nullValue())
-            }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(ok))
-                assertThat(t.parent.descriptor, equalTo(suite))
-            }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(broken))
-                assertThat(t.parent.descriptor, equalTo(suite))
-            }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptor t, TestResult result ->
-                assertThat(t.descriptor, equalTo(suite))
-                assertThat(result.resultType, equalTo(ResultType.FAILURE))
-                assertThat(result.exception, nullValue())
-                assertThat(result.exceptions, isEmpty())
-                assertThat(result.testCount, equalTo(2L))
-                assertThat(result.successfulTestCount, equalTo(1L))
-                assertThat(result.failedTestCount, equalTo(1L))
-            }
-        }
-
+        when:
         adapter.started(suite, new TestStartEvent(100L))
-        adapter.started(ok, new TestStartEvent(100L, 'id'))
-        adapter.started(broken, new TestStartEvent(100L, 'id'))
-        adapter.completed('ok', new TestCompleteEvent(200L))
-        adapter.failure('broken', new RuntimeException())
-        adapter.completed('broken', new TestCompleteEvent(200L))
-        adapter.completed('id', new TestCompleteEvent(200L))
+        adapter.started(ok, new TestStartEvent(100L, 'suiteId'))
+        adapter.started(broken, new TestStartEvent(100L, 'suiteId'))
+        adapter.completed('okId', new TestCompleteEvent(200L))
+        adapter.failure('brokenId', new RuntimeException())
+        adapter.completed('brokenId', new TestCompleteEvent(200L))
+        adapter.completed('suiteId', new TestCompleteEvent(200L))
+
+        then:
+        1 * listener.beforeSuite({it.descriptor == suite})
+        1 * listener.beforeTest({it.descriptor == ok && it.parent.descriptor == suite})
+        1 * listener.beforeTest({it.descriptor == broken && it.parent.descriptor == suite})
+        1 * listener.afterTest({it.descriptor == ok}, _ as TestResult)
+        1 * listener.afterTest({it.descriptor == broken}, _ as TestResult)
+        1 * listener.afterSuite({it.descriptor == suite}, { it.testCount == 2 && it.failedTestCount == 1 && it.successfulTestCount == 1 } )
+        0 * _._
     }
 
-    @Test
     public void createsAnAggregateResultForTestSuiteWithSkippedTest() {
-        TestDescriptorInternal suite = suite('id')
-        TestDescriptorInternal test = test('testid')
+        given:
+        TestDescriptor suite = new DefaultTestSuiteDescriptor("suiteId", "FastTests");
+        TestDescriptor test = new DefaultTestDescriptor("testId", "DogTest", "shouldBarkAtStrangers");
 
-        context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(suite))
-                assertThat(t.parent, nullValue())
-            }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { TestDescriptor t ->
-                assertThat(t.descriptor, equalTo(test))
-                assertThat(t.parent.descriptor, equalTo(suite))
-            }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptor t, TestResult result ->
-                assertThat(t.descriptor, equalTo(suite))
-                assertThat(result.resultType, equalTo(ResultType.SUCCESS))
-                assertThat(result.exception, nullValue())
-                assertThat(result.exceptions, isEmpty())
-                assertThat(result.testCount, equalTo(1L))
-                assertThat(result.successfulTestCount, equalTo(0L))
-                assertThat(result.failedTestCount, equalTo(0L))
-            }
-        }
-
+        when:
         adapter.started(suite, new TestStartEvent(100L))
-        adapter.started(test, new TestStartEvent(100L, 'id'))
-        adapter.completed('testid', new TestCompleteEvent(200L, ResultType.SKIPPED))
-        adapter.completed('id', new TestCompleteEvent(200L))
+        adapter.started(test, new TestStartEvent(100L, 'suiteId'))
+        adapter.completed('testId', new TestCompleteEvent(200L, ResultType.SKIPPED))
+        adapter.completed('suiteId', new TestCompleteEvent(200L))
+
+        then:
+        1 * listener.beforeSuite({it.descriptor == suite})
+        1 * listener.beforeTest({it.descriptor == test && it.parent.descriptor == suite})
+        1 * listener.afterTest({it.descriptor == test}, _ as TestResult)
+        1 * listener.afterSuite({it.descriptor == suite},
+                { it.resultType == ResultType.SUCCESS && it.testCount == 1 && it.failedTestCount == 0 && it.successfulTestCount == 0 } )
+        0 * _._
     }
 
     @Test
+    @Ignore
     public void createsAnAggregateResultForTestSuiteWithNestedSuites() {
         TestDescriptorInternal root = suite('root')
         TestDescriptorInternal suite1 = suite('suite1')
@@ -366,6 +240,7 @@ class TestListenerAdapterTest {
     }
 
     @Test
+    @Ignore
     public void createsAnAggregateResultForTestSuiteWithFailure() {
         TestDescriptorInternal suite = suite('id')
         TestDescriptorInternal test = test('testid')
@@ -389,27 +264,5 @@ class TestListenerAdapterTest {
         adapter.completed('testid', new TestCompleteEvent(200L, ResultType.SKIPPED))
         adapter.failure('id', failure)
         adapter.completed('id', new TestCompleteEvent(200L))
-    }
-
-    private TestDescriptorInternal test(String id) {
-        TestDescriptorInternal test = context.mock(TestDescriptorInternal.class, id)
-        context.checking {
-            allowing(test).getId()
-            will(returnValue(id))
-            allowing(test).isComposite()
-            will(returnValue(false))
-        }
-        return test
-    }
-
-    private TestDescriptorInternal suite(String id) {
-        TestDescriptorInternal test = context.mock(TestDescriptorInternal.class, id)
-        context.checking {
-            allowing(test).getId()
-            will(returnValue(id))
-            allowing(test).isComposite()
-            will(returnValue(true))
-        }
-        return test
     }
 }
