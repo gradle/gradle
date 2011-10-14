@@ -31,17 +31,28 @@ import java.util.Set;
 public interface Configuration extends FileCollection {
 
     /**
+     * <strong>experimental</strong>
+     * This part of the api will change for sure!
+     * You can use it if you like but this part of the api will change without notice.
+     * <p>
+     *
      * Returns the version conflict strategy used by this configuration
      *
      * @return strategy
      */
+    @Deprecated
     VersionConflictStrategy getVersionConflictStrategy();
 
     /**
+     * <strong>experimental</strong>
+     * This part of the api will change for sure!
+     * You can use it if you like but this part of the api will change without notice.
+     * <p>
      * Returns the resolution strategy used by this configuration
      *
      * @return strategy
      */
+    @Deprecated
     ResolutionStrategy getResolution();
 
     /**
