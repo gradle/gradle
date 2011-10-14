@@ -19,13 +19,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
-import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.daemon.protocol.Result;
-import org.gradle.launcher.daemon.protocol.Failure;
-import org.gradle.launcher.daemon.protocol.Success;
-import org.gradle.launcher.daemon.protocol.DaemonBusy;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
@@ -107,7 +103,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     private <T> Result<T> runBuild(Build build, Connection<Object> connection) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(System.in, build.getClientMetaData(), connection);
         try {
-            //TODO SF - this may fail. We should handle it and have tests for that. It means the server is gone.
+            //TODO - this may fail. We should handle it and have tests for that. It means the server is gone.
             connection.dispatch(build);
             inputForwarder.start();
             while (true) {

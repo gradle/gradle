@@ -69,7 +69,6 @@ ear {
 
     deploymentDescriptor {
         applicationName = "cool ear"
-//        TODO SF: cover some other fields as well
     }
 }
 

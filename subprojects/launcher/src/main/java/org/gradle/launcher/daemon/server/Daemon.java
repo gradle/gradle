@@ -98,7 +98,7 @@ public class Daemon implements Runnable, Stoppable {
                                 commandExecuter.executeCommand(connection, command, stateCoordinator);
                             } catch (RuntimeException e) {
                                 LOGGER.error("Error processing the incoming command.", e);
-                                //TODO SF figure out if we can use our executor's exception handler.
+                                //TODO figure out if we can use our executor's exception handler.
                                 throw e; //in case the default exception handler needs it.
                             } finally {
                                 LOGGER.debug("finishing processing of command {}", command);

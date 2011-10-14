@@ -67,7 +67,7 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<DaemonRegis
         daemonArgs.add("-Xmx1024m");
         daemonArgs.add("-XX:MaxPermSize=256m");
         daemonArgs.add("-XX:MaxPermSize=256m");
-        //TODO SF - remove later
+        //Useful for debugging purposes - simply uncomment and connect to debug
 //        daemonArgs.add("-Xdebug");
 //        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
         daemonArgs.add("-cp");
@@ -76,8 +76,6 @@ public class ExternalDaemonConnector extends AbstractDaemonConnector<DaemonRegis
         daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.GRADLE_USER_HOME));
         daemonArgs.add(userHomeDir.getAbsolutePath());
 
-        //TODO SF daemon server should use all gradle opts (that requires more digging & windows validation) but it is a part of a different story
-        //for now I only pass the idle idleTimeout
         DaemonIdleTimeout idleTimeout = new DaemonIdleTimeout(System.getenv("GRADLE_OPTS"), this.idleTimeout);
         daemonArgs.add(idleTimeout.toSysArg());
 

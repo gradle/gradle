@@ -61,7 +61,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
         wireEarTaskConventions(project, pluginConvention);
         configureConfigurations(project);
 
-        //TODO SF evaluation order-sensitive
+        //TODO evaluation order-sensitive
         final JavaPluginConvention javaPlugin = project.getConvention().findPlugin(JavaPluginConvention.class);
         if (javaPlugin != null) {
             SourceSet sourceSet = javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -112,7 +112,6 @@ public class EarPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        //TODO SF why is the ear added this way and not a proper way? Also: groovify!
         Ear ear = project.getTasks().add(EAR_TASK_NAME, Ear.class);
         ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
         DeploymentDescriptor deploymentDescriptor = pluginConvention.getDeploymentDescriptor();
@@ -155,7 +154,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
                 .extendsFrom(moduleConfiguration, earlibConfiguration);
     }
 
-    //TODO SF hack duplicated with War plugin
+    //TODO hack duplicated with War plugin
     private void disableJarTaskAndRemoveFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
 
         Jar jarTask = (Jar) project.getTasks().findByName(JavaPlugin.JAR_TASK_NAME);

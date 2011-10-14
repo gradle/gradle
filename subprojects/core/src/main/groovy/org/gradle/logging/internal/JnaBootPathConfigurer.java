@@ -27,8 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * TODO SF needs to be a part of a separate 'native' module
- *
  * @author: Szczepan Faber, created at: 9/12/11
  */
 public class JnaBootPathConfigurer {
