@@ -39,7 +39,7 @@ public class DefaultConfigurationContainerTest extends Specification {
     private DependencyMetaDataProvider metaDataProvider = Mock()
     def ConfigurationInternal conf = Mock()
 
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(dependencyResolver, instantiator, domainObjectContext, listenerManager, metaDataProvider, null);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(dependencyResolver, instantiator, domainObjectContext, listenerManager, metaDataProvider);
 
     def "adds and gets"() {
         _ * conf.getName() >> "compile"

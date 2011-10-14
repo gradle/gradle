@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
+import groovy.lang.MissingMethodException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
@@ -46,7 +47,7 @@ class DefaultConfigurationHandlerTest {
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class,
             dependencyResolver, instantiator, { name -> name } as DomainObjectContext,
-            listenerManager, metaDataProvider, null)
+            listenerManager, metaDataProvider)
 
     @Before
     public void setup() {
