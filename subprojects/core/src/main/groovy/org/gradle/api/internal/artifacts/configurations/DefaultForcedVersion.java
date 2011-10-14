@@ -27,8 +27,13 @@ public class DefaultForcedVersion implements ForcedVersion {
     private String version;
 
     public DefaultForcedVersion(String forcedVersion) {
-        //TODO SF - validate & test
+        assert forcedVersion != null : "forcedVersion cannot be null";
         String[] split = forcedVersion.split(":");
+        if (split.length != 3) {
+            throw new InvalidDependencyFormat(
+                "Invalid format: '" + forcedVersion + "'. Forced version only understands 3-part gav notation,"
+                + "e.g. group:artifact:version. Example: org.gradle:gradle-core:1.0-milestone-3");
+        }
         group = split[0];
         name = split[1];
         version = split[2];
@@ -44,5 +49,11 @@ public class DefaultForcedVersion implements ForcedVersion {
 
     public String getVersion() {
         return version;
+    }
+
+    public static class InvalidDependencyFormat extends RuntimeException {
+        public InvalidDependencyFormat(String message) {
+            super(message);
+        }
     }
 }
