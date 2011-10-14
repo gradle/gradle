@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.results
 
+import org.gradle.api.internal.tasks.testing.TestOutputEvent.Destination
 import org.gradle.api.tasks.testing.OutputListener
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestListener
@@ -234,5 +235,12 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.afterSuite({it.descriptor == suite},
                 { it.resultType == ResultType.FAILURE && it.exception.is(failure) && it.exceptions == [failure] } )
         0 * _._
+    }
+
+    def "notifies output listener"() {
+        when:
+        adapter.output("14", new TestOutputEvent(Destination.StdOut, "hey!"))
+        then:
+        1 * outputListener.onOutput("hey!")
     }
 }
