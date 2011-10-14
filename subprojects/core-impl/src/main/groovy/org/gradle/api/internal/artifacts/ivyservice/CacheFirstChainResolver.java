@@ -29,12 +29,15 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.util.Message;
+import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,7 @@ public class CacheFirstChainResolver extends ChainResolver {
     
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
 
+    @Override
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data)
             throws ParseException {
 
@@ -57,8 +61,8 @@ public class CacheFirstChainResolver extends ChainResolver {
             }
         }
 
-        // Otherwise delegate to the regular chain (each resolver will re-check cache)
-        ResolvedModuleRevision downloadedModule = super.getDependency(dd, data);
+        // Otherwise delegate to each resolver in turn
+        ResolvedModuleRevision downloadedModule = getModuleRevisionFromAnyRepository(dd, data);
         if (downloadedModule != null) {
             LOGGER.debug("Found module {} using resolver {}", downloadedModule, downloadedModule.getArtifactResolver());
             artifactResolvers.put(downloadedModule.getId(), downloadedModule.getArtifactResolver());
@@ -84,13 +88,56 @@ public class CacheFirstChainResolver extends ChainResolver {
         return new CacheMetadataOptions();
     }
 
+    private ResolvedModuleRevision getModuleRevisionFromAnyRepository(DependencyDescriptor dd, ResolveData originalData)
+            throws ParseException {
+
+        List<Exception> errors = new ArrayList<Exception>();
+        ResolvedModuleRevision mr = null;
+
+        ResolveData data = new ResolveData(originalData, originalData.isValidate());
+        for (DependencyResolver resolver : getResolvers()) {
+            try {
+                mr = resolver.getDependency(dd, data);
+                data.setCurrentResolvedModuleRevision(mr);
+            } catch (Exception ex) {
+                Message.verbose("problem occurred while resolving " + dd + " with " + resolver
+                        + ": " + StringUtils.getStackTrace(ex));
+                errors.add(ex);
+            }
+        }
+        if (mr == null && !errors.isEmpty()) {
+            throwResolutionFailure(dd, errors);
+        }
+        return mr;
+    }
+
+    private void throwResolutionFailure(DependencyDescriptor dd, List<Exception> errors) throws ParseException {
+        if (errors.size() == 1) {
+            Exception ex = errors.get(0);
+            if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else if (ex instanceof ParseException) {
+                throw (ParseException) ex;
+            } else {
+                throw new RuntimeException(ex.toString(), ex);
+            }
+        } else {
+            StringBuilder err = new StringBuilder();
+            for (Exception ex : errors) {
+                err.append("\t").append(StringUtils.getErrorMessage(ex)).append("\n");
+            }
+            err.setLength(err.length() - 1);
+            throw new RuntimeException("several problems occurred while resolving " + dd + ":\n"
+                    + err);
+        }
+    }
+
     @Override
     public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
         DownloadReport overallReport = new DownloadReport();
         for (Artifact artifact : artifacts) {
             DependencyResolver artifactResolver = artifactResolvers.get(artifact.getModuleRevisionId());
             ArtifactDownloadReport artifactDownloadReport;
-            // If possible, download from same artifactResolver that provided meta-data
             if (artifactResolver != null && artifactResolver != this) {
                 artifactDownloadReport = downloadFromSingleRepository(artifactResolver, artifact, options);
             } else {
