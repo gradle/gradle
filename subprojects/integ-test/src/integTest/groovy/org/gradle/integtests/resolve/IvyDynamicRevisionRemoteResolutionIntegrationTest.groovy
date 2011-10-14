@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
-import org.junit.Ignore
 import org.junit.Rule
+import spock.lang.Ignore
 
 class IvyDynamicRevisionRemoteResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
