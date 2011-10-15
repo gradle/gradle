@@ -66,6 +66,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String EXCLUDE_TASK = "x";
     private static final String PROFILE = "profile";
     private static final String CONTINUE = "continue";
+    private static final String PROJECT_CACHE_DIR = "project-cache-dir";
 
     private static BiMap<String, StartParameter.ShowStacktrace> showStacktraceMap = HashBiMap.create();
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
@@ -86,7 +87,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
         parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
-        parser.option("project-cache-dir").hasArgument().hasDescription("Specifies the project-specific cache directory. Can be absolute or relative to the project's dir. The default is '.gradle'.");
+        parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specifies the project-specific cache directory. Defaults to .gradle in the root project directory.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
         parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
         parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
@@ -163,8 +164,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             }
         }
 
-        if (options.hasOption("project-cache-dir")) {
-            startParameter.setProjectCacheDir(options.option("project-cache-dir").getValue());
+        if (options.hasOption(PROJECT_CACHE_DIR)) {
+            startParameter.setProjectCacheDir(resolver.resolve(options.option(PROJECT_CACHE_DIR).getValue()));
         }
 
         if (options.hasOption(EMBEDDED_SCRIPT)) {

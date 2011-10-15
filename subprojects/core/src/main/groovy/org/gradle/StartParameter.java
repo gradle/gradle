@@ -82,23 +82,23 @@ public class StartParameter {
     private boolean colorOutput = true;
     private boolean profile;
     private boolean continueOnFailure;
-    private String projectCacheDir = ".gradle";
+    private File projectCacheDir;
 
     /**
-     * Sets the project's cache location.
+     * Sets the project's cache location. Set to null to use the default location.
      *
      * @param projectCacheDir
      */
-    public void setProjectCacheDir(String projectCacheDir) {
+    public void setProjectCacheDir(File projectCacheDir) {
         this.projectCacheDir = projectCacheDir;
     }
 
     /**
      * Returns the project's cache dir.
      *
-     * @return project's cache dir
+     * @return project's cache dir, or null if the default location is to be used.
      */
-    public String getProjectCacheDir() {
+    public File getProjectCacheDir() {
         return projectCacheDir;
     }
 
