@@ -77,14 +77,13 @@ public class WarPlugin implements Plugin<Project> {
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
         war.setGroup(BasePlugin.BUILD_GROUP);
         Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
-        disableJarTaskAndRemoveFromArchivesConfiguration(project, archivesConfiguration);
+        removeJarTaskFromArchivesConfiguration(project, archivesConfiguration);
         archivesConfiguration.getArtifacts().add(new ArchivePublishArtifact(war));
         configureConfigurations(project.getConfigurations());
     }
 
-    private void disableJarTaskAndRemoveFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
+    private void removeJarTaskFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
         Jar jarTask = (Jar) project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
-        jarTask.setEnabled(false);
         removeJarTaskFromArchivesConfiguration(archivesConfiguration, jarTask);
     }
 

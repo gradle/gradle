@@ -120,6 +120,7 @@ public class JavaPlugin implements Plugin<Project> {
         });
 
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(new ArchivePublishArtifact(jar));
+        project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME).getArtifacts().add(new ArchivePublishArtifact(jar));
     }
 
     private void configureBuild(Project project) {
