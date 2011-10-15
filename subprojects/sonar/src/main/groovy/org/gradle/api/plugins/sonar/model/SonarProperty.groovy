@@ -17,6 +17,9 @@ package org.gradle.api.plugins.sonar.model
 
 import java.lang.annotation.*
 
+/**
+ * Maps a model property to the corresponding Sonar property.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Documented

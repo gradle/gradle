@@ -30,6 +30,7 @@ import org.gradle.api.plugins.sonar.model.SonarModel
 
 /**
  * Runs Sonar code analysis for a project hierarchy.
+ * This class lives on the Sonar bootstrapper's class loader.
  */
 class SonarCodeAnalyzer {
     private static final Logger LOGGER = LoggerFactory.getLogger(SonarCodeAnalyzer)

@@ -23,7 +23,8 @@ import org.gradle.util.ClasspathUtil
 import org.gradle.api.plugins.sonar.model.SonarRootModel
 
 /**
- * Analyzes a project and stores the results in the Sonar database.
+ * Analyzes a project hierachy and writes the results to the
+ * Sonar database.
  */
 class SonarAnalyze extends ConventionTask {
     /**
