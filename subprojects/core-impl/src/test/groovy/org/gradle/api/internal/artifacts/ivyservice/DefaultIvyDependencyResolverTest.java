@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.configurations.DefaultResolutionStrateg
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -45,11 +44,9 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static java.util.Collections.emptySet;
 import static org.gradle.api.artifacts.ArtifactsTestUtils.createResolvedArtifact;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -101,11 +98,9 @@ public class DefaultIvyDependencyResolverTest {
         ResolvedDependency resolvedDependency3 = context.mock(ResolvedDependency.class, "resolved3");
         final IvyConversionResult conversionResultStub = context.mock(IvyConversionResult.class);
         final DependencySet dependencies = context.mock(DependencySet.class);
-        final Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = GUtil.map(
-                moduleDependencyDummy1,
-                toSet(resolvedDependency1, resolvedDependency2),
-                moduleDependencyDummy2,
-                toSet(resolvedDependency3));
+        final Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = new LinkedHashMap<Dependency, Set<ResolvedDependency>>();
+        firstLevelResolvedDependencies.put(moduleDependencyDummy1, toSet(resolvedDependency1, resolvedDependency2));
+        firstLevelResolvedDependencies.put(moduleDependencyDummy2, toSet(resolvedDependency3));
 
         context.checking(new Expectations() {{
             allowing(resolvedDependency1).getParentArtifacts(root);
@@ -113,13 +108,13 @@ public class DefaultIvyDependencyResolverTest {
             allowing(resolvedDependency1).getModuleArtifacts();
             will(returnValue(toSet(createResolvedArtifact(context, "dep1", "someType", "someExtension", new File("dep1")))));
             allowing(resolvedDependency1).getChildren();
-            will(returnValue(toSet()));
+            will(returnValue(emptySet()));
             allowing(resolvedDependency2).getParentArtifacts(root);
-            will(returnValue(toSet()));
+            will(returnValue(emptySet()));
             allowing(resolvedDependency2).getModuleArtifacts();
             will(returnValue(toSet(createResolvedArtifact(context, "dep2", "someType", "someExtension", new File("dep2")))));
             allowing(resolvedDependency2).getChildren();
-            will(returnValue(toSet()));
+            will(returnValue(emptySet()));
             allowing(configurationStub).getAllDependencies();
             will(returnValue(dependencies));
             allowing(dependencies).withType(ModuleDependency.class);

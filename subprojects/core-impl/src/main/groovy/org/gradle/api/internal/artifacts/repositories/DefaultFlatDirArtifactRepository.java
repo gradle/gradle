@@ -25,6 +25,8 @@ import org.gradle.api.internal.file.FileResolver;
 import java.io.File;
 import java.util.*;
 
+import static org.gradle.util.GUtil.toList;
+
 public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
     private String name;
@@ -47,7 +49,7 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
     }
 
     public void setDirs(Iterable<?> dirs) {
-        this.dirs = new ArrayList<Object>(Arrays.asList(dirs));
+        this.dirs = toList(dirs);
     }
 
     public void dirs(Object... dirs) {

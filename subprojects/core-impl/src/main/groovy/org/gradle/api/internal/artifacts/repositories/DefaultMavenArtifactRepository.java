@@ -25,13 +25,14 @@ import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GUtil;
 import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.io.File;
 import java.net.URI;
 import java.util.*;
+
+import static org.gradle.util.GUtil.toList;
 
 public class DefaultMavenArtifactRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
@@ -72,7 +73,7 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
     }
 
     public void setArtifactUrls(Iterable<?> urls) {
-        additionalUrls = GUtil.addLists(urls);
+        additionalUrls = toList(urls);
     }
 
     public void createResolvers(Collection<DependencyResolver> resolvers) {
