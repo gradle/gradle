@@ -17,6 +17,10 @@ package org.gradle.api.plugins.sonar.model
 
 import java.lang.annotation.*
 
+/**
+ * Indicates that the annotated property holds an object with nested
+ * Sonar properties.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface IncludeProperties {}
