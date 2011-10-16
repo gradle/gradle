@@ -29,7 +29,7 @@ class DefaultSourceSetTest {
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
 
     private DefaultSourceSet sourceSet(String name) {
-        def s = new DefaultSourceSet(name, fileResolver, taskResolver)
+        def s = new DefaultSourceSet(name, fileResolver)
         s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, taskResolver)
         return s
     }
@@ -87,7 +87,7 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.allSource.source, hasItem(sourceSet.java))
     }
 
-    @Test public void constructsTaskNamesUsingSourceSetName() {
+    @Test public void constructsNamesUsingSourceSetName() {
         SourceSet sourceSet = sourceSet('set-name')
 
         assertThat(sourceSet.classesTaskName, equalTo('setNameClasses'))
@@ -97,9 +97,11 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.getTaskName('build', null), equalTo('buildSetName'))
         assertThat(sourceSet.getTaskName(null, 'jar'), equalTo('setNameJar'))
         assertThat(sourceSet.getTaskName('build', 'jar'), equalTo('buildSetNameJar'))
+        assertThat(sourceSet.compileConfigurationName, equalTo("setNameCompile"))
+        assertThat(sourceSet.runtimeConfigurationName, equalTo("setNameRuntime"))
     }
 
-    @Test public void mainSourceSetUsesSpecialCaseTaskNames() {
+    @Test public void mainSourceSetUsesSpecialCaseNames() {
         SourceSet sourceSet = sourceSet('main')
 
         assertThat(sourceSet.classesTaskName, equalTo('classes'))
@@ -109,6 +111,8 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.getTaskName('build', null), equalTo('buildMain'))
         assertThat(sourceSet.getTaskName(null, 'jar'), equalTo('jar'))
         assertThat(sourceSet.getTaskName('build', 'jar'), equalTo('buildJar'))
+        assertThat(sourceSet.compileConfigurationName, equalTo("compile"))
+        assertThat(sourceSet.runtimeConfigurationName, equalTo("runtime"))
     }
 
     @Test public void canConfigureResources() {

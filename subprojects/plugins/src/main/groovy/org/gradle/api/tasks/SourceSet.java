@@ -86,36 +86,30 @@ public interface SourceSet {
     void setRuntimeClasspath(FileCollection classpath);
 
     /**
-     * DEPRECATED: Please use #output.classesDir instead.
-     * We needed to deprecate it to keep the DSL consistent.
-     * <p>
      * Returns the directory to assemble the compiled classes into.
      *
      * @return The classes dir. Never returns null.
+     * @deprecated Use {@code getOutput().getClassesDir()} instead.
      */
     @Deprecated
     File getClassesDir();
 
     /**
-     * DEPRECATED: Please use #output.resourcesDir instead.
-     * We needed to deprecate it to keep the DSL consistent.
-     * <p>
      * Sets the directory to assemble the compiled classes into.
      *
      * @param classesDir the classes dir. Should not be null.
+     * @deprecated Use {@code getOutput().setClassesDir()} instead.
      */
     @Deprecated
     void setClassesDir(File classesDir);
 
     /**
-     * DEPRECATED: Please use #output property.
-     * We needed to deprecate this method because its name was confusing as actually means all output dirs, not only classes dir.
-     * <p>
      * Returns {@link SourceSetOutput} that extends {@link FileCollection} which means that it provides all output directories (compiled classes, processed resources, etc.)
      * <p>
      * Provides a way to configure the default output dirs and specify additional output dirs - see {@link SourceSetOutput}
      *
      * @return The output dirs, as a {@link SourceSetOutput}.
+     * @deprecated Use {@link #getOutput()} instead.
      */
     @Deprecated
     SourceSetOutput getClasses();
@@ -223,4 +217,16 @@ public interface SourceSet {
      * @return The task name, generally of the form ${verb}${name}${noun}
      */
     String getTaskName(String verb, String target);
+
+    /**
+     * Returns the name of the compile configuration for this source set.
+     * @return The configuration name
+     */
+    String getCompileConfigurationName();
+
+    /**
+     * Returns the name of the runtime configuration for this source set.
+     * @return The runtime configuration name
+     */
+    String getRuntimeConfigurationName();
 }

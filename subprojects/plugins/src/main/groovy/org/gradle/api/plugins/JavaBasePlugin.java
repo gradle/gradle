@@ -17,6 +17,8 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.ProcessResources;
@@ -71,6 +73,16 @@ public class JavaBasePlugin implements Plugin<Project> {
                 final Project project = pluginConvention.getProject();
 
                 ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
+
+                ConfigurationContainer configurations = project.getConfigurations();
+                Configuration compileConfiguration = configurations.add(sourceSet.getCompileConfigurationName()).setVisible(false).
+                        setDescription(String.format("Classpath for compiling the %s sources.", sourceSet.getName()));
+                Configuration runtimeConfiguration = configurations.add(sourceSet.getRuntimeConfigurationName()).setVisible(false)
+                        .extendsFrom(compileConfiguration).
+                                setDescription(String.format("Classpath for running the compiled %s classes.", sourceSet.getName()));
+
+                sourceSet.setCompileClasspath(compileConfiguration);
+                sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
 
                 outputConventionMapping.map("classesDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

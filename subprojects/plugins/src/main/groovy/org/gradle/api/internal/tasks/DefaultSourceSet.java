@@ -43,7 +43,7 @@ public class DefaultSourceSet implements SourceSet {
 
     private DefaultSourceSetOutput output;
 
-    public DefaultSourceSet(String name, FileResolver fileResolver, TaskResolver taskResolver) {
+    public DefaultSourceSet(String name, FileResolver fileResolver) {
         this.name = name;
         displayName = GUtil.toWords(this.name);
 
@@ -113,18 +113,26 @@ public class DefaultSourceSet implements SourceSet {
         return name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
     }
 
+    public String getCompileConfigurationName() {
+        return StringUtils.uncapitalize(String.format("%sCompile", getTaskBaseName()));
+    }
+
+    public String getRuntimeConfigurationName() {
+        return StringUtils.uncapitalize(String.format("%sRuntime", getTaskBaseName()));
+    }
+
     public File getClassesDir() {
-        DeprecationLogger.nagUserOfReplacedMethod("sourceSet.classesDir", "sourceSet.output.classesDir");
+        DeprecationLogger.nagUserOfReplacedMethod("SourceSet.getClassesDir()", "getOutput().getClassesDir()");
         return output.getClassesDir();
     }
 
     public void setClassesDir(File classesDir) {
-        DeprecationLogger.nagUserOfReplacedMethod("sourceSet.classesDir", "sourceSet.output.classesDir");
+        DeprecationLogger.nagUserOfReplacedMethod("SourceSet.setClassesDir()", "getOutput().setClassesDir()");
         this.output.setClassesDir(classesDir);
     }
 
     public SourceSetOutput getClasses() {
-        DeprecationLogger.nagUserOfReplacedMethod("sourceSet.classes", "sourceSet.output");
+        DeprecationLogger.nagUserOfReplacedMethod("SourceSet.getClasses()", "getOutput()");
         return getOutput();
     }
 

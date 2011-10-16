@@ -96,6 +96,15 @@ import java.util.Map;
  * <code><i>configurationName</i> files('a file')</code>
  *
  * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.SelfResolvingDependency}.</p>
+ * 
+ * <h2>Configurations</h2>
+ * 
+ * <p>You can add a dependency using a {@link org.gradle.api.artifacts.Configuration}.</p>
+ *
+ * <p>When the configuration is from the same project as the target configuration, the target configuration is changed
+ * to extend from the provided configuration.</p>
+ *
+ * <p>When the configuration is from a different project, a project dependency is added.</p>
  *
  * @author Hans Dockter
  */

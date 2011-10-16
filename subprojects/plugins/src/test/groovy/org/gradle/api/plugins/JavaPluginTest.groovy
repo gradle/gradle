@@ -127,11 +127,10 @@ class JavaPluginTest {
         def set = project.sourceSets.add('custom')
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/custom/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/custom/resources'))))
-        assertThat(set.compileClasspath, sameInstance(project.configurations.compile))
+        assertThat(set.compileClasspath, sameInstance(project.configurations.customCompile))
         assertThat(set.output.classesDir, equalTo(new File(project.buildDir, 'classes/custom')))
         assertThat(set.output, builtBy('customClasses'))
-        assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.runtime))
-        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/custom')))
+        assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntime))
     }
 
     @Test public void createsStandardTasksAndAppliesMappings() {

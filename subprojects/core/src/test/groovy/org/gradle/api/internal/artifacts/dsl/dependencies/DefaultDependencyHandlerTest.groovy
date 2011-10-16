@@ -15,272 +15,251 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.util.ConfigureUtil
-import org.gradle.util.HelperUtil
-import org.gradle.util.JUnit4GroovyMockery
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 import org.gradle.api.artifacts.*
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
  */
-@RunWith (org.jmock.integration.junit4.JMock)
-class DefaultDependencyHandlerTest {
+class DefaultDependencyHandlerTest extends Specification {
     private static final String TEST_CONF_NAME = "someConf"
+    private ConfigurationContainer configurationContainer = Mock()
+    private DependencyFactory dependencyFactory = Mock()
+    private Configuration configuration = Mock()
+    private ProjectFinder projectFinder = Mock()
+    private DependencySet dependencySet = Mock()
 
-    private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory, projectFinder)
 
-    private ConfigurationContainer configurationContainerStub = context.mock(ConfigurationContainer)
-    private DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory)
-    private Configuration configurationMock = context.mock(Configuration)
-    private ProjectFinder projectFinderDummy = context.mock(ProjectFinder)
-    private DependencySet dependenciesMock = context.mock(DependencySet)
-
-    private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(
-            configurationContainerStub, dependencyFactoryStub, projectFinderDummy)
-
-    @Before
-    void setUp() {
-        context.checking {
-            allowing(configurationContainerStub).findByName(TEST_CONF_NAME); will(returnValue(configurationMock))
-            allowing(configurationMock).getDependencies(); will(returnValue(dependenciesMock))
-        }
+    void setup() {
+        _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration
+        _ * configurationContainer.getAt(TEST_CONF_NAME) >> configuration
+        _ * configuration.dependencies >> dependencySet
     }
 
-    @Test
-    void add() {
-        String someNotation = "someNotation"
-        Dependency dependencyDummy = context.mock(Dependency)
-        context.checking {
-            allowing(configurationContainerStub).getAt(TEST_CONF_NAME); will(returnValue(configurationMock))
-            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(dependencyDummy))
-            one(dependenciesMock).add(dependencyDummy);
-        }
+    void "creates and adds a dependency from some notation"() {
+        Dependency dependency = Mock()
 
-        assertThat(dependencyHandler.add(TEST_CONF_NAME, someNotation), equalTo(dependencyDummy))
+        when:
+        def result = dependencyHandler.add(TEST_CONF_NAME, "someNotation")
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency
+        1 * dependencySet.add(dependency)
     }
 
-    @Test
-    void addWithClosure() {
-        String someNotation = "someNotation"
-        DefaultExternalModuleDependency returnedDependency = HelperUtil.createDependency("group", "name", "1.0")
-        context.checking {
-            allowing(configurationContainerStub).getAt(TEST_CONF_NAME); will(returnValue(configurationMock))
-            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(returnedDependency))
-            one(dependenciesMock).add(returnedDependency);
-        }
-        def dependency = dependencyHandler.add(TEST_CONF_NAME, someNotation) {
-            force = true    
-        }
-        assertThat(dependency, equalTo(returnedDependency))
-        assertThat(dependency.force, equalTo(true))
-    }
+    void "creates, configures and adds a dependency from some notation"() {
+        ExternalDependency dependency = Mock()
 
-    @Test
-    void create() {
-        String someNotation = "someNotation"
-        Dependency dependencyDummy = context.mock(Dependency)
-        context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(dependencyDummy))
-        }
-
-        assertThat(dependencyHandler.create(someNotation), equalTo(dependencyDummy))
-    }
-
-    @Test
-    void createWithClosure() {
-        String someNotation = "someNotation"
-        DefaultExternalModuleDependency returnedDependency = HelperUtil.createDependency("group", "name", "1.0")
-        context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(returnedDependency))
-        }
-        def dependency = dependencyHandler.create(someNotation) {
+        when:
+        def result = dependencyHandler.add(TEST_CONF_NAME, "someNotation") {
             force = true
         }
-        assertThat(dependency, equalTo(returnedDependency))
-        assertThat(dependency.force, equalTo(true))
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency
+        1 * dependency.setForce(true)
+        1 * dependencySet.add(dependency)
     }
 
-    @Test
-    void pushOneDependency() {
-        String someNotation = "someNotation"
-        Dependency dependencyDummy = context.mock(Dependency)
-        context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(dependencyDummy))
-            one(dependenciesMock).add(dependencyDummy);
-        }
+    void "creates a dependency from some notation"() {
+        Dependency dependency = Mock()
 
-        assertThat(dependencyHandler."$TEST_CONF_NAME"(someNotation), equalTo(dependencyDummy))
+        when:
+        def result = dependencyHandler.create("someNotation")
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency
     }
 
-    @Test
-    void pushOneDependencyWithClosure() {
-        String someNotation = "someNotation"
-        DefaultExternalModuleDependency returnedDependency = HelperUtil.createDependency("group", "name", "1.0")
-        context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(returnedDependency))
-            one(dependenciesMock).add(returnedDependency);
-        }
+    void "creates and configures a dependency from some notation"() {
+        ExternalDependency dependency = Mock()
 
-        def dependency = dependencyHandler."$TEST_CONF_NAME"(someNotation) {
-            force = true
-        }
-        assertThat(dependency, equalTo(returnedDependency))
-        assertThat(dependency.force, equalTo(true))
+        when:
+        def result = dependencyHandler.create("someNotation") { force = true}
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency
+        1 * dependency.setForce(true)
     }
 
-    @Test
-    void pushMultipleDependencies() {
-        String someNotation1 = "someNotation"
-        Map someNotation2 = [a: 'b', c: 'd']
-        Dependency dependencyDummy1 = context.mock(Dependency, "dep1")
-        Dependency dependencyDummy2 = context.mock(Dependency, "dep2")
-        context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation1); will(returnValue(dependencyDummy1))
-            allowing(dependencyFactoryStub).createDependency(someNotation2); will(returnValue(dependencyDummy2))
-            one(dependenciesMock).add(dependencyDummy1);
-            one(dependenciesMock).add(dependencyDummy2);
-        }
+    void "can use dynamic method to add dependency"() {
+        Dependency dependency = Mock()
 
-        dependencyHandler."$TEST_CONF_NAME"(someNotation1, someNotation2)
+        when:
+        def result = dependencyHandler.someConf("someNotation")
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency
+        1 * dependencySet.add(dependency)
+
     }
 
-    @Test
-    void pushMultipleDependenciesViaNestedList() {
-        String someNotation1 = "someNotation"
-        Map someNotation2 = [a: 'b', c: 'd']
-        Dependency dependencyDummy1 = context.mock(Dependency, "dep1")
-        Dependency dependencyDummy2 = context.mock(Dependency, "dep2")
-        context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation1); will(returnValue(dependencyDummy1))
-            allowing(dependencyFactoryStub).createDependency(someNotation2); will(returnValue(dependencyDummy2))
-            one(dependenciesMock).add(dependencyDummy1);
-            one(dependenciesMock).add(dependencyDummy2);
-        }
+    void "can use dynamic method to add and configure dependency"() {
+        ExternalDependency dependency = Mock()
 
-        dependencyHandler."$TEST_CONF_NAME"([[someNotation1, someNotation2]])
+        when:
+        def result = dependencyHandler.someConf("someNotation") { force = true }
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency
+        1 * dependencySet.add(dependency)
+        1 * dependency.setForce(true)
     }
 
-    @Test
-    void pushProjectByMap() {
-        ProjectDependency projectDependency = context.mock(ProjectDependency)
-        Map someMapNotation = [:]
-        Closure projectDependencyClosure = {
-            assertThat("$TEST_CONF_NAME"(project(someMapNotation)), equalTo(projectDependency))
-        }
-        context.checking {
-            allowing(dependencyFactoryStub).createProjectDependencyFromMap(projectFinderDummy, someMapNotation); will(returnValue(projectDependency))
-            allowing(dependencyFactoryStub).createDependency(projectDependency); will(returnValue(projectDependency))
-            one(dependenciesMock).add(projectDependency);
-        }
+    void "can use dynamic method to add multiple dependencies"() {
+        Dependency dependency1 = Mock()
+        Dependency dependency2 = Mock()
 
-        ConfigureUtil.configure(projectDependencyClosure, dependencyHandler)
+        when:
+        def result = dependencyHandler.someConf("someNotation", "someOther")
+
+        then:
+        result == null
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency1
+        1 * dependencyFactory.createDependency("someOther") >> dependency2
+        1 * dependencySet.add(dependency1)
+        1 * dependencySet.add(dependency2)
     }
 
-    @Test
-    void pushProjectByMapWithConfigureClosure() {
-        ProjectDependency projectDependency = context.mock(ProjectDependency)
-        Map someMapNotation = [:]
-        Closure projectDependencyClosure = {
-            def dependency = "$TEST_CONF_NAME"(project(someMapNotation)) {
-                copy()    
-            }
-            assertThat(dependency, equalTo(projectDependency))
-        }
-        context.checking {
-            allowing(dependencyFactoryStub).createProjectDependencyFromMap(projectFinderDummy, someMapNotation); will(returnValue(projectDependency))
-            allowing(dependencyFactoryStub).createDependency(projectDependency); will(returnValue(projectDependency))
-            one(dependenciesMock).add(projectDependency);
-            one(projectDependency).copy();
-        }
+    void "can use dynamic method to add multiple dependencies from nested lists"() {
+        Dependency dependency1 = Mock()
+        Dependency dependency2 = Mock()
 
-        ConfigureUtil.configure(projectDependencyClosure, dependencyHandler)
+        when:
+        def result = dependencyHandler.someConf([["someNotation"], ["someOther"]])
+
+        then:
+        result == null
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency1
+        1 * dependencyFactory.createDependency("someOther") >> dependency2
+        1 * dependencySet.add(dependency1)
+        1 * dependencySet.add(dependency2)
     }
 
-    @Test
-    void pushModule() {
-        ClientModule clientModule = context.mock(ClientModule)
-        String someNotation = "someNotation"
-        Closure moduleClosure = {
-            assertThat("$TEST_CONF_NAME"(module(someNotation)), equalTo(clientModule))
-        }
-        context.checking {
-            allowing(dependencyFactoryStub).createModule(someNotation, null); will(returnValue(clientModule))
-            allowing(dependencyFactoryStub).createDependency(clientModule); will(returnValue(clientModule))
-            one(dependenciesMock).add(clientModule);
-        }
+    void "creates a project dependency from map"() {
+        ProjectDependency projectDependency = Mock()
 
-        ConfigureUtil.configure(moduleClosure, dependencyHandler)
+        when:
+        def result = dependencyHandler.project([:])
+
+        then:
+        result == projectDependency
+
+        and:
+        1 * dependencyFactory.createProjectDependencyFromMap(projectFinder, [:]) >> projectDependency
     }
 
-    @Test
-    void pushModuleWithConfigureClosure() {
-        ClientModule clientModule = context.mock(ClientModule)
-        String someNotation = "someNotation"
-        Closure configureClosure = {}
-        Closure moduleClosure = {
-            assertThat("$TEST_CONF_NAME"(module(someNotation, configureClosure)), equalTo(clientModule))
-        }
-        context.checking {
-            allowing(dependencyFactoryStub).createModule(someNotation, configureClosure); will(returnValue(clientModule))
-            allowing(dependencyFactoryStub).createDependency(clientModule); will(returnValue(clientModule))
-            one(dependenciesMock).add(clientModule);
-        }
+    void "attaches configuration from same project to target configuration"() {
+        Configuration other = Mock()
 
-        ConfigureUtil.configure(moduleClosure, dependencyHandler)
+        given:
+        configurationContainer.contains(other) >> true
+
+        when:
+        def result = dependencyHandler.add(TEST_CONF_NAME, other)
+
+        then:
+        result == null
+
+        and:
+        1 * configuration.extendsFrom(other)
     }
 
-    @Test
-    void pushGradleApi() {
-        Dependency dependency = context.mock(Dependency)
-        context.checking {
-            one(dependencyFactoryStub).createDependency(DependencyFactory.ClassPathNotation.GRADLE_API)
-            will(returnValue(dependency))
+    void "cannot create project dependency for configuration from different project"() {
+        Configuration other = Mock()
 
-            one(dependencyFactoryStub).createDependency(dependency)
-            will(returnValue(dependency))
+        given:
+        configurationContainer.contains(other) >> false
 
-            one(dependenciesMock).add(dependency)
-        }
+        when:
+        dependencyHandler.add(TEST_CONF_NAME, other)
 
-        Closure moduleClosure = {
-            assertThat("$TEST_CONF_NAME"(gradleApi()), sameInstance(dependency))
-        }
-        ConfigureUtil.configure(moduleClosure, dependencyHandler)
+        then:
+        UnsupportedOperationException e = thrown()
+        e.message == 'Currently you can only declare dependencies on configurations from the same project.'
     }
 
-    @Test
-    void pushLocalGroovy() {
-        Dependency dependency = context.mock(Dependency)
-        context.checking {
-            one(dependencyFactoryStub).createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY)
-            will(returnValue(dependency))
+    void "creates client module dependency"() {
+        ClientModule clientModule = Mock()
 
-            one(dependencyFactoryStub).createDependency(dependency)
-            will(returnValue(dependency))
+        when:
+        def result = dependencyHandler.module("someNotation")
 
-            one(dependenciesMock).add(dependency)
-        }
+        then:
+        result == clientModule
 
-        Closure moduleClosure = {
-            assertThat("$TEST_CONF_NAME"(localGroovy()), sameInstance(dependency))
-        }
-        ConfigureUtil.configure(moduleClosure, dependencyHandler)
-    }
-    
-    @Test (expected = MissingMethodException)
-    void pushToUnknownConfiguration() {
-        String unknownConf = TEST_CONF_NAME + "delta"
-        context.checking {
-            allowing(configurationContainerStub).findByName(unknownConf); will(returnValue(null))
-        }
-        dependencyHandler."$unknownConf"("someNotation")
+        and:
+        1 * dependencyFactory.createModule("someNotation", null) >> clientModule
     }
 
+    void "creates and configures client module dependency"() {
+        ClientModule clientModule = Mock()
+        Closure cl = {}
+
+        when:
+        def result = dependencyHandler.module("someNotation", cl)
+
+        then:
+        result == clientModule
+
+        and:
+        1 * dependencyFactory.createModule("someNotation", cl) >> clientModule
+    }
+
+    void "creates gradle api dependency"() {
+        Dependency dependency = Mock()
+
+        when:
+        def result = dependencyHandler.gradleApi()
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API) >> dependency
+    }
+
+    void "creates local groovy dependency"() {
+        Dependency dependency = Mock()
+
+        when:
+        def result = dependencyHandler.localGroovy()
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY) >> dependency
+    }
+
+    void "cannot add dependency to unknown configuration"() {
+        when:
+        dependencyHandler.unknown("someNotation")
+
+        then:
+        thrown(MissingMethodException)
+    }
 }
