@@ -18,21 +18,18 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.protocol.CloseInput;
+import org.gradle.launcher.daemon.protocol.ForwardInput;
+import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.messaging.dispatch.AsyncReceive;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.util.StdinSwapper;
 import org.gradle.util.UncheckedException;
 
-import org.gradle.messaging.dispatch.AsyncReceive;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
-
-import org.gradle.launcher.daemon.protocol.ForwardInput;
-import org.gradle.launcher.daemon.protocol.CloseInput;
-
+import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.io.IOException;
 import java.util.concurrent.Callable;
 
 /**
@@ -40,8 +37,12 @@ import java.util.concurrent.Callable;
  * that we install.
  */
 public class ForwardClientInput implements DaemonCommandAction {
-
     private static final Logger LOGGER = Logging.getLogger(ForwardClientInput.class);
+    private final ExecutorFactory executorFactory;
+
+    public ForwardClientInput(ExecutorFactory executorFactory) {
+        this.executorFactory = executorFactory;
+    }
 
     public void execute(final DaemonCommandExecution execution) {
         final PipedOutputStream inputSource = new PipedOutputStream();
@@ -67,19 +68,13 @@ public class ForwardClientInput implements DaemonCommandAction {
                     } catch (IOException e) {
                         LOGGER.warn("IO exception closing output stream connected to replacement stdin", e);
                     }
-                    try {
-                        replacementStdin.close();
-                    } catch (IOException e) {
-                        LOGGER.warn("IO exception closing replacement stdin", e);
-                    }
                 } else {
                     LOGGER.warn("while listening for IOCommands, received unexpected command: {}", command);
                 }
             }
         };
 
-        ExecutorFactory inputReceiverExecuterFactory = new DefaultExecutorFactory();
-        StoppableExecutor inputReceiverExecuter = inputReceiverExecuterFactory.create("daemon client input forwarder");
+        StoppableExecutor inputReceiverExecuter = executorFactory.create("daemon client input forwarder");
         AsyncReceive<Object> inputReceiver = new AsyncReceive<Object>(inputReceiverExecuter, dispatcher);
         inputReceiver.receiveFrom(execution.getConnection());
 
@@ -90,6 +85,7 @@ public class ForwardClientInput implements DaemonCommandAction {
                     return null;
                 }
             });
+            replacementStdin.close();
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         } finally {

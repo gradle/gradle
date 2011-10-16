@@ -44,7 +44,7 @@ class DefaultCacheRepositoryTest extends Specification {
     private final CacheFactory cacheFactory = Mock()
     private final PersistentCache cache = Mock()
     private final Gradle gradle = Mock()
-    private final DefaultCacheRepository repository = new DefaultCacheRepository(homeDir, ".gradle", CacheUsage.ON, cacheFactory)
+    private final DefaultCacheRepository repository = new DefaultCacheRepository(homeDir, null, CacheUsage.ON, cacheFactory)
 
     public void setup() {
         Project project = Mock()

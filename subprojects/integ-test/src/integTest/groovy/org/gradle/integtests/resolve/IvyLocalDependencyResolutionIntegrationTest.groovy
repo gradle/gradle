@@ -64,6 +64,58 @@ task retrieve(type: Sync) {
         file('libs/projectB-9-beta.jar').assertIsCopyOf(moduleB.jarFile)
     }
 
+    public void "uses latest version for version range and latest_integration"() {
+        distribution.requireOwnUserHomeDir()
+        def repo = ivyRepo()
+
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        artifactPattern "${repo.rootDir.toURI()}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+    }
+}
+
+configurations {
+    compile
+}
+
+dependencies {
+    compile group: "group", name: "projectA", version: "1.+"
+    compile group: "group", name: "projectB", version: "latest.integration"
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        when:
+        def projectA1 = repo.module("group", "projectA", "1.1")
+        projectA1.publishArtifact()
+        def projectB1 = repo.module("group", "projectB", "1.0")
+        projectB1.publishArtifact()
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-1.0.jar')
+        file('libs/projectA-1.1.jar').assertIsCopyOf(projectA1.jarFile)
+        file('libs/projectB-1.0.jar').assertIsCopyOf(projectB1.jarFile)
+
+        when:
+        def projectA2 = repo.module("group", "projectA", "1.2")
+        projectA2.publishArtifact()
+        def projectB2 = repo.module("group", "projectB", "2.0")
+        projectB2.publishArtifact()
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-2.0.jar')
+        file('libs/projectA-1.2.jar').assertIsCopyOf(projectA2.jarFile)
+        file('libs/projectB-2.0.jar').assertIsCopyOf(projectB2.jarFile)
+    }
+
     IvyRepository ivyRepo() {
         return new IvyRepository(file('ivy-repo'))
     }

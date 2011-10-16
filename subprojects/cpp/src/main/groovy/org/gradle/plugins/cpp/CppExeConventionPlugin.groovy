@@ -19,6 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.Plugin
 
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 
 class CppExeConventionPlugin implements Plugin<Project> {
 
@@ -49,9 +50,7 @@ class CppExeConventionPlugin implements Plugin<Project> {
                 executables.main.spec.task
             )
 
-            artifacts {
-                archives exeArtifact
-            }
+            extensions.getByType(DefaultArtifactPublicationSet).addCandidate(exeArtifact)
         }
     }
 

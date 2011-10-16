@@ -18,12 +18,10 @@ package org.gradle.launcher.daemon.registry;
 
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileLock;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.messaging.remote.Address;
-import org.gradle.os.jna.NativeEnvironment;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -35,26 +33,22 @@ import java.util.List;
  * @author: Szczepan Faber, created at: 8/18/11
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
+    private final SimpleStateCache<DaemonRegistryContent> cache;
+    private final File registryFile;
 
-    final DaemonDir daemonDir;
-    final SimpleStateCache<DaemonRegistryContent> cache;
-
-    public PersistentDaemonRegistry(File baseFolder) {
-        this.daemonDir = new DaemonDir(baseFolder);
+    public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager) {
+        this.registryFile = registryFile;
         cache = new SimpleStateCache<DaemonRegistryContent>(
-                daemonDir.registryFile,
+                registryFile,
                 new OnDemandFileLock(
-                        daemonDir.getRegistry(),
+                        registryFile,
                         "daemon addresses registry",
-                        new DefaultFileLockManager(
-                                new DefaultProcessMetaDataProvider(
-                                        NativeEnvironment.current()
-                                ))),
+                        fileLockManager),
                 new DefaultSerializer<DaemonRegistryContent>());
     }
 
     public String toString() {
-        return String.format("PersistentDaemonRegistry[dir=%s]", daemonDir.getDir());
+        return String.format("PersistentDaemonRegistry[file=%s]", registryFile);
     }
 
     public synchronized List<DaemonStatus> getAll() {

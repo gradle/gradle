@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
-import org.gradle.api.internal.artifacts.configurations.conflicts.DefaultVersionConflictStrategy;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -59,7 +58,7 @@ public class DefaultConfigurationTest {
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
-    private VersionConflictStrategy versionConflictStrategy = new DefaultVersionConflictStrategy(null);
+    private DefaultResolutionStrategy resolutionStrategy = new DefaultResolutionStrategy();
     private DefaultConfiguration configuration;
 
     @Before
@@ -255,13 +254,13 @@ public class DefaultConfigurationTest {
     }
 
 
-    @SuppressWarnings("unchecked")
     @Test
     public void fileCollectionWithSpec() {
+        @SuppressWarnings("unchecked")
         Spec<Dependency> spec = context.mock(Spec.class);
         DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
                 configuration.fileCollection(spec);
-        assertThat(fileCollection.getDependencySpec(), sameInstance(spec));
+        assertThat(fileCollection.getDependencySpec(), sameInstance((Object)spec));
     }
 
     @Test
@@ -309,7 +308,6 @@ public class DefaultConfigurationTest {
         }});
     }
 
-    @SuppressWarnings("unchecked")
     private void makeResolveReturnFileSet(final Set<File> fileSet) {
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         context.checking(new Expectations() {{
@@ -348,11 +346,11 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, versionConflictStrategy);
+        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy);
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
-        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, versionConflictStrategy);
+        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy);
     }
 
     @SuppressWarnings("unchecked")

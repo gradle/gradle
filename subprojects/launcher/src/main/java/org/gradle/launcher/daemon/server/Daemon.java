@@ -20,7 +20,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.Address;
@@ -47,7 +47,7 @@ public class Daemon implements Runnable, Stoppable {
 
     private DaemonStateCoordinator stateCoordinator;
 
-    private final StoppableExecutor handlersExecutor = new DefaultExecutorFactory().create("Daemon Connection Handler");
+    private final StoppableExecutor handlersExecutor;
 
     private final Lock lifecyleLock = new ReentrantLock();
 
@@ -57,14 +57,14 @@ public class Daemon implements Runnable, Stoppable {
     /**
      * Creates a new daemon instance.
      * 
-     * @param loggingServices The service registry for logging services used by this daemon
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonCommandExecuter commandExecuter) {
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
         this.commandExecuter = commandExecuter;
+        handlersExecutor = executorFactory.create("Daemon Connection Handler");
     }
 
     /**
@@ -98,7 +98,7 @@ public class Daemon implements Runnable, Stoppable {
                                 commandExecuter.executeCommand(connection, command, stateCoordinator);
                             } catch (RuntimeException e) {
                                 LOGGER.error("Error processing the incoming command.", e);
-                                //TODO SF figure out if we can use our executor's exception handler.
+                                //TODO figure out if we can use our executor's exception handler.
                                 throw e; //in case the default exception handler needs it.
                             } finally {
                                 LOGGER.debug("finishing processing of command {}", command);

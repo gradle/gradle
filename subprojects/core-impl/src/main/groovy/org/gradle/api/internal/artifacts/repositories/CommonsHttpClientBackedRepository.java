@@ -24,6 +24,7 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.ivy.plugins.repository.*;
 import org.apache.ivy.util.FileUtil;
+import org.apache.ivy.util.url.ApacheURLLister;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
@@ -31,10 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.URL;
+import java.util.*;
 
 /**
  * A repository which uses commons-httpclient to access resources using HTTP/HTTPS.
@@ -125,7 +124,17 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
     }
 
     public List list(String parent) throws IOException {
-        return Collections.EMPTY_LIST;
+        // Parse standard directory listing pages served up by Apache
+        ApacheURLLister urlLister = new ApacheURLLister();
+        List<URL> urls = urlLister.listAll(new URL(parent));
+        if (urls != null) {
+            List<String> ret = new ArrayList<String>(urls.size());
+            for (URL url : urls) {
+                ret.add(url.toExternalForm());
+            }
+            return ret;
+        }
+        return null;
     }
 
     private boolean wasSuccessful(int result) {

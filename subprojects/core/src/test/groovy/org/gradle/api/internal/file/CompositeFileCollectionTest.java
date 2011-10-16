@@ -212,7 +212,8 @@ public class CompositeFileCollectionTest {
     public void filterDelegatesToEachSet() {
         final FileCollection filtered1 = context.mock(FileCollection.class);
         final FileCollection filtered2 = context.mock(FileCollection.class);
-        final Spec spec = context.mock(Spec.class);
+        @SuppressWarnings("unchecked")
+        final Spec<File> spec = context.mock(Spec.class);
 
         FileCollection filtered = collection.filter(spec);
         assertThat(filtered, instanceOf(CompositeFileCollection.class));

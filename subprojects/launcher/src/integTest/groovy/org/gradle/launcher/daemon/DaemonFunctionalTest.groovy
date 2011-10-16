@@ -16,13 +16,14 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.configuration.GradleLauncherMetaData
+import org.gradle.integtests.fixtures.DaemonController
+import org.gradle.integtests.fixtures.RegistryBackedDaemonController
 import org.gradle.launcher.daemon.client.DaemonClient
+import org.gradle.launcher.daemon.client.DaemonClientServices
 import org.gradle.launcher.daemon.client.DaemonConnector
-import org.gradle.launcher.daemon.client.ExternalDaemonConnector
-import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
 import org.gradle.launcher.daemon.protocol.Sleep
-import org.gradle.launcher.daemon.protocol.Stop
+import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.TemporaryFolder
@@ -37,15 +38,18 @@ class DaemonFunctionalTest extends Specification {
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
     DaemonConnector connector
-    PersistentDaemonRegistry reg
+    DaemonController reg
+    DaemonClient client
     List<Connection> cleanMe = []
     OutputEventListener listener = Mock()
 
     //cannot use setup() because temp folder will get the proper name
-    def prepare() {
+    def prepare(int idleTimeout = 10000) {
         //connector with short-lived daemons
-        connector = new ExternalDaemonConnector<PersistentDaemonRegistry>(temp.testDir, 10000, 10000)
-        reg = connector.daemonRegistry
+        def clientServices = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), temp.testDir, idleTimeout)
+        client = clientServices.get(DaemonClient)
+        connector = clientServices.get(DaemonConnector)
+        reg = new RegistryBackedDaemonController(clientServices.get(DaemonRegistry))
     }
 
     def cleanup() {
@@ -66,26 +70,24 @@ class DaemonFunctionalTest extends Specification {
     def "expired daemons are removed from registry"() {
         //we could write a proper test for expiration and look if processes are finished.
         //At the moment only windows build detects this potential problem because Windows is less forgiving :)
-        prepare()
+        prepare(2000)
 
         when:
-        connector = new ExternalDaemonConnector(temp.testDir, 2000, 10000) //2000 sec expiry time
         def c = connect()
         c.dispatch(new Sleep(1000))
 
         then:
-        poll { assert reg.busy.size() == 1 }
+        reg.isDaemonsBusy(1)
 
         when:
         connect()
 
         then:
-        poll { assert reg.all.size() == 2 }
+        reg.isDaemonsRunning(2)
 
+        and:
         //after some time...
-        poll(5000) {
-            assert reg.all.size() == 0
-        }
+        reg.isDaemonsRunning(0)
     }
 
     @Timeout(20)
@@ -94,33 +96,32 @@ class DaemonFunctionalTest extends Specification {
         prepare()
 
         then:
-        assert reg.busy.size() == 0
-        assert reg.idle.size() == 0
+        reg.isDaemonsRunning(0)
+        reg.isDaemonsIdle(0)
+        reg.isDaemonsBusy(0)
 
         when:
         def connection = connect()
 
         then:
-        poll {
-            assert reg.busy.size() == 0
-            assert reg.idle.size() == 1
-        }
+        reg.isDaemonsRunning(1)
+        reg.isDaemonsIdle(1)
+        reg.isDaemonsBusy(0)
 
         when:
         def sleep = new Sleep(500)
         connection.dispatch(sleep)
 
         then:
-        poll {
-            assert reg.busy.size() == 1
-            assert reg.idle.size() == 0
-        }
+        reg.isDaemonsRunning(1)
+        reg.isDaemonsBusy(1)
+        reg.isDaemonsIdle(0)
 
+        and:
         //after some some time...
-        poll {
-            assert reg.busy.size() == 0
-            assert reg.idle.size() == 1
-        }
+        reg.isDaemonsRunning(1)
+        reg.isDaemonsIdle(1)
+        reg.isDaemonsBusy(0)
     }
 
     @Timeout(20)
@@ -130,40 +131,22 @@ class DaemonFunctionalTest extends Specification {
         def c = connect()
 
         then:
-        poll { assert reg.idle.size() == 1 }
+        reg.isDaemonsIdle(1)
 
         when:
         c.dispatch(new Sleep(500))
 
         then:
-        poll { assert reg.busy.size() == 1 }
+        reg.isDaemonsBusy(1)
 
         when:
         connect()
 
         then:
-        poll {
-            assert reg.all.size() == 2
-        }
+        reg.isDaemonsRunning(2)
 
         //daemons log separately:
-        assert reg.daemonDir.logs.size() == 2
-    }
-
-    @Timeout(20)
-    def "cleans up registry"() {
-        prepare()
-
-        when:
-        def connection = connect()
-        then:
-        poll { assert reg.all.size() == 1 }
-
-        when:
-        connection.dispatch(new Stop(new GradleLauncherMetaData()))
-
-        then:
-        poll { assert reg.all.size() == 0 }
+        assert reg.daemonLogs.size() == 2
     }
 
     @Timeout(20)
@@ -174,13 +157,13 @@ class DaemonFunctionalTest extends Specification {
         def connection = connect()
 
         then:
-        poll { assert reg.idle.size() == 1 }
+        reg.isDaemonsIdle(1)
 
         when:
-        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+        client.stop()
 
         then:
-        poll { assert reg.all.size() == 0 }
+        reg.isDaemonsRunning(0)
     }
 
     @Timeout(20)
@@ -189,21 +172,16 @@ class DaemonFunctionalTest extends Specification {
 
         when:
         def c = connect()
-
-        then:
-        poll { assert reg.all.size() == 1 }
-
-        when:
         c.dispatch(new Sleep(3000))
 
         then:
-        poll { assert reg.busy.size() == 1 }
+        reg.isDaemonsBusy(1)
 
         when:
-        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+        client.stop()
 
         then:
-        poll(1000) { assert reg.all.size() == 0 }
+        reg.isDaemonsRunning(0)
     }
 
     @Timeout(20)
@@ -212,29 +190,31 @@ class DaemonFunctionalTest extends Specification {
 
         when:
         def connection = connect()
-        connection.dispatch(new Sleep(2000))
+        connection.dispatch(new Sleep(5000))
 
         then:
-        poll { assert reg.busy.size() == 1 }
+        reg.isDaemonsBusy(1)
 
         when:
         def connectionTwo = connect()
-        connectionTwo.dispatch(new Sleep(2000))
+        connectionTwo.dispatch(new Sleep(5000))
 
         then:
-        poll { assert reg.busy.size() == 2 }
+        reg.isDaemonsBusy(2)
 
         when:
         def connectionThree = connect()
 
         then:
-        poll { assert reg.all.size() == 3 }
+        reg.isDaemonsRunning(3)
+        reg.isDaemonsBusy(2)
+        reg.isDaemonsIdle(1)
 
         when:
-        new DaemonClient(connector, new GradleLauncherMetaData(), listener).stop()
+        client.stop()
 
         then:
-        poll { assert reg.all.size() == 0 }
+        reg.isDaemonsRunning(0)
     }
 
     private Connection<Object> connect() {
@@ -250,29 +230,12 @@ class DaemonFunctionalTest extends Specification {
     String getDaemonLog() {
         String out = ''
         int i = 1;
-        reg.daemonDir.logs.each {
+        reg.daemonLogs.each {
             out += "\n"
             out += "*** daemon #$i log:\n"
             out += "$it.text\n"
             i++
         }
         return out
-    }
-
-    //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    void poll(int timeout = 2000, Closure assertion) {
-        int x = 0;
-        while(true) {
-            try {
-                assertion()
-                return
-            } catch (Throwable t) {
-                Thread.sleep(100);
-                x += 100;
-                if (x > timeout) {
-                    throw t;
-                }
-            }
-        }
     }
 }

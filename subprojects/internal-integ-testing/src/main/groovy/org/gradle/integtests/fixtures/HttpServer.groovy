@@ -68,6 +68,10 @@ class HttpServer implements MethodRule {
         server.stop()
     }
 
+    void resetExpectations() {
+        collection.setHandlers()
+    }
+
     Statement apply(Statement base, FrameworkMethod method, Object target) {
         return new Statement() {
             @Override
@@ -169,6 +173,27 @@ class HttpServer implements MethodRule {
     }
 
     /**
+     * Allows one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
+     */
+    void expectGetDirectoryListing(String path, File directory) {
+        def directoryListing = ""
+        for (String fileName: directory.list()) {
+            directoryListing += "<a href=\"$fileName\">$fileName</a>"
+        }
+        expect(path, false, ['GET'], stringHandler(path, directoryListing))
+    }
+
+    private AbstractHandler stringHandler(String path, String content) {
+        return new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                response.setContentLength(content.length())
+                response.setContentType("text/plain")
+                response.outputStream.bytes = content.bytes
+            }
+        }
+    }
+
+    /**
      * Allows one PUT request for the given URL. Writes the request content to the given file.
      */
     void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK) {
@@ -253,7 +278,7 @@ class HttpServer implements MethodRule {
 
     private void add(String path, boolean recursive, Collection<String> methods, Handler handler) {
         assert path.startsWith('/')
-        assert path == '/' || !path.endsWith('/')
+//        assert path == '/' || !path.endsWith('/')
         def prefix = path == '/' ? '/' : path + '/'
         collection.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {

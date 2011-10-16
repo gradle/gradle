@@ -68,7 +68,7 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
                 //we can safely remove this address now
                 LOGGER.debug("We cannot connect to the daemon at " + address + " due to " + e + ". "
                         + "We will not remove this daemon from the registry because the connection issue may have been temporary.");
-                //TODO SF it might be good to store in the registry the number of failed attempts to connect to the deamon
+                //TODO it might be good to store in the registry the number of failed attempts to connect to the deamon
                 //if the number is high we may decide to remove the daemon from the registry
                 //daemonRegistry.remove(address);
             }

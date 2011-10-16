@@ -25,8 +25,6 @@ import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.configurations.conflicts.DefaultVersionConflictStrategy;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.listener.ListenerManager;
 
 import java.util.Collection;
@@ -44,27 +42,25 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final DomainObjectContext context;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final DependencyFactory dependencyFactory;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
     public DefaultConfigurationContainer(ArtifactDependencyResolver dependencyResolver,
-                 Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
-                 DependencyMetaDataProvider dependencyMetaDataProvider, DependencyFactory dependencyFactory) {
+                                         Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
+                                         DependencyMetaDataProvider dependencyMetaDataProvider) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.dependencyResolver = dependencyResolver;
         this.instantiator = instantiator;
         this.context = context;
         this.listenerManager = listenerManager;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
-        this.dependencyFactory = dependencyFactory;
     }
 
     @Override
     protected Configuration doCreate(String name) {
         return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name),
                 name, this, dependencyResolver, listenerManager,
-                dependencyMetaDataProvider, new DefaultVersionConflictStrategy(dependencyFactory));
+                dependencyMetaDataProvider, new DefaultResolutionStrategy());
     }
 
     // Override deprecated version from DomainObjectCollection (through AbstractNamedDomainObjectContainer)
@@ -100,7 +96,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(
                 name, name, detachedConfigurationsProvider, dependencyResolver,
-                listenerManager, dependencyMetaDataProvider, new DefaultVersionConflictStrategy(dependencyFactory));
+                listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy());
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

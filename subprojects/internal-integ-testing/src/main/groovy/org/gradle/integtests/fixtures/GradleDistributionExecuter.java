@@ -20,7 +20,6 @@ import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -103,8 +102,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return base;
     }
 
-    public DaemonRegistry getDaemonRegistry() {
-        return configureExecuter().getDaemonRegistry();
+    public DaemonController getDaemonController() {
+        return configureExecuter().getDaemonController();
     }
 
     @Override
@@ -213,8 +212,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
             forkingGradleExecuter.addGradleOpts(String.format("-Dorg.gradle.daemon.idletimeout=%s", 5 * 60 * 1000));
             returnedExecuter = forkingGradleExecuter;
-        } else {
-            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());
+//        } else {
+//            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());
         }
 
         if (executerType == Executer.embeddedDaemon) {

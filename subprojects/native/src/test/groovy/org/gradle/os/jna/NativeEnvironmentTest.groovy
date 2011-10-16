@@ -16,18 +16,57 @@
 package org.gradle.os.jna
 
 import org.gradle.os.ProcessEnvironment
+import org.gradle.util.SetSystemProperties
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 import spock.lang.Specification
 
 class NativeEnvironmentTest extends Specification {
+    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final ProcessEnvironment env = NativeEnvironment.current()
+
+    def "can set and remove environment variable"() {
+        when:
+        env.setEnvironmentVariable("TEST_ENV_1", "value")
+        env.maybeSetEnvironmentVariable("TEST_ENV_2", "value")
+
+        then:
+        System.getenv("TEST_ENV_1") == "value"
+        System.getenv("TEST_ENV_2") == "value"
+
+        when:
+        env.removeEnvironmentVariable("TEST_ENV_1")
+        env.maybeRemoveEnvironmentVariable("TEST_ENV_2")
+
+        then:
+        System.getenv("TEST_ENV_1") == null
+        System.getenv("TEST_ENV_2") == null
+    }
 
     def "can get working directory of current process"() {
         expect:
         env.processDir.canonicalFile == new File('.').canonicalFile
     }
 
+    def "can get set working directory of current process"() {
+        File originalDir = new File(System.getProperty("user.dir"))
+
+        when:
+        env.setProcessDir(tmpDir.dir)
+
+        then:
+        env.processDir.canonicalFile == tmpDir.dir
+        new File(".").canonicalFile == tmpDir.dir
+
+        cleanup:
+        System.setProperty("user.dir", originalDir.absolutePath)
+        env.setProcessDir(originalDir)
+    }
+
     def "can get pid of current process"() {
         expect:
         env.pid != null
+        env.maybeGetPid() == env.pid
     }
 }

@@ -16,18 +16,15 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.internal.project.ServiceRegistry;
-
-import org.gradle.logging.internal.LoggingOutputInternal;
-
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
-
+import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.launcher.daemon.protocol.Command;
+import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
+import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.logging.internal.LoggingOutputInternal;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.launcher.daemon.protocol.Command;
-
-import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 
 /**
  * The default implementation of how to execute commands that the daemon receives.
@@ -35,18 +32,20 @@ import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
 
     final private ServiceRegistry loggingServices;
+    private final ExecutorFactory executorFactory;
     final private LoggingOutputInternal loggingOutput;
     final private GradleLauncherFactory launcherFactory;
 
-    public DefaultDaemonCommandExecuter(ServiceRegistry loggingServices) {
+    public DefaultDaemonCommandExecuter(ServiceRegistry loggingServices, ExecutorFactory executorFactory) {
         this.loggingServices = loggingServices;
+        this.executorFactory = executorFactory;
         this.loggingOutput = loggingServices.get(LoggingOutputInternal.class);
         this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 
     public void executeCommand(Connection<Object> connection, Command command, DaemonStateCoordinator daemonStateCoordinator) {
         new DaemonCommandExecution(
-            new DisconnectAwareConnectionDecorator<Object>(connection, new DefaultExecutorFactory().create("DefaultDaemonCommandExecuter > DisconnectAwareConnectionDecorator")),
+            new DisconnectAwareConnectionDecorator<Object>(connection, executorFactory.create("DefaultDaemonCommandExecuter > DisconnectAwareConnectionDecorator")),
             command,
             daemonStateCoordinator,
             new StopConnectionAfterExecution(),
@@ -57,11 +56,11 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new ReturnResult(),
             new ForwardOutput(loggingOutput),
             new ResetDeprecationLogger(),
-            new ReportExceptions(loggingServices),
+            new ReportExceptions(loggingServices.get(StyledTextOutputFactory.class)),
             new HandleSleep(),
             new EstablishBuildEnvironment(),
             new WatchForDisconnection(),
-            new ForwardClientInput(),
+            new ForwardClientInput(executorFactory),
             new ExecuteBuild(loggingServices, launcherFactory)
         ).proceed();
     }

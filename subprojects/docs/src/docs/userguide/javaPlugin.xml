@@ -742,7 +742,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <literal>classesDir</literal>
+                        <literal>output.classesDir</literal>
                     </td>
                     <td>
                         <classname>File</classname>
@@ -762,7 +762,7 @@
                         <apilink class="org.gradle.api.file.FileCollection"/>
                     </td>
                     <td>
-                        <literal>compile</literal> Configuration.
+                        <literal>compile<replaceable>Name</replaceable></literal> configuration.
                     </td>
                     <td>
                         The classpath to use when compiling the source files of this source set.
@@ -776,7 +776,7 @@
                         <apilink class="org.gradle.api.file.FileCollection"/>
                     </td>
                     <td>
-                        <literal>classesDir</literal> + <literal>runtime</literal> Configuration.
+                        <literal>output</literal> + <literal>runtime<replaceable>Name</replaceable></literal> configuration.
                     </td>
                     <td>
                         The classpath to use when executing the classes of this source set.
@@ -876,10 +876,6 @@
 
         <section>
             <title>Some source set examples</title>
-            <para>Using dependency configurations to define the source set classpath:</para>
-            <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Defining the classpath of a source set">
-                <sourcefile file="build.gradle" snippet="classpath-using-configurations"/>
-            </sample>
             <para>Adding a JAR containing the classes of a source set:</para>
             <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Assembling a JAR for a source set">
                 <sourcefile file="build.gradle" snippet="jar"/>

@@ -31,29 +31,11 @@ import java.util.Set;
 public interface Configuration extends FileCollection {
 
     /**
-     * <strong>experimental</strong>
-     * This part of the api will change for sure!
-     * You can use it if you like but this part of the api will change without notice.
-     * <p>
-     *
-     * Returns the version conflict strategy used by this configuration
-     *
-     * @return strategy
-     */
-    @Deprecated
-    VersionConflictStrategy getVersionConflictStrategy();
-
-    /**
-     * <strong>experimental</strong>
-     * This part of the api will change for sure!
-     * You can use it if you like but this part of the api will change without notice.
-     * <p>
      * Returns the resolution strategy used by this configuration
      *
      * @return strategy
      */
-    @Deprecated
-    ResolutionStrategy getResolution();
+    ResolutionStrategy getResolutionStrategy();
 
     /**
      * The states a configuration can be into. A configuration is only mutable as long as it is
@@ -190,7 +172,7 @@ public interface Configuration extends FileCollection {
      * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The files of a subset of dependencies of this configuration.
      */
-    Set<File> files(Spec<Dependency> dependencySpec);
+    Set<File> files(Spec<? super Dependency> dependencySpec);
 
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration.
@@ -210,7 +192,7 @@ public interface Configuration extends FileCollection {
      * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The FileCollection with a subset of dependencies of this configuration.
      */
-    FileCollection fileCollection(Spec<Dependency> dependencySpec);
+    FileCollection fileCollection(Spec<? super Dependency> dependencySpec);
 
     /**
      * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as
@@ -428,7 +410,7 @@ public interface Configuration extends FileCollection {
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
      */
-    Configuration copy(Spec<Dependency> dependencySpec);
+    Configuration copy(Spec<? super Dependency> dependencySpec);
 
     /**
      * Creates a copy of this configuration with dependencies from superconfigurations (see {@link #copyRecursive()})
@@ -437,7 +419,7 @@ public interface Configuration extends FileCollection {
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
      */
-    Configuration copyRecursive(Spec<Dependency> dependencySpec);
+    Configuration copyRecursive(Spec<? super Dependency> dependencySpec);
 
     /**
      * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as {@link #copy(org.gradle.api.specs.Spec)}

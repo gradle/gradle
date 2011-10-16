@@ -16,15 +16,11 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.os.jna.NativeEnvironment;
+import org.gradle.os.ProcessEnvironment;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.util.List;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
+import java.util.UUID;
 
 /**
  * @author: Szczepan Faber, created at: 8/20/11
@@ -32,12 +28,14 @@ import static java.util.Collections.emptyList;
 public class DaemonDir {
 
     private final File dir;
-    public File registryFile;
+    private final File registryFile;
+    private final ProcessEnvironment processEnvironment;
 
-    public DaemonDir(File baseDir) {
+    public DaemonDir(File baseDir, ProcessEnvironment processEnvironment) {
         dir = new File(baseDir, String.format("daemon/%s", GradleVersion.current().getVersion()));
         registryFile = new File(dir, "registry.bin");
         dir.mkdirs();
+        this.processEnvironment = processEnvironment;
     }
 
     public File getDir() {
@@ -50,19 +48,7 @@ public class DaemonDir {
 
     //very simplistic, just making sure each damon has unique log file
     public File createUniqueLog() {
-        Long pid = NativeEnvironment.current().getPid();
-        return new File(dir, String.format("daemon-%s.out.log", pid));
-    }
-
-    public List<File> getLogs() {
-        File[] files = dir.listFiles(new FilenameFilter() {
-            public boolean accept(File file, String s) {
-                return s.startsWith("daemon-") && s.endsWith("out.log");
-            }
-        });
-        if (files != null) {
-            return asList(files);
-        }
-        return emptyList();
+        Long pid = processEnvironment.maybeGetPid();
+        return new File(dir, String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid));
     }
 }

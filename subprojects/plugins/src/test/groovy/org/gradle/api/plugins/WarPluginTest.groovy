@@ -127,7 +127,7 @@ class WarPluginTest {
         assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME, 'customWar'))
     }
 
-    @Test public void addsDefaultWarToArchiveConfiguration() {
+    @Test public void replacesJarAsPublication() {
         warPlugin.apply(project)
 
         Configuration archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);

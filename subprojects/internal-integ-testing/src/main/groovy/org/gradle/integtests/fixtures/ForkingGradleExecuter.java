@@ -22,18 +22,12 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleState;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
 import org.gradle.util.Jvm;
 import org.gradle.util.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.OutputStream;
-import java.io.IOException;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,13 +48,13 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return gradleHomeDir;
     }
 
-    public DaemonRegistry getDaemonRegistry() {
+    public DaemonController getDaemonController() {
         File userHome = getUserHomeDir();
         if (userHome == null) {
             userHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
         }
 
-        return new PersistentDaemonRegistry(userHome);
+        return new RegistryBackedDaemonController(userHome);
     }
 
     /**
@@ -92,6 +86,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.environment("GRADLE_OPTS", formatGradleOpts());
         builder.environment(getEnvironmentVars());
         builder.workingDir(getWorkingDir());
+        builder.setStandardInput(getStdin());
 
         commandBuilder.build(builder);
 

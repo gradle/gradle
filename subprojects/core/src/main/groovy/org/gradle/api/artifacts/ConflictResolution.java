@@ -13,35 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
-
 /**
- * Defines the strategy in case there's a dependency version conflict.
+ * The conflict resolution
  */
-public interface VersionConflictStrategy {
-
-    /**
-     * Configures current strategy type
-     *
-     * @param type type to set
-     */
-    public void setType(VersionConflictStrategyType type);
-
-    /**
-     * gets current version conflict strategy type
-     */
-    public VersionConflictStrategyType getType();
-
-    /**
-     * use the latest of conflicting versions and move on
-     */
-    public VersionConflictStrategyType latest();
-
-    /**
-     * fail eagerly on conflict
-     */
-    public VersionConflictStrategyType strict(Closure closure);
-}
+public interface ConflictResolution {}

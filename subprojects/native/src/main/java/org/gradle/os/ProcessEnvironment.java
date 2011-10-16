@@ -16,26 +16,88 @@
 package org.gradle.os;
 
 import java.io.File;
+import java.util.Map;
 
 /**
- * Provides access to the environment and working directory of the current process.
+ * Provides access to information about the current process.
  *
  * <p>Implementations are not thread-safe.</p>
  */
 public interface ProcessEnvironment {
-    void removeEnvironmentVariable(String name);
-
-    void setEnvironmentVariable(String name, String value);
+    /**
+     * Sets the environment of this process, if possible.
+     *
+     * @param source The environment
+     * @return true if environment changed, false if not possible.
+     */
+    public boolean maybeSetEnvironment(Map<String, String> source);
 
     /**
-     * Returns the working directory of the current process, or null if not available.
+     * Removes the given environment variable.
+     *
+     * @param name The name of the environment variable.
+     * @throws NativeIntegrationException If the environment variable cannot be removed.
      */
-    File getProcessDir();
-
-    void setProcessDir(File processDir);
+    void removeEnvironmentVariable(String name) throws NativeIntegrationException;
 
     /**
-     * Returns the PID for the current process, or null if not available.
+     * Removes the given environment variable, if possible.
+     *
+     * @param name The name of the environment variable.
+     * @return true if removed, false if not possible.
      */
-    Long getPid();
+    boolean maybeRemoveEnvironmentVariable(String name);
+
+    /**
+     * Sets the given environment variable.
+     *
+     * @param name The name
+     * @param value The value. Can be null, which removes the environment variable.
+     * @throws NativeIntegrationException If the environment variable cannot be set.
+     */
+    void setEnvironmentVariable(String name, String value) throws NativeIntegrationException;
+
+    /**
+     * Sets the given environment variable, if possible.
+     *
+     * @param name The name
+     * @param value The value
+     * @return true if set, false if not possible.
+     */
+    boolean maybeSetEnvironmentVariable(String name, String value);
+
+    /**
+     * Returns the working directory of the current process.
+     *
+     * @throws NativeIntegrationException If the process directory is not available.
+     */
+    File getProcessDir() throws NativeIntegrationException;
+
+    /**
+     * Sets the process working directory.
+     *
+     * @param processDir The directory.
+     * @throws NativeIntegrationException If process directory cannot be set.
+     */
+    void setProcessDir(File processDir) throws NativeIntegrationException;
+
+    /**
+     * Sets the process working directory, if possible
+     *
+     * @param processDir The directory.
+     * @return true if the directory can be set, false if not possible.
+     */
+    boolean maybeSetProcessDir(File processDir);
+
+    /**
+     * Returns the OS level PID for the current process.
+     *
+     * @throws NativeIntegrationException If the pid is not available.
+     */
+    Long getPid() throws NativeIntegrationException;
+
+    /**
+     * Returns the OS level PID for the current process, or null if not available.
+     */
+    Long maybeGetPid();
 }

@@ -94,7 +94,7 @@ public class DefaultDependencyFactoryTest {
     }
 
     private Integer createAnonymousInteger() {
-        return new Integer(5);
+        return 5;
     }
 
     @Test
@@ -103,12 +103,11 @@ public class DefaultDependencyFactoryTest {
         final ProjectDependency projectDependency = context.mock(ProjectDependency.class);
         final ProjectFinder projectFinderDummy = context.mock(ProjectFinder.class);
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(null, null, projectDependencyFactoryStub);
-        final Map map = WrapUtil.toMap("key", "value");
+        final Map<String, String> map = WrapUtil.toMap("key", "value");
         context.checking(new Expectations() {{
             allowing(projectDependencyFactoryStub).createProjectDependencyFromMap(projectFinderDummy, map);
             will(returnValue(projectDependency));
         }});
-        Closure configureClosure = HelperUtil.toClosure("{ transitive = false }");
         assertThat(dependencyFactory.createProjectDependencyFromMap(projectFinderDummy, map), sameInstance(projectDependency));
     }
 

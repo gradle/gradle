@@ -37,7 +37,7 @@ public class DefaultSourceSetContainer extends AbstractNamedDomainObjectContaine
 
     @Override
     protected SourceSet doCreate(String name) {
-        DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, fileResolver, taskResolver);
+        DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, fileResolver);
         sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), fileResolver, taskResolver));
 
         return sourceSet;

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
-
-import org.gradle.api.artifacts.ResolutionStrategy;
+package org.gradle.api.artifacts;
 
 /**
- * by Szczepan Faber, created at: 10/8/11
+ * Describes the forced version
  */
-public interface ResolutionStrategyInternal extends ResolutionStrategy {
+public interface ForcedVersion {
+    String getGroup();
+    String getName();
+    String getVersion();
 }

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.internal.*
 import org.junit.Rule
 import spock.lang.*
 
-class SamplesJavaApiAndImplTest extends AbstractIntegrationSpec {
+class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample apiAndImpl = new Sample('java/apiAndImpl')
 

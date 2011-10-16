@@ -25,13 +25,15 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -40,7 +42,7 @@ public class ClientModuleDependencyDescriptorFactoryTest extends AbstractDepende
     private JUnit4Mockery context = new JUnit4Mockery();
 
     private ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule = context.mock(ModuleDescriptorFactoryForClientModule.class);
-    private HashMap clientModuleRegistry = new HashMap();
+    private Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
     private ClientModuleDependencyDescriptorFactory clientModuleDependencyDescriptorFactory = new ClientModuleDependencyDescriptorFactory(
             excludeRuleConverterStub,
             moduleDescriptorFactoryForClientModule,

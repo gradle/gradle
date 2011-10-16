@@ -59,9 +59,9 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
         Clock clock = new Clock();
         Ivy ivy = ivyFactory.create();
 
-        entryPointResolverConfigurer.configure(configuration, (EntryPointResolver) ivy.getSettings().getDefaultResolver());
+        entryPointResolverConfigurer.configureResolver((EntryPointResolver) ivy.getSettings().getDefaultResolver(), configuration);
 
-        IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getVersionConflictStrategy());
+        IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getResolutionStrategy());
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), ivyConfig);
         ResolveOptions resolveOptions = createResolveOptions(configuration);
         ResolveReport resolveReport;
@@ -128,7 +128,7 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
             }
         }
 
-        public Set<File> getFiles(Spec<Dependency> dependencySpec) {
+        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
             Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
             return getFiles(firstLevelModuleDependencies, this.conversionResult);
         }
@@ -160,12 +160,12 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
             return conversionResult.getRoot().getChildren();
         }
 
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) {
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
             rethrowFailure();
             return getFirstLevelModuleDependencies(dependencySpec, conversionResult);
         }
 
-        Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec, IvyConversionResult conversionResult) {
+        Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec, IvyConversionResult conversionResult) {
             Set<ModuleDependency> allDependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
             Set<ModuleDependency> selectedDependencies = Specs.filterIterable(allDependencies, dependencySpec);
 

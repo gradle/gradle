@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 
 import org.gradle.api.artifacts.UnknownConfigurationException
-import org.gradle.api.artifacts.VersionConflictStrategy
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
@@ -40,13 +39,13 @@ public class DefaultConfigurationContainerTest extends Specification {
     private DependencyMetaDataProvider metaDataProvider = Mock()
     def ConfigurationInternal conf = Mock()
 
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(dependencyResolver, instantiator, domainObjectContext, listenerManager, metaDataProvider, null);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(dependencyResolver, instantiator, domainObjectContext, listenerManager, metaDataProvider);
 
     def "adds and gets"() {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, _ as VersionConflictStrategy) >> conf
+                dependencyResolver, listenerManager, metaDataProvider, _ as DefaultResolutionStrategy) >> conf
 
         when:
         def compile = configurationContainer.add("compile")
@@ -65,7 +64,7 @@ public class DefaultConfigurationContainerTest extends Specification {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, _ as VersionConflictStrategy) >> conf
+                dependencyResolver, listenerManager, metaDataProvider, _ as DefaultResolutionStrategy) >> conf
 
         when:
         def compile = configurationContainer.add("compile") {

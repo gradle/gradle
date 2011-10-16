@@ -33,10 +33,10 @@ public class DefaultCacheRepository implements CacheRepository {
     private final GradleVersion version = GradleVersion.current();
     private final File globalCacheDir;
     private final CacheUsage cacheUsage;
-    private final String projectCacheDir;
+    private final File projectCacheDir;
     private final CacheFactory factory;
 
-    public DefaultCacheRepository(File userHomeDir, String projectCacheDir, CacheUsage cacheUsage, CacheFactory factory) {
+    public DefaultCacheRepository(File userHomeDir, File projectCacheDir, CacheUsage cacheUsage, CacheFactory factory) {
         this.projectCacheDir = projectCacheDir;
         this.factory = factory;
         this.globalCacheDir = new File(userHomeDir, "caches");
@@ -94,7 +94,7 @@ public class DefaultCacheRepository implements CacheRepository {
                 File rootProjectDir = gradle.getRootProject().getProjectDir();
                 cacheBaseDir = maybeProjectCacheDir(rootProjectDir);
             } else if (target instanceof File) {
-                cacheBaseDir = maybeProjectCacheDir((File) target);
+                cacheBaseDir = new File((File) target, ".gradle");
             } else {
                 throw new IllegalArgumentException(String.format("Cannot create cache for unrecognised domain object %s.", target));
             }
@@ -117,10 +117,10 @@ public class DefaultCacheRepository implements CacheRepository {
         protected abstract T doOpen(File cacheDir, Map<String, ?> properties);
 
         private File maybeProjectCacheDir(File potentialParentDir) {
-            if (new File(projectCacheDir).isAbsolute()) {
-                return new File(projectCacheDir);
+            if (projectCacheDir != null) {
+                return projectCacheDir;
             }
-            return new File(potentialParentDir, projectCacheDir);
+            return new File(potentialParentDir, ".gradle");
         }
 
         protected CrossVersionMode getCrossVersionMode() {

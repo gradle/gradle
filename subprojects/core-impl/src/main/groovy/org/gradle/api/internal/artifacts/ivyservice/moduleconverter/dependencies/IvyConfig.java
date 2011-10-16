@@ -25,10 +25,13 @@ import org.apache.ivy.plugins.conflict.StrictConflictException;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.VersionConflictStrategy;
+import org.gradle.api.artifacts.ForcedVersion;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.configurations.conflicts.DependencySelector;
-import org.gradle.api.internal.artifacts.configurations.conflicts.LatestStrategyType;
-import org.gradle.api.internal.artifacts.configurations.conflicts.StrictStrategyType;
+import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
+import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
+
+import java.util.Set;
 
 /**
  * Contains ivy settings and conflict management. The purpose of this class is to insulate from ivy a bit.
@@ -38,13 +41,13 @@ import org.gradle.api.internal.artifacts.configurations.conflicts.StrictStrategy
 public class IvyConfig {
 
     private final IvySettings ivySettings;
-    private final VersionConflictStrategy conflictStrategy;
+    private final ResolutionStrategy resolutionStrategy;
 
-    public IvyConfig(IvySettings ivySettings, VersionConflictStrategy conflictStrategy) {
+    public IvyConfig(IvySettings ivySettings, ResolutionStrategy resolutionStrategy) {
         assert ivySettings != null : "ivySettings cannot be null!";
-        assert conflictStrategy != null : "conflictStrategy cannot be null!";
+        assert resolutionStrategy != null : "resolutionStrategy cannot be null!";
         this.ivySettings = ivySettings;
-        this.conflictStrategy = conflictStrategy;
+        this.resolutionStrategy = resolutionStrategy;
     }
 
     public void applyConflictManager(DefaultModuleDescriptor moduleDescriptor) {
@@ -56,13 +59,14 @@ public class IvyConfig {
     }
 
     private AbstractConflictManager createIvyConflictManager() {
-        if (conflictStrategy.getType() instanceof LatestStrategyType) {
+        if (resolutionStrategy.getConflictResolution()  instanceof LatestConflictResolution) {
             return new LatestConflictManager(new LatestRevisionStrategy());
-        } else if (conflictStrategy.getType() instanceof StrictStrategyType) {
-            DependencySelector selector = new DependencySelector(((StrictStrategyType) conflictStrategy.getType()).getForce());
+        } else if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
+            Set<ForcedVersion> forcedVersions = ((StrictConflictResolution) resolutionStrategy.getConflictResolution()).getForcedVersions();
+            DependencySelector selector = new DependencySelector(forcedVersions);
             return new ForceAwareStrictConflictManager(selector);
         } else {
-            throw new RuntimeException("I don't know what ivy conflict manager to use for this VersionConflictStrategy: " + conflictStrategy);
+            throw new RuntimeException("I don't know what ivy conflict manager to use for: " + resolutionStrategy);
         }
     }
 
@@ -70,7 +74,7 @@ public class IvyConfig {
     public void maybeTranslateIvyResolveException(Exception e) {
         if (e instanceof StrictConflictException) {
             throw new GradleException("Your dependencies exhibit a version conflict. "
-                    + "The conflict resolution strategy is set to: " + conflictStrategy
+                    + "The conflict resolution strategy is set to: " + resolutionStrategy
                     + ". Details: " + e.getMessage(), e);
         }
     }

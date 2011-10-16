@@ -16,13 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.artifacts.ForcedVersion;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
+import java.util.Set;
+
 /**
+ * entry point resolver is global to all configurations, however it needs
+ * specific data from configuration per resolve.
+ * <p>
  * by Szczepan Faber, created at: 10/8/11
  */
 public class EntryPointResolverConfigurer {
-    public void configure(ConfigurationInternal configuration, EntryPointResolver resolver) {
-        resolver.setForcedVersions(configuration.getResolution().getForcedVersions());
+    public void configureResolver(EntryPointResolver resolver, ConfigurationInternal configuration) {
+        Set<ForcedVersion> forcedVersions = configuration.getResolutionStrategy().getForcedVersions();
+        resolver.setIvyResolutionListener(new MaybeForceVersions(forcedVersions));
     }
+
 }

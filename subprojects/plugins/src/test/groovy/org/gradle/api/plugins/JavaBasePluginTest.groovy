@@ -28,6 +28,7 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
 import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.Matchers.*
 import org.gradle.api.tasks.testing.Test
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -84,6 +85,32 @@ class JavaBasePluginTest extends Specification {
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         classes.dependsOn.contains project.sourceSets.custom.output.dirs
+    }
+
+    void createsConfigurationsForNewSourceSet() {
+        when:
+        javaBasePlugin.apply(project)
+        def sourceSet = project.sourceSets.add('custom')
+
+        then:
+        def compile = project.configurations.customCompile
+        compile.transitive
+        !compile.visible
+        compile.extendsFrom == [] as Set
+        compile.description == 'Classpath for compiling the custom sources.'
+
+        and:
+        def runtime = project.configurations.customRuntime
+        runtime.transitive
+        !runtime.visible
+        runtime.extendsFrom == [compile] as Set
+        runtime.description == 'Classpath for running the compiled custom classes.'
+
+        and:
+        def runtimeClasspath = sourceSet.runtimeClasspath
+        def compileClasspath = sourceSet.compileClasspath
+        compileClasspath == compile
+        runtimeClasspath sameCollection(sourceSet.output + runtime)
     }
 
     void appliesMappingsToTasksDefinedByBuildScript() {

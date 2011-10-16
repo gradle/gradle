@@ -24,9 +24,17 @@ class DefaultProcessMetaDataProviderTest extends Specification {
 
     def "uses process PID as process identifier"() {
         given:
-        _ * processEnvironment.pid >> 1234
+        _ * processEnvironment.maybeGetPid() >> 1234
 
         expect:
         provider.processIdentifier == '1234'
+    }
+
+    def "uses null when PID is not available"() {
+        given:
+        _ * processEnvironment.maybeGetPid() >> null
+
+        expect:
+        provider.processIdentifier == null
     }
 }

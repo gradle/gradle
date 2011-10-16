@@ -32,13 +32,12 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
-import org.gradle.launcher.env.LenientEnvHacker;
 import org.gradle.os.ProcessEnvironment;
+import org.gradle.os.jna.NativeEnvironment;
 import org.hamcrest.Matcher;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.*;
 
@@ -47,7 +46,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private final ProcessEnvironment envHacker = new LenientEnvHacker();
+    private final ProcessEnvironment envHacker = NativeEnvironment.current();
 
     @Override
     protected ExecutionResult doRun() {
@@ -78,6 +77,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                               BuildListenerImpl listener) {
         assertCanExecute();
 
+        InputStream originalStdIn = System.in;
+        System.setIn(getStdin());
+        
         File userDir = new File(System.getProperty("user.dir"));
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
@@ -117,13 +119,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 }
             }
             factory.removeListener(listener);
+            System.setIn(originalStdIn);
         }
     }
 
-    public DaemonRegistry getDaemonRegistry() {
-        // doesn't quite make sense, but there will never be daemons started by this executer.
-        // we could create a capability interface for the executer hierarchy but I'm not sure it's worth it
-        return new EmbeddedDaemonRegistry();
+    public DaemonController getDaemonController() {
+        throw new UnsupportedOperationException();
     }
 
     public void assertCanExecute() {

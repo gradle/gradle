@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistry
@@ -67,7 +66,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(StartParameter.class) >> startParameter
         1 * instantiator.newInstance(DefaultRepositoryHandler.class, _, _) >> repositoryHandler
         1 * instantiator.newInstance(DefaultConfigurationContainer.class, !null, instantiator,
-                domainObjectContext, listenerManager, dependencyMetaDataProvider, _ as DependencyFactory) >> configurationContainer
+                domainObjectContext, listenerManager, dependencyMetaDataProvider) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)

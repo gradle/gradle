@@ -61,7 +61,7 @@ println System.getenv('foo')
     }
 
     @Test
-    public void "build is executed with working directory set to where the build was launched"() {
+    public void "build is executed with working directory set to where the build was launched from"() {
         def project1 = distribution.testFile("project1")
         def project2 = distribution.testFile("project2")
 
@@ -89,4 +89,11 @@ assert classesDir.directory
         executer.inDirectory(project2).run()
     }
 
+    @Test
+    void "system properties should be made available to build"() {
+        file('build.gradle') << """
+    assert System.properties['foo'] == 'bar'
+"""
+        executer.withArguments("-Dfoo=bar").run()
+    }
 }

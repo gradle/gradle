@@ -48,8 +48,8 @@ public class DefaultExcludeRuleContainerTest {
     @Test
     public void testAdd() {
         DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
-        Map excludeRuleArgs1 = WrapUtil.toMap("key1", "value1");
-        Map excludeRuleArgs2 = WrapUtil.toMap("key2", "value2");
+        Map<String, String> excludeRuleArgs1 = WrapUtil.toMap("key1", "value1");
+        Map<String, String> excludeRuleArgs2 = WrapUtil.toMap("key2", "value2");
         excludeRuleContainer.add(excludeRuleArgs1);
         excludeRuleContainer.add(excludeRuleArgs2);
         assertThat(excludeRuleContainer.getRules().size(), equalTo(2));
@@ -67,6 +67,4 @@ public class DefaultExcludeRuleContainerTest {
             }
         }
     }
-
-
 }

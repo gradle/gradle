@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
+package org.gradle.os.jna;
 
-/**
- * The type of the conflict strategy
- * <p>
- * by Szczepan Faber, created at: 10/4/11
- */
-public interface VersionConflictStrategyType {}
+import com.sun.jna.Library;
+
+public interface UnixLibC extends Library {
+    //CHECKSTYLE:OFF
+    public int setenv(String name, String value, int overwrite);
+    public int unsetenv(String name);
+    public String getcwd(byte[] out, int size);
+    public int chdir(String dirAbsolutePath);
+    public int errno();
+    public int getpid();
+    //CHECKSTYLE:ON
+}

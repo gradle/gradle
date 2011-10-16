@@ -17,35 +17,44 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.OutputListener;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 
 public class TestListenerAdapter extends StateTrackingTestResultProcessor {
-    private final TestListener listener;
+    private final TestListener testListener;
+    private final OutputListener outputListener;
 
-    public TestListenerAdapter(TestListener listener) {
-        this.listener = listener;
+    public TestListenerAdapter(TestListener testListener, OutputListener outputListener) {
+        this.testListener = testListener;
+        this.outputListener = outputListener;
     }
 
     @Override
     protected void started(TestState state) {
         TestDescriptorInternal test = state.test;
         if (test.isComposite()) {
-            listener.beforeSuite(test);
+            testListener.beforeSuite(test);
         } else {
-            listener.beforeTest(test);
+            testListener.beforeTest(test);
         }
     }
 
     @Override
     protected void completed(TestState state) {
-        TestResult result = new DefaultTestResult(state.resultType, state.failures, state.getStartTime(),
-                state.getEndTime(), state.testCount, state.successfulCount, state.failedCount);
+        TestResult result = new DefaultTestResult(state);
         TestDescriptorInternal test = state.test;
         if (test.isComposite()) {
-            listener.afterSuite(test, result);
+            testListener.afterSuite(test, result);
         } else {
-            listener.afterTest(test, result);
+            testListener.afterTest(test, result);
         }
+    }
+
+    @Override
+    public void output(Object testId, TestOutputEvent event) {
+        super.output(testId, event);
+        outputListener.onOutput(event.getMessage());
     }
 }

@@ -65,7 +65,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 
-	configurations.compile.versionConflictStrategy.type = configurations.compile.versionConflictStrategy.strict()
+	configurations.compile.resolutionStrategy.conflictResolution = configurations.compile.resolutionStrategy.strict()
 }
 """
 
@@ -126,7 +126,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 
-	configurations.all { versionConflictStrategy.type = versionConflictStrategy.strict() }
+	configurations.all { resolutionStrategy.conflictResolution = resolutionStrategy.strict() }
 }
 """
 
@@ -178,7 +178,7 @@ project(':tool') {
 		}
 	}
 
-	configurations.all { versionConflictStrategy.type = versionConflictStrategy.strict() }
+	configurations.all { resolutionStrategy.conflictResolution = resolutionStrategy.strict() }
 }
 """
 
@@ -221,23 +221,26 @@ project(':impl') {
 }
 
 project(':tool') {
+
 	dependencies {
 		compile project(':api')
 		compile project(':impl')
 	}
+}
 
-	configurations.all {
-	    versionConflictStrategy.type = versionConflictStrategy.strict {
-	        force = ['org:foo:1.3.3']
-	    }
+allprojects {
+    configurations.all {
+	    resolutionStrategy.force 'org:foo:1.3.3'
+	    resolutionStrategy.conflictResolution = resolutionStrategy.strict()
 	}
 }
+
 """
 
         //when
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
             .withArguments("-s")
-            .withTasks("tool:dependencies").run()
+            .withTasks("api:dependencies", "tool:dependencies").run()
 
         //then no exceptions are thrown because we forced a certain version of conflicting dependency
         //TODO SF add coverage that checks if dependencies are not pushed to 1st level (write a functional test for it)
@@ -256,17 +259,12 @@ repositories {
     maven { url "${repo.toURI()}" }
 }
 
-configurations {
-    forcedVersions
-}
-
 dependencies {
     compile 'org:foo:1.3.3'
-    forcedVersions 'org:foo:1.4.4'
 }
 
 configurations.all {
-    resolution.forcedVersions = configurations.forcedVersions.incoming.dependencies
+    resolutionStrategy.force 'org:foo:1.4.4'
 }
 """
 
@@ -321,19 +319,9 @@ project(':tool') {
 }
 
 allprojects {
-    configurations {
-	    forcedVersions
-	}
-
-	dependencies {
-	    forcedVersions 'org:foo:1.5.5'
-	}
-
     configurations.all {
-        versionConflictStrategy.type = versionConflictStrategy.strict() {
-            force = ['org:foo:1.5.5']
-        }
-        resolution.forcedVersions = configurations.forcedVersions.incoming.dependencies
+        resolutionStrategy.conflictResolution = resolutionStrategy.strict()
+        resolutionStrategy.force 'org:foo:1.5.5'
     }
 
     task genIvy(type: Upload) {

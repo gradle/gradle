@@ -187,6 +187,7 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void filteredCollectionExecutesActionWhenMatchingObjectAdded() {
+        @SuppressWarnings("unchecked")
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
@@ -272,6 +273,7 @@ public class DefaultDomainObjectCollectionTest {
     
     @Test
     public void callsActionWhenObjectAdded() {
+        @SuppressWarnings("unchecked")
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
@@ -316,6 +318,7 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void callsRemoveActionWhenObjectRemoved() {
+        @SuppressWarnings("unchecked")
         final Action<CharSequence> action = context.mock(Action.class);
         final String original = "a";
 
@@ -330,6 +333,7 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void callsRemoveActionWhenObjectRemovedUsingIterator() {
+        @SuppressWarnings("unchecked")
         final Action<CharSequence> action = context.mock(Action.class);
 
         container.whenObjectRemoved(action);
@@ -349,6 +353,7 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void allCallsActionForEachExistingObject() {
+        @SuppressWarnings("unchecked")
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
@@ -373,6 +378,7 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void allCallsActionForEachNewObject() {
+        @SuppressWarnings("unchecked")
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
@@ -403,6 +409,7 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void allCallsActionForEachNewObjectAddedByTheAction() {
+        @SuppressWarnings("unchecked")
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{

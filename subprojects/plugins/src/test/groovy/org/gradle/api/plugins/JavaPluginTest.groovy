@@ -61,29 +61,40 @@ class JavaPluginTest {
     @Test public void addsConfigurationsToTheProject() {
         javaPlugin.apply(project)
 
-        def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
+        assertThat(compile.extendsFrom, equalTo(toSet()))
+        assertFalse(compile.visible)
+        assertTrue(compile.transitive)
 
-        configuration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        def runtime = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
+        assertThat(runtime.extendsFrom, equalTo(toSet(compile)))
+        assertFalse(runtime.visible)
+        assertTrue(runtime.transitive)
 
-        configuration = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
+        assertThat(testCompile.extendsFrom, equalTo(toSet(compile)))
+        assertFalse(testCompile.visible)
+        assertTrue(testCompile.transitive)
 
-        configuration = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME, JavaPlugin.RUNTIME_CONFIGURATION_NAME)))
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        def testRuntime = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
+        assertThat(testRuntime.extendsFrom, equalTo(toSet(runtime, testCompile)))
+        assertFalse(testRuntime.visible)
+        assertTrue(testRuntime.transitive)
 
-        configuration = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(Dependency.ARCHIVES_CONFIGURATION, JavaPlugin.RUNTIME_CONFIGURATION_NAME)))
+        def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
+        assertThat(defaultConfig.extendsFrom, equalTo(toSet(runtime)))
     }
 
+    @Test public void addsJarAsPublication() {
+        javaPlugin.apply(project)
+        
+        def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
+        assertThat(runtimeConfiguration.artifacts.collect { it.archiveTask }, equalTo([project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]))
+
+        def archivesConfiguration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
+        assertThat(archivesConfiguration.artifacts.collect { it.archiveTask }, equalTo([project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]))
+    }
+    
     @Test public void createsStandardSourceSetsAndAppliesMappings() {
         javaPlugin.apply(project)
 
@@ -116,11 +127,10 @@ class JavaPluginTest {
         def set = project.sourceSets.add('custom')
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/custom/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/custom/resources'))))
-        assertThat(set.compileClasspath, sameInstance(project.configurations.compile))
+        assertThat(set.compileClasspath, sameInstance(project.configurations.customCompile))
         assertThat(set.output.classesDir, equalTo(new File(project.buildDir, 'classes/custom')))
         assertThat(set.output, builtBy('customClasses'))
-        assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.runtime))
-        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/custom')))
+        assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntime))
     }
 
     @Test public void createsStandardTasksAndAppliesMappings() {

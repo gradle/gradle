@@ -25,7 +25,8 @@ public class DefaultProcessMetaDataProvider implements ProcessMetaDataProvider {
     }
 
     public String getProcessIdentifier() {
-        return String.valueOf(environment.getPid());
+        Long pid = environment.maybeGetPid();
+        return pid == null ? null : String.valueOf(pid);
     }
 
     public String getProcessDisplayName() {

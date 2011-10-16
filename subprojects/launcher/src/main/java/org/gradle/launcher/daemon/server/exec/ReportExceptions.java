@@ -15,13 +15,10 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.StartParameter;
 import org.gradle.BuildExceptionReporter;
+import org.gradle.StartParameter;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.api.internal.project.ServiceRegistry;
-
 import org.gradle.launcher.exec.ReportedException;
-
 import org.gradle.logging.StyledTextOutputFactory;
 
 /**
@@ -29,10 +26,10 @@ import org.gradle.logging.StyledTextOutputFactory;
  */
 public class ReportExceptions implements DaemonCommandAction {
     
-    final private ServiceRegistry loggingServices;
-    
-    public ReportExceptions(ServiceRegistry loggingServices) {
-        this.loggingServices = loggingServices;
+    private final StyledTextOutputFactory outputFactory;
+
+    public ReportExceptions(StyledTextOutputFactory styledTextOutputFactory) {
+        this.outputFactory = styledTextOutputFactory;
     }
     
     public void execute(final DaemonCommandExecution execution) {
@@ -40,7 +37,6 @@ public class ReportExceptions implements DaemonCommandAction {
 
         Throwable exception = execution.getException();
         if (exception != null && !(exception instanceof ReportedException)) {
-            StyledTextOutputFactory outputFactory = loggingServices.get(StyledTextOutputFactory.class);
             BuildClientMetaData clientMetaData = execution.getCommand().getClientMetaData();
             BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(outputFactory, new StartParameter(), clientMetaData);
             exceptionReporter.reportException(exception);

@@ -15,6 +15,7 @@
  */
 package org.gradle.util
 
+import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
@@ -25,7 +26,6 @@ import org.gradle.messaging.concurrent.StoppableExecutor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
-import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * <p>A base class for writing specifications which exercise concurrent code.
@@ -53,6 +53,22 @@ class ConcurrentSpecification extends Specification {
 
     def cleanup() {
         finished()
+    }
+
+    //simplistic polling assertion. attempts asserting every x millis up to some max timeout
+    static void poll(int timeout = 10, Closure assertion) {
+        def expiry = System.currentTimeMillis() + timeout * 1000 // convert to ms
+        while(true) {
+            try {
+                assertion()
+                return
+            } catch (Throwable t) {
+                if (System.currentTimeMillis() > expiry) {
+                    throw t
+                }
+                Thread.sleep(100);
+            }
+        }
     }
 
     void setShortTimeout(int millis) {

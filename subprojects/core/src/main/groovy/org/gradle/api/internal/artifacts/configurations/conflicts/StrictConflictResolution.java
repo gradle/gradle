@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.configurations.conflicts;
 
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.VersionConflictStrategyType;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.artifacts.ConflictResolution;
+import org.gradle.api.artifacts.ForcedVersion;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -28,24 +26,16 @@ import java.util.Set;
  * <p>
  * by Szczepan Faber, created at: 10/5/11
  */
-public class StrictStrategyType implements VersionConflictStrategyType {
+public class StrictConflictResolution implements ConflictResolution {
 
-    private final DependencyFactory dependencyFactory;
-    private Set<Dependency> force = new HashSet<Dependency>();
+    private Set<ForcedVersion> forcedVersions;
 
-    public StrictStrategyType(DependencyFactory dependencyFactory) {
-        this.dependencyFactory = dependencyFactory;
+    public Set<ForcedVersion> getForcedVersions() {
+        return forcedVersions;
     }
 
-    public StrictStrategyType setForce(Object... dependencyNotations) {
-        for (Object notation : dependencyNotations) {
-            Dependency dependency = dependencyFactory.createDependency(notation);
-            force.add(dependency);
-        }
+    public StrictConflictResolution setForcedVersions(Set<ForcedVersion> forcedVersions) {
+        this.forcedVersions = forcedVersions;
         return this;
-    }
-
-    public Set<Dependency> getForce() {
-        return force;
     }
 }

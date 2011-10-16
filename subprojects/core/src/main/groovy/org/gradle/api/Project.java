@@ -1076,6 +1076,10 @@ public interface Project extends Comparable<Project> {
      *   testCompile.transitive = false
      * }
      *
+     * //Configuring strict conflict strategy - it will fail eagerly if on single classpath
+     * //there are multiple different versions of the same library.
+     * configurations.all { resolutionStrategy = resolutionStrategy.strict() }
+     *
      * </pre>
      *
      * @param configureClosure the closure to use to configure the dependency configurations.

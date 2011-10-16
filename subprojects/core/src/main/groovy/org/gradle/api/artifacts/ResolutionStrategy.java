@@ -16,12 +16,56 @@
 
 package org.gradle.api.artifacts;
 
+import java.util.Set;
+
 /**
- * by Szczepan Faber, created at: 10/7/11
+ * Defines the strategies around forcing certain dependency versions or conflict resolutions.
+ * Example:
+ *
+ * <pre autoTested=''>
+ * configurations.all {
+ *   //fail eagerly on conflict
+ *   resolutionStrategy.conflictResolution = resolutionStrategy.strict()
+ * }
+ * </pre>
  */
 public interface ResolutionStrategy {
 
-    void setForcedVersions(DependencySet forcedVersions);
-    DependencySet getForcedVersions();
+    /**
+     * gets current conflict resolution
+     *
+     * @return conflict resolution
+     */
+    ConflictResolution getConflictResolution();
 
+    /**
+     * configures conflict resolution
+     *
+     * @param conflictResolution to set
+     */
+    void setConflictResolution(ConflictResolution conflictResolution);
+
+    /**
+     * Configures forced versions in DSL friendly fashion
+     *
+     * @param forcedVersions gav notations
+     */
+    void force(String ... forcedVersions);
+
+    /**
+     * returns currently configured forced versions
+     *
+     * @return forced versions
+     */
+    Set<ForcedVersion> getForcedVersions();
+
+    /**
+     * use the latest of conflicting versions and move on
+     */
+    ConflictResolution latest();
+
+    /**
+     * fail eagerly on conflict
+     */
+    ConflictResolution strict();
 }

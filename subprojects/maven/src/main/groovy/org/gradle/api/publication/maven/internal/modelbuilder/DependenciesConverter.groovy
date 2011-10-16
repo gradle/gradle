@@ -16,18 +16,17 @@
 
 package org.gradle.api.publication.maven.internal.modelbuilder
 
-import org.gradle.api.publication.maven.MavenDependency
 import org.gradle.api.Project
-import org.gradle.api.publication.maven.internal.model.DefaultMavenDependency
-import org.gradle.api.publication.maven.MavenScope
 import org.gradle.api.artifacts.ExternalDependency
+import org.gradle.api.publication.maven.MavenDependency
+import org.gradle.api.publication.maven.MavenScope
+import org.gradle.api.publication.maven.internal.model.DefaultMavenDependency
 
 /**
  * @author: Szczepan Faber, created at: 6/21/11
  */
 class DependenciesConverter {
     List<MavenDependency> convert(Project project) {
-        //TODO SF:
         //First fundamental question is should we reuse Conf2ScopeMappingContainer / PomDependenciesConverter ? How far?
 
         //should project dependencies be transformed into entries in the pom?

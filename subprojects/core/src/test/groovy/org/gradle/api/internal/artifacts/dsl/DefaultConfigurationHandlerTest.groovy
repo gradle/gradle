@@ -46,7 +46,7 @@ class DefaultConfigurationHandlerTest {
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class,
             dependencyResolver, instantiator, { name -> name } as DomainObjectContext,
-            listenerManager, metaDataProvider, null)
+            listenerManager, metaDataProvider)
 
     @Before
     public void setup() {

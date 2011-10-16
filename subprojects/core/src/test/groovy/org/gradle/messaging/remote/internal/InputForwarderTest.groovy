@@ -19,6 +19,7 @@ import org.gradle.api.Action
 import org.gradle.messaging.concurrent.DefaultExecutorFactory
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import static org.gradle.util.TextUtil.*
 
 import spock.lang.*
 import spock.util.concurrent.BlockingVariable
@@ -80,13 +81,13 @@ class InputForwarderTest extends Specification {
 
     def "input from source is forwarded until forwarder is stopped"() {
         when:
-        source << "abc\ndef\njkl"
+        source << toPlatformLineSeparators("abc\ndef\njkl")
         waitForForwarderToCollect()
         forwarder.stop()
 
         then:
-        receive "abc\n"
-        receive "def\n"
+        receive toPlatformLineSeparators("abc\n")
+        receive toPlatformLineSeparators("def\n")
         receive "jkl"
         noMoreInput
 
@@ -96,13 +97,13 @@ class InputForwarderTest extends Specification {
 
     def "input from source is forwarded until source input stream is closed"() {
         when:
-        source << "abc\ndef\njkl"
+        source << toPlatformLineSeparators("abc\ndef\njkl")
         waitForForwarderToCollect()
         closeInput()
 
         then:
-        receive "abc\n"
-        receive "def\n"
+        receive toPlatformLineSeparators("abc\n")
+        receive toPlatformLineSeparators("def\n")
         receive "jkl"
         noMoreInput
 
@@ -124,10 +125,10 @@ class InputForwarderTest extends Specification {
         noMoreInput
 
         when:
-        source << "\n"
+        source << toPlatformLineSeparators("\n")
 
         then:
-        receive "ab\n"
+        receive toPlatformLineSeparators("ab\n")
     }
 
     def "one partial line when input stream closed gets forwarded"() {
@@ -170,7 +171,7 @@ class InputForwarderTest extends Specification {
 
     def "can handle lines larger than the buffer size"() {
         given:
-        def longLine = ("a" * (bufferSize * 10) + "\n")
+        def longLine = toPlatformLineSeparators("a" * (bufferSize * 10) + "\n")
 
         when:
         source << longLine << longLine

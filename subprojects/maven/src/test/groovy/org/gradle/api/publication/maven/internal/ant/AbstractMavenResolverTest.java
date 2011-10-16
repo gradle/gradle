@@ -104,6 +104,7 @@ public abstract class AbstractMavenResolverTest {
                 deployment2
         );
         final AttachedArtifact attachedArtifact = new AttachedArtifact();
+        @SuppressWarnings("unchecked")
         final Action<MavenDeployment> action = context.mock(Action.class);
 
         context.checking(new Expectations() {

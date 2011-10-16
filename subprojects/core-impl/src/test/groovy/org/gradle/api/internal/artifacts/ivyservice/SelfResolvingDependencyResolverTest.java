@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
 import org.gradle.api.specs.Specs;
@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 
+import static java.util.Collections.emptyList;
 import static org.gradle.util.WrapUtil.toLinkedSet;
 import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
@@ -71,7 +72,7 @@ public class SelfResolvingDependencyResolverTest {
             one(delegate).resolve(configuration);
             will(returnValue(resolvedConfiguration));
             allowing(dependencies).iterator();
-            will(returnIterator());
+            will(returnIterator(emptyList()));
             allowing(configuration).isTransitive();
             will(returnValue(true));
         }});

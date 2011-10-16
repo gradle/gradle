@@ -23,12 +23,12 @@ import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.internal.DefaultAttributes;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.util.GUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,19 +49,17 @@ public class DefaultOsgiManifestTest {
     private static final String ARBITRARY_ATTRIBUTE = "Silly-Attribute";
     private static final String ANOTHER_ARBITRARY_ATTRIBUTE = "Serious-Attribute";
 
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
     private DefaultOsgiManifest osgiManifest;
-    private Factory<ContainedVersionAnalyzer> analyzerFactoryMock;
+    @SuppressWarnings("unchecked")
+    private Factory<ContainedVersionAnalyzer> analyzerFactoryMock = context.mock(Factory.class);
     private ContainedVersionAnalyzer analyzerMock;
 
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
     private FileResolver fileResolver = context.mock(FileResolver.class);
 
     @Before
     public void setUp() {
         osgiManifest = new DefaultOsgiManifest(fileResolver);
-        analyzerFactoryMock = context.mock(Factory.class);
         analyzerMock = context.mock(ContainedVersionAnalyzer.class);
         context.checking(new Expectations() {{
             allowing(analyzerFactoryMock).create();

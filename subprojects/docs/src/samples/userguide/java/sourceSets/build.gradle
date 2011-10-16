@@ -29,20 +29,6 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET classpath-using-configurations
-configurations {
-    intTestCompile { extendsFrom compile }
-    intTestRuntime { extendsFrom intTestCompile, runtime }
-}
-
-sourceSets {
-    intTest {
-        compileClasspath = sourceSets.main.output + configurations.intTestCompile
-        runtimeClasspath = output + sourceSets.main.output + configurations.intTestRuntime
-    }
-}
-// END SNIPPET classpath-using-configurations
-
 // START SNIPPET jar
 task intTestJar(type: Jar) {
     from sourceSets.intTest.output

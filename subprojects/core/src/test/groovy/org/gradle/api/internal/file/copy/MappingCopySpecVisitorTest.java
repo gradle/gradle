@@ -77,7 +77,9 @@ public class MappingCopySpecVisitorTest {
 
     @Test
     public void visitFileInvokesEachCopyAction() {
+        @SuppressWarnings("unchecked")
         final Action<FileCopyDetails> action1 = context.mock(Action.class, "action1");
+        @SuppressWarnings("unchecked")
         final Action<FileCopyDetails> action2 = context.mock(Action.class, "action2");
         final Collector<FileCopyDetails> collectDetails1 = collector();
         final Collector<Object> collectDetails2 = collector();
@@ -156,7 +158,9 @@ public class MappingCopySpecVisitorTest {
 
     @Test
     public void copyActionCanExcludeFile() {
+        @SuppressWarnings("unchecked")
         final Action<FileCopyDetails> action1 = context.mock(Action.class, "action1");
+        @SuppressWarnings("unchecked")
         final Action<FileCopyDetails> action2 = context.mock(Action.class, "action2");
 
         context.checking(new Expectations(){{
@@ -259,6 +263,7 @@ public class MappingCopySpecVisitorTest {
 
     private FileCopyDetails expectActionExecutedWhenFileVisited() {
         final Collector<FileCopyDetails> collectDetails = collector();
+        @SuppressWarnings("unchecked")
         final Action<FileCopyDetails> action = context.mock(Action.class, "action1");
 
         context.checking(new Expectations(){{
@@ -280,8 +285,7 @@ public class MappingCopySpecVisitorTest {
         visitor.visitSpec(spec);
         visitor.visitFile(details);
 
-        FileCopyDetails copyDetails = collectDetails.get();
-        return copyDetails;
+        return collectDetails.get();
     }
 
     private FileVisitDetails expectSpecAndDirVisited() {

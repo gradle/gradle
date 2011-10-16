@@ -51,7 +51,7 @@ public interface ResolvedConfiguration {
      * @return The artifact files of the specified dependencies.
      * @throws ResolveException when the resolve was not successful.
      */
-    Set<File> getFiles(Spec<Dependency> dependencySpec) throws ResolveException;
+    Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException;
 
     /**
      * Returns the {@link ResolvedDependency} instances for each direct dependency of the configuration. Via those
@@ -72,7 +72,7 @@ public interface ResolvedConfiguration {
      * @return A {@code ResolvedDependency} instance for each direct dependency.
      * @throws ResolveException when the resolve was not successful.
      */
-    Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException;
+    Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException;
 
     /**
      * Returns the set of artifact meta-data for this configuration.

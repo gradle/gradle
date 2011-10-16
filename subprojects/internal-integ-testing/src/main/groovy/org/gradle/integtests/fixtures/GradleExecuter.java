@@ -15,9 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -92,6 +91,16 @@ public interface GradleExecuter {
     GradleExecuter usingExecutable(String script);
 
     /**
+     * Sets the stdin to use for the build. Defaults to an empty string.
+     */
+    GradleExecuter withStdIn(String text);
+
+    /**
+     * Sets the stdin to use for the build. Defaults to an empty string.
+     */
+    GradleExecuter withStdIn(InputStream stdin);
+
+    /**
      * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.
      *
      * @return The result.
@@ -106,9 +115,9 @@ public interface GradleExecuter {
     ExecutionFailure runWithFailure();
     
     /**
-     * Provides a daemon registry for any daemons started by this executer, which may be none.
+     * Provides a daemon controller for any daemons started by this executer, which may be none.
      * 
-     * @return the daemon registry, never null.
+     * @return the daemon controller, never null.
      */
-    DaemonRegistry getDaemonRegistry();
+    DaemonController getDaemonController();
 }

@@ -16,7 +16,8 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.env.LenientEnvHacker;
+import org.gradle.os.ProcessEnvironment;
+import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -27,7 +28,7 @@ import java.util.Properties;
  * Aims to make the local environment the same as the client's environment.
  */
 public class EstablishBuildEnvironment extends BuildCommandOnly {
-    private final LenientEnvHacker processEnvironment = new LenientEnvHacker();
+    private final ProcessEnvironment processEnvironment = NativeEnvironment.current();
 
     protected void doBuild(DaemonCommandExecution execution, Build build) {
         Properties originalSystemProperties = new Properties();
@@ -39,16 +40,16 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         System.setProperties(clientSystemProperties);
 
         Map<String, String> originalEnv = System.getenv();
-        processEnvironment.setenv(build.getParameters().getEnvVariables());
+        processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
 
-        processEnvironment.setProcessDir(build.getParameters().getCurrentDir());
+        processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 
         try {
             execution.proceed();
         } finally {
             System.setProperties(originalSystemProperties);
-            processEnvironment.setenv(originalEnv);
-            processEnvironment.setProcessDir(currentDir);
+            processEnvironment.maybeSetEnvironment(originalEnv);
+            processEnvironment.maybeSetProcessDir(currentDir);
         }
     }
 
