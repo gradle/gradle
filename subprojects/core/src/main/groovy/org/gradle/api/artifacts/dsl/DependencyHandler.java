@@ -22,8 +22,7 @@ import java.util.Map;
 
 /**
  * <p>A {@code DependencyHandler} is used to declare artifact dependencies. Artifact dependencies are grouped into
- * configurations (see {@link org.gradle.api.artifacts.Configuration}), and a given dependency declarations is always
- * attached to a single configuration.</p>
+ * configurations (see {@link org.gradle.api.artifacts.Configuration}).</p>
  *
  * <p>To declare a specific dependency for a configuration you can use the following syntax:</p>
  *
@@ -170,7 +169,7 @@ public interface DependencyHandler {
      * @param notation The project notation, in one of the notations described above.
      * @return The dependency.
      */
-    Dependency project(Map notation);
+    Dependency project(Map<String, ?> notation);
     
     /**
      * Creates a dependency on the API of the current version of Gradle.
