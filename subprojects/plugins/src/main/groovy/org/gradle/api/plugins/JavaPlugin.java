@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
@@ -119,7 +120,7 @@ public class JavaPlugin implements Plugin<Project> {
             }
         });
 
-        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(new ArchivePublishArtifact(jar));
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(jar));
         project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME).getArtifacts().add(new ArchivePublishArtifact(jar));
     }
 

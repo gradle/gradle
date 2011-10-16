@@ -29,6 +29,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.apache.commons.lang.StringUtils
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 
 /**
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
@@ -40,12 +41,14 @@ class BasePlugin implements Plugin<Project> {
     public static final String UPLOAD_GROUP = 'upload'
 
     public void apply(Project project) {
-        project.convention.plugins.base = new BasePluginConvention(project)
+        def convention = new BasePluginConvention(project)
+        project.convention.plugins.base = convention
 
         configureBuildConfigurationRule(project)
         configureUploadRules(project)
-        configureArchiveDefaults(project, project.convention.plugins.base)
+        configureArchiveDefaults(project, convention)
         configureConfigurations(project)
+        project.extensions.defaultArtifacts = new DefaultArtifactPublicationSet(project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts)
 
         addClean(project)
         addCleanRule(project)
