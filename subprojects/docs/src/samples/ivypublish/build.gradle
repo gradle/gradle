@@ -15,16 +15,12 @@ ant {
     buildDir = owner.buildDir.toString()
 }
 
-String ivyPattern = '/[module]/[revision]/ivy.xml'
-String artifactPattern = '/[module]/[revision]/[artifact](.[ext])'
 File localPublicationsDir = file("$buildDir/repo")
 
 repositories {
-    add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
-        name = 'repo'
-        validate = false
-        addIvyPattern(localPublicationsDir.absolutePath + ivyPattern)
-        addArtifactPattern(localPublicationsDir.absolutePath + artifactPattern)
+    ivy {
+        ivyPattern localPublicationsDir.absolutePath + '/[module]/[revision]/ivy.xml'
+        artifactPattern localPublicationsDir.absolutePath + '/[module]/[revision]/[artifact](.[ext])'
     }
     mavenCentral()
 }

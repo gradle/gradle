@@ -2,12 +2,9 @@ apply plugin: 'java'
 
 // START SNIPPET file-system-resolver
 repositories {
-    add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
-        name = 'repo'
-        addIvyPattern "$projectDir/repo/[organisation]/[module]-ivy-[revision].xml"
-        addArtifactPattern "$projectDir/repo/[organisation]/[module]-[revision](-[classifier]).[ext]"
-        descriptor = 'optional'
-        checkmodified = true
+    ivy {
+        ivyPattern "$projectDir/repo/[organisation]/[module]-ivy-[revision].xml"
+        artifactPattern "$projectDir/repo/[organisation]/[module]-[revision](-[classifier]).[ext]"
     }
 }
 // END SNIPPET file-system-resolver
