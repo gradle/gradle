@@ -226,4 +226,42 @@ project(':c') {
         assert !result.executedTasks.contains(':b:jar')
         assert result.executedTasks.contains(':c:build')
     }
+
+    @Test
+    public void "project dependency does not drag in source jar from target project"() {
+        testFile("settings.gradle") << "include 'a', 'b'"
+        testFile("build.gradle") << """
+allprojects {
+    apply plugin: 'java'
+
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+}
+
+project(':a') {
+    dependencies { compile project(':b') }
+    compileJava.doFirst {
+        assert classpath.collect { it.name } == ['b.jar']
+    }
+}
+
+"""
+        testFile("a/src/main/java/org/gradle/test/PersonImpl.java") << """
+package org.gradle.test;
+class PersonImpl implements Person { }
+"""
+
+        testFile("b/src/main/java/org/gradle/test/Person.java") << """
+package org.gradle.test;
+interface Person { }
+"""
+
+        inTestDirectory().withTasks("classes").run()
+    }
 }
