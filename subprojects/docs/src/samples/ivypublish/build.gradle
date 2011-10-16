@@ -18,10 +18,6 @@ ant {
 File localPublicationsDir = file("$buildDir/repo")
 
 repositories {
-    ivy {
-        ivyPattern localPublicationsDir.absolutePath + '/[module]/[revision]/ivy.xml'
-        artifactPattern localPublicationsDir.absolutePath + '/[module]/[revision]/[artifact](.[ext])'
-    }
     mavenCentral()
 }
 
@@ -38,7 +34,10 @@ artifacts {
 uploadArchives {
     uploadDescriptor = true
     repositories {
-        add project.repositories.repo
+        ivy {
+            ivyPattern localPublicationsDir.absolutePath + '/[module]/[revision]/ivy.xml'
+            artifactPattern localPublicationsDir.absolutePath + '/[module]/[revision]/[artifact](.[ext])'
+        }
     }
     doLast {
         File repoDir = new File("$buildDir/repo/ivypublish/1.0/")
@@ -49,7 +48,7 @@ uploadArchives {
         def ns = new groovy.xml.Namespace("http://ant.apache.org/ivy/maven", 'm')
         def root = new XmlParser().parse(new File(repoDir, 'ivy.xml'))
         assert root.publications.artifact.find { it.@name == 'ivypublishSource' }.attribute(ns.classifier) == 'src'
-        assert (root.configurations.conf.collect { it.@name } as Set) == ['archives', 'compile', 'default', 'runtime','testCompile', 'testRuntime']  as Set
+        assert (root.configurations.conf.collect { it.@name } as Set) == ['archives', 'compile', 'default', 'runtime', 'testCompile', 'testRuntime'] as Set
         assert root.dependencies.dependency.find { it.@org == 'junit' }.attributes() == [org: 'junit', name: 'junit', rev: '4.8.2', conf: 'compile->default']
         assert root.dependencies.dependency.find { it.@org == 'ivypublish' }.attributes() == [org: 'ivypublish', name: 'subproject', rev: 'unspecified',
                 conf: 'compile->default']
