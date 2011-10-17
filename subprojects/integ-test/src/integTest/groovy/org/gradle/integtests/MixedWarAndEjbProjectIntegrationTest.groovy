@@ -54,4 +54,24 @@ class PersonImpl implements Person { }
         expect:
         succeeds "assemble"
     }
+
+    def "assemble builds only the EAR by default"() {
+        given:
+        file("settings.gradle") << "rootProject.name = 'root'"
+
+        and:
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'ear'
+"""
+
+        when:
+        run "assemble"
+
+        then:
+        !file("build/libs/root.jar").exists()
+        !file("build/libs/root.war").exists()
+        file("build/libs/root.ear").exists()
+    }
 }

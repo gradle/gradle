@@ -56,21 +56,6 @@ dependencies {
     }
 
     @Test
-    void "ear and war and java plugins"() {
-        file("build.gradle").write("""
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'ear'
-""")
-
-        executer.withTasks('assemble').run()
-
-        file("build/libs/root.jar").assertExists()
-        file("build/libs/root.war").assertExists()
-        file("build/libs/root.ear").assertExists()
-    }
-
-    @Test
     void "customizes ear archive"() {
         file("build.gradle").write("""
 apply plugin: 'ear'
@@ -95,25 +80,6 @@ ear {
         //then
         file("unzipped/CUSTOM/lib/earLib.jar").assertExists()
         assert file("unzipped/META-INF/application.xml").text.contains('cool ear')
-    }
-
-    @Test
-    void "enables jar"() {
-        file("build.gradle").write("""
-apply plugin: 'ear'
-apply plugin: 'java'
-
-dependencies {
-    earlib files('earLib.jar')
-}
-
-jar.enabled = true
-""")
-        //when
-        executer.withTasks('assemble').run()
-        //then
-        file("build/libs/root.ear").assertExists()
-        file("build/libs/root.jar").assertExists()
     }
 
     @Test
