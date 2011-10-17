@@ -20,6 +20,8 @@ import org.gradle.api.logging.Logging;
 
 import org.gradle.util.UncheckedException;
 import org.gradle.messaging.dispatch.Receive;
+import org.gradle.messaging.dispatch.AsyncReceive;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 
@@ -29,6 +31,7 @@ import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Continuously consumes from on or more receivers, serialising to an in memory buffer for synchronous consumption.
@@ -54,16 +57,21 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
     private static final Logger LOGGER = Logging.getLogger(EagerReceiveBuffer.class);
     private static final int DEFAULT_BUFFER_SIZE = 200;
 
-    final Lock lock = new ReentrantLock();
-    final Condition notFullOrStop  = lock.newCondition();
-    final Condition notEmptyOrNoReceivers = lock.newCondition();
+    private final Lock lock = new ReentrantLock();
+    private final Condition notFullOrStop  = lock.newCondition();
+    private final Condition notEmptyOrNoReceivers = lock.newCondition();
+
 
     private final StoppableExecutor executor;
     private final int bufferSize;
     private final Collection<Receive<T>> receivers;
+    private final Runnable onReceiversExhausted;
+    private final CountDownLatch onReceiversExhaustedFinishedLatch = new CountDownLatch(1);
+
+    private final AsyncReceive<T> asyncReceive;
     private final LinkedList<T> queue = new LinkedList<T>();
 
-    private int numActiveReceivers;
+    private boolean hasActiveReceivers = true;
     private State state = State.Init;
 
     private static <T> Collection<Receive<T>> toReceiveCollection(Receive<T> receiver) {
@@ -71,20 +79,36 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
         list.add(receiver);
         return list;
     }
-    
+
     public EagerReceiveBuffer(StoppableExecutor executor, Receive<T> receiver) {
-        this(executor, DEFAULT_BUFFER_SIZE, toReceiveCollection(receiver));
+        this(executor, DEFAULT_BUFFER_SIZE, toReceiveCollection(receiver), null);
+    }
+
+    public EagerReceiveBuffer(StoppableExecutor executor, Receive<T> receiver, Runnable onReceiversExhausted) {
+        this(executor, DEFAULT_BUFFER_SIZE, toReceiveCollection(receiver), onReceiversExhausted);
     }
 
     public EagerReceiveBuffer(StoppableExecutor executor, Collection<Receive<T>> receivers) {
-        this(executor, DEFAULT_BUFFER_SIZE, receivers);
+        this(executor, DEFAULT_BUFFER_SIZE, receivers, null);
+    }
+
+    public EagerReceiveBuffer(StoppableExecutor executor, Collection<Receive<T>> receivers, Runnable onReceiversExhausted) {
+        this(executor, DEFAULT_BUFFER_SIZE, receivers, onReceiversExhausted);
     }
 
     public EagerReceiveBuffer(StoppableExecutor executor, int bufferSize, Receive<T> receiver) {
-        this(executor, bufferSize, toReceiveCollection(receiver));
+        this(executor, bufferSize, toReceiveCollection(receiver), null);
+    }
+
+    public EagerReceiveBuffer(StoppableExecutor executor, int bufferSize, Receive<T> receiver, Runnable onReceiversExhausted) {
+        this(executor, bufferSize, toReceiveCollection(receiver), onReceiversExhausted);
     }
 
     public EagerReceiveBuffer(StoppableExecutor executor, int bufferSize, Collection<Receive<T>> receivers) {
+        this(executor, bufferSize, receivers, null);
+    }
+
+    public EagerReceiveBuffer(StoppableExecutor executor, final int bufferSize, Collection<Receive<T>> receivers, final Runnable onReceiversExhausted) {
         if (receivers.size() == 0) {
             throw new IllegalArgumentException("eager receive buffer created with no receivers");
         }
@@ -92,15 +116,54 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
         if (bufferSize < 1) {
             throw new IllegalArgumentException("eager receive buffer size must be positive (value given: " + bufferSize + ")");
         }
-        
+
         this.executor = executor;
         this.bufferSize = bufferSize;
         this.receivers = receivers;
+        this.onReceiversExhausted = onReceiversExhausted;
+
+        Dispatch<T> dispatch = new Dispatch<T>() {
+            public void dispatch(T message) {
+                lock.lock();
+                try {
+                    while (queue.size() == bufferSize && state == State.Started) {
+                        try {
+                            notFullOrStop.await();
+                        } catch (InterruptedException e) {
+                            throw UncheckedException.asUncheckedException(e);
+                        }
+                    }
+
+                    queue.add(message);
+                    notEmptyOrNoReceivers.signalAll();
+                } finally {
+                    lock.unlock();
+                }
+            }
+        };
+
+        this.asyncReceive = new AsyncReceive(executor, dispatch, new Runnable() {
+            public void run() {
+                lock.lock();
+                try {
+                    hasActiveReceivers = false;
+                    if (onReceiversExhausted != null) {
+                        onReceiversExhausted.run();
+                    }
+                    notEmptyOrNoReceivers.signalAll();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                } finally {
+                    lock.unlock();
+                    onReceiversExhaustedFinishedLatch.countDown();
+                }
+            }
+        });
     }
 
     /**
      * Start consuming from the receivers given at construction.
-     * 
+     *
      * @throws IllegalStateException if already started
      */
     public void start() {
@@ -110,101 +173,12 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
                 throw new IllegalStateException("this eager receive buffer has already been started");
             }
             state = State.Started;
-            
+
             for (Receive<T> receiver : receivers) {
-                receiveFrom(receiver);
+                asyncReceive.receiveFrom(receiver);
             }
         } finally {
             lock.unlock();
-        }
-    }
-    
-    /**
-     * Start consuming from the
-     */
-    private void receiveFrom(final Receive<? extends T> receiver) {
-        onReceiveThreadStart();
-        executor.execute(new Runnable() {
-            public void run() {
-                try {
-                    receiveMessages(receiver);
-                } finally {
-                    onReceiveThreadExit();
-                }
-            }
-        });
-    }
-
-    private void onReceiveThreadStart() {
-        lock.lock();
-        try {
-            ++numActiveReceivers;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void onReceiveThreadExit() {
-        lock.lock();
-        try {
-            if (--numActiveReceivers == 0) {
-                notEmptyOrNoReceivers.signalAll();
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    /**
-     * Subclass hook for notification of when all of the receivers are exhausted.
-     * <p>
-     * Will be invoked on the last spawned receiver thread before it finishes. This means that this
-     * is guaranteed to be invoked <b>before</b> the {@link #receive()} method returns {@code null} for the first time.
-     */
-    protected void onReceiversExhausted() {
-
-    }
-
-    private void receiveMessages(Receive<? extends T> receiver) {
-        while (true) {
-            T message = null;
-
-            try {
-                // NOTE - if stop() is called on this while we are blocked in receive() below, stop() is going to
-                //        block until this returns and we exit this method.
-                message = receiver.receive();
-            } catch (Exception e) {
-                // TODO should we propagate this exception somehow?
-                LOGGER.error("receiver {} threw exception {}", receiver, e);
-                return;
-            }
-
-            lock.lock();
-            try {
-                if (message == null) {
-                    if (numActiveReceivers == 1) { // we are the last receiver and are about to finish
-                        onReceiversExhausted();
-                    }
-                    return; // end of this channel so wrap up this consumer
-                }
-
-                while (queue.size() == bufferSize && state == State.Started) {
-                    try {
-                        notFullOrStop.await();
-                    } catch (InterruptedException e) {
-                        throw UncheckedException.asUncheckedException(e);
-                    }
-                }
-
-                queue.add(message);
-                notEmptyOrNoReceivers.signalAll();
-
-                if (state != State.Started) {
-                    return; // stop requested, stop consuming messages
-                }
-            } finally {
-                lock.unlock();
-            }
         }
     }
 
@@ -216,7 +190,7 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
     public T receive() {
         lock.lock();
         try {
-            while (queue.isEmpty() && numActiveReceivers > 0) {
+            while (queue.isEmpty() && hasActiveReceivers) {
                 try {
                     notEmptyOrNoReceivers.await();
                 } catch (InterruptedException e) {
@@ -226,7 +200,7 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
 
             if (queue.isEmpty()) {
                 // no more messages, and all receivers are exhausted
-                assert numActiveReceivers == 0;
+                assert !hasActiveReceivers;
                 return null;
             } else {
                 T message = queue.poll();
@@ -252,7 +226,8 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
     }
 
     private void doRequestStop() {
-        if (numActiveReceivers > 0) {
+        asyncReceive.requestStop();
+        if (hasActiveReceivers) {
             setState(State.Stopping);
         } else {
             setState(State.Stopped);
@@ -271,15 +246,23 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
         lock.lock();
         try {
             doRequestStop();
+        } finally {
+            lock.unlock();
+        }
 
-            while (numActiveReceivers > 0) {
-                notEmptyOrNoReceivers.await();
-            }
-
-            executor.stop();
-            setState(State.Stopped);
+        // Have to relinquish lock at this point because the onReceiversExhausted callback that we pass to the async
+        // runnable needs to acquire the lock in order to signal the notEmptyOrNoReceivers condition. If we didn't
+        // relinquish we would have deadlock. This is harmless due to this method being idempotent.
+        try {
+            onReceiversExhaustedFinishedLatch.await();
         } catch (InterruptedException e) {
             throw UncheckedException.asUncheckedException(e);
+        }
+
+        lock.lock();
+        try {
+            asyncReceive.stop();
+            setState(State.Stopped);
         } finally {
             lock.unlock();
         }

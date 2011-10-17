@@ -52,16 +52,15 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
     public DisconnectAwareConnectionDecorator(Connection<T> connection, StoppableExecutor executor, int bufferSize) {
         super(connection);
 
-        receiveBuffer = new EagerReceiveBuffer<T>(executor, bufferSize, connection) {
+        // EagerReceiveBuffer guaranteest that onReceiversExhausted() will be completed before it returns null from receive(),
+        // which means we satisfy the condition of the DisconnectAwareConnection contract that disconnect handlers must complete
+        // before receive() returns null.
 
-            // EagerReceiveBuffer guaranteest that onReceiversExhausted() will be completed before it returns null from receive(),
-            // which means we satisfy the condition of the DisconnectAwareConnection contract that disconnect handlers must complete
-            // before receive() returns null.
-
-            protected void onReceiversExhausted() {
+        receiveBuffer = new EagerReceiveBuffer<T>(executor, bufferSize, connection, new Runnable() {
+            public void run() {
                 invokeDisconnectAction();
             }
-        };
+        });
 
         receiveBuffer.start();
     }
