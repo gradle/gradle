@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import org.gradle.util.TestFile
+import junit.framework.AssertionFailedError
 
 /**
  * A fixture for dealing with Maven repositories.
@@ -66,19 +67,29 @@ class MavenModule {
         return this
     }
 
-    void assertArtifactsDeployed(String... names) {
+    /**
+     * Asserts that exactly the given artifacts have been deployed, along with their checksum files
+     */
+    void assertArtifactsPublished(String... names) {
         def artifactNames = names
         if (version.endsWith('-SNAPSHOT')) {
             def metaData = new XmlParser().parse(moduleDir.file('maven-metadata.xml'))
             def timestamp = metaData.versioning.snapshot.timestamp[0].text().trim()
             def build = metaData.versioning.snapshot.buildNumber[0].text().trim()
             artifactNames = names.collect { it.replace('-SNAPSHOT', "-${timestamp}-${build}")}
+            artifactNames.add("maven-metadata.xml")
         }
+        Set actual = moduleDir.list() as Set
         for (name in artifactNames) {
-            moduleDir.file(name).assertIsFile()
-            moduleDir.file("${name}.md5").assertIsFile()
-            moduleDir.file("${name}.sha1").assertIsFile()
+            assert actual.remove(name)
+            assert actual.remove("${name}.md5" as String)
+            assert actual.remove("${name}.sha1" as String)
         }
+        assert actual.isEmpty()
+    }
+
+    MavenPom getPom() {
+        return new MavenPom(pomFile)
     }
 
     File getPomFile() {
@@ -144,7 +155,7 @@ class MavenModule {
       <groupId>$dependency.groupId</groupId>
       <artifactId>$dependency.artifactId</artifactId>
       <version>$dependency.version</version>
-    </dependency>
+    </dependency>3.2.1
   </dependencies>"""
         }
 
@@ -173,5 +184,43 @@ class MavenModule {
         MessageDigest messageDigest = MessageDigest.getInstance(algorithm)
         messageDigest.update(file.bytes)
         return new BigInteger(1, messageDigest.digest()).toString(16)
+    }
+}
+
+class MavenPom {
+    final Map<String, MavenScope> scopes = [:]
+
+    MavenPom(File pomFile) {
+        def pom = new XmlParser().parse(pomFile)
+        pom.dependencies.dependency.each { dep ->
+            def scopeElement = dep.scope
+            def scopeName = scopeElement ? scopeElement.text() : "runtime"
+            def scope = scopes[scopeName]
+            if (!scope) {
+                scope = new MavenScope()
+                scopes[scopeName] = scope
+            }
+            scope.addDependency(dep.groupId.text(), dep.artifactId.text(), dep.version.text())
+        }
+    }
+
+}
+
+class MavenScope {
+    final dependencies = []
+
+    void addDependency(String groupId, String artifactId, String version) {
+        dependencies << [groupId: groupId, artifactId: artifactId, version: version]
+    }
+
+    void assertDependsOnArtifacts(String... artifactIds) {
+        assert dependencies.collect { it.artifactId} as Set == artifactIds as Set
+    }
+
+    void assertDependsOn(String groupId, String artifactId, String version) {
+        def dep = [groupId: groupId, artifactId: artifactId, version: version]
+        if (!dependencies.find { it == dep }) {
+            throw new AssertionFailedError("Could not find expected dependency $dep. Actual: $dependencies")
+        }
     }
 }
