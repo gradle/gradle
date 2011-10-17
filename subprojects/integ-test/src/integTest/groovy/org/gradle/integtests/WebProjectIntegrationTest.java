@@ -58,7 +58,6 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("src/main/resources/org/gradle/resource.file").write("some resource");
 
         usingBuildFile(buildFile).withTasks("assemble").run();
-        testFile("output/archives/test-0.5-RC2.jar").assertIsFile();
         testFile("output/archives/test-0.5-RC2.war").assertIsFile();
     }
 
@@ -74,7 +73,6 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("src/main/resources/org/gradle/resource.file").write("some resource");
 
         usingBuildFile(buildFile).withTasks("assemble").run();
-        testFile("build/libs/empty.jar").assertIsFile();
         testFile("build/libs/empty.war").assertIsFile();
     }
 

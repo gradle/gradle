@@ -48,6 +48,10 @@ task dist(type: Zip) {
         from configurations.runtime
     }
 }
+
+artifacts {
+   archives dist
+}
 // END SNIPPET dists
 
 // We want to test if commons-math was properly added to the build script classpath

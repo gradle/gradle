@@ -58,7 +58,7 @@ class BasePlugin implements Plugin<Project> {
         Task assembleTask = project.tasks.add(ASSEMBLE_TASK_NAME);
         assembleTask.description = "Assembles all Jar, War, Zip, and Tar archives.";
         assembleTask.group = BUILD_GROUP
-        assembleTask.dependsOn project.tasks.withType(AbstractArchiveTask.class)
+        assembleTask.dependsOn project.configurations[Dependency.ARCHIVES_CONFIGURATION].allArtifacts.buildDependencies
     }
 
     private void configureArchiveDefaults(Project project, BasePluginConvention pluginConvention) {
