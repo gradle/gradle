@@ -48,7 +48,6 @@ class BasePlugin implements Plugin<Project> {
         configureUploadRules(project)
         configureArchiveDefaults(project, convention)
         configureConfigurations(project)
-        project.extensions.defaultArtifacts = new DefaultArtifactPublicationSet(project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts)
 
         addClean(project)
         addCleanRule(project)
@@ -174,5 +173,14 @@ class BasePlugin implements Plugin<Project> {
 
         configurations.add(Dependency.DEFAULT_CONFIGURATION).
                 setDescription("Configuration for default artifacts.");
+
+        def defaultArtifacts = new DefaultArtifactPublicationSet(archivesConfiguration.artifacts)
+        project.extensions.defaultArtifacts = defaultArtifacts
+
+        configurations.all {
+            artifacts.all { artifact ->
+                defaultArtifacts.addCandidate(artifact)
+            }
+        }
     }
 }

@@ -76,7 +76,7 @@ class BasePluginTest extends Specification {
     public void addsImplicitTasksForConfiguration() {
         given:
         Task producer = [getName: {-> 'producer'}] as Task
-        PublishArtifact artifactStub = [getBuildDependencies: {-> new DefaultTaskDependency().add(producer) }] as PublishArtifact
+        PublishArtifact artifactStub = [getBuildDependencies: {-> new DefaultTaskDependency().add(producer) }, getType: {-> "flux-capacitor"}] as PublishArtifact
 
         when:
         plugin.apply(project)
@@ -187,15 +187,26 @@ class BasePluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
+        def defaultConfig = project.configurations[Dependency.DEFAULT_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
         defaultConfig.visible
         defaultConfig.transitive
 
         and:
-        def archives = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
+        def archives = project.configurations[Dependency.ARCHIVES_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
         archives.visible
         archives.transitive
+    }
+
+    public void addsEveryPublishedArtifactToTheArchivesConfiguration() {
+        PublishArtifact artifact = Mock()
+
+        when:
+        plugin.apply(project)
+        project.configurations.add("custom").artifacts.add(artifact)
+
+        then:
+        project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts.contains(artifact)
     }
 }
