@@ -175,5 +175,87 @@
                 </td>
             </tr>
         </table>
+        <para>The Gradle sonar plugin is shipped with the following default project properties:</para>
+        <table>
+            <title>Sonar plugin - Default Project property values</title>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Mapped Sonar property</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>key</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.group</replaceable>:<replaceable>project.name</replaceable></literal>
+                </td>
+                <td>
+                    The unique identifier of the sonar project.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>name</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.name</replaceable></literal>
+                </td>
+                <td>
+                    The name of the sonar project.
+                </td>
+            </tr>
+             <tr>
+                <td>
+                    <literal>description</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.description</replaceable></literal>
+                </td>
+                <td>
+                    The description of the sonar project.
+                </td>
+             </tr>
+             <tr>
+                 <td>
+                    <literal>version</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.version</replaceable></literal>
+                </td>
+                <td>
+                    The version of the sonar project.
+                </td>
+            </tr>
+             <tr>
+                 <td>
+                    <literal>workDir</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.buildDir</replaceable>/sonar</literal>
+                </td>
+                <td>
+                    The working directory of the sonarAnalyze task.
+                </td>
+            </tr>
+        </table>
     </section>
 </chapter>
