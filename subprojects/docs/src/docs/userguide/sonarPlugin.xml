@@ -74,7 +74,7 @@
         <title>Multiproject builds</title>
         <itemizedlist>
             <listitem>
-                <para>To analyze The projects of a multi-project build the sonar plugin must be applied to the root project of your multiproject build.
+                <para>To analyze The projects of a multi-project build the sonar plugin must be applied to the root project of your multi-project build.
                 </para>
             </listitem>
         </itemizedlist>
