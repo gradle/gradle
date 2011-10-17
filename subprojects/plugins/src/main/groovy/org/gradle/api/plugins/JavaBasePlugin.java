@@ -75,11 +75,21 @@ public class JavaBasePlugin implements Plugin<Project> {
                 ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
 
                 ConfigurationContainer configurations = project.getConfigurations();
-                Configuration compileConfiguration = configurations.add(sourceSet.getCompileConfigurationName()).setVisible(false).
-                        setDescription(String.format("Classpath for compiling the %s sources.", sourceSet.getName()));
-                Configuration runtimeConfiguration = configurations.add(sourceSet.getRuntimeConfigurationName()).setVisible(false)
-                        .extendsFrom(compileConfiguration).
-                                setDescription(String.format("Classpath for running the compiled %s classes.", sourceSet.getName()));
+
+                Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
+                if (compileConfiguration == null) {
+                    compileConfiguration = configurations.add(sourceSet.getCompileConfigurationName());
+                }
+                compileConfiguration.setVisible(false);
+                compileConfiguration.setDescription(String.format("Classpath for compiling the %s sources.", sourceSet.getName()));
+
+                Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
+                if (runtimeConfiguration == null) {
+                    runtimeConfiguration = configurations.add(sourceSet.getRuntimeConfigurationName());
+                }
+                runtimeConfiguration.setVisible(false);
+                runtimeConfiguration.extendsFrom(compileConfiguration);
+                runtimeConfiguration.setDescription(String.format("Classpath for running the compiled %s classes.", sourceSet.getName()));
 
                 sourceSet.setCompileClasspath(compileConfiguration);
                 sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
