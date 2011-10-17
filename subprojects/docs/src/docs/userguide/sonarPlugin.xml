@@ -62,7 +62,7 @@
                 </tr>
             </thead>
             <tr>
-                <td><literal>sonar</literal></td>
+                <td><literal>sonarAnalyze</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.sonar.SonarAnalyze"/></td>
                 <td>Analyzes the project's source code and stores results in the Sonar database.</td>
@@ -71,13 +71,191 @@
     </section>
 
     <section>
-        <title>Limitations</title>
+        <title>Multiproject builds</title>
         <itemizedlist>
             <listitem>
-                <para>The projects of a multi-project build are currently analyzed independently. This means that no
-                    aggregated view will be available.
+                <para>To analyze The projects of a multi-project build the sonar plugin must be applied to the root project of your multi-project build.
                 </para>
             </listitem>
         </itemizedlist>
+    </section>
+    <section>
+        <title>Default values</title>
+        <para>The Gradle sonar plugin is shipped with the following default Server properties:</para>
+        <table>
+            <title>Sonar plugin - Default Server property values</title>
+            <thead>
+                <tr>
+                    <td>Server property name</td>
+                    <td>Mapped Sonar property</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>url</literal>
+                </td>
+                <td>
+                    <literal>sonar.host.url</literal>
+                </td>
+                <td>
+                    <literal>http://localhost:9000</literal>
+                </td>
+                <td>
+                    The url of the Sonar instance.
+                </td>
+            </tr>
+        </table>
+        <para>The Gradle sonar plugin is shipped with the following default JDBC connection properties:</para>
+        <table>
+            <title>Sonar plugin - Default Database property values</title>
+            <thead>
+                <tr>
+                    <td>Database property name</td>
+                    <td>Mapped Sonar property</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>url</literal>
+                </td>
+                <td>
+                    <literal>sonar.jdbc.url</literal>
+                </td>
+                <td>
+                    <literal>jdbc:derby://localhost:1527/sonar</literal>
+                </td>
+                <td>
+                    The JDBC database url of the Sonar instance.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>driverClassName</literal>
+                </td>
+                <td>
+                    <literal>sonar.jdbc.driverClassName</literal>
+                </td>
+                <td>
+                    <literal>org.apache.derby.jdbc.ClientDriver</literal>
+                </td>
+                <td>
+                    The JDBC driver class used to connect to the Sonar plugin.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>username</literal>
+                </td>
+                <td>
+                    <literal>sonar.jdbc.username</literal>
+                </td>
+                <td>
+                    <literal>sonar</literal>
+                </td>
+                <td>
+                    The username used for the JDBC connection to connect to the Sonar database.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>password</literal>
+                </td>
+                 <td>
+                    <literal>sonar.jdbc.password</literal>
+                </td>
+                <td>
+                    <literal>sonar</literal>
+                </td>
+                <td>
+                    The password used for the JDBC connection to connect to the Sonar database.
+                </td>
+            </tr>
+        </table>
+        <para>The Gradle sonar plugin is shipped with the following default project properties:</para>
+        <table>
+            <title>Sonar plugin - Default Project property values</title>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Mapped Sonar property</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>key</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.group</replaceable>:<replaceable>project.name</replaceable></literal>
+                </td>
+                <td>
+                    The unique identifier of the sonar project.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>name</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.name</replaceable></literal>
+                </td>
+                <td>
+                    The name of the sonar project.
+                </td>
+            </tr>
+             <tr>
+                <td>
+                    <literal>description</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.description</replaceable></literal>
+                </td>
+                <td>
+                    The description of the sonar project.
+                </td>
+             </tr>
+             <tr>
+                 <td>
+                    <literal>version</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.version</replaceable></literal>
+                </td>
+                <td>
+                    The version of the sonar project.
+                </td>
+            </tr>
+             <tr>
+                 <td>
+                    <literal>workDir</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <literal><replaceable>project.buildDir</replaceable>/sonar</literal>
+                </td>
+                <td>
+                    The working directory of the sonarAnalyze task.
+                </td>
+            </tr>
+        </table>
     </section>
 </chapter>
