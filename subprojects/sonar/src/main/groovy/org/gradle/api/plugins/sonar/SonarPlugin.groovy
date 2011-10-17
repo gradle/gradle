@@ -28,78 +28,14 @@ import org.gradle.api.plugins.sonar.model.*
 /**
  * A plugin for integrating with <a href="http://www.sonarsource.org">Sonar</a>,
  * a web-based platform for managing code quality. Adds a task named <tt>sonarAnalyze</tt>
- * of type {@link SonarAnalyze} that analyzes the project to which the plugin is applied
- * and its subprojects. The results are written to the Sonar database.
+ * that analyzes the project to which the plugin is applied and its subprojects.
+ * The results are stored in the Sonar database.
  *
- * <p>The default configuration of the plugin works well for a local out-of-the-box
- * installation of the Sonar server (with embedded database). For a production
- * installation, at least the server and database settings have to be adapted:
+ * <p>For more information, see the
+ * <a href="http://gradle.org/current/docs/userguide/sonar_plugin.html">Sonar Plugin</a>
+ * chapter in the Gradle user guide.
  *
- * <pre>
- * apply plugin: "sonar"
- *
- * sonar {
- *     server.url = "http://my.sonar.server"
- *
- *     database {
- *         url = "jdbc:mysql://192.168.10.13:3306/"
- *         driverClassName = "com.mysql.jdbc.Driver"
- *         username = "sonar"
- *         password = "secret"
- *     }
- * }
- * </pre>
- *
- * The <tt>sonar {}</tt> block configures an instance of type {@link SonarRootModel}.
- * This model holds global configuration options (like the ones shown above), but also
- * per-project configuration options:
- *
- * sonar {
- *     project {
- *         language = "groovy"
- *     }
- * }
- *
- * In case of a multi-project build, subprojects of the project to which the
- * plugin is applied can have their own configuration. In their case, the <tt>sonar {}</tt>
- * blocks configures an instance of type {@link SonarProjectModel}, which only holds
- * per-project configuration options.
- *
- * <p>Below is an example for configuring Sonar in a multi-project build. Note that the
- * <tt>sonar</tt> plugin is only applied to the root of the project hierarchy to be
- * analyzed (likely but not necessarily the root project), not to each individual project.
- * This is an important point to remember.
- *
- * <pre>
- * apply plugin: "sonar"
- *
- * // global configuration
- * sonar {
- *     server.url = "http://my.sonar.server"
- *     database {
- *         url = "jdbc:mysql://192.168.10.13:3306/"
- *         driverClassName = "com.mysql.jdbc.Driver"
- *         username = "sonar"
- *         password = "secret"
- *     }
- *     // more global configuration (optional)
- *     branch = "release"
- * }
- *
- * // shared per-project configuration
- * subprojects {
- *     sonar.project {
- *         sourceEncoding = "UTF-8"
- *     }
- * }
- *
- * // individual per-project configuration
- * // this could also go into the project's own build script
- * project(":docs") {
- *     sonar.project.skip = true
- * }
- * </pre>
- *
+ * @see SonarAnalyze
  * @see SonarRootModel
  * @see SonarProjectModel
  */

@@ -1,8 +1,8 @@
 apply plugin: "java"
 
-// START SNIPPET use-plugin
+// START SNIPPET apply-plugin
 apply plugin: "sonar"
-// END SNIPPET use-plugin
+// END SNIPPET apply-plugin
 
 // START SNIPPET connection-settings
 sonar {
