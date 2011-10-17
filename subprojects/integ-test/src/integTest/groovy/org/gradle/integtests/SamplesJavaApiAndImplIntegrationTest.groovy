@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.*
 import org.gradle.integtests.fixtures.internal.*
 
 import org.junit.Rule
-import spock.lang.*
 
 class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
 
@@ -49,10 +48,15 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "uploadArchives"
 
-        then: // poms have the right dependencies
-        compileArtifactIdsOf(api) == ["commons-codec"]
-        compileArtifactIdsOf(impl) == ["commons-lang"]
-        compileArtifactIdsOf(combined) == ["commons-codec", "commons-lang"]
+        then: // artifacts published
+        module(api).assertArtifactsPublished("apiAndImpl-api-1.0.jar", "apiAndImpl-api-1.0.pom")
+        module(impl).assertArtifactsPublished("apiAndImpl-impl-1.0.jar", "apiAndImpl-impl-1.0.pom")
+        module(combined).assertArtifactsPublished("apiAndImpl-1.0.jar", "apiAndImpl-1.0.pom")
+
+        and: // poms have the right dependencies
+        compileDependenciesOf(api).assertDependsOnArtifacts("commons-codec")
+        compileDependenciesOf(impl).assertDependsOnArtifacts("commons-lang")
+        compileDependenciesOf(combined).assertDependsOnArtifacts("commons-lang", "commons-codec")
 
         and: // the fat jar contains classes from api and impl
         jar(combined).file("doubler/Doubler.class").exists()
@@ -62,24 +66,24 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
     def jar(type) {
         def unzipped = apiAndImpl.dir.file("build/unzipped/jar$type")
         if (!unzipped.exists()) {
-            artifact(type, "jar").unzipTo(unzipped)
+            artifact(type).unzipTo(unzipped)
         }
         unzipped
     }
 
-    def compileArtifactIdsOf(type) {
-        compileDependenciesOf(type).collect { it.artifactId[0].text() }
-    }
-
     def compileDependenciesOf(type) {
-        pom(type).dependencies.dependency.findAll { it.scope[0] == "compile" }
+        pom(type).scopes.compile
     }
 
     def pom(suffix) {
-        new XmlSlurper().parse(artifact(suffix, "pom"))
+        module(suffix).pom
     }
 
-    def artifact(type, ext) {
-        apiAndImpl.dir.file("build/repo/myorg/apiAndImpl${type}/1.0/apiAndImpl${type}-1.0.${ext}")
+    def module(suffix) {
+        return new MavenRepository(apiAndImpl.dir.file("build/repo")).module("myorg", "apiAndImpl${suffix}", "1.0")
+    }
+
+    def artifact(type) {
+        module(type).artifactFile
     }
 }

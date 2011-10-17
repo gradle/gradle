@@ -22,7 +22,6 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
-import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
@@ -32,7 +31,6 @@ import org.gradle.util.HelperUtil
 import spock.lang.Specification
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.instanceOf
-import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
@@ -65,6 +63,19 @@ class BasePluginTest extends Specification {
         assemble instanceOf(DefaultTask)
     }
 
+    public void assembleTaskBuildsThePublishedArtifacts() {
+        given:
+        def someJar = project.tasks.add('someJar', Jar)
+
+        when:
+        plugin.apply(project)
+        project.artifacts.archives someJar
+
+        then:
+        def assemble = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
+        assemble dependsOn('someJar')
+    }
+
     public void addsRulesWhenAConfigurationIsAdded() {
         when:
         plugin.apply(project)
@@ -75,35 +86,35 @@ class BasePluginTest extends Specification {
 
     public void addsImplicitTasksForConfiguration() {
         given:
-        Task producer = [getName: {-> 'producer'}] as Task
-        PublishArtifact artifactStub = [getBuildDependencies: {-> new DefaultTaskDependency().add(producer) }] as PublishArtifact
+        def someJar = project.tasks.add('someJar', Jar)
 
         when:
         plugin.apply(project)
-        project.configurations.getByName('archives').addArtifact(artifactStub)
+        project.artifacts.archives someJar
 
         then:
         def buildArchives = project.tasks['buildArchives']
         buildArchives instanceOf(DefaultTask)
-        buildArchives dependsOn('producer')
+        buildArchives dependsOn('someJar')
 
         and:
         def uploadArchives = project.tasks['uploadArchives']
         uploadArchives instanceOf(Upload)
-        uploadArchives dependsOn('producer')
+        uploadArchives dependsOn('someJar')
 
         when:
-        project.configurations.add('conf').addArtifact(artifactStub)
+        project.configurations.add('conf')
+        project.artifacts.conf someJar
 
         then:
         def buildConf = project.tasks['buildConf']
         buildConf instanceOf(DefaultTask)
-        buildConf dependsOn('producer')
+        buildConf dependsOn('someJar')
 
         and:
         def uploadConf = project.tasks['uploadConf']
         uploadConf instanceOf(Upload)
-        uploadConf dependsOn('producer')
+        uploadConf dependsOn('someJar')
         uploadConf.configuration == project.configurations.conf
     }
 
@@ -147,24 +158,17 @@ class BasePluginTest extends Specification {
         someJar.version == project.version
         someJar.baseName == project.archivesBaseName
 
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar'))
-
         and:
         def someZip = project.tasks.add('someZip', Zip)
         someZip.destinationDir == project.distsDir
         someZip.version == project.version
         someZip.baseName == project.archivesBaseName
 
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar', 'someZip'))
-
         and:
         def someTar = project.tasks.add('someTar', Tar)
         someTar.destinationDir == project.distsDir
         someTar.version == project.version
         someTar.baseName == project.archivesBaseName
-
-        and:
-        project.tasks[BasePlugin.ASSEMBLE_TASK_NAME] dependsOn('someJar', 'someZip', 'someTar')
     }
 
     public void usesNullVersionWhenProjectVersionNotSpecified() {
@@ -187,15 +191,26 @@ class BasePluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
+        def defaultConfig = project.configurations[Dependency.DEFAULT_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
         defaultConfig.visible
         defaultConfig.transitive
 
         and:
-        def archives = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
+        def archives = project.configurations[Dependency.ARCHIVES_CONFIGURATION]
         defaultConfig.extendsFrom == [] as Set
         archives.visible
         archives.transitive
+    }
+
+    public void addsEveryPublishedArtifactToTheArchivesConfiguration() {
+        PublishArtifact artifact = Mock()
+
+        when:
+        plugin.apply(project)
+        project.configurations.add("custom").artifacts.add(artifact)
+
+        then:
+        project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts.contains(artifact)
     }
 }

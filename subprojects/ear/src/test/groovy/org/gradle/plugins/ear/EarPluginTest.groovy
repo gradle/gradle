@@ -100,7 +100,7 @@ class EarPluginTest {
         assertThat(task.destinationDir, equalTo(project.libsDir))
 
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
-        assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME, EarPlugin.EAR_TASK_NAME))
+        assertThat(task, dependsOn(EarPlugin.EAR_TASK_NAME))
     }
 
     @Test public void dependsOnEarlibConfig() {
@@ -123,8 +123,6 @@ class EarPluginTest {
 
         def task = project.task(type: Ear, 'customEar')
         assertThat(task.destinationDir, equalTo(project.libsDir))
-
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn(EarPlugin.EAR_TASK_NAME, 'customEar'))
     }
 
     @Test public void appliesMappingsToArchiveTasksForJavaProject() {
@@ -136,7 +134,6 @@ class EarPluginTest {
         }
         assertThat(task.destinationDir, equalTo(project.libsDir))
 
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, EarPlugin.EAR_TASK_NAME, 'customEar'))
         assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
     }
 

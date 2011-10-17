@@ -49,7 +49,7 @@ publications.maven.repository.url = '${repo().rootDir.toURI()}'
 
         then:
         def module = repo().module('org.test', 'someCoolProject', '5.0-SNAPSHOT')
-        module.assertArtifactsDeployed("someCoolProject-5.0-SNAPSHOT.jar", "someCoolProject-5.0-SNAPSHOT.pom")
+        module.assertArtifactsPublished("someCoolProject-5.0-SNAPSHOT.jar", "someCoolProject-5.0-SNAPSHOT.pom")
     }
 
     @Test

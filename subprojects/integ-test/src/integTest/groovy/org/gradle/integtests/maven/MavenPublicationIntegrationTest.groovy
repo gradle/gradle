@@ -31,21 +31,21 @@ class MavenPublicationIntegrationTest {
     public void canPublishAProjectWithDependencyInMappedAndUnMappedConfiguration() {
         executer.withTasks('uploadArchives').run()
         def module = repo().module('group', 'root', 1.0)
-        module.assertArtifactsDeployed('root-1.0.jar', 'root-1.0.pom')
+        module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
     }
 
     @Test
     public void canPublishAProjectWithNoMainArtifact() {
         executer.withTasks('uploadArchives').run()
         def module = repo().module('group', 'root', 1.0)
-        module.assertArtifactsDeployed('root-1.0-source.jar')
+        module.assertArtifactsPublished('root-1.0-source.jar')
     }
 
     @Test
     public void canPublishAProjectWithMetadataArtifacts() {
         executer.withTasks('uploadArchives').run()
         def module = repo().module('group', 'root', 1.0)
-        module.assertArtifactsDeployed('root-1.0.jar', 'root-1.0.jar.sig', 'root-1.0.pom', 'root-1.0.pom.sig')
+        module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.jar.sig', 'root-1.0.pom', 'root-1.0.pom.sig')
     }
 
     @Test
@@ -70,7 +70,7 @@ uploadArchives {
         executer.withTasks('uploadArchives').run()
 
         def module = repo().module('org.gradle', 'test', '1.0-SNAPSHOT')
-        module.assertArtifactsDeployed('test-1.0-SNAPSHOT.jar', 'test-1.0-SNAPSHOT.pom')
+        module.assertArtifactsPublished('test-1.0-SNAPSHOT.jar', 'test-1.0-SNAPSHOT.pom')
     }
 
     def MavenRepository repo() {

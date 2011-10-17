@@ -262,6 +262,7 @@ package org.gradle.test;
 interface Person { }
 """
 
-        inTestDirectory().withTasks("classes").run()
+        def result = inTestDirectory().withTasks("a:classes").run()
+        result.assertTasksExecuted(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar", ":a:compileJava", ":a:processResources", ":a:classes")
     }
 }

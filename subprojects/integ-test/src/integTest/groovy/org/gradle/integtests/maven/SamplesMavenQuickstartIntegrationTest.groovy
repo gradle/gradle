@@ -52,7 +52,7 @@ class SamplesMavenQuickstartIntegrationTest {
 
         def repo = new MavenRepository(pomProjectDir.file('pomRepo'))
         def module = repo.module('gradle', 'quickstart', '1.0')
-        module.assertArtifactsDeployed('quickstart-1.0.jar', 'quickstart-1.0.pom')
+        module.assertArtifactsPublished('quickstart-1.0.jar', 'quickstart-1.0.pom')
         compareXmlWithIgnoringOrder(expectedPom('1.0', "gradle"), module.pomFile.text)
         module.moduleDir.file("quickstart-1.0.jar").assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
     }

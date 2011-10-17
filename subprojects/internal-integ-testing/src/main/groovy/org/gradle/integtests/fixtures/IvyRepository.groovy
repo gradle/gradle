@@ -16,16 +16,14 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
+import junit.framework.AssertionFailedError
+import java.util.regex.Pattern
 
 class IvyRepository {
     final TestFile rootDir
 
     IvyRepository(TestFile rootDir) {
         this.rootDir = rootDir
-    }
-
-    String getPattern() {
-        return "[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 
     IvyModule module(String organisation, String module, Object revision = '1.0') {
@@ -98,5 +96,54 @@ class IvyModule {
         jarFile << "add some content so that file size isn't zero: $publishCount"
 
         return jarFile
+    }
+
+    /**
+     * Asserts that exactly the given artifacts have been published.
+     */
+    void assertArtifactsPublished(String... names) {
+        names.each {
+            assert moduleDir.list() as Set == names as Set
+        }
+    }
+
+    IvyDescriptor getIvy() {
+        return new IvyDescriptor(ivyFile)
+    }
+}
+
+class IvyDescriptor {
+    final Map<String, IvyConfiguration> configurations = [:]
+
+    IvyDescriptor(File ivyFile) {
+        def ivy = new XmlParser().parse(ivyFile)
+        ivy.dependencies.dependency.each { dep ->
+            def configName = dep.@conf ?: "default"
+            def matcher = Pattern.compile("(\\w+)->\\w+").matcher(configName)
+            if (matcher.matches()) {
+                configName = matcher.group(1)
+            }
+            def config = configurations[configName]
+            if (!config) {
+                config = new IvyConfiguration()
+                configurations[configName] = config
+            }
+            config.addDependency(dep.@org, dep.@name, dep.@rev)
+        }
+    }
+}
+
+class IvyConfiguration {
+    final dependencies = []
+
+    void addDependency(String org, String module, String revision) {
+        dependencies << [org: org, module: module, revision: revision]
+    }
+
+    void assertDependsOn(String org, String module, String revision) {
+        def dep = [org: org, module: module, revision: revision]
+        if (!dependencies.find { it == dep}) {
+            throw new AssertionFailedError("Could not find expected dependency $dep. Actual: $dependencies")
+        }
     }
 }

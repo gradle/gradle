@@ -48,7 +48,6 @@ class BasePlugin implements Plugin<Project> {
         configureUploadRules(project)
         configureArchiveDefaults(project, convention)
         configureConfigurations(project)
-        project.extensions.defaultArtifacts = new DefaultArtifactPublicationSet(project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts)
 
         addClean(project)
         addCleanRule(project)
@@ -59,7 +58,7 @@ class BasePlugin implements Plugin<Project> {
         Task assembleTask = project.tasks.add(ASSEMBLE_TASK_NAME);
         assembleTask.description = "Assembles all Jar, War, Zip, and Tar archives.";
         assembleTask.group = BUILD_GROUP
-        assembleTask.dependsOn project.tasks.withType(AbstractArchiveTask.class)
+        assembleTask.dependsOn project.configurations[Dependency.ARCHIVES_CONFIGURATION].allArtifacts.buildDependencies
     }
 
     private void configureArchiveDefaults(Project project, BasePluginConvention pluginConvention) {
@@ -174,5 +173,14 @@ class BasePlugin implements Plugin<Project> {
 
         configurations.add(Dependency.DEFAULT_CONFIGURATION).
                 setDescription("Configuration for default artifacts.");
+
+        def defaultArtifacts = new DefaultArtifactPublicationSet(archivesConfiguration.artifacts)
+        project.extensions.defaultArtifacts = defaultArtifacts
+
+        configurations.all {
+            artifacts.all { artifact ->
+                defaultArtifacts.addCandidate(artifact)
+            }
+        }
     }
 }
