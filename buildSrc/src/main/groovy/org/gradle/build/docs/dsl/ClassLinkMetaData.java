@@ -85,14 +85,28 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         methods.put(method.getOverrideSignature(), new MethodLinkMetaData(method.getName(), method.getOverrideSignature(), id, style));
     }
 
+    //some methods are getters - treat them as such.
+    //Link the method to the DSL reference property rather than to the Javadoc method
+    public void configureGetter(String id, MethodMetaData getter) {
+        String getterName = getter.getFormattedGetterName();
+        MethodLinkMetaData link = methods.get(getterName);
+        if (link == null) {
+            //it means that the getter method is not documented the DSL reference.
+            //Most likely it is documented in javadoc/groovy doc. Don't link.
+            return;
+        }
+
+        link.linkToGetter(id, LinkMetaData.Style.Dsldoc);
+    }
+
     public void attach(ClassMetaDataRepository<ClassLinkMetaData> linkMetaDataClassMetaDataRepository) {
     }
 
     private static class MethodLinkMetaData implements Serializable {
         private final String name;
         private final String signature;
-        private final String id;
-        private final LinkMetaData.Style style;
+        private String id;
+        private LinkMetaData.Style style;
 
         private MethodLinkMetaData(String name, String signature, String id, LinkMetaData.Style style) {
             this.name = name;
@@ -104,6 +118,11 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         @Override
         public String toString() {
             return signature;
+        }
+
+        public void linkToGetter(String id, LinkMetaData.Style style) {
+            this.id = id;
+            this.style = style;
         }
     }
 }

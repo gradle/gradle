@@ -38,6 +38,10 @@ public class MethodMetaData implements Serializable, LanguageElement, TypeContai
         return name;
     }
 
+    public String getFormattedGetterName() {
+        return name + "()";
+    }
+
     @Override
     public String toString() {
         return String.format("%s.%s()", ownerClass, name);
