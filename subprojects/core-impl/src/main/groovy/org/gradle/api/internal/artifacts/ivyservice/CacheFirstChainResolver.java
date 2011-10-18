@@ -46,6 +46,11 @@ public class CacheFirstChainResolver extends ChainResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheFirstChainResolver.class);
     
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
+    private final DynamicRevisionCache dynamicRevisionCache;
+
+    public CacheFirstChainResolver(DynamicRevisionCache dynamicRevisionCache) {
+        this.dynamicRevisionCache = dynamicRevisionCache;
+    }
 
     @Override
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data)
@@ -53,7 +58,9 @@ public class CacheFirstChainResolver extends ChainResolver {
 
         // First attempt to locate the module in a resolver cache
         for (DependencyResolver resolver : getResolvers()) {
-            ResolvedModuleRevision cachedModule = findModuleInCache(resolver, dd, data);
+            DependencyDescriptor resolvedDynamicDependency = maybeResolveDynamicRevision(resolver, dd);
+
+            ResolvedModuleRevision cachedModule = findModuleInCache(resolver, resolvedDynamicDependency, data);
             if (cachedModule != null) {
                 LOGGER.debug("Found module {} in resolver cache {}", cachedModule, resolver.getName());
                 artifactResolvers.put(cachedModule.getId(), resolver);
@@ -66,8 +73,26 @@ public class CacheFirstChainResolver extends ChainResolver {
         if (downloadedModule != null) {
             LOGGER.debug("Found module {} using resolver {}", downloadedModule, downloadedModule.getArtifactResolver());
             artifactResolvers.put(downloadedModule.getId(), downloadedModule.getArtifactResolver());
+            maybeSaveDynamicRevision(dd, downloadedModule);
         }
         return downloadedModule;
+    }
+
+    private void maybeSaveDynamicRevision(DependencyDescriptor original, ResolvedModuleRevision downloadedModule) {
+        ModuleRevisionId originalId = original.getDependencyRevisionId();
+        ModuleRevisionId resolvedId = downloadedModule.getId();
+        if (originalId.equals(resolvedId)) {
+            return;
+        }
+        dynamicRevisionCache.saveResolvedRevision(downloadedModule.getResolver(), originalId, resolvedId);
+    }
+
+    private DependencyDescriptor maybeResolveDynamicRevision(DependencyResolver resolver, DependencyDescriptor original) {
+        ModuleRevisionId resolvedRevision = dynamicRevisionCache.getResolvedRevision(resolver, original.getDependencyRevisionId());
+        if (resolvedRevision == null) {
+            return original;
+        }
+        return original.clone(resolvedRevision);
     }
 
     private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd, ResolveData resolveData) {

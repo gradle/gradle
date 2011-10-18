@@ -41,6 +41,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final Factory<IvySettings> settingsFactory;
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
+    private final DynamicRevisionCache dynamicRevisionCache = new InMemoryDynamicRevisionCache();
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private ChainResolver userResolverChain;
@@ -100,7 +101,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private ChainResolver createUserResolverChain() {
-        ChainResolver chainResolver = new CacheFirstChainResolver();
+        ChainResolver chainResolver = new CacheFirstChainResolver(dynamicRevisionCache);
         chainResolver.setName(CHAIN_RESOLVER_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));
