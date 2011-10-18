@@ -26,6 +26,8 @@ import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.MultipleFileDynamicRevisionCache;
 import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -88,7 +90,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategy resolutionStrategy) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
-            dynamicRevisionCache = new SingleFileBackedDynamicRevisionCache(timeProvider, cacheLockingManager, resolveSettings.getDefaultCache());
+            dynamicRevisionCache = new MultipleFileDynamicRevisionCache(timeProvider, resolveSettings.getDefaultCache());
             userResolverChain = createUserResolverChain();
             ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
             DependencyResolver outerChain = new ClientModuleResolverChain(clientModuleResolver, userResolverChain);

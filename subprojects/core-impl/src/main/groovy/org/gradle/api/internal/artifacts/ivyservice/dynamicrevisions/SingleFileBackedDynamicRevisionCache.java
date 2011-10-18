@@ -1,7 +1,8 @@
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.ReusableFileLock;
@@ -12,7 +13,7 @@ import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 import java.io.File;
 import java.io.Serializable;
 
-class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
+public class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
     // TODO I think this would be better with a file per resolver (or even a file per dynamic-revision per resolver)
     // Locking would be simpler, if nothing else.
     private final PersistentIndexedCache<RevisionKey, CachedRevisionEntry> cache;
@@ -39,7 +40,7 @@ class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
         dynamicRevisionsLock.lock();
         try {
             CachedRevisionEntry cachedRevisionEntry = cache.get(createKey(resolver, dynamicRevision));
-            return cachedRevisionEntry == null ? null : new DefaultCachedRevision(cachedRevisionEntry);
+            return cachedRevisionEntry == null ? null : new DefaultCachedRevision(cachedRevisionEntry, timeProvider);
         } finally {
             dynamicRevisionsLock.unlock();
         }
@@ -81,34 +82,9 @@ class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
              return resolverId.hashCode() ^ revisionId.hashCode();
          }
      }
-    
+
     private CachedRevisionEntry createEntry(ModuleRevisionId revisionId) {
-        CachedRevisionEntry entry = new CachedRevisionEntry();
-        entry.encodedRevisionId = revisionId.encodeToString();
-        entry.createTimestamp = timeProvider.getCurrentTime();
-        return entry;
+        return new CachedRevisionEntry(revisionId, timeProvider);
     }
-    
-    private static class CachedRevisionEntry implements Serializable {
-        public String encodedRevisionId;
-        public long createTimestamp;
-    }
-    
-    private class DefaultCachedRevision implements CachedRevision, Serializable {
-        private final ModuleRevisionId revision;
-        private final long ageMillis;
 
-        private DefaultCachedRevision(CachedRevisionEntry entry) {
-            revision = ModuleRevisionId.decode(entry.encodedRevisionId);
-            ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
-        }
-
-        public ModuleRevisionId getRevision() {
-            return revision;
-        }
-
-        public long getAgeMillis() {
-            return ageMillis;
-        }
-    }
 }
