@@ -148,7 +148,7 @@ public class TaskReportRenderer extends TextReportRenderer {
     public void complete() throws IOException {
         if (!detail) {
             getTextOutput().println();
-            getTextOutput().text("Note that some of the tasks may belong to subprojects. To see all tasks and more detail, run with ").style(UserInput).text("--all").style(Normal).text(".");
+            getTextOutput().text("To see all tasks and more detail, run with ").style(UserInput).text("--all.");
             getTextOutput().println();
         }
         super.complete();
