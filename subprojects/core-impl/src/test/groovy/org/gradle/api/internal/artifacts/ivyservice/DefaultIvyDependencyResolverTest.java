@@ -60,6 +60,7 @@ public class DefaultIvyDependencyResolverTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private ConfigurationInternal configurationStub = context.mock(ConfigurationInternal.class, "<configuration>");
+    private ResolutionStrategy resolutionStrategy = context.mock(ResolutionStrategy.class);
     private Ivy ivyStub = context.mock(Ivy.class);
     private DefaultIvyReportConverter ivyReportConverterStub = context.mock(DefaultIvyReportConverter.class);
     private ResolveReport resolveReportMock = context.mock(ResolveReport.class);
@@ -67,20 +68,18 @@ public class DefaultIvyDependencyResolverTest {
     private Configuration otherConfiguration = context.mock(Configuration.class);
     private Module module = context.mock(Module.class);
     private ResolveIvyFactory ivyFactory = context.mock(ResolveIvyFactory.class);
-    private EntryPointResolverConfigurer resolverConfigurer = context.mock(EntryPointResolverConfigurer.class);
 
     private DefaultIvyDependencyResolver ivyDependencyResolver = new DefaultIvyDependencyResolver(ivyReportConverterStub, moduleDescriptorConverter, ivyFactory);
 
     @Before
     public void setUp() {
-        ivyDependencyResolver.entryPointResolverConfigurer = resolverConfigurer;
         context.checking(new Expectations() {{
             allowing(configurationStub).getName();
             will(returnValue("someConfName"));
             allowing(ivyStub).getSettings();
             will(returnValue(new IvySettings()));
-            ignoring(configurationStub).getResolutionStrategy();
-            allowing(resolverConfigurer).configureResolver(with(any(EntryPointResolver.class)), with(any(ConfigurationInternal.class)));
+            allowing(configurationStub).getResolutionStrategy();
+            will(returnValue(resolutionStrategy));
         }});
 
         configurationIsAskedForConflictStrategy();
@@ -307,17 +306,17 @@ public class DefaultIvyDependencyResolverTest {
             will(returnValue(toSet(configurationStub, otherConfiguration)));
             allowing(configurationStub).getModule();
             will(returnValue(module));
-            one(ivyFactory).create();
+            one(ivyFactory).create(resolutionStrategy);
             will(returnValue(ivyStub));
             one(moduleDescriptorConverter)
                     .convert(with(equalTo(toSet(configurationStub, otherConfiguration))), with(equalTo(module)), (IvyConfig) with(instanceOf(IvyConfig.class)));
             will(returnValue(moduleDescriptor));
-            one(ivyStub).resolve(with(equal(moduleDescriptor)), with(equaltResolveOptions(confName)));
+            one(ivyStub).resolve(with(equal(moduleDescriptor)), with(equalResolveOptions(confName)));
             will(returnValue(resolveReportMock));
         }});
     }
 
-    Matcher<ResolveOptions> equaltResolveOptions(final String... confs) {
+    Matcher<ResolveOptions> equalResolveOptions(final String... confs) {
         return new BaseMatcher<ResolveOptions>() {
             public boolean matches(Object o) {
                 ResolveOptions otherOptions = (ResolveOptions) o;

@@ -45,6 +45,12 @@ public interface ResolutionStrategy {
      */
     void setConflictResolution(ConflictResolution conflictResolution);
 
+/*
+    void checkDynamicRevisionsEvery(int num, TimeUnit timeUnit);
+    
+    void checkChangingModulesEvery(int num, TimeUnit timeUnit);
+*/
+
     /**
      * Configures forced versions in DSL friendly fashion
      *

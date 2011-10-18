@@ -46,7 +46,6 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolveIvyFactory ivyFactory;
     private final IvyReportConverter ivyReportTranslator;
-    EntryPointResolverConfigurer entryPointResolverConfigurer = new EntryPointResolverConfigurer();
 
     public DefaultIvyDependencyResolver(IvyReportConverter ivyReportTranslator, ModuleDescriptorConverter moduleDescriptorConverter, ResolveIvyFactory ivyFactory) {
         this.ivyReportTranslator = ivyReportTranslator;
@@ -57,9 +56,7 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
         Clock clock = new Clock();
-        Ivy ivy = ivyFactory.create();
-
-        entryPointResolverConfigurer.configureResolver((EntryPointResolver) ivy.getSettings().getDefaultResolver(), configuration);
+        Ivy ivy = ivyFactory.create(configuration.getResolutionStrategy());
 
         IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getResolutionStrategy());
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), ivyConfig);

@@ -15,18 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import spock.lang.Specification
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider
-import org.apache.ivy.plugins.resolver.DependencyResolver
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.Ivy
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.settings.IvySettings
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.gradle.api.artifacts.ResolutionStrategy
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider
+import spock.lang.Specification
 
 class ResolveIvyFactoryTest extends Specification {
     final IvyFactory ivyFactory = Mock()
     final ResolverProvider resolverProvider = Mock()
     final SettingsConverter settingsConverter = Mock()
     final DependencyResolver internalRepo = Mock()
+    final ResolutionStrategy resolutionStrategy = Mock()
     final Map<String, ModuleDescriptor> clientModuleRegistry = [:]
     final ResolveIvyFactory factory = new ResolveIvyFactory(ivyFactory, resolverProvider, settingsConverter, internalRepo, clientModuleRegistry)
 
@@ -37,12 +39,12 @@ class ResolveIvyFactoryTest extends Specification {
         DependencyResolver resolver2 = Mock()
 
         when:
-        def result = factory.create()
+        def result = factory.create(resolutionStrategy)
 
         then:
         result == ivy
         1 * resolverProvider.resolvers >> [resolver1, resolver2]
-        1 * settingsConverter.convertForResolve([internalRepo, resolver1, resolver2], clientModuleRegistry) >> ivySettings
+        1 * settingsConverter.convertForResolve([internalRepo, resolver1, resolver2], clientModuleRegistry, resolutionStrategy) >> ivySettings
         1 * ivyFactory.createIvy(ivySettings) >> ivy
         0 * _._
     }

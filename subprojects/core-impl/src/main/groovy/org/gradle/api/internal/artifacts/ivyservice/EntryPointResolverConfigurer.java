@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ForcedVersion;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.artifacts.ResolutionStrategy;
 
 import java.util.Set;
 
@@ -28,9 +28,8 @@ import java.util.Set;
  * by Szczepan Faber, created at: 10/8/11
  */
 public class EntryPointResolverConfigurer {
-    public void configureResolver(EntryPointResolver resolver, ConfigurationInternal configuration) {
-        Set<ForcedVersion> forcedVersions = configuration.getResolutionStrategy().getForcedVersions();
+    public void configureResolver(EntryPointResolver resolver, ResolutionStrategy resolutionStrategy) {
+        Set<ForcedVersion> forcedVersions = resolutionStrategy.getForcedVersions();
         resolver.setIvyResolutionListener(new MaybeForceVersions(forcedVersions));
     }
-
 }

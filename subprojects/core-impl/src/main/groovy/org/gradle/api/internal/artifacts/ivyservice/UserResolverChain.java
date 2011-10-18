@@ -42,13 +42,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CacheFirstChainResolver extends ChainResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CacheFirstChainResolver.class);
+public class UserResolverChain extends ChainResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
     
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
     private final DynamicRevisionCache dynamicRevisionCache;
 
-    public CacheFirstChainResolver(DynamicRevisionCache dynamicRevisionCache) {
+    public UserResolverChain(DynamicRevisionCache dynamicRevisionCache) {
         this.dynamicRevisionCache = dynamicRevisionCache;
     }
 
