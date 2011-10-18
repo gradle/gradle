@@ -35,7 +35,7 @@ public interface ConventionMapping {
 
     MappedProperty map(String propertyName, ConventionValue value);
 
-    MappedProperty map(String propertyName, Closure value);
+    MappedProperty map(String propertyName, Closure<?> value);
 
     MappedProperty map(String propertyName, Callable<?> value);
 

@@ -53,7 +53,7 @@ class ServiceLocatorTest extends Specification {
         then:
         RuntimeException e = thrown()
         e.message == "Could not load implementation class 'org.gradle.ImplClass' for service 'java.lang.String'."
-        e.cause.cause == failure
+        e.cause == failure
         1 * classLoader.getResource("META-INF/services/java.lang.String") >> serviceFile
         1 * classLoader.loadClass('org.gradle.ImplClass') >> { throw failure }
     }

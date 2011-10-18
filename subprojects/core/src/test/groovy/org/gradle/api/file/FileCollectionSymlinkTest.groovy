@@ -31,7 +31,7 @@ class FileCollectionSymlinkTest extends Specification {
     @Shared File symlinked = getTestFile("symlinked")
     @Shared File baseDir = file.parentFile
 
-    @Unroll("#desc can handle symlinks")
+    @Unroll({"#desc can handle symlinks"})
     def "file collection can handle symlinks"() {
         expect:
         fileCollection.contains(file)

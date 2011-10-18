@@ -143,8 +143,8 @@ class BasePluginTest extends Specification {
         then:
         project.tasks.findByName('cleantestTask') == null
         project.tasks.findByName('cleanTesttask') == null
-        project.tasks.findByName('cleanTestTask') instanceOf(Delete.class)
-        project.tasks.findByName('clean12') instanceOf(Delete.class)
+        project.tasks.findByName('cleanTestTask') instanceof Delete
+        project.tasks.findByName('clean12') instanceof Delete
     }
 
     public void appliesMappingsForArchiveTasks() {
