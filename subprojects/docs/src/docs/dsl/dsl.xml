@@ -260,6 +260,9 @@
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.tasks.bundling.AbstractArchiveTask</td>
+            </tr>
         </table>
     </section>
 
