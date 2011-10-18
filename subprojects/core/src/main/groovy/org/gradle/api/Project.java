@@ -1019,7 +1019,51 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Returns the <code>AntBuilder</code> for this project. You can use this in your build file to execute ant
-     * tasks.</p>
+     * tasks. See example below.</p>
+     * <pre autoTested=''>
+     * task printChecksum {
+     *   doLast {
+     *     ant {
+     *       //using ant checksum task to store the file checksum in the checksumOut ant property
+     *       checksum(property: 'checksumOut', file: 'someFile.txt')
+     *
+     *       //we can refer to the ant property created by checksum task:
+     *       println "The checksum is: " + checksumOut
+     *     }
+     *
+     *     //we can refer to the ant property later as well:
+     *     println "I just love to print checksums: " + ant.checksumOut
+     *   }
+     * }
+     * </pre>
+     *
+     * Consider following example of ant target:
+     * <pre>
+     * &lt;target name='printChecksum'&gt;
+     *   &lt;checksum property='checksumOut'&gt;
+     *     &lt;fileset dir='.'&gt;
+     *       &lt;include name='agile.txt'/&gt;
+     *     &lt;/fileset&gt;
+     *   &lt;/checksum&gt;
+     *   &lt;echo&gt;The checksum is: ${checksumOut}&lt;/echo&gt;
+     * &lt;/target&gt;
+     * </pre>
+     *
+     * Here's how it would look like in gradle. Observe how the ant xml is represented in groovy by the ant builder
+     * <pre autoTested=''>
+     * task printChecksum {
+     *   doLast {
+     *     ant {
+     *       checksum(property: 'checksumOut') {
+     *         fileset(dir: '.') {
+     *           include name: 'agile1.txt'
+     *         }
+     *       }
+     *     }
+     *     logger.lifecycle("The checksum is $ant.checksumOut")
+     *   }
+     * }
+     * </pre>
      *
      * @return The <code>AntBuilder</code> for this project. Never returns null.
      */
@@ -1037,7 +1081,7 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Executes the given closure against the <code>AntBuilder</code> for this project. You can use this in your
      * build file to execute ant tasks. The <code>AntBuild</code> is passed to the closure as the closure's
-     * delegate.</p>
+     * delegate. See example in javadoc for {@link #getAnt()}</p>
      *
      * @param configureClosure The closure to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.

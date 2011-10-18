@@ -25,7 +25,7 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
      void runSamplesFrom(String dir) {
         util.findSamples(dir) { file, sample ->
-            println "Found sample in $file"
+            println "Found sample: ${sample.split("\n")[0]} (...) in $file"
             def buildFile = testFile('build.gradle')
             buildFile.text = sample
 
