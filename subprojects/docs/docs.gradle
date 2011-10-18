@@ -125,7 +125,7 @@ task samplesDocs(type: Docbook2Xhtml, dependsOn: samplesDocbook) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task dslMetaData(type: ExtractDslMetaDataTask) {
+task dslMetaData(type: ExtractDslMetaDataTask) {  //TODO SF: parseSourceCode
     source { groovydoc.source }
     destFile = new File(docbookSrc, 'dsl-meta-data.bin')
 }
@@ -264,6 +264,7 @@ task checkstyleApi(type: Checkstyle) {
     resultFile = file("$checkstyleResultsDir/checkstyle-api.xml")
 }
 
+//TODO SF - generates for java as well, rename to codedoc?
 task groovydoc(type: Groovydoc) {
     group = 'documentation'
     source groovyProjects().collect {project -> project.sourceSets.main.groovy + project.sourceSets.main.java }
