@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
+import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.Factory
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.util.JUnit4GroovyMockery
@@ -39,6 +40,7 @@ class DefaultSettingsConverterTest {
     DefaultSettingsConverter converter
 
     Map clientModuleRegistry
+    ResolutionStrategy resolutionStrategy
 
     File testGradleUserHome
 
@@ -50,6 +52,7 @@ class DefaultSettingsConverterTest {
     @Before public void setUp() {
         testResolver.name = 'resolver'
         clientModuleRegistry = [a: [:] as ModuleDescriptor]
+        resolutionStrategy = context.mock(ResolutionStrategy.class)
         converter = new DefaultSettingsConverter(context.mock(ProgressLoggerFactory), ivySettingsFactory)
         testGradleUserHome = new File('gradleUserHome')
     }
@@ -58,9 +61,11 @@ class DefaultSettingsConverterTest {
         context.checking {
             one(ivySettingsFactory).create()
             will(returnValue(ivySettings))
+            ignoring(resolutionStrategy).getForcedVersions()
+            ignoring(resolutionStrategy).getDynamicRevisionExpiry()
         }
 
-        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], clientModuleRegistry)
+        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], clientModuleRegistry, resolutionStrategy)
         assert settings.is(ivySettings)
 
         ChainResolver chainResolver = settings.getResolver(DefaultSettingsConverter.CHAIN_RESOLVER_NAME)
@@ -105,15 +110,17 @@ class DefaultSettingsConverterTest {
         context.checking {
             one(ivySettingsFactory).create()
             will(returnValue(ivySettings))
+            ignoring(resolutionStrategy).getForcedVersions()
+            ignoring(resolutionStrategy).getDynamicRevisionExpiry()
         }
 
-        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], clientModuleRegistry)
+        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], clientModuleRegistry, resolutionStrategy)
         assert settings.is(ivySettings)
 
         ChainResolver chainResolver = settings.getResolver(DefaultSettingsConverter.CHAIN_RESOLVER_NAME)
         assert chainResolver.resolvers == [testResolver, testResolver2]
 
-        settings = converter.convertForResolve([testResolver], clientModuleRegistry)
+        settings = converter.convertForResolve([testResolver], clientModuleRegistry, resolutionStrategy)
         assert settings.is(ivySettings)
 
         chainResolver = settings.getResolver(DefaultSettingsConverter.CHAIN_RESOLVER_NAME)

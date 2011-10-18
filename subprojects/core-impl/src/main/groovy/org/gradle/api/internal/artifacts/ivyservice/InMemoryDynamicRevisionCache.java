@@ -4,20 +4,25 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.util.TimeProvider;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
 import java.io.Serializable;
 
 class InMemoryDynamicRevisionCache implements DynamicRevisionCache {
-    private final PersistentIndexedCache<RevisionKey, String> cache = new InMemoryIndexedCache<RevisionKey, String>();
+    private static final PersistentIndexedCache<RevisionKey, CachedRevision> CACHE = new InMemoryIndexedCache<RevisionKey, CachedRevision>();
+    private final TimeProvider timeProvider;
 
-    public ModuleRevisionId getResolvedRevision(DependencyResolver resolver, ModuleRevisionId dynamicRevision) {
-        String encodedRevision = cache.get(createKey(resolver, dynamicRevision));
-        return encodedRevision == null ? null : ModuleRevisionId.decode(encodedRevision);
+    public InMemoryDynamicRevisionCache(TimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
+    }
+
+    public CachedRevision getResolvedRevision(DependencyResolver resolver, ModuleRevisionId dynamicRevision) {
+        return CACHE.get(createKey(resolver, dynamicRevision));
     }
 
     public void saveResolvedRevision(DependencyResolver resolver, ModuleRevisionId dynamicRevision, ModuleRevisionId resolvedRevision) {
-        cache.put(createKey(resolver, dynamicRevision), resolvedRevision.encodeToString());
+        CACHE.put(createKey(resolver, dynamicRevision), new DefaultCachedRevision(resolvedRevision, timeProvider.getCurrentTime()));
     }
 
     private RevisionKey createKey(DependencyResolver resolver, ModuleRevisionId revisionId) {
@@ -47,5 +52,22 @@ class InMemoryDynamicRevisionCache implements DynamicRevisionCache {
              return resolverId.hashCode() ^ revisionId.hashCode();
          }
      }
+    
+    private static class DefaultCachedRevision implements CachedRevision, Serializable {
+        private final String encodedRevisionId;
+        private final long createTimestamp;
 
+        private DefaultCachedRevision(ModuleRevisionId revisionId, long createTimestamp) {
+            this.createTimestamp = createTimestamp;
+            this.encodedRevisionId = revisionId.encodeToString();
+        }
+
+        public ModuleRevisionId getRevision() {
+            return ModuleRevisionId.decode(encodedRevisionId);
+        }
+
+        public long getCreateTimestamp() {
+            return createTimestamp;
+        }
+    }
 }

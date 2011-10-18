@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Defines the strategies around forcing certain dependency versions or conflict resolutions.
@@ -45,11 +46,6 @@ public interface ResolutionStrategy {
      */
     void setConflictResolution(ConflictResolution conflictResolution);
 
-/*
-    void checkDynamicRevisionsEvery(int num, TimeUnit timeUnit);
-    
-    void checkChangingModulesEvery(int num, TimeUnit timeUnit);
-*/
 
     /**
      * Configures forced versions in DSL friendly fashion
@@ -74,4 +70,23 @@ public interface ResolutionStrategy {
      * fail eagerly on conflict
      */
     ConflictResolution strict();
+
+    /**
+     * Gets the current expiry policy for dynamic revisions.
+     * @return the expiry policy
+     */
+    DynamicRevisionExpiryPolicy getDynamicRevisionExpiry();
+
+    /**
+     * Sets the expiry policy to use for dynamic revisions.
+     * @param policy the policy to use
+     */
+    void setDynamicRevisionExpiry(DynamicRevisionExpiryPolicy policy);
+
+    /**
+     * Provides a time after which all dynamic revisions will be expired, using the default implementation of {@link DynamicRevisionExpiryPolicy}.
+     * @param value The number of time units
+     * @param unit The time units
+     */
+    void expireDynamicRevisionsAfter(int value, TimeUnit unit);
 }
