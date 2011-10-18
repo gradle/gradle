@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Upload;
 import org.gradle.util.HelperUtil;
 import org.hamcrest.Matchers;
 
+import java.io.File;
 import java.util.Set;
 
 import static org.gradle.util.WrapUtil.toSet;
@@ -45,6 +46,17 @@ public class MavenPluginTest {
         mavenPlugin.apply(project);
 
         assertThat(project.getConvention().getPlugin(MavenPluginConvention.class), Matchers.<MavenPluginConvention>notNullValue());
+    }
+    
+    @org.junit.Test
+    public void defaultConventionValues() {
+        mavenPlugin.apply(project);
+
+        MavenPluginConvention convention = project.getConvention().getPlugin(MavenPluginConvention.class);
+        assertThat(convention.getMavenPomDir(), equalTo(new File(project.getBuildDir(), "poms")));
+        assertThat(convention.getPomDir(), equalTo(new File(project.getBuildDir(), "poms")));
+        assertThat(convention.getPomDirName(), equalTo("poms"));
+        assertThat(convention.getConf2ScopeMappings(), notNullValue());
     }
 
     @org.junit.Test
@@ -108,6 +120,17 @@ public class MavenPluginTest {
         task = project.getTasks().add("customUpload", Upload.class);
         convention = ((DynamicObjectAware) task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
         assertThat(convention, notNullValue());
+    }
+
+    @org.junit.Test
+    public void addsConventionMappingToTheProjectRepositoryContainer() {
+        project.getPlugins().apply(JavaPlugin.class);
+        mavenPlugin.apply(project);
+
+        MavenPluginConvention convention = project.getConvention().getPlugin(MavenPluginConvention.class);
+        convention.setMavenPomDir(new File("pomDir").getAbsoluteFile());
+        
+        assertThat(project.getRepositories().getMavenPomDir(), equalTo(convention.getMavenPomDir()));
     }
 
     @org.junit.Test

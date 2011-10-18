@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -32,6 +33,9 @@ import org.gradle.api.publication.maven.internal.DefaultDeployerFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.tasks.Upload;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.util.DeprecationLogger;
+
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows project artifacts to be deployed to a Maven repository, or installed
@@ -81,6 +85,16 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         plugins.withType(WarPlugin.class, new Action<WarPlugin>() {
             public void execute(WarPlugin warPlugin) {
                 configureWarScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings());
+            }
+        });
+        addConventionMappings(project.getRepositories(), pluginConvention);
+    }
+
+    private void addConventionMappings(RepositoryHandler repositories, final MavenPluginConvention pluginConvention) {
+        ((IConventionAware) repositories).getConventionMapping().map("mavenPomDir", new Callable<Object>() {
+            public Object call() throws Exception {
+                DeprecationLogger.nagUserOfReplacedMethod("RepositoryHandler.getMavenPomDir()", "MavenPluginConvention.getMavenPomDir()");
+                return pluginConvention.getMavenPomDir();
             }
         });
     }
