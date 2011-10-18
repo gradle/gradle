@@ -45,15 +45,17 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
     private final TimeProvider timeProvider = new TrueTimeProvider();
-    private final DynamicRevisionCache dynamicRevisionCache = new InMemoryDynamicRevisionCache(timeProvider);
+    private final CacheLockingManager cacheLockingManager;
+    private DynamicRevisionCache dynamicRevisionCache;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
     public EntryPointResolver entryPointResolver;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory) {
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, CacheLockingManager cacheLockingManager) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
     private static String getLengthText(TransferEvent evt) {
@@ -86,6 +88,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategy resolutionStrategy) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
+            dynamicRevisionCache = new SingleFileBackedDynamicRevisionCache(timeProvider, cacheLockingManager, resolveSettings.getDefaultCache());
             userResolverChain = createUserResolverChain();
             ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
             DependencyResolver outerChain = new ClientModuleResolverChain(clientModuleResolver, userResolverChain);
@@ -108,7 +111,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private UserResolverChain createUserResolverChain() {
-        UserResolverChain chainResolver = new UserResolverChain(dynamicRevisionCache, timeProvider);
+        UserResolverChain chainResolver = new UserResolverChain(dynamicRevisionCache);
         chainResolver.setName(CHAIN_RESOLVER_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));

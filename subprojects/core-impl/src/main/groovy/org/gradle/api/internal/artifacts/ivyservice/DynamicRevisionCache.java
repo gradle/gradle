@@ -9,6 +9,6 @@ public interface DynamicRevisionCache {
     
     interface CachedRevision {
         ModuleRevisionId getRevision();
-        long getCreateTimestamp();
+        long getAgeMillis();
     }
 }

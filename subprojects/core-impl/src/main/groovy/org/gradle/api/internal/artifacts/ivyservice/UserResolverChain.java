@@ -33,7 +33,6 @@ import org.apache.ivy.util.Message;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DynamicRevisionExpiryPolicy;
-import org.gradle.util.TimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +49,8 @@ public class UserResolverChain extends ChainResolver {
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
     private final DynamicRevisions dynamicRevisions;
 
-    public UserResolverChain(DynamicRevisionCache dynamicRevisionCache, TimeProvider timeProvider) {
-        dynamicRevisions = new DynamicRevisions(dynamicRevisionCache, timeProvider);
+    public UserResolverChain(DynamicRevisionCache dynamicRevisionCache) {
+        dynamicRevisions = new DynamicRevisions(dynamicRevisionCache);
     }
 
     public void setDynamicRevisionExpiryPolicy(DynamicRevisionExpiryPolicy dynamicRevisionExpiryPolicy) {
@@ -194,12 +193,10 @@ public class UserResolverChain extends ChainResolver {
     
     private static class DynamicRevisions {
         private final DynamicRevisionCache dynamicRevisionCache;
-        private final TimeProvider timeProvider;
         private DynamicRevisionExpiryPolicy dynamicRevisionExpiryPolicy;
 
-        private DynamicRevisions(DynamicRevisionCache dynamicRevisionCache, TimeProvider timeProvider) {
+        private DynamicRevisions(DynamicRevisionCache dynamicRevisionCache) {
             this.dynamicRevisionCache = dynamicRevisionCache;
-            this.timeProvider = timeProvider;
         }
 
         public void setDynamicRevisionExpiryPolicy(DynamicRevisionExpiryPolicy dynamicRevisionExpiryPolicy) {
@@ -222,8 +219,7 @@ public class UserResolverChain extends ChainResolver {
             if (resolvedRevision == null) {
                 return original;
             }
-            long ageMillis = timeProvider.getCurrentTime() - resolvedRevision.getCreateTimestamp();
-            if (dynamicRevisionExpiryPolicy.isExpired(resolvedRevision.getRevision(), ageMillis)) {
+            if (dynamicRevisionExpiryPolicy.isExpired(resolvedRevision.getRevision(), resolvedRevision.getAgeMillis())) {
                 return original;
             }
             return original.clone(resolvedRevision.getRevision());
