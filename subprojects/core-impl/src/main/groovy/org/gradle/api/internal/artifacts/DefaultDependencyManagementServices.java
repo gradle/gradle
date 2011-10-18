@@ -140,7 +140,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new IvySettingsFactory(
                         get(ArtifactCacheMetaData.class),
                         get(LockHolderFactory.class)),
-                get(CacheLockingManager.class));
+                get(FileLockManager.class));
     }
 
     protected IvyFactory createIvyFactory() {

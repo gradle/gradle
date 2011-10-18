@@ -5,7 +5,8 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.internal.NoOpFileLock;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.OnDemandFileLock;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.util.TimeProvider;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
@@ -16,10 +17,12 @@ public class MultipleFileDynamicRevisionCache implements DynamicRevisionCache {
     
     private final TimeProvider timeProvider;
     private final File cacheBaseDir;
+    private final FileLockManager fileLockManager;
 
-    public MultipleFileDynamicRevisionCache(TimeProvider timeProvider, File cacheBaseDir) {
+    public MultipleFileDynamicRevisionCache(TimeProvider timeProvider, File cacheBaseDir, FileLockManager fileLockManager) {
         this.timeProvider = timeProvider;
         this.cacheBaseDir = cacheBaseDir;
+        this.fileLockManager = fileLockManager;
     }
 
     public CachedRevision getResolvedRevision(DependencyResolver resolver, ModuleRevisionId dynamicRevision) {
@@ -38,7 +41,7 @@ public class MultipleFileDynamicRevisionCache implements DynamicRevisionCache {
     
     private PersistentStateCache<CachedRevisionEntry> getCache(DependencyResolver resolver, ModuleRevisionId dynamicRevision) {
         File cacheFile = getCacheFile(resolver, dynamicRevision);
-        return new SimpleStateCache<CachedRevisionEntry>(cacheFile, new NoOpFileLock(), new DefaultSerializer<CachedRevisionEntry>());
+        return new SimpleStateCache<CachedRevisionEntry>(cacheFile, new OnDemandFileLock(cacheFile, "dynamic revisions cache", fileLockManager), new DefaultSerializer<CachedRevisionEntry>());
     }
     
     private File getCacheFile(DependencyResolver resolver, ModuleRevisionId dynamicRevision) {

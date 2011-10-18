@@ -29,6 +29,7 @@ import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.MultipleFileDynamicRevisionCache;
 import org.gradle.api.internal.artifacts.repositories.InternalRepository;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.TimeProvider;
@@ -47,17 +48,17 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
     private final TimeProvider timeProvider = new TrueTimeProvider();
-    private final CacheLockingManager cacheLockingManager;
+    private final FileLockManager fileLockManager;
     private DynamicRevisionCache dynamicRevisionCache;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
     public EntryPointResolver entryPointResolver;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, CacheLockingManager cacheLockingManager) {
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, FileLockManager fileLockManager) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
-        this.cacheLockingManager = cacheLockingManager;
+        this.fileLockManager = fileLockManager;
     }
 
     private static String getLengthText(TransferEvent evt) {
@@ -90,7 +91,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategy resolutionStrategy) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
-            dynamicRevisionCache = new MultipleFileDynamicRevisionCache(timeProvider, resolveSettings.getDefaultCache());
+            dynamicRevisionCache = new MultipleFileDynamicRevisionCache(timeProvider, resolveSettings.getDefaultCache(), fileLockManager);
             userResolverChain = createUserResolverChain();
             ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
             DependencyResolver outerChain = new ClientModuleResolverChain(clientModuleResolver, userResolverChain);
