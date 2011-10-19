@@ -16,6 +16,10 @@
                 <td>password</td>
                 <td><literal>null</literal></td>
             </tr>
+            <tr>
+                <td>local</td>
+                <td>-</td>
+            </tr>
         </table>
     </section>
     <section>
