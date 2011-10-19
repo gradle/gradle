@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.junit.Test
 import org.gradle.util.TestFile
 import org.gradle.integtests.fixtures.ExecutionFailure
+import org.junit.Ignore
 
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
@@ -264,5 +265,47 @@ interface Person { }
 
         def result = inTestDirectory().withTasks("a:classes").run()
         result.assertTasksExecuted(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar", ":a:compileJava", ":a:processResources", ":a:classes")
+    }
+
+    @Test @Ignore
+    public void "can add additional jars to published runtime classpath"() {
+        testFile("settings.gradle") << "include 'a', 'b'"
+        testFile("build.gradle") << """
+allprojects {
+    apply plugin: 'java'
+}
+
+project(':b') {
+    sourceSets { extra }
+
+    task additionalJar(type: Jar) {
+        classifier = 'extra'
+        from sourceSets.extra.classes
+    }
+
+    artifacts {
+        runtime additionalJar
+    }
+}
+
+project(':a') {
+    dependencies { compile project(':b') }
+    compileJava.doFirst {
+        assert classpath.collect { it.name } == ['b.jar', 'b-extra.jar']
+    }
+}
+
+"""
+        testFile("a/src/main/java/org/gradle/test/PersonImpl.java") << """
+package org.gradle.test;
+class PersonImpl implements Person { }
+"""
+
+        testFile("b/src/extra/java/org/gradle/test/Person.java") << """
+package org.gradle.test;
+interface Person { }
+"""
+
+        inTestDirectory().withTasks("a:classes").run()
     }
 }

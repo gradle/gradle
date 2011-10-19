@@ -31,7 +31,7 @@ class MavenLocalDependencyResolutionIntegrationTest extends AbstractIntegrationS
         and:
         buildFile << """
 configurations { compile }
-repositories { maven { url "${repo().rootDir.toURI()}" } }
+repositories { maven { url "${repo().uri}" } }
 dependencies { compile 'group:projectA:1.2-SNAPSHOT' }
 task retrieve(type: Sync) {
     from configurations.compile
@@ -70,7 +70,7 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 configurations { compile }
-repositories { maven { url "${repo().rootDir.toURI()}" } }
+repositories { maven { url "${repo().uri}" } }
 dependencies { compile 'group:projectA:1.2' }
 task retrieve(type: Sync) {
     from configurations.compile

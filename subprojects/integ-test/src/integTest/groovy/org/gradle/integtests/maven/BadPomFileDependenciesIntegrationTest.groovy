@@ -32,7 +32,7 @@ class BadPomFileDependenciesIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.rootDir.toURI()}" }
+                maven { url "${mavenRepo.uri}" }
             }
             configurations { compile }
             dependencies {

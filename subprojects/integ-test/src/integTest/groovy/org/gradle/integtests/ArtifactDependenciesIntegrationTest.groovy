@@ -86,7 +86,7 @@ subprojects {
 }
 project(':a') {
     repositories {
-        maven { url '${repo().rootDir.toURI()}' }
+        maven { url '${repo().uri}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -122,7 +122,7 @@ subprojects {
 }
 project(':a') {
     repositories {
-        maven { url '${repo1.rootDir.toURI()}' }
+        maven { url '${repo1.uri}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -130,7 +130,7 @@ project(':a') {
 }
 project(':b') {
     repositories {
-        maven { url '${repo2.rootDir.toURI()}' }
+        maven { url '${repo2.uri}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -153,7 +153,7 @@ project(':b') {
 
         testFile('build.gradle') << """
 repositories {
-    maven { url '${repo.rootDir.toURI()}' }
+    maven { url '${repo.uri}' }
 }
 configurations {
     compile
@@ -201,7 +201,7 @@ task test << {
         testFile('build.gradle') << """
 subprojects {
     repositories {
-        maven { url '${repo.rootDir.toURI()}' }
+        maven { url '${repo.uri}' }
     }
     configurations {
         compile
@@ -242,7 +242,7 @@ project(':b') {
 
         testFile('build.gradle') << """
 repositories {
-    maven { url '${repo.rootDir.toURI()}' }
+    maven { url '${repo.uri}' }
 }
 configurations {
     base
@@ -296,7 +296,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    maven { url '${repo.rootDir.toURI()}' }
+    maven { url '${repo.uri}' }
 }
 configurations {
     base
@@ -337,7 +337,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    maven { url '${repo.rootDir.toURI()}' }
+    maven { url '${repo.uri}' }
 }
 configurations {
     base
@@ -375,7 +375,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    maven { url '${repo.rootDir.toURI()}' }
+    maven { url '${repo.uri}' }
 }
 configurations {
     reference
@@ -415,7 +415,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    mavenRepo url: '${repo.rootDir.toURI()}'
+    mavenRepo url: '${repo.uri}'
 }
 configurations {
     transitive
@@ -448,7 +448,6 @@ task test << {
     /*
      * Originally, we were aliasing dependency descriptors that were identical. This caused alias errors when we subsequently modified one of these descriptors.
      */
-
     @Test
     public void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
         def repo = repo()
@@ -457,7 +456,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    maven { url '${repo.rootDir.toURI()}' }
+    maven { url '${repo.uri}' }
 }
 configurations {
     a

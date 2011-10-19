@@ -25,15 +25,15 @@ class IvyLocalDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
         given:
         def repo = ivyRepo()
         def moduleA = repo.module('group', 'projectA', '1.2')
-        moduleA.publishArtifact()
+        moduleA.publish()
         def moduleB = repo.module('group', 'projectB', '9-beta')
-        moduleB.publishArtifact()
+        moduleB.publish()
 
         and:
         buildFile << """
 repositories {
     ivy {
-        artifactPattern "${repo.rootDir.toURI()}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        artifactPattern "${repo.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
 configurations { compile }
@@ -72,7 +72,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        artifactPattern "${repo.rootDir.toURI()}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        artifactPattern "${repo.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
 
@@ -93,9 +93,9 @@ task retrieve(type: Sync) {
 
         when:
         def projectA1 = repo.module("group", "projectA", "1.1")
-        projectA1.publishArtifact()
+        projectA1.publish()
         def projectB1 = repo.module("group", "projectB", "1.0")
-        projectB1.publishArtifact()
+        projectB1.publish()
         run 'retrieve'
 
         then:
@@ -105,9 +105,9 @@ task retrieve(type: Sync) {
 
         when:
         def projectA2 = repo.module("group", "projectA", "1.2")
-        projectA2.publishArtifact()
+        projectA2.publish()
         def projectB2 = repo.module("group", "projectB", "2.0")
-        projectB2.publishArtifact()
+        projectB2.publish()
         run 'retrieve'
 
         then:

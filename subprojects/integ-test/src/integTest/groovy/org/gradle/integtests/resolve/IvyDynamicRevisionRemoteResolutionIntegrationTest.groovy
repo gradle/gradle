@@ -51,7 +51,7 @@ task retrieve(type: Sync) {
 
         when:
         def version1 = repo.module("group", "projectA", "1.1")
-        version1.publishArtifact()
+        version1.publish()
         server.expectGetDirectoryListing("/group/projectA/", version1.moduleDir.parentFile)
         server.expectGet("/group/projectA/1.1/ivy-1.1.xml", version1.ivyFile)
         server.expectGet("/group/projectA/1.1/projectA-1.1.jar", version1.jarFile)
@@ -65,7 +65,7 @@ task retrieve(type: Sync) {
         // TODO: Cache dynamic revisions with timeout
         when:
         def version2 = repo.module("group", "projectA", "1.2")
-        version2.publishArtifact()
+        version2.publish()
         server.expectGetDirectoryListing("/group/projectA/", version1.moduleDir.parentFile)
         server.expectGet("/group/projectA/1.2/ivy-1.2.xml", version2.ivyFile)
         server.expectGet("/group/projectA/1.2/projectA-1.2.jar", version2.jarFile)
@@ -105,7 +105,7 @@ task retrieve(type: Copy) {
 
         and:
         def module = ivyRepo().module("group", "projectA", "1.1")
-        module.publishArtifact()
+        module.publish()
 
         when:
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)

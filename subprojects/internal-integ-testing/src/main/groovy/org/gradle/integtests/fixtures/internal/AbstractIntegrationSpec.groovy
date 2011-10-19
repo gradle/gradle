@@ -70,6 +70,7 @@ class AbstractIntegrationSpec extends Specification {
     
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
+        result = failure
     }
     
     protected List<String> getExecutedTasks() {

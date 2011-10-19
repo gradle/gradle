@@ -30,6 +30,10 @@ class MavenRepository {
         this.rootDir = rootDir
     }
 
+    URI getUri() {
+        return rootDir.toURI()
+    }
+
     MavenModule module(String groupId, String artifactId, Object version = '1.0', String classifier = null, String type = 'jar') {
         def artifactDir = rootDir.file("${groupId.replace('.', '/')}/$artifactId/$version")
         return new MavenModule(artifactDir, groupId, artifactId, version as String, classifier, type)

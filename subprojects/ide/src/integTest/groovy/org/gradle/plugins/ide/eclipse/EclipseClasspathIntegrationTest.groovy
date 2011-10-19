@@ -43,7 +43,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.rootDir.toURI()}" }
+    maven { url "${mavenRepo.uri}" }
     mavenCentral()
 }
 
@@ -83,7 +83,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.rootDir.toURI()}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -116,7 +116,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.rootDir.toURI()}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -125,7 +125,7 @@ dependencies {
 }
 
 eclipse {
-    pathVariables REPO_DIR: file('${mavenRepo.rootDir.toURI()}')
+    pathVariables REPO_DIR: file('${mavenRepo.uri}')
     pathVariables LIB_DIR: file('lib')
     classpath.downloadJavadoc = true
 }
@@ -276,7 +276,7 @@ configurations {
 }
 
 repositories {
-    maven { url "${mavenRepo.rootDir.toURI()}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -309,7 +309,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.rootDir.toURI()}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -343,7 +343,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.rootDir.toURI()}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -573,7 +573,7 @@ allprojects {
 }
 
 repositories {
-    maven { url "${mavenRepo.rootDir.toURI()}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {

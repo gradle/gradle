@@ -41,7 +41,7 @@ group = 'org.test'
 archivesBaseName = 'someCoolProject'
 version = '5.0-SNAPSHOT'
 
-publications.maven.repository.url = '${repo().rootDir.toURI()}'
+publications.maven.repository.url = '${repo().uri}'
 """
 
         when:

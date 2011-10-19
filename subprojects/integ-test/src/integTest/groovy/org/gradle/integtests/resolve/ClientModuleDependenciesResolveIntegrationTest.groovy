@@ -44,8 +44,8 @@ public class ClientModuleDependenciesResolveIntegrationTest extends AbstractInte
         def repo = ivyRepo()
         def projectA = repo.module('group', 'projectA', '1.2')
         def projectB = repo.module('group', 'projectB', '1.3')
-        projectA.publishArtifact()
-        projectB.publishArtifact()
+        projectA.publish()
+        projectB.publish()
 
         server.start()
 

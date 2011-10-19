@@ -30,7 +30,7 @@ class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSp
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
-        module.publishArtifact()
+        module.publish()
 
         and:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
@@ -70,9 +70,9 @@ task listJars << {
         given:
         def repo = ivyRepo()
         def module1 = repo.module('group', 'projectA', '1.2')
-        module1.publishArtifact()
+        module1.publish()
         def module2 = repo.module('group', 'projectB', '1.3')
-        module2.publishArtifact()
+        module2.publish()
 
         and:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module1.ivyFile)
@@ -123,7 +123,7 @@ task listJars << {
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
-        module.publishArtifact()
+        module.publish()
 
         and:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
@@ -194,7 +194,7 @@ task show << { println configurations.compile.files }
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
-        module.publishArtifact()
+        module.publish()
 
         buildFile << """
 repositories {

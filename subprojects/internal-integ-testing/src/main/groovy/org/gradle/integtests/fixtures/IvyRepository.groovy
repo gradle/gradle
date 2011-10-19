@@ -26,6 +26,10 @@ class IvyRepository {
         this.rootDir = rootDir
     }
 
+    URI getUri() {
+        return rootDir.toURI()
+    }
+
     IvyModule module(String organisation, String module, Object revision = '1.0') {
         def moduleDir = rootDir.file("$organisation/$module/$revision")
         return new IvyModule(moduleDir, organisation, module, revision as String)
@@ -38,6 +42,7 @@ class IvyModule {
     final String module
     final String revision
     final List dependencies = []
+    final List artifacts = []
     int publishCount
 
     IvyModule(TestFile moduleDir, String organisation, String module, String revision) {
@@ -45,6 +50,12 @@ class IvyModule {
         this.organisation = organisation
         this.module = module
         this.revision = revision
+        artifact(module)
+    }
+
+    IvyModule artifact(String name, String type = "jar", String classifier = null) {
+        artifacts << [name: name, type: type, classifier: classifier]
+        return this
     }
 
     IvyModule dependsOn(String organisation, String module, String revision) {
@@ -60,16 +71,22 @@ class IvyModule {
         return moduleDir.file("$module-${revision}.jar")
     }
 
+    /**
+     * Publishes ivy.xml plus all artifacts with different content to previous publication.
+     */
     void publishWithChangedContent() {
         publishCount++
-        publishArtifact()
+        publish()
     }
 
-    File publishArtifact() {
+    /**
+     * Publishes ivy.xml plus all artifacts
+     */
+    void publish() {
         moduleDir.createDir()
 
         ivyFile.text = """<?xml version="1.0" encoding="UTF-8"?>
-<ivy-module version="1.0">
+<ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven">
 	<info organisation="${organisation}"
 		module="${module}"
 		revision="${revision}"
@@ -79,32 +96,35 @@ class IvyModule {
 		<conf name="default" visibility="public" extends="runtime"/>
 	</configurations>
 	<publications>
-		<artifact name="${module}" type="jar" ext="jar" conf="*"/>
+"""
+        artifacts.each { artifact ->
+            file(artifact) << "add some content so that file size isn't zero: $publishCount"
+            ivyFile << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="*" m:classifier="${artifact.classifier ?: ''}"/>
+"""
+        }
+        ivyFile << """
 	</publications>
 	<dependencies>
 """
         dependencies.each { dep ->
-            ivyFile << """
-        <dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}"/>
+            ivyFile << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}"/>
 """
         }
         ivyFile << """
     </dependencies>
 </ivy-module>
         """
+    }
 
-        jarFile << "add some content so that file size isn't zero: $publishCount"
-
-        return jarFile
+    private File file(def artifact) {
+        return moduleDir.file("${artifact.name}-${revision}${artifact.classifier? '-' + artifact.classifier : ''}.${artifact.type}")
     }
 
     /**
      * Asserts that exactly the given artifacts have been published.
      */
     void assertArtifactsPublished(String... names) {
-        names.each {
-            assert moduleDir.list() as Set == names as Set
-        }
+        assert moduleDir.list() as Set == names as Set
     }
 
     IvyDescriptor getIvy() {
