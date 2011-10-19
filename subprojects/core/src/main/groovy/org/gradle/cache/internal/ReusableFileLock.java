@@ -18,7 +18,7 @@ package org.gradle.cache.internal;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-public class ReusableFileLock implements FileLock {
+public class ReusableFileLock implements ManualFileLock {
     private final String displayName;
     private final FileLockManager manager;
     private final File targetFile;
@@ -31,7 +31,7 @@ public class ReusableFileLock implements FileLock {
     }
 
     public void lock() {
-        lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName);
+        lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName);
     }
 
     public void unlock() {

@@ -20,7 +20,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.ReusableFileLock;
+import org.gradle.cache.internal.ManualFileLock;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.util.TimeProvider;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
@@ -31,12 +31,12 @@ import java.io.Serializable;
 class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
     private final PersistentIndexedCache<RevisionKey, CachedRevisionEntry> cache;
     private final TimeProvider timeProvider;
-    private final ReusableFileLock dynamicRevisionsLock;
+    private final ManualFileLock dynamicRevisionsLock;
 
     public SingleFileBackedDynamicRevisionCache(TimeProvider timeProvider, File cacheBaseDir, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         File dynamicRevisionsFile = new File(cacheBaseDir, "dynamic-revisions.bin");
-        dynamicRevisionsLock = (ReusableFileLock) cacheLockingManager.getCacheMetadataLock(dynamicRevisionsFile);
+        dynamicRevisionsLock = cacheLockingManager.getCacheMetadataLock(dynamicRevisionsFile);
         cache = initCache(dynamicRevisionsFile);
     }
 

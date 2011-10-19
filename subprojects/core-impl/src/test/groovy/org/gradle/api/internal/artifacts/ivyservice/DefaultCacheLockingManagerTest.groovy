@@ -19,6 +19,8 @@ import java.util.concurrent.Callable
 import org.gradle.cache.internal.FileLock
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.cache.internal.ManualFileLock
+import org.gradle.cache.internal.ReusableFileLock
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -148,5 +150,32 @@ class DefaultCacheLockingManagerTest extends Specification {
             lockingManager.getLockHolder(cacheDir).releaseLock()
         }
         0 * _._
+    }
+
+    def "creates suitable FileLock for cache metadata"() {
+        Callable<String> action = Mock()
+        FileLock realLock = Mock()
+
+        when:
+        ManualFileLock lock = lockingManager.getCacheMetadataLock(cacheDir)
+
+        and:
+        lock.lock()
+
+        then:
+        lock instanceof ReusableFileLock
+        1 * fileLockManager.lock(cacheDir, FileLockManager.LockMode.Exclusive, _) >> realLock
+
+        when:
+        lock.readFromFile(action)
+
+        then:
+        1 * action.call()
+
+        when:
+        lock.unlock()
+
+        then:
+        realLock.close()
     }
 }
