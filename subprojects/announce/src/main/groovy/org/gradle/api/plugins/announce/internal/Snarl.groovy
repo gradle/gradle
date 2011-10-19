@@ -17,13 +17,10 @@
 package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.plugins.announce.Announcer
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 class Snarl implements Announcer {
     private static final float SNP_VERSION = 1.1f
     private static final String HEAD = "type=SNP#?version=" + SNP_VERSION
-    private static final Logger LOGGER = LoggerFactory.getLogger(Snarl)
 
     public void send(String title, String message) {
         send(InetAddress.getByName(null), title, message)
@@ -34,9 +31,8 @@ class Snarl implements Announcer {
         try {
             socket = new Socket(host, 9887)
         } catch (ConnectException e) {
-            // Snarl is not running - ignore
-            LOGGER.debug("Snarl is not running on host $host. Discarding announcement with title: $title, message: $message")
-            return
+            // Snarl is not running
+            throw new AnnouncerUnavailableException("Snarl is not running on host $host.", e)
         }
         with(socket) { sock ->
             with(new PrintWriter(sock.getOutputStream(), true)) { out ->

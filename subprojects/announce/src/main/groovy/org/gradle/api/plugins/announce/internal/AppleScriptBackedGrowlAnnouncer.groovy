@@ -20,6 +20,20 @@ import javax.script.ScriptEngineManager
 
 class AppleScriptBackedGrowlAnnouncer extends Growl {
     void send(String title, String message) {
+        ScriptEngineManager mgr = new ScriptEngineManager();
+        ScriptEngine engine = mgr.getEngineByName("AppleScript");
+
+        String isRunning = """
+tell application "System Events"
+set isRunning to count of (every process whose name is "GrowlHelperApp") > 0
+end tell
+return isRunning
+"""
+        def value = engine.eval(isRunning)
+        if (value == 0) {
+            throw new AnnouncerUnavailableException("Growl is not running.")
+        }
+
         String script = """
 tell application "GrowlHelperApp"
 register as application "Gradle" all notifications {"Build Notification"} default notifications {"Build Notification"}
@@ -27,8 +41,6 @@ notify with name "Build Notification" title "${escape(title)}" description "${es
 end tell
 """
 
-        ScriptEngineManager mgr = new ScriptEngineManager();
-        ScriptEngine engine = mgr.getEngineByName("AppleScript");
         engine.eval(script)
     }
 

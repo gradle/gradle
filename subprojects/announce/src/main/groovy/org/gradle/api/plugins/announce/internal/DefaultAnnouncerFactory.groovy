@@ -32,14 +32,19 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
     }
 
     Announcer createAnnouncer(String type) {
+        def announcer = createActualAnnouncer(type)
+        return announcer ? new IgnoreUnavailableAnnouncer(announcer) : new UnknownAnnouncer()
+    }
+
+    private Announcer createActualAnnouncer(String type) {
         switch (type) {
             case "local":
                 if (OperatingSystem.current().windows) {
-                    return createAnnouncer("snarl")
+                    return createActualAnnouncer("snarl")
                 } else if (OperatingSystem.current().macOsX) {
-                    return createAnnouncer("growl")
+                    return createActualAnnouncer("growl")
                 } else {
-                    return createAnnouncer("notify-send")
+                    return createActualAnnouncer("notify-send")
                 }
             case "twitter":
                 String username = announcePluginConvention.username
@@ -59,7 +64,7 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
                 }
                 return new GrowlNotifyBackedAnnouncer(announcePluginConvention.project)
             default:
-                return new UnknownAnnouncer()
+                return null
         }
     }
 }
