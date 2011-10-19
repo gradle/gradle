@@ -23,9 +23,9 @@ class MavenDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
-        module.publishArtifact()
-        repo.module("org.gradle", "test", "1.45", "classifier").publishArtifactOnly()
-        repo.module("org.gradle", "other", "preview-1").publishArtifact()
+        module.artifact(classifier: 'classifier')
+        module.publish()
+        repo.module("org.gradle", "other", "preview-1").publish()
 
         and:
         buildFile << """
@@ -48,9 +48,10 @@ task check << {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
-        module.publishArtifact()
-        repo.module("org.gradle", "test", "1.45", "classifier").publishArtifactOnly()
-        repo.module("org.gradle", "other", "preview-1").publishArtifact()
+        module.artifact(classifier: 'classifier')
+        module.artifact(classifier: 'some-other')
+        module.publish()
+        repo.module("org.gradle", "other", "preview-1").publish()
 
         and:
         buildFile << """
@@ -73,9 +74,9 @@ task check << {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
-        module.publishArtifact()
-        repo.module("org.gradle", "test", "1.45", "classifier").publishArtifactOnly()
-        repo.module("org.gradle", "other", "preview-1").publishArtifact()
+        module.artifact(classifier: 'classifier')
+        module.publish()
+        repo.module("org.gradle", "other", "preview-1").publish()
 
         and:
         buildFile << """

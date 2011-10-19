@@ -161,10 +161,10 @@ idea.module.excludeDirs += file('foo')
         def projectDir = dist.testDir
         def fakeRepo = projectDir.file("repo")
 
-        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 1.0).publishArtifact()
-        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 1.0, 'sources').publishArtifact()
-        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 1.0, 'javadoc').publishArtifact()
-
+        def dependency = new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 1.0)
+        dependency.artifact(classifier: 'sources')
+        dependency.artifact(classifier: 'javadocs')
+        dependency.publish()
 
         projectDir.file('build.gradle').text = """
 subprojects {

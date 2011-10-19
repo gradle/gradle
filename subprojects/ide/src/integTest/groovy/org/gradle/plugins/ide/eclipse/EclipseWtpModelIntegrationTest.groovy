@@ -37,9 +37,9 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         file('someExtraSourceDir').mkdirs()
 
         def repoDir = file("repo")
-        maven(repoDir).module("gradle", "foo").publishArtifact()
-        maven(repoDir).module("gradle", "bar").publishArtifact()
-        maven(repoDir).module("gradle", "baz").publishArtifact()
+        maven(repoDir).module("gradle", "foo").publish()
+        maven(repoDir).module("gradle", "bar").publish()
+        maven(repoDir).module("gradle", "baz").publish()
 
         //when
         runEclipseTask """

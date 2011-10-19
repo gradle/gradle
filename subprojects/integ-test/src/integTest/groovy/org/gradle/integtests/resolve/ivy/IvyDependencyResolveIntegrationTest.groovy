@@ -25,8 +25,8 @@ class IvyDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
-        module.artifact("test", "jar", "classifier")
-        module.artifact("test-extra")
+        module.artifact(classifier: "classifier")
+        module.artifact(name: "test-extra")
         module.publish()
         repo.module("org.gradle", "other", "preview-1").publish()
 
@@ -51,8 +51,8 @@ task check << {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
-        module.artifact("test", "jar", "classifier")
-        module.artifact("test-extra")
+        module.artifact(classifier: "classifier")
+        module.artifact(name: "test-extra")
         module.publish()
         repo.module("org.gradle", "other", "preview-1").publish()
 
@@ -77,8 +77,8 @@ task check << {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
-        module.artifact("test", "jar", "classifier")
-        module.artifact("test-extra")
+        module.artifact(classifier: "classifier")
+        module.artifact(name: "test-extra")
         module.publish()
         repo.module("org.gradle", "other", "preview-1").publish()
 

@@ -84,8 +84,8 @@ sourceSets {
     @Test
     void canHandleCircularModuleDependencies() {
         def repoDir = file("repo")
-        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publishArtifact()
-        def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").dependsOn("myArtifact1").publishArtifact()
+        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publish().artifactFile
+        def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").dependsOn("myArtifact1").publish().artifactFile
 
         runEclipseTask """
 apply plugin: "java"
@@ -192,8 +192,8 @@ tasks.eclipse << {
     @Test
     void respectsPerConfigurationExcludes() {
         def repoDir = file("repo")
-        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publishArtifact()
-        def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").publishArtifact()
+        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publish().artifactFile
+        maven(repoDir).module("myGroup", "myArtifact2").publish()
 
         runEclipseTask """
 apply plugin: 'java'
@@ -218,8 +218,8 @@ dependencies {
     @Test
     void respectsPerDependencyExcludes() {
         def repoDir = file("repo")
-        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publishArtifact()
-        def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").publishArtifact()
+        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publish().artifactFile
+        maven(repoDir).module("myGroup", "myArtifact2").publish()
 
         runEclipseTask """
 apply plugin: 'java'
@@ -350,7 +350,7 @@ dependencies {
     @Issue("GRADLE-1706") // doesn't prove that the issue is fixed because the test also passes with 1.0-milestone-4
     void canHandleDependencyWithoutSourceJarInMavenRepo() {
         def repoDir = testDir.createDir("repo")
-        maven(repoDir).module("some", "lib").publishArtifact()
+        maven(repoDir).module("some", "lib").publish()
 
         runEclipseTask """
 apply plugin: "java"

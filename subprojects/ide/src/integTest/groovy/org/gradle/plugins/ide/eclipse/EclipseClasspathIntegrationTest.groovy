@@ -33,9 +33,12 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void "classpath contains library entries for external and file dependencies"() {
         //given
-        def jar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publishArtifact()
-        def srcJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'sources').publishArtifact()
-        mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'javadoc').publishArtifact()
+        def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
+        module.artifact(classifier: 'sources')
+        module.artifact(classifier: 'javadoc')
+        module.publish()
+        def jar = module.artifactFile
+        def srcJar = module.artifactFile(classifer: 'sources')
 
         //when
         runEclipseTask """
@@ -72,10 +75,13 @@ dependencies {
     @Issue("GRADLE-1622")
     void "classpath contains entries for dependencies that only differ by classifier"() {
         given:
-        def baseJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publishArtifact()
-        def extraJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'extra').publishArtifactOnly()
-        def testsJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'tests').publishArtifactOnly()
-        def anotherJar = mavenRepo.module('coolGroup', 'another', '1.0').publishArtifact()
+        def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
+        module.artifact(classifier: 'extra')
+        module.artifact(classifier: 'tests')
+        def baseJar = module.publish()
+        def extraJar = module.artifactFile(classifier: 'extra')
+        def testsJar = module.artifactFile(classifier: 'tests')
+        def anotherJar = mavenRepo.module('coolGroup', 'another', '1.0').publish().artifactFile
 
         when:
         runEclipseTask """
@@ -106,9 +112,10 @@ dependencies {
     @Test
     void "substitutes path variables into library paths"() {
         //given
-        mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publishArtifact()
-        mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'sources').publishArtifact()
-        mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'javadoc').publishArtifact()
+        def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
+        module.artifact(classifier: 'sources')
+        module.artifact(classifier: 'javadoc')
+        module.publish()
 
         //when
         runEclipseTask """
@@ -262,8 +269,8 @@ eclipse.classpath {
     @Test
     void "handles plus minus configurations for external deps"() {
         //given
-        def jar = mavenRepo.module('coolGroup', 'coolArtifact', '1.0').dependsOn('coolGroup', 'unwantedArtifact', '1.0').publishArtifact()
-        mavenRepo.module('coolGroup', 'unwantedArtifact', '1.0').publishArtifact()
+        def jar = mavenRepo.module('coolGroup', 'coolArtifact', '1.0').dependsOn('coolGroup', 'unwantedArtifact', '1.0').publish().artifactFile
+        mavenRepo.module('coolGroup', 'unwantedArtifact', '1.0').publish()
 
         //when
         runEclipseTask """
@@ -299,9 +306,13 @@ eclipse.classpath {
     @Test
     void "can toggle javadoc and sources on"() {
         //given
-        def jar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publishArtifact()
-        def srcJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'sources').publishArtifact()
-        def javadocJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'javadoc').publishArtifact()
+        def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
+        module.artifact(classifier: 'sources')
+        module.artifact(classifier: 'javadoc')
+        module.publish()
+        def jar = module.artifactFile
+        def srcJar = module.artifactFile(classifier: 'sources')
+        def javadocJar = module.artifactFile(classifier: 'javadoc')
 
         //when
         runEclipseTask """
@@ -333,9 +344,11 @@ eclipse.classpath {
     @Test
     void "can toggle javadoc and sources off"() {
         //given
-        def jar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publishArtifact()
-        mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'sources').publishArtifact()
-        mavenRepo.module('coolGroup', 'niceArtifact', '1.0', 'javadoc').publishArtifact()
+        def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
+        module.artifact(classifier: 'sources')
+        module.artifact(classifier: 'javadoc')
+        module.publish()
+        def jar = module.artifactFile
 
         //when
         runEclipseTask """
@@ -560,7 +573,7 @@ eclipse {
     @Test
     void "does not break when some dependencies cannot be resolved"() {
         //given
-        def repoJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publishArtifact()
+        def repoJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publish().artifactFile
         def localJar = file('someDependency.jar').createFile()
 
         file("settings.gradle") << "include 'someApiProject'\n"

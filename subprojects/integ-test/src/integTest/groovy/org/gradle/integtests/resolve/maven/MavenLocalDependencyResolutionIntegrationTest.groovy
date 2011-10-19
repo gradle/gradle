@@ -25,8 +25,8 @@ class MavenLocalDependencyResolutionIntegrationTest extends AbstractIntegrationS
         given:
         def moduleA = repo().module('group', 'projectA', '1.2-SNAPSHOT')
         def moduleB = repo().module('group', 'projectB', '9.1')
-        moduleA.publishArtifact()
-        moduleB.publishArtifact()
+        moduleA.publish()
+        moduleB.publish()
 
         and:
         buildFile << """
@@ -64,8 +64,8 @@ task retrieve(type: Sync) {
         given:
         def moduleA = repo().module('group', 'projectA', '1.2')
         def moduleB = repo().module('group', 'projectB', '9.1')
-        moduleA.publishArtifact()
-        moduleB.publishArtifact()
+        moduleA.publish()
+        moduleB.publish()
 
         and:
         buildFile << """

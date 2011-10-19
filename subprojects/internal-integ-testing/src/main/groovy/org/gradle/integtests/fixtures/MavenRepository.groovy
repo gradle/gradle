@@ -34,9 +34,9 @@ class MavenRepository {
         return rootDir.toURI()
     }
 
-    MavenModule module(String groupId, String artifactId, Object version = '1.0', String classifier = null, String type = 'jar') {
+    MavenModule module(String groupId, String artifactId, Object version = '1.0') {
         def artifactDir = rootDir.file("${groupId.replace('.', '/')}/$artifactId/$version")
-        return new MavenModule(artifactDir, groupId, artifactId, version as String, classifier, type)
+        return new MavenModule(artifactDir, groupId, artifactId, version as String)
     }
 }
 
@@ -45,20 +45,18 @@ class MavenModule {
     final String groupId
     final String artifactId
     final String version
-    final String type
+    private String type = 'jar'
     private final List dependencies = []
-    final String classifier
     int publishCount = 1
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
     final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
+    private final List artifacts = []
 
-    MavenModule(TestFile moduleDir, String groupId, String artifactId, String version, String classifier = null, String type = 'jar') {
+    MavenModule(TestFile moduleDir, String groupId, String artifactId, String version) {
         this.moduleDir = moduleDir
         this.groupId = groupId
         this.artifactId = artifactId
         this.version = version
-        this.classifier = classifier
-        this.type = type
     }
 
     MavenModule dependsOn(String dependencyArtifactId) {
@@ -68,6 +66,23 @@ class MavenModule {
 
     MavenModule dependsOn(String group, String artifactId, String version) {
         this.dependencies << [groupId: group, artifactId: artifactId, version: version]
+        return this
+    }
+
+    /**
+     * Specifies the type of the main artifact.
+     */
+    MavenModule hasType(String type) {
+        this.type = type
+        return this
+    }
+
+    /**
+     * Adds an additional artifact to this module.
+     * @param options Can specify any of: type or classifier
+     */
+    MavenModule artifact(Map<String, ?> options) {
+        artifacts << options
         return this
     }
 
@@ -101,16 +116,25 @@ class MavenModule {
     }
 
     TestFile getArtifactFile() {
-        def fileName = "$artifactId-${publishArtifactVersion}.${type}"
-        if (classifier) {
-            fileName = "$artifactId-$publishArtifactVersion-${classifier}.${type}"
+        return artifactFile([:])
+    }
+
+    TestFile artifactFile(Map<String, ?> options) {
+        def artifact = toArtifact(options)
+        def fileName = "$artifactId-${publishArtifactVersion}.${artifact.type}"
+        if (artifact.classifier) {
+            fileName = "$artifactId-$publishArtifactVersion-${artifact.classifier}.${artifact.type}"
         }
         return moduleDir.file(fileName)
     }
 
-    void publishWithChangedContent() {
+    /**
+     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module, with changed content to any
+     * previous publication.
+     */
+    MavenModule publishWithChangedContent() {
         publishCount++
-        publishArtifact()
+        return publish()
     }
 
     String getPublishArtifactVersion() {
@@ -121,7 +145,10 @@ class MavenModule {
         return new Date(updateFormat.parse("20100101120000").time + publishCount * 1000)
     }
 
-    File publishArtifact() {
+    /**
+     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module.
+     */
+    MavenModule publish() {
         moduleDir.createDir()
 
         if (version.endsWith("-SNAPSHOT")) {
@@ -167,16 +194,22 @@ class MavenModule {
 
         createHashFiles(pomFile)
 
-        return publishArtifactOnly()
+        artifacts.each { artifact ->
+            publishArtifact(artifact)
+        }
+        publishArtifact([:])
+        return this
     }
 
-    File publishArtifactOnly() {
-        def jarFile = artifactFile
-        jarFile << "add some content so that file size isn't zero: $publishCount"
+    private File publishArtifact(Map<String, ?> artifact) {
+        def artifactFile = artifactFile(artifact)
+        artifactFile << "add some content so that file size isn't zero: $publishCount"
+        createHashFiles(artifactFile)
+        return artifactFile
+    }
 
-        createHashFiles(jarFile)
-
-        return jarFile
+    private Map<String, Object> toArtifact(Map<String, ?> options) {
+        return [type: options.type ?: type, classifier: options.classifier ?: null]
     }
 
     private void createHashFiles(File file) {

@@ -32,8 +32,8 @@ class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
     @Test
     void "strict conflict resolution should fail due to conflict"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
-        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("org", "foo", '1.4.4').publish()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -94,7 +94,7 @@ project(':tool') {
     @Test
     void "strict conflict resolution should pass when no conflicts"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publish()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -141,9 +141,9 @@ project(':tool') {
     @Test
     void "strict conflict strategy can be used with forced versions"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
-        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
-        maven(repo).module("org", "foo", '1.5.5').publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("org", "foo", '1.4.4').publish()
+        maven(repo).module("org", "foo", '1.5.5').publish()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -193,8 +193,8 @@ project(':tool') {
     @Test
     void "strict conflict strategy with forced transitive dependency that is already resolved"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
-        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("org", "foo", '1.4.4').publish()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -249,8 +249,8 @@ allprojects {
     @Test
     void "can force the version of the dependency"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
-        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("org", "foo", '1.4.4').publish()
 
         def buildFile = file("master/build.gradle")
         buildFile << """
@@ -279,10 +279,10 @@ configurations.all {
     @Test
     void "can force the version of transitive dependency and avoid conflict"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
-        maven(repo).module("org", "foobar", '1.3.3').publishArtifact()
-        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
-        maven(repo).module("org", "foo", '1.5.5').publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("org", "foobar", '1.3.3').publish()
+        maven(repo).module("org", "foo", '1.4.4').publish()
+        maven(repo).module("org", "foo", '1.5.5').publish()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -346,8 +346,8 @@ allprojects {
     @Test
     void "resolves to the latest version by default"() {
         TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publishArtifact()
-        maven(repo).module("org", "foo", '1.4.4').publishArtifact()
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("org", "foo", '1.4.4').publish()
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"

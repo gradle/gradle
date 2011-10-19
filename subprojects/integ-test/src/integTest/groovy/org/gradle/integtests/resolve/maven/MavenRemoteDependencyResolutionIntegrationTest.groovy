@@ -68,7 +68,7 @@ task retrieve(type: Sync) {
 
         // Publish the first snapshot
         def module = repo().module("org.gradle", "testproject", "1.0-SNAPSHOT")
-        module.publishArtifact()
+        module.publish()
 
         // Retrieve the first snapshot
         def repoDir = dist.testFile('repo/org/gradle/testproject/1.0-SNAPSHOT')
@@ -184,7 +184,7 @@ task retrieve(type: Sync) {
 
         // Publish the first snapshot
         def module = repo().module("org.gradle", "testproject", "1.0-SNAPSHOT")
-        module.publishArtifact()
+        module.publish()
 
         // Retrieve the first snapshot
         def repoDir = module.moduleDir
@@ -248,7 +248,7 @@ task retrieve(type: Sync) {
         dist.requireOwnUserHomeDir()
 
         def projectA = repo().module('group', 'projectA')
-        projectA.publishArtifact()
+        projectA.publish()
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
 
@@ -291,9 +291,11 @@ task listJars << {
         dist.requireOwnUserHomeDir()
 
         def projectA = repo().module('group', 'projectA', '1.0')
-        projectA.publishArtifact()
-        def sourceJar = repo().module('group', 'projectA', '1.0', 'sources').publishArtifact()
-        def javadocJar = repo().module('group', 'projectA', '1.0', 'javadoc').publishArtifact()
+        projectA.artifact(classifier: 'sources')
+        projectA.artifact(classifier: 'javadoc')
+        projectA.publish()
+        def sourceJar = projectA.artifactFile(classifier: 'sources')
+        def javadocJar = projectA.artifactFile(classifer: 'javadoc')
 
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
@@ -351,8 +353,8 @@ task listJars << {
 
         def projectA = repo().module('group', 'projectA')
         def projectB = repo().module('group', 'projectB')
-        projectA.publishArtifact()
-        projectB.publishArtifact()
+        projectA.publish()
+        projectB.publish()
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
         server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)

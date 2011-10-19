@@ -106,8 +106,8 @@ apply plugin: 'idea'
     @Test
     void canHandleCircularModuleDependencies() {
         def repoDir = file("repo")
-        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publishArtifact()
-        def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").dependsOn("myArtifact1").publishArtifact()
+        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publish().artifactFile
+        def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").dependsOn("myArtifact1").publish().artifactFile
 
         runIdeaTask """
 apply plugin: "java"
@@ -174,8 +174,8 @@ tasks.idea << {
     @Test
     void respectsPerConfigurationExcludes() {
         def repoDir = file("repo")
-        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publishArtifact()
-        def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").publishArtifact()
+        maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publish()
+        maven(repoDir).module("myGroup", "myArtifact2").publish()
 
         runIdeaTask """
 apply plugin: 'java'
@@ -202,8 +202,8 @@ dependencies {
     @Test
     void respectsPerDependencyExcludes() {
         def repoDir = file("repo")
-        maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publishArtifact()
-        maven(repoDir).module("myGroup", "myArtifact2").publishArtifact()
+        maven(repoDir).module("myGroup", "myArtifact1").dependsOn("myArtifact2").publish()
+        maven(repoDir).module("myGroup", "myArtifact2").publish()
 
         runIdeaTask """
 apply plugin: 'java'

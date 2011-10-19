@@ -42,8 +42,8 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
 
     @Test
     public void "resolves leniently"() {
-        maven(repo).module('org.foo', 'hiphop').publishArtifact()
-        maven(repo).module('org.foo', 'rock').dependsOn("some unresolved dependency").publishArtifact()
+        maven(repo).module('org.foo', 'hiphop').publish()
+        maven(repo).module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
 
         project.dependencies {
             compile 'org.foo:hiphop:1.0'
@@ -74,8 +74,8 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTes
 
     @Test
     public void "resolves leniently from mixed confs"() {
-        maven(repo).module('org.foo', 'hiphop').publishArtifact()
-        maven(repo).module('org.foo', 'rock').dependsOn("some unresolved dependency").publishArtifact()
+        maven(repo).module('org.foo', 'hiphop').publish()
+        maven(repo).module('org.foo', 'rock').dependsOn("some unresolved dependency").publish()
 
         project.allprojects { apply plugin: 'java' }
 

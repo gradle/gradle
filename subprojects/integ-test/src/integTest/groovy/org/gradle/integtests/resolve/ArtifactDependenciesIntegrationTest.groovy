@@ -98,7 +98,7 @@ project(':b') {
     }
 }
 """
-        repo().module('org.gradle.test', 'external1', '1.0').publishArtifact()
+        repo().module('org.gradle.test', 'external1', '1.0').publish()
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
@@ -109,7 +109,7 @@ project(':b') {
     @Issue("GRADLE-1342")
     public void resolutionDoesNotUseCachedArtifactFromDifferentRepository() {
         def repo1 = new MavenRepository(testFile('repo1'))
-        repo1.module('org.gradle.test', 'external1', '1.0').publishArtifact()
+        repo1.module('org.gradle.test', 'external1', '1.0').publish()
         def repo2 = new MavenRepository(testFile('repo2'))
 
         testFile('settings.gradle') << 'include "a", "b"'
@@ -146,10 +146,11 @@ project(':b') {
     @Test
     public void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
         def repo = repo()
-        repo.module('org.gradle.test', 'lib', '1.0', null, 'zip').publishArtifact()
-        repo.module('org.gradle.test', 'lib', '1.0', 'classifier').publishArtifact()
-        repo.module('org.gradle.test', 'lib', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'dist', '1.0', null, 'zip').publishArtifact()
+        def module = repo.module('org.gradle.test', 'lib', '1.0')
+        module.artifact(type: 'zip')
+        module.artifact(classifier: 'classifier')
+        module.publish()
+        repo.module('org.gradle.test', 'dist', '1.0').hasType('zip').publish()
 
         testFile('build.gradle') << """
 repositories {
@@ -194,8 +195,10 @@ task test << {
     @Issue("GRADLE-1567")
     public void resolutionDifferentiatesBetweenArtifactsThatDifferOnlyInClassifier() {
         def repo = repo()
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier1').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier2').publishArtifact()
+        def module = repo.module('org.gradle.test', 'external1', '1.0')
+        module.artifact(classifier: 'classifier1')
+        module.artifact(classifier: 'classifier2')
+        module.publish()
 
         testFile('settings.gradle') << 'include "a", "b", "c"'
         testFile('build.gradle') << """
@@ -235,10 +238,11 @@ project(':b') {
     @Issue("GRADLE-739")
     public void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
         def repo = repo()
-        repo.module('org.gradle.test', 'external1', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'baseClassifier').publishArtifactOnly()
-        repo.module('org.gradle.test', 'external1', '1.0', 'extendedClassifier').publishArtifactOnly()
-        repo.module('org.gradle.test', 'other', '1.0').publishArtifact()
+        def module = repo.module('org.gradle.test', 'external1', '1.0')
+        module.artifact(classifier: 'baseClassifier')
+        module.artifact(classifier: 'extendedClassifier')
+        module.publish()
+        repo.module('org.gradle.test', 'other', '1.0').publish()
 
         testFile('build.gradle') << """
 repositories {
@@ -288,11 +292,13 @@ task test << {
     @Issue("GRADLE-739")
     public void canUseClassifiersCombinedWithArtifactWithNonStandardPackaging() {
         def repo = repo()
-        repo.module('org.gradle.test', 'external1', '1.0', null, 'zip').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'baseClassifier').publishArtifactOnly()
-        repo.module('org.gradle.test', 'external1', '1.0', 'extendedClassifier').publishArtifactOnly()
-        repo.module('org.gradle.test', 'external1', '1.0', null, 'txt').publishArtifactOnly()
-        repo.module('org.gradle.test', 'other', '1.0').publishArtifact()
+        def module = repo.module('org.gradle.test', 'external1', '1.0')
+        module.artifact(type: 'txt')
+        module.artifact(classifier: 'baseClassifier', type: 'jar')
+        module.artifact(classifier: 'extendedClassifier', type: 'jar')
+        module.hasType('zip')
+        module.publish()
+        repo.module('org.gradle.test', 'other', '1.0').publish()
 
         testFile('build.gradle') << """
 repositories {
@@ -330,10 +336,11 @@ task test << {
     @Issue("GRADLE-739")
     public void configurationCanContainMultipleArtifactsThatOnlyDifferByType() {
         def repo = repo()
-        repo.module('org.gradle.test', 'external1', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', null, 'zip').publishArtifactOnly()
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier').publishArtifactOnly()
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier', 'bin').publishArtifactOnly()
+        def module = repo.module('org.gradle.test', 'external1', '1.0')
+        module.artifact(type: 'zip')
+        module.artifact(classifier: 'classifier')
+        module.artifact(classifier: 'classifier', type: 'bin')
+        module.publish()
 
         testFile('build.gradle') << """
 repositories {
@@ -364,14 +371,15 @@ task test << {
         inTestDirectory().withTasks('test').run()
     }
 
-
     @Test
     public void excludedDependenciesAreNotRetrieved() {
         def repo = repo()
-        repo.module('org.gradle.test', 'one', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'two', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0').dependsOn('org.gradle.test', 'one', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier').publishArtifactOnly()
+        repo.module('org.gradle.test', 'one', '1.0').publish()
+        repo.module('org.gradle.test', 'two', '1.0').publish()
+        def module = repo.module('org.gradle.test', 'external1', '1.0')
+        module.dependsOn('org.gradle.test', 'one', '1.0')
+        module.artifact(classifier: 'classifier')
+        module.publish()
 
         testFile('build.gradle') << """
 repositories {
@@ -408,10 +416,12 @@ task test << {
     @Test
     public void nonTransitiveDependenciesAreNotRetrieved() {
         def repo = repo()
-        repo.module('org.gradle.test', 'one', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'two', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0').dependsOn('org.gradle.test', 'one', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'classifier').publishArtifactOnly()
+        repo.module('org.gradle.test', 'one', '1.0').publish()
+        repo.module('org.gradle.test', 'two', '1.0').publish()
+        def module = repo.module('org.gradle.test', 'external1', '1.0')
+        module.dependsOn('org.gradle.test', 'one', '1.0')
+        module.artifact(classifier: 'classifier')
+        module.publish()
 
         testFile('build.gradle') << """
 repositories {
@@ -451,8 +461,9 @@ task test << {
     @Test
     public void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
         def repo = repo()
-        repo.module('org.gradle.test', 'external1', '1.0').publishArtifact()
-        repo.module('org.gradle.test', 'external1', '1.0', 'withClassifier').publishArtifact()
+        def module = repo.module('org.gradle.test', 'external1', '1.0')
+        module.artifact(classifier: 'withClassifier')
+        module.publish()
 
         testFile('build.gradle') << """
 repositories {
@@ -581,7 +592,7 @@ task test << {
 
     @Test
     public void canHaveNonTransitiveProjectDependencies() {
-        repo().module("group", "externalA", 1.5).publishArtifact()
+        repo().module("group", "externalA", 1.5).publish()
 
         testFile('settings.gradle') << "include 'a', 'b'"
 

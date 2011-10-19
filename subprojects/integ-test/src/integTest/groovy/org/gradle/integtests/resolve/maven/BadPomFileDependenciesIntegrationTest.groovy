@@ -27,7 +27,7 @@ class BadPomFileDependenciesIntegrationTest extends AbstractIntegrationSpec {
         file("settings.gradle") << "include 'client'"
 
         and:
-        mavenRepo.module('group', 'artifact', '1.0').dependsOn('group', 'artifact', '1.0').publishArtifact()
+        mavenRepo.module('group', 'artifact', '1.0').dependsOn('group', 'artifact', '1.0').publish()
 
         and:
         buildFile << """

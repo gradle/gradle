@@ -50,11 +50,16 @@ class IvyModule {
         this.organisation = organisation
         this.module = module
         this.revision = revision
-        artifact(module)
+        artifact([:])
     }
 
-    IvyModule artifact(String name, String type = "jar", String classifier = null) {
-        artifacts << [name: name, type: type, classifier: classifier]
+    /**
+     * Adds an additional artifact to this module.
+     * @param options Can specify any of name, type or classifier
+     * @return this
+     */
+    IvyModule artifact(Map<String, ?> options) {
+        artifacts << [name: options.name ?: module, type: options.type ?: 'jar', classifier: options.classifier ?: null]
         return this
     }
 
@@ -117,7 +122,7 @@ class IvyModule {
     }
 
     private File file(def artifact) {
-        return moduleDir.file("${artifact.name}-${revision}${artifact.classifier? '-' + artifact.classifier : ''}.${artifact.type}")
+        return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.type}")
     }
 
     /**
