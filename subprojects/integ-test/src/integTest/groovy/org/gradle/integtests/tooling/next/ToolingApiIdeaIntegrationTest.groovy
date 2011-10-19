@@ -163,7 +163,7 @@ idea.module.excludeDirs += file('foo')
 
         def dependency = new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 1.0)
         dependency.artifact(classifier: 'sources')
-        dependency.artifact(classifier: 'javadocs')
+        dependency.artifact(classifier: 'javadoc')
         dependency.publish()
 
         projectDir.file('build.gradle').text = """

@@ -295,7 +295,7 @@ task listJars << {
         projectA.artifact(classifier: 'javadoc')
         projectA.publish()
         def sourceJar = projectA.artifactFile(classifier: 'sources')
-        def javadocJar = projectA.artifactFile(classifer: 'javadoc')
+        def javadocJar = projectA.artifactFile(classifier: 'javadoc')
 
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
