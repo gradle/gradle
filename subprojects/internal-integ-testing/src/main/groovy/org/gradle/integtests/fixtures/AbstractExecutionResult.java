@@ -16,7 +16,8 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.util.Matchers;
+import static org.gradle.util.Matchers.containsLine;
+import static org.gradle.util.Matchers.matchesRegexp;
 
 public abstract class AbstractExecutionResult implements ExecutionResult {
     public void assertOutputHasNoStackTraces() {
@@ -32,13 +33,15 @@ public abstract class AbstractExecutionResult implements ExecutionResult {
     }
 
     private void assertNoStackTraces(String output, String displayName) {
-        if (Matchers.containsLine(Matchers.matchesRegexp("\\s+at [\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
+        if (containsLine(matchesRegexp("\\s+at [\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
             throw new RuntimeException(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
         }
     }
 
     private void assertNoDeprecationWarnings(String output, String displayName) {
-        if (Matchers.containsLine(Matchers.matchesRegexp(".*deprecated.*")).matches(output)) {
+        boolean javacWarning = containsLine(matchesRegexp("use(s)? or overrides a deprecated API")).matches(output);
+        boolean deprecationWarning = containsLine(matchesRegexp(".*deprecated.*")).matches(output);
+        if (deprecationWarning && !javacWarning) {
             throw new RuntimeException(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
         }
     }
