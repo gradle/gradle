@@ -279,6 +279,17 @@
             </tr>
             <tr>
                 <td>
+                    <link linkend='signing_plugin'> <literal>signing</literal> </link>
+                </td>
+                <td>base</td>
+                <td>-</td>
+                <td>
+                    <para>Adds the ability to digitally sign built files and artifacts.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <link linkend='sonar_plugin'> <literal>sonar</literal> </link>
                 </td>
                 <td>-</td>
