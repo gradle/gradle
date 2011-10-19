@@ -82,6 +82,7 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
      * Returns the directory to generate Maven POMs into.
      * @deprecated Use {@link #getMavenPomDir()} instead.
      */
+    @Deprecated
     public File getPomDir() {
         DeprecationLogger.nagUserOfReplacedMethod("MavenPluginConvention.getPomDir()", "getMavenPomDir()");
         return getMavenPomDir();
@@ -99,6 +100,8 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
 
     /**
      * Sets the directory to generate Maven POMs into.
+     *
+     * @param pomDir The new POM directory. Evaluated as for {@link org.gradle.api.Project#file(Object)}.
      */
     public void setMavenPomDir(Object pomDir) {
         this.pomDir = pomDir;
