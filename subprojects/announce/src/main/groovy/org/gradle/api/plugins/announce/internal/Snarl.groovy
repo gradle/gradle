@@ -26,7 +26,7 @@ class Snarl implements Announcer {
         send("localhost", title, message)
     }
 
-    public void send(Collection hosts, String title, String message) {
+    public void send(Collection<String> hosts, String title, String message) {
         hosts.each { host ->
             send(host, title, message)
         }

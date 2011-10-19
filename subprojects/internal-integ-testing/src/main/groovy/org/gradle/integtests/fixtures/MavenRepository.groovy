@@ -209,7 +209,10 @@ class MavenModule {
     }
 
     private Map<String, Object> toArtifact(Map<String, ?> options) {
-        return [type: options.type ?: type, classifier: options.classifier ?: null]
+        options = new HashMap<String, Object>(options)
+        def artifact = [type: options.remove('type') ?: type, classifier: options.remove('classifier') ?: null]
+        assert options.isEmpty() : "Unknown options : ${options.keySet()}"
+        return artifact
     }
 
     private void createHashFiles(File file) {

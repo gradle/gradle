@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.plugins.announce
 
-import org.gradle.api.Plugin
+import spock.lang.Specification
+import org.gradle.util.HelperUtil
 import org.gradle.api.Project
 
-/**
- * This plugin allows to send announce messages to Twitter.
- *
- * @author hackergarten
- */
-class AnnouncePlugin implements Plugin<Project> {
-    void apply(Project project) {
-        project.extensions.announce = new AnnouncePluginExtension(project)
+class BuildAnnouncementsPluginTest extends Specification {
+    final Project project = HelperUtil.createRootProject()
+    final BuildAnnouncementsPlugin plugin = new BuildAnnouncementsPlugin()
+
+    def "applies announce plugin"() {
+        when:
+        plugin.apply(project)
+
+        then:
+        project.plugins.hasPlugin(AnnouncePlugin)
     }
 }
-

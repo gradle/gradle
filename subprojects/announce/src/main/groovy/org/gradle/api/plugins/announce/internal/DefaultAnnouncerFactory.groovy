@@ -15,15 +15,16 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.plugins.announce.AnnouncePluginConvention
 import org.gradle.api.plugins.announce.Announcer
 import org.gradle.api.InvalidUserDataException
+import org.gradle.os.OperatingSystem
+import org.gradle.api.plugins.announce.AnnouncePluginExtension
 
 /**
  * @author Hans Dockter
  */
 class DefaultAnnouncerFactory implements AnnouncerFactory {
-    private final AnnouncePluginConvention announcePluginConvention
+    private final AnnouncePluginExtension announcePluginConvention
 
     DefaultAnnouncerFactory(announcePluginConvention) {
         this.announcePluginConvention = announcePluginConvention
@@ -31,6 +32,14 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
 
     Announcer createAnnouncer(String type) {
         switch (type) {
+            case "local":
+                if (OperatingSystem.current().windows) {
+                    return createAnnouncer("snarl")
+                } else if (OperatingSystem.current().macOsX) {
+                    return createAnnouncer("growl")
+                } else {
+                    return createAnnouncer("notify-send")
+                }
             case "twitter":
                 String username = announcePluginConvention.username
                 String password = announcePluginConvention.password

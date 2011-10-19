@@ -18,13 +18,15 @@ package org.gradle.api.plugins.announce.internal
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-import org.gradle.api.plugins.announce.AnnouncePluginConvention
+
+import org.gradle.os.OperatingSystem
+import org.gradle.api.plugins.announce.AnnouncePluginExtension
 
 /**
  * @author Hans Dockter
  */
 class DefaultAnnouncerFactoryTest extends Specification {
-    AnnouncePluginConvention announcePluginConvention = new AnnouncePluginConvention(project)
+    AnnouncePluginExtension announcePluginConvention = new AnnouncePluginExtension(project)
     DefaultAnnouncerFactory announcerFactory = new DefaultAnnouncerFactory(announcePluginConvention)
     Project project = HelperUtil.createRootProject()
 
@@ -53,6 +55,20 @@ class DefaultAnnouncerFactoryTest extends Specification {
     def createForGrowl() {
         expect:
         announcerFactory.createAnnouncer('growl') instanceof Growl
+    }
+
+    def createForLocal() {
+        def expectedType
+        if (OperatingSystem.current().windows) {
+            expectedType = Snarl
+        } else if (OperatingSystem.current().macOsX) {
+            expectedType = Growl
+        } else {
+            expectedType = NotifySend
+        }
+
+        expect:
+        announcerFactory.createAnnouncer('local').class == expectedType
     }
 
     def createWithUnknownType() {

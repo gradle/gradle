@@ -38,7 +38,7 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
         module.artifact(classifier: 'javadoc')
         module.publish()
         def jar = module.artifactFile
-        def srcJar = module.artifactFile(classifer: 'sources')
+        def srcJar = module.artifactFile(classifier: 'sources')
 
         //when
         runEclipseTask """
@@ -78,7 +78,8 @@ dependencies {
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'extra')
         module.artifact(classifier: 'tests')
-        def baseJar = module.publish()
+        module.publish()
+        def baseJar = module.artifactFile
         def extraJar = module.artifactFile(classifier: 'extra')
         def testsJar = module.artifactFile(classifier: 'tests')
         def anotherJar = mavenRepo.module('coolGroup', 'another', '1.0').publish().artifactFile

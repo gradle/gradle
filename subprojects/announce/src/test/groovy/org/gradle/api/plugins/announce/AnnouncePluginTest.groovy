@@ -26,11 +26,11 @@ class AnnouncePluginTest extends Specification {
     AnnouncePlugin announcePlugin = new AnnouncePlugin()
     Project project = HelperUtil.createRootProject()
 
-    def addConventionObject() {
+    def addExtensionObject() {
         when:
         announcePlugin.apply project
 
         then:
-        project.convention.plugins.announce instanceof AnnouncePluginConvention
+        project.extensions.announce instanceof AnnouncePluginExtension
     }
 }

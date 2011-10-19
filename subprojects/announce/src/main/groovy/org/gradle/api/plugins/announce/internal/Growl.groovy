@@ -17,6 +17,9 @@ package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.plugins.announce.Announcer
 import org.gradle.api.Project
+import org.gradle.util.Jvm
+import javax.script.ScriptEngine
+import javax.script.ScriptEngineManager
 
 class Growl implements Announcer {
     private final Project project
@@ -26,9 +29,32 @@ class Growl implements Announcer {
     }
 
     void send(String title, String message) {
-        project.exec {
-            executable 'growlnotify'
-            args '-m', message, title
+        if (Jvm.current().supportsAppleScript) {
+            String script = """
+tell application "GrowlHelperApp"
+register as application "Gradle" all notifications {"Build Notification"} default notifications {"Build Notification"}
+notify with name "Build Notification" title "${escape(title)}" description "${escape(message)}" application name "Gradle"
+end tell
+"""
+
+            ScriptEngineManager mgr = new ScriptEngineManager();
+            ScriptEngine engine = mgr.getEngineByName("AppleScript");
+            try {
+                engine.eval(script)
+            } catch (Throwable t) {
+                System.out.println "SCRIPT: [$script]"
+                t.printStackTrace(System.out)
+                throw t
+            };
+        } else {
+            project.exec {
+                executable 'growlnotify'
+                args '-m', message, title
+            }
         }
+    }
+
+    private def escape(String value) {
+        return value.replace("\\", "\\\\").replace("\r", "\\r")
     }
 }
