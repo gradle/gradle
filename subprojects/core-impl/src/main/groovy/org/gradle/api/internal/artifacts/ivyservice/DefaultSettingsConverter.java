@@ -27,12 +27,10 @@ import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCache;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.SingleFileBackedDynamicRevisionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCacheFactory;
 import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.util.TimeProvider;
-import org.gradle.util.TrueTimeProvider;
 import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
@@ -46,18 +44,17 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final Factory<IvySettings> settingsFactory;
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
-    private final TimeProvider timeProvider = new TrueTimeProvider();
-    private final CacheLockingManager cacheLockingManager;
+    private final DynamicRevisionCacheFactory dynamicRevisionCacheFactory;
     private DynamicRevisionCache dynamicRevisionCache;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
     public EntryPointResolver entryPointResolver;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, CacheLockingManager cacheLockingManager) {
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, DynamicRevisionCacheFactory dynamicRevisionCacheFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
-        this.cacheLockingManager = cacheLockingManager;
+        this.dynamicRevisionCacheFactory = dynamicRevisionCacheFactory;
     }
 
     private static String getLengthText(TransferEvent evt) {
@@ -90,7 +87,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategy resolutionStrategy) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
-            dynamicRevisionCache = new SingleFileBackedDynamicRevisionCache(timeProvider, resolveSettings.getDefaultCache(), cacheLockingManager);
+            dynamicRevisionCache = dynamicRevisionCacheFactory.create(resolveSettings.getDefaultCache());
             userResolverChain = createUserResolverChain();
             ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
             DependencyResolver outerChain = new ClientModuleResolverChain(clientModuleResolver, userResolverChain);

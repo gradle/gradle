@@ -28,7 +28,7 @@ import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
 import java.io.File;
 
-public class MultipleFileDynamicRevisionCache implements DynamicRevisionCache {
+class MultipleFileDynamicRevisionCache implements DynamicRevisionCache {
     
     private final TimeProvider timeProvider;
     private final File cacheBaseDir;

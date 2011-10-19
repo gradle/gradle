@@ -28,6 +28,8 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DefaultDynamicRevisionCacheFactory;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCacheFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenCacheLocator;
@@ -133,6 +135,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(FileLockManager.class)
         );
     }
+    
+    protected DynamicRevisionCacheFactory createDynamicRevisionCacheFactory() {
+        return new DefaultDynamicRevisionCacheFactory(
+                get(CacheLockingManager.class)
+        );
+    }
 
     protected SettingsConverter createSettingsConverter() {
         return new DefaultSettingsConverter(
@@ -140,7 +148,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new IvySettingsFactory(
                         get(ArtifactCacheMetaData.class),
                         get(LockHolderFactory.class)),
-                get(CacheLockingManager.class));
+                get(DynamicRevisionCacheFactory.class));
     }
 
     protected IvyFactory createIvyFactory() {

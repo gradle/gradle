@@ -28,9 +28,7 @@ import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 import java.io.File;
 import java.io.Serializable;
 
-public class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
-    // TODO I think this would be better with a file per resolver (or even a file per dynamic-revision per resolver)
-    // Locking would be simpler, if nothing else.
+class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
     private final PersistentIndexedCache<RevisionKey, CachedRevisionEntry> cache;
     private final TimeProvider timeProvider;
     private final ReusableFileLock dynamicRevisionsLock;
