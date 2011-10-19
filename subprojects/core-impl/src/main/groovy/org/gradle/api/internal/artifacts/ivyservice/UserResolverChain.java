@@ -210,19 +210,25 @@ public class UserResolverChain extends ChainResolver {
             if (originalId.equals(resolvedId)) {
                 return;
             }
+
+            LOGGER.debug("Caching resolved revision in dynamic revision cache: Will use '{}' for '{}'", resolvedId, originalId);
             dynamicRevisionCache.saveResolvedRevision(downloadedModule.getResolver(), originalId, resolvedId);
         }
 
         public DependencyDescriptor maybeResolveDynamicRevision(DependencyResolver resolver, DependencyDescriptor original) {
             assert dynamicRevisionExpiryPolicy != null : "dynamicRevisionExpiryPolicy was not configured";
 
-            DynamicRevisionCache.CachedRevision resolvedRevision = dynamicRevisionCache.getResolvedRevision(resolver, original.getDependencyRevisionId());
+            ModuleRevisionId originalId = original.getDependencyRevisionId();
+            DynamicRevisionCache.CachedRevision resolvedRevision = dynamicRevisionCache.getResolvedRevision(resolver, originalId);
             if (resolvedRevision == null) {
                 return original;
             }
             if (dynamicRevisionExpiryPolicy.isExpired(resolvedRevision.getRevision(), resolvedRevision.getAgeMillis())) {
+                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);
                 return original;
             }
+
+            LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", resolvedRevision.getRevision(), originalId);
             return original.clone(resolvedRevision.getRevision());
         }
 

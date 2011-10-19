@@ -20,7 +20,7 @@ public class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCach
     private final TimeProvider timeProvider;
     private final ReusableFileLock dynamicRevisionsLock;
 
-    public SingleFileBackedDynamicRevisionCache(TimeProvider timeProvider, CacheLockingManager cacheLockingManager, File cacheBaseDir) {
+    public SingleFileBackedDynamicRevisionCache(TimeProvider timeProvider, File cacheBaseDir, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         File dynamicRevisionsFile = new File(cacheBaseDir, "dynamic-revisions.bin");
         dynamicRevisionsLock = (ReusableFileLock) cacheLockingManager.getCacheMetadataLock(dynamicRevisionsFile);
@@ -30,7 +30,8 @@ public class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCach
     private PersistentIndexedCache<RevisionKey, CachedRevisionEntry> initCache(File dynamicRevisionsFile) {
         dynamicRevisionsLock.lock();
         try {
-            return new BTreePersistentIndexedCache<RevisionKey, CachedRevisionEntry>(dynamicRevisionsFile, dynamicRevisionsLock, new DefaultSerializer<CachedRevisionEntry>());
+            return new BTreePersistentIndexedCache<RevisionKey, CachedRevisionEntry>(dynamicRevisionsFile, dynamicRevisionsLock,
+                    new DefaultSerializer<CachedRevisionEntry>(CachedRevisionEntry.class.getClassLoader()));
         } finally {
             dynamicRevisionsLock.unlock();
         }

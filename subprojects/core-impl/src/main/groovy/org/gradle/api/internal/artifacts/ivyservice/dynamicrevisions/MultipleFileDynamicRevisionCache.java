@@ -41,7 +41,8 @@ public class MultipleFileDynamicRevisionCache implements DynamicRevisionCache {
     
     private PersistentStateCache<CachedRevisionEntry> getCache(DependencyResolver resolver, ModuleRevisionId dynamicRevision) {
         File cacheFile = getCacheFile(resolver, dynamicRevision);
-        return new SimpleStateCache<CachedRevisionEntry>(cacheFile, new OnDemandFileLock(cacheFile, "dynamic revisions cache", fileLockManager), new DefaultSerializer<CachedRevisionEntry>());
+        return new SimpleStateCache<CachedRevisionEntry>(cacheFile, new OnDemandFileLock(cacheFile, "dynamic revisions cache", fileLockManager),
+                new DefaultSerializer<CachedRevisionEntry>(CachedRevisionEntry.class.getClassLoader()));
     }
     
     private File getCacheFile(DependencyResolver resolver, ModuleRevisionId dynamicRevision) {
