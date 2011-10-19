@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.maven
+package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository

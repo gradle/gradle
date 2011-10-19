@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.maven
+package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 import org.junit.Test
 
-class MavenProjectIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+/**
+ * @author Hans Dockter
+ */
+public class SamplesIvyPublishIntegrationTest {
+    @Rule
+    public final GradleDistribution dist = new GradleDistribution()
+    @Rule
+    public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule
+    public final Sample sample = new Sample("ivypublish")
 
     @Test
-    public void handlesSubProjectsWithoutTheMavenPluginApplied() {
-        dist.testFile("settings.gradle").write("include 'subProject'");
-        dist.testFile("build.gradle") << '''
-            apply plugin: 'java'
-            apply plugin: 'maven'
-        '''
-        executer.run();
+    public void testPublish() {
+        // the actual testing is done in the build script.
+        File projectDir = sample.dir
+        executer.inDirectory(projectDir).withTasks("uploadArchives").run()
     }
-
 }

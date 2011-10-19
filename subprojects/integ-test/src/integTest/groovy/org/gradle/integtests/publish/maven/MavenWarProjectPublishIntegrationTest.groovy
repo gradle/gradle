@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.integtests.publish.maven
 
-import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MavenRepository
 
-class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
-    public void "published WAR only for mixed java and WAR project"() {
+class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+    public void "publishes WAR only for mixed java and WAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 
         and:
         buildFile << """
-apply plugin: 'java'
 apply plugin: 'war'
+apply plugin: 'maven'
 
 group = 'org.gradle.test'
 version = '1.9'
@@ -42,8 +42,8 @@ dependencies {
 
 uploadArchives {
     repositories {
-        ivy {
-            url 'ivy-repo'
+        mavenDeployer {
+            repository(url: uri("maven-repo"))
         }
     }
 }
@@ -53,7 +53,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def ivyModule = new IvyRepository(file("ivy-repo")).module("org.gradle.test", "publishTest", "1.9")
-        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.war")
+        def mavenModule = new MavenRepository(file("maven-repo")).module("org.gradle.test", "publishTest", "1.9")
+        mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.war")
     }
 }

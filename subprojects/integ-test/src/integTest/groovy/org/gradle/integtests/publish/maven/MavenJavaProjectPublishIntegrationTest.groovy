@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.maven
+package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
 
-class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
-    public void "publishes WAR only for mixed java and WAR project"() {
+class MavenJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+    public void "can publish jar and meta-data to maven repository"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 
         and:
         buildFile << """
-apply plugin: 'war'
+apply plugin: 'java'
 apply plugin: 'maven'
 
 group = 'org.gradle.test'
@@ -54,6 +54,8 @@ uploadArchives {
 
         then:
         def mavenModule = new MavenRepository(file("maven-repo")).module("org.gradle.test", "publishTest", "1.9")
-        mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.war")
+        mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.jar")
+        mavenModule.pom.scopes.compile.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
+        mavenModule.pom.scopes.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
     }
 }

@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IvyRepository
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 
-class IvyJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
-    public void "can publish jar and meta-data to ivy repository"() {
+class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+    public void "published WAR only for mixed java and WAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 
         and:
         buildFile << """
 apply plugin: 'java'
+apply plugin: 'war'
 
 group = 'org.gradle.test'
 version = '1.9'
@@ -53,8 +54,6 @@ uploadArchives {
 
         then:
         def ivyModule = new IvyRepository(file("ivy-repo")).module("org.gradle.test", "publishTest", "1.9")
-        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
-        ivyModule.ivy.configurations.compile.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
-        ivyModule.ivy.configurations.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
+        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.war")
     }
 }
