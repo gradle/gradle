@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
-
-import org.gradle.cache.internal.ManualFileLock;
+package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
-public interface CacheLockingManager {
-    <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action);
-
-    ManualFileLock getCacheMetadataLock(File metadataFile);
+public interface DynamicRevisionCacheFactory {
+    DynamicRevisionCache create(File cacheDir);
 }

@@ -32,6 +32,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.DynamicRevisionExpiryPolicy;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,10 +44,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CacheFirstChainResolver extends ChainResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CacheFirstChainResolver.class);
+public class UserResolverChain extends ChainResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
     
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
+    private final DynamicRevisionDependencyConverter dynamicRevisions;
+
+    public UserResolverChain(DynamicRevisionCache dynamicRevisionCache) {
+        dynamicRevisions = new DynamicRevisionDependencyConverter(dynamicRevisionCache);
+    }
+
+    public void setDynamicRevisionExpiryPolicy(DynamicRevisionExpiryPolicy dynamicRevisionExpiryPolicy) {
+        dynamicRevisions.setDynamicRevisionExpiryPolicy(dynamicRevisionExpiryPolicy);
+    }
 
     @Override
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data)
@@ -53,7 +64,9 @@ public class CacheFirstChainResolver extends ChainResolver {
 
         // First attempt to locate the module in a resolver cache
         for (DependencyResolver resolver : getResolvers()) {
-            ResolvedModuleRevision cachedModule = findModuleInCache(resolver, dd, data);
+            DependencyDescriptor resolvedDynamicDependency = dynamicRevisions.maybeResolveDynamicRevision(resolver, dd);
+
+            ResolvedModuleRevision cachedModule = findModuleInCache(resolver, resolvedDynamicDependency, data);
             if (cachedModule != null) {
                 LOGGER.debug("Found module {} in resolver cache {}", cachedModule, resolver.getName());
                 artifactResolvers.put(cachedModule.getId(), resolver);
@@ -66,9 +79,11 @@ public class CacheFirstChainResolver extends ChainResolver {
         if (downloadedModule != null) {
             LOGGER.debug("Found module {} using resolver {}", downloadedModule, downloadedModule.getArtifactResolver());
             artifactResolvers.put(downloadedModule.getId(), downloadedModule.getArtifactResolver());
+            dynamicRevisions.maybeSaveDynamicRevision(dd, downloadedModule);
         }
         return downloadedModule;
     }
+
 
     private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd, ResolveData resolveData) {
         CacheMetadataOptions cacheOptions = getCacheMetadataOptions(resolver, resolveData);
@@ -175,5 +190,47 @@ public class CacheFirstChainResolver extends ChainResolver {
     @Override
     public List<DependencyResolver> getResolvers() {
         return super.getResolvers();
+    }
+
+    private static class DynamicRevisionDependencyConverter {
+        private final DynamicRevisionCache dynamicRevisionCache;
+        private DynamicRevisionExpiryPolicy dynamicRevisionExpiryPolicy;
+
+        private DynamicRevisionDependencyConverter(DynamicRevisionCache dynamicRevisionCache) {
+            this.dynamicRevisionCache = dynamicRevisionCache;
+        }
+
+        public void setDynamicRevisionExpiryPolicy(DynamicRevisionExpiryPolicy dynamicRevisionExpiryPolicy) {
+            this.dynamicRevisionExpiryPolicy = dynamicRevisionExpiryPolicy;
+        }
+
+        public void maybeSaveDynamicRevision(DependencyDescriptor original, ResolvedModuleRevision downloadedModule) {
+            ModuleRevisionId originalId = original.getDependencyRevisionId();
+            ModuleRevisionId resolvedId = downloadedModule.getId();
+            if (originalId.equals(resolvedId)) {
+                return;
+            }
+
+            LOGGER.debug("Caching resolved revision in dynamic revision cache: Will use '{}' for '{}'", resolvedId, originalId);
+            dynamicRevisionCache.saveResolvedRevision(downloadedModule.getResolver(), originalId, resolvedId);
+        }
+
+        public DependencyDescriptor maybeResolveDynamicRevision(DependencyResolver resolver, DependencyDescriptor original) {
+            assert dynamicRevisionExpiryPolicy != null : "dynamicRevisionExpiryPolicy was not configured";
+
+            ModuleRevisionId originalId = original.getDependencyRevisionId();
+            DynamicRevisionCache.CachedRevision resolvedRevision = dynamicRevisionCache.getResolvedRevision(resolver, originalId);
+            if (resolvedRevision == null) {
+                return original;
+            }
+            if (dynamicRevisionExpiryPolicy.isExpired(resolvedRevision.getRevision(), resolvedRevision.getAgeMillis())) {
+                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);
+                return original;
+            }
+
+            LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", resolvedRevision.getRevision(), originalId);
+            return original.clone(resolvedRevision.getRevision());
+        }
+
     }
 }

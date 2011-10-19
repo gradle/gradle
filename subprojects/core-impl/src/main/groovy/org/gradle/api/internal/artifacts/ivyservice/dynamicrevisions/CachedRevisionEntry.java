@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
 
-import org.gradle.cache.internal.ManualFileLock;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.util.TimeProvider;
 
-import java.io.File;
-import java.util.concurrent.Callable;
+import java.io.Serializable;
 
-public interface CacheLockingManager {
-    <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action);
+class CachedRevisionEntry implements Serializable {
+    public String encodedRevisionId;
+    public long createTimestamp;
 
-    ManualFileLock getCacheMetadataLock(File metadataFile);
+    CachedRevisionEntry(ModuleRevisionId revisionId, TimeProvider timeProvider) {
+        this.encodedRevisionId = revisionId.encodeToString();
+        this.createTimestamp = timeProvider.getCurrentTime();
+    }
 }

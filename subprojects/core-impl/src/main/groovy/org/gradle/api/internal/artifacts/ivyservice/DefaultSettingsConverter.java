@@ -24,7 +24,10 @@ import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.*;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCacheFactory;
 import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -41,14 +44,17 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final Factory<IvySettings> settingsFactory;
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
+    private final DynamicRevisionCacheFactory dynamicRevisionCacheFactory;
+    private DynamicRevisionCache dynamicRevisionCache;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
-    private ChainResolver userResolverChain;
+    private UserResolverChain userResolverChain;
     public EntryPointResolver entryPointResolver;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory) {
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, DynamicRevisionCacheFactory dynamicRevisionCacheFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
+        this.dynamicRevisionCacheFactory = dynamicRevisionCacheFactory;
     }
 
     private static String getLengthText(TransferEvent evt) {
@@ -78,9 +84,10 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return publishSettings;
     }
 
-    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, Map<String, ModuleDescriptor> clientModuleRegistry) {
+    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategy resolutionStrategy) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
+            dynamicRevisionCache = dynamicRevisionCacheFactory.create(resolveSettings.getDefaultCache());
             userResolverChain = createUserResolverChain();
             ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
             DependencyResolver outerChain = new ClientModuleResolverChain(clientModuleResolver, userResolverChain);
@@ -89,6 +96,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
             entryPointResolver.setName(ENTRY_POINT_RESOLVER);
             initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain, entryPointResolver));
         }
+        
+        new EntryPointResolverConfigurer().configureResolver(entryPointResolver, resolutionStrategy);
+        userResolverChain.setDynamicRevisionExpiryPolicy(resolutionStrategy.getDynamicRevisionExpiry());
 
         replaceResolvers(dependencyResolvers, userResolverChain);
         resolveSettings.setDefaultResolver(entryPointResolver.getName());
@@ -99,8 +109,8 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
     }
 
-    private ChainResolver createUserResolverChain() {
-        ChainResolver chainResolver = new CacheFirstChainResolver();
+    private UserResolverChain createUserResolverChain() {
+        UserResolverChain chainResolver = new UserResolverChain(dynamicRevisionCache);
         chainResolver.setName(CHAIN_RESOLVER_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));

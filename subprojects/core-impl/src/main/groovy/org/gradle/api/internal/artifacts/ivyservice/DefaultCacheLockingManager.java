@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.ManualFileLock;
+import org.gradle.cache.internal.ReusableFileLock;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.UncheckedException;
@@ -159,6 +161,10 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
                 return "ok";
             }
         };
+    }
+    
+    public ManualFileLock getCacheMetadataLock(File metadataFile) {
+        return new ReusableFileLock(metadataFile, "Lock for cache metadata file: " + metadataFile.getName(), fileLockManager);
     }
 
     public LockHolder getOrCreateLockHolder(File protectedFile) {

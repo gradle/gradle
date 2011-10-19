@@ -43,6 +43,13 @@ dependencies {
     compile group: "group", name: "projectA", version: "1.+"
 }
 
+if (project.hasProperty('noDynamicRevisionCache')) {
+    configurations.all {
+        resolutionStrategy.expireDynamicRevisionsAfter 0, java.util.concurrent.TimeUnit.SECONDS
+    }
+}
+
+
 task retrieve(type: Sync) {
     from configurations.compile
     into 'libs'
@@ -62,24 +69,31 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.1.jar')
         file('libs/projectA-1.1.jar').assertIsCopyOf(version1.jarFile)
 
-        // TODO: Cache dynamic revisions with timeout
-        when:
+        when: // New version is published, but dynamic revision mapping is cached
         def version2 = repo.module("group", "projectA", "1.2")
         version2.publish()
+
+        run 'retrieve'
+
+        then: // Still using version1, since dynamic revision is cached
+        file('libs').assertHasDescendants('projectA-1.1.jar')
+        file('libs/projectA-1.1.jar').assertIsCopyOf(version1.jarFile)
+
+        when: // Set dynamicRevision expiry time to zero
         server.expectGetDirectoryListing("/group/projectA/", version1.moduleDir.parentFile)
         server.expectGet("/group/projectA/1.2/ivy-1.2.xml", version2.ivyFile)
         server.expectGet("/group/projectA/1.2/projectA-1.2.jar", version2.jarFile)
         // TODO: This should not be required (even when not cached)
         server.expectGet("/group/projectA/1.1/ivy-1.1.xml", version1.ivyFile)
 
-        run 'retrieve'
+        executer.withArguments("-PnoDynamicRevisionCache").withTasks('retrieve').run()
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar')
         file('libs/projectA-1.2.jar').assertIsCopyOf(version2.jarFile)
     }
 
-    // This doesn't work as expected - need to implement our own dynamic revision mechanism
+    // This doesn't work as expected - need to implement our own mechanism for the caching of changing modules
     @Ignore
     public void "detects changed artifact when flagged as changing"() {
         distribution.requireOwnUserHomeDir()

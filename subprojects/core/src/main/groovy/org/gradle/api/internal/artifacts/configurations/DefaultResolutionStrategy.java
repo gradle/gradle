@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ConflictResolution;
+import org.gradle.api.artifacts.DynamicRevisionExpiryPolicy;
 import org.gradle.api.artifacts.ForcedVersion;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
@@ -24,6 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflict
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * by Szczepan Faber, created at: 10/7/11
@@ -32,6 +35,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategy {
 
     private Set<ForcedVersion> forcedVersions = new LinkedHashSet<ForcedVersion>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
+    private DynamicRevisionExpiryPolicy dynamicRevisionExpiryPolicy = new FixedDynamicRevisionExpiryPolicy(1, TimeUnit.DAYS);
 
     public Set<ForcedVersion> getForcedVersions() {
         return forcedVersions;
@@ -63,6 +67,30 @@ public class DefaultResolutionStrategy implements ResolutionStrategy {
             //TODO SF - only working for strict strategy for now. Unit test.
             //I need tests for the other before I enable it. (it it make sense)
             ((StrictConflictResolution) conflictResolution).setForcedVersions(this.forcedVersions);
+        }
+    }
+
+    public DynamicRevisionExpiryPolicy getDynamicRevisionExpiry() {
+        return dynamicRevisionExpiryPolicy;
+    }
+
+    public void setDynamicRevisionExpiry(DynamicRevisionExpiryPolicy policy) {
+        this.dynamicRevisionExpiryPolicy = policy;
+    }
+
+    public void expireDynamicRevisionsAfter(int value, TimeUnit unit) {
+        this.dynamicRevisionExpiryPolicy = new FixedDynamicRevisionExpiryPolicy(value, unit);
+    }
+
+    private class FixedDynamicRevisionExpiryPolicy implements DynamicRevisionExpiryPolicy {
+        private long expiryMillis;
+
+        private FixedDynamicRevisionExpiryPolicy(int value, TimeUnit units) {
+            expiryMillis = TimeUnit.MILLISECONDS.convert(value, units);
+        }
+
+        public boolean isExpired(ModuleRevisionId revisionId, long ageMillis) {
+            return ageMillis > expiryMillis;
         }
     }
 }
