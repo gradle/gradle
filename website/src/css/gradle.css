@@ -70,6 +70,10 @@ p {
     text-decoration: none;
 }
 
+#header #logo img {
+    border: none;
+}
+
 #header #title {
     font-size: 41pt;
     font-weight: bolder;
