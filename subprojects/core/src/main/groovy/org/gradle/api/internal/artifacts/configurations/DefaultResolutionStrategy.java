@@ -32,10 +32,11 @@ import java.util.concurrent.TimeUnit;
  * by Szczepan Faber, created at: 10/7/11
  */
 public class DefaultResolutionStrategy implements ResolutionStrategy {
+    private static final int SECONDS_IN_DAY = 24 * 60 * 60;
 
     private Set<ForcedVersion> forcedVersions = new LinkedHashSet<ForcedVersion>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
-    private DynamicRevisionExpiryPolicy dynamicRevisionExpiryPolicy = new FixedDynamicRevisionExpiryPolicy(1, TimeUnit.DAYS);
+    private DynamicRevisionExpiryPolicy dynamicRevisionExpiryPolicy = new FixedDynamicRevisionExpiryPolicy(SECONDS_IN_DAY, TimeUnit.SECONDS);
 
     public Set<ForcedVersion> getForcedVersions() {
         return forcedVersions;
