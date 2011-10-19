@@ -19,7 +19,6 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 
 import java.util.ArrayList;
