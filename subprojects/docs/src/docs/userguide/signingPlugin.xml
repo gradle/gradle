@@ -145,18 +145,9 @@ gradle.taskGraph.whenReady { taskGraph ->
     <section>
         <title>Publishing the signatures</title>
         <para>
-            When specifying what is to be signed via the Signing DSL, the resultant signature artifacts are automatically added to the “<literal>signatures</literal>”
-            dependency configuration that the signing plugin adds. This means that if you want to upload your signatures to your distribution repository along
-            with the artifacts for which the signature is for you are going to have to create a new configuration that combines them. By default, created artifacts such
-            as jars and the like are added to the “<literal>archives</literal>” configuration. You can create a new configuration that extends 
-            “<literal>archives</literal>” and “<literal>signatures</literal>”.
-        </para>
-        <sample id="signingPublishedConfiguration" dir="signing/maven" title="Adding the published configuration">
-            <sourcefile file="build.gradle" snippet="published-configuration"/>
-        </sample>
-        <para>
-            This also means that instead of configuring and using the “<literal>uploadArchives</literal>” to distribute your artifacts, you would use the equivalent
-            “<literal>uploadPublished</literal>” task. See <xref linkend="artifact_management"/> for more on artifacts and configurations.
+            When specifying what is to be signed via the Signing DSL, the resultant signature artifacts are automatically added to the <literal>signatures</literal> and
+            <literal>archives</literal> dependency configurations. This means that if you want to upload your signatures to your distribution repository along
+            with the artifacts you simply execute the <literal>uploadArchives</literal> task as normal.
         </para>
     </section>
     
