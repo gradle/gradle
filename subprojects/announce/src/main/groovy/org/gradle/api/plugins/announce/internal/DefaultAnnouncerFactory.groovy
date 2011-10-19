@@ -19,6 +19,7 @@ import org.gradle.api.plugins.announce.Announcer
 import org.gradle.api.InvalidUserDataException
 import org.gradle.os.OperatingSystem
 import org.gradle.api.plugins.announce.AnnouncePluginExtension
+import org.gradle.util.Jvm
 
 /**
  * @author Hans Dockter
@@ -49,7 +50,14 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
             case "snarl":
                 return new Snarl()
             case "growl":
-                return new Growl(announcePluginConvention.project)
+                if (Jvm.current().supportsAppleScript) {
+                    try {
+                        return getClass().getClassLoader().loadClass("org.gradle.api.plugins.announce.internal.AppleScriptBackedGrowlAnnouncer").newInstance()
+                    } catch (ClassNotFoundException e) {
+                        // Ignore and fall back to growl notify
+                    }
+                }
+                return new GrowlNotifyBackedAnnouncer(announcePluginConvention.project)
             default:
                 return new UnknownAnnouncer()
         }

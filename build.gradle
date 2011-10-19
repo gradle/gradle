@@ -373,10 +373,14 @@ task releaseArtifacts {
     dependsOn releaseVersion, assemble, ':docs:websiteDocs'
 }
 
+task checkJavaVersion << {
+    assert Jvm.current().java6Compatible : "Must use a Java 6 compatible JVM to perform the release. Current JVM is ${Jvm.current()}"
+}
+
 task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, testedTag, releaseArtifacts, testedDists, 'uploadAll'
+    dependsOn releaseVersion, checkJavaVersion, testedTag, releaseArtifacts, testedDists, 'uploadAll'
     doLast {
         releases.incrementNextVersion()
     }

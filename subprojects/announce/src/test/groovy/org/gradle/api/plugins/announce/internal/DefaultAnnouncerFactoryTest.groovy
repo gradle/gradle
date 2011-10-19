@@ -16,11 +16,10 @@
 package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.announce.AnnouncePluginExtension
+import org.gradle.os.OperatingSystem
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-
-import org.gradle.os.OperatingSystem
-import org.gradle.api.plugins.announce.AnnouncePluginExtension
 
 /**
  * @author Hans Dockter
@@ -68,7 +67,7 @@ class DefaultAnnouncerFactoryTest extends Specification {
         }
 
         expect:
-        announcerFactory.createAnnouncer('local').class == expectedType
+        expectedType.isInstance(announcerFactory.createAnnouncer('local'))
     }
 
     def createWithUnknownType() {

@@ -15,7 +15,23 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.plugins.announce.Announcer
+import org.gradle.api.Project
 
-abstract class Growl implements Announcer {
+class GrowlNotifyBackedAnnouncer extends Growl {
+    private final Project project
+
+    GrowlNotifyBackedAnnouncer(Project project) {
+        this.project = project
+    }
+
+    void send(String title, String message) {
+        project.exec {
+            executable 'growlnotify'
+            args '-m', message, title
+        }
+    }
+
+    private def escape(String value) {
+        return value.replace("\\", "\\\\").replace("\r", "\\r")
+    }
 }
