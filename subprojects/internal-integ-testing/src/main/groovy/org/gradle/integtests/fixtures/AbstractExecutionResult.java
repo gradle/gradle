@@ -39,7 +39,7 @@ public abstract class AbstractExecutionResult implements ExecutionResult {
     }
 
     private void assertNoDeprecationWarnings(String output, String displayName) {
-        boolean javacWarning = containsLine(matchesRegexp("use(s)? or overrides a deprecated API")).matches(output);
+        boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
         boolean deprecationWarning = containsLine(matchesRegexp(".*deprecated.*")).matches(output);
         if (deprecationWarning && !javacWarning) {
             throw new RuntimeException(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
