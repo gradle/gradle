@@ -19,6 +19,7 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -1089,7 +1090,17 @@ public interface Project extends Comparable<Project> {
     AntBuilder ant(Closure configureClosure);
 
     /**
-     * Returns the configurations of this project.
+     * Returns the configurations of this project. See also {@link Configuration}. Example:
+     * <pre autoTested='true'>
+     *   apply plugin: 'java' //so that I can use 'compile' configuration
+     *
+     *   task copyAllDependencies(type: Copy) {
+     *     //referring to the 'compile' configuration
+     *     //e.g. copying all dependencies attached to 'compile'
+     *     from configurations.compile
+     *     into 'allLibs'
+     *   }
+     * </pre>
      *
      * @return The configuration of this project.
      */
@@ -1418,6 +1429,54 @@ public interface Project extends Comparable<Project> {
      *
      * <p>This method executes the given closure against the {@link DependencyHandler} for this project. The {@link
      * DependencyHandler} is passed to the closure as the closure's delegate.
+     *
+     * <p>Example shows a basic way of declaring dependencies.
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     * //so that we can use 'compile', 'testCompile' for dependencies
+     *
+     * dependencies {
+     *   //for dependencies found in artifact repositories use
+     *   //the gav notation, e.g. group:name:version
+     *   compile 'commons-lang:commons-lang:2.6'
+     *   testCompile 'org.mockito:mockito:1.9.0-rc1'
+     *
+     *   //map-style notation:
+     *   compile group: 'com.google.code.guice', name: 'guice', version: '1.0'
+     *
+     *   //assigning arbitrary files as dependencies
+     *   compile files('hibernate.jar', 'libs/spring.jar')
+     *
+     *   //putting all jars from 'libs' onto compile classpath
+     *   compile fileTree('libs')
+     * }
+     * </pre>
+     *
+     * Example of advanced dependency declaration including:
+     * <ul>
+     * <li>forcing certain dependency version in case of the conflict</li>
+     * <li>excluding certain dependencies by name, group or both</li>
+     * <li>avoiding transitive dependencies for certain dependency</li>
+     * </ul>
+     *
+     * <pre autoTested=''>
+     * apply plugin: 'java' //so that I can declare 'compile' dependencies
+     *
+     * dependencies {
+     *   compile(group: 'org.hibernate', name: 'hibernate', version: '3.1') {
+     *     //in case of versions conflict '3.1' version of hibernate wins:
+     *     force = true
+     *
+     *     //excluding a particular transitive dependency:
+     *     exclude module: 'cglib' //by artifact name
+     *     exclude group: 'org.jmock' //by group
+     *     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group
+     *
+     *     //disabling all transitive dependencies of this dependency
+     *     transitive = false
+     *   }
+     * }
+     * </pre>
      *
      * @param configureClosure the closure to use to configure the dependencies.
      */
