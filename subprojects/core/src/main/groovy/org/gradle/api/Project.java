@@ -1152,6 +1152,24 @@ public interface Project extends Comparable<Project> {
      * <p>This method executes the given closure against the {@link ArtifactHandler} for this project. The {@link
      * ArtifactHandler} is passed to the closure as the closure's delegate.
      *
+     * <p>Example:
+     * <pre autoTested=''>
+     * configurations {
+     *   //declaring new configuration that will be used to associate with artifacts
+     *   schema
+     * }
+     *
+     * task schemaJar(type: Jar) {
+     *   //some imaginary task that creates a jar artifact with the schema
+     * }
+     *
+     * //associating the task that produces the artifact with the configuration
+     * artifacts {
+     *   //configuration name and the task:
+     *   schema schemaJar
+     * }
+     * </pre>
+     *
      * @param configureClosure the closure to use to configure the published artifacts.
      */
     void artifacts(Closure configureClosure);
