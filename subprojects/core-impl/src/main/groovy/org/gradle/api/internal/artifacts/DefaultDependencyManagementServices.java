@@ -139,7 +139,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     
     protected DynamicRevisionCache createDynamicRevisionCache() {
         return new SingleFileBackedDynamicRevisionCache(
-                get(ArtifactCacheMetaData.class).getCacheDir(),
+                get(ArtifactCacheMetaData.class),
                 get(TimeProvider.class),
                 get(CacheLockingManager.class)
         );

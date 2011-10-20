@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.cache.internal.ManualFileLock;
+import org.gradle.cache.internal.FileLock;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -23,5 +23,5 @@ import java.util.concurrent.Callable;
 public interface CacheLockingManager {
     <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action);
 
-    ManualFileLock getCacheMetadataLock(File metadataFile);
+    FileLock getCacheMetadataFileLock(File metadataFile);
 }

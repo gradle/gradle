@@ -18,8 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.ManualFileLock;
-import org.gradle.cache.internal.ReusableFileLock;
+import org.gradle.cache.internal.LockTimeoutException;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.UncheckedException;
@@ -39,7 +38,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultCacheLockingManager implements LockHolderFactory, CacheLockingManager {
     private final FileLockManager fileLockManager;
     private final Lock lock = new ReentrantLock();
-    private final Map<File, ArtifactLock> locks = new HashMap<File, ArtifactLock>();
+    private final Map<File, ArtifactLock> artifactLocks = new HashMap<File, ArtifactLock>();
+    private final Map<File, FileLock> metadataLocks = new HashMap<File, FileLock>();
+    
     private boolean locked;
     private String operationDisplayName;
 
@@ -74,14 +75,24 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
     private void unlockCache() {
         lock.lock();
         try {
-            if (!locks.isEmpty()) {
-                new CompositeStoppable().addCloseables(locks.values()).stop();
+            // Metadata locks are opened on demand, but closed when the cache lock is released
+            closeMetadataLocks();
+
+            if (!artifactLocks.isEmpty()) {
+                new CompositeStoppable().addCloseables(artifactLocks.values()).stop();
                 throw new IllegalStateException("Some artifact file locks were not released.");
             }
         } finally {
             locked = false;
-            locks.clear();
+            metadataLocks.clear();
+            artifactLocks.clear();
             lock.unlock();
+        }
+    }
+
+    private void closeMetadataLocks() {
+        for (FileLock metadataFileLock : metadataLocks.values()) {
+            metadataFileLock.close();
         }
     }
 
@@ -107,11 +118,11 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
             if (!locked) {
                 throw new IllegalStateException("Cannot acquire artifact lock, as the artifact cache is not locked by this process.");
             }
-            ArtifactLock artifactLock = locks.get(protectedFile);
+            ArtifactLock artifactLock = artifactLocks.get(protectedFile);
             if (artifactLock == null) {
                 FileLock fileLock = fileLockManager.lock(protectedFile, FileLockManager.LockMode.Exclusive, String.format("artifact file %s", protectedFile), operationDisplayName);
                 artifactLock = new ArtifactLock(fileLock);
-                locks.put(protectedFile, artifactLock);
+                artifactLocks.put(protectedFile, artifactLock);
             }
             artifactLock.refCount++;
         } finally {
@@ -122,13 +133,13 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
     private void release(File protectedFile) {
         lock.lock();
         try {
-            ArtifactLock artifactLock = locks.get(protectedFile);
+            ArtifactLock artifactLock = artifactLocks.get(protectedFile);
             if (artifactLock == null || artifactLock.refCount <= 0) {
                 throw new IllegalStateException("Cannot release artifact file lock, as the file is not locked.");
             }
             artifactLock.refCount--;
             if (artifactLock.refCount == 0) {
-                locks.remove(protectedFile);
+                artifactLocks.remove(protectedFile);
                 artifactLock.lock.close();
             }
         } finally {
@@ -163,10 +174,6 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
         };
     }
     
-    public ManualFileLock getCacheMetadataLock(File metadataFile) {
-        return new ReusableFileLock(metadataFile, "Lock for cache metadata file: " + metadataFile.getName(), fileLockManager);
-    }
-
     public LockHolder getOrCreateLockHolder(File protectedFile) {
         return getLockHolder(protectedFile);
     }
@@ -176,6 +183,27 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
 
     public void setSettings(IvySettings settings) {
         throw new UnsupportedOperationException();
+    }
+
+    public FileLock getCacheMetadataFileLock(final File metadataFile) {
+        return new MetadataFileLock(metadataFile);
+    }
+
+    private FileLock acquireMetadataFileLock(File metadataFile) {
+        lock.lock();
+        try {
+            if (!locked) {
+                throw new IllegalStateException("Cannot acquire artifact lock, as the artifact cache is not locked by this process.");
+            }
+            FileLock metadataFileLock = metadataLocks.get(metadataFile);
+            if (metadataFileLock == null) {
+                metadataFileLock = fileLockManager.lock(metadataFile, FileLockManager.LockMode.Exclusive, String.format("metadata file %s", metadataFile.getName()), operationDisplayName);
+                metadataLocks.put(metadataFile, metadataFileLock);
+            }
+            return metadataFileLock;
+        } finally {
+            lock.unlock();
+        }
     }
 
     private static class ArtifactLock implements Closeable {
@@ -188,6 +216,44 @@ public class DefaultCacheLockingManager implements LockHolderFactory, CacheLocki
 
         public void close() {
             lock.close();
+        }
+    }
+
+    /**
+     * A FileLock implementation that locks on first use within a cache lock block, and retains file lock for the duration of the Cache lock.
+     * Any call to {@link #readFromFile} or {@link #writeToFile} will open the lock, even if it was previously closed. Thus the lock can be used for a long
+     * lived persistent cache, as long as all access occurs within a withCacheLock() block.
+     */
+    private class MetadataFileLock implements FileLock {
+        private final File metadataFile;
+
+        public MetadataFileLock(File metadataFile) {
+            this.metadataFile = metadataFile;
+        }
+
+        public boolean getUnlockedCleanly() {
+            // TODO Not sure about this
+            return acquireLock().getUnlockedCleanly();
+        }
+
+        public boolean isLockFile(File file) {
+            // TODO Not sure about this
+            return acquireLock().isLockFile(file);
+        }
+
+        public <T> T readFromFile(Callable<T> action) throws LockTimeoutException {
+            return acquireLock().readFromFile(action);
+        }
+
+        public void writeToFile(Runnable action) throws LockTimeoutException {
+            acquireLock().writeToFile(action);
+        }
+
+        public void close() {
+        }
+
+        private FileLock acquireLock() {
+            return acquireMetadataFileLock(metadataFile);
         }
     }
 }
