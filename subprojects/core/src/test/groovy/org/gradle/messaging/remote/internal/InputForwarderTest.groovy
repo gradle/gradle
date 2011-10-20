@@ -54,10 +54,14 @@ class InputForwarderTest extends Specification {
     }
 
     def receive(receive) {
-        assert received.poll(5, TimeUnit.SECONDS) == receive
+        assert received.poll(5, TimeUnit.SECONDS) == toPlatformLineSeparators(receive)
         true
     }
 
+    void input(str) {
+        source << toPlatformLineSeparators(str)
+    }
+    
     boolean isFinished() {
         finishedHolder.get() == true
     }
@@ -81,13 +85,13 @@ class InputForwarderTest extends Specification {
 
     def "input from source is forwarded until forwarder is stopped"() {
         when:
-        source << toPlatformLineSeparators("abc\ndef\njkl")
+        source << "abc\ndef\njkl"
         waitForForwarderToCollect()
         forwarder.stop()
 
         then:
-        receive toPlatformLineSeparators("abc\n")
-        receive toPlatformLineSeparators("def\n")
+        receive "abc\n"
+        receive "def\n"
         receive "jkl"
         noMoreInput
 
@@ -97,13 +101,13 @@ class InputForwarderTest extends Specification {
 
     def "input from source is forwarded until source input stream is closed"() {
         when:
-        source << toPlatformLineSeparators("abc\ndef\njkl")
+        source << "abc\ndef\njkl"
         waitForForwarderToCollect()
         closeInput()
 
         then:
-        receive toPlatformLineSeparators("abc\n")
-        receive toPlatformLineSeparators("def\n")
+        receive "abc\n"
+        receive "def\n"
         receive "jkl"
         noMoreInput
 
@@ -125,10 +129,10 @@ class InputForwarderTest extends Specification {
         noMoreInput
 
         when:
-        source << toPlatformLineSeparators("\n")
+        source << "\n"
 
         then:
-        receive toPlatformLineSeparators("ab\n")
+        receive "ab\n"
     }
 
     def "one partial line when input stream closed gets forwarded"() {
@@ -171,10 +175,11 @@ class InputForwarderTest extends Specification {
 
     def "can handle lines larger than the buffer size"() {
         given:
-        def longLine = toPlatformLineSeparators("a" * (bufferSize * 10) + "\n")
+        def longLine = "a" * (bufferSize * 10) + "\n"
 
         when:
-        source << longLine << longLine
+        input longLine
+        input longLine
 
         then:
         receive longLine
