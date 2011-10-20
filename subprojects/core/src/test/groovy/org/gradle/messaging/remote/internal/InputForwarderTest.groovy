@@ -85,7 +85,7 @@ class InputForwarderTest extends Specification {
 
     def "input from source is forwarded until forwarder is stopped"() {
         when:
-        source << "abc\ndef\njkl"
+        input "abc\ndef\njkl"
         waitForForwarderToCollect()
         forwarder.stop()
 
@@ -101,7 +101,7 @@ class InputForwarderTest extends Specification {
 
     def "input from source is forwarded until source input stream is closed"() {
         when:
-        source << "abc\ndef\njkl"
+        input "abc\ndef\njkl"
         waitForForwarderToCollect()
         closeInput()
 
@@ -117,19 +117,19 @@ class InputForwarderTest extends Specification {
 
     def "output is buffered by line"() {
         when:
-        source << "a"
+        input "a"
 
         then:
         noMoreInput
 
         when:
-        source << "b"
+        input "b"
 
         then:
         noMoreInput
 
         when:
-        source << "\n"
+        input "\n"
 
         then:
         receive "ab\n"
@@ -137,7 +137,7 @@ class InputForwarderTest extends Specification {
 
     def "one partial line when input stream closed gets forwarded"() {
         when:
-        source << "abc"
+        input "abc"
         waitForForwarderToCollect()
 
         and:
@@ -152,7 +152,7 @@ class InputForwarderTest extends Specification {
 
     def "one partial line when forwarder stopped gets forwarded"() {
         when:
-        source << "abc"
+        input "abc"
         waitForForwarderToCollect()
 
         and:
