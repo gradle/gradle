@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Uses jna to update the environment variables
+ * Uses jna to update the environment variables.
  *
  * @author: Szczepan Faber, created at: 9/7/11
  */
@@ -39,8 +39,8 @@ public class NativeEnvironment {
                 LOGGER.warn("Unable to initialize native environment. Updating env variables and working directory will not be possible. Operating system: {}", OperatingSystem.current());
                 return new UnsupportedEnvironment();
             }
-        } catch (NoClassDefFoundError e) {
-            // Thrown when jna cannot initialise the native stuff
+        } catch (LinkageError e) {
+            // Thrown when jna cannot initialize the native stuff
             return new UnsupportedEnvironment();
         }
     }
