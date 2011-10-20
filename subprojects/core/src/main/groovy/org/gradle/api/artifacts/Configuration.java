@@ -32,6 +32,8 @@ public interface Configuration extends FileCollection {
 
     /**
      * Returns the resolution strategy used by this configuration
+     * <p>
+     * Warning: the DSL is not yet defined for this part of the api. It may change!
      *
      * @return strategy
      */
