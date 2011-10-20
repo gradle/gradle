@@ -28,8 +28,8 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DefaultDynamicRevisionCacheFactory;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCacheFactory;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.SingleFileBackedDynamicRevisionCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenCacheLocator;
@@ -43,6 +43,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 
@@ -136,8 +137,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
     
-    protected DynamicRevisionCacheFactory createDynamicRevisionCacheFactory() {
-        return new DefaultDynamicRevisionCacheFactory(
+    protected DynamicRevisionCache createDynamicRevisionCache() {
+        return new SingleFileBackedDynamicRevisionCache(
+                get(ArtifactCacheMetaData.class).getCacheDir(),
+                get(TimeProvider.class),
                 get(CacheLockingManager.class)
         );
     }
@@ -148,7 +151,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new IvySettingsFactory(
                         get(ArtifactCacheMetaData.class),
                         get(LockHolderFactory.class)),
-                get(DynamicRevisionCacheFactory.class));
+                get(DynamicRevisionCache.class));
     }
 
     protected IvyFactory createIvyFactory() {

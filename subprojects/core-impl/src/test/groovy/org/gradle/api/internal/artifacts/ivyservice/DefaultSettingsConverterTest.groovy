@@ -23,7 +23,6 @@ import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.Factory
 import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCache
-import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCacheFactory
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
@@ -33,14 +32,14 @@ class DefaultSettingsConverterTest extends Specification {
 
     Map clientModuleRegistry = [a: [:] as ModuleDescriptor]
     ResolutionStrategy resolutionStrategy = Mock()
-    DynamicRevisionCacheFactory dynamicRevisionCacheFactory = Mock()
+    DynamicRevisionCache dynamicRevisionCache = Mock()
 
     File testGradleUserHome = new File('gradleUserHome')
 
     final Factory<IvySettings> ivySettingsFactory = Mock()
     final IvySettings ivySettings = new IvySettings()
 
-    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCacheFactory)
+    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCache)
 
     public void setup() {
         testResolver.name = 'resolver'
@@ -52,7 +51,6 @@ class DefaultSettingsConverterTest extends Specification {
 
         then:
         1 * ivySettingsFactory.create() >> ivySettings
-        1 * dynamicRevisionCacheFactory.create(_) >> Mock(DynamicRevisionCache)
         1 * resolutionStrategy.getForcedVersions()
         1 * resolutionStrategy.getDynamicRevisionExpiry()
         0 * _._
@@ -85,7 +83,6 @@ class DefaultSettingsConverterTest extends Specification {
 
         then:
         1 * ivySettingsFactory.create() >> ivySettings
-        1 * dynamicRevisionCacheFactory.create(_) >> Mock(DynamicRevisionCache)
         1 * resolutionStrategy.getForcedVersions()
         1 * resolutionStrategy.getDynamicRevisionExpiry()
         0 * _._

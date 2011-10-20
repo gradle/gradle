@@ -28,14 +28,14 @@ import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 import java.io.File;
 import java.io.Serializable;
 
-class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
+public class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
     private final PersistentIndexedCache<RevisionKey, CachedRevisionEntry> cache;
     private final TimeProvider timeProvider;
     private final ManualFileLock dynamicRevisionsLock;
 
-    public SingleFileBackedDynamicRevisionCache(TimeProvider timeProvider, File cacheBaseDir, CacheLockingManager cacheLockingManager) {
-        this.timeProvider = timeProvider;
+    public SingleFileBackedDynamicRevisionCache(File cacheBaseDir, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         File dynamicRevisionsFile = new File(cacheBaseDir, "dynamic-revisions.bin");
+        this.timeProvider = timeProvider;
         dynamicRevisionsLock = cacheLockingManager.getCacheMetadataLock(dynamicRevisionsFile);
         cache = initCache(dynamicRevisionsFile);
     }
