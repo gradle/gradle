@@ -19,7 +19,6 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -1090,7 +1089,7 @@ public interface Project extends Comparable<Project> {
     AntBuilder ant(Closure configureClosure);
 
     /**
-     * Returns the configurations of this project. See also {@link Configuration}. Example:
+     * Returns the configurations of this project. Example:
      * <pre autoTested='true'>
      *   apply plugin: 'java' //so that I can use 'compile' configuration
      *
