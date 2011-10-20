@@ -1,0 +1,7 @@
+if (project.hasProperty("fakeOsInTests")) {
+    tasks.withType(Test) {
+        systemProperty "os.arch", "unsupported architecture"
+        systemProperty "os.name", "unsupported operating system"
+        systemProperty "os.version", "unsupported version"
+    }
+}
