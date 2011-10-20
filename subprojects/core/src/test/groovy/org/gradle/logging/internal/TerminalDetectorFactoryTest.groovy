@@ -22,6 +22,7 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.IgnoreIf
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
@@ -31,6 +32,7 @@ public class TerminalDetectorFactoryTest extends Specification {
     @Rule
     public def temp = new TemporaryFolder()
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "should configure jna library"() {
         when:
         def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
