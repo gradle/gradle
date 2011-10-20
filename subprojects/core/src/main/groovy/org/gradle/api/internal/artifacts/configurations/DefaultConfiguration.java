@@ -376,22 +376,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration copy() {
-        return createCopy(getDependencies());
+        return createCopy(getDependencies(), false);
     }
 
     public Configuration copyRecursive() {
-        return createCopy(getAllDependencies());
+        return createCopy(getAllDependencies(), true);
     }
 
     public Configuration copy(Spec<? super Dependency> dependencySpec) {
-        return createCopy(Specs.filterIterable(getDependencies(), dependencySpec));
+        return createCopy(Specs.filterIterable(getDependencies(), dependencySpec), false);
     }
 
     public Configuration copyRecursive(Spec<? super Dependency> dependencySpec) {
-        return createCopy(Specs.filterIterable(getAllDependencies(), dependencySpec));
+        return createCopy(Specs.filterIterable(getAllDependencies(), dependencySpec), true);
     }
 
-    private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
+    private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
                 configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy);
@@ -407,9 +407,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
         // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
-        // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule. 
-        for (ExcludeRule excludeRule : getExcludeRules()) {
-            copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+        // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule.
+        Set<Configuration> excludeRuleSources = new LinkedHashSet<Configuration>();
+        excludeRuleSources.add(this);
+        if (recursive) {
+            excludeRuleSources.addAll(getHierarchy());
+        }
+
+        for (Configuration excludeRuleSource : excludeRuleSources) {
+            for (ExcludeRule excludeRule : excludeRuleSource.getExcludeRules()) {
+                copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+            }
         }
 
         DomainObjectSet<Dependency> copiedDependencies = copiedConfiguration.getDependencies();

@@ -250,4 +250,22 @@ class DefaultConfigurationSpec extends Specification {
         then:
         1 * action.call()
     }
+    
+    def "a recursive copy of a configuration includes inherited exclude rules"() {
+        given:
+        def (p1, p2, child) = [conf("p1"), conf("p2"), conf("child")]
+        child.extendsFrom p1, p2
+        
+        and:
+        def (p1Exclude, p2Exclude) = [[group: 'p1', module: 'p1'], [group: 'p2', module: 'p2']]
+        p1.exclude p1Exclude
+        p2.exclude p2Exclude
+        
+        when:
+        def copied = child.copyRecursive()
+        
+        then:
+        copied.excludeRules.size() == 2
+        copied.excludeRules*.excludeArgs.sort { it.group } == [p1Exclude, p2Exclude]
+    }
 }
