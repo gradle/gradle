@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 import org.gradle.api.GradleException;
@@ -29,11 +30,9 @@ import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.zip.GZIPInputStream;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File tarFile;
@@ -61,25 +60,50 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", getDisplayName()));
         }
 
-        AtomicBoolean stopFlag = new AtomicBoolean();
         try {
-            FileInputStream inputStream = new FileInputStream(tarFile);
+            InputStream inputStream = null;
             try {
-                NoCloseTarInputStream tar = new NoCloseTarInputStream(inputStream);
-                TarEntry entry;
-                while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
-                    if (entry.isDirectory()) {
-                        visitor.visitDir(new DetailsImpl(entry, tar, stopFlag));
-                    } else {
-                        visitor.visitFile(new DetailsImpl(entry, tar, stopFlag));
-                    }
-
-                }
+                inputStream = openTar(tarFile);
+                visitImpl(visitor, inputStream);
             } finally {
+                assert inputStream != null;
                 inputStream.close();
             }
         } catch (Exception e) {
             throw new GradleException(String.format("Could not expand %s.", getDisplayName()), e);
+        }
+    }
+
+    private InputStream openTar(File tar) throws FileNotFoundException {
+        InputStream inputStream;
+        // Try GZip, BZip2, and plain tar
+        try {
+            inputStream = new GZIPInputStream(new FileInputStream(tar));
+        } catch (IOException gze) {
+            try {
+                // CBZip2InputStream expects the opening "Bz" to be skipped
+                InputStream is = new BufferedInputStream(new FileInputStream(tar));
+                byte[] skip = new byte[2];
+                is.read(skip);
+                inputStream = new CBZip2InputStream(is);
+            } catch (IOException bze) {
+                inputStream = new FileInputStream(tar);
+            }
+        }
+        return inputStream;
+    }
+
+    private void visitImpl(FileVisitor visitor, InputStream inputStream) throws IOException {
+        AtomicBoolean stopFlag = new AtomicBoolean();
+        NoCloseTarInputStream tar = new NoCloseTarInputStream(inputStream);
+        TarEntry entry;
+        while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
+            if (entry.isDirectory()) {
+                visitor.visitDir(new DetailsImpl(entry, tar, stopFlag));
+            } else {
+                visitor.visitFile(new DetailsImpl(entry, tar, stopFlag));
+            }
+
         }
     }
 

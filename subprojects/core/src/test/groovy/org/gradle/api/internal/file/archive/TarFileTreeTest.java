@@ -54,6 +54,26 @@ public class TarFileTreeTest {
     }
 
     @Test
+    public void readsGzippedTarFile() {
+        rootDir.file("subdir/file1.txt").write("content");
+        rootDir.file("subdir2/file2.txt").write("content");
+        rootDir.tgzTo(tarFile);
+
+        assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
+        assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
+    }
+
+    @Test
+    public void readsBzippedTarFile() {
+        rootDir.file("subdir/file1.txt").write("content");
+        rootDir.file("subdir2/file2.txt").write("content");
+        rootDir.tbzTo(tarFile);
+
+        assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
+        assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
+    }
+
+    @Test
     public void canStopVisitingFiles() {
         rootDir.file("subdir/file1.txt").write("content");
         rootDir.file("subdir/other/file2.txt").write("content");
