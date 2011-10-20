@@ -137,14 +137,12 @@ public interface Gradle {
      * <pre autoTested=''>
      * //init.gradle
      * gradle.projectsLoaded {
-     *   rootProject.configure(rootProject) {
-     *     buildscript {
-     *       repositories {
-     *         //...
-     *       }
-     *       dependencies {
-     *         //...
-     *       }
+     *   rootProject.buildscript {
+     *     repositories {
+     *       //...
+     *     }
+     *     dependencies {
+     *       //...
      *     }
      *   }
      * }
