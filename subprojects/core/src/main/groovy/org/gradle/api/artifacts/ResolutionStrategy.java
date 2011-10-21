@@ -75,16 +75,16 @@ public interface ResolutionStrategy {
      * Gets the current expiry policy for dynamic revisions.
      * @return the expiry policy
      */
-    DynamicRevisionExpiryPolicy getDynamicRevisionExpiry();
+    DynamicRevisionCachePolicy getDynamicRevisionCachePolicy();
 
     /**
      * Sets the expiry policy to use for dynamic revisions.
      * @param policy the policy to use
      */
-    void setDynamicRevisionExpiry(DynamicRevisionExpiryPolicy policy);
+    void setDynamicRevisionCachePolicy(DynamicRevisionCachePolicy policy);
 
     /**
-     * Provides a time after which all dynamic revisions will be expired, using the default implementation of {@link DynamicRevisionExpiryPolicy}.
+     * Provides a time after which all dynamic revisions will be expired, using the default implementation of {@link DynamicRevisionCachePolicy}.
      * @param value The number of time units
      * @param unit The time units
      */

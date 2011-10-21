@@ -95,7 +95,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
         
         new EntryPointResolverConfigurer().configureResolver(entryPointResolver, resolutionStrategy);
-        userResolverChain.setDynamicRevisionExpiryPolicy(resolutionStrategy.getDynamicRevisionExpiry());
+        userResolverChain.setDynamicRevisionCachePolicy(resolutionStrategy.getDynamicRevisionCachePolicy());
 
         replaceResolvers(dependencyResolvers, userResolverChain);
         resolveSettings.setDefaultResolver(entryPointResolver.getName());

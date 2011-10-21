@@ -16,16 +16,28 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ResolvedModule;
 
-public interface DynamicRevisionCache {
-    void saveResolvedRevision(DependencyResolver resolver, ModuleRevisionId dynamicRevision, ModuleRevisionId resolvedRevision);
-    CachedRevision getResolvedRevision(DependencyResolver resolver, ModuleRevisionId dynamicRevision);
-    
-    interface CachedRevision {
-        ResolvedModule getModule();
-        ModuleRevisionId getRevision();
-        long getAgeMillis();
+public class DefaultResolvedModule implements ResolvedModule {
+    private final ModuleRevisionId moduleRevisionId;
+
+    public DefaultResolvedModule(ModuleRevisionId moduleRevisionId) {
+        this.moduleRevisionId = moduleRevisionId;
+    }
+
+    public ModuleIdentifier getId() {
+        return new ModuleIdentifier() {
+            public String getGroup() {
+                return moduleRevisionId.getOrganisation();
+            }
+
+            public String getName() {
+                return moduleRevisionId.getName();
+            }
+
+            public String getVersion() {
+                return moduleRevisionId.getRevision();
+            }
+        };
     }
 }

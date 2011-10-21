@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ResolvedModule;
 import org.gradle.util.TimeProvider;
 
 import java.io.Serializable;
@@ -27,6 +28,10 @@ class DefaultCachedRevision implements DynamicRevisionCache.CachedRevision, Seri
     public DefaultCachedRevision(CachedRevisionEntry entry, TimeProvider timeProvider) {
         revision = ModuleRevisionId.decode(entry.encodedRevisionId);
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
+    }
+
+    public ResolvedModule getModule() {
+        return new DefaultResolvedModule(revision);
     }
 
     public ModuleRevisionId getRevision() {

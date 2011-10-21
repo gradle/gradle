@@ -15,18 +15,15 @@
  */
 package org.gradle.api.artifacts;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-
 /**
- * Specifies how long we should cache the resolved Revision for Dynamic Revisions.
+ * Specifies when we can use cached values for Dynamic Revisions.
  */
-public interface DynamicRevisionExpiryPolicy {
+public interface DynamicRevisionCachePolicy {
     /**
-     * Returns whether a cached resolution value for a dynamic revision has expired, indicating that the dynamic revision should be resolved again
-     * to get the latest version.
-     * @param revisionId The resolved revision
+     * Returns whether a cached resolution value for a dynamic revision can be used, or if the dynamic revision should be resolved again to get the latest version.
+     * @param module The resolved module
      * @param ageMillis The age of the cache entry in milliseconds
-     * @return True if the resolution value has expired
+     * @return True if the resolved value can be used
      */
-    boolean isExpired(ModuleRevisionId revisionId, long ageMillis);
+    boolean canUseCachedRevision(ResolvedModule module, long ageMillis);
 }
