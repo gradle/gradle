@@ -24,17 +24,17 @@ class DefaultProcessMetaDataProviderTest extends Specification {
 
     def "uses process PID as process identifier"() {
         given:
-        _ * processEnvironment.maybeGetPid() >> 1234
+        processEnvironment.maybeGetPid() >> 1234
 
         expect:
         provider.processIdentifier == '1234'
     }
 
-    def "uses null when PID is not available"() {
+    def "uses 'gradle' when PID is not available"() {
         given:
-        _ * processEnvironment.maybeGetPid() >> null
+        processEnvironment.maybeGetPid() >> null
 
         expect:
-        provider.processIdentifier == null
+        provider.processIdentifier == 'gradle'
     }
 }
