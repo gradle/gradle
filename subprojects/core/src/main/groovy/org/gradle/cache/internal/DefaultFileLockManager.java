@@ -192,7 +192,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     lockFileAccess.close();
                 }
             } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
+                LOGGER.warn("Error releasing lock on {}: {}", displayName, e);
             } finally {
                 lock = null;
                 lockFileAccess = null;
