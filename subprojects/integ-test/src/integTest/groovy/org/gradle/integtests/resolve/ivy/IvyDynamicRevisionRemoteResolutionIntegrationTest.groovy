@@ -21,13 +21,12 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.junit.Rule
 import spock.lang.Ignore
 import org.gradle.integtests.fixtures.IvyModule
+import org.gradle.integtests.fixtures.ExecutionResult
 
 class IvyDynamicRevisionRemoteResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
     def "uses latest version from version range and latest status"() {
-        executer.withDeprecationChecksDisabled().withArguments("-d")
-
         distribution.requireOwnUserHomeDir()
         server.start()
         def repo = ivyRepo()
@@ -99,8 +98,6 @@ task retrieve(type: Sync) {
     }
 
     def "caches resolved revisions until cache expiry"() {
-        executer.withDeprecationChecksDisabled().withArguments("-d")
-
         distribution.requireOwnUserHomeDir()
         server.start()
         def repo = ivyRepo()
@@ -162,7 +159,7 @@ task retrieve(type: Sync) {
         server.expectGet("/group/projectA/1.1/ivy-1.1.xml", version1.ivyFile)
 
         and: "We request 1.+, with zero expiry for dynamic revision cache"
-        executer.withArguments("-PnoDynamicRevisionCache").withTasks('retrieve').run()
+        executer.withDeprecationChecksDisabled().withArguments("-d", "-PnoDynamicRevisionCache").withTasks('retrieve').run()
 
         then: "Version 1.2 is used"
         file('libs').assertHasDescendants('projectA-1.2.jar')
@@ -170,8 +167,6 @@ task retrieve(type: Sync) {
     }
 
     def "uses and caches dynamic revisions for transitive dependencies"() {
-        executer.withDeprecationChecksDisabled().withArguments("-d")
-
         distribution.requireOwnUserHomeDir()
         server.start()
         def repo = ivyRepo()
@@ -254,7 +249,7 @@ task retrieve(type: Sync) {
         server.expectGet("/group/projectB/1.1/ivy-1.1.xml", projectB2.ivyFile)
 
         and: "DynamicRevisionCache is bypassed"
-        executer.withArguments("-PnoDynamicRevisionCache").withTasks('retrieve').run()
+        executer.withDeprecationChecksDisabled().withArguments("-d", "-PnoDynamicRevisionCache").withTasks('retrieve').run()
 
         then: "New versions are used"
         file('libs').assertHasDescendants('main-1.0.jar', 'projectA-1.2.jar', 'projectB-2.2.jar')
@@ -381,6 +376,13 @@ task retrieve(type: Copy) {
         jarFile.assertHasChangedSince(snapshot)
         jarFile.assertIsCopyOf(module.jarFile)
 
+    }
+
+    // TODO Remove this - it's just for debugging on the CI server
+    @Override
+    protected ExecutionResult run(String... tasks) {
+        executer.withDeprecationChecksDisabled().withArguments("-d")
+        return super.run(tasks)
     }
 
     IvyRepository ivyRepo() {
