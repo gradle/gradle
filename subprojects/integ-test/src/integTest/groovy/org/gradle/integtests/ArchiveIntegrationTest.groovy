@@ -161,10 +161,12 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
 
-        expandDir.file('prefix/dir1').assertPermissions(equalTo("rwxr-xr-x"))
-        expandDir.file('prefix/dir1/renamed_file1.txt').assertPermissions(equalTo("rw-r--r--"))
-        expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
-        expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        if (!System.getProperty("os.name").contains("unsupported")) {
+            expandDir.file('prefix/dir1').assertPermissions(equalTo("rwxr-xr-x"))
+            expandDir.file('prefix/dir1/renamed_file1.txt').assertPermissions(equalTo("rw-r--r--"))
+            expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
+            expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        }
     }
 
     @Test public void canCreateATarArchive() {
@@ -204,10 +206,12 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
 
-        expandDir.file('dir1').assertPermissions(equalTo("rwxr-xr-x"))
-        expandDir.file('dir1/file1.txt').assertPermissions(equalTo("rw-r--r--"))
-        expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
-        expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        if (!System.getProperty("os.name").contains("unsupported")) {
+            expandDir.file('dir1').assertPermissions(equalTo("rwxr-xr-x"))
+            expandDir.file('dir1/file1.txt').assertPermissions(equalTo("rw-r--r--"))
+            expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
+            expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        }
     }
 
     @Test public void canCreateATgzArchive() {
