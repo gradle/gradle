@@ -25,7 +25,9 @@ import org.gradle.integtests.fixtures.IvyModule
 class IvyDynamicRevisionRemoteResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
-    public void "uses latest version from version range and latest status"() {
+    def "uses latest version from version range and latest status"() {
+        executer.withDeprecationChecksDisabled().withArguments("-d")
+
         distribution.requireOwnUserHomeDir()
         server.start()
         def repo = ivyRepo()
@@ -96,7 +98,9 @@ task retrieve(type: Sync) {
         file('libs/projectB-2.2.jar').assertIsCopyOf(projectB2.jarFile)
     }
 
-    public void "caches resolved revisions until cache expiry"() {
+    def "caches resolved revisions until cache expiry"() {
+        executer.withDeprecationChecksDisabled().withArguments("-d")
+
         distribution.requireOwnUserHomeDir()
         server.start()
         def repo = ivyRepo()
@@ -165,7 +169,9 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.2.jar').assertIsCopyOf(version2.jarFile)
     }
 
-    public void "uses and caches dynamic revisions for transitive dependencies"() {
+    def "uses and caches dynamic revisions for transitive dependencies"() {
+        executer.withDeprecationChecksDisabled().withArguments("-d")
+
         distribution.requireOwnUserHomeDir()
         server.start()
         def repo = ivyRepo()
@@ -263,7 +269,7 @@ task retrieve(type: Sync) {
     }
 
     @Ignore // Not yet implemented
-    public void "detects changed module descriptor when flagged as changing"() {
+    def "detects changed module descriptor when flagged as changing"() {
         distribution.requireOwnUserHomeDir()
         server.start()
 
@@ -323,7 +329,7 @@ task retrieve(type: Copy) {
     }
 
     @Ignore // Not yet implemented
-    public void "detects changed artifact when flagged as changing"() {
+    def "detects changed artifact when flagged as changing"() {
         distribution.requireOwnUserHomeDir()
         server.start()
 
