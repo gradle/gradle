@@ -179,6 +179,9 @@ public class CommandLineIntegrationTest {
         if (OperatingSystem.current().isWindows()) {
             return
         }
+        if (System.getProperty("os.name").contains("unsupported")) {
+            return
+        }
 
         def script = dist.testFile('bin/my app')
         script.parentFile.createDir()

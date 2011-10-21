@@ -28,6 +28,9 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
         if (OperatingSystem.current().isWindows()) {
             return
         }
+        if (System.getProperty("os.name").contains("unsupported")) {
+            return
+        }
 
         TestFile link = testFile('src/file')
         link.linkTo(testFile('missing'))
@@ -50,6 +53,9 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsUnreadableSourceDir() {
         if (OperatingSystem.current().isWindows()) {
+            return
+        }
+        if (System.getProperty("os.name").contains("unsupported")) {
             return
         }
 
