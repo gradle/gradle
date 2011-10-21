@@ -46,7 +46,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private final ProcessEnvironment envHacker = NativeEnvironment.current();
+    private final ProcessEnvironment processEnvironment = NativeEnvironment.current();
 
     @Override
     protected ExecutionResult doRun() {
@@ -93,11 +93,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         Properties originalSysProperties = new Properties();
         originalSysProperties.putAll(System.getProperties());
-        envHacker.setProcessDir(getWorkingDir());
+        processEnvironment.maybeSetProcessDir(getWorkingDir());
         Map<String, String> previousEnv = new HashMap<String, String>();
         for (Map.Entry<String, String> entry : getEnvironmentVars().entrySet()) {
             previousEnv.put(entry.getKey(), System.getenv(entry.getKey()));
-            envHacker.setEnvironmentVariable(entry.getKey(), entry.getValue());
+            processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
         }
 
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
@@ -109,13 +109,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return gradleLauncher.run();
         } finally {
             System.setProperties(originalSysProperties);
-            envHacker.setProcessDir(userDir);
+            processEnvironment.maybeSetProcessDir(userDir);
             for (Map.Entry<String, String> entry : previousEnv.entrySet()) {
                 String oldValue = entry.getValue();
                 if (oldValue != null) {
-                    envHacker.setEnvironmentVariable(entry.getKey(), oldValue);
+                    processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), oldValue);
                 } else {
-                    envHacker.removeEnvironmentVariable(entry.getKey());
+                    processEnvironment.maybeRemoveEnvironmentVariable(entry.getKey());
                 }
             }
             factory.removeListener(listener);
