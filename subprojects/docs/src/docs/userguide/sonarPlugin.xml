@@ -19,7 +19,7 @@
     <para>The Sonar plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
         a web-based platform for monitoring code quality. The plugin adds a <literal>sonarAnalyze</literal> task
         that analyzes the project to which the plugin is applied and its subprojects. The results are stored in
-        the Sonar database.
+        the Sonar database. The plugin requires Sonar 2.9 or higher.
     </para>
 
     <para>
@@ -75,7 +75,7 @@
         <para>The <literal>sonar</literal> block in a subproject configures an object of type <apilink class="org.gradle.api.plugins.sonar.model.SonarProjectModel"/>.</para>
         <para>
             Projects can also be configured individually. For example, setting the <literal>skip</literal> property to <literal>true</literal>
-            prevents a project from being analyzed. Skipped projects will not be displayed in the Sonar web interface.
+            prevents a project (and its subprojects) from being analyzed. Skipped projects will not be displayed in the Sonar web interface.
         </para>
         <sample id="multiProject" dir="sonar/multiProject" title="Individual project configuration in a multi-project build">
             <sourcefile file="build.gradle" snippet="individual-project-configuration"/>
