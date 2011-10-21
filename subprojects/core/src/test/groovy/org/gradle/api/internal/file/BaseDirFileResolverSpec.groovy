@@ -20,11 +20,13 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.os.PosixUtil
+import spock.lang.IgnoreIf
 
 class BaseDirFileResolverSpec extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final def fileSystem = OperatingSystem.current().fileSystem
 
+    @IgnoreIf( { System.getProperty("os.name").contains("unsupported") } )
     def "normalises absolute path which points to an absolute link"() {
         if (!fileSystem.symlinkAware) {
             return
@@ -38,6 +40,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalise(file) == file
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "normalises absolute path which points to a relative link"() {
         if (!fileSystem.symlinkAware) {
             return
@@ -63,6 +66,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalise(path) == file
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "normalises absolute path which points to a link using mismatched case"() {
         if (fileSystem.caseSensitive || !fileSystem.symlinkAware) {
             return
@@ -77,6 +81,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalise(path) == file
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "normalises path which points to a link to something that does not exist"() {
         if (!fileSystem.symlinkAware) {
             return
@@ -89,6 +94,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalise(file) == file
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "normalises path when ancestor is an absolute link"() {
         if (!fileSystem.symlinkAware) {
             return
@@ -142,6 +148,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalise(".", baseDir) == baseDir
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "normalises relative path when base dir is a link"() {
         if (!fileSystem.symlinkAware) {
             return
