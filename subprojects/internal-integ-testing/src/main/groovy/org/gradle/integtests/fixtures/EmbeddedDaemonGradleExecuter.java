@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.api.internal.Factory;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.cli.ExecuteBuildAction;
@@ -27,6 +28,7 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.StreamBackedStandardOutputListener;
 
@@ -53,12 +55,12 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
         StringBuilder output = new StringBuilder();
         StringBuilder error = new StringBuilder();
 
+        LoggingManagerInternal loggingManager = createLoggingManager(output, error);
+        loggingManager.start();
+
         ExecuteBuildAction buildAction = createBuildAction();
         BuildActionParameters buildActionParameters = createBuildActionParameters();
         DaemonClient daemonClient = createClient();
-
-        LoggingManagerInternal loggingManager = createLoggingManager(output, error);
-        loggingManager.start();
 
         Exception failure = null;
         try {
@@ -84,7 +86,13 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private DaemonClient createClient() {
-        return new DaemonClient(new EmbeddedDaemonConnector(daemonRegistry), clientMetaData(), loggingServices.get(OutputEventListener.class));
+        Factory<LoggingServiceRegistry> factory = new Factory<LoggingServiceRegistry>() {
+            public LoggingServiceRegistry create() {
+                return loggingServices;
+            }
+        };
+        
+        return new DaemonClient(new EmbeddedDaemonConnector(daemonRegistry, factory), clientMetaData(), new OutputEventListener() { public void onOutput(OutputEvent event) {} });
     }
 
     private LoggingManagerInternal createLoggingManager(StringBuilder output, StringBuilder error) {
