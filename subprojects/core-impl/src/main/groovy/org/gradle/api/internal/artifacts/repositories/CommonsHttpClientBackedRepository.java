@@ -15,7 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpMethodRetryHandler;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
@@ -32,15 +35,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A repository which uses commons-httpclient to access resources using HTTP/HTTPS.
  */
 public class CommonsHttpClientBackedRepository extends AbstractRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonsHttpClientBackedRepository.class);
-    private final Map<String, HttpResource> resources = new HashMap<String, HttpResource>();
+    private final Map<String, Resource> resources = new HashMap<String, Resource>();
     private final HttpClient client = new HttpClient();
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
 
@@ -55,25 +64,22 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         LOGGER.debug("Attempting to get resource {}.", source);
         GetMethod method = new GetMethod(source);
         configureMethod(method);
-        int result = client.executeMethod(method);
-        if (result == 404) {
-            return new MissingResource(source);
-        }
-        if (!wasSuccessful(result)) {
-            throw new IOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
-        }
-
-        HttpResource resource = new HttpResource(source, method);
+        Resource resource = createLazyResource(source, method);
         resources.put(source, resource);
         return resource;
     }
 
+    private Resource createLazyResource(String source, GetMethod method) {
+        LazyResourceInvocationHandler invocationHandler = new LazyResourceInvocationHandler(source, method);
+        return Resource.class.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{Resource.class}, invocationHandler));
+    }
+
     public void get(String source, File destination) throws IOException {
-        HttpResource resource = resources.get(source);
+        Resource resource = resources.get(source);
         fireTransferInitiated(resource, TransferEvent.REQUEST_GET);
         try {
             progress.setTotalLength(resource.getContentLength());
-            resource.downloadTo(destination);
+            downloadResource(resource, destination);
         } catch (IOException e) {
             fireTransferError(e);
             throw e;
@@ -82,6 +88,20 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
             throw UncheckedException.asUncheckedException(e);
         } finally {
             progress.setTotalLength(null);
+        }
+    }
+
+    public void downloadResource(Resource resource, File destination) throws IOException {
+        FileOutputStream output = new FileOutputStream(destination);
+        try {
+            InputStream input = resource.openStream();
+            try {
+                FileUtil.copy(input, output, progress);
+            } finally {
+                input.close();
+            }
+        } finally {
+            output.close();
         }
     }
 
@@ -141,6 +161,36 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         return result >= 200 && result < 300;
     }
 
+    private class LazyResourceInvocationHandler implements InvocationHandler {
+        private final String source;
+        private final GetMethod method;
+        private Resource delegate;
+
+        private LazyResourceInvocationHandler(String source, GetMethod method) {
+            this.method = method;
+            this.source = source;
+        }
+
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            if (delegate == null) {
+                delegate = init();
+            }
+            return method.invoke(delegate, args);
+        }
+
+        private Resource init() throws IOException {
+            LOGGER.debug("Attempting to get resource {}.", source);
+            int result = client.executeMethod(method);
+            if (result == 404) {
+                return new MissingResource(source);
+            }
+            if (!wasSuccessful(result)) {
+                throw new IOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
+            }
+            return new HttpResource(source, method);
+        }
+    }
+
     private class HttpResource implements Resource {
         private final String source;
         private final GetMethod method;
@@ -181,20 +231,6 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
 
         public InputStream openStream() throws IOException {
             return method.getResponseBodyAsStream();
-        }
-
-        public void downloadTo(File destination) throws IOException {
-            FileOutputStream output = new FileOutputStream(destination);
-            try {
-                InputStream input = openStream();
-                try {
-                    FileUtil.copy(input, output, progress);
-                } finally {
-                    input.close();
-                }
-            } finally {
-                output.close();
-            }
         }
     }
 

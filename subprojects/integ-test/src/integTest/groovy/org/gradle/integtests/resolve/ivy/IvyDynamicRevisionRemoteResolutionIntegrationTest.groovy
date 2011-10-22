@@ -84,9 +84,6 @@ task retrieve(type: Sync) {
         server.resetExpectations()
         serveUpDynamicRevision(projectA2)
         serveUpDynamicRevision(projectB2)
-        // TODO: These should not be required
-        server.expectGet("/group/projectA/1.1/ivy-1.1.xml", projectA2.ivyFile)
-        server.expectGet("/group/projectB/1.1/ivy-1.1.xml", projectB2.ivyFile)
 
         and:
         run 'retrieve'
@@ -155,8 +152,6 @@ task retrieve(type: Sync) {
 
         when: "Server handles requests"
         serveUpDynamicRevision(version2)
-        // TODO: This should not be required (even when not cached)
-        server.expectGet("/group/projectA/1.1/ivy-1.1.xml", version1.ivyFile)
 
         and: "We request 1.+, with zero expiry for dynamic revision cache"
         executer.withDeprecationChecksDisabled().withArguments("-d", "-PnoDynamicRevisionCache").withTasks('retrieve').run()
@@ -244,9 +239,6 @@ task retrieve(type: Sync) {
         server.resetExpectations()
         serveUpDynamicRevision(projectA2)
         serveUpDynamicRevision(projectB2)
-        // TODO: These should not be required
-        server.expectGet("/group/projectA/1.1/ivy-1.1.xml", projectA2.ivyFile)
-        server.expectGet("/group/projectB/1.1/ivy-1.1.xml", projectB2.ivyFile)
 
         and: "DynamicRevisionCache is bypassed"
         executer.withDeprecationChecksDisabled().withArguments("-d", "-PnoDynamicRevisionCache").withTasks('retrieve').run()
