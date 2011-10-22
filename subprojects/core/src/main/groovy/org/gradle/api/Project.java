@@ -1091,17 +1091,9 @@ public interface Project extends Comparable<Project> {
     AntBuilder ant(Closure configureClosure);
 
     /**
-     * Returns the configurations of this project. Example:
-     * <pre autoTested='true'>
-     *   apply plugin: 'java' //so that I can use 'compile' configuration
+     * Returns the configurations of this project.
      *
-     *   task copyAllDependencies(type: Copy) {
-     *     //referring to the 'compile' configuration
-     *     //e.g. copying all dependencies attached to 'compile'
-     *     from configurations.compile
-     *     into 'allLibs'
-     *   }
-     * </pre>
+     * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
      *
      * @return The configuration of this project.
      */
@@ -1112,31 +1104,8 @@ public interface Project extends Comparable<Project> {
      *
      * <p>This method executes the given closure against the {@link ConfigurationContainer}
      * for this project. The {@link ConfigurationContainer} is passed to the closure as the closure's delegate.
-     * <p>
-     * Example:
-     * <pre autoTested=''>
-     * //the java plugin will become handy later...
-     * apply plugin: 'java'
      *
-     * configurations {
-     *   //adding a configuration:
-     *   myConfiguration
-     *
-     *   //adding a configuration that extends existing configuration:
-     *   //(testCompile was added by the java plugin)
-     *   myIntegrationTestsCompile.extendsFrom(testCompile)
-     *
-     *   //configuring existing configurations not to put transitive dependencies on the compile classpath
-     *   //this way you can avoid issues with implicit dependencies to transitive libraries
-     *   compile.transitive = false
-     *   testCompile.transitive = false
-     * }
-     *
-     * //Configuring strict conflict strategy - it will fail eagerly if on single classpath
-     * //there are multiple different versions of the same library.
-     * //Warning: resolution strategies are yet experimental - the DSL is not yet confirmed!
-     * configurations.all { resolutionStrategy = resolutionStrategy.strict() }
-     * </pre>
+     * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
      *
      * @param configureClosure the closure to use to configure the dependency configurations.
      */

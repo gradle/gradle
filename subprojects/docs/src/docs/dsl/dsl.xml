@@ -159,10 +159,13 @@
         <table>
             <title>Container types</title>
             <tr>
+                <td>org.gradle.api.artifacts.ConfigurationContainer</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.dsl.DependencyHandler</td>
             </tr>
             <tr>
-                <td>org.gradle.api.artifacts.ConfigurationContainer</td>
+                <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>
             </tr>
         </table>
     </section>

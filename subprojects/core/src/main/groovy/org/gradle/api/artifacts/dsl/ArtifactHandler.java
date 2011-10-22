@@ -25,7 +25,27 @@ package org.gradle.api.artifacts.dsl;
  *
  * <code>&lt;ArtifactHandler>.&lt;configurationName> &lt;archive1>, &lt;archive2>, ...</code>
  *
- *  <p>The information for publishing the artifact is extracted from the archive (e.g. name, extension, ...).</p>
+ * <p>The information for publishing the artifact is extracted from the archive (e.g. name, extension, ...).</p>
+ *
+ * <h2>Examples</h2>
+ * <p>An example showing how to associate an archive task with a configuration via the artifact handler.
+ * This way the archive can be published or referred in other projects via the configuration.
+ * <pre autoTested=''>
+ * configurations {
+ *   //declaring new configuration that will be used to associate with artifacts
+ *   schema
+ * }
+ *
+ * task schemaJar(type: Jar) {
+ *   //some imaginary task that creates a jar artifact with some schema
+ * }
+ *
+ * //associating the task that produces the artifact with the configuration
+ * artifacts {
+ *   //configuration name and the task:
+ *   schema schemaJar
+ * }
+ * </pre>
  *
  * @author Hans Dockter
  */
