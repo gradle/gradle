@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.project.ProjectInternal;
 
-/**
- * @author Hans Dockter
- */
-public interface ProjectDependencyDescriptorStrategy {
-    ModuleRevisionId createModuleRevisionId(ProjectDependency dependency);
-    boolean isChanging();
+public class ProjectDependencyDescriptor extends EnhancedDependencyDescriptor {
+    private final ProjectInternal targetProject;
+
+    public ProjectDependencyDescriptor(ModuleDescriptor md, ModuleRevisionId mrid, boolean force, boolean changing, boolean transitive, ProjectInternal targetProject) {
+        super(md, mrid, force, changing, transitive);
+        this.targetProject = targetProject;
+    }
+
+    public ProjectInternal getTargetProject() {
+        return targetProject;
+    }
 }

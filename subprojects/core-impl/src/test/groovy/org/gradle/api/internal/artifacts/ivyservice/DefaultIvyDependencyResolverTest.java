@@ -104,14 +104,10 @@ public class DefaultIvyDependencyResolverTest {
         context.checking(new Expectations() {{
             allowing(resolvedDependency1).getParentArtifacts(root);
             will(returnValue(toSet(createResolvedArtifact(context, "dep1parent", "someType", "someExtension", new File("dep1parent")))));
-            allowing(resolvedDependency1).getModuleArtifacts();
-            will(returnValue(toSet(createResolvedArtifact(context, "dep1", "someType", "someExtension", new File("dep1")))));
             allowing(resolvedDependency1).getChildren();
             will(returnValue(emptySet()));
             allowing(resolvedDependency2).getParentArtifacts(root);
-            will(returnValue(emptySet()));
-            allowing(resolvedDependency2).getModuleArtifacts();
-            will(returnValue(toSet(createResolvedArtifact(context, "dep2", "someType", "someExtension", new File("dep2")))));
+            will(returnValue(toSet(createResolvedArtifact(context, "dep2parent", "someType", "someExtension", new File("dep2parent")))));
             allowing(resolvedDependency2).getChildren();
             will(returnValue(emptySet()));
             allowing(configurationStub).getAllDependencies();
@@ -136,7 +132,7 @@ public class DefaultIvyDependencyResolverTest {
                         return element == moduleDependencyDummy1 || element == selfResolvingDependencyDummy;
                     }
                 });
-        assertThat(actualFiles, equalTo(toSet(new File("dep1"), new File("dep2"), new File("dep1parent"))));
+        assertThat(actualFiles, equalTo(toSet(new File("dep1parent"), new File("dep2parent"))));
 
         Set<ResolvedDependency> actualDeps = resolvedConfig.getFirstLevelModuleDependencies(
                 new Spec<Dependency>() {

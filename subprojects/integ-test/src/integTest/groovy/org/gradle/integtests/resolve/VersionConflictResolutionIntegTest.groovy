@@ -284,14 +284,13 @@ configurations.all {
         maven(repo).module("org", "foo", '1.4.4').publish()
         maven(repo).module("org", "foo", '1.5.5').publish()
 
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
-	apply plugin: 'maven'
 	repositories {
 		maven { url "${repo.toURI()}" }
 	}
@@ -316,6 +315,16 @@ project(':tool') {
 		compile project(':api')
 		compile project(':impl')
 	}
+    task checkDeps(dependsOn: configurations.compile) << {
+        assert configurations.compile.collect { it.name } == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
+        def metaData = configurations.compile.resolvedConfiguration
+        def api = metaData.firstLevelModuleDependencies.find { it.moduleName == 'api' }
+        assert api.children.size() == 1
+        assert api.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
+        def impl = metaData.firstLevelModuleDependencies.find { it.moduleName == 'impl' }
+        assert impl.children.size() == 1
+        assert impl.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
+    }
 }
 
 allprojects {
@@ -323,24 +332,12 @@ allprojects {
         resolutionStrategy.conflictResolution = resolutionStrategy.strict()
         resolutionStrategy.force 'org:foo:1.5.5'
     }
-
-    task genIvy(type: Upload) {
-        uploadDescriptor = true
-        configuration = configurations.archives
-        descriptorDestination = file('ivy.xml')
-    }
 }
+
 """
 
-        //when
-        def result = executer
-                .usingBuildScript(buildFile).usingSettingsFile(settingsFile)
-                .withArguments("-s").withTasks(":tool:dependencies", "install", "genIvy").run()
-
-        //then
-        assert result.output.contains("1.5.5")
-        assert !result.output.contains("1.4.4")
-        assert !result.output.contains("1.3.3")
+        // expect
+        executer.withTasks(":tool:checkDeps").run()
     }
 
     @Test

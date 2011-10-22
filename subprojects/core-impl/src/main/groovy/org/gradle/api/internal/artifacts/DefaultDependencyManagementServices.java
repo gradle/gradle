@@ -61,9 +61,19 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultDependencyResolutionServices(this, resolver, dependencyMetaDataProvider, projectFinder, domainObjectContext);
     }
 
+    protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter() {
+        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = get(DependencyDescriptorFactory.class);
+        return new ResolveModuleDescriptorConverter(
+                get(ModuleDescriptorFactory.class),
+                get(ConfigurationsToModuleDescriptorConverter.class),
+                new DefaultDependenciesToModuleDescriptorConverter(
+                        dependencyDescriptorFactoryDelegate,
+                        get(ExcludeRuleConverter.class)));
+        
+    }
     protected PublishModuleDescriptorConverter createPublishModuleDescriptorConverter() {
         return new PublishModuleDescriptorConverter(
-                createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
+                get(ResolveModuleDescriptorConverter.class),
                 new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY));
     }
 
@@ -83,24 +93,15 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultConfigurationsToModuleDescriptorConverter();
     }
 
-    private ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
-        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(projectDependencyStrategy);
-        return new ResolveModuleDescriptorConverter(
-                get(ModuleDescriptorFactory.class),
-                get(ConfigurationsToModuleDescriptorConverter.class),
-                new DefaultDependenciesToModuleDescriptorConverter(
-                        dependencyDescriptorFactoryDelegate,
-                        get(ExcludeRuleConverter.class)));
-    }
-
-    private DependencyDescriptorFactory createDependencyDescriptorFactory(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
+    protected DependencyDescriptorFactory createDependencyDescriptorFactory() {
         DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
         DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
                 new ClientModuleDependencyDescriptorFactory(
-                        get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
-                new ProjectDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class),
-                        projectDependencyStrategy),
+                        clientModuleDescriptorFactory,
+                        clientModuleRegistry),
+                new ProjectDependencyDescriptorFactory(
+                        get(ExcludeRuleConverter.class)),
                 get(ExternalModuleDependencyDescriptorFactory.class));
         clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
         return dependencyDescriptorFactoryDelegate;
@@ -227,7 +228,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                                     get(CacheLockingManager.class),
                                                     new DefaultIvyDependencyResolver(
                                                             new DefaultIvyReportConverter(
-                                                                    createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
+                                                                    get(DependencyDescriptorFactory.class),
                                                                     new ResolvedArtifactFactory(
                                                                             get(CacheLockingManager.class)
                                                                     )),
@@ -237,14 +238,13 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                                                     resolverProvider,
                                                                     get(SettingsConverter.class),
                                                                     new DefaultInternalRepository(
-                                                                            projectFinder,
-                                                                            get(ModuleDescriptorConverter.class)),
+                                                                            get(PublishModuleDescriptorConverter.class)),
                                                                     clientModuleRegistry)))))));
         }
 
         ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {
             PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
-                    createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
+                    get(ResolveModuleDescriptorConverter.class),
                     new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
 
             return new ErrorHandlingArtifactPublisher(

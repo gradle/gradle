@@ -34,12 +34,11 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DefaultResolutionStrategy;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.ReflectionUtil;
 
@@ -52,10 +51,8 @@ import java.text.ParseException;
  */
 public class DefaultInternalRepository extends AbstractResolver implements InternalRepository {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
-    private final ProjectFinder projectFinder;
 
-    public DefaultInternalRepository(ProjectFinder projectFinder, ModuleDescriptorConverter moduleDescriptorConverter) {
-        this.projectFinder = projectFinder;
+    public DefaultInternalRepository(ModuleDescriptorConverter moduleDescriptorConverter) {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         setName(ArtifactRepositoryContainer.INTERNAL_REPOSITORY_NAME);
         setRepositoryCacheManager(new NoOpRepositoryCacheManager(getName()));
@@ -81,11 +78,11 @@ public class DefaultInternalRepository extends AbstractResolver implements Inter
     }
 
     private ModuleDescriptor findProject(DependencyDescriptor descriptor) {
-        String projectPathValue = descriptor.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY);
-        if (projectPathValue == null) {
+        if (!(descriptor instanceof ProjectDependencyDescriptor)) {
             return null;
         }
-        ProjectInternal project = projectFinder.getProject(projectPathValue);
+        ProjectDependencyDescriptor projectDependencyDescriptor = (ProjectDependencyDescriptor) descriptor;
+        ProjectInternal project = projectDependencyDescriptor.getTargetProject();
         Module projectModule = project.getModule();
         IvySettings ivySettings = IvyContext.getContext().getIvy().getSettings();
         //in this instance we don't care about the resolution strategy because we're not resolving

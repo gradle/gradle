@@ -16,11 +16,10 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
-import org.junit.Test
-import org.gradle.util.TestFile
 import org.gradle.integtests.fixtures.ExecutionFailure
-import org.junit.Ignore
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.util.TestFile
+import org.junit.Test
 
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
@@ -267,7 +266,7 @@ interface Person { }
         result.assertTasksExecuted(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar", ":a:compileJava", ":a:processResources", ":a:classes")
     }
 
-    @Test @Ignore
+    @Test
     public void "can add additional jars to published runtime classpath"() {
         testFile("settings.gradle") << "include 'a', 'b'"
         testFile("build.gradle") << """
@@ -280,7 +279,7 @@ project(':b') {
 
     task additionalJar(type: Jar) {
         classifier = 'extra'
-        from sourceSets.extra.classes
+        from sourceSets.extra.output
     }
 
     artifacts {

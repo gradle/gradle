@@ -17,11 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.*;
-import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.*;
@@ -47,22 +43,22 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
     }
 
     public DefaultDependencyDescriptor addDependencyDescriptor(Configuration configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
-        DefaultDependencyDescriptor descriptor = addDependencyDescriptor(configuration.getName(), moduleDescriptor, dependency);
+        EnhancedDependencyDescriptor descriptor = addDependencyDescriptor(configuration.getName(), moduleDescriptor, dependency);
         workAroundIvyLimitationsByCopyingDefaultIncludesForExtendedDependencies(configuration, descriptor, dependency);
         return descriptor;
     }
 
     protected void workAroundIvyLimitationsByCopyingDefaultIncludesForExtendedDependencies(Configuration configuration,
-                                                                                           DefaultDependencyDescriptor dependencyDescriptor,
+                                                                                           EnhancedDependencyDescriptor dependencyDescriptor,
                                                                                            ModuleDependency newDependency) {
         // Do nothing by default - only required for external dependencies
     }
 
-    public DefaultDependencyDescriptor addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
+    public EnhancedDependencyDescriptor addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
-        DefaultDependencyDescriptor newDescriptor = createDependencyDescriptor(dependency, configuration, moduleDescriptor, moduleRevisionId);
+        EnhancedDependencyDescriptor newDescriptor = createDependencyDescriptor(dependency, configuration, moduleDescriptor, moduleRevisionId);
 
-        DefaultDependencyDescriptor matchingDependencyDescriptor = findMatchingDescriptorForSameConfiguration(moduleDescriptor, newDescriptor);
+        EnhancedDependencyDescriptor matchingDependencyDescriptor = findMatchingDescriptorForSameConfiguration(moduleDescriptor, newDescriptor);
         if (matchingDependencyDescriptor != null) {
             mergeDescriptors(configuration, matchingDependencyDescriptor, newDescriptor, dependency);
             return matchingDependencyDescriptor;
@@ -72,20 +68,20 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
         return newDescriptor;
     }
 
-    protected abstract DefaultDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration,
+    protected abstract EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration,
                                                                               ModuleDescriptor moduleDescriptor, ModuleRevisionId moduleRevisionId);
 
-    private DefaultDependencyDescriptor findMatchingDescriptorForSameConfiguration(DefaultModuleDescriptor moduleDescriptor, DependencyDescriptor targetDescriptor) {
+    private EnhancedDependencyDescriptor findMatchingDescriptorForSameConfiguration(DefaultModuleDescriptor moduleDescriptor, DependencyDescriptor targetDescriptor) {
         for (DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
             if (dependencyDescriptor.getDependencyRevisionId().equals(targetDescriptor.getDependencyRevisionId())
                     && Arrays.equals(dependencyDescriptor.getModuleConfigurations(), targetDescriptor.getModuleConfigurations())) {
-                return (DefaultDependencyDescriptor) dependencyDescriptor;
+                return (EnhancedDependencyDescriptor) dependencyDescriptor;
             }
         }
         return null;
     }
 
-    private void mergeDescriptors(String masterConfiguration, DefaultDependencyDescriptor originalDescriptor, DependencyDescriptor newDescriptor, ModuleDependency newDependency) {
+    private void mergeDescriptors(String masterConfiguration, EnhancedDependencyDescriptor originalDescriptor, DependencyDescriptor newDescriptor, ModuleDependency newDependency) {
         // Force ivy to act as though both dependencies are fetched independently
 
         // Merge dependency configurations
@@ -100,7 +96,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
 
         // Copy across inclusion of default artifacts
         if (newDescriptor.getIncludeRules(masterConfiguration).length != 0) {
-            includeDefaultArtifacts(masterConfiguration, originalDescriptor);
+            includeDefaultArtifacts(originalDescriptor);
         }
 
         // OR Force, Transitive and Changing flags
@@ -157,26 +153,19 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
         }
     }
 
-    protected void includeDefaultArtifacts(String configuration, DefaultDependencyDescriptor dependencyDescriptor) {
-        // Only add the default include rule once
-        if (dependencyDescriptor.getIncludeRules(configuration).length == 0) {
-            // Add '*' include rule if if one configuration has no defined artifacts and the other has defined artifacts
-            ArtifactId aid = new ArtifactId(new ModuleId(PatternMatcher.ANY_EXPRESSION, PatternMatcher.ANY_EXPRESSION),
-                    PatternMatcher.ANY_EXPRESSION, PatternMatcher.ANY_EXPRESSION, PatternMatcher.ANY_EXPRESSION);
-            IncludeRule includeRule = new DefaultIncludeRule(aid, ExactPatternMatcher.INSTANCE, null);
-            dependencyDescriptor.addIncludeRule(configuration, includeRule);
-        }
+    protected void includeDefaultArtifacts(EnhancedDependencyDescriptor dependencyDescriptor) {
+        dependencyDescriptor.setIncludeDefaultArtifacts(true);
     }
 
     protected void addExcludesArtifactsAndDependencies(String configuration, ModuleDependency dependency,
-                                                       DefaultDependencyDescriptor dependencyDescriptor) {
+                                                       EnhancedDependencyDescriptor dependencyDescriptor) {
         addArtifacts(configuration, dependency.getArtifacts(), dependencyDescriptor);
         addExcludes(configuration, dependency.getExcludeRules(), dependencyDescriptor);
         addDependencyConfiguration(configuration, dependency, dependencyDescriptor);
     }
 
     private void addArtifacts(String configuration, Set<DependencyArtifact> artifacts,
-                              DefaultDependencyDescriptor dependencyDescriptor) {
+                              EnhancedDependencyDescriptor dependencyDescriptor) {
         for (DependencyArtifact artifact : artifacts) {
             DefaultDependencyArtifactDescriptor artifactDescriptor;
             try {
@@ -193,7 +182,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
         }
 
         if (dependencyDescriptor.getAllDependencyArtifacts().length == 0) {
-            includeDefaultArtifacts(configuration, dependencyDescriptor);
+            includeDefaultArtifacts(dependencyDescriptor);
         }
     }
 

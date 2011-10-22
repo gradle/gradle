@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Configuration;
@@ -37,9 +36,9 @@ public class ExternalModuleDependencyDescriptorFactory extends AbstractDependenc
         return IvyUtil.createModuleRevisionId(dependency);
     }
 
-    public DefaultDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
+    public EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
+        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(parent,
                 moduleRevisionId, getExternalModuleDependency(dependency).isForce(),
                 getExternalModuleDependency(dependency).isChanging(), getExternalModuleDependency(dependency).isTransitive());
         addExcludesArtifactsAndDependencies(configuration, getExternalModuleDependency(dependency), dependencyDescriptor);
@@ -54,8 +53,9 @@ public class ExternalModuleDependencyDescriptorFactory extends AbstractDependenc
         return dependency instanceof ExternalModuleDependency;
     }
 
+    @Override
     protected void workAroundIvyLimitationsByCopyingDefaultIncludesForExtendedDependencies(Configuration configuration,
-                                                                                           DefaultDependencyDescriptor dependencyDescriptor,
+                                                                                           EnhancedDependencyDescriptor dependencyDescriptor,
                                                                                            ModuleDependency dependency) {
         if (!canConvert(dependency)) {
             return;
@@ -66,7 +66,7 @@ public class ExternalModuleDependencyDescriptorFactory extends AbstractDependenc
             if (extendedRevisionId.equals(dependencyDescriptor.getDependencyRevisionId())) {
                 if (extendedDependency.getArtifacts().isEmpty()) {
                     if (dependency != extendedDependency) {
-                        includeDefaultArtifacts(configuration.getName(), dependencyDescriptor);
+                        includeDefaultArtifacts(dependencyDescriptor);
                     }
                 }
             }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Module;
@@ -24,46 +23,20 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.WrapUtil;
 
 /**
  * @author Hans Dockter
  */
 public class ProjectDependencyDescriptorFactory extends AbstractDependencyDescriptorFactoryInternal {
-    public final static ProjectDependencyDescriptorStrategy IVY_FILE_DESCRIPTOR_STRATEGY =
-            new ProjectDependencyDescriptorStrategy() {
-                public ModuleRevisionId createModuleRevisionId(ProjectDependency dependency) {
-                    Module module = ((ProjectInternal) dependency.getDependencyProject()).getModule();
-                    return IvyUtil.createModuleRevisionId(module);
-                }
-                public boolean isChanging() {
-                    return false;
-                }
-            };
-
-    public final static ProjectDependencyDescriptorStrategy RESOLVE_DESCRIPTOR_STRATEGY =
-            new ProjectDependencyDescriptorStrategy() {
-                public ModuleRevisionId createModuleRevisionId(ProjectDependency dependency) {
-                    Module module = ((ProjectInternal) dependency.getDependencyProject()).getModule();
-                    return IvyUtil.createModuleRevisionId(module, WrapUtil.toMap(DependencyDescriptorFactory.PROJECT_PATH_KEY,
-                            dependency.getDependencyProject().getPath()));
-                }
-                public boolean isChanging() {
-                    return true;
-                }
-            };
-
-    private ProjectDependencyDescriptorStrategy projectDependencyDescriptorStrategy;
-
-    public ProjectDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ProjectDependencyDescriptorStrategy projectDependencyDescriptorStrategy) {
+    public ProjectDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
-        this.projectDependencyDescriptorStrategy = projectDependencyDescriptorStrategy;
     }
 
-    public DefaultDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
+    public EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
-                moduleRevisionId, false, projectDependencyDescriptorStrategy.isChanging(), dependency.isTransitive());
+        ProjectDependency projectDependency = (ProjectDependency) dependency;
+        ProjectInternal dependencyProject = (ProjectInternal) projectDependency.getDependencyProject();
+        ProjectDependencyDescriptor dependencyDescriptor = new ProjectDependencyDescriptor(parent, moduleRevisionId, false, false, dependency.isTransitive(), dependencyProject);
         addExcludesArtifactsAndDependencies(configuration, dependency, dependencyDescriptor);
         return dependencyDescriptor;
     }
@@ -73,6 +46,8 @@ public class ProjectDependencyDescriptorFactory extends AbstractDependencyDescri
     }
 
     public ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
-        return projectDependencyDescriptorStrategy.createModuleRevisionId((ProjectDependency) dependency);
+        ProjectDependency projectDependency = (ProjectDependency) dependency;
+        Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModule();
+        return IvyUtil.createModuleRevisionId(module);
     }
 }

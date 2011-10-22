@@ -149,9 +149,12 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     public void addParentSpecificArtifacts(ResolvedDependency parent, Set<ResolvedArtifact> artifacts) {
-        TreeSet<ResolvedArtifact> sortedArtifacts = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
-        sortedArtifacts.addAll(artifacts);
-        parentArtifacts.put(parent, sortedArtifacts);
+        Set<ResolvedArtifact> parentArtifacts = this.parentArtifacts.get(parent);
+        if (parentArtifacts == null) {
+            parentArtifacts = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
+            this.parentArtifacts.put(parent, parentArtifacts);
+        }
+        parentArtifacts.addAll(artifacts);
     }
 
     public void addModuleArtifact(ResolvedArtifact artifact) {

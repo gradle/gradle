@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ClientModule;
@@ -44,9 +43,9 @@ public class ClientModuleDependencyDescriptorFactory extends AbstractDependencyD
                 WrapUtil.toMap(getClientModule(dependency).CLIENT_MODULE_KEY, getClientModule(dependency).getId()));
     }
 
-    public DefaultDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
+    public EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
+        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(parent,
                 moduleRevisionId, getClientModule(dependency).isForce(),
                 false, getClientModule(dependency).isTransitive());
         addExcludesArtifactsAndDependencies(configuration, getClientModule(dependency), dependencyDescriptor);

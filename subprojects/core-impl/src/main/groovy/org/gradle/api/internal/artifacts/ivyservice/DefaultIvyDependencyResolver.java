@@ -42,7 +42,7 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver {
-    private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyResolver.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIvyDependencyResolver.class);
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolveIvyFactory ivyFactory;
     private final IvyReportConverter ivyReportTranslator;
@@ -68,7 +68,7 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
             ivyConfig.maybeTranslateIvyResolveException(e);
             throw new RuntimeException(e);
         }
-        logger.debug("Timing: Ivy resolve took {}", clock.getTime());
+        LOGGER.debug("Timing: Ivy resolve took {}", clock.getTime());
         return new ResolvedConfigurationImpl(resolveReport, configuration);
     }
 
@@ -146,7 +146,7 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
                 if (depFile != null) {
                     files.add(depFile);
                 } else {
-                    logger.debug(String.format("Resolved artifact %s contains a null value.", artifact));
+                    LOGGER.debug(String.format("Resolved artifact %s contains a null value.", artifact));
                 }
             }
             return files;
@@ -182,7 +182,6 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
         private class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
             public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values,
                                       Collection<ResolvedDependency> connectedNodes) {
-                values.addAll(node.getModuleArtifacts());
                 connectedNodes.addAll(node.getChildren());
             }
 

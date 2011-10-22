@@ -15,12 +15,10 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IvyRepository
-import spock.lang.Ignore
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 
 class IvyDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
-    @Ignore
     def "dependency includes all artifacts and runtime dependencies of referenced configuration"() {
         given:
         def module = repo.module("org.gradle", "test", "1.45")

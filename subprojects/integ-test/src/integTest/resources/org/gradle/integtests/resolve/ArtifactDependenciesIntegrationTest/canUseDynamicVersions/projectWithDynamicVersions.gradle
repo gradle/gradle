@@ -19,11 +19,14 @@ defaultTasks 'listJars'
 task listJars << {
     def compile = configurations.compile
 
-    Set jars = compile.collect { it.name } as Set
-    assert ['projectA-1.2.jar', 'projectB-1.5.jar'] as Set == jars
+    def jars = compile.collect { it.name }
+    assert ['projectA-1.2.jar', 'projectB-1.5.jar'] == jars
+
+    def artifacts = compile.resolvedConfiguration.resolvedArtifacts.collect { "$it.name-$it.version.$it.extension" }
+    assert ['projectA-1.2.jar', 'projectB-1.5.jar'] == artifacts
 
     def projectA = compile.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectA' }
-    assert '1.2'  == projectA.moduleVersion
+    assert '1.2' == projectA.moduleVersion
 
     def projectB = projectA.children.find { it.moduleName == 'projectB' }
     assert '1.5' == projectB.moduleVersion
