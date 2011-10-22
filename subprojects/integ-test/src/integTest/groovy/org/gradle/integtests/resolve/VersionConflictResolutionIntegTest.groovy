@@ -173,7 +173,7 @@ project(':tool') {
 	dependencies {
 		compile project(':api')
 		compile project(':impl')
-		compile (group: 'org', name: 'foo', version:'1.5.5') {
+		compile('org:foo:1.5.5'){
 		    force = true
 		}
 	}

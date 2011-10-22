@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import java.util.Map;
 
 /**
- * <p>A {@code DependencyHandler} is used to declare artifact dependencies. Artifact dependencies are grouped into
+ * <p>A {@code DependencyHandler} is used to declare dependencies. Dependencies are grouped into
  * configurations (see {@link org.gradle.api.artifacts.Configuration}).</p>
  *
  * <p>To declare a specific dependency for a configuration you can use the following syntax:</p>
@@ -32,16 +32,67 @@ import java.util.Map;
  * }
  * </pre>
  *
- * <p>or, to configure a dependency when it is declared, you can additionally pass a configuration closure:</p>
+ * <p>Example shows a basic way of declaring dependencies.
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * //so that we can use 'compile', 'testCompile' for dependencies
+ *
+ * dependencies {
+ *   //for dependencies found in artifact repositories use
+ *   //the gav notation, e.g. group:artifactName:version
+ *   compile 'commons-lang:commons-lang:2.6'
+ *   testCompile 'org.mockito:mockito:1.9.0-rc1'
+ *
+ *   //map-style notation:
+ *   compile group: 'com.google.code.guice', name: 'guice', version: '1.0'
+ *
+ *   //declaring arbitrary files as dependencies
+ *   compile files('hibernate.jar', 'libs/spring.jar')
+ *
+ *   //putting all jars from 'libs' onto compile classpath
+ *   compile fileTree('libs')
+ * }
+ * </pre>
+ *
+ * <h2>Advanced dependency configuration</h2>
+ * <p>To do some advanced configuration on a dependency when it is declared, you can additionally pass a configuration closure:</p>
  *
  * <pre>
  * dependencies {
- *     <i>configurationName</i> <i>dependencyNotation</i> {
+ *     <i>configurationName</i>(<i>dependencyNotation</i>){
  *         <i>configStatement1</i>
  *         <i>configStatement2</i>
  *     }
  * }
  * </pre>
+ *
+ * Example of advanced dependency declaration including:
+ * <ul>
+ * <li>forcing certain dependency version in case of the conflict</li>
+ * <li>excluding certain dependencies by name, group or both</li>
+ * <li>avoiding transitive dependencies for certain dependency</li>
+ * </ul>
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java' //so that I can declare 'compile' dependencies
+ *
+ * dependencies {
+ *   compile('org.hibernate:hibernate:3.1') {
+ *     //in case of versions conflict '3.1' version of hibernate wins:
+ *     force = true
+ *
+ *     //excluding a particular transitive dependency:
+ *     exclude module: 'cglib' //by artifact name
+ *     exclude group: 'org.jmock' //by group
+ *     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group
+ *
+ *     //disabling all transitive dependencies of this dependency
+ *     transitive = false
+ *   }
+ * }
+ * </pre>
+ *
+ * <h2>Dependency notations</h2>
  *
  * <p>There are several supported dependency notations. These are described below. For each dependency declared this
  * way, a {@link Dependency} object is created. You can use this object to query or further configure the
@@ -52,9 +103,10 @@ import java.util.Map;
  *
  * <code><i>configurationName</i> &lt;instance&gt;</code>
  *
- * <h2>External Modules</h2>
+ * <h3>External dependencies</h3>
  *
- * <p>There are 2 notations supported for declaring a dependency on an external module. One is a string notation:</p>
+ * <p>There are 2 notations supported for declaring a dependency on an external module.
+ * One is a String notation, sometimes referred as gav notation (group:artifactName:version)</p>
  *
  * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>"</code>
  *
@@ -68,7 +120,65 @@ import java.util.Map;
  * <p>External dependencies are represented by a {@link
  * org.gradle.api.artifacts.ExternalModuleDependency}.</p>
  *
- * <h2>Client Modules</h2>
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * //so that we can use 'compile', 'testCompile' for dependencies
+ *
+ * dependencies {
+ *   //for dependencies found in artifact repositories you can use
+ *   //the string notation, e.g. group:artifactName:version (gav)
+ *   compile 'commons-lang:commons-lang:2.6'
+ *   testCompile 'org.mockito:mockito:1.9.0-rc1'
+ *
+ *   //map notation:
+ *   compile group: 'com.google.code.guice', name: 'guice', version: '1.0'
+ * }
+ * </pre>
+ *
+ * <h3>Project dependencies</h3>
+ *
+ * <p>To add a project dependency, you use the following notation:
+ * <p><code><i>configurationName</i> project(':someProject')</code>
+ *
+ * <p>The notation <code>project(':projectA')</code> is similar to the syntax you use
+ * when configuring a projectA in a multi-module gradle project.
+ *
+ * <p>By default, when you declare dependency to projectA, you actually declare dependency to the 'default' configuration of the projectA.
+ * If you need to depend on a specific configuration of projectA, use map notation for projects:
+ * <p><code><i>configurationName</i> project(path: ':projectA', configuration: 'someOtherConfiguration')</code>
+ *
+ * <p>Project dependencies are represented using a {@link org.gradle.api.artifacts.ProjectDependency}.
+ *
+ * <h3>File dependencies</h3>
+ *
+ * <p>You can also add a dependency using a {@link org.gradle.api.file.FileCollection}:</p>
+ * <code><i>configurationName</i> files('a file')</code>
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ * //so that we can use 'compile', 'testCompile' for dependencies
+ *
+ * dependencies {
+ *   //declaring arbitrary files as dependencies
+ *   compile files('hibernate.jar', 'libs/spring.jar')
+ *
+ *   //putting all jars from 'libs' onto compile classpath
+ *   compile fileTree('libs')
+ * }
+ * </pre>
+ *
+ * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.SelfResolvingDependency}.</p>
+ * 
+ * <h3>Dependencies to other configurations</h3>
+ * 
+ * <p>You can add a dependency using a {@link org.gradle.api.artifacts.Configuration}.</p>
+ *
+ * <p>When the configuration is from the same project as the target configuration, the target configuration is changed
+ * to extend from the provided configuration.</p>
+ *
+ * <p>When the configuration is from a different project, a project dependency is added.</p>
+ *
+ * <h3>Client module dependencies</h3>
  *
  * <p>To add a client module to a configuration you can use the notation:</p>
  *
@@ -81,30 +191,6 @@ import java.util.Map;
  * The module notation is the same as the dependency notations described above, except that the classifier property is
  * not available. Client modules are represented using a {@link org.gradle.api.artifacts.ClientModule}.
  *
- * <h2>Projects</h2>
- *
- * <p>To add a project dependency, you use the following notation</p>
- *
- * <code><i>configurationName</i> project(':someProject')</code>
- *
- * <p>Project dependencies are represented using a {@link org.gradle.api.artifacts.ProjectDependency}.</p>
- *
- * <h2>Files</h2>
- *
- * <p>You can also add a dependency using a {@link org.gradle.api.file.FileCollection}:</p>
- * <code><i>configurationName</i> files('a file')</code>
- *
- * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.SelfResolvingDependency}.</p>
- * 
- * <h2>Configurations</h2>
- * 
- * <p>You can add a dependency using a {@link org.gradle.api.artifacts.Configuration}.</p>
- *
- * <p>When the configuration is from the same project as the target configuration, the target configuration is changed
- * to extend from the provided configuration.</p>
- *
- * <p>When the configuration is from a different project, a project dependency is added.</p>
- *
  * @author Hans Dockter
  */
 public interface DependencyHandler {
@@ -112,7 +198,9 @@ public interface DependencyHandler {
      * Adds a dependency to the given configuration.
      *
      * @param configurationName The name of the configuration.
-     * @param dependencyNotation The dependency notation, in one of the notations described above.
+     * @param dependencyNotation
+     *
+     * The dependency notation, in one of the notations described above.
      * @return The dependency.
      */
     Dependency add(String configurationName, Object dependencyNotation);
