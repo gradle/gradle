@@ -44,7 +44,7 @@ task check << {
         succeeds "check"
     }
 
-    def "dependency that references a classifier includes the artifact with the classifier and runtime dependencies of referenced module"() {
+    def "dependency that references a classifier includes the matching artifact only plus the runtime dependencies of referenced module"() {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
@@ -70,7 +70,7 @@ task check << {
         succeeds "check"
     }
 
-    def "dependency that references an artifact includes the matching artifact only and runtime dependencies of referenced module"() {
+    def "dependency that references an artifact includes the matching artifact only plus the runtime dependencies of referenced module"() {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")

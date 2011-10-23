@@ -38,12 +38,6 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canResolveDependenciesFromAFlatDir() {
-        File buildFile = testFile("projectWithFlatDir.gradle");
-        usingBuildFile(buildFile).run();
-    }
-
-    @Test
     public void canHaveConfigurationHierarchy() {
         File buildFile = testFile("projectWithConfigurationHierarchy.gradle");
         usingBuildFile(buildFile).run();
@@ -534,91 +528,6 @@ task test << {
 '''
 
         inTestDirectory().withTasks("test").run().assertTasksExecuted(":sub:jar", ":test");
-    }
-
-    @Test
-    public void resolvedProjectArtifactsContainProjectVersionInTheirNames() {
-        testFile('settings.gradle').write("include 'a', 'b'");
-        testFile('a/build.gradle') << '''
-            apply plugin: 'base'
-            configurations { compile }
-            task aJar(type: Jar) { }
-            artifacts { compile aJar }
-'''
-        testFile('b/build.gradle') << '''
-            apply plugin: 'base'
-            version = 'early'
-            configurations { compile }
-            task bJar(type: Jar) { }
-            gradle.taskGraph.whenReady { project.version = 'late' }
-            artifacts { compile bJar }
-'''
-        testFile('build.gradle') << '''
-            configurations { compile }
-            dependencies { compile project(path: ':a', configuration: 'compile'), project(path: ':b', configuration: 'compile') }
-            task test(dependsOn: configurations.compile) << {
-                assert configurations.compile.collect { it.name } == ['a.jar', 'b-late.jar']
-            }
-'''
-        inTestDirectory().withTasks('test').run()
-    }
-
-    @Test
-    public void canUseArtifactSelectorForProjectDependencies() {
-        testFile('settings.gradle').write("include 'a', 'b'");
-        testFile('a/build.gradle') << '''
-            apply plugin: 'base'
-            configurations { 'default' {} }
-            task aJar(type: Jar) { }
-            artifacts { 'default' aJar }
-'''
-        testFile('b/build.gradle') << '''
-            configurations { compile }
-            dependencies { compile(project(':a')) { artifact { name = 'a'; type = 'jar' } } }
-            task test {
-                inputs.files configurations.compile
-                doFirst {
-                    assert [project(':a').tasks.aJar.archivePath] as Set == configurations.compile.files
-                }
-            }
-'''
-        inTestDirectory().withTasks('test').run()
-    }
-
-    @Test
-    public void canHaveCycleInProjectDependencies() {
-        inTestDirectory().withTasks('listJars').run();
-    }
-
-    @Test
-    public void canHaveNonTransitiveProjectDependencies() {
-        repo().module("group", "externalA", 1.5).publish()
-
-        testFile('settings.gradle') << "include 'a', 'b'"
-
-        testFile('build.gradle') << '''
-allprojects {
-    apply plugin: 'java'
-    repositories { maven { url rootProject.uri('repo') } }
-}
-project(':a') {
-    dependencies {
-        compile 'group:externalA:1.5'
-        compile files('libs/externalB.jar')
-    }
-}
-project(':b') {
-    configurations.compile.transitive = false
-    dependencies {
-        compile project(':a') { transitive = false }
-    }
-    task listJars << {
-        assert configurations.compile.collect { it.name } == ['a.jar']
-    }
-}
-'''
-
-        inTestDirectory().withTasks('listJars').run()
     }
 
     MavenRepository repo() {
