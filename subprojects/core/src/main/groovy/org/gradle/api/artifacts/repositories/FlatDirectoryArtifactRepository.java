@@ -45,6 +45,15 @@ public interface FlatDirectoryArtifactRepository extends ArtifactRepository {
     Set<File> getDirs();
 
     /**
+     * Adds a directory where this repository will look for artifacts.
+     *
+     * <p>The provided value are evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     *
+     * @param dir the directory
+     */
+    void dir(Object dir);
+
+    /**
      * Adds some directories where this repository will look for artifacts.
      *
      * <p>The provided values are evaluated as for {@link org.gradle.api.Project#files(Object...)}.

@@ -52,6 +52,10 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
         this.dirs = toList(dirs);
     }
 
+    public void dir(Object dir) {
+        dirs(dir);
+    }
+
     public void dirs(Object... dirs) {
         this.dirs.addAll(Arrays.asList(dirs));
     }
