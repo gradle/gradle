@@ -74,8 +74,7 @@ public class IvyConfig {
     public void maybeTranslateIvyResolveException(Exception e) {
         if (e instanceof StrictConflictException) {
             throw new GradleException("Your dependencies exhibit a version conflict. "
-                    + "The conflict resolution strategy is set to: " + resolutionStrategy
-                    + ". Details: " + e.getMessage(), e);
+                    + "The conflict resolution strategy is set to: " + resolutionStrategy + ".", e);
         }
     }
 }

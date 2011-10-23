@@ -23,29 +23,30 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
-import org.gradle.util.Clock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class ResolveModuleDescriptorConverter extends AbstractModuleDescriptorConverter implements ModuleDescriptorConverter {
-    private static Logger logger = LoggerFactory.getLogger(ResolveModuleDescriptorConverter.class);
+public class ResolveModuleDescriptorConverter implements ModuleDescriptorConverter {
+    private final ModuleDescriptorFactory moduleDescriptorFactory;
+    private final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
+    private final DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
 
     public ResolveModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
                                             ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
                                             DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter) {
-        super(moduleDescriptorFactory, configurationsToModuleDescriptorConverter, dependenciesToModuleDescriptorConverter);
+        this.moduleDescriptorFactory = moduleDescriptorFactory;
+        this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
+        this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
     }
 
     public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module, IvyConfig ivyConfig) {
         assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
-        Clock clock = new Clock();
-        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, ivyConfig);
-        logger.debug("Timing: Ivy convert for resolve took {}", clock.getTime());
+        DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
+        configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations, ivyConfig);
         return moduleDescriptor;
     }
 }
